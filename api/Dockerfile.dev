@@ -1,19 +1,24 @@
-# Stage: development
+# Dockerfile.dev (pour le service API)
 FROM node:20-alpine AS dev
 WORKDIR /app
+
+# Install system tools for Prisma (openssl, etc.)
+RUN apk add --no-cache openssl
 
 # Install dependencies
 COPY package*.json ./
 RUN npm install
 
-# Copy the source code
+# Copy everything
 COPY . .
 
-# Expose the API port
+# Run Prisma generation + migration
+RUN npx prisma generate
+
+# Expose port
 EXPOSE 3000
 
-# Set environment variable for file watching
+# Enable file watching in dev
 ENV CHOKIDAR_USEPOLLING=true
 
-# Start the API in development mode
-CMD ["npm", "run", "dev"] 
+CMD ["npm", "run", "dev"]

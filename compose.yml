@@ -1,0 +1,52 @@
+name: BagTrip
+
+services:
+  db:
+    image: postgres:15
+    container_name: BagTrip-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    container_name: BagTrip-api
+    build:
+      context: ./api
+      dockerfile: Dockerfile.dev
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./api/src:/app/src
+      - ./api/prisma:/app/prisma
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - DATABASE_URL=${DATABASE_URL}
+    command: >
+      sh -c "
+        npx prisma generate &&
+        npx prisma migrate dev --name init &&
+        npm run dev
+      "
+
+  admin-panel:
+    container_name: BagTrip-admin-panel
+    build:
+      context: ./admin-panel
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./admin-panel/src:/app/src
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+
+volumes:
+  postgres_data:
