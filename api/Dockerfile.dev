@@ -1,0 +1,19 @@
+# Stage: development
+FROM node:20-alpine AS dev
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy the source code
+COPY . .
+
+# Expose the API port
+EXPOSE 3000
+
+# Set environment variable for file watching
+ENV CHOKIDAR_USEPOLLING=true
+
+# Start the API in development mode
+CMD ["npm", "run", "dev"] 
