@@ -19,7 +19,7 @@ install-pre-commit:
 	@echo "📦 Installing pre-commit..."
 	@if ! command -v pre-commit &> /dev/null; then \
 		echo "Installing pre-commit via pip..."; \
-		pip install pre-commit; \
+		python3 -m pip install pre-commit; \
 	else \
 		echo "pre-commit already installed"; \
 	fi
