@@ -1,0 +1,18 @@
+minimum_pre_commit_version: "3.0.0"
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+  - repo: local
+    hooks:
+      - id: api-lint-format
+        name: "api: npm run format && npm run lint"
+        entry: bash -lc 'cd api && npm run format && npm run lint'
+        language: system
+        pass_filenames: false
+      - id: admin-panel-lint-format
+        name: "admin-panel: npm run format && npm run lint"
+        entry: bash -lc 'cd admin-panel && npm run format && npm run lint'
+        language: system
+        pass_filenames: false
