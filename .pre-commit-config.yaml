@@ -16,3 +16,8 @@ repos:
         entry: bash -lc 'cd admin-panel && npm run format && npm run lint'
         language: system
         pass_filenames: false
+      - id: mobile-lint-format
+        name: "mobile: flutter analyze && dart format . && dart fix --apply"
+        entry: bash -lc 'cd mobile/bagtrip && flutter analyze && dart format . && dart fix --apply'
+        language: system
+        pass_filenames: false
