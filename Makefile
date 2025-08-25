@@ -34,3 +34,8 @@ install-deps:
 	@echo "📦 Installing Admin Panel dependencies..."
 	@cd admin-panel && npm install
 	@echo "✅ All dependencies installed successfully"
+
+install-bloc-extension:
+	@echo "🔧 Installing Bloc extension for VS Code..."
+	code --install-extension felixangelov.bloc --force
+	@echo "✅ Bloc extension installed successfully"
