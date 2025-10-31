@@ -1,0 +1,124 @@
+name: 🔐 Security Checks
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 2 * * 1' # Run every Monday at 2 AM
+
+jobs:
+  # ========================================
+  # 🔍 DEPENDENCY SECURITY AUDIT
+  # ========================================
+  audit:
+    name: 🔍 Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+
+      - name: 🔍 Run npm audit
+        run: |
+          npm audit --audit-level=moderate || {
+            echo "❌ Security vulnerabilities found!"
+            npm audit --audit-level=moderate --json > audit-results.json
+            exit 1
+          }
+
+      - name: 📊 Upload audit results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit-results
+          path: audit-results.json
+          retention-days: 30
+
+  # ========================================
+  # 🔒 SECRETS DETECTION
+  # ========================================
+  secrets-scan:
+    name: 🔒 Secrets Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔍 Run TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # ========================================
+  # 🛡️ CODEQL SECURITY ANALYSIS
+  # ========================================
+  codeql:
+    name: 🛡️ CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['javascript']
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v4
+
+      - name: 🛡️ Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+
+      - name: 🏗️ Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: 🔍 Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
+
+  # ========================================
+  # 📋 SECURITY REPORT
+  # ========================================
+  security-report:
+    name: 📋 Security Summary
+    runs-on: ubuntu-latest
+    needs: [audit, secrets-scan, codeql]
+    if: always()
+    steps:
+      - name: 📋 Generate Security Report
+        run: |
+          echo "## 🔐 Security Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status | Description |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|-------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependency Audit | ${{ needs.audit.result == 'success' && '✅ Passed' || '❌ Failed' }} | Vérifie les vulnérabilités dans les dépendances |" >> $GITHUB_STEP_SUMMARY
+          echo "| Secrets Detection | ${{ needs.secrets-scan.result == 'success' && '✅ Passed' || '❌ Failed' }} | Détecte les secrets dans le code |" >> $GITHUB_STEP_SUMMARY
+          echo "| CodeQL Analysis | ${{ needs.codeql.result == 'success' && '✅ Passed' || '❌ Failed' }} | Analyse statique de sécurité du code |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ needs.audit.result }}" != "success" ]] || \
+             [[ "${{ needs.secrets-scan.result }}" != "success" ]] || \
+             [[ "${{ needs.codeql.result }}" != "success" ]]; then
+            echo "**🚨 SECURITY ISSUES DETECTED**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Veuillez corriger les problèmes de sécurité détectés avant de merger." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**✅ ALL SECURITY CHECKS PASSED**" >> $GITHUB_STEP_SUMMARY
+          fi

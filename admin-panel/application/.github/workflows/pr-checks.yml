@@ -1,0 +1,257 @@
+name: 🔍 Pull Request Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  # ========================================
+  # 📋 PR VALIDATION
+  # ========================================
+  pr-validation:
+    name: 📋 PR Validation
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔍 Check PR title format
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            chore
+            ci
+            build
+          requireScope: false
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: |
+            The subject "{subject}" found in the pull request title "{title}"
+            doesn't match the configured pattern. Please ensure that the subject
+            doesn't start with an uppercase character.
+
+      - name: 📝 Check PR description
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+
+            const body = pr.body || '';
+            const requiredSections = [
+              '## 📋 Description',
+              '### 🚀 Type de changement',
+              '## 📝 Changements détaillés',
+              '## 🧪 Comment tester',
+              '## ✅ Checklist'
+            ];
+
+            const missingSections = requiredSections.filter(section => 
+              !body.includes(section)
+            );
+
+            if (missingSections.length > 0) {
+              const message = `❌ PR description is missing required sections:\n${missingSections.map(s => `- ${s}`).join('\n')}`;
+              core.setFailed(message);
+            } else {
+              console.log('✅ PR description contains all required sections');
+            }
+
+  # ========================================
+  # 📊 SIZE ANALYSIS
+  # ========================================
+  size-analysis:
+    name: 📊 PR Size Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📊 Analyze PR size
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { execSync } = require('child_process');
+            
+            const stats = execSync('git diff --stat origin/main...HEAD', { encoding: 'utf8' });
+            const lines = stats.trim().split('\n');
+            const summary = lines[lines.length - 1];
+            
+            const match = summary.match(/(\d+) files? changed(?:, (\d+) insertions?\(\+\))?(?:, (\d+) deletions?\(-\))?/);
+            
+            if (match) {
+              const files = parseInt(match[1]);
+              const insertions = parseInt(match[2] || '0');
+              const deletions = parseInt(match[3] || '0');
+              const totalChanges = insertions + deletions;
+              
+              let size = 'XS';
+              let color = 'green';
+              let emoji = '🟢';
+              
+              if (totalChanges > 1000) {
+                size = 'XL';
+                color = 'red';
+                emoji = '🔴';
+              } else if (totalChanges > 500) {
+                size = 'L';
+                color = 'orange';
+                emoji = '🟠';
+              } else if (totalChanges > 100) {
+                size = 'M';
+                color = 'yellow';
+                emoji = '🟡';
+              } else if (totalChanges > 10) {
+                size = 'S';
+                color = 'lightblue';
+                emoji = '🔵';
+              }
+              
+              const comment = `## 📊 PR Size Analysis\n\n${emoji} **Size: ${size}**\n\n- **Files changed:** ${files}\n- **Lines added:** ${insertions}\n- **Lines removed:** ${deletions}\n- **Total changes:** ${totalChanges}\n\n${totalChanges > 500 ? '⚠️ This is a large PR. Consider breaking it down into smaller chunks.' : '✅ Good size for review!'}`;
+              
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+              
+              await github.rest.issues.addLabels({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: [`size/${size.toLowerCase()}`]
+              });
+            }
+
+  # ========================================
+  # 🔍 CHANGE DETECTION
+  # ========================================
+  change-detection:
+    name: 🔍 Change Detection
+    runs-on: ubuntu-latest
+    outputs:
+      has-code-changes: ${{ steps.changes.outputs.code }}
+      has-config-changes: ${{ steps.changes.outputs.config }}
+      has-docs-changes: ${{ steps.changes.outputs.docs }}
+      has-test-changes: ${{ steps.changes.outputs.tests }}
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔍 Detect changes
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            code:
+              - 'src/**/*.{ts,tsx,js,jsx}'
+              - 'components/**/*.{ts,tsx,js,jsx}'
+              - 'pages/**/*.{ts,tsx,js,jsx}'
+              - 'app/**/*.{ts,tsx,js,jsx}'
+            config:
+              - '*.{json,js,ts,yml,yaml}'
+              - '.env*'
+              - 'Dockerfile*'
+              - 'docker-compose*'
+            docs:
+              - '**/*.md'
+              - 'docs/**/*'
+            tests:
+              - 'cypress/**/*'
+              - '**/*.test.{ts,tsx,js,jsx}'
+              - '**/*.spec.{ts,tsx,js,jsx}'
+
+  # ========================================
+  # 🎯 CONDITIONAL QUALITY CHECKS
+  # ========================================
+  conditional-checks:
+    name: 🎯 Conditional Quality Checks
+    runs-on: ubuntu-latest
+    needs: [change-detection]
+    if: needs.change-detection.outputs.has-code-changes == 'true'
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 📄 Create .env.local
+        run: cp .env.example .env.local
+
+      - name: 🎯 Run TypeScript check
+        run: npm run type-check
+
+      - name: 🔍 Run ESLint
+        run: npm run lint
+
+      - name: 💅 Check formatting
+        run: npm run format:check
+
+      - name: 🏗️ Test build
+        run: npm run build
+
+  # ========================================
+  # 📝 PR SUMMARY
+  # ========================================
+  pr-summary:
+    name: 📝 PR Summary
+    runs-on: ubuntu-latest
+    needs: [pr-validation, size-analysis, change-detection, conditional-checks]
+    if: always()
+    steps:
+      - name: 📝 Generate PR Summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const summary = `## 📋 Pull Request Summary
+            
+            ### ✅ Validation Status
+            
+            | Check | Status |
+            |-------|--------|
+            | PR Format | ${{ needs.pr-validation.result == 'success' && '✅ Valid' || '❌ Invalid' }} |
+            | Size Analysis | ${{ needs.size-analysis.result == 'success' && '✅ Completed' || '❌ Failed' }} |
+            | Code Quality | ${{ needs.conditional-checks.result == 'success' && '✅ Passed' || needs.conditional-checks.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |
+            
+            ### 🔍 Changes Detected
+            
+            - **Code Changes:** ${{ needs.change-detection.outputs.has-code-changes == 'true' && '✅' || '❌' }}
+            - **Config Changes:** ${{ needs.change-detection.outputs.has-config-changes == 'true' && '✅' || '❌' }}  
+            - **Documentation:** ${{ needs.change-detection.outputs.has-docs-changes == 'true' && '✅' || '❌' }}
+            - **Tests:** ${{ needs.change-detection.outputs.has-test-changes == 'true' && '✅' || '❌' }}
+            
+            ### 🚀 Next Steps
+            
+            ${needs.conditional-checks.result == 'success' ? 
+              '✅ All checks passed! Ready for review.' : 
+              '❌ Some checks failed. Please fix issues before review.'
+            }
+            
+            ---
+            
+            *This summary is automatically generated by GitHub Actions*`;
+            
+            core.summary.addRaw(summary);
+            await core.summary.write();
