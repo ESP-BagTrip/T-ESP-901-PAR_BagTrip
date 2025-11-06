@@ -1,7 +1,9 @@
 import express from 'express';
+import swaggerUi from 'swagger-ui-express';
 import { routes } from './routes';
 import { errorHandler } from './middleware/error-handler';
 import { requestLogger } from './middleware/request-logger';
+import { swaggerSpec } from '../config/swagger';
 
 export const createApp = () => {
   const app = express();
@@ -10,6 +12,9 @@ export const createApp = () => {
 
   // Add request logging
   app.use(requestLogger);
+
+  // Swagger documentation
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
   app.use('/api', routes());
 

@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint . --fix",
+    "lint": "npx eslint . --fix",
     "preview": "vite preview",
-    "format": "prettier --write ."
+    "format": "npx prettier --write ."
   },
   "dependencies": {
     "react": "^19.1.0",
