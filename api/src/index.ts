@@ -1,13 +1,13 @@
-import express from 'express';
+import 'dotenv/config';
+import { createApp } from './app/app';
+import { env } from './config/env';
+import { logger } from './utils/logger';
 
-const app = express();
-app.use(express.json());
+const app = createApp();
 
-app.get('/', (req, res) => {
-  res.json({ message: 'Hello World' });
+app.listen(env.PORT, () => {
+  logger.info(`API listening on port ${env.PORT}`);
+  logger.info('Application started successfully');
 });
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server on http://localhost:${PORT}`));
 
 export default app;

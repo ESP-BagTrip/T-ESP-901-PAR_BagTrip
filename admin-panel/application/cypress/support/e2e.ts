@@ -30,7 +30,7 @@ declare global {
        * @example cy.loginAsAdmin()
        */
       loginAsAdmin(): Chainable<Element>
-      
+
       /**
        * Custom command to visit admin dashboard
        * @example cy.visitDashboard()

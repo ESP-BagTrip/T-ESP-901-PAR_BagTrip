@@ -2,17 +2,17 @@ export const USER_ROLES = {
   SUPER_ADMIN: 'super_admin',
   ADMIN: 'admin',
   USER: 'user',
-} as const;
+} as const
 
 export const FEEDBACK_CATEGORIES = {
   GENERAL: 'general',
   BUG: 'bug',
-} as const;
+} as const
 
 export const FEEDBACK_STATUS = {
   PENDING: 'pending',
   RESOLVED: 'resolved',
-} as const;
+} as const
 
 export const API_ENDPOINTS = {
   AUTH: {
@@ -27,15 +27,15 @@ export const API_ENDPOINTS = {
   },
   USERS: '/admin/users',
   FEEDBACKS: '/admin/feedbacks',
-} as const;
+} as const
 
 export const PAGINATION_DEFAULTS = {
   PAGE: 1,
   LIMIT: 10,
-} as const;
+} as const
 
 export const DATE_FORMATS = {
   DISPLAY: 'dd/MM/yyyy',
   DISPLAY_WITH_TIME: 'dd/MM/yyyy HH:mm',
   API: 'yyyy-MM-dd',
-} as const;
+} as const
