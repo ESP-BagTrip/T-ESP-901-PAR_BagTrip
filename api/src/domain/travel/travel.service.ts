@@ -3,6 +3,7 @@ import {
   LocationIdSearchParams,
   LocationKeywordSearchParams,
   LocationSearchResult,
+  LocationNearestSearchParams,
 } from './travel.types';
 import { AppError } from '../../utils/errors';
 import { Location } from '../../integrations/amadeus/amadeus.types';
@@ -29,4 +30,19 @@ export async function searchLocationById(params: LocationIdSearchParams): Promis
 
   const location = (await amadeusClient.searchLocationById({ id: params.id })) as Location;
   return location;
+}
+
+export async function searchLocationNearest(
+  params: LocationNearestSearchParams
+): Promise<LocationSearchResult> {
+  if (!params.latitude || !params.longitude) {
+    throw new AppError('INVALID_QUERY', 400, 'latitude and longitude are required');
+  }
+
+  const locations = (await amadeusClient.searchLocationNearest({
+    latitude: params.latitude,
+    longitude: params.longitude,
+  })) as Location[];
+
+  return { locations, count: locations.length };
 }

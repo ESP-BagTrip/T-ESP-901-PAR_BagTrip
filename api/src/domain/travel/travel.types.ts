@@ -13,3 +13,8 @@ export type LocationSearchResult = {
 export type LocationIdSearchParams = {
   id: string;
 };
+
+export type LocationNearestSearchParams = {
+  latitude: number;
+  longitude: number;
+};

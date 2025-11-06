@@ -2,7 +2,12 @@ import { http } from '../../config/http';
 import { env } from '../../config/env';
 import { makeBreaker } from '../../config/circuit';
 import { logger } from '../../utils/logger';
-import { LocationKeywordSearchQuery, Location, LocationIdSearchQuery } from './amadeus.types';
+import {
+  LocationKeywordSearchQuery,
+  Location,
+  LocationIdSearchQuery,
+  LocationNearestSearchQuery,
+} from './amadeus.types';
 
 /**
  * Auth OAuth2 client_credentials avec cache mémoire simple.
@@ -145,18 +150,60 @@ async function _searchLocationById(q: LocationIdSearchQuery): Promise<Location> 
   }
 }
 
+async function _searchLocationNearest(q: LocationNearestSearchQuery): Promise<Location[]> {
+  logger.debug('Starting location nearest search', { query: q });
+  const token = await fetchToken();
+
+  const url = `${env.AMADEUS_BASE_URL}/v1/reference-data/locations/airports`;
+  const params: any = q;
+
+  try {
+    logger.info('Making Amadeus location nearest search request', { url, params });
+    const res = await http.get(url, {
+      headers: { Authorization: `Bearer ${token}` },
+      params,
+    });
+
+    logger.debug('Amadeus location nearest search response', {
+      status: res.status,
+      statusText: res.statusText,
+      data: res.data,
+    });
+
+    const locations = res.data?.data ?? [];
+
+    logger.info('Location nearest search completed successfully', {
+      locationsCount: locations.length,
+    });
+
+    return locations;
+  } catch (error: any) {
+    logger.error('Amadeus location nearest search failed', error);
+    const err: any = new Error('Amadeus location nearest search failed');
+    err.detail = error.response?.data || error.message;
+    err.status = error.response?.status || 502;
+    throw err;
+  }
+}
+
 // Circuit breakers
-const locationBreaker = makeBreaker(_searchLocationsByKeyword);
+const locationByKeywordBreaker = makeBreaker(_searchLocationsByKeyword);
 const locationByIdBreaker = makeBreaker(_searchLocationById);
+const locationNearestBreaker = makeBreaker(_searchLocationNearest);
 
 export const amadeusClient = {
   // Location by keyword
-  searchLocationsByKeyword: (q: LocationKeywordSearchQuery) => locationBreaker.fire(q),
-  resetLocationByKeywordBreaker: () => locationBreaker.close(),
-  getLocationByKeywordBreakerStats: () => locationBreaker.stats,
+  searchLocationsByKeyword: (q: LocationKeywordSearchQuery) => locationByKeywordBreaker.fire(q),
+  resetLocationByKeywordBreaker: () => locationByKeywordBreaker.close(),
+  getLocationByKeywordBreakerStats: () => locationByKeywordBreaker.stats,
 
   // Location by id
   searchLocationById: (q: LocationIdSearchQuery) => locationByIdBreaker.fire(q),
   resetLocationByIdBreaker: () => locationByIdBreaker.close(),
   getLocationByIdBreakerStats: () => locationByIdBreaker.stats,
+
+  // Location nearest
+  searchLocationNearest: (q: LocationNearestSearchQuery) => locationNearestBreaker.fire(q),
+  resetLocationNearestBreaker: () => locationNearestBreaker.close(),
+  getLocationNearestBreakerStats: () => locationNearestBreaker.stats,
 };

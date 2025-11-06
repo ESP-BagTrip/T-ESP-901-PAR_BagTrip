@@ -1,7 +1,15 @@
 import { Router } from 'express';
 import { validate } from '../../app/middleware/validate';
-import { locationKeywordSearchQuerySchema, locationIdSearchQuerySchema } from './travel.validators';
-import { searchLocationsByKeyword, searchLocationById } from './travel.controller';
+import {
+  locationKeywordSearchQuerySchema,
+  locationIdSearchQuerySchema,
+  locationNearestSearchQuerySchema,
+} from './travel.validators';
+import {
+  searchLocationsByKeyword,
+  searchLocationById,
+  searchLocationNearest,
+} from './travel.controller';
 
 const r = Router();
 
@@ -51,6 +59,50 @@ r.get('/locations', validate(locationKeywordSearchQuerySchema), searchLocationsB
 
 /**
  * @swagger
+ * /api/travel/locations/nearest:
+ *   get:
+ *     summary: Search for locations nearest to a given latitude and longitude
+ *     tags: [Travel]
+ *     parameters:
+ *       - in: query
+ *         name: latitude
+ *         required: true
+ *         schema:
+ *           type: number
+ *         description: Latitude
+ *         example: 49.0000
+ *       - in: query
+ *         name: longitude
+ *         required: true
+ *         schema:
+ *           type: number
+ *         description: Longitude
+ *         example: 2.55
+ *     responses:
+ *       200:
+ *         description: List of matching locations
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LocationSearchResult'
+ *       400:
+ *         description: Bad request - Invalid query parameters
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+// GET /api/travel/locations/nearest?latitude=48.8566&longitude=2.3522
+r.get('/locations/nearest', validate(locationNearestSearchQuerySchema), searchLocationNearest);
+
+/**
+ * @swagger
  * /api/travel/locations/{id}:
  *   get:
  *     summary: Search for a location by id
@@ -85,5 +137,4 @@ r.get('/locations', validate(locationKeywordSearchQuerySchema), searchLocationsB
  */
 // GET /api/travel/locations/{id}
 r.get('/locations/:id', validate(locationIdSearchQuerySchema), searchLocationById);
-
 export default r;

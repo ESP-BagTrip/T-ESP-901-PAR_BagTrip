@@ -7,6 +7,11 @@ export type LocationIdSearchQuery = {
   id: string;
 };
 
+export type LocationNearestSearchQuery = {
+  latitude: number;
+  longitude: number;
+};
+
 export type Location = {
   type: string;
   subType: string;

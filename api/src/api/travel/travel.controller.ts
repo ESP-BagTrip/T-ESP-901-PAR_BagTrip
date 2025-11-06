@@ -23,3 +23,16 @@ export async function searchLocationById(req: Request, res: Response, next: Next
     next(e);
   }
 }
+
+export async function searchLocationNearest(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { latitude, longitude } = req.query as any;
+    const result = await svc.searchLocationNearest({
+      latitude: Number(latitude),
+      longitude: Number(longitude),
+    });
+    res.json(result);
+  } catch (e) {
+    next(e);
+  }
+}
