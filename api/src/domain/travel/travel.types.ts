@@ -1,6 +1,6 @@
 import { Location } from '../../integrations/amadeus/amadeus.types';
 
-export type LocationSearchParams = {
+export type LocationKeywordSearchParams = {
   subType: string; // "CITY,AIRPORT"
   keyword: string; // search keyword like "paris"
 };
@@ -8,4 +8,8 @@ export type LocationSearchParams = {
 export type LocationSearchResult = {
   locations: Location[];
   count: number;
+};
+
+export type LocationIdSearchParams = {
+  id: string;
 };

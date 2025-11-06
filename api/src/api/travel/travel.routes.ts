@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { validate } from '../../app/middleware/validate';
-import { locationSearchQuerySchema } from './travel.validators';
-import { searchLocations } from './travel.controller';
+import { locationKeywordSearchQuerySchema, locationIdSearchQuerySchema } from './travel.validators';
+import { searchLocationsByKeyword, searchLocationById } from './travel.controller';
 
 const r = Router();
 
@@ -47,6 +47,43 @@ const r = Router();
  *               $ref: '#/components/schemas/Error'
  */
 // GET /api/travel/locations?subType=CITY,AIRPORT&keyword=paris
-r.get('/locations', validate(locationSearchQuerySchema), searchLocations);
+r.get('/locations', validate(locationKeywordSearchQuerySchema), searchLocationsByKeyword);
+
+/**
+ * @swagger
+ * /api/travel/locations/{id}:
+ *   get:
+ *     summary: Search for a location by id
+ *     tags: [Travel]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Location id
+ *         example: CMUC
+ *     responses:
+ *       200:
+ *         description: Location details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Location'
+ *       400:
+ *         description: Bad request - Invalid query parameters
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+// GET /api/travel/locations/{id}
+r.get('/locations/:id', validate(locationIdSearchQuerySchema), searchLocationById);
 
 export default r;

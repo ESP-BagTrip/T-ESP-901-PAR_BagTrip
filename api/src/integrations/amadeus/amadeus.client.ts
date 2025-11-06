@@ -2,7 +2,7 @@ import { http } from '../../config/http';
 import { env } from '../../config/env';
 import { makeBreaker } from '../../config/circuit';
 import { logger } from '../../utils/logger';
-import { FlightOfferQuery, FlightOffer, LocationSearchQuery, Location } from './amadeus.types';
+import { LocationKeywordSearchQuery, Location, LocationIdSearchQuery } from './amadeus.types';
 
 /**
  * Auth OAuth2 client_credentials avec cache mémoire simple.
@@ -83,82 +83,14 @@ async function fetchToken(): Promise<string> {
 }
 
 /**
- * Appel Flight Offers v2: GET /v2/shopping/flight-offers
- */
-async function _searchFlightOffers(q: FlightOfferQuery): Promise<FlightOffer[]> {
-  logger.debug('Starting flight search', { query: q });
-  const token = await fetchToken();
-
-  const url = `${env.AMADEUS_BASE_URL}/v2/shopping/flight-offers`;
-  const params: any = {
-    originLocationCode: q.originLocationCode,
-    destinationLocationCode: q.destinationLocationCode,
-    departureDate: q.departureDate,
-    adults: q.adults ?? 1,
-  };
-  if (q.currencyCode) params.currencyCode = q.currencyCode;
-  if (q.nonStop !== undefined) params.nonStop = q.nonStop;
-  if (q.max !== undefined) params.max = q.max;
-
-  try {
-    logger.info('Making Amadeus flight search request', { url, params });
-    const res = await http.get(url, {
-      headers: { Authorization: `Bearer ${token}` },
-      params,
-    });
-
-    logger.debug('Amadeus flight search response', {
-      status: res.status,
-      statusText: res.statusText,
-      dataCount: res.data?.data?.length || 0,
-    });
-
-    // normalisation légère
-    const data = res.data?.data ?? [];
-    const offers = data.map((o: any) => ({
-      id: o.id,
-      price: { total: o.price?.total, currency: o.price?.currency },
-      itineraries: (o.itineraries || []).map((it: any) => ({
-        duration: it.duration,
-        segments: (it.segments || []).map((s: any) => ({
-          departure: s.departure,
-          arrival: s.arrival,
-          carrierCode: s.carrierCode,
-          number: s.number,
-        })),
-      })),
-    }));
-
-    logger.info('Flight search completed successfully', { offersCount: offers.length });
-    return offers;
-  } catch (error: any) {
-    logger.error('Amadeus flight search failed', {
-      message: error.message,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      url: error.config?.url,
-      stack: error.stack,
-    });
-    const err: any = new Error('Amadeus flight search failed');
-    err.detail = error.response?.data || error.message;
-    err.status = error.response?.status || 502;
-    throw err;
-  }
-}
-
-/**
  * Appel Reference Data Locations: GET /v1/reference-data/locations
  */
-async function _searchLocations(q: LocationSearchQuery): Promise<Location[]> {
-  logger.debug('Starting location search', { query: q });
+async function _searchLocationsByKeyword(q: LocationKeywordSearchQuery): Promise<Location[]> {
+  logger.debug('Starting location search by keyword', { query: q });
   const token = await fetchToken();
 
   const url = `${env.AMADEUS_BASE_URL}/v1/reference-data/locations`;
-  const params: any = {
-    subType: q.subType,
-    keyword: q.keyword,
-  };
+  const params: any = q;
 
   try {
     logger.info('Making Amadeus location search request', { url, params });
@@ -173,33 +105,39 @@ async function _searchLocations(q: LocationSearchQuery): Promise<Location[]> {
       dataCount: res.data?.data?.length || 0,
     });
 
-    // normalisation légère
-    const data = res.data?.data ?? [];
-    const locations = data.map((l: any) => ({
-      type: l.type,
-      subType: l.subType,
-      name: l.name,
-      detailedName: l.detailedName,
-      id: l.id,
-      self: l.self,
-      timeZoneOffset: l.timeZoneOffset,
-      iataCode: l.iataCode,
-      geoCode: l.geoCode,
-      address: l.address,
-      analytics: l.analytics,
-    }));
+    const locations = res.data?.data ?? [];
 
     logger.info('Location search completed successfully', { locationsCount: locations.length });
     return locations;
   } catch (error: any) {
-    logger.error('Amadeus location search failed', {
-      message: error.message,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      url: error.config?.url,
-      stack: error.stack,
+    logger.error('Amadeus location search failed', error);
+    const err: any = new Error('Amadeus location search failed');
+    err.detail = error.response?.data || error.message;
+    err.status = error.response?.status || 502;
+    throw err;
+  }
+}
+
+async function _searchLocationById(q: LocationIdSearchQuery): Promise<Location> {
+  logger.debug('Starting location search by id', { query: q });
+  const token = await fetchToken();
+
+  const url = `${env.AMADEUS_BASE_URL}/v1/reference-data/locations/${q.id}`;
+  try {
+    logger.info('Making Amadeus location search request', { url });
+    const res = await http.get(url, {
+      headers: { Authorization: `Bearer ${token}` },
     });
+    logger.debug('Amadeus location search response', {
+      status: res.status,
+      statusText: res.statusText,
+      data: res.data,
+    });
+    const location = res.data?.data ?? null;
+    logger.info('Location search completed successfully', { location });
+    return location;
+  } catch (error: any) {
+    logger.error('Amadeus location search failed', error);
     const err: any = new Error('Amadeus location search failed');
     err.detail = error.response?.data || error.message;
     err.status = error.response?.status || 502;
@@ -208,17 +146,17 @@ async function _searchLocations(q: LocationSearchQuery): Promise<Location[]> {
 }
 
 // Circuit breakers
-const flightOffersBreaker = makeBreaker(_searchFlightOffers);
-const locationBreaker = makeBreaker(_searchLocations);
+const locationBreaker = makeBreaker(_searchLocationsByKeyword);
+const locationByIdBreaker = makeBreaker(_searchLocationById);
 
 export const amadeusClient = {
-  // Flight Offers
-  searchFlightOffers: (q: FlightOfferQuery) => flightOffersBreaker.fire(q),
-  resetFlightOffersBreaker: () => flightOffersBreaker.close(),
-  getFlightOffersBreakerStats: () => flightOffersBreaker.stats,
+  // Location by keyword
+  searchLocationsByKeyword: (q: LocationKeywordSearchQuery) => locationBreaker.fire(q),
+  resetLocationByKeywordBreaker: () => locationBreaker.close(),
+  getLocationByKeywordBreakerStats: () => locationBreaker.stats,
 
-  // Location
-  searchLocations: (q: LocationSearchQuery) => locationBreaker.fire(q),
-  resetLocationBreaker: () => locationBreaker.close(),
-  getLocationBreakerStats: () => locationBreaker.stats,
+  // Location by id
+  searchLocationById: (q: LocationIdSearchQuery) => locationByIdBreaker.fire(q),
+  resetLocationByIdBreaker: () => locationByIdBreaker.close(),
+  getLocationByIdBreakerStats: () => locationByIdBreaker.stats,
 };
