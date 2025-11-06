@@ -8,12 +8,12 @@ repos:
     hooks:
       - id: api-lint-format
         name: "api: npm run format && npm run lint"
-        entry: bash -lc 'cd api && npm run format && npm run lint'
+        entry: bash -lc 'cd api && [ ! -d node_modules ] && npm install || true; npm run format && npm run lint'
         language: system
         pass_filenames: false
       - id: admin-panel-lint-format
         name: "admin-panel: npm run format && npm run lint"
-        entry: bash -lc 'cd admin-panel && npm run format && npm run lint'
+        entry: bash -lc 'cd admin-panel/application && [ ! -d node_modules ] && npm install || true; npm run format && npm run lint'
         language: system
         pass_filenames: false
       - id: mobile-lint-format

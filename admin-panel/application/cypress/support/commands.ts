@@ -17,7 +17,7 @@ Cypress.Commands.add('loginAsAdmin', () => {
       email: 'admin@bagtrip.com',
       password: 'admin123',
     },
-  }).then((response) => {
+  }).then(response => {
     window.localStorage.setItem('admin_token', response.body.token)
   })
 })

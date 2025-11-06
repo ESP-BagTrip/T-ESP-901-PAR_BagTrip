@@ -1,15 +1,11 @@
-'use client';
+'use client'
 
-import { QueryProvider } from './QueryProvider';
+import { QueryProvider } from './QueryProvider'
 
 interface ProvidersProps {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 export function Providers({ children }: ProvidersProps) {
-  return (
-    <QueryProvider>
-      {children}
-    </QueryProvider>
-  );
+  return <QueryProvider>{children}</QueryProvider>
 }

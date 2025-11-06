@@ -19,6 +19,7 @@
 ## 🔗 Issue liée
 
 <!-- Si applicable, ajoutez le lien vers l'issue -->
+
 Closes #(numéro_issue)
 
 ## 📝 Changements détaillés
