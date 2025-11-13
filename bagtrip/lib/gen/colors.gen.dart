@@ -14,48 +14,33 @@ import 'package:flutter/material.dart';
 class ColorName {
   ColorName._();
 
-  /// Color: #000000
-  static const Color black = Color(0xFF000000);
-
   /// Color: #F44336
   static const Color error = Color(0xFFF44336);
-
-  /// Color: #9E9E9E
-  static const Color grey = Color(0xFF9E9E9E);
-
-  /// Color: #424242
-  static const Color greyDark = Color(0xFF424242);
-
-  /// Color: #F5F5F5
-  static const Color greyLight = Color(0xFFF5F5F5);
 
   /// Color: #2196F3
   static const Color info = Color(0xFF2196F3);
 
-  /// Color: #2196F3
-  static const Color primary = Color(0xFF2196F3);
+  /// Color: #295f98
+  static const Color primary = Color(0xFF295F98);
 
-  /// Color: #1976D2
-  static const Color primaryDark = Color(0xFF1976D2);
+  /// Color: #1f4772
+  static const Color primaryDark = Color(0xFF1F4772);
 
-  /// Color: #BBDEFB
-  static const Color primaryLight = Color(0xFFBBDEFB);
+  /// Color: #eaeff5
+  static const Color primaryLight = Color(0xFFEAEFF5);
 
-  /// Color: #FF9800
-  static const Color secondary = Color(0xFFFF9800);
+  /// Color: #dfe7f0
+  static const Color primarySoftLight = Color(0xFFDFE7F0);
 
-  /// Color: #F57C00
-  static const Color secondaryDark = Color(0xFFF57C00);
+  /// Color: #0e2135
+  static const Color primaryTrueDark = Color(0xFF0E2135);
 
-  /// Color: #FFE0B2
-  static const Color secondaryLight = Color(0xFFFFE0B2);
+  /// Color: #35A8B5
+  static const Color secondary = Color(0xFF35A8B5);
 
   /// Color: #4CAF50
   static const Color success = Color(0xFF4CAF50);
 
   /// Color: #FF9800
   static const Color warning = Color(0xFFFF9800);
-
-  /// Color: #FFFFFF
-  static const Color white = Color(0xFFFFFFFF);
 }
