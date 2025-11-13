@@ -5,12 +5,68 @@ sealed class HomeFlightState {}
 
 final class HomeFlightInitial extends HomeFlightState {}
 
-final class HomeFlightLoading extends HomeFlightState {}
+final class HomeFlightLoaded extends HomeFlightState {
+  final int tripTypeIndex;
+  final int adults;
+  final int children;
+  final int infants;
+  final int selectedClass;
+  final Map<String, dynamic>? departureAirport;
+  final Map<String, dynamic>? arrivalAirport;
+  final DateTime? departureDate;
+  final DateTime? returnDate;
+  final double? maxPrice;
+  final List<Map<String, dynamic>>? searchResults;
+  final bool isLoading;
+  final String? errorMessage;
 
-final class HomeFlightAirportsLoaded extends HomeFlightState {
-  final List<Map<String, dynamic>> airports;
+  HomeFlightLoaded({
+    this.tripTypeIndex = 0,
+    this.adults = 1,
+    this.children = 0,
+    this.infants = 0,
+    this.selectedClass = 0,
+    this.departureAirport,
+    this.arrivalAirport,
+    this.departureDate,
+    this.returnDate,
+    this.maxPrice,
+    this.searchResults,
+    this.isLoading = false,
+    this.errorMessage,
+  });
 
-  HomeFlightAirportsLoaded(this.airports);
+  HomeFlightLoaded copyWith({
+    int? tripTypeIndex,
+    int? adults,
+    int? children,
+    int? infants,
+    int? selectedClass,
+    Map<String, dynamic>? departureAirport,
+    Map<String, dynamic>? arrivalAirport,
+    DateTime? departureDate,
+    DateTime? returnDate,
+    double? maxPrice,
+    List<Map<String, dynamic>>? searchResults,
+    bool? isLoading,
+    String? errorMessage,
+  }) {
+    return HomeFlightLoaded(
+      tripTypeIndex: tripTypeIndex ?? this.tripTypeIndex,
+      adults: adults ?? this.adults,
+      children: children ?? this.children,
+      infants: infants ?? this.infants,
+      selectedClass: selectedClass ?? this.selectedClass,
+      departureAirport: departureAirport ?? this.departureAirport,
+      arrivalAirport: arrivalAirport ?? this.arrivalAirport,
+      departureDate: departureDate ?? this.departureDate,
+      returnDate: returnDate ?? this.returnDate,
+      maxPrice: maxPrice ?? this.maxPrice,
+      searchResults: searchResults ?? this.searchResults,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
+  }
 }
 
 final class HomeFlightError extends HomeFlightState {

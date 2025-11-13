@@ -1,7 +1,9 @@
+import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/home_flight_bloc.dart';
 import '../models/airport_type.dart';
+import '../../gen/colors.gen.dart';
 
 class AirportSearchField extends StatefulWidget {
   final AirportType type;
@@ -100,10 +102,10 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
       link: _layerLink,
       child: BlocConsumer<HomeFlightBloc, HomeFlightState>(
         listener: (context, state) {
-          if (state is HomeFlightAirportsLoaded &&
-              state.airports.isNotEmpty &&
+          if (state is HomeFlightLoaded &&
+              state.searchResults != null &&
               _showResults) {
-            _showOverlay(context, state.airports);
+            _showOverlay(context, state.searchResults ?? []);
           } else {
             _removeOverlay();
           }
@@ -111,10 +113,13 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
         builder: (context, state) {
           return TextField(
             controller: _controller,
-            style: const TextStyle(fontSize: 13),
+            style: const TextStyle(fontFamily: FontFamily.b612, fontSize: 13),
             decoration: InputDecoration(
               hintText: widget.hintText,
-              hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+              hintStyle: const TextStyle(
+                fontSize: 13,
+                color: ColorName.primary,
+              ),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(vertical: 12),
               isDense: true,

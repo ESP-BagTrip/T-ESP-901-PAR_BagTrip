@@ -1,44 +1,159 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
 import '../widgets/airport_search_field.dart';
 import '../models/airport_type.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
+import '../../design/tokens.dart';
+import 'home_flight_bloc.dart';
+import '../../gen/fonts.gen.dart';
 
-class HomeView extends StatefulWidget {
+class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
   @override
-  State<HomeView> createState() => _HomeViewState();
-}
+  Widget build(BuildContext context) {
+    return BlocBuilder<HomeFlightBloc, HomeFlightState>(
+      builder: (context, state) {
+        if (state is HomeFlightError) {
+          return Center(child: Text('Erreur: ${state.message}'));
+        }
 
-class _HomeViewState extends State<HomeView> {
-  int _tripTypeIndex = 0;
-  int _adults = 1;
-  int _children = 0;
-  int _infants = 0;
-  int _selectedClass = 0;
-  late PageController _carouselController;
-  int _currentCarouselPage = 0;
+        final loadedState =
+            state is HomeFlightLoaded ? state : HomeFlightLoaded();
 
-  Color get _accent => const Color(0xFF28B4B0);
-
-  @override
-  void initState() {
-    super.initState();
-    _carouselController = PageController(viewportFraction: 0.7);
-    _carouselController.addListener(() {
-      setState(() {
-        _currentCarouselPage = _carouselController.page?.round() ?? 0;
-      });
-    });
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildTopCards(context, loadedState),
+              const SizedBox(height: AppSize.boxSize16),
+              _buildTripTypeSelector(context, loadedState),
+              const SizedBox(height: AppSize.boxSize8),
+              _buildFieldRow(
+                Icons.flight_takeoff,
+                _buildAirportField(context, AirportType.departure, (
+                  airport,
+                  selectedType,
+                ) {
+                  if (airport != null) {
+                    context.read<HomeFlightBloc>().add(
+                      SelectDepartureAirport(airport),
+                    );
+                  }
+                }),
+              ),
+              _buildFieldRow(
+                Icons.flight_land,
+                _buildAirportField(context, AirportType.arrival, (
+                  airport,
+                  selectedType,
+                ) {
+                  if (airport != null) {
+                    context.read<HomeFlightBloc>().add(
+                      SelectArrivalAirport(airport),
+                    );
+                  }
+                }),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildFieldRow(
+                      Icons.calendar_today,
+                      _buildDateField(context, 'jj/mm/aaaa', (date) {
+                        context.read<HomeFlightBloc>().add(
+                          SetDepartureDate(date),
+                        );
+                      }),
+                    ),
+                  ),
+                  const SizedBox(width: AppSize.boxSize8),
+                  Expanded(
+                    child: _buildFieldRow(
+                      Icons.calendar_today,
+                      _buildDateField(context, 'jj/mm/aaaa', (date) {
+                        context.read<HomeFlightBloc>().add(SetReturnDate(date));
+                      }),
+                    ),
+                  ),
+                ],
+              ),
+              _buildFieldRow(
+                Icons.euro_symbol,
+                _buildPriceField(context, (price) {
+                  context.read<HomeFlightBloc>().add(SetMaxPrice(price));
+                }),
+              ),
+              const SizedBox(height: AppSize.boxSize16),
+              const Text(
+                'Classe de voyage',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontFamily: FontFamily.b612,
+                  fontWeight: FontWeight.w700,
+                  color: ColorName.primary,
+                ),
+              ),
+              const SizedBox(height: AppSize.boxSize8),
+              _buildClassSelector(context, loadedState),
+              const SizedBox(height: AppSize.boxSize16),
+              const Text(
+                'Passagers',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontFamily: FontFamily.b612,
+                  fontWeight: FontWeight.w700,
+                  color: ColorName.primary,
+                ),
+              ),
+              const SizedBox(height: AppSize.boxSize8),
+              _buildPassengersRow(context, loadedState),
+              const SizedBox(height: AppSize.boxSize16),
+              SizedBox(
+                // height: AppSize.height42,
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: ColorName.secondary,
+                    padding: AppSpacing.allEdgeInsetSpace16,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: AppRadius.large16,
+                    ),
+                  ),
+                  onPressed: () {
+                    context.read<HomeFlightBloc>().add(SearchFlights());
+                  },
+                  child:
+                      loadedState.isLoading
+                          ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                ColorName.primaryLight,
+                              ),
+                              strokeWidth: 2,
+                            ),
+                          )
+                          : const Text(
+                            'Rechercher votre vol',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontFamily: FontFamily.b612,
+                              fontWeight: FontWeight.w700,
+                              color: ColorName.primaryLight,
+                            ),
+                          ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
-  @override
-  void dispose() {
-    _carouselController.dispose();
-    super.dispose();
-  }
-
-  Widget _buildTopCards(BuildContext context) {
+  Widget _buildTopCards(BuildContext context, HomeFlightLoaded state) {
     final cards = [
       {'title': 'VOL', 'icon': Icons.flight_takeoff},
       {'title': 'HÔTEL', 'icon': Icons.hotel},
@@ -50,7 +165,6 @@ class _HomeViewState extends State<HomeView> {
         SizedBox(
           height: 150,
           child: PageView.builder(
-            controller: _carouselController,
             itemCount: cards.length,
             itemBuilder: (context, index) {
               final card = cards[index];
@@ -92,7 +206,7 @@ class _HomeViewState extends State<HomeView> {
           ),
         ),
         const SizedBox(height: 12),
-        // Dots indicator
+        // Dots indicator (simplified without PageController)
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(cards.length, (index) {
@@ -103,7 +217,9 @@ class _HomeViewState extends State<HomeView> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color:
-                    _currentCarouselPage == index ? _accent : ColorName.primary,
+                    index == 0
+                        ? ColorName.secondary
+                        : ColorName.primarySoftLight,
               ),
             );
           }),
@@ -112,32 +228,31 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildTripTypeSelector() {
+  Widget _buildTripTypeSelector(BuildContext context, HomeFlightLoaded state) {
     final labels = ['Aller simple', 'Aller-retour', 'Multidestination'];
-    // Distribute space equally between the options and avoid scrolling
     return SizedBox(
       height: 42,
       child: Row(
         children: List.generate(labels.length, (i) {
-          final selected = i == _tripTypeIndex;
+          final selected = i == state.tripTypeIndex;
           return Expanded(
             child: Padding(
               padding: EdgeInsets.only(right: i == labels.length - 1 ? 0 : 8.0),
               child: TextButton(
                 style: TextButton.styleFrom(
-                  // force consistent height and allow width to be governed by Expanded
-                  minimumSize: const Size.fromHeight(42),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 8,
-                  ),
+                  minimumSize: const Size.fromHeight(AppSize.height42),
+                  padding: AppSpacing.allEdgeInsetSpace8,
                   backgroundColor:
-                      selected ? _accent : ColorName.primarySoftLight,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                      selected
+                          ? ColorName.secondary
+                          : ColorName.primarySoftLight,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: AppRadius.large16,
                   ),
                 ),
-                onPressed: () => setState(() => _tripTypeIndex = i),
+                onPressed: () {
+                  context.read<HomeFlightBloc>().add(SetTripType(i));
+                },
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
@@ -145,6 +260,7 @@ class _HomeViewState extends State<HomeView> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
+                      fontFamily: FontFamily.b612,
                       color: selected ? Colors.white : ColorName.primary,
                     ),
                   ),
@@ -161,27 +277,27 @@ class _HomeViewState extends State<HomeView> {
     return Stack(
       children: [
         Padding(
-          padding: const EdgeInsets.only(top: 8.0),
+          padding: AppSpacing.onlyTopSpace8,
           child: Row(
             children: [
               Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
+                width: AppSize.width42,
+                height: AppSize.height42,
+                decoration: const BoxDecoration(
                   color: ColorName.primarySoftLight,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: AppRadius.large16,
                 ),
-                child: Icon(icon, color: _accent),
+                child: Icon(icon, color: ColorName.secondary),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: SizedBox(
-                  height: 42,
+                  height: AppSize.height42,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
+                    padding: AppSpacing.horizontalSpace16,
+                    decoration: const BoxDecoration(
                       color: ColorName.primarySoftLight,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: AppRadius.large16,
                     ),
                     child: field,
                   ),
@@ -194,27 +310,28 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildClassSelector() {
+  Widget _buildClassSelector(BuildContext context, HomeFlightLoaded state) {
     final labels = ['Économique', 'Premium', 'Business'];
     return Row(
       children: List.generate(labels.length, (i) {
-        final selected = _selectedClass == i;
+        final selected = state.selectedClass == i;
         return Expanded(
           child: Padding(
             padding: EdgeInsets.only(right: i == labels.length - 1 ? 0 : 8.0),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                // enforce consistent touch target height and let Expanded control width
-                minimumSize: const Size.fromHeight(42),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                minimumSize: const Size.fromHeight(AppSize.height42),
+                padding: AppSpacing.allEdgeInsetSpace8,
                 backgroundColor:
-                    selected ? _accent : ColorName.primarySoftLight,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                    selected ? ColorName.secondary : ColorName.primarySoftLight,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: AppRadius.large16,
                 ),
                 elevation: 0,
               ),
-              onPressed: () => setState(() => _selectedClass = i),
+              onPressed: () {
+                context.read<HomeFlightBloc>().add(SetTravelClass(i));
+              },
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
@@ -222,6 +339,7 @@ class _HomeViewState extends State<HomeView> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
+                    fontFamily: FontFamily.b612,
                     color: selected ? Colors.white : ColorName.primary,
                   ),
                 ),
@@ -234,6 +352,7 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget _buildAirportField(
+    BuildContext context,
     AirportType type,
     void Function(Map<String, dynamic>?, AirportType) onSelected,
   ) {
@@ -244,12 +363,19 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  // When TextField is selected, open date picker
-  Widget _buildDateField(String hint) {
+  Widget _buildDateField(
+    BuildContext context,
+    String hint,
+    Function(DateTime) onDateSelected,
+  ) {
     return TextField(
       readOnly: true,
       decoration: InputDecoration(
-        hintStyle: const TextStyle(fontSize: 13, color: ColorName.primary),
+        hintStyle: const TextStyle(
+          fontSize: 13,
+          fontFamily: FontFamily.b612,
+          color: ColorName.primary,
+        ),
         border: InputBorder.none,
         hintText: hint,
       ),
@@ -261,24 +387,35 @@ class _HomeViewState extends State<HomeView> {
           lastDate: DateTime(2101),
         );
         if (pickedDate != null) {
-          // Handle the selected date
+          onDateSelected(pickedDate);
         }
       },
     );
   }
 
-  Widget _buildPriceField() {
-    return const TextField(
+  Widget _buildPriceField(
+    BuildContext context,
+    Function(double) onPriceChanged,
+  ) {
+    return TextField(
       keyboardType: TextInputType.number,
-      decoration: InputDecoration(
-        hintStyle: TextStyle(fontSize: 13, color: ColorName.primary),
+      decoration: const InputDecoration(
+        hintStyle: TextStyle(
+          fontSize: 13,
+          fontFamily: FontFamily.b612,
+          color: ColorName.primary,
+        ),
         border: InputBorder.none,
         hintText: 'Prix maximum (€)',
       ),
+      onChanged: (value) {
+        final price = double.tryParse(value) ?? 0.0;
+        onPriceChanged(price);
+      },
     );
   }
 
-  Widget _buildPassengersRow() {
+  Widget _buildPassengersRow(BuildContext context, HomeFlightLoaded state) {
     Widget counter(
       String label,
       int value,
@@ -298,20 +435,17 @@ class _HomeViewState extends State<HomeView> {
                 height: 32,
                 child: IconButton(
                   icon: const Icon(Icons.remove_circle_outline),
-                  color: ColorName.primary,
+                  color: ColorName.secondary,
                   onPressed: sub,
                   padding: EdgeInsets.zero,
-                  iconSize: 20,
+                  iconSize: 24,
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
+                padding: AppSpacing.allEdgeInsetSpace16,
+                decoration: const BoxDecoration(
                   color: ColorName.primarySoftLight,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: AppRadius.large16,
                 ),
                 child: Text('$value'),
               ),
@@ -320,10 +454,10 @@ class _HomeViewState extends State<HomeView> {
                 height: 32,
                 child: IconButton(
                   icon: const Icon(Icons.add_circle_outline),
-                  color: ColorName.primary,
+                  color: ColorName.secondary,
                   onPressed: add,
                   padding: EdgeInsets.zero,
-                  iconSize: 20,
+                  iconSize: 24,
                 ),
               ),
             ],
@@ -336,24 +470,30 @@ class _HomeViewState extends State<HomeView> {
       children: [
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(right: 8.0),
+            padding: AppSpacing.onlyRightSpace8,
             child: counter(
               'Adultes',
-              _adults,
-              () => setState(() => _adults++),
-              () => setState(() => _adults = (_adults > 1 ? _adults - 1 : 1)),
+              state.adults,
+              () => context.read<HomeFlightBloc>().add(
+                SetAdults(state.adults + 1),
+              ),
+              () => context.read<HomeFlightBloc>().add(
+                SetAdults(state.adults > 1 ? state.adults - 1 : 1),
+              ),
             ),
           ),
         ),
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(right: 8.0),
+            padding: AppSpacing.onlyRightSpace8,
             child: counter(
               'Enfants',
-              _children,
-              () => setState(() => _children++),
-              () => setState(
-                () => _children = (_children > 0 ? _children - 1 : 0),
+              state.children,
+              () => context.read<HomeFlightBloc>().add(
+                SetChildren(state.children + 1),
+              ),
+              () => context.read<HomeFlightBloc>().add(
+                SetChildren(state.children > 0 ? state.children - 1 : 0),
               ),
             ),
           ),
@@ -361,84 +501,12 @@ class _HomeViewState extends State<HomeView> {
         Expanded(
           child: counter(
             'Bébés',
-            _infants,
-            () => setState(() => _infants++),
-            () => setState(() => _infants = (_infants > 0 ? _infants - 1 : 0)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildTopCards(context),
-        const SizedBox(height: 12),
-        _buildTripTypeSelector(),
-        const SizedBox(height: 4),
-        _buildFieldRow(
-          Icons.flight_takeoff,
-          _buildAirportField(AirportType.departure, (airport, selectedType) {}),
-        ),
-        _buildFieldRow(
-          Icons.flight_land,
-          _buildAirportField(AirportType.arrival, (airport, selectedType) {}),
-        ),
-        Row(
-          children: [
-            Expanded(
-              child: _buildFieldRow(
-                Icons.calendar_today,
-                _buildDateField('Date de départ'),
-              ),
+            state.infants,
+            () => context.read<HomeFlightBloc>().add(
+              SetInfants(state.infants + 1),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildFieldRow(
-                Icons.calendar_today,
-                const Text(
-                  'jj/mm/aaaa',
-                  style: TextStyle(color: Colors.black54),
-                ),
-              ),
-            ),
-          ],
-        ),
-        _buildFieldRow(Icons.euro_symbol, _buildPriceField()),
-        const SizedBox(height: 12),
-        const Text(
-          'Classe de voyage',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        _buildClassSelector(),
-        const SizedBox(height: 16),
-        const Text(
-          'Passagers',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        _buildPassengersRow(),
-        const SizedBox(height: 24),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _accent,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () {
-              // Trigger search
-            },
-            child: const Text(
-              'Rechercher votre vol',
-              style: TextStyle(color: ColorName.primaryLight, fontSize: 16),
+            () => context.read<HomeFlightBloc>().add(
+              SetInfants(state.infants > 0 ? state.infants - 1 : 0),
             ),
           ),
         ),
