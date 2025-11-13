@@ -1,21 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Primary Colors -->
-    <color name="primary">#2196F3</color>
-    <color name="primary_dark">#1976D2</color>
-    <color name="primary_light">#BBDEFB</color>
+    <color name="primary">#295f98</color>
+    <color name="primary_light">#eaeff5</color>
+    <color name="primary_soft_light">#dfe7f0</color>
+    <color name="primary_true_dark">#0e2135</color>
+    <color name="primary_dark">#1f4772</color>
     
     <!-- Secondary Colors -->
-    <color name="secondary">#FF9800</color>
-    <color name="secondary_dark">#F57C00</color>
-    <color name="secondary_light">#FFE0B2</color>
-    
-    <!-- Basic Colors -->
-    <color name="white">#FFFFFF</color>
-    <color name="black">#000000</color>
-    <color name="grey">#9E9E9E</color>
-    <color name="grey_light">#F5F5F5</color>
-    <color name="grey_dark">#424242</color>
+    <color name="secondary">#35A8B5</color>
     
     <!-- Status Colors -->
     <color name="success">#4CAF50</color>
