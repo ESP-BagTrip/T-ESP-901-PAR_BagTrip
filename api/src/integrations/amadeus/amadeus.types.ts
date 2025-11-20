@@ -240,3 +240,259 @@ export type FlightDateResponse = {
   };
   data: FlightDate[];
 };
+
+// ============================================================================
+// HOTEL TYPES
+// ============================================================================
+
+// Hotel List Search (by city)
+export type HotelListSearchQuery = {
+  cityCode: string; // IATA city code (e.g., "PAR" for Paris)
+  radius?: number; // Search radius
+  radiusUnit?: 'KM' | 'MILE'; // Unit for radius
+  chainCodes?: string; // Comma-separated hotel chain codes (e.g., "MC,RT")
+  amenities?: string; // Comma-separated amenities (e.g., "SWIMMING_POOL,SPA")
+  ratings?: string; // Comma-separated ratings (e.g., "4,5")
+  hotelSource?: 'ALL' | 'BEDBANK' | 'DIRECTCHAIN'; // Source of hotel data
+};
+
+export type HotelBasicInfo = {
+  type: string;
+  hotelId: string;
+  chainCode?: string;
+  dupeId?: string;
+  name: string;
+  cityCode?: string;
+  iataCode: string;
+  geoCode?: {
+    latitude: number;
+    longitude: number;
+  };
+  address?: {
+    countryCode: string;
+  };
+  distance?: {
+    value: number;
+    unit: string;
+  };
+  lastUpdate?: string;
+};
+
+export type HotelListResponse = {
+  data: HotelBasicInfo[];
+  meta?: {
+    count?: number;
+    links?: {
+      self?: string;
+      next?: string;
+      last?: string;
+    };
+  };
+};
+
+// Hotel Search (offers with pricing)
+export type HotelSearchQuery = {
+  hotelIds: string; // Comma-separated Amadeus hotel IDs (e.g., "MCLONGHM,ADNYCCTB")
+  adults: number; // Number of adult guests (1-9)
+  checkInDate?: string; // Check-in date (YYYY-MM-DD)
+  checkOutDate?: string; // Check-out date (YYYY-MM-DD)
+  roomQuantity?: number; // Number of rooms (1-9)
+  priceRange?: string; // Price range (e.g., "100-200")
+  currency?: string; // Currency code (ISO 4217)
+  paymentPolicy?: 'NONE' | 'GUARANTEE' | 'DEPOSIT'; // Payment policy
+  boardType?: 'ROOM_ONLY' | 'BREAKFAST' | 'HALF_BOARD' | 'FULL_BOARD' | 'ALL_INCLUSIVE'; // Board type
+  includeClosed?: boolean; // Include closed hotels
+  bestRateOnly?: boolean; // Return only best rate per hotel
+};
+
+export type HotelOffer = {
+  type: string;
+  id: string; // Offer ID
+  checkInDate?: string;
+  checkOutDate?: string;
+  rateCode?: string;
+  rateFamilyEstimated?: {
+    code: string;
+    type: string;
+  };
+  room?: {
+    type?: string;
+    typeEstimated?: {
+      category?: string;
+      beds?: number;
+      bedType?: string;
+    };
+    description?: {
+      text?: string;
+      lang?: string;
+    };
+  };
+  guests?: {
+    adults: number;
+  };
+  price?: {
+    currency: string;
+    base?: string;
+    total: string;
+    taxes?: Array<{
+      amount?: string;
+      currency?: string;
+      code?: string;
+      percentage?: string;
+      included?: boolean;
+      description?: string;
+      pricingFrequency?: string;
+      pricingMode?: string;
+    }>;
+    variations?: {
+      average?: {
+        base?: string;
+        total?: string;
+      };
+      changes?: Array<{
+        startDate?: string;
+        endDate?: string;
+        base?: string;
+        total?: string;
+      }>;
+    };
+  };
+  policies?: {
+    paymentType?: string;
+    guarantee?: {
+      acceptedPayments?: {
+        creditCards?: string[];
+        methods?: string[];
+      };
+    };
+    deposit?: {
+      acceptedPayments?: {
+        creditCards?: string[];
+        methods?: string[];
+      };
+      amount?: string;
+      deadline?: string;
+    };
+    cancellation?: {
+      type?: string;
+      amount?: string;
+      deadline?: string;
+      description?: {
+        text?: string;
+        lang?: string;
+      };
+    };
+  };
+  self?: string;
+};
+
+export type HotelSearchResponse = {
+  data: Array<{
+    type: string;
+    hotel: HotelBasicInfo;
+    available: boolean;
+    offers: HotelOffer[];
+    self?: string;
+  }>;
+  meta?: any;
+};
+
+// Hotel Offer Details (by offerId)
+export type HotelOfferDetailsQuery = {
+  offerId: string;
+};
+
+export type HotelOfferDetailsResponse = {
+  data: {
+    type: string;
+    hotel: HotelBasicInfo;
+    available: boolean;
+    offers: HotelOffer[];
+    self?: string;
+  };
+  meta?: any;
+};
+
+// ============================================================================
+// HOTEL BOOKING TYPES
+// ============================================================================
+
+export type HotelBookingGuest = {
+  tid?: number;
+  title: string; // MR, MRS, MS
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+};
+
+export type HotelBookingPayment = {
+  method: 'CREDIT_CARD';
+  paymentCard: {
+    paymentCardInfo: {
+      vendorCode: string; // VI (Visa), CA (Mastercard), AX (American Express)
+      cardNumber: string;
+      expiryDate: string; // YYYY-MM
+      holderName: string;
+    };
+  };
+};
+
+export type HotelBookingRoomAssociation = {
+  guestReferences: Array<{
+    guestReference: string;
+  }>;
+  hotelOfferId: string;
+};
+
+export type HotelBookingRequest = {
+  data: {
+    type?: 'hotel-order';
+    guests: HotelBookingGuest[];
+    travelAgent?: {
+      contact?: {
+        email: string;
+      };
+    };
+    roomAssociations: HotelBookingRoomAssociation[];
+    payment: HotelBookingPayment;
+  };
+};
+
+export type HotelBookingConfirmation = {
+  type: string;
+  id: string;
+  providerConfirmationId?: string;
+  associatedRecords?: Array<{
+    reference: string;
+    originSystemCode: string;
+  }>;
+  hotel?: HotelBasicInfo;
+  bookingDate?: string;
+  checkInDate?: string;
+  checkOutDate?: string;
+  room?: {
+    type?: string;
+    typeEstimated?: {
+      category?: string;
+      beds?: number;
+      bedType?: string;
+    };
+    description?: {
+      text?: string;
+      lang?: string;
+    };
+  };
+  guests?: HotelBookingGuest[];
+  price?: {
+    currency: string;
+    base?: string;
+    total: string;
+    taxes?: any[];
+  };
+};
+
+export type HotelBookingResponse = {
+  data: HotelBookingConfirmation[];
+  meta?: any;
+};
