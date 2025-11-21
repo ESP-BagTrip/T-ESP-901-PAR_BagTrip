@@ -3,17 +3,30 @@ import {
   LocationKeywordSearchQuery,
   LocationIdSearchQuery,
   LocationNearestSearchQuery,
+  FlightOfferSearchQuery,
+  FlightInspirationSearchQuery,
+  FlightCheapestDateSearchQuery,
 } from './amadeus.types';
 import {
   searchLocationsByKeyword,
   searchLocationById,
   searchLocationNearest,
 } from './amadeus.locations';
+import {
+  searchFlightOffers,
+  searchFlightDestinations,
+  searchFlightCheapestDates,
+} from './amadeus.flights';
 
-// Circuit breakers
+// Circuit breakers for locations
 const locationByKeywordBreaker = makeBreaker(searchLocationsByKeyword);
 const locationByIdBreaker = makeBreaker(searchLocationById);
 const locationNearestBreaker = makeBreaker(searchLocationNearest);
+
+// Circuit breakers for flights
+const flightOffersBreaker = makeBreaker(searchFlightOffers);
+const flightDestinationsBreaker = makeBreaker(searchFlightDestinations);
+const flightCheapestDatesBreaker = makeBreaker(searchFlightCheapestDates);
 
 export const amadeusClient = {
   // Location by keyword
@@ -30,4 +43,20 @@ export const amadeusClient = {
   searchLocationNearest: (q: LocationNearestSearchQuery) => locationNearestBreaker.fire(q),
   resetLocationNearestBreaker: () => locationNearestBreaker.close(),
   getLocationNearestBreakerStats: () => locationNearestBreaker.stats,
+
+  // Flight offers
+  searchFlightOffers: (q: FlightOfferSearchQuery) => flightOffersBreaker.fire(q),
+  resetFlightOffersBreaker: () => flightOffersBreaker.close(),
+  getFlightOffersBreakerStats: () => flightOffersBreaker.stats,
+
+  // Flight destinations (inspiration)
+  searchFlightDestinations: (q: FlightInspirationSearchQuery) => flightDestinationsBreaker.fire(q),
+  resetFlightDestinationsBreaker: () => flightDestinationsBreaker.close(),
+  getFlightDestinationsBreakerStats: () => flightDestinationsBreaker.stats,
+
+  // Flight cheapest dates
+  searchFlightCheapestDates: (q: FlightCheapestDateSearchQuery) =>
+    flightCheapestDatesBreaker.fire(q),
+  resetFlightCheapestDatesBreaker: () => flightCheapestDatesBreaker.close(),
+  getFlightCheapestDatesBreakerStats: () => flightCheapestDatesBreaker.stats,
 };
