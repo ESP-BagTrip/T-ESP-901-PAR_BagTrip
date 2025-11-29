@@ -11,6 +11,8 @@ const schema = z.object({
   AMADEUS_CLIENT_SECRET: z.string().min(1, 'Missing AMADEUS_CLIENT_SECRET'),
   // Sandbox par défaut (changeable via env)
   AMADEUS_BASE_URL: z.string().url().default('https://test.api.amadeus.com'),
+
+  GOOGLE_PLACES_API_KEY: z.string().min(1, 'Missing GOOGLE_PLACES_API_KEY'),
 });
 
 export const env = schema.parse(process.env);
