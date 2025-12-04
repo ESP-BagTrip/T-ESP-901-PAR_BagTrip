@@ -133,7 +133,7 @@ export async function searchPlacesByText(
  */
 export async function getPlaceDetails(
   request: PlaceDetailsRequest,
-  fieldMask: string = FIELD_MASKS.ADVANCED
+  fieldMask: string = FIELD_MASKS.PLACE_DETAILS
 ): Promise<PlaceDetailsResponse> {
   logger.debug('Starting Google Places details request', { request });
 
@@ -141,7 +141,7 @@ export async function getPlaceDetails(
     throw new Error('GOOGLE_PLACES_API_KEY is not configured');
   }
 
-  const url = `${GOOGLE_PLACES_BASE_URL}/${request.placeId}`;
+  const url = `${GOOGLE_PLACES_BASE_URL}/places/${request.placeId}`;
   const params: any = {};
 
   if (request.languageCode) params.languageCode = request.languageCode;

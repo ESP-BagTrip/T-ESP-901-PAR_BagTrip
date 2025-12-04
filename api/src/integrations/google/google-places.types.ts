@@ -189,6 +189,30 @@ export const FIELD_MASKS = {
     'places.regularOpeningHours',
     'places.editorialSummary',
   ].join(','),
+
+  // Place Details field mask (without "places." prefix)
+  PLACE_DETAILS: [
+    'id',
+    'name',
+    'displayName',
+    'types',
+    'primaryType',
+    'location',
+    'formattedAddress',
+    'shortFormattedAddress',
+    'addressComponents',
+    'photos',
+    'googleMapsUri',
+    'businessStatus',
+    'rating',
+    'userRatingCount',
+    'priceLevel',
+    'websiteUri',
+    'nationalPhoneNumber',
+    'internationalPhoneNumber',
+    'regularOpeningHours',
+    'editorialSummary',
+  ].join(','),
 } as const;
 
 // ============================================================================

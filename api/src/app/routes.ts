@@ -7,8 +7,6 @@ export const routes = () => {
   const r = Router();
   r.use('/auth', authRoutes);
   r.use('/travel', travelRoutes);
-  r.use('/hotel', hotelRoutes);
-  r.use('/booking', bookingRoutes);
   r.use('/places', placesRoutes);
   return r;
 };
