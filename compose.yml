@@ -32,7 +32,7 @@ services:
       - AMADEUS_CLIENT_ID=${AMADEUS_CLIENT_ID}
       - AMADEUS_CLIENT_SECRET=${AMADEUS_CLIENT_SECRET}
       - AMADEUS_BASE_URL=${AMADEUS_BASE_URL}
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GOOGLE_GENAI_API_KEY=${GOOGLE_GENAI_API_KEY}
     command: >
       sh -c "
         npx prisma generate &&

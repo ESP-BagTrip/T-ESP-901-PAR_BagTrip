@@ -80,11 +80,6 @@ const r = Router();
  *         error:
  *           type: string
  *           example: Error message
- *   securitySchemes:
- *     BearerAuth:
- *       type: http
- *       scheme: bearer
- *       bearerFormat: JWT
  */
 
 /**
@@ -162,7 +157,7 @@ r.post('/login', validate(loginSchema), login);
  *     summary: Get current authenticated user information
  *     tags: [Auth]
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: User information retrieved successfully
