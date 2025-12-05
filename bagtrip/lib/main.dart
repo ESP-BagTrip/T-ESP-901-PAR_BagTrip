@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:bagtrip/navigation/app_shell.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:bagtrip/navigation/app_router.dart';
 
 void main() {
   runApp(const MyApp());
@@ -10,12 +12,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const AppShell(),
+      routerConfig: appRouter,
     );
   }
 }

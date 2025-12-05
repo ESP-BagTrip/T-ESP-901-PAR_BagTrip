@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:bagtrip/navigation/bloc/navigation_bloc.dart';
 
 class BottomTabBar extends StatelessWidget {
@@ -15,18 +16,22 @@ class BottomTabBar extends StatelessWidget {
     return isActive ? const Color(0xFF28B4B0) : Colors.grey;
   }
 
-  Widget _buildTabItem(
-    BuildContext context,
-    NavigationTab tab,
-    String label,
-    IconData icon,
-  ) {
+  Widget buildTabItem(
+      BuildContext context,
+      NavigationTab tab,
+      String label,
+      IconData icon,
+      String route,
+      ) {
     final isActive = activeTab == tab;
     final color = _getTabColor(tab, isActive);
 
     return Expanded(
       child: GestureDetector(
-        onTap: () => onTabChanged(tab),
+        onTap: () {
+          onTabChanged(tab);      // keep BLoC in sync for now
+          context.go(route);      // navigate with GoRouter
+        },
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
@@ -69,29 +74,33 @@ class BottomTabBar extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Row(
             children: [
-              _buildTabItem(
-                context,
-                NavigationTab.home,
-                'Accueil',
-                Icons.home_outlined,
+              buildTabItem(
+                  context,
+                  NavigationTab.home,
+                  'Accueil',
+                  Icons.home_outlined,
+                  '/home'
               ),
-              _buildTabItem(
-                context,
-                NavigationTab.map,
-                'Carte',
-                Icons.map_outlined,
+              buildTabItem(
+                  context,
+                  NavigationTab.map,
+                  'Carte',
+                  Icons.map_outlined,
+                  '/map'
               ),
-              _buildTabItem(
-                context,
-                NavigationTab.budget,
-                'Budget',
-                Icons.wallet_outlined,
+              buildTabItem(
+                  context,
+                  NavigationTab.budget,
+                  'Budget',
+                  Icons.wallet_outlined,
+                  '/budget'
               ),
-              _buildTabItem(
-                context,
-                NavigationTab.profile,
-                'Profil',
-                Icons.person_outlined,
+              buildTabItem(
+                  context,
+                  NavigationTab.profile,
+                  'Profil',
+                  Icons.person_outlined,
+                  '/profile'
               ),
             ],
           ),
