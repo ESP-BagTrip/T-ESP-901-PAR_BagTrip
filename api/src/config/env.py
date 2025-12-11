@@ -28,5 +28,13 @@ class Settings(BaseSettings):
     AMADEUS_CLIENT_SECRET: str
     AMADEUS_BASE_URL: str = "https://test.api.amadeus.com"
 
+    # Google GenAI
+    GOOGLE_API_KEY: str
+
+    # LangChain / LangSmith
+    LANGCHAIN_TRACING_V2: bool = False
+    LANGCHAIN_API_KEY: str | None = None
+    LANGCHAIN_PROJECT: str = "default"
+
 
 settings = Settings()

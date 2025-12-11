@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 
 from src.api.auth.routes import router as auth_router
 from src.api.travel.routes import router as travel_router
+from src.api.agent.routes import router as agent_router
 from src.config.database import Base, engine
 from src.config.env import settings
 from src.utils.errors import AppError, create_http_exception
@@ -44,6 +45,7 @@ app.add_middleware(
 # Inclusion des routes
 app.include_router(auth_router, prefix="/api")
 app.include_router(travel_router, prefix="/api")
+app.include_router(agent_router, prefix="/api")
 
 
 # Gestion globale des erreurs

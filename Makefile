@@ -1,41 +1,44 @@
-.PHONY: help init install-pre-commit install-deps
+# Global Makefile to manage all services
+
+.PHONY: help install api-dev api-studio admin-dev mobile-dev dev
 
 # Default target
-help:
-	@echo "Available targets:"
-	@echo "  init              - Complete project initialization (pre-commit + dependencies)"
-	@echo "  install-pre-commit - Install pre-commit hooks only"
-	@echo "  install-deps      - Install all project dependencies only"
-	@echo ""
-	@echo "Usage: make init"
+.DEFAULT_GOAL := help
 
-# Main initialization target
-init: install-pre-commit install-deps
-	@echo "✅ Project initialization complete!"
-	@echo "🚀 You can now start developing with pre-commit hooks active"
+# Colors
+CYAN := \033[36m
+RESET := \033[0m
 
-# Install pre-commit and git hooks
-install-pre-commit:
-	@echo "📦 Installing pre-commit..."
-	@if ! command -v pre-commit &> /dev/null; then \
-		echo "Installing pre-commit via pip..."; \
-		python3 -m pip install pre-commit; \
-	else \
-		echo "pre-commit already installed"; \
-	fi
-	@echo "🔧 Installing git hooks..."
-	@pre-commit install --install-hooks
-	@echo "✅ Pre-commit hooks installed successfully"
+help: ## Show this help message
+	@echo "$(CYAN)Available commands:$(RESET)"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(CYAN)%-15s$(RESET) %s\n", $$1, $$2}'
 
-# Install all project dependencies
-install-deps:
-	@echo "📦 Installing API dependencies..."
-	@cd api && npm install
-	@echo "📦 Installing Admin Panel dependencies..."
-	@cd admin-panel && npm install
-	@echo "✅ All dependencies installed successfully"
+install-uv: ## Install uv if not present
+	@echo "$(CYAN)Checking for uv...$(RESET)"
+	@command -v uv >/dev/null 2>&1 || (echo "$(CYAN)Installing uv...$(RESET)" && curl -LsSf https://astral.sh/uv/install.sh | sh)
 
-install-bloc-extension:
-	@echo "🔧 Installing Bloc extension for VS Code..."
-	code --install-extension felixangelov.bloc --force
-	@echo "✅ Bloc extension installed successfully"
+install: install-uv ## Install dependencies for all services
+	@echo "$(CYAN)Installing API dependencies...$(RESET)"
+	@cd api && uv sync
+	@echo "$(CYAN)Installing Admin Panel dependencies...$(RESET)"
+	@cd admin-panel/application && npm install
+	@echo "$(CYAN)Installing Mobile App dependencies...$(RESET)"
+	@cd bagtrip && flutter pub get
+
+api-dev: ## Start the Python API (FastAPI)
+	@echo "$(CYAN)Starting API...$(RESET)"
+	@cd api && uv run python -m src.main
+
+api-studio: ## Start the AI Studio (LangGraph)
+	@echo "$(CYAN)Starting AI Studio...$(RESET)"
+	@cd api && langgraph dev
+
+admin-dev: ## Start the Admin Panel (Next.js)
+	@echo "$(CYAN)Starting Admin Panel...$(RESET)"
+	@cd admin-panel/application && npm run dev
+
+mobile-dev: ## Start the Mobile App (Flutter)
+	@echo "$(CYAN)Starting Mobile App...$(RESET)"
+	@cd bagtrip && flutter run
+
+dev: help ## Alias for help
