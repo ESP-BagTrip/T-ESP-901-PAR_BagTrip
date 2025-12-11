@@ -1,6 +1,9 @@
 # Global Makefile to manage all services
 
 .PHONY: help install api-dev api-studio admin-dev mobile-dev dev
+# Global Makefile to manage all services
+
+.PHONY: help install api-dev api-studio admin-dev mobile-dev dev
 
 # Default target
 .DEFAULT_GOAL := help
@@ -13,11 +16,7 @@ help: ## Show this help message
 	@echo "$(CYAN)Available commands:$(RESET)"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(CYAN)%-15s$(RESET) %s\n", $$1, $$2}'
 
-install-uv: ## Install uv if not present
-	@echo "$(CYAN)Checking for uv...$(RESET)"
-	@command -v uv >/dev/null 2>&1 || (echo "$(CYAN)Installing uv...$(RESET)" && curl -LsSf https://astral.sh/uv/install.sh | sh)
-
-install: install-uv ## Install dependencies for all services
+install: ## Install dependencies for all services
 	@echo "$(CYAN)Installing API dependencies...$(RESET)"
 	@cd api && uv sync
 	@echo "$(CYAN)Installing Admin Panel dependencies...$(RESET)"
@@ -27,7 +26,7 @@ install: install-uv ## Install dependencies for all services
 
 api-dev: ## Start the Python API (FastAPI)
 	@echo "$(CYAN)Starting API...$(RESET)"
-	@cd api && uv run python -m src.main
+	@cd api && uv run uvicorn src.main:app --reload
 
 api-studio: ## Start the AI Studio (LangGraph)
 	@echo "$(CYAN)Starting AI Studio...$(RESET)"
