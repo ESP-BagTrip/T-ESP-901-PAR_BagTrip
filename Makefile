@@ -30,7 +30,7 @@ install: install-uv ## Install dependencies for all services
 
 api-dev: ## Start the Python API (FastAPI)
 	@echo "$(CYAN)Starting API...$(RESET)"
-	@cd api && uv run uvicorn src.main:app --reload
+	@cd api && uv run python -m src.main
 
 api-studio: ## Start the AI Studio (LangGraph)
 	@echo "$(CYAN)Starting AI Studio...$(RESET)"
