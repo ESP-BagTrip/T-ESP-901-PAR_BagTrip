@@ -14,20 +14,142 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
     : _locationService = locationService ?? LocationService(),
       super(HomeFlightInitial()) {
     on<SearchDepartureAirport>(_onSearchDepartureAirport);
+    on<SearchArrivalAirport>(_onSearchArrivalAirport);
+    on<SetTripType>(_onSetTripType);
+    on<SetAdults>(_onSetAdults);
+    on<SetChildren>(_onSetChildren);
+    on<SetInfants>(_onSetInfants);
+    on<SetTravelClass>(_onSetTravelClass);
+    on<SelectDepartureAirport>(_onSelectDepartureAirport);
+    on<SelectArrivalAirport>(_onSelectArrivalAirport);
+    on<SetDepartureDate>(_onSetDepartureDate);
+    on<SetReturnDate>(_onSetReturnDate);
+    on<SetMaxPrice>(_onSetMaxPrice);
+    on<SearchFlights>(_onSearchFlights);
+  }
+
+  HomeFlightLoaded _currentState() {
+    if (state is HomeFlightLoaded) {
+      return state as HomeFlightLoaded;
+    }
+    return HomeFlightLoaded();
   }
 
   Future<void> _onSearchDepartureAirport(
     SearchDepartureAirport event,
     Emitter<HomeFlightState> emit,
   ) async {
-    emit(HomeFlightLoading());
+    final current = _currentState();
+    emit(current.copyWith(isLoading: true));
 
     try {
       final airports = await _locationService.searchLocationsByKeyword(
         event.keyword,
         'AIRPORT',
       );
-      emit(HomeFlightAirportsLoaded(airports));
+      emit(current.copyWith(isLoading: false, searchResults: airports));
+    } catch (e) {
+      emit(HomeFlightError(e.toString()));
+    }
+  }
+
+  Future<void> _onSearchArrivalAirport(
+    SearchArrivalAirport event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    final current = _currentState();
+    emit(current.copyWith(isLoading: true));
+
+    try {
+      final airports = await _locationService.searchLocationsByKeyword(
+        event.keyword,
+        'AIRPORT',
+      );
+      emit(current.copyWith(isLoading: false, searchResults: airports));
+    } catch (e) {
+      emit(HomeFlightError(e.toString()));
+    }
+  }
+
+  Future<void> _onSetTripType(
+    SetTripType event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    emit(_currentState().copyWith(tripTypeIndex: event.index));
+  }
+
+  Future<void> _onSetAdults(
+    SetAdults event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    emit(_currentState().copyWith(adults: event.count));
+  }
+
+  Future<void> _onSetChildren(
+    SetChildren event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    emit(_currentState().copyWith(children: event.count));
+  }
+
+  Future<void> _onSetInfants(
+    SetInfants event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    emit(_currentState().copyWith(infants: event.count));
+  }
+
+  Future<void> _onSetTravelClass(
+    SetTravelClass event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    emit(_currentState().copyWith(selectedClass: event.index));
+  }
+
+  Future<void> _onSelectDepartureAirport(
+    SelectDepartureAirport event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    emit(_currentState().copyWith(departureAirport: event.airport));
+  }
+
+  Future<void> _onSelectArrivalAirport(
+    SelectArrivalAirport event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    emit(_currentState().copyWith(arrivalAirport: event.airport));
+  }
+
+  Future<void> _onSetDepartureDate(
+    SetDepartureDate event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    emit(_currentState().copyWith(departureDate: event.date));
+  }
+
+  Future<void> _onSetReturnDate(
+    SetReturnDate event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    emit(_currentState().copyWith(returnDate: event.date));
+  }
+
+  Future<void> _onSetMaxPrice(
+    SetMaxPrice event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    emit(_currentState().copyWith(maxPrice: event.price));
+  }
+
+  Future<void> _onSearchFlights(
+    SearchFlights event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    final current = _currentState();
+    emit(current.copyWith(isLoading: true));
+
+    try {
+      emit(current.copyWith(isLoading: false));
     } catch (e) {
       emit(HomeFlightError(e.toString()));
     }
