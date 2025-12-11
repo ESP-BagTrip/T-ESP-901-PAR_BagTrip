@@ -116,7 +116,9 @@ export async function searchFlightDestinations(
     throw new AppError('INVALID_QUERY', 400, 'maxPrice must be a positive integer');
   }
 
-  const result = (await amadeusClient.searchFlightDestinations(params)) as FlightDestinationResponse;
+  const result = (await amadeusClient.searchFlightDestinations(
+    params
+  )) as FlightDestinationResponse;
   return result;
 }
 

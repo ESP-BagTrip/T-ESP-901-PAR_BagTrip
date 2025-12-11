@@ -22,7 +22,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
       (req as AuthRequest).userId = decoded.userId;
       next();
     } catch (error) {
-      return res.status(401).json({ error: 'Invalid or expired token' });
+      return res.status(401).json({ error: 'Invalid or expired token with error: ' + error });
     }
   } catch (error) {
     next(error);

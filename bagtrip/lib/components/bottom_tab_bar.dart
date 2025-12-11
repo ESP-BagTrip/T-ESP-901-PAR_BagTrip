@@ -17,20 +17,20 @@ class BottomTabBar extends StatelessWidget {
   }
 
   Widget buildTabItem(
-      BuildContext context,
-      NavigationTab tab,
-      String label,
-      IconData icon,
-      String route,
-      ) {
+    BuildContext context,
+    NavigationTab tab,
+    String label,
+    IconData icon,
+    String route,
+  ) {
     final isActive = activeTab == tab;
     final color = _getTabColor(tab, isActive);
 
     return Expanded(
       child: GestureDetector(
         onTap: () {
-          onTabChanged(tab);      // keep BLoC in sync for now
-          context.go(route);      // navigate with GoRouter
+          onTabChanged(tab);
+          context.go(route); // navigate with GoRouter
         },
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -75,32 +75,32 @@ class BottomTabBar extends StatelessWidget {
           child: Row(
             children: [
               buildTabItem(
-                  context,
-                  NavigationTab.home,
-                  'Accueil',
-                  Icons.home_outlined,
-                  '/home'
+                context,
+                NavigationTab.home,
+                'Accueil',
+                Icons.home_outlined,
+                '/home',
               ),
               buildTabItem(
-                  context,
-                  NavigationTab.map,
-                  'Carte',
-                  Icons.map_outlined,
-                  '/map'
+                context,
+                NavigationTab.map,
+                'Carte',
+                Icons.map_outlined,
+                '/map',
               ),
               buildTabItem(
-                  context,
-                  NavigationTab.budget,
-                  'Budget',
-                  Icons.wallet_outlined,
-                  '/budget'
+                context,
+                NavigationTab.budget,
+                'Budget',
+                Icons.wallet_outlined,
+                '/budget',
               ),
               buildTabItem(
-                  context,
-                  NavigationTab.profile,
-                  'Profil',
-                  Icons.person_outlined,
-                  '/profile'
+                context,
+                NavigationTab.profile,
+                'Profil',
+                Icons.person_outlined,
+                '/profile',
               ),
             ],
           ),

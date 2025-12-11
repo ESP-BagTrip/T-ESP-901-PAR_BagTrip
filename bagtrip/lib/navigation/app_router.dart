@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:bagtrip/navigation/app_shell.dart';
@@ -12,38 +11,32 @@ final GoRouter appRouter = GoRouter(
   routes: [
     ShellRoute(
       builder: (context, state, child) {
-        // child will be the current tab page, but for now AppShell still
-        // decides which page to show based on its BLoC.
-        return const AppShell();
+        return AppShell(child: child);
       },
       routes: [
         GoRoute(
           path: '/home',
           name: 'home',
-          pageBuilder: (context, state) => const NoTransitionPage(
-            child: HomePage(),
-          ),
+          pageBuilder:
+              (context, state) => const NoTransitionPage(child: HomePage()),
         ),
         GoRoute(
           path: '/map',
           name: 'map',
-          pageBuilder: (context, state) => const NoTransitionPage(
-            child: MapPage(),
-          ),
+          pageBuilder:
+              (context, state) => const NoTransitionPage(child: MapPage()),
         ),
         GoRoute(
           path: '/budget',
           name: 'budget',
-          pageBuilder: (context, state) => const NoTransitionPage(
-            child: BudgetPage(),
-          ),
+          pageBuilder:
+              (context, state) => const NoTransitionPage(child: BudgetPage()),
         ),
         GoRoute(
           path: '/profile',
           name: 'profile',
-          pageBuilder: (context, state) => const NoTransitionPage(
-            child: ProfilePage(),
-          ),
+          pageBuilder:
+              (context, state) => const NoTransitionPage(child: ProfilePage()),
         ),
       ],
     ),

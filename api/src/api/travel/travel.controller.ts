@@ -84,8 +84,7 @@ export async function searchFlightOffers(req: Request, res: Response, next: Next
 
 export async function searchFlightDestinations(req: Request, res: Response, next: NextFunction) {
   try {
-    const { origin, departureDate, oneWay, duration, nonStop, maxPrice, viewBy } =
-      req.query as any;
+    const { origin, departureDate, oneWay, duration, nonStop, maxPrice, viewBy } = req.query as any;
 
     const result = await svc.searchFlightDestinations({
       origin,
