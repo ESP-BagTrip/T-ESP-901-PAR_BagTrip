@@ -322,7 +322,11 @@ r.get('/flight/offers', validate(flightOfferSearchQuerySchema), searchFlightOffe
  *       500:
  *         description: Internal server error
  */
-r.get('/flight/destinations', validate(flightDestinationSearchQuerySchema), searchFlightDestinations);
+r.get(
+  '/flight/destinations',
+  validate(flightDestinationSearchQuerySchema),
+  searchFlightDestinations
+);
 
 /**
  * @swagger
@@ -392,6 +396,10 @@ r.get('/flight/destinations', validate(flightDestinationSearchQuerySchema), sear
  *       500:
  *         description: Internal server error
  */
-r.get('/flight/cheapest-dates', validate(flightCheapestDateSearchQuerySchema), searchFlightCheapestDates);
+r.get(
+  '/flight/cheapest-dates',
+  validate(flightCheapestDateSearchQuerySchema),
+  searchFlightCheapestDates
+);
 
 export default r;

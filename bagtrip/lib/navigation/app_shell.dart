@@ -1,54 +1,49 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
 import 'package:bagtrip/navigation/bloc/navigation_bloc.dart';
 import 'package:bagtrip/components/bottom_tab_bar.dart';
-import 'package:bagtrip/pages/home_page.dart';
-import 'package:bagtrip/pages/map_page.dart';
-import 'package:bagtrip/pages/budget_page.dart';
-import 'package:bagtrip/pages/profile_page.dart';
 
-class AppShell extends StatelessWidget {
-  const AppShell({super.key});
+extension NavigationTabExtension on NavigationTab {
+  String get path {
+    switch (this) {
+      case NavigationTab.home:
+        return '/home';
+      case NavigationTab.map:
+        return '/map';
+      case NavigationTab.budget:
+        return '/budget';
+      case NavigationTab.profile:
+        return '/profile';
+    }
+  }
 
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => NavigationBloc(),
-      child: const AppShellContent(),
+  static NavigationTab fromPath(String path) {
+    return NavigationTab.values.firstWhere(
+      (tab) => tab.path == path,
+      orElse: () => NavigationTab.home,
     );
   }
 }
 
-class AppShellContent extends StatelessWidget {
-  const AppShellContent({super.key});
+class AppShell extends StatelessWidget {
+  final Widget child;
 
-  Widget _buildPageByTab(NavigationTab tab) {
-    switch (tab) {
-      case NavigationTab.home:
-        return const HomePage();
-      case NavigationTab.map:
-        return const MapPage();
-      case NavigationTab.budget:
-        return const BudgetPage();
-      case NavigationTab.profile:
-        return const ProfilePage();
-    }
-  }
+  const AppShell({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<NavigationBloc, NavigationState>(
-      builder: (context, state) {
-        return Scaffold(
-          body: _buildPageByTab(state.activeTab),
-          bottomNavigationBar: BottomTabBar(
-            activeTab: state.activeTab,
-            onTabChanged: (tab) {
-              context.read<NavigationBloc>().add(NavigationTabChanged(tab));
-            },
-          ),
-        );
-      },
+    final currentLocation = GoRouterState.of(context).uri.path;
+    final activeTab = NavigationTabExtension.fromPath(currentLocation);
+
+    return Scaffold(
+      body: child,
+      bottomNavigationBar: BottomTabBar(
+        activeTab: activeTab,
+        onTabChanged: (tab) {
+          // Navigation is handled by BottomTabBar's context.go() call
+        },
+      ),
     );
   }
 }
