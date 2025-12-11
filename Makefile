@@ -16,7 +16,11 @@ help: ## Show this help message
 	@echo "$(CYAN)Available commands:$(RESET)"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(CYAN)%-15s$(RESET) %s\n", $$1, $$2}'
 
-install: ## Install dependencies for all services
+install-uv: ## Install uv if not present
+	@echo "$(CYAN)Checking for uv...$(RESET)"
+	@command -v uv >/dev/null 2>&1 || (echo "$(CYAN)Installing uv...$(RESET)" && curl -LsSf https://astral.sh/uv/install.sh | sh)
+
+install: install-uv ## Install dependencies for all services
 	@echo "$(CYAN)Installing API dependencies...$(RESET)"
 	@cd api && uv sync
 	@echo "$(CYAN)Installing Admin Panel dependencies...$(RESET)"
