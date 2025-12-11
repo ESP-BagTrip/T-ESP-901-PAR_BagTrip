@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:bagtrip/navigation/app_router.dart';
 import 'package:bagtrip/design/app_theme.dart';
+import 'package:bagtrip/navigation/app_router.dart';
+import 'package:flutter/material.dart';
 
 void main() {
   runApp(const MyApp());

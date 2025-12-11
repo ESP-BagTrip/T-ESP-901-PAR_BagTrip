@@ -5,6 +5,7 @@ import 'package:bagtrip/pages/home_page.dart';
 import 'package:bagtrip/pages/map_page.dart';
 import 'package:bagtrip/pages/budget_page.dart';
 import 'package:bagtrip/pages/profile_page.dart';
+import 'package:bagtrip/pages/flight_search_result_page.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/home',
@@ -39,6 +40,13 @@ final GoRouter appRouter = GoRouter(
               (context, state) => const NoTransitionPage(child: ProfilePage()),
         ),
       ],
+    ),
+    GoRoute(
+      path: '/flight-search-result',
+      name: 'flight-search-result',
+      pageBuilder:
+          (context, state) =>
+              const NoTransitionPage(child: FlightSearchResultPage()),
     ),
   ],
 );
