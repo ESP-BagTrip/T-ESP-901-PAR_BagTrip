@@ -1,0 +1,40 @@
+"""Schémas Pydantic pour l'authentification."""
+
+from datetime import datetime
+from uuid import UUID
+
+from pydantic import BaseModel, EmailStr, Field
+
+
+class SignupRequest(BaseModel):
+    """Requête d'inscription."""
+
+    email: EmailStr
+    password: str = Field(..., min_length=6)
+
+
+class LoginRequest(BaseModel):
+    """Requête de connexion."""
+
+    email: EmailStr
+    password: str
+
+
+class UserResponse(BaseModel):
+    """Réponse utilisateur."""
+
+    id: UUID
+    email: str
+    created_at: datetime = Field(..., alias="createdAt")
+    updated_at: datetime | None = Field(None, alias="updatedAt")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
+class AuthResponse(BaseModel):
+    """Réponse d'authentification."""
+
+    token: str
+    user: UserResponse
