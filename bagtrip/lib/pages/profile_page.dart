@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/primary_button.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -46,10 +47,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
               ),
               const SizedBox(height: AppSpacing.space32),
-              ElevatedButton.icon(
-                onPressed: () {},
+              PrimaryButton(
+                label: 'Modifier le profil',
                 icon: const Icon(Icons.edit_outlined),
-                label: const Text('Modifier le profil'),
+                onPressed: () {},
               ),
             ],
           ),

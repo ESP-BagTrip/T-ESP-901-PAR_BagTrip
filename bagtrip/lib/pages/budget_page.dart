@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/primary_button.dart';
 
 class BudgetPage extends StatefulWidget {
   const BudgetPage({super.key});
@@ -38,10 +39,10 @@ class _BudgetPageState extends State<BudgetPage> {
                     ),
               ),
               const SizedBox(height: AppSpacing.space32),
-              ElevatedButton.icon(
-                onPressed: () {},
+              PrimaryButton(
+                label: 'Ajouter une dépense',
                 icon: const Icon(Icons.add_circle_outline),
-                label: const Text('Ajouter une dépense'),
+                onPressed: () {},
               ),
             ],
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/primary_button.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -38,10 +39,10 @@ class _MapPageState extends State<MapPage> {
                     ),
               ),
               const SizedBox(height: AppSpacing.space32),
-              ElevatedButton.icon(
-                onPressed: () {},
+              PrimaryButton(
+                label: 'Commencer',
                 icon: const Icon(Icons.location_on_outlined),
-                label: const Text('Commencer'),
+                onPressed: () {},
               ),
             ],
           ),
