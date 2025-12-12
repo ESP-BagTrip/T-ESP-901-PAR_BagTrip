@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/primary_button.dart';
 
 class BudgetPage extends StatefulWidget {
   const BudgetPage({super.key});
@@ -12,43 +15,37 @@ class _BudgetPageState extends State<BudgetPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.wallet_outlined,
-              size: 80,
-              color: Color(0xFF28B4B0),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Gérer votre budget',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.0),
-              child: Text(
+        child: Padding(
+          padding: AppSpacing.allEdgeInsetSpace24,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.wallet_outlined,
+                size: 80,
+                color: ColorName.secondary,
+              ),
+              const SizedBox(height: AppSpacing.space16),
+              Text(
+                'Gérer votre budget',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: AppSpacing.space8),
+              Text(
                 'Suivez vos dépenses et planifiez votre voyage selon votre budget',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.grey),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: ColorName.primaryTrueDark.withValues(alpha: 0.7),
+                    ),
               ),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.add_circle_outline),
-              label: const Text('Ajouter une dépense'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF28B4B0),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 12,
-                ),
+              const SizedBox(height: AppSpacing.space32),
+              PrimaryButton(
+                label: 'Ajouter une dépense',
+                icon: const Icon(Icons.add_circle_outline),
+                onPressed: () {},
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

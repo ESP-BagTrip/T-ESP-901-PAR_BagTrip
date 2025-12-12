@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:bagtrip/navigation/app_router.dart';
+import 'package:bagtrip/design/app_theme.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,10 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.light(),
       routerConfig: appRouter,
     );
   }

@@ -1,5 +1,7 @@
-import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:flutter/material.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/primary_button.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -13,51 +15,45 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: ColorName.secondary.withValues(alpha: 0.2),
-              ),
-              child: const Icon(
-                Icons.person_outline,
-                size: 60,
-                color: Color(0xFF28B4B0),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Mon profil',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.0),
-              child: Text(
-                'Gérez vos informations personnelles et vos préférences',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.edit_outlined),
-              label: const Text('Modifier le profil'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF28B4B0),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 12,
+        child: Padding(
+          padding: AppSpacing.allEdgeInsetSpace24,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: ColorName.secondary.withValues(alpha: 0.15),
+                ),
+                child: Icon(
+                  Icons.person_outline,
+                  size: 60,
+                  color: ColorName.secondary,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: AppSpacing.space16),
+              Text(
+                'Mon profil',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: AppSpacing.space8),
+              Text(
+                'Gérez vos informations personnelles et vos préférences',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: ColorName.primaryTrueDark.withValues(alpha: 0.7),
+                    ),
+              ),
+              const SizedBox(height: AppSpacing.space32),
+              PrimaryButton(
+                label: 'Modifier le profil',
+                icon: const Icon(Icons.edit_outlined),
+                onPressed: () {},
+              ),
+            ],
+          ),
         ),
       ),
     );

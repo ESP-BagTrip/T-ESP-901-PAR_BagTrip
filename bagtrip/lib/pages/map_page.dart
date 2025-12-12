@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/primary_button.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -12,39 +15,37 @@ class _MapPageState extends State<MapPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.map_outlined, size: 80, color: Color(0xFF28B4B0)),
-            const SizedBox(height: 16),
-            const Text(
-              'Visualiser les destinations',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.0),
-              child: Text(
+        child: Padding(
+          padding: AppSpacing.allEdgeInsetSpace24,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.map_outlined,
+                size: 80,
+                color: ColorName.secondary,
+              ),
+              const SizedBox(height: AppSpacing.space16),
+              Text(
+                'Visualiser les destinations',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: AppSpacing.space8),
+              Text(
                 'Explorez les destinations disponibles sur une carte interactive',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.grey),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: ColorName.primaryTrueDark.withValues(alpha: 0.7),
+                    ),
               ),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.location_on_outlined),
-              label: const Text('Commencer'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF28B4B0),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 12,
-                ),
+              const SizedBox(height: AppSpacing.space32),
+              PrimaryButton(
+                label: 'Commencer',
+                icon: const Icon(Icons.location_on_outlined),
+                onPressed: () {},
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

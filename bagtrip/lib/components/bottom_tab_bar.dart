@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import 'package:bagtrip/navigation/bloc/navigation_bloc.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/design/tokens.dart';
 
 class BottomTabBar extends StatelessWidget {
   final NavigationTab activeTab;
@@ -13,10 +16,10 @@ class BottomTabBar extends StatelessWidget {
   });
 
   Color _getTabColor(NavigationTab tab, bool isActive) {
-    return isActive ? const Color(0xFF28B4B0) : Colors.grey;
+    return isActive ? ColorName.secondary : Colors.grey;
   }
 
-  Widget buildTabItem(
+  Widget _buildTabItem(
     BuildContext context,
     NavigationTab tab,
     String label,
@@ -30,21 +33,21 @@ class BottomTabBar extends StatelessWidget {
       child: GestureDetector(
         onTap: () {
           onTabChanged(tab);
-          context.go(route); // navigate with GoRouter
+          context.go(route);
         },
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: 4),
+            Icon(icon, color: color, size: AppSize.iconSizeHeight24),
+            const SizedBox(height: AppSpacing.space4),
             Text(
               label,
-              style: TextStyle(
-                color: color,
-                fontSize: 12,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-              ),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: color,
+                    fontWeight:
+                        isActive ? FontWeight.w600 : FontWeight.w500,
+                  ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -61,7 +64,7 @@ class BottomTabBar extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -71,31 +74,31 @@ class BottomTabBar extends StatelessWidget {
         top: false,
         child: Container(
           height: 70,
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          padding: AppSpacing.horizontalSpace8,
           child: Row(
             children: [
-              buildTabItem(
+              _buildTabItem(
                 context,
                 NavigationTab.home,
                 'Accueil',
                 Icons.home_outlined,
                 '/home',
               ),
-              buildTabItem(
+              _buildTabItem(
                 context,
                 NavigationTab.map,
                 'Carte',
                 Icons.map_outlined,
                 '/map',
               ),
-              buildTabItem(
+              _buildTabItem(
                 context,
                 NavigationTab.budget,
                 'Budget',
                 Icons.wallet_outlined,
                 '/budget',
               ),
-              buildTabItem(
+              _buildTabItem(
                 context,
                 NavigationTab.profile,
                 'Profil',
