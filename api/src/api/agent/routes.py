@@ -1,9 +1,9 @@
 """Routes pour l'agent IA."""
 
 import json
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from langchain_core.messages import HumanMessage
 from pydantic import BaseModel
@@ -20,7 +20,7 @@ class ChatRequest(BaseModel):
     userid: str
 
 
-async def stream_generator(input_message: str, userid: str) -> AsyncGenerator[str, None]:
+async def stream_generator(input_message: str, userid: str) -> AsyncGenerator[str]:
     """Générateur pour le streaming SSE de la réponse de l'agent."""
     try:
         # Configuration initiale de l'état
