@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/flightSearchResult/bloc/flight_search_result_bloc.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class DateSelector extends StatelessWidget {
   final int selectedDateIndex;
@@ -39,9 +39,11 @@ class DateSelector extends StatelessWidget {
                       item['price'] ?? '',
                       isSelected: index == selectedDateIndex,
                       onTap: () {
-                        context.read<FlightSearchResultBloc>().add(
-                          SelectDate(index),
-                        );
+                        if (context.mounted) {
+                          context.read<FlightSearchResultBloc>().add(
+                            SelectDate(index),
+                          );
+                        }
                       },
                     );
                   }),

@@ -50,6 +50,7 @@ final class HomeFlightLoaded extends HomeFlightState {
     List<Map<String, dynamic>>? searchResults,
     bool? isLoading,
     String? errorMessage,
+    bool clearError = false,
   }) {
     return HomeFlightLoaded(
       tripTypeIndex: tripTypeIndex ?? this.tripTypeIndex,
@@ -64,13 +65,7 @@ final class HomeFlightLoaded extends HomeFlightState {
       maxPrice: maxPrice ?? this.maxPrice,
       searchResults: searchResults ?? this.searchResults,
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage ?? this.errorMessage,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
-}
-
-final class HomeFlightError extends HomeFlightState {
-  final String message;
-
-  HomeFlightError(this.message);
 }

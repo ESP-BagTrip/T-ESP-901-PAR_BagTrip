@@ -1,6 +1,8 @@
 // ignore_for_file: depend_on_referenced_packages
 
+import 'package:bagtrip/service/LocationService.dart';
 import 'package:bloc/bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:meta/meta.dart';
 import 'package:bagtrip/flightSearchResult/models/flight.dart';
 
@@ -9,7 +11,11 @@ part 'flight_search_result_state.dart';
 
 class FlightSearchResultBloc
     extends Bloc<FlightSearchResultEvent, FlightSearchResultState> {
-  FlightSearchResultBloc() : super(FlightSearchResultInitial()) {
+  final LocationService _locationService;
+
+  FlightSearchResultBloc({LocationService? locationService})
+    : _locationService = locationService ?? LocationService(),
+      super(FlightSearchResultInitial()) {
     on<LoadFlights>(_onLoadFlights);
     on<FilterFlightsByPrice>(_onFilterFlightsByPrice);
     on<SortFlights>(_onSortFlights);
@@ -31,9 +37,23 @@ class FlightSearchResultBloc
     emit(FlightSearchResultLoading());
 
     try {
-      await Future.delayed(const Duration(milliseconds: 500));
+      final dateFormatter = DateFormat('yyyy-MM-dd');
+      final departureDateStr = dateFormatter.format(event.departureDate);
+      final returnDateStr =
+          event.returnDate != null
+              ? dateFormatter.format(event.returnDate!)
+              : null;
 
-      final flights = _generateMockFlights();
+      final flights = await _locationService.searchFlights(
+        departureCode: event.departureCode,
+        arrivalCode: event.arrivalCode,
+        departureDate: departureDateStr,
+        returnDate: returnDateStr,
+        adults: event.adults,
+        children: event.children,
+        infants: event.infants,
+        travelClass: event.travelClass.toUpperCase(),
+      );
 
       emit(
         FlightSearchResultLoaded(flights: flights, filteredFlights: flights),
@@ -92,70 +112,5 @@ class FlightSearchResultBloc
   ) async {
     final current = _currentState();
     emit(current.copyWith(selectedDateIndex: event.dateIndex));
-  }
-
-  List<Flight> _generateMockFlights() {
-    return [
-      Flight(
-        id: '1',
-        departureTime: '15:55',
-        arrivalTime: '16:55',
-        departureAirport: 'CDG',
-        departureCode: 'CDG T2F',
-        arrivalAirport: 'FCO',
-        arrivalCode: 'FCO T1',
-        duration: '1h00',
-        airline: 'Air France',
-        aircraftType: 'Airbus A321',
-        price: 186.0,
-        amenities: ['Bagage à main inclus'],
-        co2Offset: 8,
-      ),
-      Flight(
-        id: '2',
-        departureTime: '15:55',
-        arrivalTime: '16:55',
-        departureAirport: 'CDG',
-        departureCode: 'CDG T2F',
-        arrivalAirport: 'FCO',
-        arrivalCode: 'FCO T1',
-        duration: '1h00',
-        airline: 'Air France',
-        aircraftType: 'Airbus A321',
-        price: 167.0,
-        amenities: ['Bagage à main inclus'],
-        co2Offset: 8,
-      ),
-      Flight(
-        id: '3',
-        departureTime: '15:55',
-        arrivalTime: '16:55',
-        departureAirport: 'CDG',
-        departureCode: 'CDG T2F',
-        arrivalAirport: 'FCO',
-        arrivalCode: 'FCO T1',
-        duration: '1h00',
-        airline: 'Air France',
-        aircraftType: 'Airbus A321',
-        price: 167.0,
-        amenities: ['Bagage à main inclus'],
-        co2Offset: 8,
-      ),
-      Flight(
-        id: '4',
-        departureTime: '15:55',
-        arrivalTime: '16:55',
-        departureAirport: 'CDG',
-        departureCode: 'CDG T2F',
-        arrivalAirport: 'FCO',
-        arrivalCode: 'FCO T1',
-        duration: '1h00',
-        airline: 'Air France',
-        aircraftType: 'Airbus A321',
-        price: 167.0,
-        amenities: ['Bagage à main inclus'],
-        co2Offset: 8,
-      ),
-    ];
   }
 }

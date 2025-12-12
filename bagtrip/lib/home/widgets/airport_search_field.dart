@@ -1,9 +1,10 @@
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../gen/colors.gen.dart';
 import '../bloc/home_flight_bloc.dart';
 import '../models/airport_type.dart';
-import '../../gen/colors.gen.dart';
 
 class AirportSearchField extends StatefulWidget {
   final AirportType type;
@@ -112,6 +113,8 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
         },
         builder: (context, state) {
           return TextField(
+            // need to align text vertical center
+            textAlignVertical: TextAlignVertical.center,
             controller: _controller,
             style: const TextStyle(fontFamily: FontFamily.b612, fontSize: 13),
             decoration: InputDecoration(
@@ -121,7 +124,6 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
                 color: ColorName.primary,
               ),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(vertical: 12),
               isDense: true,
               suffixIcon:
                   _controller.text.isNotEmpty
@@ -140,9 +142,15 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
             onChanged: (value) {
               setState(() => _showResults = value.isNotEmpty);
               if (value.length >= 2) {
-                context.read<HomeFlightBloc>().add(
-                  SearchDepartureAirport(value),
-                );
+                if (widget.type == AirportType.departure) {
+                  context.read<HomeFlightBloc>().add(
+                    SearchDepartureAirport(value),
+                  );
+                } else {
+                  context.read<HomeFlightBloc>().add(
+                    SearchArrivalAirport(value),
+                  );
+                }
               } else {
                 _removeOverlay();
               }

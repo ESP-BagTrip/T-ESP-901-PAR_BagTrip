@@ -1,11 +1,64 @@
 // ignore_for_file: file_names
 
+import 'package:bagtrip/flightSearchResult/models/flight.dart';
 import 'package:dio/dio.dart';
 
 class LocationService {
   final Dio _dio = Dio();
   final String baseUrl =
       'http://localhost:3000/api'; // Ajustez l'URL selon votre configuration
+
+  Future<List<Flight>> searchFlights({
+    required String departureCode,
+    required String arrivalCode,
+    required String departureDate,
+    String? returnDate,
+    required int adults,
+    int children = 0,
+    int infants = 0,
+    String travelClass = 'ECONOMY',
+  }) async {
+    try {
+      final queryParameters = {
+        'originLocationCode': departureCode,
+        'destinationLocationCode': arrivalCode,
+        'departureDate': departureDate,
+        'adults': adults,
+        'children': children,
+        'infants': infants,
+        'travelClass': travelClass,
+        'currencyCode': 'EUR',
+      };
+
+      if (returnDate != null) {
+        queryParameters['returnDate'] = returnDate;
+      }
+
+      // Using the standard Amadeus endpoint structure based on the base URL
+      final response = await _dio.get(
+        '$baseUrl/travel/flight/offers',
+        queryParameters: queryParameters,
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        List<dynamic> rawFlights = [];
+
+        if (data is List) {
+          rawFlights = data;
+        } else if (data is Map &&
+            data.containsKey('data') &&
+            data['data'] is List) {
+          rawFlights = data['data'];
+        }
+
+        return rawFlights.map((json) => Flight.fromAmadeusJson(json)).toList();
+      }
+      throw Exception('Failed to fetch flights: HTTP ${response.statusCode}');
+    } catch (e) {
+      throw Exception('Error searching flights: $e');
+    }
+  }
 
   Future<List<Map<String, dynamic>>> searchLocationsByKeyword(
     String keyword,

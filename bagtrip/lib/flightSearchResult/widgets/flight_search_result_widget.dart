@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:bagtrip/flightSearchResult/bloc/flight_search_result_bloc.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/flightSearchResult/bloc/flight_search_result_bloc.dart';
 import 'package:bagtrip/flightSearchResult/widgets/date_selector.dart';
 import 'package:bagtrip/flightSearchResult/widgets/filter_button.dart';
 import 'package:bagtrip/flightSearchResult/widgets/flight_card.dart';
 import 'package:bagtrip/flightSearchResult/widgets/flight_search_result_shimmer.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class FlightSearchResultView extends StatelessWidget {
   const FlightSearchResultView({super.key});
@@ -42,9 +42,11 @@ class FlightSearchResultView extends StatelessWidget {
                       flight: flight,
                       isSelected: isSelected,
                       onTap: () {
-                        context.read<FlightSearchResultBloc>().add(
-                          SelectFlight(flight),
-                        );
+                        if (context.mounted) {
+                          context.read<FlightSearchResultBloc>().add(
+                            SelectFlight(flight),
+                          );
+                        }
                       },
                     );
                   },

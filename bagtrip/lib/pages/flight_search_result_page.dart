@@ -1,11 +1,14 @@
+import 'package:bagtrip/flightSearchResult/bloc/flight_search_result_bloc.dart';
+import 'package:bagtrip/flightSearchResult/models/flight_search_arguments.dart';
+import 'package:bagtrip/flightSearchResult/widgets/flight_search_result_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:bagtrip/flightSearchResult/bloc/flight_search_result_bloc.dart';
-import 'package:bagtrip/flightSearchResult/widgets/flight_search_result_widget.dart';
 
 class FlightSearchResultPage extends StatelessWidget {
-  const FlightSearchResultPage({super.key});
+  final FlightSearchArguments arguments;
+
+  const FlightSearchResultPage({super.key, required this.arguments});
 
   @override
   Widget build(BuildContext context) {
@@ -25,13 +28,14 @@ class FlightSearchResultPage extends StatelessWidget {
             (context) =>
                 FlightSearchResultBloc()..add(
                   LoadFlights(
-                    departureCode: 'CDG',
-                    arrivalCode: 'FCO',
-                    departureDate: DateTime.now(),
-                    adults: 1,
-                    children: 0,
-                    infants: 0,
-                    travelClass: 'Economy',
+                    departureCode: arguments.departureCode,
+                    arrivalCode: arguments.arrivalCode,
+                    departureDate: arguments.departureDate,
+                    returnDate: arguments.returnDate,
+                    adults: arguments.adults,
+                    children: arguments.children,
+                    infants: arguments.infants,
+                    travelClass: arguments.travelClass,
                   ),
                 ),
         child: const SafeArea(

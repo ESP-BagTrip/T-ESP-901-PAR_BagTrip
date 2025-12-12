@@ -2,6 +2,7 @@
 
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
+
 import '../../service/LocationService.dart';
 
 part 'home_flight_event.dart';
@@ -40,7 +41,7 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
     Emitter<HomeFlightState> emit,
   ) async {
     final current = _currentState();
-    emit(current.copyWith(isLoading: true));
+    emit(current.copyWith(isLoading: true, clearError: true));
 
     try {
       final airports = await _locationService.searchLocationsByKeyword(
@@ -49,7 +50,7 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
       );
       emit(current.copyWith(isLoading: false, searchResults: airports));
     } catch (e) {
-      emit(HomeFlightError(e.toString()));
+      emit(current.copyWith(isLoading: false, errorMessage: e.toString()));
     }
   }
 
@@ -58,7 +59,7 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
     Emitter<HomeFlightState> emit,
   ) async {
     final current = _currentState();
-    emit(current.copyWith(isLoading: true));
+    emit(current.copyWith(isLoading: true, clearError: true));
 
     try {
       final airports = await _locationService.searchLocationsByKeyword(
@@ -67,7 +68,7 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
       );
       emit(current.copyWith(isLoading: false, searchResults: airports));
     } catch (e) {
-      emit(HomeFlightError(e.toString()));
+      emit(current.copyWith(isLoading: false, errorMessage: e.toString()));
     }
   }
 
@@ -146,12 +147,12 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
     Emitter<HomeFlightState> emit,
   ) async {
     final current = _currentState();
-    emit(current.copyWith(isLoading: true));
+    emit(current.copyWith(isLoading: true, clearError: true));
 
     try {
       emit(current.copyWith(isLoading: false));
     } catch (e) {
-      emit(HomeFlightError(e.toString()));
+      emit(current.copyWith(isLoading: false, errorMessage: e.toString()));
     }
   }
 }
