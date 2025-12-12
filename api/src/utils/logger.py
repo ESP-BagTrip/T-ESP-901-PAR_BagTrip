@@ -61,10 +61,22 @@ class Logger:
         if self._should_log(LogLevel.WARN):
             self._logger.warning(self._format_message("WARN", message, data))
 
-    def error(self, message: str, data: Any | None = None) -> None:
+    def error(self, message: str, data: Any | None = None, exc_info: bool = False) -> None:
         """Log error."""
         if self._should_log(LogLevel.ERROR):
-            self._logger.error(self._format_message("ERROR", message, data))
+            if exc_info and self.level == LogLevel.DEBUG:
+                # En mode debug, afficher la traceback complète
+                # Ne pas formater le message quand exc_info=True pour préserver le contexte
+                if data:
+                    import json
+
+                    formatted_data = json.dumps(data, indent=2, default=str)
+                    full_message = f"{message}\n{formatted_data}"
+                else:
+                    full_message = message
+                self._logger.error(full_message, exc_info=True)
+            else:
+                self._logger.error(self._format_message("ERROR", message, data))
 
     def set_level(self, level: LogLevel) -> None:
         """Change le niveau de log."""

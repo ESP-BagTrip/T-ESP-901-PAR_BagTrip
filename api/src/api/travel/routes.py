@@ -151,7 +151,7 @@ async def search_flight_offers(
         ..., description="IATA code of the departure city/airport", example="PAR"
     ),
     destinationLocationCode: str = Query(
-        ..., description="IATA code of the arrival city/airport", example="NYC"
+        ..., description="IATA code of the arrival city/airport", example="FCO"
     ),
     departureDate: str = Query(
         ..., description="Departure date (YYYY-MM-DD)", example="2025-12-15"
@@ -161,37 +161,43 @@ async def search_flight_offers(
         None, description="Return date for round-trip (YYYY-MM-DD)", example="2025-12-22"
     ),
     children: int | None = Query(
-        None, ge=0, le=9, description="Number of child travelers (0-9)", example=1
+        None, ge=0, le=9, description="Number of child travelers (0-9)", example=None
     ),
     infants: int | None = Query(
         None,
         ge=0,
         le=9,
         description="Number of infant travelers (0-9, cannot exceed adults)",
-        example=0,
+        example=None,
     ),
-    travelClass: str | None = Query(None, description="Cabin class preference", example="ECONOMY"),
+    travelClass: str | None = Query(None, description="Cabin class preference", example=None),
     nonStop: bool | None = Query(
-        None, description="Search for non-stop flights only", example=False
+        None, description="Search for non-stop flights only", example=None
     ),
     currencyCode: str | None = Query(
-        None, description="Currency code (ISO 4217, 3 letters)", example="EUR"
+        None, description="Currency code (ISO 4217, 3 letters)", example="USD"
     ),
-    maxPrice: int | None = Query(None, gt=0, description="Maximum price per traveler", example=500),
+    maxPrice: int | None = Query(
+        None, gt=0, description="Maximum price per traveler", example=None
+    ),
     max: int | None = Query(
         None,
         ge=1,
         le=250,
         description="Maximum number of flight offers to return (1-250)",
-        example=50,
+        example=10,
     ),
     includedAirlineCodes: str | None = Query(
         None,
-        description="Comma-separated list of airline codes to include (e.g., 'AF,BA')",
-        example="AF,BA",
+        description="Comma-separated list of airline codes to include (e.g., 'AF,BA'). "
+        "Note: Cannot be used together with excludedAirlineCodes.",
+        example=None,
     ),
     excludedAirlineCodes: str | None = Query(
-        None, description="Comma-separated list of airline codes to exclude", example="LH"
+        None,
+        description="Comma-separated list of airline codes to exclude. "
+        "Note: Cannot be used together with includedAirlineCodes.",
+        example=None,
     ),
 ):
     """
@@ -224,6 +230,15 @@ async def search_flight_offers(
 
         if max is not None and (max < 1 or max > 250):
             raise AppError("INVALID_QUERY", 400, "max must be between 1 and 250")
+
+        # Amadeus doesn't allow both includedAirlineCodes and excludedAirlineCodes together
+        if includedAirlineCodes and excludedAirlineCodes:
+            raise AppError(
+                "INVALID_QUERY",
+                400,
+                "includedAirlineCodes and excludedAirlineCodes cannot be used together. "
+                "Please use only one.",
+            )
 
         query = FlightOfferSearchQuery(
             originLocationCode=originLocationCode,

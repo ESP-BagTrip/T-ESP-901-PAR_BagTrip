@@ -1,6 +1,8 @@
 """Client unifié Amadeus exposant toutes les méthodes."""
 
 from .flights import (
+    confirm_flight_price,
+    create_flight_order,
     search_flight_cheapest_dates,
     search_flight_destinations,
     search_flight_offers,
@@ -13,7 +15,9 @@ from .locations import (
 from .types import (
     FlightCheapestDateSearchQuery,
     FlightInspirationSearchQuery,
+    FlightOffer,
     FlightOfferSearchQuery,
+    FlightOrderTraveler,
     LocationIdSearchQuery,
     LocationKeywordSearchQuery,
     LocationNearestSearchQuery,
@@ -48,6 +52,16 @@ class AmadeusClient:
     async def search_flight_cheapest_dates(self, query: FlightCheapestDateSearchQuery):
         """Recherche des dates les moins chères."""
         return await search_flight_cheapest_dates(query)
+
+    async def confirm_flight_price(self, flight_offer: FlightOffer):
+        """Confirme le prix d'une offre de vol."""
+        return await confirm_flight_price(flight_offer)
+
+    async def create_flight_order(
+        self, flight_offer: FlightOffer, travelers: list[FlightOrderTraveler]
+    ):
+        """Crée une commande de vol."""
+        return await create_flight_order(flight_offer, travelers)
 
 
 # Instance globale du client

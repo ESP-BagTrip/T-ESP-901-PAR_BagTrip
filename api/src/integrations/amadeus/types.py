@@ -137,13 +137,13 @@ class FlightSegment(BaseModel):
     duration: str
     id: str
     numberOfStops: int
-    blacklistedInEU: bool
+    blacklistedInEU: bool | None = None
 
 
 class FlightItinerary(BaseModel):
     """Itinéraire de vol."""
 
-    duration: str
+    duration: str | None = None
     segments: list[FlightSegment]
 
 
@@ -190,7 +190,9 @@ class TravelerPrice(BaseModel):
 class IncludedCheckedBags(BaseModel):
     """Bagages enregistrés inclus."""
 
-    quantity: int
+    quantity: int | None = None
+    weight: int | None = None
+    weightUnit: str | None = None
 
 
 class FareDetailsBySegment(BaseModel):
@@ -224,8 +226,8 @@ class FlightOffer(BaseModel):
     source: str
     instantTicketingRequired: bool
     nonHomogeneous: bool
-    oneWay: bool
-    isUpsellOffer: bool
+    oneWay: bool | None = None
+    isUpsellOffer: bool | None = None
     lastTicketingDate: str | None = None
     lastTicketingDateTime: str | None = None
     numberOfBookableSeats: int | None = None
@@ -393,4 +395,85 @@ class FlightDateResponse(BaseModel):
     """Réponse de recherche de dates les moins chères."""
 
     meta: FlightDateMeta
-    data: list[FlightDate]
+
+
+# ============================================================================
+# FLIGHT PRICING TYPES
+# ============================================================================
+
+
+class FlightPriceQuery(BaseModel):
+    """Requête de vérification de prix."""
+
+    data: dict[str, str | list[FlightOffer]]
+
+
+class FlightPriceResponse(BaseModel):
+    """Réponse de vérification de prix."""
+
+    data: dict[str, list[FlightOffer]]
+
+
+# ============================================================================
+# FLIGHT ORDER TYPES
+# ============================================================================
+
+
+class FlightTravelerName(BaseModel):
+    """Nom du voyageur."""
+
+    firstName: str
+    lastName: str
+
+
+class FlightTravelerPhone(BaseModel):
+    """Téléphone du voyageur."""
+
+    deviceType: str = "MOBILE"
+    countryCallingCode: str
+    number: str
+
+
+class FlightTravelerContact(BaseModel):
+    """Contact du voyageur."""
+
+    emailAddress: str | None = None
+    phones: list[FlightTravelerPhone]
+
+
+class FlightTravelerDocument(BaseModel):
+    """Document du voyageur."""
+
+    documentType: str = "PASSPORT"  # PASSPORT, IDENTITY_CARD, VISA, etc.
+    birthPlace: str | None = None
+    issuanceLocation: str | None = None
+    issuanceDate: str | None = None  # YYYY-MM-DD
+    number: str
+    expiryDate: str  # YYYY-MM-DD
+    issuanceCountry: str
+    validityCountry: str
+    nationality: str
+    holder: bool = True
+
+
+class FlightOrderTraveler(BaseModel):
+    """Voyageur pour la création de commande."""
+
+    id: str
+    dateOfBirth: str  # YYYY-MM-DD
+    name: FlightTravelerName
+    gender: Literal["MALE", "FEMALE"]
+    contact: FlightTravelerContact
+    documents: list[FlightTravelerDocument] | None = None
+
+
+class FlightOrderCreateQuery(BaseModel):
+    """Requête de création de commande."""
+
+    data: dict[str, str | list[FlightOffer] | list[FlightOrderTraveler]]
+
+
+class FlightOrderResponse(BaseModel):
+    """Réponse de création de commande."""
+
+    data: dict

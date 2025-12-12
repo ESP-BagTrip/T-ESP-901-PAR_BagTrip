@@ -1,5 +1,7 @@
 """Recherche de vols Amadeus."""
 
+import json
+
 import httpx
 
 from src.config.env import settings
@@ -11,8 +13,14 @@ from .types import (
     FlightDateResponse,
     FlightDestinationResponse,
     FlightInspirationSearchQuery,
+    FlightOffer,
     FlightOfferResponse,
     FlightOfferSearchQuery,
+    FlightOrderCreateQuery,
+    FlightOrderResponse,
+    FlightOrderTraveler,
+    FlightPriceQuery,
+    FlightPriceResponse,
 )
 
 
@@ -51,9 +59,22 @@ async def search_flight_offers(query: FlightOfferSearchQuery) -> FlightOfferResp
         params["maxPrice"] = query.maxPrice
     if query.max is not None:
         params["max"] = query.max
-    if query.includedAirlineCodes:
+
+    # Amadeus doesn't allow both includedAirlineCodes and excludedAirlineCodes together
+    # Priority: includedAirlineCodes takes precedence if both are provided
+    if query.includedAirlineCodes and query.excludedAirlineCodes:
+        logger.warning(
+            "Both includedAirlineCodes and excludedAirlineCodes provided. "
+            "Using includedAirlineCodes only (Amadeus restriction)",
+            {
+                "includedAirlineCodes": query.includedAirlineCodes,
+                "excludedAirlineCodes": query.excludedAirlineCodes,
+            },
+        )
         params["includedAirlineCodes"] = query.includedAirlineCodes
-    if query.excludedAirlineCodes:
+    elif query.includedAirlineCodes:
+        params["includedAirlineCodes"] = query.includedAirlineCodes
+    elif query.excludedAirlineCodes:
         params["excludedAirlineCodes"] = query.excludedAirlineCodes
 
     try:
@@ -334,3 +355,154 @@ async def search_flight_cheapest_dates(query: FlightCheapestDateSearchQuery) -> 
             },
         )
         raise Exception(f"Amadeus flight cheapest dates search failed: {str(error)}") from error
+
+
+async def confirm_flight_price(flight_offer: FlightOffer) -> FlightPriceResponse:
+    """
+    Appel Flight Offers Price: POST /v1/shopping/flight-offers/pricing
+    Confirme le prix d'une offre de vol.
+    """
+    logger.debug("Starting flight price confirmation")
+    token = await fetch_token()
+
+    url = f"{settings.AMADEUS_BASE_URL}/v1/shopping/flight-offers/pricing"
+
+    # Convert FlightOffer to dict preserving all fields from the original Amadeus response
+    # Use mode='json' to ensure proper JSON serialization (numbers stay numbers, not strings)
+    # Use by_alias=True to match Amadeus field naming (camelCase)
+    # Don't exclude None values as Amadeus may need the complete original response
+    flight_offer_json = flight_offer.model_dump_json(by_alias=True, exclude_none=False)
+    flight_offer_dict = json.loads(flight_offer_json)
+
+    body = FlightPriceQuery(
+        data={"type": "flight-offers-pricing", "flightOffers": [flight_offer_dict]}
+    )
+
+    # Serialize the body using JSON mode to preserve proper types
+    body_dict = json.loads(body.model_dump_json(by_alias=True, exclude_none=False))
+
+    try:
+        logger.info("Making Amadeus flight price confirmation request", {"url": url})
+        logger.debug("Request body", {"body": body_dict})
+
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            response = await client.post(
+                url,
+                headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+                json=body_dict,
+            )
+
+        logger.debug(
+            "Amadeus flight price response",
+            {
+                "status": response.status_code,
+                "statusText": response.reason_phrase,
+            },
+        )
+
+        if response.status_code != 200:
+            logger.error(
+                "Amadeus flight price confirmation failed",
+                {
+                    "status": response.status_code,
+                    "response": response.text,
+                },
+            )
+            # Tenter de parser l'erreur pour plus de détails
+            try:
+                error_data = response.json()
+                logger.error("Amadeus error details", {"errors": error_data.get("errors")})
+            except Exception:
+                pass
+            raise Exception(f"Amadeus flight price confirmation failed: {response.status_code}")
+
+        data = response.json()
+
+        # Le format de réponse est similaire à FlightOfferResponse mais encapsulé dans 'data'
+        # data['data']['flightOffers'] contient les offres mises à jour
+
+        response_data = data.get("data", {})
+        flight_offers_data = response_data.get("flightOffers", [])
+
+        # Logique de parsing simplifiée : on s'attend à recevoir des flightOffers mis à jour
+        # On réutilise les structures existantes
+
+        updated_offers = [FlightOffer(**offer) for offer in flight_offers_data]
+
+        return FlightPriceResponse(data={"flightOffers": updated_offers})
+
+    except httpx.HTTPError as error:
+        logger.error(
+            "Amadeus flight price confirmation failed",
+            {
+                "message": str(error),
+            },
+        )
+        raise Exception(f"Amadeus flight price confirmation failed: {str(error)}") from error
+
+
+async def create_flight_order(
+    flight_offer: FlightOffer, travelers: list[FlightOrderTraveler]
+) -> FlightOrderResponse:
+    """
+    Appel Flight Create Orders: POST /v1/booking/flight-orders
+    Crée une commande de vol.
+    """
+    logger.debug("Starting flight order creation")
+    token = await fetch_token()
+
+    url = f"{settings.AMADEUS_BASE_URL}/v1/booking/flight-orders"
+
+    body = FlightOrderCreateQuery(
+        data={
+            "type": "flight-order",
+            "flightOffers": [flight_offer],
+            "travelers": travelers,
+        }
+    ).model_dump(by_alias=True, exclude_none=True)
+
+    try:
+        logger.info("Making Amadeus flight order creation request", {"url": url})
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                url,
+                headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+                json=body,
+            )
+
+        logger.debug(
+            "Amadeus flight order response",
+            {
+                "status": response.status_code,
+                "statusText": response.reason_phrase,
+            },
+        )
+
+        if response.status_code not in [200, 201]:
+            logger.error(
+                "Amadeus flight order creation failed",
+                {
+                    "status": response.status_code,
+                    "response": response.text,
+                },
+            )
+            try:
+                error_data = response.json()
+                logger.error("Amadeus error details", {"errors": error_data.get("errors")})
+            except Exception:
+                pass
+            raise Exception(f"Amadeus flight order creation failed: {response.status_code}")
+
+        data = response.json()
+
+        return FlightOrderResponse(data=data.get("data", {}))
+
+    except httpx.HTTPError as error:
+        logger.error(
+            "Amadeus flight order creation failed",
+            {
+                "message": str(error),
+            },
+        )
+        raise Exception(f"Amadeus flight order creation failed: {str(error)}") from error
