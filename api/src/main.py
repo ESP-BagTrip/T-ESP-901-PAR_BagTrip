@@ -14,7 +14,7 @@ from src.api.auth.routes import router as auth_router
 from src.api.booking.routes import router as booking_router
 from src.api.booking.routes import router as booking_router
 from src.api.travel.routes import router as travel_router
-from src.config.database import Base, engine
+from src.config.database import Base, check_database_connection, engine
 from src.config.env import settings
 from src.utils.errors import AppError, create_http_exception
 from src.utils.logger import LogLevel, logger
@@ -24,9 +24,19 @@ from src.utils.logger import LogLevel, logger
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Gestion du cycle de vie de l'application."""
+    # Vérifier la connexion à la base de données avant de créer les tables
+    logger.info("Checking database connection...")
+    check_database_connection()
+    logger.info("Database connection successful")
+
     # Créer les tables au démarrage
-    Base.metadata.create_all(bind=engine)
-    logger.info("Database tables created")
+    try:
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables created")
+    except Exception as e:
+        logger.error(f"Failed to create database tables: {e}")
+        raise
+
     yield
     # Nettoyage à l'arrêt (si nécessaire)
     logger.info("Application shutting down")
