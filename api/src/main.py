@@ -1,7 +1,6 @@
 """Point d'entrée FastAPI."""
 
 import traceback
-import traceback
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -9,15 +8,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from src.api.agent.routes import router as agent_router
-from src.api.agent.routes import router as agent_router
 from src.api.auth.routes import router as auth_router
-from src.api.booking.routes import router as booking_router
 from src.api.booking.routes import router as booking_router
 from src.api.travel.routes import router as travel_router
 from src.config.database import Base, check_database_connection, engine
 from src.config.env import settings
 from src.utils.errors import AppError, create_http_exception
-from src.utils.logger import LogLevel, logger
 from src.utils.logger import LogLevel, logger
 
 
@@ -156,7 +152,6 @@ async def general_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=500,
         content={"error": "Internal server error", "detail": detail},
-        content={"error": "Internal server error", "detail": detail},
     )
 
 
@@ -180,6 +175,5 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=settings.PORT,
         reload=settings.NODE_ENV == "development",
-        log_level="debug" if settings.NODE_ENV == "development" else "info",
         log_level="debug" if settings.NODE_ENV == "development" else "info",
     )

@@ -1,6 +1,6 @@
 # Global Makefile to manage all services
 
-.PHONY: help install  db api ai-studio admin mobile
+.PHONY: help install  db api ai-studio admin mobile pre-commit
 
 # Default target
 .DEFAULT_GOAL := help
@@ -72,6 +72,10 @@ setup-bagtrip: check-flutter ## Set up Bagtrip (Flutter)
 
 setup-pre-commit: ## Install pre-commit tool and set up git hooks
 	@bash scripts/setup-pre-commit.sh
+
+pre-commit: ## Run pre-commit hooks on all files
+	@echo "$(CYAN)Running pre-commit hooks...$(RESET)"
+	@pre-commit run --all-files
 
 setup-linters: ## Set up all linters and formatters
 	@bash scripts/setup-linters.sh
