@@ -44,9 +44,10 @@ class BottomTabBar extends StatelessWidget {
             Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: color,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-              ),
+                    color: color,
+                    fontWeight:
+                        isActive ? FontWeight.w600 : FontWeight.w500,
+                  ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

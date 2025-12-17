@@ -55,7 +55,9 @@ async def search_location_by_id_tool(location_id: str) -> str:
 
 
 @tool
-async def search_location_nearest_tool(latitude: float, longitude: float, radius: int = 500) -> str:
+async def search_location_nearest_tool(
+    latitude: float, longitude: float, radius: int = 500
+) -> str:
     """
     Trouve les aéroports les plus proches d'une position géographique.
 

@@ -3,17 +3,7 @@ Student Project
 
 ## 🚀 Quick Start
 
-### Prerequisites (Manual Installation Required)
-
-Before running `make install`, ensure you have the following installed:
-
-1. **Node.js and npm** - [Install Node.js](https://nodejs.org/)
-2. **Flutter SDK** - [Install Flutter](https://flutter.dev/docs/get-started/install)
-3. **Docker and Docker Compose** - [Install Docker](https://docs.docker.com/get-docker/)
-
-> **Note:** Python 3.14+ will be automatically installed via `uv` if not present.
-
-### Installation
+### For New Collaborators
 
 1. **Clone the repository:**
    ```bash
@@ -21,66 +11,99 @@ Before running `make install`, ensure you have the following installed:
    cd Bag_Trip
    ```
 
-2. **Run the automatic installation:**
+2. **Initialize the project (recommended):**
    ```bash
-   make install
+   make init
+   ```
+   
+   This will:
+   - Install pre-commit hooks
+   - Install all project dependencies (API + Admin Panel)
+   - Set up git hooks for code quality
+
+### Manual Setup (Alternative)
+
+If you prefer manual setup or the Makefile doesn't work:
+
+1. **Install pre-commit:**
+   ```bash
+   # Option 1: Using pipx (recommended)
+   pipx install pre-commit
+   
+   # Option 2: Using pip
+   pip install pre-commit
+   
+   # Option 3: Using Homebrew (macOS)
+   brew install pre-commit
    ```
 
-   This will automatically:
-   - Install `uv` (Python package manager)
-   - Install Python 3.14+ if needed
-   - Install all project dependencies (API, Admin Panel, Mobile App)
-   - Set up pre-commit hooks
-   - Configure linters and formatters
-   - Create `.env` file from `.env.example`
-
-3. **Configure environment variables:**
-
-   Edit `.env` file and fill in the required API keys:
-   - `AMADEUS_CLIENT_ID`
-   - `AMADEUS_CLIENT_SECRET`
-   - `GOOGLE_API_KEY`
-   - Other configuration values as needed
-
-4. **Start the database:**
+2. **Install git hooks:**
    ```bash
-   make db
+   pre-commit install --install-hooks
    ```
 
-## 🛠️ Available Commands
+3. **Install dependencies:**
+   ```bash
+   # API dependencies
+   cd api && npm install
+   
+   # Admin Panel dependencies
+   cd admin-panel && npm install
+   ```
 
-### Global Commands
+## 🛠️ Development
+
+### Pre-commit Hooks
+
+The project uses pre-commit hooks that automatically run on every commit:
+
+- ✅ **Large file check** - Prevents files >500KB from being committed
+- ✅ **Code formatting** - Runs Prettier on both API and Admin Panel
+- ✅ **Code linting** - Runs ESLint on both packages with auto-fix
+
+### Available Commands
 
 ```bash
-make help          # Show all available commands
-make install       # Install all dependencies and set up development environment
-make db            # Start PostgreSQL database container
-make api           # Start the Python API (FastAPI)
-make ai-studio     # Start the AI Studio (LangGraph)
-make admin         # Start the Admin Panel (Next.js)
-make mobile        # Start the Mobile App (Flutter)
+# View all available make targets
+make help
+
+# Install only pre-commit hooks
+make install-pre-commit
+
+# Install only dependencies
+make install-deps
+
+# Complete initialization
+make init
 ```
 
 ## 🏗️ Project Structure
 
 ```
 Bag_Trip/
-├── api/                    # Backend API (Python + FastAPI)
-├── admin-panel/            # Frontend Admin Panel (Next.js + TypeScript)
-├── bagtrip/               # Mobile App (Flutter)
-├── scripts/                # Setup scripts
-├── compose.yml             # Docker Compose configuration
-├── .pre-commit-config.yaml # Pre-commit hooks configuration
-└── Makefile                # Development automation
+├── api/                 # Backend API (Node.js + Express + Prisma)
+├── admin-panel/         # Frontend (React + TypeScript + Vite)
+├── compose.yml          # Docker Compose configuration
+├── .pre-commit-config.yaml  # Pre-commit hooks configuration
+└── Makefile            # Development automation
 ```
+
+## 🐳 Docker Development
+
+Start the development environment:
+
+```bash
+docker-compose up
+```
+
+This will start:
+- PostgreSQL database on port 5432
+- API server on port 3000
+- Admin Panel on port 5173
 
 ## 📝 Code Quality
 
-The project uses automated code quality tools:
-
-- **Ruff**: Python linting and formatting
-- **ESLint + Prettier**: JavaScript/TypeScript linting and formatting
-- **Dart/Flutter Lints**: Dart code analysis
+- **ESLint**: Code linting with auto-fix
+- **Prettier**: Code formatting
 - **Pre-commit**: Automated quality checks before commit
-
-All tools are automatically configured during `make install`.
+- **TypeScript**: Type safety for both API and Admin Panel

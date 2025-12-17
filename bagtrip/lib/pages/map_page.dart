@@ -20,7 +20,7 @@ class _MapPageState extends State<MapPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
+              Icon(
                 Icons.map_outlined,
                 size: 80,
                 color: ColorName.secondary,
@@ -35,8 +35,8 @@ class _MapPageState extends State<MapPage> {
                 'Explorez les destinations disponibles sur une carte interactive',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: ColorName.primaryTrueDark.withValues(alpha: 0.7),
-                ),
+                      color: ColorName.primaryTrueDark.withValues(alpha: 0.7),
+                    ),
               ),
               const SizedBox(height: AppSpacing.space32),
               PrimaryButton(
