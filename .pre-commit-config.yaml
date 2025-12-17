@@ -7,17 +7,19 @@ repos:
   - repo: local
     hooks:
       - id: api-lint-format
-        name: "api: ruff format && ruff check"
-        entry: bash -lc 'cd api && uv run ruff format src/ && uv run ruff check src/'
+        name: "api: ruff format && ruff check --fix"
+        entry: bash -lc 'cd api && uv run ruff format src/ && uv run ruff check --fix src/'
         language: system
         pass_filenames: false
       - id: admin-panel-lint-format
-        name: "admin-panel: npm run format && npm run lint"
-        entry: bash -lc 'cd admin-panel/application && [ ! -d node_modules ] && npm install || true; npm run format && npm run lint'
+        name: "admin-panel: npm run format && npm run lint:fix"
+        entry: bash -lc 'cd admin-panel/application && [ ! -d node_modules ] && npm install || true; npm run format && npm run lint:fix'
         language: system
         pass_filenames: false
       - id: mobile-lint-format
-        name: "mobile: flutter analyze && dart format . && dart fix --apply"
-        entry: bash -lc 'cd bagtrip/ && flutter analyze && dart format . && dart fix --apply'
+        name: "mobile: dart format && dart fix --apply && flutter analyze"
+        entry: bash -lc 'cd bagtrip/ && dart format . && dart fix --apply . && flutter analyze'
         language: system
         pass_filenames: false
+        types: [dart]
+        stages: [commit]

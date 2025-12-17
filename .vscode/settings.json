@@ -21,8 +21,6 @@
   "ruff.organizeImports": true,
   "ruff.fixAll": true,
   "ruff.lint.enable": true,
-  "ruff.format.args": ["--line-length=100"],
-  "ruff.lint.args": ["--select=E,W,F,I,N,UP,B,C4,SIM"],
 
   // Configuration spécifique pour le dossier api/
   "files.associations": {
@@ -137,6 +135,8 @@
     "${workspaceFolder}/api/src"
   ],
   "python.analysis.autoImportCompletions": true,
-  "python.analysis.typeCheckingMode": "basic"
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.autoSearchPaths": true,
+  "python.analysis.diagnosticMode": "workspace"
 }
 
