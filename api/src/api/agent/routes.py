@@ -1,9 +1,9 @@
 """Routes pour l'agent IA."""
 
 import json
-from collections.abc import AsyncGenerator
+from typing import AsyncGenerator
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from langchain_core.messages import HumanMessage
 from pydantic import BaseModel
@@ -16,24 +16,24 @@ router = APIRouter(tags=["Agent"])
 
 class ChatRequest(BaseModel):
     """Modèle de requête pour le chat."""
-
     message: str
     userid: str
 
 
-async def stream_generator(input_message: str, userid: str) -> AsyncGenerator[str]:
+async def stream_generator(input_message: str, userid: str) -> AsyncGenerator[str, None]:
     """Générateur pour le streaming SSE de la réponse de l'agent."""
     try:
         # Configuration initiale de l'état
-        initial_state = {"messages": [HumanMessage(content=input_message)], "userid": userid}
+        initial_state = {
+            "messages": [HumanMessage(content=input_message)],
+            "userid": userid
+        }
 
         # Streaming des événements du graphe
         async for event in graph.astream_events(
             initial_state,
             version="v2",
-            config={
-                "configurable": {"thread_id": userid}
-            },  # Thread ID pour la mémoire conversationnelle si activée
+            config={"configurable": {"thread_id": userid}} # Thread ID pour la mémoire conversationnelle si activée
         ):
             kind = event["event"]
 
@@ -75,5 +75,6 @@ async def chat_endpoint(request: ChatRequest):
     logger.info("Starting chat session", {"userid": request.userid})
 
     return StreamingResponse(
-        stream_generator(request.message, request.userid), media_type="text/event-stream"
+        stream_generator(request.message, request.userid),
+        media_type="text/event-stream"
     )

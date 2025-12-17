@@ -1,7 +1,7 @@
 """Définition du graphe de l'agent."""
 
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langgraph.graph import START, StateGraph
+from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import ToolNode, tools_condition
 
 from src.agent.state import AgentState
@@ -21,14 +21,14 @@ llm = ChatGoogleGenerativeAI(
 )
 
 # 2. Définir les outils
-location_tools = [
+tools = [
     search_locations_by_keyword_tool,
     search_location_by_id_tool,
     search_location_nearest_tool,
 ]
 
 # 3. Lier les outils au modèle
-llm_with_tools = llm.bind_tools(location_tools)
+llm_with_tools = llm.bind_tools(tools)
 
 
 # 4. Définir les noeuds
@@ -45,18 +45,18 @@ async def agent_node(state: AgentState):
 # 5. Construire le graphe
 builder = StateGraph(AgentState)
 
-builder.add_node("agent_planning", agent_node)
-builder.add_node("tools", ToolNode(location_tools))
+builder.add_node("agent", agent_node)
+builder.add_node("tools", ToolNode(tools))
 
-builder.add_edge(START, "agent_planning")
+builder.add_edge(START, "agent")
 
 # Condition pour aller vers les outils ou terminer
 builder.add_conditional_edges(
-    "agent_planning",
+    "agent",
     tools_condition,
 )
 
-builder.add_edge("tools", "agent_planning")
+builder.add_edge("tools", "agent")
 
 # 6. Compiler le graphe
 graph = builder.compile()

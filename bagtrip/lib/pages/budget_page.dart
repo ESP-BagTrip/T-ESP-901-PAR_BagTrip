@@ -20,7 +20,7 @@ class _BudgetPageState extends State<BudgetPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
+              Icon(
                 Icons.wallet_outlined,
                 size: 80,
                 color: ColorName.secondary,
@@ -35,8 +35,8 @@ class _BudgetPageState extends State<BudgetPage> {
                 'Suivez vos dépenses et planifiez votre voyage selon votre budget',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: ColorName.primaryTrueDark.withValues(alpha: 0.7),
-                ),
+                      color: ColorName.primaryTrueDark.withValues(alpha: 0.7),
+                    ),
               ),
               const SizedBox(height: AppSpacing.space32),
               PrimaryButton(

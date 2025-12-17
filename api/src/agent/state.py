@@ -8,5 +8,4 @@ class AgentState(MessagesState):
     État de l'agent étendant l'état standard de messages.
     Ajoute l'ID utilisateur pour le contexte.
     """
-
     userid: str
