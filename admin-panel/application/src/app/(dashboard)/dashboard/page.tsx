@@ -22,12 +22,7 @@ export default function DashboardPage() {
               <h1 className="text-xl font-semibold text-gray-900">BagTrip Admin</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">
-                Bonjour, {user.firstName} {user.lastName}
-              </span>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                {user.role}
-              </span>
+              <span className="text-sm text-gray-700">Bonjour, {user.email}</span>
               <button
                 onClick={logout}
                 disabled={isLoggingOut}

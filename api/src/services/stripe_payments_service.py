@@ -144,3 +144,56 @@ class StripePaymentsService:
         db.refresh(booking_intent)
 
         return booking_intent
+
+    @staticmethod
+    def confirm_payment_with_test_card(
+        db: Session,
+        intent_id: UUID,
+        user_id: UUID,
+    ) -> dict:
+        """
+        [TEST/POC] Confirmer un paiement avec une carte de test.
+        Pour POC uniquement - en production, utiliser Stripe Elements côté client.
+        Utilise un test token Stripe au lieu de données de carte brutes.
+        """
+        import stripe
+
+        booking_intent = (
+            db.query(BookingIntent)
+            .filter(
+                BookingIntent.id == intent_id,
+                BookingIntent.user_id == user_id,
+            )
+            .first()
+        )
+
+        if not booking_intent:
+            raise AppError("BOOKING_INTENT_NOT_FOUND", 404, "Booking intent not found")
+
+        if not booking_intent.stripe_payment_intent_id:
+            raise AppError("MISSING_PAYMENT_INTENT", 400, "No payment intent associated")
+
+        # Utiliser un test payment method token de Stripe
+        # pm_card_visa est un token de test qui représente une carte Visa réussie
+        # Voir: https://stripe.com/docs/testing#cards
+        test_payment_method_id = "pm_card_visa"
+
+        # Confirmer le PaymentIntent avec le test payment method
+        # Ajouter return_url pour éviter l'erreur de redirect-based payment methods
+        payment_intent = stripe.PaymentIntent.confirm(
+            booking_intent.stripe_payment_intent_id,
+            payment_method=test_payment_method_id,
+            return_url="https://example.com/return",  # URL de retour pour POC
+        )
+
+        # Mettre à jour le booking intent si le paiement est autorisé
+        if payment_intent.status == "requires_capture":
+            booking_intent.status = "AUTHORIZED"
+            db.commit()
+            db.refresh(booking_intent)
+
+        return {
+            "stripePaymentIntentId": payment_intent.id,
+            "clientSecret": payment_intent.client_secret,
+            "status": payment_intent.status,
+        }

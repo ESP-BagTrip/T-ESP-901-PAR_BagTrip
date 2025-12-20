@@ -8,6 +8,47 @@ from src.utils.logger import logger
 from .auth import fetch_token
 
 
+async def search_hotel_list_by_city(city_code: str) -> dict:
+    """
+    Recherche d'hôtels par code ville: GET /v1/reference-data/locations/hotels/by-city
+    Retourne la liste des hôtels pour une ville donnée.
+    """
+    token = await fetch_token()
+    url = f"{settings.AMADEUS_BASE_URL}/v1/reference-data/locations/hotels/by-city"
+
+    params = {"cityCode": city_code}
+
+    try:
+        logger.info("Making Amadeus hotel list by city request", {"url": url, "params": params})
+
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(
+                url,
+                headers={"Authorization": f"Bearer {token}"},
+                params=params,
+            )
+
+        if response.status_code != 200:
+            logger.error(
+                "Amadeus hotel list by city failed",
+                {
+                    "status": response.status_code,
+                    "response": response.text,
+                },
+            )
+            raise Exception(f"Amadeus hotel list by city failed: {response.status_code}")
+
+        return response.json()
+
+    except httpx.HTTPError as error:
+        logger.error(
+            "Amadeus hotel list by city HTTP error",
+            {"error": str(error)},
+            exc_info=True,
+        )
+        raise Exception(f"Amadeus hotel list by city failed: {str(error)}") from error
+
+
 async def search_hotel_offers(
     city_code: str | None = None,
     latitude: float | None = None,
@@ -19,8 +60,9 @@ async def search_hotel_offers(
     currency: str | None = None,
 ) -> dict:
     """
-    Appel Hotel List: GET /v3/shopping/hotel-offers
+    Appel Hotel Offers: GET /v3/shopping/hotel-offers
     Recherche d'offres d'hôtels.
+    Si city_code est fourni, recherche d'abord les hôtels de la ville, puis leurs offres.
     """
     logger.debug(
         "Starting hotel offers search",
@@ -34,6 +76,38 @@ async def search_hotel_offers(
     )
     token = await fetch_token()
 
+    # Si city_code est fourni, on doit d'abord obtenir les hotelIds
+    hotel_ids = None
+    if city_code:
+        try:
+            hotel_list_response = await search_hotel_list_by_city(city_code)
+            hotel_data = hotel_list_response.get("data", [])
+            # Extraire les IDs des hôtels (limiter à 20 pour éviter des requêtes trop longues)
+            hotel_ids = [hotel.get("hotelId") for hotel in hotel_data[:20] if hotel.get("hotelId")]
+            if not hotel_ids:
+                logger.warning(
+                    f"No hotels found for city code: {city_code}. "
+                    "Hotel list search returned empty or no hotelId fields."
+                )
+                # If we have lat/long as fallback, use that instead
+                if latitude is not None and longitude is not None:
+                    logger.info("Falling back to latitude/longitude search")
+                    hotel_ids = None
+                else:
+                    # Return empty result instead of raising error
+                    logger.warning("No fallback available, returning empty results")
+                    return {"data": []}
+        except Exception as e:
+            logger.error(f"Failed to get hotel list for city {city_code}: {e}")
+            # If we have lat/long as fallback, use that instead
+            if latitude is not None and longitude is not None:
+                logger.info("Falling back to latitude/longitude search after error")
+                hotel_ids = None
+            else:
+                raise ValueError(
+                    f"Failed to get hotel list for city {city_code} and no latitude/longitude provided: {e}"
+                ) from e
+
     url = f"{settings.AMADEUS_BASE_URL}/v3/shopping/hotel-offers"
 
     # Construire les paramètres
@@ -42,13 +116,17 @@ async def search_hotel_offers(
         "roomQuantity": room_qty,
     }
 
-    if city_code:
-        params["cityCode"] = city_code
+    if hotel_ids and len(hotel_ids) > 0:
+        # Utiliser hotelIds si disponibles
+        params["hotelIds"] = ",".join(hotel_ids)
     elif latitude is not None and longitude is not None:
         params["latitude"] = latitude
         params["longitude"] = longitude
     else:
-        raise ValueError("Either city_code or latitude/longitude must be provided")
+        raise ValueError(
+            "Either city_code (to get hotelIds) or latitude/longitude must be provided. "
+            f"city_code={city_code}, latitude={latitude}, longitude={longitude}"
+        )
 
     if check_in:
         params["checkInDate"] = check_in

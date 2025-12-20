@@ -136,6 +136,80 @@ class TravelersService:
         Mapper un TripTraveler vers le payload Amadeus.
         Stocke le payload complet dans traveler.raw.
         """
+        # Construire le contact avec phones requis
+        contacts_data = traveler.contacts or {}
+        email_address = contacts_data.get("emailAddress")
+        phone_number = contacts_data.get("phoneNumber", "")
+
+        # Extraire le country code et le numéro du téléphone
+        # Amadeus attend countryCallingCode SANS le "+" (ex: "33" pas "+33")
+        country_calling_code = "33"  # Default to France (sans le +)
+        number = phone_number
+
+        if phone_number.startswith("+"):
+            # Extraire le country code (supposons max 3 chiffres)
+            # Format: +33612345678 -> countryCode="33", number="612345678"
+            for i in range(1, min(4, len(phone_number))):
+                if phone_number[i].isdigit():
+                    continue
+                else:
+                    # Extraire le code pays sans le "+"
+                    country_calling_code = phone_number[1:i]
+                    number = phone_number[i:]
+                    break
+            # Si on n'a pas trouvé de séparateur, extraire les 2 premiers chiffres
+            if country_calling_code == "33" and len(phone_number) > 3:
+                # Essayer d'extraire le code pays (généralement 1-3 chiffres)
+                if phone_number[1:3].isdigit():
+                    country_calling_code = phone_number[1:3]
+                    number = phone_number[3:]
+                elif phone_number[1:2].isdigit():
+                    country_calling_code = phone_number[1:2]
+                    number = phone_number[2:]
+        elif phone_number.startswith("00"):
+            # Format international avec 00: 0033612345678 -> countryCode="33", number="612345678"
+            if len(phone_number) > 4:
+                country_calling_code = phone_number[2:4]
+                number = phone_number[4:]
+            else:
+                country_calling_code = "33"
+                number = phone_number[2:]
+        elif phone_number and phone_number[0] == "0":
+            # Format français: 0612345678 -> countryCode="33", number="612345678"
+            country_calling_code = "33"
+            number = phone_number[1:] if len(phone_number) > 1 else phone_number
+
+        contact = {
+            "emailAddress": email_address,
+            "phones": [
+                {
+                    "deviceType": "MOBILE",
+                    "countryCallingCode": country_calling_code,  # Sans le "+"
+                    "number": number,
+                }
+            ]
+            if phone_number
+            else [],
+        }
+
+        # Construire les documents avec validityCountry requis
+        documents_data = traveler.documents or []
+        documents = []
+        for doc in (
+            documents_data
+            if isinstance(documents_data, list)
+            else [documents_data]
+            if documents_data
+            else []
+        ):
+            if isinstance(doc, dict):
+                # Ajouter validityCountry si manquant (utiliser issuanceCountry ou nationality comme fallback)
+                if "validityCountry" not in doc:
+                    doc["validityCountry"] = (
+                        doc.get("issuanceCountry") or doc.get("nationality") or "FR"
+                    )
+                documents.append(doc)
+
         payload = {
             "id": traveler.amadeus_traveler_ref or str(traveler.id),
             "dateOfBirth": traveler.date_of_birth.isoformat() if traveler.date_of_birth else None,
@@ -144,8 +218,8 @@ class TravelersService:
                 "lastName": traveler.last_name,
             },
             "gender": traveler.gender,
-            "contact": traveler.contacts or {},
-            "documents": traveler.documents or [],
+            "contact": contact,
+            "documents": documents if documents else None,
         }
 
         # Stocker le payload dans raw

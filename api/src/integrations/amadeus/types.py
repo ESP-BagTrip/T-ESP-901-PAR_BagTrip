@@ -122,7 +122,8 @@ class FlightAircraft(BaseModel):
 class FlightOperating(BaseModel):
     """Compagnie opérante."""
 
-    carrierCode: str
+    carrierCode: str | None = None
+    carrierName: str | None = None
 
 
 class FlightSegment(BaseModel):

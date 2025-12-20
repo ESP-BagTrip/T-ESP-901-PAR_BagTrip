@@ -76,7 +76,8 @@ class BookingOrchestratorService:
             return booking_intent
 
         except Exception as e:
-            # Échec
+            # Échec - rollback avant de mettre à jour le statut
+            db.rollback()
             booking_intent.status = "FAILED"
             booking_intent.last_error = {
                 "error": str(e),

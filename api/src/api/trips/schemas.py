@@ -3,7 +3,7 @@
 from datetime import date, datetime
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class TripCreateRequest(BaseModel):
@@ -31,14 +31,14 @@ class TripResponse(BaseModel):
     """Réponse trip selon PLAN.md."""
 
     id: UUID
-    title: str | None
-    originIata: str | None
-    destinationIata: str | None
-    startDate: date | None
-    endDate: date | None
-    status: str | None
-    createdAt: datetime
-    updatedAt: datetime
+    title: str | None = None
+    originIata: str | None = Field(default=None, alias="origin_iata")
+    destinationIata: str | None = Field(default=None, alias="destination_iata")
+    startDate: date | None = Field(default=None, alias="start_date")
+    endDate: date | None = Field(default=None, alias="end_date")
+    status: str | None = None
+    createdAt: datetime = Field(alias="created_at")
+    updatedAt: datetime = Field(alias="updated_at")
 
     class Config:
         from_attributes = True

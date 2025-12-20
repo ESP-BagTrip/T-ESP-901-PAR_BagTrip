@@ -31,7 +31,7 @@ Cette commande va :
 make dev
 ```
 
-L'application sera disponible sur [http://localhost:3000](http://localhost:3000)
+L'application sera disponible sur [http://localhost:8000](http://localhost:8000)
 
 ### Configuration Alternative (Manuelle)
 
@@ -93,7 +93,7 @@ src/
 ### Développement
 ```bash
 make dev          # Lance le serveur de développement
-make build        # Build de production  
+make build        # Build de production
 make start        # Démarre l'app en mode production
 ```
 
@@ -139,7 +139,7 @@ cypress/e2e/homepage.cy.ts    # Tests de la page d'accueil (18 tests)
 
 **Tests couverts :**
 - ✅ Navigation et liens
-- ✅ Sections hero et statistiques  
+- ✅ Sections hero et statistiques
 - ✅ Fonctionnalités interactives (tabs)
 - ✅ Responsive design
 - ✅ Accessibilité
@@ -161,7 +161,7 @@ user@bagtrip.com / user123 (user)
 
 ### Standards de code
 - **ESLint** : Configuration stricte avec règles Next.js
-- **Prettier** : Formatage automatique du code  
+- **Prettier** : Formatage automatique du code
 - **TypeScript** : Mode strict activé
 - **Conventions** : Hooks Git pour validation automatique
 
@@ -172,13 +172,13 @@ Le projet inclut 3 workflows automatisés :
 **1. CI Principal** (`.github/workflows/ci.yml`)
 - ✅ TypeScript type checking
 - ✅ ESLint validation
-- ✅ Build verification  
+- ✅ Build verification
 - ✅ Tests Cypress (Chrome + Firefox)
 - ✅ Quality Gate avec rapports
 
 **2. Sécurité** (`.github/workflows/security.yml`)
 - 🔒 Audit des dépendances npm
-- 🔒 Détection de secrets (TruffleHog)  
+- 🔒 Détection de secrets (TruffleHog)
 - 🔒 Analyse CodeQL
 - 📅 Scan hebdomadaire automatique
 
@@ -201,7 +201,7 @@ Le projet fournit un template complet pour les PR incluant :
 ### Stack technique
 - **Frontend :** Next.js 15, React 19, TypeScript 5
 - **Styling :** TailwindCSS 4, Headless UI, Heroicons
-- **État :** React Query (TanStack Query)  
+- **État :** React Query (TanStack Query)
 - **Forms :** React Hook Form
 - **Charts :** Recharts
 - **Tests :** Cypress 15
@@ -229,7 +229,7 @@ Le projet fournit un template complet pour les PR incluant :
 ### UX/UI
 - 📱 **Responsive Design** : Mobile-first approach
 - 🎨 **Design System** : Composants cohérents TailwindCSS
-- ♿ **Accessibilité** : Standards WCAG respectés  
+- ♿ **Accessibilité** : Standards WCAG respectés
 - ⚡ **Performance** : Lazy loading, optimisation bundle
 
 ## 🚀 Déploiement
@@ -244,7 +244,7 @@ NEXT_PUBLIC_USE_MOCK_SERVICES=true
 
 **Production :**
 ```bash
-NODE_ENV=production  
+NODE_ENV=production
 NEXT_PUBLIC_USE_MOCK_SERVICES=false
 NEXT_PUBLIC_API_URL=https://api.bagtrip.com
 ```
@@ -267,7 +267,7 @@ make start    # Démarre le serveur de production
 ### Standards de commit
 ```
 feat: ajout de la gestion des utilisateurs
-fix: correction du bug d'authentification  
+fix: correction du bug d'authentification
 docs: mise à jour du README
 test: ajout des tests Cypress pour le dashboard
 ```

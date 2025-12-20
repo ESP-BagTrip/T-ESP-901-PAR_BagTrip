@@ -101,3 +101,26 @@ async def cancel_payment(
         )
     except AppError as e:
         raise create_http_exception(e) from e
+
+
+@router.post(
+    "/{intentId}/payment/confirm-test",
+    response_model=PaymentAuthorizeResponse,
+    summary="[TEST] Confirm payment with test card",
+    description="For POC: Confirm a payment with a test card (4242 4242 4242 4242)",
+)
+async def confirm_payment_test(
+    intentId: UUID = Path(..., description="Booking Intent ID"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Confirmer un paiement avec une carte de test pour POC."""
+    try:
+        result = StripePaymentsService.confirm_payment_with_test_card(
+            db=db,
+            intent_id=intentId,
+            user_id=current_user.id,
+        )
+        return PaymentAuthorizeResponse(**result)
+    except AppError as e:
+        raise create_http_exception(e) from e

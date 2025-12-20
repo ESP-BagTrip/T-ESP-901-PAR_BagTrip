@@ -30,6 +30,27 @@ from src.utils.logger import LogLevel, logger
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Gestion du cycle de vie de l'application."""
+    # Vérifier la connexion à la base de données avant de créer les tables
+    logger.info("Checking database connection...")
+    check_database_connection()
+    logger.info("Database connection successful")
+
+    # Migrer la table users si nécessaire
+    try:
+        from src.migrations.migrate_user_table import migrate_user_table
+
+        migrate_user_table(engine)
+    except Exception as e:
+        logger.warning(f"User table migration failed (may already be migrated): {e}")
+
+    # Migrer les tables de booking si nécessaire
+    try:
+        from src.migrations.migrate_booking_tables import migrate_booking_tables
+
+        migrate_booking_tables(engine)
+    except Exception as e:
+        logger.warning(f"Booking tables migration failed (may already be migrated): {e}")
+
     # Créer les tables au démarrage
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created")
