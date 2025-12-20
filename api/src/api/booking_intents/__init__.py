@@ -1,0 +1,1 @@
+"""Booking intents API routes."""

@@ -10,9 +10,18 @@ from fastapi.responses import JSONResponse
 from src.api.agent.routes import router as agent_router
 from src.api.auth.routes import router as auth_router
 from src.api.booking.routes import router as booking_router
+from src.api.booking_intents.book_routes import router as booking_intents_book_router
+from src.api.booking_intents.routes import router as booking_intents_router
+from src.api.flights.offers.routes import router as flight_offers_router
+from src.api.flights.searches.routes import router as flight_searches_router
+from src.api.hotels.offers.routes import router as hotel_offers_router
+from src.api.hotels.searches.routes import router as hotel_searches_router
+from src.api.payments.routes import router as payments_router
+from src.api.stripe.webhooks.routes import router as stripe_webhooks_router
 from src.api.travel.routes import router as travel_router
-from src.api.agent.routes import router as agent_router
-from src.config.database import Base, engine
+from src.api.travelers.routes import router as travelers_router
+from src.api.trips.routes import router as trips_router
+from src.config.database import Base, check_database_connection, engine
 from src.config.env import settings
 from src.utils.errors import AppError, create_http_exception
 from src.utils.logger import LogLevel, logger
@@ -45,10 +54,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Inclusion des routes
-app.include_router(auth_router, prefix="/api")
-app.include_router(travel_router, prefix="/api")
-app.include_router(agent_router, prefix="/api")
+# Inclusion des routes - toutes sous /v1
+# Routes principales selon PLAN.md
+app.include_router(auth_router)  # Déjà préfixé avec /v1/auth
+app.include_router(trips_router)  # Déjà préfixé avec /v1/trips
+app.include_router(travelers_router)  # Déjà préfixé avec /v1/trips
+app.include_router(flight_searches_router)  # Déjà préfixé avec /v1/trips
+app.include_router(flight_offers_router)  # Déjà préfixé avec /v1/trips
+app.include_router(hotel_searches_router)  # Déjà préfixé avec /v1/trips
+app.include_router(hotel_offers_router)  # Déjà préfixé avec /v1/trips
+app.include_router(booking_intents_router)  # Déjà préfixé avec /v1/trips
+app.include_router(booking_intents_book_router)  # Déjà préfixé avec /v1/booking-intents
+app.include_router(payments_router)  # Déjà préfixé avec /v1/booking-intents
+app.include_router(stripe_webhooks_router)  # Déjà préfixé avec /v1/stripe
+
+# Routes utilitaires
+app.include_router(travel_router)  # Déjà préfixé avec /v1/travel (locations, inspirations)
+app.include_router(agent_router)  # Déjà préfixé avec /v1/agent
+
+# Routes dépréciées (ancien pattern, remplacé par booking_intents)
+# Conservées pour compatibilité mais marquées comme deprecated
+app.include_router(booking_router)  # DÉPRÉCIÉ - utiliser /v1/trips/{tripId}/booking-intents
 
 
 # Gestion globale des erreurs

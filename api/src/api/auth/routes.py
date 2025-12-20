@@ -14,7 +14,7 @@ from src.api.auth.schemas import AuthResponse, LoginRequest, SignupRequest, User
 from src.config.database import get_db
 from src.models.user import User
 
-router = APIRouter(prefix="/auth", tags=["Auth"])
+router = APIRouter(prefix="/v1/auth", tags=["Auth"])
 
 JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key")
 JWT_EXPIRATION = "365d"  # Expiration "abusée" comme demandé
@@ -29,7 +29,7 @@ def create_jwt_token(user_id: str) -> str:
 
 
 @router.post(
-    "/signup",
+    "/register",
     response_model=AuthResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Register a new user",
@@ -54,9 +54,9 @@ def create_jwt_token(user_id: str) -> str:
         400: {"description": "Bad request - User already exists or validation error"},
     },
 )
-async def signup(request: SignupRequest, db: Session = Depends(get_db)):
+async def register(request: SignupRequest, db: Session = Depends(get_db)):
     """
-    Signup - Créer un nouvel utilisateur.
+    Register - Créer un nouvel utilisateur selon PLAN.md.
 
     - **email**: Email de l'utilisateur (doit être unique)
     - **password**: Mot de passe (minimum 6 caractères)
@@ -78,7 +78,12 @@ async def signup(request: SignupRequest, db: Session = Depends(get_db)):
 
     # Créer l'utilisateur
     try:
-        user = User(email=request.email, password=hashed_password)
+        user = User(
+            email=request.email,
+            password_hash=hashed_password,
+            full_name=getattr(request, "fullName", None),
+            phone=getattr(request, "phone", None),
+        )
         db.add(user)
         db.commit()
         db.refresh(user)
@@ -149,7 +154,7 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
     # Vérifier le mot de passe
     is_valid_password = bcrypt.checkpw(
         request.password.encode("utf-8"),
-        user.password.encode("utf-8"),
+        user.password_hash.encode("utf-8"),
     )
 
     if not is_valid_password:

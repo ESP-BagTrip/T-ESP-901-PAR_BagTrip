@@ -7,10 +7,12 @@ from pydantic import BaseModel, EmailStr, Field
 
 
 class SignupRequest(BaseModel):
-    """Requête d'inscription."""
+    """Requête d'inscription selon PLAN.md."""
 
     email: EmailStr
     password: str = Field(..., min_length=6)
+    fullName: str | None = None
+    phone: str | None = None
 
 
 class LoginRequest(BaseModel):

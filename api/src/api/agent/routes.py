@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from src.agent.graph import graph
 from src.utils.logger import logger
 
-router = APIRouter(tags=["Agent"])
+router = APIRouter(prefix="/v1/agent", tags=["Agent"])
 
 
 class ChatRequest(BaseModel):

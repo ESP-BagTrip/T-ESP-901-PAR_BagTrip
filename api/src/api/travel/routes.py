@@ -14,7 +14,7 @@ from src.integrations.amadeus.types import (
 )
 from src.utils.errors import AppError, create_http_exception
 
-router = APIRouter(prefix="/travel", tags=["Travel"])
+router = APIRouter(prefix="/v1/travel", tags=["Travel"])
 
 
 @router.get(
