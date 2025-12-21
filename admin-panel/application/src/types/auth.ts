@@ -1,8 +1,8 @@
 export interface User {
   id: string
   email: string
-  createdAt: string
-  updatedAt: string | null
+  created_at: string
+  updated_at: string | null
 }
 
 export interface LoginCredentials {

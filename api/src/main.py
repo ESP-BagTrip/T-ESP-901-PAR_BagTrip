@@ -7,6 +7,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from src.api.admin.routes import router as admin_router
 from src.api.agent.routes import router as agent_router
 from src.api.auth.routes import router as auth_router
 from src.api.booking.routes import router as booking_router
@@ -86,6 +87,7 @@ app.add_middleware(
 # Inclusion des routes - toutes sous /v1
 # Routes principales selon PLAN.md
 app.include_router(auth_router)  # Déjà préfixé avec /v1/auth
+app.include_router(admin_router)  # Préfixé avec /admin
 app.include_router(trips_router)  # Déjà préfixé avec /v1/trips
 app.include_router(travelers_router)  # Déjà préfixé avec /v1/trips
 app.include_router(flight_searches_router)  # Déjà préfixé avec /v1/trips

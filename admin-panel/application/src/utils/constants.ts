@@ -41,6 +41,12 @@ export const API_ENDPOINTS = {
     METRICS: '/admin/dashboard/metrics',
     ACTIVITY: '/admin/dashboard/activity',
   },
+  ADMIN: {
+    TRIPS: '/admin/trips',
+    TRAVELERS: '/admin/travelers',
+    HOTEL_BOOKINGS: '/admin/hotel-bookings',
+    FLIGHT_BOOKINGS: '/admin/flight-bookings',
+  },
   USERS: '/admin/users',
   FEEDBACKS: '/admin/feedbacks',
 } as const
