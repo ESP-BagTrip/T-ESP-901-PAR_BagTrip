@@ -41,7 +41,7 @@ async def lifespan(app: FastAPI):
 
         migrate_user_table(engine)
     except Exception as e:
-        logger.warning(f"User table migration failed (may already be migrated): {e}")
+        logger.warn(f"User table migration failed (may already be migrated): {e}")
 
     # Migrer les tables de booking si nécessaire
     try:
@@ -49,7 +49,15 @@ async def lifespan(app: FastAPI):
 
         migrate_booking_tables(engine)
     except Exception as e:
-        logger.warning(f"Booking tables migration failed (may already be migrated): {e}")
+        logger.warn(f"Booking tables migration failed (may already be migrated): {e}")
+
+    # Initialiser les produits Stripe
+    try:
+        from src.services.stripe_products_service import StripeProductsService
+
+        StripeProductsService.initialize_products()
+    except Exception as e:
+        logger.warn(f"Stripe products initialization failed: {e}")
 
     # Créer les tables au démarrage
     Base.metadata.create_all(bind=engine)

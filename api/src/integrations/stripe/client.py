@@ -12,19 +12,34 @@ class StripeClient:
     """Client wrapper pour Stripe."""
 
     @staticmethod
+    def create_customer(email: str, name: str | None = None) -> stripe.Customer:
+        """Créer un client Stripe."""
+        customer_data = {"email": email}
+        if name:
+            customer_data["name"] = name
+        return stripe.Customer.create(**customer_data)
+
+    @staticmethod
     def create_payment_intent(
         amount: int,  # En cents (minor units)
         currency: str,
         metadata: dict | None = None,
         capture_method: str = "manual",
+        customer: str | None = None,
+        description: str | None = None,
     ) -> stripe.PaymentIntent:
         """Créer un PaymentIntent avec capture manuelle."""
-        return stripe.PaymentIntent.create(
-            amount=amount,
-            currency=currency.lower(),
-            capture_method=capture_method,
-            metadata=metadata or {},
-        )
+        payment_intent_data = {
+            "amount": amount,
+            "currency": currency.lower(),
+            "capture_method": capture_method,
+            "metadata": metadata or {},
+        }
+        if customer:
+            payment_intent_data["customer"] = customer
+        if description:
+            payment_intent_data["description"] = description
+        return stripe.PaymentIntent.create(**payment_intent_data)
 
     @staticmethod
     def capture_payment_intent(payment_intent_id: str) -> stripe.PaymentIntent:

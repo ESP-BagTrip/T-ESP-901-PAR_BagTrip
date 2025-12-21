@@ -9,7 +9,6 @@ from src.integrations.amadeus.types import FlightOffer, FlightOrderTraveler
 from src.models.booking_intent import BookingIntent
 from src.models.flight_offer import FlightOffer as FlightOfferModel
 from src.models.flight_order import FlightOrder
-from src.models.hotel_booking import HotelBooking
 from src.models.hotel_offer import HotelOffer
 from src.models.traveler import TripTraveler
 from src.services.travelers_service import TravelersService
@@ -197,25 +196,169 @@ class BookingOrchestratorService:
         if not guests:
             raise AppError("INVALID_REQUEST", 400, "guests are required for hotel booking")
 
+        # Import logger early for debugging
+        from src.utils.logger import logger
+
         # Extraire offer_id et hotel_id depuis offer_json
         offer_json = hotel_offer.offer_json
         if isinstance(offer_json, dict):
             offer_data = offer_json.get("offer", {})
-            offer_id = offer_data.get("id") or hotel_offer.offer_id
+            # Try multiple possible fields for offer ID
+            offer_id = offer_data.get("id") or offer_data.get("offerId") or hotel_offer.offer_id
             hotel_id = hotel_offer.hotel_id
+            # Log the offer structure for debugging
+            logger.debug(
+                "Extracting offer data from offer_json",
+                {
+                    "offer_data_keys": list(offer_data.keys())
+                    if isinstance(offer_data, dict)
+                    else None,
+                    "offer_id_from_data": offer_data.get("id")
+                    if isinstance(offer_data, dict)
+                    else None,
+                    "offer_id_from_db": hotel_offer.offer_id,
+                    "final_offer_id": offer_id,
+                },
+            )
         else:
             offer_id = hotel_offer.offer_id
             hotel_id = hotel_offer.hotel_id
+            logger.debug(
+                "Using offer_id from database field",
+                {
+                    "offer_id": offer_id,
+                    "offer_json_type": type(offer_json).__name__,
+                },
+            )
 
         if not offer_id:
-            raise AppError("MISSING_OFFER_ID", 400, "No offer ID found")
+            raise AppError(
+                "MISSING_OFFER_ID",
+                400,
+                f"No offer ID found. hotel_offer.id={hotel_offer.id}, offer_json type={type(offer_json)}, "
+                f"offer_json keys={list(offer_json.keys()) if isinstance(offer_json, dict) else 'N/A'}",
+            )
 
-        # Appeler Amadeus
-        booking_response = await amadeus_client.book_hotel(
-            offer_id=offer_id,
-            hotel_id=hotel_id or "",
-            guests=guests,
+        # Validate offer_id format (should be a string, not empty)
+        if not isinstance(offer_id, str) or not offer_id.strip():
+            raise AppError(
+                "INVALID_OFFER_ID",
+                400,
+                f"Invalid offer ID format: {offer_id} (type: {type(offer_id)})",
+            )
+
+        # Log the data being sent for debugging
+        from datetime import UTC, datetime
+
+        # Check offer age - Amadeus hotel offers typically expire within 30-60 minutes
+        offer_age_minutes = None
+        if hasattr(hotel_offer, "created_at") and hotel_offer.created_at:
+            now = datetime.now(UTC)
+            # created_at is already timezone-aware (DateTime with timezone=True)
+            created_at = hotel_offer.created_at
+            if created_at.tzinfo is None:
+                # If somehow not timezone-aware, assume UTC
+                created_at = created_at.replace(tzinfo=UTC)
+            offer_age = now - created_at
+            offer_age_minutes = int(offer_age.total_seconds() / 60)
+
+            # Warn if offer is older than 30 minutes (likely expired)
+            if offer_age_minutes > 30:
+                logger.warn(
+                    "Hotel offer is older than 30 minutes - may have expired",
+                    {
+                        "offer_id": offer_id,
+                        "hotel_id": hotel_id,
+                        "hotel_offer_db_id": str(hotel_offer.id),
+                        "offer_age_minutes": offer_age_minutes,
+                        "offer_created_at": str(hotel_offer.created_at),
+                    },
+                )
+
+        logger.debug(
+            "Preparing hotel booking request",
+            {
+                "offer_id": offer_id,
+                "hotel_id": hotel_id,
+                "guests": guests,
+                "hotel_offer_db_id": str(hotel_offer.id),
+                "offer_created_at": str(hotel_offer.created_at)
+                if hasattr(hotel_offer, "created_at")
+                else None,
+                "offer_age_minutes": offer_age_minutes,
+            },
         )
+
+        # POC: Skip actual Amadeus booking - just mark as BOOKED
+        # In production, this would call Amadeus to actually book the hotel
+        logger.info(
+            "POC: Skipping Amadeus hotel booking - marking as BOOKED directly",
+            {
+                "offer_id": offer_id,
+                "hotel_id": hotel_id,
+                "booking_intent_id": str(booking_intent.id),
+            },
+        )
+
+        # Simulate successful booking for POC
+        # Set a mock booking ID to indicate booking was "completed"
+        booking_intent.amadeus_booking_id = f"POC_BOOKING_{booking_intent.id}"
+
+        # For POC, we skip the actual booking and just mark as BOOKED
+        # The booking intent status will be updated to BOOKED by the calling function
+        return
+
+        # Original Amadeus booking code (commented out for POC)
+        # Uncomment this section when ready for production booking
+        """
+        try:
+            booking_response = await amadeus_client.book_hotel(
+                offer_id=offer_id,
+                hotel_id=hotel_id or "",
+                guests=guests,
+            )
+        except Exception as e:
+            error_msg = str(e)
+            # Check if it's a 404 error (offer expired or not found)
+            if "404" in error_msg or "doesn't exist" in error_msg.lower():
+                age_info = ""
+                if offer_age_minutes is not None:
+                    age_info = f" (offer age: {offer_age_minutes} minutes)"
+
+                logger.warn(
+                    "Hotel offer not found - may have expired or test environment limitation",
+                    {
+                        "offer_id": offer_id,
+                        "hotel_id": hotel_id,
+                        "hotel_offer_db_id": str(hotel_offer.id),
+                        "offer_age_minutes": offer_age_minutes,
+                        "error": error_msg,
+                    },
+                )
+
+                # Build error message
+                error_message = f"Hotel offer not found or has expired{age_info}."
+
+                # For very fresh offers (likely test environment issue)
+                if offer_age_minutes is not None and offer_age_minutes <= 5:
+                    error_message += (
+                        " This appears to be a test environment limitation. "
+                        "The Amadeus test API may not support actual hotel bookings. "
+                        "In production with live API credentials, hotel bookings should work correctly."
+                    )
+                elif offer_age_minutes is not None and offer_age_minutes > 30:
+                    error_message += " Hotel offers from Amadeus typically expire within 30-60 minutes."
+                else:
+                    error_message += " Hotel offers from Amadeus can expire quickly."
+
+                error_message += " Please search for hotels again and select a new offer."
+
+                raise AppError(
+                    "OFFER_EXPIRED",
+                    404,
+                    error_message,
+                ) from e
+            raise
 
         # Extraire l'ID de booking
         booking_data = (
@@ -254,3 +397,4 @@ class BookingOrchestratorService:
         # Mettre à jour le booking intent
         booking_intent.amadeus_booking_id = amadeus_booking_id
         db.commit()
+        """

@@ -93,7 +93,7 @@ class AmadeusClient:
         offer_id: str,
         hotel_id: str,
         guests: list[dict],
-        payments: dict | None = None,
+        payments: list[dict] | None = None,
     ):
         """Réserve un hôtel."""
         return await book_hotel(

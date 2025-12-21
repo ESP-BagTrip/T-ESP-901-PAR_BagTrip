@@ -307,14 +307,20 @@ export default function TestPage() {
       setError("Veuillez d'abord créer un booking intent")
       return
     }
+    // Find the selected offer to get the Amadeus offerId
+    const selectedOffer = hotelSearch?.offers.find(offer => offer.id === selectedHotelOfferId)
+    const amadeusOfferId = selectedOffer?.offerId || selectedHotelOfferId || ''
+
     const data: BookingIntentBookRequestHotel = {
       guests: [
         {
           name: {
+            title: 'MR',
             firstName: 'John',
             lastName: 'Doe',
           },
           contact: {
+            phone: '+33612345678',
             email: user?.email || 'test@example.com',
           },
         },
@@ -322,7 +328,7 @@ export default function TestPage() {
       roomAssociations: [
         {
           guestReferences: ['1'],
-          hotelOfferId: selectedHotelOfferId || '',
+          hotelOfferId: amadeusOfferId,
         },
       ],
     }
@@ -737,21 +743,30 @@ export default function TestPage() {
                 </div>
 
                 <div>
-                  <h4 className="font-semibold mb-2">5.4 Book Hotel</h4>
-                  <button
-                    onClick={handleBookHotel}
-                    disabled={loading || bookingIntent.status !== 'AUTHORIZED'}
-                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
-                  >
-                    {loading ? 'Réservation...' : "Réserver l'hôtel"}
-                  </button>
+                  <h4 className="font-semibold mb-2">5.4 Book Hotel (POC: Skipped)</h4>
+                  <div className="p-3 bg-gray-50 rounded border border-gray-200">
+                    <p className="text-xs text-gray-600 mb-2">
+                      POC Mode: Hotel booking step is skipped. Payment can be captured directly
+                      after authorization.
+                    </p>
+                    <button
+                      onClick={handleBookHotel}
+                      disabled={loading || bookingIntent.status !== 'AUTHORIZED'}
+                      className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 disabled:opacity-50 text-sm"
+                    >
+                      {loading ? 'Réservation...' : "Réserver l'hôtel (Optionnel POC)"}
+                    </button>
+                  </div>
                 </div>
 
                 <div>
                   <h4 className="font-semibold mb-2">5.5 Capture Payment</h4>
+                  <p className="text-xs text-gray-600 mb-2">
+                    POC: Can capture directly from AUTHORIZED status (booking step skipped)
+                  </p>
                   <button
                     onClick={handleCapturePayment}
-                    disabled={loading || bookingIntent.status !== 'BOOKED'}
+                    disabled={loading || !['AUTHORIZED', 'BOOKED'].includes(bookingIntent.status)}
                     className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
                   >
                     {loading ? 'Capture...' : 'Capturer le paiement'}

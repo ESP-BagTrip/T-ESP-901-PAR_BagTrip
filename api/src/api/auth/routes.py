@@ -12,7 +12,9 @@ from sqlalchemy.orm import Session
 from src.api.auth.middleware import get_current_user
 from src.api.auth.schemas import AuthResponse, LoginRequest, SignupRequest, UserResponse
 from src.config.database import get_db
+from src.integrations.stripe.client import StripeClient
 from src.models.user import User
+from src.utils.logger import logger
 
 router = APIRouter(prefix="/v1/auth", tags=["Auth"])
 
@@ -85,6 +87,23 @@ async def register(request: SignupRequest, db: Session = Depends(get_db)):
             phone=getattr(request, "phone", None),
         )
         db.add(user)
+        db.flush()  # Flush to get user.id without committing
+
+        # Créer un client Stripe
+        try:
+            stripe_customer = StripeClient.create_customer(
+                email=request.email,
+                name=getattr(request, "fullName", None),
+            )
+            user.stripe_customer_id = stripe_customer.id
+            logger.info(f"Created Stripe customer {stripe_customer.id} for user {user.id}")
+        except Exception as e:
+            # Log l'erreur mais continue la création de l'utilisateur
+            logger.warning(
+                f"Failed to create Stripe customer for user {user.id}: {e}",
+                exc_info=True,
+            )
+
         db.commit()
         db.refresh(user)
     except IntegrityError:

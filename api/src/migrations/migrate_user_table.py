@@ -13,12 +13,32 @@ def migrate_user_table(engine: Engine) -> None:
     - Rename password to password_hash
     - Add full_name column
     - Add phone column
+    - Add stripe_customer_id column
     """
     with engine.connect() as conn:
         # Start transaction
         trans = conn.begin()
 
         try:
+            # Check if users table exists
+            result = conn.execute(
+                text(
+                    """
+                    SELECT table_name
+                    FROM information_schema.tables
+                    WHERE table_schema = 'public' AND table_name = 'users'
+                    """
+                )
+            )
+            table_exists = result.fetchone() is not None
+
+            if not table_exists:
+                logger.info(
+                    "Users table does not exist yet, skipping migration (will be created by SQLAlchemy)"
+                )
+                trans.commit()
+                return
+
             # Check if password_hash column exists
             result = conn.execute(
                 text(
@@ -134,6 +154,26 @@ def migrate_user_table(engine: Engine) -> None:
                 logger.info("Adding phone column")
                 conn.execute(text("ALTER TABLE users ADD COLUMN phone VARCHAR"))
                 logger.info("Successfully added phone column")
+
+            # Add stripe_customer_id column if it doesn't exist
+            result = conn.execute(
+                text(
+                    """
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = 'users' AND column_name = 'stripe_customer_id'
+                    """
+                )
+            )
+            if result.fetchone() is None:
+                logger.info("Adding stripe_customer_id column")
+                conn.execute(text("ALTER TABLE users ADD COLUMN stripe_customer_id VARCHAR"))
+                conn.execute(
+                    text(
+                        "CREATE INDEX IF NOT EXISTS idx_users_stripe_customer_id ON users(stripe_customer_id)"
+                    )
+                )
+                logger.info("Successfully added stripe_customer_id column")
 
             # Commit transaction
             trans.commit()
