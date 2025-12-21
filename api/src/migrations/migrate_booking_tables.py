@@ -18,55 +18,97 @@ def migrate_booking_tables(engine: Engine) -> None:
         trans = conn.begin()
 
         try:
-            # Check if booking_intent_id column exists in flight_orders
+            # Check if flight_orders table exists
             result = conn.execute(
                 text(
                     """
-                    SELECT column_name
-                    FROM information_schema.columns
-                    WHERE table_name = 'flight_orders' AND column_name = 'booking_intent_id'
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables
+                        WHERE table_name = 'flight_orders'
+                    )
                     """
                 )
             )
-            has_booking_intent_id_flight = result.fetchone() is not None
+            flight_orders_table_exists = result.fetchone()[0]
 
-            # Add booking_intent_id to flight_orders if it doesn't exist
-            if not has_booking_intent_id_flight:
-                logger.info("Adding booking_intent_id column to flight_orders")
-                conn.execute(
+            # Only migrate if table exists
+            if flight_orders_table_exists:
+                # Check if booking_intent_id column exists in flight_orders
+                result = conn.execute(
                     text(
                         """
-                        ALTER TABLE flight_orders
-                        ADD COLUMN booking_intent_id UUID REFERENCES booking_intents(id)
+                        SELECT column_name
+                        FROM information_schema.columns
+                        WHERE table_name = 'flight_orders' AND column_name = 'booking_intent_id'
                         """
                     )
                 )
-                logger.info("Successfully added booking_intent_id to flight_orders")
+                has_booking_intent_id_flight = result.fetchone() is not None
 
-            # Check if booking_intent_id column exists in hotel_bookings
+                # Add booking_intent_id to flight_orders if it doesn't exist
+                if not has_booking_intent_id_flight:
+                    logger.info("Adding booking_intent_id column to flight_orders")
+                    conn.execute(
+                        text(
+                            """
+                            ALTER TABLE flight_orders
+                            ADD COLUMN booking_intent_id UUID REFERENCES booking_intents(id)
+                            """
+                        )
+                    )
+                    logger.info("Successfully added booking_intent_id to flight_orders")
+                else:
+                    logger.info("booking_intent_id column already exists in flight_orders")
+            else:
+                logger.info(
+                    "flight_orders table does not exist yet, skipping migration (will be created by SQLAlchemy)"
+                )
+
+            # Check if hotel_bookings table exists
             result = conn.execute(
                 text(
                     """
-                    SELECT column_name
-                    FROM information_schema.columns
-                    WHERE table_name = 'hotel_bookings' AND column_name = 'booking_intent_id'
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables
+                        WHERE table_name = 'hotel_bookings'
+                    )
                     """
                 )
             )
-            has_booking_intent_id_hotel = result.fetchone() is not None
+            hotel_bookings_table_exists = result.fetchone()[0]
 
-            # Add booking_intent_id to hotel_bookings if it doesn't exist
-            if not has_booking_intent_id_hotel:
-                logger.info("Adding booking_intent_id column to hotel_bookings")
-                conn.execute(
+            # Only migrate if table exists
+            if hotel_bookings_table_exists:
+                # Check if booking_intent_id column exists in hotel_bookings
+                result = conn.execute(
                     text(
                         """
-                        ALTER TABLE hotel_bookings
-                        ADD COLUMN booking_intent_id UUID REFERENCES booking_intents(id)
+                        SELECT column_name
+                        FROM information_schema.columns
+                        WHERE table_name = 'hotel_bookings' AND column_name = 'booking_intent_id'
                         """
                     )
                 )
-                logger.info("Successfully added booking_intent_id to hotel_bookings")
+                has_booking_intent_id_hotel = result.fetchone() is not None
+
+                # Add booking_intent_id to hotel_bookings if it doesn't exist
+                if not has_booking_intent_id_hotel:
+                    logger.info("Adding booking_intent_id column to hotel_bookings")
+                    conn.execute(
+                        text(
+                            """
+                            ALTER TABLE hotel_bookings
+                            ADD COLUMN booking_intent_id UUID REFERENCES booking_intents(id)
+                            """
+                        )
+                    )
+                    logger.info("Successfully added booking_intent_id to hotel_bookings")
+                else:
+                    logger.info("booking_intent_id column already exists in hotel_bookings")
+            else:
+                logger.info(
+                    "hotel_bookings table does not exist yet, skipping migration (will be created by SQLAlchemy)"
+                )
 
             # Commit transaction
             trans.commit()

@@ -20,6 +20,12 @@ from src.utils.errors import AppError, create_http_exception
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
 
+@router.get("/health")
+async def admin_health():
+    """Health check for admin routes."""
+    return {"status": "ok", "message": "Admin routes are working"}
+
+
 @router.get(
     "/users",
     response_model=AdminListResponse[AdminUserResponse],

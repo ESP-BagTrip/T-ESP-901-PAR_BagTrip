@@ -11,7 +11,7 @@ from src.config.database import get_db
 from src.models.user import User
 
 JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key")
-security = HTTPBearer()
+security = HTTPBearer(auto_error=True)
 
 
 def verify_jwt_token(token: str) -> str | None:
