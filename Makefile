@@ -133,8 +133,10 @@ kill-postgres: ## Kill all PostgreSQL instances outside Docker (with validation 
 	fi
 
 db: kill-postgres ## Kill PostgreSQL instances outside Docker, then start database container
+	@echo "$(CYAN)Checking Docker daemon...$(RESET)"
+	@docker ps >/dev/null 2>&1 || (echo "$(CYAN)✗ Docker daemon is not running$(RESET)" && echo "$(CYAN)Please start Docker Desktop or Docker daemon and try again$(RESET)" && exit 1)
 	@echo "$(CYAN)Starting PostgreSQL database container...$(RESET)"
-	@docker compose up -d db || (echo "$(CYAN)✗ Failed to start database container$(RESET)" && exit 1)
+	@docker compose up -d db || (echo "$(CYAN)✗ Failed to start database container$(RESET)" && echo "$(CYAN)Make sure Docker is running and try again$(RESET)" && exit 1)
 	@echo "$(CYAN)✓ Database container started$(RESET)"
 	@echo "$(CYAN)Waiting for database to be ready...$(RESET)"
 	@sleep 3
@@ -176,10 +178,12 @@ api-studio: ## Start the AI Studio (LangGraph)
 	@echo "$(CYAN)Starting AI Studio...$(RESET)"
 	@cd api && langgraph dev
 
+admin: admin-dev ## Alias for admin-dev
 admin-dev: ## Start the Admin Panel (Next.js)
 	@echo "$(CYAN)Starting Admin Panel...$(RESET)"
 	@cd admin-panel/application && npm run dev
 
+mobile: mobile-dev ## Alias for mobile-dev
 mobile-dev: ## Start the Mobile App (Flutter)
 	@echo "$(CYAN)Starting Mobile App...$(RESET)"
 	@cd bagtrip && flutter run

@@ -2,7 +2,7 @@
 
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -45,6 +45,15 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Base pour les modèles
 Base = declarative_base()
+
+
+def check_database_connection():
+    """Vérifie la connexion à la base de données."""
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+    except Exception as e:
+        raise ConnectionError(f"Failed to connect to database: {e}") from e
 
 
 def get_db():
