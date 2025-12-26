@@ -1,8 +1,10 @@
 """Configuration de l'environnement avec validation Pydantic."""
 
+import sys
 from typing import Literal
 
 from dotenv import load_dotenv
+from pydantic import Field, ValidationError, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Charger les variables d'environnement depuis .env
@@ -44,7 +46,9 @@ class Settings(BaseSettings):
     @classmethod
     def validate_required_strings(cls, v: str) -> str:
         """Validate that required API keys are not empty."""
-        return _validate_non_empty(v)
+        if not v or not v.strip():
+            raise ValueError("This field cannot be empty")
+        return v
 
 
 def _format_missing_env_error(errors: list[dict]) -> str:

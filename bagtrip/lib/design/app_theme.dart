@@ -45,9 +45,7 @@ class AppTheme {
           foregroundColor: Colors.white,
           minimumSize: const Size.fromHeight(AppSize.height42),
           padding: AppSpacing.allEdgeInsetSpace16,
-          shape: const RoundedRectangleBorder(
-            borderRadius: AppRadius.large16,
-          ),
+          shape: const RoundedRectangleBorder(borderRadius: AppRadius.large16),
           elevation: 0,
         ),
       ),
@@ -55,9 +53,7 @@ class AppTheme {
         style: TextButton.styleFrom(
           minimumSize: const Size.fromHeight(AppSize.height42),
           padding: AppSpacing.allEdgeInsetSpace8,
-          shape: const RoundedRectangleBorder(
-            borderRadius: AppRadius.large16,
-          ),
+          shape: const RoundedRectangleBorder(borderRadius: AppRadius.large16),
         ),
       ),
       inputDecorationTheme: const InputDecorationTheme(
@@ -72,9 +68,7 @@ class AppTheme {
         elevation: 0,
         margin: EdgeInsets.zero,
         color: ColorName.primarySoftLight,
-        shape: RoundedRectangleBorder(
-          borderRadius: AppRadius.large16,
-        ),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.large16),
       ),
     );
   }
