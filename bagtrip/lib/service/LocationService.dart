@@ -6,7 +6,7 @@ import 'package:dio/dio.dart';
 class LocationService {
   final Dio _dio = Dio();
   final String baseUrl =
-      'http://localhost:3000/api'; // Ajustez l'URL selon votre configuration
+      'http://localhost:3000/v1'; // Ajustez l'URL selon votre configuration
 
   Future<List<Flight>> searchFlights({
     required String departureCode,
