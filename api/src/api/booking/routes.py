@@ -16,19 +16,22 @@ from src.models.booking import Booking
 from src.models.user import User
 from src.utils.logger import LogLevel, logger
 
-router = APIRouter(prefix="/booking", tags=["Booking"])
+router = APIRouter(prefix="/v1/booking", tags=["Booking (Deprecated)"])
 
 
 @router.post(
     "/pricing",
-    summary="Confirm flight price",
+    summary="[DEPRECATED] Confirm flight price",
     description=(
+        "**⚠️ DEPRECATED:** This endpoint is deprecated. "
+        "Use `/v1/trips/{tripId}/flights/offers/{offerDbId}/price` instead.\n\n"
         "Verify and update the price of a selected flight offer.\n\n"
-        "**Important:** You must first call `/api/travel/flight/offers` to search for flights, "
+        "**Important:** You must first call `/v1/travel/flight/offers` to search for flights, "
         "then select a flight offer from the response and pass it here.\n\n"
         "The request body should contain a `flightOffer` object from the flight offers search response. "
         "This endpoint will confirm the current price and availability of the selected flight offer."
     ),
+    deprecated=True,
     response_model=FlightPriceResponse,
     responses={
         200: {
@@ -87,9 +90,14 @@ async def confirm_price(request: FlightPriceRequest):
 
 @router.post(
     "/create",
-    summary="Create flight booking",
-    description="Book a flight and store the reservation",
+    summary="[DEPRECATED] Create flight booking",
+    description=(
+        "**⚠️ DEPRECATED:** This endpoint is deprecated. "
+        "Use `/v1/trips/{tripId}/booking-intents` and `/v1/booking-intents/{intentId}/book` instead.\n\n"
+        "Book a flight and store the reservation"
+    ),
     response_model=BookingResponse,
+    deprecated=True,
 )
 async def create_booking(
     request: FlightBookingRequest,
@@ -162,9 +170,14 @@ async def create_booking(
 
 @router.get(
     "/list",
-    summary="List user bookings",
-    description="Get all bookings for the authenticated user",
+    summary="[DEPRECATED] List user bookings",
+    description=(
+        "**⚠️ DEPRECATED:** This endpoint is deprecated. "
+        "Use `/v1/trips` to get trips with their booking intents instead.\n\n"
+        "Get all bookings for the authenticated user"
+    ),
     response_model=list[BookingResponse],
+    deprecated=True,
 )
 async def list_bookings(
     current_user: User = Depends(get_current_user),

@@ -139,8 +139,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
-EXPOSE 3000
-ENV PORT 3000
+EXPOSE 8000
+ENV PORT 8000
 
 CMD ["node", "server.js"]
 ```
@@ -153,12 +153,12 @@ services:
   admin:
     build: .
     ports:
-      - "3000:3000"
+      - "8000:8000"
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=https://api.bagtrip.com
     restart: unless-stopped
-    
+
   nginx:
     image: nginx:alpine
     ports:
@@ -274,18 +274,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
-      
+
       - name: Install and build
         run: |
           npm ci
           make build
-          
+
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
         with:

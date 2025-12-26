@@ -24,23 +24,24 @@ class PrimaryButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           padding: AppSpacing.allEdgeInsetSpace16,
         ),
-        child: isLoading
-            ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (icon != null) ...[
-                    icon!,
-                    const SizedBox(width: AppSpacing.space8),
+        child:
+            isLoading
+                ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+                : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (icon != null) ...[
+                      icon!,
+                      const SizedBox(width: AppSpacing.space8),
+                    ],
+                    Text(label),
                   ],
-                  Text(label),
-                ],
-              ),
+                ),
       ),
     );
   }

@@ -12,9 +12,11 @@ from sqlalchemy.orm import Session
 from src.api.auth.middleware import get_current_user
 from src.api.auth.schemas import AuthResponse, LoginRequest, SignupRequest, UserResponse
 from src.config.database import get_db
+from src.integrations.stripe.client import StripeClient
 from src.models.user import User
+from src.utils.logger import logger
 
-router = APIRouter(prefix="/auth", tags=["Auth"])
+router = APIRouter(prefix="/v1/auth", tags=["Auth"])
 
 JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key")
 JWT_EXPIRATION = "365d"  # Expiration "abusée" comme demandé
@@ -29,7 +31,7 @@ def create_jwt_token(user_id: str) -> str:
 
 
 @router.post(
-    "/signup",
+    "/register",
     response_model=AuthResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Register a new user",
@@ -54,9 +56,9 @@ def create_jwt_token(user_id: str) -> str:
         400: {"description": "Bad request - User already exists or validation error"},
     },
 )
-async def signup(request: SignupRequest, db: Session = Depends(get_db)):
+async def register(request: SignupRequest, db: Session = Depends(get_db)):
     """
-    Signup - Créer un nouvel utilisateur.
+    Register - Créer un nouvel utilisateur selon PLAN.md.
 
     - **email**: Email de l'utilisateur (doit être unique)
     - **password**: Mot de passe (minimum 6 caractères)
@@ -78,8 +80,30 @@ async def signup(request: SignupRequest, db: Session = Depends(get_db)):
 
     # Créer l'utilisateur
     try:
-        user = User(email=request.email, password=hashed_password)
+        user = User(
+            email=request.email,
+            password_hash=hashed_password,
+            full_name=getattr(request, "fullName", None),
+            phone=getattr(request, "phone", None),
+        )
         db.add(user)
+        db.flush()  # Flush to get user.id without committing
+
+        # Créer un client Stripe
+        try:
+            stripe_customer = StripeClient.create_customer(
+                email=request.email,
+                name=getattr(request, "fullName", None),
+            )
+            user.stripe_customer_id = stripe_customer.id
+            logger.info(f"Created Stripe customer {stripe_customer.id} for user {user.id}")
+        except Exception as e:
+            # Log l'erreur mais continue la création de l'utilisateur
+            logger.warning(
+                f"Failed to create Stripe customer for user {user.id}: {e}",
+                exc_info=True,
+            )
+
         db.commit()
         db.refresh(user)
     except IntegrityError:
@@ -149,7 +173,7 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
     # Vérifier le mot de passe
     is_valid_password = bcrypt.checkpw(
         request.password.encode("utf-8"),
-        user.password.encode("utf-8"),
+        user.password_hash.encode("utf-8"),
     )
 
     if not is_valid_password:

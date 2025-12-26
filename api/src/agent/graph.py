@@ -1,7 +1,7 @@
 """Définition du graphe de l'agent."""
 
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langgraph.graph import StateGraph, START, END
+from langgraph.graph import START, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
 
 from src.agent.state import AgentState

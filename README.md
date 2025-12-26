@@ -3,7 +3,17 @@ Student Project
 
 ## 🚀 Quick Start
 
-### For New Collaborators
+### Prerequisites (Manual Installation Required)
+
+Before running `make init`, ensure you have the following installed:
+
+1. **Node.js and npm** - [Install Node.js](https://nodejs.org/)
+2. **Flutter SDK** - [Install Flutter](https://flutter.dev/docs/get-started/install)
+3. **Docker and Docker Compose** - [Install Docker](https://docs.docker.com/get-docker/)
+
+> **Note:** Python 3.14+ will be automatically installed via `uv` if not present.
+
+### Installation
 
 1. **Clone the repository:**
    ```bash
@@ -14,41 +24,28 @@ Student Project
 2. **Initialize the project (recommended):**
    ```bash
    make init
-   ```
-   
-   This will:
-   - Install pre-commit hooks
-   - Install all project dependencies (API + Admin Panel)
-   - Set up git hooks for code quality
-
-### Manual Setup (Alternative)
-
-If you prefer manual setup or the Makefile doesn't work:
-
-1. **Install pre-commit:**
-   ```bash
-   # Option 1: Using pipx (recommended)
-   pipx install pre-commit
-   
-   # Option 2: Using pip
-   pip install pre-commit
-   
-   # Option 3: Using Homebrew (macOS)
-   brew install pre-commit
+   make init
    ```
 
-2. **Install git hooks:**
-   ```bash
-   pre-commit install --install-hooks
-   ```
+   This will automatically:
+   - Install `uv` (Python package manager)
+   - Install Python 3.14+ if needed
+   - Install all project dependencies (API, Admin Panel, Mobile App)
+   - Set up pre-commit hooks
+   - Configure linters and formatters
+   - Create `.env` file from `.env.example`
 
-3. **Install dependencies:**
+3. **Configure environment variables:**
+
+   Edit `.env` file and fill in the required API keys:
+   - `AMADEUS_CLIENT_ID`
+   - `AMADEUS_CLIENT_SECRET`
+   - `GOOGLE_API_KEY`
+   - Other configuration values as needed
+
+4. **Start the database:**
    ```bash
-   # API dependencies
-   cd api && npm install
-   
-   # Admin Panel dependencies
-   cd admin-panel && npm install
+   make db
    ```
 
 ## 🛠️ Development

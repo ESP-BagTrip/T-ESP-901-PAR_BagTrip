@@ -4,11 +4,25 @@ import type { User, ApiResponse, PaginatedResponse, QueryParams } from '@/types'
 
 export const usersService = {
   async getUsers(params?: QueryParams): Promise<PaginatedResponse<User>> {
-    const response = await apiClient.get<ApiResponse<PaginatedResponse<User>>>(
-      API_ENDPOINTS.USERS,
-      { params }
-    )
-    return response.data.data
+    // API returns { items, total, page, limit, total_pages } directly (not wrapped)
+    // Note: API uses snake_case (total_pages) but we convert to camelCase (total_pages)
+    const response = await apiClient.get<{
+      items: User[]
+      total: number
+      page: number
+      limit: number
+      total_pages: number
+    }>(API_ENDPOINTS.USERS, { params })
+    // Convert to PaginatedResponse format
+    return {
+      data: response.data.items,
+      pagination: {
+        page: response.data.page,
+        limit: response.data.limit,
+        total: response.data.total,
+        total_pages: response.data.total_pages,
+      },
+    }
   },
 
   async getUserById(id: string): Promise<User> {

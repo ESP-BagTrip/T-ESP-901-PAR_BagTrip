@@ -33,79 +33,58 @@ class HomeView extends StatelessWidget {
               const SizedBox(height: AppSize.boxSize8),
               _buildFieldRow(
                 Icons.flight_takeoff,
-                _buildAirportField(
-                  context,
-                  AirportType.departure,
-                  (Map<String, dynamic>? airport, AirportType selectedType) {
-                    if (airport != null) {
-                      context.read<HomeFlightBloc>().add(
-                            SelectDepartureAirport(
-                              airport.cast<String, dynamic>(),
-                            ),
-                          );
-                    }
-                  },
-                ),
+                _buildAirportField(context, AirportType.departure, (
+                  Map<String, dynamic>? airport,
+                  AirportType selectedType,
+                ) {
+                  if (airport != null) {
+                    context.read<HomeFlightBloc>().add(
+                      SelectDepartureAirport(airport.cast<String, dynamic>()),
+                    );
+                  }
+                }),
               ),
               _buildFieldRow(
                 Icons.flight_land,
-                _buildAirportField(
-                  context,
-                  AirportType.arrival,
-                  (Map<String, dynamic>? airport, AirportType selectedType) {
-                    if (airport != null) {
-                      context.read<HomeFlightBloc>().add(
-                            SelectArrivalAirport(
-                              airport.cast<String, dynamic>(),
-                            ),
-                          );
-                    }
-                  },
-                ),
+                _buildAirportField(context, AirportType.arrival, (
+                  Map<String, dynamic>? airport,
+                  AirportType selectedType,
+                ) {
+                  if (airport != null) {
+                    context.read<HomeFlightBloc>().add(
+                      SelectArrivalAirport(airport.cast<String, dynamic>()),
+                    );
+                  }
+                }),
               ),
               Row(
                 children: [
                   Expanded(
                     child: _buildFieldRow(
                       Icons.calendar_today,
-                      _buildDateField(
-                        context,
-                        'jj/mm/aaaa',
-                        (date) {
-                          context
-                              .read<HomeFlightBloc>()
-                              .add(SetDepartureDate(date));
-                        },
-                      ),
+                      _buildDateField(context, 'jj/mm/aaaa', (date) {
+                        context.read<HomeFlightBloc>().add(
+                          SetDepartureDate(date),
+                        );
+                      }),
                     ),
                   ),
                   const SizedBox(width: AppSize.boxSize8),
                   Expanded(
                     child: _buildFieldRow(
                       Icons.calendar_today,
-                      _buildDateField(
-                        context,
-                        'jj/mm/aaaa',
-                        (date) {
-                          context
-                              .read<HomeFlightBloc>()
-                              .add(SetReturnDate(date));
-                        },
-                      ),
+                      _buildDateField(context, 'jj/mm/aaaa', (date) {
+                        context.read<HomeFlightBloc>().add(SetReturnDate(date));
+                      }),
                     ),
                   ),
                 ],
               ),
               _buildFieldRow(
                 Icons.euro_symbol,
-                _buildPriceField(
-                  context,
-                  (price) {
-                    context
-                        .read<HomeFlightBloc>()
-                        .add(SetMaxPrice(price));
-                  },
-                ),
+                _buildPriceField(context, (price) {
+                  context.read<HomeFlightBloc>().add(SetMaxPrice(price));
+                }),
               ),
               const SizedBox(height: AppSize.boxSize16),
 
@@ -119,10 +98,7 @@ class HomeView extends StatelessWidget {
               const SizedBox(height: AppSize.boxSize16),
 
               // Passagers
-              Text(
-                'Passagers',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
+              Text('Passagers', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: AppSize.boxSize8),
               _buildPassengersRow(context, loadedState),
               const SizedBox(height: AppSize.boxSize16),
@@ -178,13 +154,12 @@ Widget _buildTopCards(BuildContext context, HomeFlightLoaded state) {
                           const SizedBox(height: 8),
                           Text(
                             card['title'] as String,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
-                                  color: ColorName.primaryLight,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.titleLarge?.copyWith(
+                              color: ColorName.primaryLight,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
@@ -206,9 +181,8 @@ Widget _buildTopCards(BuildContext context, HomeFlightLoaded state) {
             margin: const EdgeInsets.symmetric(horizontal: 4),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: index == 0
-                  ? ColorName.secondary
-                  : ColorName.primarySoftLight,
+              color:
+                  index == 0 ? ColorName.secondary : ColorName.primarySoftLight,
             ),
           );
         }),
@@ -217,10 +191,7 @@ Widget _buildTopCards(BuildContext context, HomeFlightLoaded state) {
   );
 }
 
-Widget _buildTripTypeSelector(
-  BuildContext context,
-  HomeFlightLoaded state,
-) {
+Widget _buildTripTypeSelector(BuildContext context, HomeFlightLoaded state) {
   final labels = ['Aller simple', 'Aller-retour', 'Multidestination'];
 
   return SizedBox(
@@ -236,11 +207,9 @@ Widget _buildTripTypeSelector(
             ),
             child: TextButton(
               style: TextButton.styleFrom(
-                backgroundColor: selected
-                    ? ColorName.secondary
-                    : ColorName.primarySoftLight,
-                foregroundColor:
-                    selected ? Colors.white : ColorName.primary,
+                backgroundColor:
+                    selected ? ColorName.secondary : ColorName.primarySoftLight,
+                foregroundColor: selected ? Colors.white : ColorName.primary,
               ),
               onPressed: () {
                 context.read<HomeFlightBloc>().add(SetTripType(i));
@@ -298,10 +267,7 @@ Widget _buildFieldRow(IconData icon, Widget field) {
   );
 }
 
-Widget _buildClassSelector(
-  BuildContext context,
-  HomeFlightLoaded state,
-) {
+Widget _buildClassSelector(BuildContext context, HomeFlightLoaded state) {
   final labels = ['Économique', 'Premium', 'Business'];
 
   return Row(
@@ -315,11 +281,9 @@ Widget _buildClassSelector(
           ),
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: selected
-                  ? ColorName.secondary
-                  : ColorName.primarySoftLight,
-              foregroundColor:
-                  selected ? Colors.white : ColorName.primary,
+              backgroundColor:
+                  selected ? ColorName.secondary : ColorName.primarySoftLight,
+              foregroundColor: selected ? Colors.white : ColorName.primary,
               elevation: 0,
             ),
             onPressed: () {
@@ -359,9 +323,7 @@ Widget _buildDateField(
 ) {
   return TextField(
     readOnly: true,
-    decoration: InputDecoration(
-      hintText: hint,
-    ),
+    decoration: InputDecoration(hintText: hint),
     onTap: () async {
       final pickedDate = await showDatePicker(
         context: context,
@@ -376,15 +338,10 @@ Widget _buildDateField(
   );
 }
 
-Widget _buildPriceField(
-  BuildContext context,
-  Function(double) onPriceChanged,
-) {
+Widget _buildPriceField(BuildContext context, Function(double) onPriceChanged) {
   return TextField(
     keyboardType: TextInputType.number,
-    decoration: const InputDecoration(
-      hintText: 'Prix maximum (€)',
-    ),
+    decoration: const InputDecoration(hintText: 'Prix maximum (€)'),
     onChanged: (value) {
       final price = double.tryParse(value) ?? 0.0;
       onPriceChanged(price);
@@ -392,25 +349,16 @@ Widget _buildPriceField(
   );
 }
 
-Widget _buildPassengersRow(
-  BuildContext context,
-  HomeFlightLoaded state,
-) {
-  Widget counter(
-    String label,
-    int value,
-    VoidCallback add,
-    VoidCallback sub,
-  ) {
+Widget _buildPassengersRow(BuildContext context, HomeFlightLoaded state) {
+  Widget counter(String label, int value, VoidCallback add, VoidCallback sub) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           label,
-          style: Theme.of(context)
-              .textTheme
-              .bodySmall
-              ?.copyWith(fontWeight: FontWeight.w600),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         Row(
@@ -460,12 +408,11 @@ Widget _buildPassengersRow(
           child: counter(
             'Adultes',
             state.adults,
-            () => context
-                .read<HomeFlightBloc>()
-                .add(SetAdults(state.adults + 1)),
+            () =>
+                context.read<HomeFlightBloc>().add(SetAdults(state.adults + 1)),
             () => context.read<HomeFlightBloc>().add(
-                  SetAdults(state.adults > 1 ? state.adults - 1 : 1),
-                ),
+              SetAdults(state.adults > 1 ? state.adults - 1 : 1),
+            ),
           ),
         ),
       ),
@@ -475,14 +422,12 @@ Widget _buildPassengersRow(
           child: counter(
             'Enfants',
             state.children,
-            () => context
-                .read<HomeFlightBloc>()
-                .add(SetChildren(state.children + 1)),
             () => context.read<HomeFlightBloc>().add(
-                  SetChildren(
-                    state.children > 0 ? state.children - 1 : 0,
-                  ),
-                ),
+              SetChildren(state.children + 1),
+            ),
+            () => context.read<HomeFlightBloc>().add(
+              SetChildren(state.children > 0 ? state.children - 1 : 0),
+            ),
           ),
         ),
       ),
@@ -490,14 +435,11 @@ Widget _buildPassengersRow(
         child: counter(
           'Bébés',
           state.infants,
-          () => context
-              .read<HomeFlightBloc>()
-              .add(SetInfants(state.infants + 1)),
+          () =>
+              context.read<HomeFlightBloc>().add(SetInfants(state.infants + 1)),
           () => context.read<HomeFlightBloc>().add(
-                SetInfants(
-                  state.infants > 0 ? state.infants - 1 : 0,
-                ),
-              ),
+            SetInfants(state.infants > 0 ? state.infants - 1 : 0),
+          ),
         ),
       ),
     ],

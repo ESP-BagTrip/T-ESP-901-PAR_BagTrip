@@ -3,21 +3,43 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '@/hooks'
-import type { LoginCredentials } from '@/types'
+import type { LoginCredentials, RegisterCredentials } from '@/types'
 
 export default function LoginPage() {
-  const { login, isLoggingIn, loginError } = useAuth()
+  const {
+    login,
+    register: registerUser,
+    isLoggingIn,
+    isRegistering,
+    loginError,
+    registerError,
+  } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
+  const [isRegisterMode, setIsRegisterMode] = useState(false)
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginCredentials>()
+  } = useForm<LoginCredentials & RegisterCredentials>()
 
-  const onSubmit = (data: LoginCredentials) => {
-    login(data)
+  const onSubmit = (data: LoginCredentials & RegisterCredentials) => {
+    if (isRegisterMode) {
+      registerUser({
+        email: data.email,
+        password: data.password,
+        fullName: data.fullName,
+        phone: data.phone,
+      })
+    } else {
+      login({
+        email: data.email,
+        password: data.password,
+      })
+    }
   }
+
+  const error = loginError || registerError
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -25,27 +47,10 @@ export default function LoginPage() {
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">BagTrip Admin</h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Connectez-vous à votre compte administrateur
+            {isRegisterMode ? 'Créer un nouveau compte' : 'Connectez-vous à votre compte'}
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h3 className="text-sm font-medium text-blue-800 mb-2">
-              👤 Comptes de test disponibles :
-            </h3>
-            <div className="text-xs text-blue-700 space-y-1">
-              <div>
-                <strong>admin@bagtrip.com</strong> / admin123 (super_admin)
-              </div>
-              <div>
-                <strong>manager@bagtrip.com</strong> / manager123 (admin)
-              </div>
-              <div>
-                <strong>user@bagtrip.com</strong> / user123 (user)
-              </div>
-            </div>
-          </div>
-
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email" className="sr-only">
@@ -61,10 +66,36 @@ export default function LoginPage() {
                 })}
                 type="email"
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Adresse email (ex: admin@bagtrip.com)"
+                placeholder="Adresse email"
               />
               {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
             </div>
+            {isRegisterMode && (
+              <>
+                <div>
+                  <label htmlFor="fullName" className="sr-only">
+                    Nom complet
+                  </label>
+                  <input
+                    {...register('fullName')}
+                    type="text"
+                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                    placeholder="Nom complet (optionnel)"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="phone" className="sr-only">
+                    Téléphone
+                  </label>
+                  <input
+                    {...register('phone')}
+                    type="tel"
+                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                    placeholder="Téléphone (optionnel)"
+                  />
+                </div>
+              </>
+            )}
             <div>
               <label htmlFor="password" className="sr-only">
                 Mot de passe
@@ -73,10 +104,14 @@ export default function LoginPage() {
                 <input
                   {...register('password', {
                     required: 'Le mot de passe est requis',
+                    minLength: {
+                      value: 6,
+                      message: 'Le mot de passe doit contenir au moins 6 caractères',
+                    },
                   })}
                   type={showPassword ? 'text' : 'password'}
                   className="appearance-none rounded-none relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="Mot de passe (ex: admin123)"
+                  placeholder="Mot de passe"
                 />
                 <button
                   type="button"
@@ -126,10 +161,10 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {loginError && (
+          {error && (
             <div className="rounded-md bg-red-50 p-4">
               <div className="text-sm text-red-700">
-                Erreur de connexion. Vérifiez vos identifiants.
+                {error instanceof Error ? error.message : 'Une erreur est survenue'}
               </div>
             </div>
           )}
@@ -137,17 +172,31 @@ export default function LoginPage() {
           <div>
             <button
               type="submit"
-              disabled={isLoggingIn}
+              disabled={isLoggingIn || isRegistering}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoggingIn ? (
+              {isLoggingIn || isRegistering ? (
                 <div className="flex items-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Connexion...
+                  {isRegistering ? 'Inscription...' : 'Connexion...'}
                 </div>
+              ) : isRegisterMode ? (
+                "S'inscrire"
               ) : (
                 'Se connecter'
               )}
+            </button>
+          </div>
+
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => setIsRegisterMode(!isRegisterMode)}
+              className="text-sm text-blue-600 hover:text-blue-500"
+            >
+              {isRegisterMode
+                ? 'Déjà un compte ? Se connecter'
+                : "Pas encore de compte ? S'inscrire"}
             </button>
           </div>
         </form>

@@ -27,7 +27,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   shape: BoxShape.circle,
                   color: ColorName.secondary.withValues(alpha: 0.15),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.person_outline,
                   size: 60,
                   color: ColorName.secondary,
@@ -43,8 +43,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 'Gérez vos informations personnelles et vos préférences',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: ColorName.primaryTrueDark.withValues(alpha: 0.7),
-                    ),
+                  color: ColorName.primaryTrueDark.withValues(alpha: 0.7),
+                ),
               ),
               const SizedBox(height: AppSpacing.space32),
               PrimaryButton(
