@@ -9,12 +9,14 @@ import '../models/airport_type.dart';
 class AirportSearchField extends StatefulWidget {
   final AirportType type;
   final String? hintText;
+  final Map<String, dynamic>? initialValue;
   final void Function(Map<String, dynamic>?, AirportType)? onSelected;
 
   const AirportSearchField({
     super.key,
     required this.type,
     this.hintText,
+    this.initialValue,
     this.onSelected,
   });
 
@@ -23,10 +25,31 @@ class AirportSearchField extends StatefulWidget {
 }
 
 class _AirportSearchFieldState extends State<AirportSearchField> {
-  final TextEditingController _controller = TextEditingController();
+  late TextEditingController _controller;
   final LayerLink _layerLink = LayerLink();
   bool _showResults = false;
   OverlayEntry? _overlayEntry;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(
+      text: widget.initialValue?['name'] ?? '',
+    );
+  }
+
+  @override
+  void didUpdateWidget(AirportSearchField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialValue != oldWidget.initialValue) {
+      if (widget.initialValue != null) {
+        _controller.text = widget.initialValue?['name'] ?? '';
+      } else if (_controller.text.isNotEmpty) {
+        // Keep existing text or clear? Usually better to respect state.
+        // If initialValue became null, it might mean reset.
+      }
+    }
+  }
 
   @override
   void dispose() {

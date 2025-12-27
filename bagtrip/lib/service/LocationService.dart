@@ -1,12 +1,12 @@
 // ignore_for_file: file_names
 
 import 'package:bagtrip/flightSearchResult/models/flight.dart';
+import 'package:bagtrip/home/models/flight_segment.dart';
 import 'package:dio/dio.dart';
 
 class LocationService {
   final Dio _dio = Dio();
-  final String baseUrl =
-      'http://localhost:3000/v1'; // Ajustez l'URL selon votre configuration
+  final String baseUrl = 'http://localhost:3000/v1';
 
   Future<List<Flight>> searchFlights({
     required String departureCode,
@@ -17,8 +17,15 @@ class LocationService {
     int children = 0,
     int infants = 0,
     String travelClass = 'ECONOMY',
+    List<FlightSegment>? multiDestSegments,
   }) async {
     try {
+      if (multiDestSegments != null && multiDestSegments.isNotEmpty) {
+        // TODO: Implement multi-destination search when backend supports it
+        // For now, we can either throw or just search for the first segment
+        // throw UnimplementedError("Multi-destination search not yet supported by backend");
+      }
+
       final queryParameters = {
         'originLocationCode': departureCode,
         'destinationLocationCode': arrivalCode,

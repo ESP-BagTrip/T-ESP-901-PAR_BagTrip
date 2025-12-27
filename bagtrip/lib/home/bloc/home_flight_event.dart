@@ -75,4 +75,33 @@ class SetMaxPrice extends HomeFlightEvent {
   SetMaxPrice(this.price);
 }
 
+class AddFlightSegment extends HomeFlightEvent {}
+
+class RemoveFlightSegment extends HomeFlightEvent {
+  final int index;
+
+  RemoveFlightSegment(this.index);
+}
+
+class SelectMultiDestDepartureAirport extends HomeFlightEvent {
+  final int index;
+  final Map<String, dynamic> airport;
+
+  SelectMultiDestDepartureAirport(this.index, this.airport);
+}
+
+class SelectMultiDestArrivalAirport extends HomeFlightEvent {
+  final int index;
+  final Map<String, dynamic> airport;
+
+  SelectMultiDestArrivalAirport(this.index, this.airport);
+}
+
+class SetMultiDestDate extends HomeFlightEvent {
+  final int index;
+  final DateTime date;
+
+  SetMultiDestDate(this.index, this.date);
+}
+
 class SearchFlights extends HomeFlightEvent {}

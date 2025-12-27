@@ -1,3 +1,5 @@
+import 'package:bagtrip/home/models/flight_segment.dart';
+
 class FlightSearchArguments {
   final String departureCode;
   final String arrivalCode;
@@ -7,6 +9,7 @@ class FlightSearchArguments {
   final int children;
   final int infants;
   final String travelClass;
+  final List<FlightSegment>? multiDestSegments;
 
   FlightSearchArguments({
     required this.departureCode,
@@ -17,5 +20,6 @@ class FlightSearchArguments {
     required this.children,
     required this.infants,
     required this.travelClass,
+    this.multiDestSegments,
   });
 }

@@ -1,5 +1,6 @@
 // ignore_for_file: depend_on_referenced_packages
 
+import 'package:bagtrip/home/models/flight_segment.dart';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 
@@ -26,6 +27,11 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
     on<SetDepartureDate>(_onSetDepartureDate);
     on<SetReturnDate>(_onSetReturnDate);
     on<SetMaxPrice>(_onSetMaxPrice);
+    on<AddFlightSegment>(_onAddFlightSegment);
+    on<RemoveFlightSegment>(_onRemoveFlightSegment);
+    on<SelectMultiDestDepartureAirport>(_onSelectMultiDestDepartureAirport);
+    on<SelectMultiDestArrivalAirport>(_onSelectMultiDestArrivalAirport);
+    on<SetMultiDestDate>(_onSetMultiDestDate);
     on<SearchFlights>(_onSearchFlights);
   }
 
@@ -140,6 +146,78 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
     Emitter<HomeFlightState> emit,
   ) async {
     emit(_currentState().copyWith(maxPrice: event.price));
+  }
+
+  Future<void> _onAddFlightSegment(
+    AddFlightSegment event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    final current = _currentState();
+    final updatedSegments = List<FlightSegment>.from(current.multiDestSegments);
+    updatedSegments.add(FlightSegment());
+    emit(current.copyWith(multiDestSegments: updatedSegments));
+  }
+
+  Future<void> _onRemoveFlightSegment(
+    RemoveFlightSegment event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    final current = _currentState();
+    if (event.index < current.multiDestSegments.length) {
+      final updatedSegments = List<FlightSegment>.from(
+        current.multiDestSegments,
+      );
+      updatedSegments.removeAt(event.index);
+      emit(current.copyWith(multiDestSegments: updatedSegments));
+    }
+  }
+
+  Future<void> _onSelectMultiDestDepartureAirport(
+    SelectMultiDestDepartureAirport event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    final current = _currentState();
+    if (event.index < current.multiDestSegments.length) {
+      final updatedSegments = List<FlightSegment>.from(
+        current.multiDestSegments,
+      );
+      updatedSegments[event.index] = updatedSegments[event.index].copyWith(
+        departureAirport: event.airport,
+      );
+      emit(current.copyWith(multiDestSegments: updatedSegments));
+    }
+  }
+
+  Future<void> _onSelectMultiDestArrivalAirport(
+    SelectMultiDestArrivalAirport event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    final current = _currentState();
+    if (event.index < current.multiDestSegments.length) {
+      final updatedSegments = List<FlightSegment>.from(
+        current.multiDestSegments,
+      );
+      updatedSegments[event.index] = updatedSegments[event.index].copyWith(
+        arrivalAirport: event.airport,
+      );
+      emit(current.copyWith(multiDestSegments: updatedSegments));
+    }
+  }
+
+  Future<void> _onSetMultiDestDate(
+    SetMultiDestDate event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    final current = _currentState();
+    if (event.index < current.multiDestSegments.length) {
+      final updatedSegments = List<FlightSegment>.from(
+        current.multiDestSegments,
+      );
+      updatedSegments[event.index] = updatedSegments[event.index].copyWith(
+        departureDate: event.date,
+      );
+      emit(current.copyWith(multiDestSegments: updatedSegments));
+    }
   }
 
   Future<void> _onSearchFlights(

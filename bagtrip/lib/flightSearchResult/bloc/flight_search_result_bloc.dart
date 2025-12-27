@@ -1,10 +1,11 @@
 // ignore_for_file: depend_on_referenced_packages
 
+import 'package:bagtrip/flightSearchResult/models/flight.dart';
+import 'package:bagtrip/home/models/flight_segment.dart';
 import 'package:bagtrip/service/LocationService.dart';
 import 'package:bloc/bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:meta/meta.dart';
-import 'package:bagtrip/flightSearchResult/models/flight.dart';
 
 part 'flight_search_result_event.dart';
 part 'flight_search_result_state.dart';
@@ -53,6 +54,7 @@ class FlightSearchResultBloc
         children: event.children,
         infants: event.infants,
         travelClass: event.travelClass.toUpperCase(),
+        multiDestSegments: event.multiDestSegments,
       );
 
       emit(

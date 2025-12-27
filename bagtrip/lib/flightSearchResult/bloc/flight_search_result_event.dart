@@ -12,6 +12,7 @@ class LoadFlights extends FlightSearchResultEvent {
   final int children;
   final int infants;
   final String travelClass;
+  final List<FlightSegment>? multiDestSegments;
 
   LoadFlights({
     required this.departureCode,
@@ -22,6 +23,7 @@ class LoadFlights extends FlightSearchResultEvent {
     required this.children,
     required this.infants,
     required this.travelClass,
+    this.multiDestSegments,
   });
 }
 
