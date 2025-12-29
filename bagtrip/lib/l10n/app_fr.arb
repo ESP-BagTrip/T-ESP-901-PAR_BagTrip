@@ -1,0 +1,32 @@
+{
+  "dateFormatHint": "jj/mm/aaaa",
+  "travelClassTitle": "Classe de voyage",
+  "passengersTitle": "Passagers",
+  "searchFlightButton": "Rechercher votre vol",
+  "errorAddAtLeastOneFlight": "Veuillez ajouter au moins un vol",
+  "errorFillAllFields": "Veuillez remplir tous les champs obligatoires",
+  "travelClassEconomy": "Économique",
+  "travelClassPremiumEconomy": "Premium Économique",
+  "travelClassBusiness": "Affaires",
+  "travelClassFirst": "Première",
+  "tripTypeRoundTrip": "Aller-retour",
+  "tripTypeOneWay": "Aller simple",
+  "tripTypeMultiCity": "Multi-destinations",
+  "airportDepartureHint": "Aéroport de départ",
+  "airportArrivalHint": "Aéroport de destination",
+  "passengersAdults": "Adultes",
+  "passengersChildren": "Enfants",
+  "passengersInfants": "Bébés",
+  "multiDestFlightTitle": "Vol {index}",
+  "@multiDestFlightTitle": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "multiDestDepartureHint": "Départ",
+  "multiDestArrivalHint": "Arrivée",
+  "multiDestDateHint": "Date de départ",
+  "multiDestAddFlightButton": "Ajouter un autre vol"
+}

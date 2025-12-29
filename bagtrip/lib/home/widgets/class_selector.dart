@@ -2,6 +2,7 @@ import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_flight_bloc.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -12,7 +13,12 @@ class ClassSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final labels = ['Économique', 'Premium', 'Business'];
+    final l10n = AppLocalizations.of(context)!;
+    final labels = [
+      l10n.travelClassEconomy,
+      l10n.travelClassPremiumEconomy,
+      l10n.travelClassBusiness,
+    ];
     return Row(
       children: List.generate(labels.length, (i) {
         final selected = state.selectedClass == i;

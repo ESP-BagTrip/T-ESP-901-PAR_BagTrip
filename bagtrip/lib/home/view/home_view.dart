@@ -1,6 +1,7 @@
+import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/flightSearchResult/models/flight_search_arguments.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
-import 'package:bagtrip/home/widgets/multi_destination_form.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -15,6 +16,7 @@ import '../widgets/home_date_field.dart';
 import '../widgets/home_field_row.dart';
 import '../widgets/home_price_field.dart';
 import '../widgets/home_top_cards.dart';
+import '../widgets/multi_destination_form.dart';
 import '../widgets/passengers_row.dart';
 import '../widgets/trip_type_selector.dart';
 
@@ -26,12 +28,7 @@ class HomeView extends StatelessWidget {
     return BlocConsumer<HomeFlightBloc, HomeFlightState>(
       listener: (context, state) {
         if (state is HomeFlightLoaded && state.errorMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage!),
-              backgroundColor: ColorName.error,
-            ),
-          );
+          AppSnackBar.showError(context, message: state.errorMessage!);
         }
       },
       builder: (context, state) {
@@ -58,7 +55,9 @@ class HomeView extends StatelessWidget {
                           icon: Icons.flight_takeoff,
                           field: AirportSearchField(
                             type: AirportType.departure,
-                            hintText: AirportType.departure.hintText,
+                            hintText: AirportType.departure.getHintText(
+                              context,
+                            ),
                             initialValue: loadedState.departureAirport,
                             hasError:
                                 loadedState.showValidationErrors &&
@@ -76,7 +75,7 @@ class HomeView extends StatelessWidget {
                           icon: Icons.flight_land,
                           field: AirportSearchField(
                             type: AirportType.arrival,
-                            hintText: AirportType.arrival.hintText,
+                            hintText: AirportType.arrival.getHintText(context),
                             initialValue: loadedState.arrivalAirport,
                             hasError:
                                 loadedState.showValidationErrors &&
@@ -130,7 +129,7 @@ class HomeView extends StatelessWidget {
                       child: HomeFieldRow(
                         icon: Icons.calendar_today,
                         field: HomeDateField(
-                          hint: 'jj/mm/aaaa',
+                          hint: AppLocalizations.of(context)!.dateFormatHint,
                           value: loadedState.departureDate,
                           hasError:
                               loadedState.showValidationErrors &&
@@ -173,7 +172,7 @@ class HomeView extends StatelessWidget {
                         child: HomeFieldRow(
                           icon: Icons.calendar_today,
                           field: HomeDateField(
-                            hint: 'jj/mm/aaaa',
+                            hint: AppLocalizations.of(context)!.dateFormatHint,
                             value: loadedState.returnDate,
                             hasError:
                                 loadedState.showValidationErrors &&
@@ -209,9 +208,9 @@ class HomeView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppSize.boxSize16),
-              const Text(
-                'Classe de voyage',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context)!.travelClassTitle,
+                style: const TextStyle(
                   fontSize: 16,
                   fontFamily: FontFamily.b612,
                   fontWeight: FontWeight.w700,
@@ -221,9 +220,9 @@ class HomeView extends StatelessWidget {
               const SizedBox(height: AppSize.boxSize8),
               ClassSelector(state: loadedState),
               const SizedBox(height: AppSize.boxSize16),
-              const Text(
-                'Passagers',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context)!.passengersTitle,
+                style: const TextStyle(
                   fontSize: 16,
                   fontFamily: FontFamily.b612,
                   fontWeight: FontWeight.w700,
@@ -257,11 +256,12 @@ class HomeView extends StatelessWidget {
                     if (loadedState.tripTypeIndex == 2) {
                       // Multi-destination validation
                       if (loadedState.multiDestSegments.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Veuillez ajouter au moins un vol'),
-                            backgroundColor: ColorName.error,
-                          ),
+                        AppSnackBar.showError(
+                          context,
+                          message:
+                              AppLocalizations.of(
+                                context,
+                              )!.errorAddAtLeastOneFlight,
                         );
                         return;
                       }
@@ -284,13 +284,10 @@ class HomeView extends StatelessWidget {
                         context.read<HomeFlightBloc>().add(
                           ShowValidationErrors(),
                         );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Veuillez remplir tous les champs obligatoires',
-                            ),
-                            backgroundColor: ColorName.error,
-                          ),
+                        AppSnackBar.showError(
+                          context,
+                          message:
+                              AppLocalizations.of(context)!.errorFillAllFields,
                         );
                         return;
                       }
@@ -326,13 +323,10 @@ class HomeView extends StatelessWidget {
                         context.read<HomeFlightBloc>().add(
                           ShowValidationErrors(),
                         );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Veuillez remplir tous les champs obligatoires',
-                            ),
-                            backgroundColor: ColorName.error,
-                          ),
+                        AppSnackBar.showError(
+                          context,
+                          message:
+                              AppLocalizations.of(context)!.errorFillAllFields,
                         );
                         return;
                       }
@@ -368,9 +362,9 @@ class HomeView extends StatelessWidget {
                               strokeWidth: 2,
                             ),
                           )
-                          : const Text(
-                            'Rechercher votre vol',
-                            style: TextStyle(
+                          : Text(
+                            AppLocalizations.of(context)!.searchFlightButton,
+                            style: const TextStyle(
                               fontSize: 16,
                               fontFamily: FontFamily.b612,
                               fontWeight: FontWeight.w700,

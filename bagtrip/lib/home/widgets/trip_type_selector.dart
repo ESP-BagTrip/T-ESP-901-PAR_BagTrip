@@ -2,6 +2,7 @@ import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_flight_bloc.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -12,7 +13,12 @@ class TripTypeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final labels = ['Aller simple', 'Aller-retour', 'Multidestination'];
+    final l10n = AppLocalizations.of(context)!;
+    final labels = [
+      l10n.tripTypeOneWay,
+      l10n.tripTypeRoundTrip,
+      l10n.tripTypeMultiCity,
+    ];
     return SizedBox(
       height: 42,
       child: Row(

@@ -1,3 +1,6 @@
+import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:flutter/widgets.dart';
+
 enum AirportType {
   departure('departure'),
   arrival('arrival');
@@ -9,12 +12,12 @@ enum AirportType {
   String asString() => value;
 
   /// A friendly hint used as default placeholder in the UI
-  String get hintText {
+  String getHintText(BuildContext context) {
     switch (this) {
       case AirportType.departure:
-        return 'Aéroport de départ';
+        return AppLocalizations.of(context)!.airportDepartureHint;
       case AirportType.arrival:
-        return 'Aéroport de destination';
+        return AppLocalizations.of(context)!.airportArrivalHint;
     }
   }
 }
