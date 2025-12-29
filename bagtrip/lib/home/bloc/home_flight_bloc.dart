@@ -33,6 +33,8 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
     on<SelectMultiDestArrivalAirport>(_onSelectMultiDestArrivalAirport);
     on<SetMultiDestDate>(_onSetMultiDestDate);
     on<SearchFlights>(_onSearchFlights);
+    on<ShowValidationErrors>(_onShowValidationErrors);
+    on<SwapAirports>(_onSwapAirports);
   }
 
   HomeFlightLoaded _currentState() {
@@ -154,7 +156,14 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
   ) async {
     final current = _currentState();
     final updatedSegments = List<FlightSegment>.from(current.multiDestSegments);
-    updatedSegments.add(FlightSegment());
+
+    // Smart chaining: use previous arrival as new departure
+    Map<String, dynamic>? nextDeparture;
+    if (updatedSegments.isNotEmpty) {
+      nextDeparture = updatedSegments.last.arrivalAirport;
+    }
+
+    updatedSegments.add(FlightSegment(departureAirport: nextDeparture));
     emit(current.copyWith(multiDestSegments: updatedSegments));
   }
 
@@ -232,5 +241,25 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
     } catch (e) {
       emit(current.copyWith(isLoading: false, errorMessage: e.toString()));
     }
+  }
+
+  Future<void> _onShowValidationErrors(
+    ShowValidationErrors event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    emit(_currentState().copyWith(showValidationErrors: true));
+  }
+
+  Future<void> _onSwapAirports(
+    SwapAirports event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    final current = _currentState();
+    emit(
+      current.copyWith(
+        departureAirport: current.arrivalAirport,
+        arrivalAirport: current.departureAirport,
+      ),
+    );
   }
 }

@@ -105,3 +105,7 @@ class SetMultiDestDate extends HomeFlightEvent {
 }
 
 class SearchFlights extends HomeFlightEvent {}
+
+class ShowValidationErrors extends HomeFlightEvent {}
+
+class SwapAirports extends HomeFlightEvent {}

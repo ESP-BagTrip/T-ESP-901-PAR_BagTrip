@@ -31,7 +31,7 @@ class HomeFieldRow extends StatelessWidget {
                   height: AppSize.height42,
                   child: Container(
                     alignment: Alignment.center,
-                    padding: AppSpacing.horizontalSpace16,
+                    padding: AppSpacing.onlyLeftSpace16,
                     decoration: const BoxDecoration(
                       color: ColorName.primarySoftLight,
                       borderRadius: AppRadius.large16,

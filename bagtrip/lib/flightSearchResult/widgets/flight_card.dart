@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:bagtrip/flightSearchResult/models/flight.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/flightSearchResult/models/flight.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:flutter/material.dart';
 
 class FlightCard extends StatelessWidget {
   final Flight flight;

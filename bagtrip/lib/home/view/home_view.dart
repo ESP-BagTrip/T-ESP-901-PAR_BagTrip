@@ -49,35 +49,80 @@ class HomeView extends StatelessWidget {
               if (loadedState.tripTypeIndex == 2)
                 MultiDestinationForm(state: loadedState)
               else ...[
-                HomeFieldRow(
-                  icon: Icons.flight_takeoff,
-                  field: AirportSearchField(
-                    type: AirportType.departure,
-                    hintText: AirportType.departure.hintText,
-                    initialValue: loadedState.departureAirport,
-                    onSelected: (airport, selectedType) {
-                      if (airport != null) {
-                        context.read<HomeFlightBloc>().add(
-                          SelectDepartureAirport(airport),
-                        );
-                      }
-                    },
-                  ),
-                ),
-                HomeFieldRow(
-                  icon: Icons.flight_land,
-                  field: AirportSearchField(
-                    type: AirportType.arrival,
-                    hintText: AirportType.arrival.hintText,
-                    initialValue: loadedState.arrivalAirport,
-                    onSelected: (airport, selectedType) {
-                      if (airport != null) {
-                        context.read<HomeFlightBloc>().add(
-                          SelectArrivalAirport(airport),
-                        );
-                      }
-                    },
-                  ),
+                Stack(
+                  alignment: Alignment.centerRight,
+                  children: [
+                    Column(
+                      children: [
+                        HomeFieldRow(
+                          icon: Icons.flight_takeoff,
+                          field: AirportSearchField(
+                            type: AirportType.departure,
+                            hintText: AirportType.departure.hintText,
+                            initialValue: loadedState.departureAirport,
+                            hasError:
+                                loadedState.showValidationErrors &&
+                                loadedState.departureAirport == null,
+                            onSelected: (airport, selectedType) {
+                              if (airport != null) {
+                                context.read<HomeFlightBloc>().add(
+                                  SelectDepartureAirport(airport),
+                                );
+                              }
+                            },
+                          ),
+                        ),
+                        HomeFieldRow(
+                          icon: Icons.flight_land,
+                          field: AirportSearchField(
+                            type: AirportType.arrival,
+                            hintText: AirportType.arrival.hintText,
+                            initialValue: loadedState.arrivalAirport,
+                            hasError:
+                                loadedState.showValidationErrors &&
+                                loadedState.arrivalAirport == null,
+                            onSelected: (airport, selectedType) {
+                              if (airport != null) {
+                                context.read<HomeFlightBloc>().add(
+                                  SelectArrivalAirport(airport),
+                                );
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    Positioned(
+                      right: 36,
+                      child: Container(
+                        height: 32,
+                        width: 32,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          // border: Border.all(color: ColorName.primarySoftLight),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(
+                            Icons.swap_vert,
+                            size: 20,
+                            color: ColorName.secondary,
+                          ),
+                          onPressed: () {
+                            context.read<HomeFlightBloc>().add(SwapAirports());
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 Row(
                   children: [
@@ -87,6 +132,9 @@ class HomeView extends StatelessWidget {
                         field: HomeDateField(
                           hint: 'jj/mm/aaaa',
                           value: loadedState.departureDate,
+                          hasError:
+                              loadedState.showValidationErrors &&
+                              loadedState.departureDate == null,
                           onTap: () async {
                             final pickedDeparture = await showDatePicker(
                               context: context,
@@ -127,6 +175,9 @@ class HomeView extends StatelessWidget {
                           field: HomeDateField(
                             hint: 'jj/mm/aaaa',
                             value: loadedState.returnDate,
+                            hasError:
+                                loadedState.showValidationErrors &&
+                                loadedState.returnDate == null,
                             onTap: () async {
                               final initialDate =
                                   loadedState.departureDate ?? DateTime.now();
@@ -183,12 +234,12 @@ class HomeView extends StatelessWidget {
               PassengersRow(state: loadedState),
               const SizedBox(height: AppSize.boxSize16),
               SizedBox(
-                // height: AppSize.height42,
+                height: AppSize.height42,
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: ColorName.secondary,
-                    padding: AppSpacing.allEdgeInsetSpace16,
+                    padding: AppSpacing.horizontalSpace16,
                     shape: const RoundedRectangleBorder(
                       borderRadius: AppRadius.large16,
                     ),
@@ -215,6 +266,7 @@ class HomeView extends StatelessWidget {
                         return;
                       }
 
+                      bool hasError = false;
                       for (
                         int i = 0;
                         i < loadedState.multiDestSegments.length;
@@ -224,16 +276,23 @@ class HomeView extends StatelessWidget {
                         if (segment.departureAirport == null ||
                             segment.arrivalAirport == null ||
                             segment.departureDate == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Veuillez remplir toutes les informations pour le vol ${i + 1}',
-                              ),
-                              backgroundColor: ColorName.error,
-                            ),
-                          );
-                          return;
+                          hasError = true;
                         }
+                      }
+
+                      if (hasError) {
+                        context.read<HomeFlightBloc>().add(
+                          ShowValidationErrors(),
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Veuillez remplir tous les champs obligatoires',
+                            ),
+                            backgroundColor: ColorName.error,
+                          ),
+                        );
+                        return;
                       }
 
                       // Create args using the first segment for required fields (fallback)
@@ -254,46 +313,23 @@ class HomeView extends StatelessWidget {
                       );
                     } else {
                       // One-way or Round-trip validation
-                      if (loadedState.departureAirport == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Veuillez sélectionner un aéroport de départ',
-                            ),
-                            backgroundColor: ColorName.error,
-                          ),
-                        );
-                        return;
-                      }
-                      if (loadedState.arrivalAirport == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Veuillez sélectionner un aéroport d\'arrivée',
-                            ),
-                            backgroundColor: ColorName.error,
-                          ),
-                        );
-                        return;
-                      }
-                      if (loadedState.departureDate == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Veuillez sélectionner une date de départ',
-                            ),
-                            backgroundColor: ColorName.error,
-                          ),
-                        );
-                        return;
-                      }
-                      // For round trip (index 1), return date is mandatory
+                      bool hasError = false;
+                      if (loadedState.departureAirport == null) hasError = true;
+                      if (loadedState.arrivalAirport == null) hasError = true;
+                      if (loadedState.departureDate == null) hasError = true;
                       if (loadedState.tripTypeIndex == 1 &&
                           loadedState.returnDate == null) {
+                        hasError = true;
+                      }
+
+                      if (hasError) {
+                        context.read<HomeFlightBloc>().add(
+                          ShowValidationErrors(),
+                        );
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text(
-                              'Veuillez sélectionner une date de retour',
+                              'Veuillez remplir tous les champs obligatoires',
                             ),
                             backgroundColor: ColorName.error,
                           ),

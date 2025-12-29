@@ -53,6 +53,9 @@ class MultiDestinationForm extends StatelessWidget {
                   type: AirportType.departure,
                   hintText: 'Départ',
                   initialValue: segment.departureAirport,
+                  hasError:
+                      state.showValidationErrors &&
+                      segment.departureAirport == null,
                   onSelected: (airport, _) {
                     if (airport != null) {
                       context.read<HomeFlightBloc>().add(
@@ -68,6 +71,9 @@ class MultiDestinationForm extends StatelessWidget {
                   type: AirportType.arrival,
                   hintText: 'Arrivée',
                   initialValue: segment.arrivalAirport,
+                  hasError:
+                      state.showValidationErrors &&
+                      segment.arrivalAirport == null,
                   onSelected: (airport, _) {
                     if (airport != null) {
                       context.read<HomeFlightBloc>().add(
@@ -82,12 +88,26 @@ class MultiDestinationForm extends StatelessWidget {
                 field: HomeDateField(
                   hint: 'Date de départ',
                   value: segment.departureDate,
+                  hasError:
+                      state.showValidationErrors &&
+                      segment.departureDate == null,
                   onTap: () async {
-                    final initialDate = DateTime.now();
+                    DateTime minDate = DateTime.now();
+                    if (index > 0) {
+                      final previousDate =
+                          state.multiDestSegments[index - 1].departureDate;
+                      if (previousDate != null) {
+                        minDate = previousDate;
+                      }
+                    }
+
+                    final initialDate = segment.departureDate ?? minDate;
+
                     final pickedDate = await showDatePicker(
                       context: context,
-                      initialDate: initialDate,
-                      firstDate: DateTime.now(),
+                      initialDate:
+                          initialDate.isBefore(minDate) ? minDate : initialDate,
+                      firstDate: minDate,
                       lastDate: DateTime(2101),
                     );
                     if (pickedDate != null && context.mounted) {

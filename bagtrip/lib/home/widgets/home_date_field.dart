@@ -7,12 +7,14 @@ class HomeDateField extends StatelessWidget {
   final String hint;
   final DateTime? value;
   final VoidCallback onTap;
+  final bool hasError;
 
   const HomeDateField({
     super.key,
     required this.hint,
     this.value,
     required this.onTap,
+    this.hasError = false,
   });
 
   @override
@@ -24,10 +26,10 @@ class HomeDateField extends StatelessWidget {
       readOnly: true,
       textAlignVertical: TextAlignVertical.center,
       decoration: InputDecoration(
-        hintStyle: const TextStyle(
+        hintStyle: TextStyle(
           fontSize: 13,
           fontFamily: FontFamily.b612,
-          color: ColorName.primary,
+          color: hasError ? ColorName.error : ColorName.primary,
         ),
         border: InputBorder.none,
         contentPadding: EdgeInsets.zero,

@@ -20,6 +20,7 @@ final class HomeFlightLoaded extends HomeFlightState {
   final List<Map<String, dynamic>>? searchResults;
   final bool isLoading;
   final String? errorMessage;
+  final bool showValidationErrors;
 
   HomeFlightLoaded({
     this.tripTypeIndex = 0,
@@ -36,6 +37,7 @@ final class HomeFlightLoaded extends HomeFlightState {
     this.searchResults,
     this.isLoading = false,
     this.errorMessage,
+    this.showValidationErrors = false,
   }) : multiDestSegments =
            multiDestSegments ?? [FlightSegment(), FlightSegment()];
 
@@ -55,6 +57,7 @@ final class HomeFlightLoaded extends HomeFlightState {
     bool? isLoading,
     String? errorMessage,
     bool clearError = false,
+    bool? showValidationErrors,
   }) {
     return HomeFlightLoaded(
       tripTypeIndex: tripTypeIndex ?? this.tripTypeIndex,
@@ -71,6 +74,7 @@ final class HomeFlightLoaded extends HomeFlightState {
       searchResults: searchResults ?? this.searchResults,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      showValidationErrors: showValidationErrors ?? this.showValidationErrors,
     );
   }
 }

@@ -11,6 +11,7 @@ class AirportSearchField extends StatefulWidget {
   final String? hintText;
   final Map<String, dynamic>? initialValue;
   final void Function(Map<String, dynamic>?, AirportType)? onSelected;
+  final bool hasError;
 
   const AirportSearchField({
     super.key,
@@ -18,6 +19,7 @@ class AirportSearchField extends StatefulWidget {
     this.hintText,
     this.initialValue,
     this.onSelected,
+    this.hasError = false,
   });
 
   @override
@@ -142,9 +144,9 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
             style: const TextStyle(fontFamily: FontFamily.b612, fontSize: 13),
             decoration: InputDecoration(
               hintText: widget.hintText,
-              hintStyle: const TextStyle(
+              hintStyle: TextStyle(
                 fontSize: 13,
-                color: ColorName.primary,
+                color: widget.hasError ? ColorName.error : ColorName.primary,
               ),
               border: InputBorder.none,
               isDense: true,
