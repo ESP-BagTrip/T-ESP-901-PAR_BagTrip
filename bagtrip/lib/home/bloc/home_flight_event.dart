@@ -70,7 +70,7 @@ class SetReturnDate extends HomeFlightEvent {
 }
 
 class SetMaxPrice extends HomeFlightEvent {
-  final double price;
+  final double? price;
 
   SetMaxPrice(this.price);
 }

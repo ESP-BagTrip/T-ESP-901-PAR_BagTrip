@@ -1,6 +1,7 @@
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/home/bloc/home_flight_bloc.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -67,7 +68,7 @@ class PassengersRow extends StatelessWidget {
           child: Padding(
             padding: AppSpacing.onlyRightSpace8,
             child: counter(
-              'Adultes',
+              AppLocalizations.of(context)!.passengersAdults,
               state.adults,
               () => context.read<HomeFlightBloc>().add(
                 SetAdults(state.adults + 1),
@@ -82,7 +83,7 @@ class PassengersRow extends StatelessWidget {
           child: Padding(
             padding: AppSpacing.onlyRightSpace8,
             child: counter(
-              'Enfants',
+              AppLocalizations.of(context)!.passengersChildren,
               state.children,
               () => context.read<HomeFlightBloc>().add(
                 SetChildren(state.children + 1),
@@ -95,7 +96,7 @@ class PassengersRow extends StatelessWidget {
         ),
         Expanded(
           child: counter(
-            'Bébés',
+            AppLocalizations.of(context)!.passengersInfants,
             state.infants,
             () => context.read<HomeFlightBloc>().add(
               SetInfants(state.infants + 1),

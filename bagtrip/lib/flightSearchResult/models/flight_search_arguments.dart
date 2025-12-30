@@ -10,6 +10,7 @@ class FlightSearchArguments {
   final int infants;
   final String travelClass;
   final List<FlightSegment>? multiDestSegments;
+  final double? maxPrice;
 
   FlightSearchArguments({
     required this.departureCode,
@@ -21,5 +22,6 @@ class FlightSearchArguments {
     required this.infants,
     required this.travelClass,
     this.multiDestSegments,
+    this.maxPrice,
   });
 }

@@ -57,8 +57,20 @@ class FlightSearchResultBloc
         multiDestSegments: event.multiDestSegments,
       );
 
+      var filteredFlights = List<Flight>.from(flights);
+      if (event.maxPrice != null) {
+        filteredFlights =
+            filteredFlights
+                .where((flight) => flight.price <= event.maxPrice!)
+                .toList();
+      }
+
       emit(
-        FlightSearchResultLoaded(flights: flights, filteredFlights: flights),
+        FlightSearchResultLoaded(
+          flights: flights,
+          filteredFlights: filteredFlights,
+          maxPrice: event.maxPrice,
+        ),
       );
     } catch (e) {
       emit(FlightSearchResultError(e.toString()));
@@ -70,10 +82,16 @@ class FlightSearchResultBloc
     Emitter<FlightSearchResultState> emit,
   ) async {
     final current = _currentState();
-    final filtered =
-        current.flights
-            .where((flight) => flight.price <= event.maxPrice)
-            .toList();
+    List<Flight> filtered;
+
+    if (event.maxPrice != null) {
+      filtered =
+          current.flights
+              .where((flight) => flight.price <= event.maxPrice!)
+              .toList();
+    } else {
+      filtered = List.from(current.flights);
+    }
 
     emit(current.copyWith(filteredFlights: filtered, maxPrice: event.maxPrice));
   }

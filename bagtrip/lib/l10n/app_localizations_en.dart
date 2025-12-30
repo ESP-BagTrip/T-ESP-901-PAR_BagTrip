@@ -78,4 +78,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get multiDestAddFlightButton => 'Add another flight';
+
+  @override
+  String get maxPriceHint => 'Max price (€)';
+
+  @override
+  String get noFlightsFoundTitle => 'No flights found';
+
+  @override
+  String get noFlightsFoundMessage => 'Try adjusting your search criteria.';
+
+  @override
+  String get noFlightsFoundPriceFilterMessage =>
+      'No flights match your maximum budget. Try increasing your price limit or clearing the filter.';
+
+  @override
+  String get clearPriceFilterButton => 'Clear price filter';
 }

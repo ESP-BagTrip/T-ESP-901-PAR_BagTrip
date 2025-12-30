@@ -235,6 +235,36 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Ajouter un autre vol'**
   String get multiDestAddFlightButton;
+
+  /// No description provided for @maxPriceHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prix maximum (€)'**
+  String get maxPriceHint;
+
+  /// No description provided for @noFlightsFoundTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun vol trouvé'**
+  String get noFlightsFoundTitle;
+
+  /// No description provided for @noFlightsFoundMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Essayez de modifier vos critères de recherche.'**
+  String get noFlightsFoundMessage;
+
+  /// No description provided for @noFlightsFoundPriceFilterMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun vol ne correspond à votre budget maximum. Essayez d\'augmenter votre limite de prix ou d\'effacer le filtre.'**
+  String get noFlightsFoundPriceFilterMessage;
+
+  /// No description provided for @clearPriceFilterButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer le filtre de prix'**
+  String get clearPriceFilterButton;
 }
 
 class _AppLocalizationsDelegate

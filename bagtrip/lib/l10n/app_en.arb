@@ -28,5 +28,10 @@
   "multiDestDepartureHint": "Departure",
   "multiDestArrivalHint": "Arrival",
   "multiDestDateHint": "Departure date",
-  "multiDestAddFlightButton": "Add another flight"
+  "multiDestAddFlightButton": "Add another flight",
+  "maxPriceHint": "Max price (€)",
+  "noFlightsFoundTitle": "No flights found",
+  "noFlightsFoundMessage": "Try adjusting your search criteria.",
+  "noFlightsFoundPriceFilterMessage": "No flights match your maximum budget. Try increasing your price limit or clearing the filter.",
+  "clearPriceFilterButton": "Clear price filter"
 }

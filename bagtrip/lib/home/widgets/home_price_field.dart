@@ -1,9 +1,10 @@
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class HomePriceField extends StatelessWidget {
-  final Function(double) onPriceChanged;
+  final Function(double?) onPriceChanged;
 
   const HomePriceField({super.key, required this.onPriceChanged});
 
@@ -12,8 +13,8 @@ class HomePriceField extends StatelessWidget {
     return TextField(
       keyboardType: TextInputType.number,
       textAlignVertical: TextAlignVertical.center,
-      decoration: const InputDecoration(
-        hintStyle: TextStyle(
+      decoration: InputDecoration(
+        hintStyle: const TextStyle(
           fontSize: 13,
           fontFamily: FontFamily.b612,
           color: ColorName.primary,
@@ -21,10 +22,14 @@ class HomePriceField extends StatelessWidget {
         border: InputBorder.none,
         contentPadding: EdgeInsets.zero,
         isDense: true,
-        hintText: 'Prix maximum (€)',
+        hintText: AppLocalizations.of(context)!.maxPriceHint,
       ),
       onChanged: (value) {
-        final price = double.tryParse(value) ?? 0.0;
+        if (value.isEmpty) {
+          onPriceChanged(null);
+          return;
+        }
+        final price = double.tryParse(value);
         onPriceChanged(price);
       },
     );

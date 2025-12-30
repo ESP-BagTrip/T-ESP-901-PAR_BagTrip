@@ -307,6 +307,7 @@ class HomeView extends StatelessWidget {
                         travelClass:
                             classMap[loadedState.selectedClass] ?? 'ECONOMY',
                         multiDestSegments: loadedState.multiDestSegments,
+                        maxPrice: loadedState.maxPrice,
                       );
                     } else {
                       // One-way or Round-trip validation
@@ -343,6 +344,7 @@ class HomeView extends StatelessWidget {
                         infants: loadedState.infants,
                         travelClass:
                             classMap[loadedState.selectedClass] ?? 'ECONOMY',
+                        maxPrice: loadedState.maxPrice,
                       );
                     }
 

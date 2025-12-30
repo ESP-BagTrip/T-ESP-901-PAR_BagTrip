@@ -79,4 +79,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get multiDestAddFlightButton => 'Ajouter un autre vol';
+
+  @override
+  String get maxPriceHint => 'Prix maximum (€)';
+
+  @override
+  String get noFlightsFoundTitle => 'Aucun vol trouvé';
+
+  @override
+  String get noFlightsFoundMessage =>
+      'Essayez de modifier vos critères de recherche.';
+
+  @override
+  String get noFlightsFoundPriceFilterMessage =>
+      'Aucun vol ne correspond à votre budget maximum. Essayez d\'augmenter votre limite de prix ou d\'effacer le filtre.';
+
+  @override
+  String get clearPriceFilterButton => 'Effacer le filtre de prix';
 }

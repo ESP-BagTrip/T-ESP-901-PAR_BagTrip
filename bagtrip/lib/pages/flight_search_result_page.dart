@@ -37,6 +37,7 @@ class FlightSearchResultPage extends StatelessWidget {
                     infants: arguments.infants,
                     travelClass: arguments.travelClass,
                     multiDestSegments: arguments.multiDestSegments,
+                    maxPrice: arguments.maxPrice,
                   ),
                 ),
         child: const SafeArea(

@@ -28,5 +28,10 @@
   "multiDestDepartureHint": "Départ",
   "multiDestArrivalHint": "Arrivée",
   "multiDestDateHint": "Date de départ",
-  "multiDestAddFlightButton": "Ajouter un autre vol"
+  "multiDestAddFlightButton": "Ajouter un autre vol",
+  "maxPriceHint": "Prix maximum (€)",
+  "noFlightsFoundTitle": "Aucun vol trouvé",
+  "noFlightsFoundMessage": "Essayez de modifier vos critères de recherche.",
+  "noFlightsFoundPriceFilterMessage": "Aucun vol ne correspond à votre budget maximum. Essayez d'augmenter votre limite de prix ou d'effacer le filtre.",
+  "clearPriceFilterButton": "Effacer le filtre de prix"
 }

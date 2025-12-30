@@ -13,6 +13,7 @@ class LoadFlights extends FlightSearchResultEvent {
   final int infants;
   final String travelClass;
   final List<FlightSegment>? multiDestSegments;
+  final double? maxPrice;
 
   LoadFlights({
     required this.departureCode,
@@ -24,11 +25,12 @@ class LoadFlights extends FlightSearchResultEvent {
     required this.infants,
     required this.travelClass,
     this.multiDestSegments,
+    this.maxPrice,
   });
 }
 
 class FilterFlightsByPrice extends FlightSearchResultEvent {
-  final double maxPrice;
+  final double? maxPrice;
 
   FilterFlightsByPrice(this.maxPrice);
 }

@@ -59,7 +59,10 @@ class LocationService {
           rawFlights = data['data'];
         }
 
-        return rawFlights.map((json) => Flight.fromAmadeusJson(json)).toList();
+        var flights =
+            rawFlights.map((json) => Flight.fromAmadeusJson(json)).toList();
+
+        return flights;
       }
       throw Exception('Failed to fetch flights: HTTP ${response.statusCode}');
     } catch (e) {

@@ -6,6 +6,7 @@ import 'package:bagtrip/home/models/airport_type.dart';
 import 'package:bagtrip/home/widgets/airport_search_field.dart';
 import 'package:bagtrip/home/widgets/home_date_field.dart';
 import 'package:bagtrip/home/widgets/home_field_row.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -16,6 +17,7 @@ class MultiDestinationForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         ...List.generate(state.multiDestSegments.length, (index) {
@@ -27,7 +29,7 @@ class MultiDestinationForm extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Vol ${index + 1}',
+                    l10n.multiDestFlightTitle(index + 1),
                     style: const TextStyle(
                       fontSize: 16,
                       fontFamily: FontFamily.b612,
@@ -51,7 +53,7 @@ class MultiDestinationForm extends StatelessWidget {
                 icon: Icons.flight_takeoff,
                 field: AirportSearchField(
                   type: AirportType.departure,
-                  hintText: 'Départ',
+                  hintText: l10n.multiDestDepartureHint,
                   initialValue: segment.departureAirport,
                   hasError:
                       state.showValidationErrors &&
@@ -69,7 +71,7 @@ class MultiDestinationForm extends StatelessWidget {
                 icon: Icons.flight_land,
                 field: AirportSearchField(
                   type: AirportType.arrival,
-                  hintText: 'Arrivée',
+                  hintText: l10n.multiDestArrivalHint,
                   initialValue: segment.arrivalAirport,
                   hasError:
                       state.showValidationErrors &&
@@ -86,7 +88,7 @@ class MultiDestinationForm extends StatelessWidget {
               HomeFieldRow(
                 icon: Icons.calendar_today,
                 field: HomeDateField(
-                  hint: 'Date de départ',
+                  hint: l10n.multiDestDateHint,
                   value: segment.departureDate,
                   hasError:
                       state.showValidationErrors &&
@@ -127,9 +129,9 @@ class MultiDestinationForm extends StatelessWidget {
             context.read<HomeFlightBloc>().add(AddFlightSegment());
           },
           icon: const Icon(Icons.add, color: ColorName.secondary),
-          label: const Text(
-            'Ajouter un autre vol',
-            style: TextStyle(
+          label: Text(
+            l10n.multiDestAddFlightButton,
+            style: const TextStyle(
               color: ColorName.secondary,
               fontFamily: FontFamily.b612,
               fontWeight: FontWeight.w600,
