@@ -60,34 +60,39 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        HomeTopCards(
-          controller: _headerController,
-          onPageChanged: _onPageChanged,
-        ),
-        const SizedBox(height: AppSize.boxSize16),
-        Expanded(
-          child: PageView.builder(
-            controller: _bodyController,
-            onPageChanged: _onPageChanged,
-            itemBuilder: (context, index) {
-              final formIndex = index % 3;
-              switch (formIndex) {
-                case 0:
-                  return const HomeFlightForm();
-                case 1:
-                  return const HomeHotelForm();
-                case 2:
-                  return const HomeOtherForm();
-                default:
-                  return const SizedBox();
-              }
-            },
+    return NestedScrollView(
+      headerSliverBuilder: (context, innerBoxIsScrolled) {
+        return [
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                HomeTopCards(
+                  controller: _headerController,
+                  onPageChanged: _onPageChanged,
+                ),
+                const SizedBox(height: AppSize.boxSize16),
+              ],
+            ),
           ),
-        ),
-      ],
+        ];
+      },
+      body: PageView.builder(
+        controller: _bodyController,
+        onPageChanged: _onPageChanged,
+        itemBuilder: (context, index) {
+          final formIndex = index % 3;
+          switch (formIndex) {
+            case 0:
+              return const HomeFlightForm();
+            case 1:
+              return const HomeHotelForm();
+            case 2:
+              return const HomeOtherForm();
+            default:
+              return const SizedBox();
+          }
+        },
+      ),
     );
   }
 }
