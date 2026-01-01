@@ -1,7 +1,9 @@
 // ignore_for_file: depend_on_referenced_packages
 
+import 'package:bagtrip/home/models/flight_segment.dart';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
+
 import '../../service/LocationService.dart';
 
 part 'home_flight_event.dart';
@@ -25,7 +27,14 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
     on<SetDepartureDate>(_onSetDepartureDate);
     on<SetReturnDate>(_onSetReturnDate);
     on<SetMaxPrice>(_onSetMaxPrice);
+    on<AddFlightSegment>(_onAddFlightSegment);
+    on<RemoveFlightSegment>(_onRemoveFlightSegment);
+    on<SelectMultiDestDepartureAirport>(_onSelectMultiDestDepartureAirport);
+    on<SelectMultiDestArrivalAirport>(_onSelectMultiDestArrivalAirport);
+    on<SetMultiDestDate>(_onSetMultiDestDate);
     on<SearchFlights>(_onSearchFlights);
+    on<ShowValidationErrors>(_onShowValidationErrors);
+    on<SwapAirports>(_onSwapAirports);
   }
 
   HomeFlightLoaded _currentState() {
@@ -40,7 +49,7 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
     Emitter<HomeFlightState> emit,
   ) async {
     final current = _currentState();
-    emit(current.copyWith(isLoading: true));
+    emit(current.copyWith(isLoading: true, clearError: true));
 
     try {
       final airports = await _locationService.searchLocationsByKeyword(
@@ -49,7 +58,7 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
       );
       emit(current.copyWith(isLoading: false, searchResults: airports));
     } catch (e) {
-      emit(HomeFlightError(e.toString()));
+      emit(current.copyWith(isLoading: false, errorMessage: e.toString()));
     }
   }
 
@@ -58,7 +67,7 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
     Emitter<HomeFlightState> emit,
   ) async {
     final current = _currentState();
-    emit(current.copyWith(isLoading: true));
+    emit(current.copyWith(isLoading: true, clearError: true));
 
     try {
       final airports = await _locationService.searchLocationsByKeyword(
@@ -67,7 +76,7 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
       );
       emit(current.copyWith(isLoading: false, searchResults: airports));
     } catch (e) {
-      emit(HomeFlightError(e.toString()));
+      emit(current.copyWith(isLoading: false, errorMessage: e.toString()));
     }
   }
 
@@ -141,17 +150,116 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
     emit(_currentState().copyWith(maxPrice: event.price));
   }
 
+  Future<void> _onAddFlightSegment(
+    AddFlightSegment event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    final current = _currentState();
+    final updatedSegments = List<FlightSegment>.from(current.multiDestSegments);
+
+    // Smart chaining: use previous arrival as new departure
+    Map<String, dynamic>? nextDeparture;
+    if (updatedSegments.isNotEmpty) {
+      nextDeparture = updatedSegments.last.arrivalAirport;
+    }
+
+    updatedSegments.add(FlightSegment(departureAirport: nextDeparture));
+    emit(current.copyWith(multiDestSegments: updatedSegments));
+  }
+
+  Future<void> _onRemoveFlightSegment(
+    RemoveFlightSegment event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    final current = _currentState();
+    if (event.index < current.multiDestSegments.length) {
+      final updatedSegments = List<FlightSegment>.from(
+        current.multiDestSegments,
+      );
+      updatedSegments.removeAt(event.index);
+      emit(current.copyWith(multiDestSegments: updatedSegments));
+    }
+  }
+
+  Future<void> _onSelectMultiDestDepartureAirport(
+    SelectMultiDestDepartureAirport event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    final current = _currentState();
+    if (event.index < current.multiDestSegments.length) {
+      final updatedSegments = List<FlightSegment>.from(
+        current.multiDestSegments,
+      );
+      updatedSegments[event.index] = updatedSegments[event.index].copyWith(
+        departureAirport: event.airport,
+      );
+      emit(current.copyWith(multiDestSegments: updatedSegments));
+    }
+  }
+
+  Future<void> _onSelectMultiDestArrivalAirport(
+    SelectMultiDestArrivalAirport event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    final current = _currentState();
+    if (event.index < current.multiDestSegments.length) {
+      final updatedSegments = List<FlightSegment>.from(
+        current.multiDestSegments,
+      );
+      updatedSegments[event.index] = updatedSegments[event.index].copyWith(
+        arrivalAirport: event.airport,
+      );
+      emit(current.copyWith(multiDestSegments: updatedSegments));
+    }
+  }
+
+  Future<void> _onSetMultiDestDate(
+    SetMultiDestDate event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    final current = _currentState();
+    if (event.index < current.multiDestSegments.length) {
+      final updatedSegments = List<FlightSegment>.from(
+        current.multiDestSegments,
+      );
+      updatedSegments[event.index] = updatedSegments[event.index].copyWith(
+        departureDate: event.date,
+      );
+      emit(current.copyWith(multiDestSegments: updatedSegments));
+    }
+  }
+
   Future<void> _onSearchFlights(
     SearchFlights event,
     Emitter<HomeFlightState> emit,
   ) async {
     final current = _currentState();
-    emit(current.copyWith(isLoading: true));
+    emit(current.copyWith(isLoading: true, clearError: true));
 
     try {
       emit(current.copyWith(isLoading: false));
     } catch (e) {
-      emit(HomeFlightError(e.toString()));
+      emit(current.copyWith(isLoading: false, errorMessage: e.toString()));
     }
+  }
+
+  Future<void> _onShowValidationErrors(
+    ShowValidationErrors event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    emit(_currentState().copyWith(showValidationErrors: true));
+  }
+
+  Future<void> _onSwapAirports(
+    SwapAirports event,
+    Emitter<HomeFlightState> emit,
+  ) async {
+    final current = _currentState();
+    emit(
+      current.copyWith(
+        departureAirport: current.arrivalAirport,
+        arrivalAirport: current.departureAirport,
+      ),
+    );
   }
 }

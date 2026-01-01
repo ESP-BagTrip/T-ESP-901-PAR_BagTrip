@@ -15,10 +15,12 @@ final class HomeFlightLoaded extends HomeFlightState {
   final Map<String, dynamic>? arrivalAirport;
   final DateTime? departureDate;
   final DateTime? returnDate;
+  final List<FlightSegment> multiDestSegments;
   final double? maxPrice;
   final List<Map<String, dynamic>>? searchResults;
   final bool isLoading;
   final String? errorMessage;
+  final bool showValidationErrors;
 
   HomeFlightLoaded({
     this.tripTypeIndex = 0,
@@ -30,11 +32,14 @@ final class HomeFlightLoaded extends HomeFlightState {
     this.arrivalAirport,
     this.departureDate,
     this.returnDate,
+    List<FlightSegment>? multiDestSegments,
     this.maxPrice,
     this.searchResults,
     this.isLoading = false,
     this.errorMessage,
-  });
+    this.showValidationErrors = false,
+  }) : multiDestSegments =
+           multiDestSegments ?? [FlightSegment(), FlightSegment()];
 
   HomeFlightLoaded copyWith({
     int? tripTypeIndex,
@@ -46,10 +51,13 @@ final class HomeFlightLoaded extends HomeFlightState {
     Map<String, dynamic>? arrivalAirport,
     DateTime? departureDate,
     DateTime? returnDate,
+    List<FlightSegment>? multiDestSegments,
     double? maxPrice,
     List<Map<String, dynamic>>? searchResults,
     bool? isLoading,
     String? errorMessage,
+    bool clearError = false,
+    bool? showValidationErrors,
   }) {
     return HomeFlightLoaded(
       tripTypeIndex: tripTypeIndex ?? this.tripTypeIndex,
@@ -61,16 +69,12 @@ final class HomeFlightLoaded extends HomeFlightState {
       arrivalAirport: arrivalAirport ?? this.arrivalAirport,
       departureDate: departureDate ?? this.departureDate,
       returnDate: returnDate ?? this.returnDate,
+      multiDestSegments: multiDestSegments ?? this.multiDestSegments,
       maxPrice: maxPrice ?? this.maxPrice,
       searchResults: searchResults ?? this.searchResults,
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage ?? this.errorMessage,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      showValidationErrors: showValidationErrors ?? this.showValidationErrors,
     );
   }
-}
-
-final class HomeFlightError extends HomeFlightState {
-  final String message;
-
-  HomeFlightError(this.message);
 }

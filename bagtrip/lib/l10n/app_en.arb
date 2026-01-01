@@ -1,0 +1,37 @@
+{
+  "dateFormatHint": "dd/mm/yyyy",
+  "travelClassTitle": "Travel Class",
+  "passengersTitle": "Passengers",
+  "searchFlightButton": "Search Flight",
+  "errorAddAtLeastOneFlight": "Please add at least one flight",
+  "errorFillAllFields": "Please fill in all required fields",
+  "travelClassEconomy": "Economy",
+  "travelClassPremiumEconomy": "Premium Economy",
+  "travelClassBusiness": "Business",
+  "travelClassFirst": "First",
+  "tripTypeRoundTrip": "Round-trip",
+  "tripTypeOneWay": "One-way",
+  "tripTypeMultiCity": "Multi-city",
+  "airportDepartureHint": "Departure airport",
+  "airportArrivalHint": "Arrival airport",
+  "passengersAdults": "Adults",
+  "passengersChildren": "Children",
+  "passengersInfants": "Infants",
+  "multiDestFlightTitle": "Flight {index}",
+  "@multiDestFlightTitle": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "multiDestDepartureHint": "Departure",
+  "multiDestArrivalHint": "Arrival",
+  "multiDestDateHint": "Departure date",
+  "multiDestAddFlightButton": "Add another flight",
+  "maxPriceHint": "Max price (€)",
+  "noFlightsFoundTitle": "No flights found",
+  "noFlightsFoundMessage": "Try adjusting your search criteria.",
+  "noFlightsFoundPriceFilterMessage": "No flights match your maximum budget. Try increasing your price limit or clearing the filter.",
+  "clearPriceFilterButton": "Clear price filter"
+}

@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
-
+import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
-import 'package:bagtrip/design/tokens.dart';
+import 'package:flutter/material.dart';
 
 class AppTheme {
   AppTheme._();

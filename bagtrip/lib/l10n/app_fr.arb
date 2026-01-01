@@ -1,0 +1,37 @@
+{
+  "dateFormatHint": "jj/mm/aaaa",
+  "travelClassTitle": "Classe de voyage",
+  "passengersTitle": "Passagers",
+  "searchFlightButton": "Rechercher votre vol",
+  "errorAddAtLeastOneFlight": "Veuillez ajouter au moins un vol",
+  "errorFillAllFields": "Veuillez remplir tous les champs obligatoires",
+  "travelClassEconomy": "Économique",
+  "travelClassPremiumEconomy": "Premium Économique",
+  "travelClassBusiness": "Affaires",
+  "travelClassFirst": "Première",
+  "tripTypeRoundTrip": "Aller-retour",
+  "tripTypeOneWay": "Aller simple",
+  "tripTypeMultiCity": "Multi-destinations",
+  "airportDepartureHint": "Aéroport de départ",
+  "airportArrivalHint": "Aéroport de destination",
+  "passengersAdults": "Adultes",
+  "passengersChildren": "Enfants",
+  "passengersInfants": "Bébés",
+  "multiDestFlightTitle": "Vol {index}",
+  "@multiDestFlightTitle": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "multiDestDepartureHint": "Départ",
+  "multiDestArrivalHint": "Arrivée",
+  "multiDestDateHint": "Date de départ",
+  "multiDestAddFlightButton": "Ajouter un autre vol",
+  "maxPriceHint": "Prix maximum (€)",
+  "noFlightsFoundTitle": "Aucun vol trouvé",
+  "noFlightsFoundMessage": "Essayez de modifier vos critères de recherche.",
+  "noFlightsFoundPriceFilterMessage": "Aucun vol ne correspond à votre budget maximum. Essayez d'augmenter votre limite de prix ou d'effacer le filtre.",
+  "clearPriceFilterButton": "Effacer le filtre de prix"
+}

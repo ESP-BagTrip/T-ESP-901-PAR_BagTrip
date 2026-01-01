@@ -1,20 +1,25 @@
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../gen/colors.gen.dart';
 import '../bloc/home_flight_bloc.dart';
 import '../models/airport_type.dart';
-import '../../gen/colors.gen.dart';
 
 class AirportSearchField extends StatefulWidget {
   final AirportType type;
   final String? hintText;
+  final Map<String, dynamic>? initialValue;
   final void Function(Map<String, dynamic>?, AirportType)? onSelected;
+  final bool hasError;
 
   const AirportSearchField({
     super.key,
     required this.type,
     this.hintText,
+    this.initialValue,
     this.onSelected,
+    this.hasError = false,
   });
 
   @override
@@ -22,10 +27,31 @@ class AirportSearchField extends StatefulWidget {
 }
 
 class _AirportSearchFieldState extends State<AirportSearchField> {
-  final TextEditingController _controller = TextEditingController();
+  late TextEditingController _controller;
   final LayerLink _layerLink = LayerLink();
   bool _showResults = false;
   OverlayEntry? _overlayEntry;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(
+      text: widget.initialValue?['name'] ?? '',
+    );
+  }
+
+  @override
+  void didUpdateWidget(AirportSearchField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialValue != oldWidget.initialValue) {
+      if (widget.initialValue != null) {
+        _controller.text = widget.initialValue?['name'] ?? '';
+      } else if (_controller.text.isNotEmpty) {
+        // Keep existing text or clear? Usually better to respect state.
+        // If initialValue became null, it might mean reset.
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -112,16 +138,17 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
         },
         builder: (context, state) {
           return TextField(
+            // need to align text vertical center
+            textAlignVertical: TextAlignVertical.center,
             controller: _controller,
             style: const TextStyle(fontFamily: FontFamily.b612, fontSize: 13),
             decoration: InputDecoration(
               hintText: widget.hintText,
-              hintStyle: const TextStyle(
+              hintStyle: TextStyle(
                 fontSize: 13,
-                color: ColorName.primary,
+                color: widget.hasError ? ColorName.error : ColorName.primary,
               ),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(vertical: 12),
               isDense: true,
               suffixIcon:
                   _controller.text.isNotEmpty
@@ -140,9 +167,15 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
             onChanged: (value) {
               setState(() => _showResults = value.isNotEmpty);
               if (value.length >= 2) {
-                context.read<HomeFlightBloc>().add(
-                  SearchDepartureAirport(value),
-                );
+                if (widget.type == AirportType.departure) {
+                  context.read<HomeFlightBloc>().add(
+                    SearchDepartureAirport(value),
+                  );
+                } else {
+                  context.read<HomeFlightBloc>().add(
+                    SearchArrivalAirport(value),
+                  );
+                }
               } else {
                 _removeOverlay();
               }
