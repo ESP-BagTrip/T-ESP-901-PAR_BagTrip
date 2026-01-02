@@ -11,14 +11,7 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       body: BlocProvider(
         create: (context) => HomeFlightBloc(),
-        child: const SafeArea(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: HomeView(),
-            ),
-          ),
-        ),
+        child: const SafeArea(left: false, right: false, child: HomeView()),
       ),
     );
   }
