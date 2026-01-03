@@ -33,5 +33,74 @@
   "noFlightsFoundTitle": "No flights found",
   "noFlightsFoundMessage": "Try adjusting your search criteria.",
   "noFlightsFoundPriceFilterMessage": "No flights match your maximum budget. Try increasing your price limit or clearing the filter.",
-  "clearPriceFilterButton": "Clear price filter"
+  "clearPriceFilterButton": "Clear price filter",
+  "selectYourRate": "Select your rate",
+  "outboundFlight": "Outbound flight",
+  "returnFlight": "Return flight",
+  "stopsLabel": "{count, plural, =0{Direct flight} =1{1 stop} other{{count} stops}}",
+  "@stopsLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "baggageIncluded": "Baggage included",
+  "cabinBag": "Cabin bag",
+  "checkedBag": "Checked bag",
+  "classAndConditions": "Class and conditions",
+  "bookingClass": "Booking class",
+  "cabin": "Cabin",
+  "fareBasis": "Fare basis",
+  "fareInformation": "Fare information",
+  "ticketEmissionDeadline": "Ticket emission before {date}",
+  "@ticketEmissionDeadline": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "seatsRemaining": "{count} seat(s) remaining at this price",
+  "@seatsRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "baseFare": "Base fare",
+  "taxesAndFees": "Taxes and fees",
+  "totalPrice": "Total price",
+  "bookThisFlight": "Book this flight",
+  "baggageKg": "{weight} kg",
+  "@baggageKg": {
+    "placeholders": {
+      "weight": {
+        "type": "int"
+      }
+    }
+  },
+  "baggageQuantity": "{quantity, plural, =1{1 bag} other{{quantity} bags}}",
+  "@baggageQuantity": {
+    "placeholders": {
+      "quantity": {
+        "type": "int"
+      }
+    }
+  },
+  "baggageNotIncluded": "Not included",
+  "handBaggageIncluded": "Hand baggage included",
+  "unknown": "Unknown",
+  "unknownAirline": "Unknown airline",
+  "unknownAircraft": "Unknown aircraft",
+  "error": "Error: {message}",
+  "@error": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "searchResults": "Search results"
 }

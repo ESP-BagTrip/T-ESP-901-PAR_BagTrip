@@ -6,6 +6,7 @@ sealed class FlightResultDetailsState {}
 final class FlightResultDetailsInitial extends FlightResultDetailsState {}
 
 final class FlightResultDetailsLoaded extends FlightResultDetailsState {
-  // Add fields here later when we have the actual data model
-  FlightResultDetailsLoaded();
+  final Flight flight;
+
+  FlightResultDetailsLoaded(this.flight);
 }

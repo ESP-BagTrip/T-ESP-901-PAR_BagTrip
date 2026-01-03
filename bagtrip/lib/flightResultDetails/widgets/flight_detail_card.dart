@@ -1,6 +1,7 @@
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class FlightDetailCard extends StatelessWidget {
@@ -12,8 +13,8 @@ class FlightDetailCard extends StatelessWidget {
   final String arrivalTime;
   final String arrivalAirport;
   final String duration;
-  final String airline;
-  final String aircraft;
+  final String? airline;
+  final String? aircraft;
   final String tagLabel;
   final Color tagColor;
 
@@ -37,7 +38,7 @@ class FlightDetailCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: ColorName.primarySoftLight,
+        color: ColorName.primaryLight,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -191,7 +192,7 @@ class FlightDetailCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        airline,
+                        airline ?? AppLocalizations.of(context)!.unknownAirline,
                         style: const TextStyle(
                           fontFamily: FontFamily.b612,
                           fontWeight: FontWeight.w700,
@@ -200,7 +201,8 @@ class FlightDetailCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        aircraft,
+                        aircraft ??
+                            AppLocalizations.of(context)!.unknownAircraft,
                         style: const TextStyle(
                           fontFamily: FontFamily.b612,
                           fontSize: 10,

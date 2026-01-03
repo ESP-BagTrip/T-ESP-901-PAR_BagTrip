@@ -196,6 +196,14 @@ class IncludedCheckedBags(BaseModel):
     weightUnit: str | None = None
 
 
+class IncludedCabinBags(BaseModel):
+    """Bagages cabine inclus."""
+
+    quantity: int | None = None
+    weight: int | None = None
+    weightUnit: str | None = None
+
+
 class FareDetailsBySegment(BaseModel):
     """Détails de tarif par segment."""
 
@@ -204,6 +212,7 @@ class FareDetailsBySegment(BaseModel):
     fareBasis: str
     class_: str = Field(..., alias="class")
     includedCheckedBags: IncludedCheckedBags | None = None
+    includedCabinBags: IncludedCabinBags | None = None
 
     class Config:
         populate_by_name = True

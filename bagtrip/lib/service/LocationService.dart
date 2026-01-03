@@ -50,17 +50,26 @@ class LocationService {
       if (response.statusCode == 200) {
         final data = response.data;
         List<dynamic> rawFlights = [];
+        Map<String, dynamic>? dictionaries;
 
         if (data is List) {
           rawFlights = data;
-        } else if (data is Map &&
-            data.containsKey('data') &&
-            data['data'] is List) {
-          rawFlights = data['data'];
+        } else if (data is Map) {
+          if (data.containsKey('data') && data['data'] is List) {
+            rawFlights = data['data'];
+          }
+          if (data.containsKey('dictionaries') && data['dictionaries'] is Map) {
+            dictionaries = Map<String, dynamic>.from(data['dictionaries']);
+          }
         }
 
         var flights =
-            rawFlights.map((json) => Flight.fromAmadeusJson(json)).toList();
+            rawFlights
+                .map(
+                  (json) =>
+                      Flight.fromAmadeusJson(json, dictionaries: dictionaries),
+                )
+                .toList();
 
         return flights;
       }

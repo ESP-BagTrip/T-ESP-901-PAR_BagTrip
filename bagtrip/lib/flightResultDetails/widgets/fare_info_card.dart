@@ -1,16 +1,31 @@
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class FareInfoCard extends StatelessWidget {
-  const FareInfoCard({super.key});
+  final double price;
+  final double basePrice;
+  final int numberOfBookableSeats;
+  final String lastTicketingDate;
+
+  const FareInfoCard({
+    super.key,
+    required this.price,
+    required this.basePrice,
+    required this.numberOfBookableSeats,
+    required this.lastTicketingDate,
+  });
 
   @override
   Widget build(BuildContext context) {
+    // Calculate taxes
+    final taxes = price - basePrice;
+
     return Container(
       decoration: BoxDecoration(
-        color: ColorName.primarySoftLight,
+        color: ColorName.primaryLight,
         borderRadius: BorderRadius.circular(20),
       ),
       padding: AppSpacing.allEdgeInsetSpace16,
@@ -18,13 +33,17 @@ class FareInfoCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header
-          const Row(
+          Row(
             children: [
-              Icon(Icons.credit_card, color: ColorName.secondary, size: 20),
-              SizedBox(width: 8),
+              const Icon(
+                Icons.credit_card,
+                color: ColorName.secondary,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
               Text(
-                'Informations tarifaires',
-                style: TextStyle(
+                AppLocalizations.of(context)!.fareInformation,
+                style: const TextStyle(
                   fontFamily: FontFamily.b612,
                   fontWeight: FontWeight.w700,
                   fontSize: 16,
@@ -54,16 +73,20 @@ class FareInfoCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Émission du billet avant le 23/11/2025',
+                        AppLocalizations.of(
+                          context,
+                        )!.ticketEmissionDeadline(lastTicketingDate),
                         style: TextStyle(
                           fontFamily: FontFamily.b612,
                           fontSize: 12,
                           color: ColorName.primary.withValues(alpha: 0.7),
                         ),
                       ),
-                      const Text(
-                        '4 siège(s) restant(s) à ce tarif',
-                        style: TextStyle(
+                      Text(
+                        AppLocalizations.of(
+                          context,
+                        )!.seatsRemaining(numberOfBookableSeats),
+                        style: const TextStyle(
                           fontFamily: FontFamily.b612,
                           fontWeight: FontWeight.w700,
                           fontSize: 12,
@@ -78,16 +101,22 @@ class FareInfoCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           // Prices
-          _buildPriceRow('Tarif de base', '68.00 €'),
+          _buildPriceRow(
+            AppLocalizations.of(context)!.baseFare,
+            '${basePrice.toStringAsFixed(2)} €',
+          ),
           const SizedBox(height: 8),
-          _buildPriceRow('Taxes et frais', '69.83 €'),
+          _buildPriceRow(
+            AppLocalizations.of(context)!.taxesAndFees,
+            '${taxes.toStringAsFixed(2)} €',
+          ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
             child: Divider(height: 1, color: Colors.black12),
           ),
           _buildPriceRow(
-            'Prix total',
-            '137.83 EUR',
+            AppLocalizations.of(context)!.totalPrice,
+            '${price.toStringAsFixed(2)} €',
             isBold: true,
             fontSize: 18,
           ),
@@ -102,21 +131,21 @@ class FareInfoCard extends StatelessWidget {
               ),
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             ),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Réserver ce vol',
-                  style: TextStyle(
+                  AppLocalizations.of(context)!.bookThisFlight,
+                  style: const TextStyle(
                     fontFamily: FontFamily.b612,
                     fontWeight: FontWeight.w700,
                     fontSize: 16,
                     color: Colors.white,
                   ),
                 ),
-                SizedBox(width: 8),
-                Icon(Icons.arrow_forward, size: 20, color: Colors.white),
+                const SizedBox(width: 8),
+                const Icon(Icons.arrow_forward, size: 20, color: Colors.white),
               ],
             ),
           ),

@@ -1,3 +1,4 @@
+import 'package:bagtrip/flightSearchResult/models/flight.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
 
@@ -8,7 +9,7 @@ class FlightResultDetailsBloc
     extends Bloc<FlightResultDetailsEvent, FlightResultDetailsState> {
   FlightResultDetailsBloc() : super(FlightResultDetailsInitial()) {
     on<LoadFlightDetails>((event, emit) {
-      emit(FlightResultDetailsLoaded());
+      emit(FlightResultDetailsLoaded(event.flight));
     });
   }
 }

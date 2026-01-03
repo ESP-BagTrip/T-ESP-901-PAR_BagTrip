@@ -94,4 +94,110 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clearPriceFilterButton => 'Clear price filter';
+
+  @override
+  String get selectYourRate => 'Select your rate';
+
+  @override
+  String get outboundFlight => 'Outbound flight';
+
+  @override
+  String get returnFlight => 'Return flight';
+
+  @override
+  String stopsLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count stops',
+      one: '1 stop',
+      zero: 'Direct flight',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get baggageIncluded => 'Baggage included';
+
+  @override
+  String get cabinBag => 'Cabin bag';
+
+  @override
+  String get checkedBag => 'Checked bag';
+
+  @override
+  String get classAndConditions => 'Class and conditions';
+
+  @override
+  String get bookingClass => 'Booking class';
+
+  @override
+  String get cabin => 'Cabin';
+
+  @override
+  String get fareBasis => 'Fare basis';
+
+  @override
+  String get fareInformation => 'Fare information';
+
+  @override
+  String ticketEmissionDeadline(String date) {
+    return 'Ticket emission before $date';
+  }
+
+  @override
+  String seatsRemaining(int count) {
+    return '$count seat(s) remaining at this price';
+  }
+
+  @override
+  String get baseFare => 'Base fare';
+
+  @override
+  String get taxesAndFees => 'Taxes and fees';
+
+  @override
+  String get totalPrice => 'Total price';
+
+  @override
+  String get bookThisFlight => 'Book this flight';
+
+  @override
+  String baggageKg(int weight) {
+    return '$weight kg';
+  }
+
+  @override
+  String baggageQuantity(int quantity) {
+    String _temp0 = intl.Intl.pluralLogic(
+      quantity,
+      locale: localeName,
+      other: '$quantity bags',
+      one: '1 bag',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get baggageNotIncluded => 'Not included';
+
+  @override
+  String get handBaggageIncluded => 'Hand baggage included';
+
+  @override
+  String get unknown => 'Unknown';
+
+  @override
+  String get unknownAirline => 'Unknown airline';
+
+  @override
+  String get unknownAircraft => 'Unknown aircraft';
+
+  @override
+  String error(String message) {
+    return 'Error: $message';
+  }
+
+  @override
+  String get searchResults => 'Search results';
 }

@@ -1,6 +1,7 @@
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/flightSearchResult/models/flight.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class FlightCard extends StatelessWidget {
@@ -37,9 +38,9 @@ class FlightCard extends StatelessWidget {
           children: [
             _buildFlightTimeline(flight),
             const SizedBox(height: AppSpacing.space16),
-            _buildAirlineInfo(flight),
+            _buildAirlineInfo(flight, context),
             const SizedBox(height: AppSpacing.space8),
-            _buildAmenities(flight),
+            _buildAmenities(flight, context),
           ],
         ),
       ),
@@ -130,7 +131,7 @@ class FlightCard extends StatelessWidget {
     );
   }
 
-  Widget _buildAirlineInfo(Flight flight) {
+  Widget _buildAirlineInfo(Flight flight, BuildContext context) {
     return Row(
       children: [
         const SizedBox(
@@ -147,7 +148,7 @@ class FlightCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              flight.airline,
+              flight.airline ?? AppLocalizations.of(context)!.unknownAirline,
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -155,7 +156,8 @@ class FlightCard extends StatelessWidget {
               ),
             ),
             Text(
-              flight.aircraftType,
+              flight.aircraftType ??
+                  AppLocalizations.of(context)!.unknownAircraft,
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -184,13 +186,52 @@ class FlightCard extends StatelessWidget {
     );
   }
 
-  Widget _buildAmenities(Flight flight) {
+  Widget _buildAmenities(Flight flight, BuildContext context) {
+    final amenities = <Widget>[];
+
+    // Check for baggage
+    if (flight.checkedBags != null) {
+      String label;
+      if (flight.checkedBags!.weight != null) {
+        label = AppLocalizations.of(
+          context,
+        )!.baggageKg(flight.checkedBags!.weight!);
+      } else if (flight.checkedBags!.quantity != null) {
+        label = AppLocalizations.of(
+          context,
+        )!.baggageQuantity(flight.checkedBags!.quantity!);
+      } else {
+        label = AppLocalizations.of(context)!.checkedBag;
+      }
+      amenities.add(_buildAmenityBadge(Icons.luggage_outlined, label));
+    }
+
+    if (flight.cabinBags != null) {
+      String label;
+      if (flight.cabinBags!.weight != null) {
+        label = AppLocalizations.of(
+          context,
+        )!.baggageKg(flight.cabinBags!.weight!);
+      } else if (flight.cabinBags!.quantity != null) {
+        label = AppLocalizations.of(
+          context,
+        )!.baggageQuantity(flight.cabinBags!.quantity!);
+      } else {
+        label = AppLocalizations.of(context)!.cabinBag;
+      }
+      amenities.add(_buildAmenityBadge(Icons.work_outline, label));
+    }
+
+    if (amenities.isEmpty) return const SizedBox.shrink();
+
     return Row(
-      children: [
-        _buildAmenityBadge(Icons.luggage, 'Bagage à main inclus'),
-        const SizedBox(width: AppSpacing.space8),
-        _buildAmenityBadge(Icons.eco, '-${flight.co2Offset} de CO2e'),
-      ],
+      children:
+          amenities
+              .expand(
+                (widget) => [widget, const SizedBox(width: AppSpacing.space8)],
+              )
+              .take(amenities.length * 2 - 1)
+              .toList(),
     );
   }
 

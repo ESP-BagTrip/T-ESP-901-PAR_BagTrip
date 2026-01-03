@@ -96,4 +96,110 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get clearPriceFilterButton => 'Effacer le filtre de prix';
+
+  @override
+  String get selectYourRate => 'Sélectionnez votre tarif';
+
+  @override
+  String get outboundFlight => 'Vol aller';
+
+  @override
+  String get returnFlight => 'Vol retour';
+
+  @override
+  String stopsLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count escales',
+      one: '1 escale',
+      zero: 'Vol direct',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get baggageIncluded => 'Bagages inclus';
+
+  @override
+  String get cabinBag => 'Bagage cabine';
+
+  @override
+  String get checkedBag => 'Bagage en soute';
+
+  @override
+  String get classAndConditions => 'Classe et conditions';
+
+  @override
+  String get bookingClass => 'Classe de réservation';
+
+  @override
+  String get cabin => 'Cabine';
+
+  @override
+  String get fareBasis => 'Code tarifaire';
+
+  @override
+  String get fareInformation => 'Informations tarifaires';
+
+  @override
+  String ticketEmissionDeadline(String date) {
+    return 'Émission du billet avant le $date';
+  }
+
+  @override
+  String seatsRemaining(int count) {
+    return '$count siège(s) restant(s) à ce tarif';
+  }
+
+  @override
+  String get baseFare => 'Tarif de base';
+
+  @override
+  String get taxesAndFees => 'Taxes et frais';
+
+  @override
+  String get totalPrice => 'Prix total';
+
+  @override
+  String get bookThisFlight => 'Réserver ce vol';
+
+  @override
+  String baggageKg(int weight) {
+    return '$weight kg';
+  }
+
+  @override
+  String baggageQuantity(int quantity) {
+    String _temp0 = intl.Intl.pluralLogic(
+      quantity,
+      locale: localeName,
+      other: '$quantity bagages',
+      one: '1 bagage',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get baggageNotIncluded => 'Non inclus';
+
+  @override
+  String get handBaggageIncluded => 'Bagage à main inclus';
+
+  @override
+  String get unknown => 'Inconnu';
+
+  @override
+  String get unknownAirline => 'Compagnie inconnue';
+
+  @override
+  String get unknownAircraft => 'Appareil inconnu';
+
+  @override
+  String error(String message) {
+    return 'Erreur : $message';
+  }
+
+  @override
+  String get searchResults => 'Résultats de recherche';
 }

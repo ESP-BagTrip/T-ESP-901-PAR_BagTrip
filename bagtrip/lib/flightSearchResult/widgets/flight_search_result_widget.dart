@@ -23,7 +23,9 @@ class FlightSearchResultView extends StatelessWidget {
         }
 
         if (state is FlightSearchResultError) {
-          return Center(child: Text('Error: ${state.message}'));
+          return Center(
+            child: Text(AppLocalizations.of(context)!.error(state.message)),
+          );
         }
 
         if (state is FlightSearchResultLoaded) {
@@ -116,7 +118,10 @@ class FlightSearchResultView extends StatelessWidget {
                           context.read<FlightSearchResultBloc>().add(
                             SelectFlight(flight),
                           );
-                          context.pushNamed('flight-result-details');
+                          context.pushNamed(
+                            'flight-result-details',
+                            extra: flight,
+                          );
                         }
                       },
                     );

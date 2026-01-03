@@ -1,16 +1,38 @@
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/flightSearchResult/models/baggage_info.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class BaggageInfoCard extends StatelessWidget {
-  const BaggageInfoCard({super.key});
+  final BaggageInfo? checkedBags;
+  final BaggageInfo? cabinBags;
+
+  const BaggageInfoCard({
+    super.key,
+    required this.checkedBags,
+    required this.cabinBags,
+  });
+
+  String _formatBaggage(BuildContext context, BaggageInfo? baggage) {
+    if (baggage == null) {
+      return AppLocalizations.of(context)!.baggageNotIncluded;
+    }
+    if (baggage.weight != null) {
+      return AppLocalizations.of(context)!.baggageKg(baggage.weight!);
+    }
+    if (baggage.quantity != null) {
+      return AppLocalizations.of(context)!.baggageQuantity(baggage.quantity!);
+    }
+    return AppLocalizations.of(context)!.baggageNotIncluded;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: ColorName.primarySoftLight,
+        color: ColorName.primaryLight,
         borderRadius: BorderRadius.circular(20),
       ),
       padding: AppSpacing.allEdgeInsetSpace16,
@@ -18,13 +40,13 @@ class BaggageInfoCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header
-          const Row(
+          Row(
             children: [
-              Icon(Icons.luggage, color: ColorName.secondary, size: 20),
-              SizedBox(width: 8),
+              const Icon(Icons.luggage, color: ColorName.secondary, size: 20),
+              const SizedBox(width: 8),
               Text(
-                'Bagages inclus',
-                style: TextStyle(
+                AppLocalizations.of(context)!.baggageIncluded,
+                style: const TextStyle(
                   fontFamily: FontFamily.b612,
                   fontWeight: FontWeight.w700,
                   fontSize: 16,
@@ -37,8 +59,8 @@ class BaggageInfoCard extends StatelessWidget {
           // Cabin Baggage
           _buildBaggageRow(
             icon: Icons.work_outline,
-            title: 'Bagage cabine',
-            subtitle: '2 bagage(s) cabine inclus',
+            title: AppLocalizations.of(context)!.cabinBag,
+            subtitle: _formatBaggage(context, cabinBags),
             subtitleColor: ColorName.secondary,
           ),
           const Padding(
@@ -48,8 +70,8 @@ class BaggageInfoCard extends StatelessWidget {
           // Checked Baggage
           _buildBaggageRow(
             icon: Icons.luggage_outlined,
-            title: 'Bagage en soute',
-            subtitle: '1 bagage de 25KG inclus',
+            title: AppLocalizations.of(context)!.checkedBag,
+            subtitle: _formatBaggage(context, checkedBags),
             subtitleColor: ColorName.secondary,
           ),
         ],
