@@ -1,3 +1,4 @@
+import 'package:bagtrip/flightResultDetails/view/flight_result_details_page.dart';
 import 'package:bagtrip/flightSearchResult/models/flight_search_arguments.dart';
 import 'package:bagtrip/navigation/app_shell.dart';
 import 'package:bagtrip/pages/budget_page.dart';
@@ -54,6 +55,13 @@ final GoRouter appRouter = GoRouter(
         }
         return NoTransitionPage(child: FlightSearchResultPage(arguments: args));
       },
+    ),
+    GoRoute(
+      path: FlightResultDetailsPage.routePath,
+      name: 'flight-result-details',
+      pageBuilder:
+          (context, state) =>
+              const NoTransitionPage(child: FlightResultDetailsPage()),
     ),
   ],
 );

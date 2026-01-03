@@ -9,6 +9,7 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class FlightSearchResultView extends StatelessWidget {
   const FlightSearchResultView({super.key});
@@ -115,6 +116,7 @@ class FlightSearchResultView extends StatelessWidget {
                           context.read<FlightSearchResultBloc>().add(
                             SelectFlight(flight),
                           );
+                          context.pushNamed('flight-result-details');
                         }
                       },
                     );
