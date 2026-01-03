@@ -265,6 +265,168 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Effacer le filtre de prix'**
   String get clearPriceFilterButton;
+
+  /// No description provided for @selectYourRate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sélectionnez votre tarif'**
+  String get selectYourRate;
+
+  /// No description provided for @outboundFlight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vol aller'**
+  String get outboundFlight;
+
+  /// No description provided for @returnFlight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vol retour'**
+  String get returnFlight;
+
+  /// No description provided for @stopsLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{Vol direct} =1{1 escale} other{{count} escales}}'**
+  String stopsLabel(int count);
+
+  /// No description provided for @baggageIncluded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bagages inclus'**
+  String get baggageIncluded;
+
+  /// No description provided for @cabinBag.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bagage cabine'**
+  String get cabinBag;
+
+  /// No description provided for @checkedBag.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bagage en soute'**
+  String get checkedBag;
+
+  /// No description provided for @classAndConditions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Classe et conditions'**
+  String get classAndConditions;
+
+  /// No description provided for @bookingClass.
+  ///
+  /// In fr, this message translates to:
+  /// **'Classe de réservation'**
+  String get bookingClass;
+
+  /// No description provided for @cabin.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cabine'**
+  String get cabin;
+
+  /// No description provided for @fareBasis.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code tarifaire'**
+  String get fareBasis;
+
+  /// No description provided for @fareInformation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Informations tarifaires'**
+  String get fareInformation;
+
+  /// No description provided for @ticketEmissionDeadline.
+  ///
+  /// In fr, this message translates to:
+  /// **'Émission du billet avant le {date}'**
+  String ticketEmissionDeadline(String date);
+
+  /// No description provided for @seatsRemaining.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} siège(s) restant(s) à ce tarif'**
+  String seatsRemaining(int count);
+
+  /// No description provided for @baseFare.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tarif de base'**
+  String get baseFare;
+
+  /// No description provided for @taxesAndFees.
+  ///
+  /// In fr, this message translates to:
+  /// **'Taxes et frais'**
+  String get taxesAndFees;
+
+  /// No description provided for @totalPrice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prix total'**
+  String get totalPrice;
+
+  /// No description provided for @bookThisFlight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réserver ce vol'**
+  String get bookThisFlight;
+
+  /// No description provided for @baggageKg.
+  ///
+  /// In fr, this message translates to:
+  /// **'{weight} kg'**
+  String baggageKg(int weight);
+
+  /// No description provided for @baggageQuantity.
+  ///
+  /// In fr, this message translates to:
+  /// **'{quantity, plural, =1{1 bagage} other{{quantity} bagages}}'**
+  String baggageQuantity(int quantity);
+
+  /// No description provided for @baggageNotIncluded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non inclus'**
+  String get baggageNotIncluded;
+
+  /// No description provided for @handBaggageIncluded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bagage à main inclus'**
+  String get handBaggageIncluded;
+
+  /// No description provided for @unknown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inconnu'**
+  String get unknown;
+
+  /// No description provided for @unknownAirline.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compagnie inconnue'**
+  String get unknownAirline;
+
+  /// No description provided for @unknownAircraft.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appareil inconnu'**
+  String get unknownAircraft;
+
+  /// No description provided for @error.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur : {message}'**
+  String error(String message);
+
+  /// No description provided for @searchResults.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résultats de recherche'**
+  String get searchResults;
 }
 
 class _AppLocalizationsDelegate

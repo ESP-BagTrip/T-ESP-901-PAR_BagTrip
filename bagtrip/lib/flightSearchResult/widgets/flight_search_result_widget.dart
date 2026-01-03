@@ -9,6 +9,7 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class FlightSearchResultView extends StatelessWidget {
   const FlightSearchResultView({super.key});
@@ -22,7 +23,9 @@ class FlightSearchResultView extends StatelessWidget {
         }
 
         if (state is FlightSearchResultError) {
-          return Center(child: Text('Error: ${state.message}'));
+          return Center(
+            child: Text(AppLocalizations.of(context)!.error(state.message)),
+          );
         }
 
         if (state is FlightSearchResultLoaded) {
@@ -114,6 +117,10 @@ class FlightSearchResultView extends StatelessWidget {
                         if (context.mounted) {
                           context.read<FlightSearchResultBloc>().add(
                             SelectFlight(flight),
+                          );
+                          context.pushNamed(
+                            'flight-result-details',
+                            extra: flight,
                           );
                         }
                       },

@@ -33,5 +33,74 @@
   "noFlightsFoundTitle": "Aucun vol trouvé",
   "noFlightsFoundMessage": "Essayez de modifier vos critères de recherche.",
   "noFlightsFoundPriceFilterMessage": "Aucun vol ne correspond à votre budget maximum. Essayez d'augmenter votre limite de prix ou d'effacer le filtre.",
-  "clearPriceFilterButton": "Effacer le filtre de prix"
+  "clearPriceFilterButton": "Effacer le filtre de prix",
+  "selectYourRate": "Sélectionnez votre tarif",
+  "outboundFlight": "Vol aller",
+  "returnFlight": "Vol retour",
+  "stopsLabel": "{count, plural, =0{Vol direct} =1{1 escale} other{{count} escales}}",
+  "@stopsLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "baggageIncluded": "Bagages inclus",
+  "cabinBag": "Bagage cabine",
+  "checkedBag": "Bagage en soute",
+  "classAndConditions": "Classe et conditions",
+  "bookingClass": "Classe de réservation",
+  "cabin": "Cabine",
+  "fareBasis": "Code tarifaire",
+  "fareInformation": "Informations tarifaires",
+  "ticketEmissionDeadline": "Émission du billet avant le {date}",
+  "@ticketEmissionDeadline": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "seatsRemaining": "{count} siège(s) restant(s) à ce tarif",
+  "@seatsRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "baseFare": "Tarif de base",
+  "taxesAndFees": "Taxes et frais",
+  "totalPrice": "Prix total",
+  "bookThisFlight": "Réserver ce vol",
+  "baggageKg": "{weight} kg",
+  "@baggageKg": {
+    "placeholders": {
+      "weight": {
+        "type": "int"
+      }
+    }
+  },
+  "baggageQuantity": "{quantity, plural, =1{1 bagage} other{{quantity} bagages}}",
+  "@baggageQuantity": {
+    "placeholders": {
+      "quantity": {
+        "type": "int"
+      }
+    }
+  },
+  "baggageNotIncluded": "Non inclus",
+  "handBaggageIncluded": "Bagage à main inclus",
+  "unknown": "Inconnu",
+  "unknownAirline": "Compagnie inconnue",
+  "unknownAircraft": "Appareil inconnu",
+  "error": "Erreur : {message}",
+  "@error": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "searchResults": "Résultats de recherche"
 }

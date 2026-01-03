@@ -1,6 +1,7 @@
 import 'package:bagtrip/flightSearchResult/bloc/flight_search_result_bloc.dart';
 import 'package:bagtrip/flightSearchResult/models/flight_search_arguments.dart';
 import 'package:bagtrip/flightSearchResult/widgets/flight_search_result_widget.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -14,7 +15,7 @@ class FlightSearchResultPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Résultats de recherche'),
+        title: Text(AppLocalizations.of(context)!.searchResults),
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF1F3A5F),
