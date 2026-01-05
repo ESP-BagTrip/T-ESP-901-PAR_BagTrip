@@ -1,5 +1,3 @@
-// ignore_for_file: file_names
-
 import 'package:bagtrip/flightSearchResult/models/flight.dart';
 import 'package:bagtrip/home/models/flight_segment.dart';
 import 'package:dio/dio.dart';

@@ -8,3 +8,5 @@ class LoadFlightDetails extends FlightResultDetailsEvent {
 
   LoadFlightDetails(this.flight);
 }
+
+class ConfirmFlightPrice extends FlightResultDetailsEvent {}

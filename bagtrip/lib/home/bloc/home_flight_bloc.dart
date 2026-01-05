@@ -4,7 +4,7 @@ import 'package:bagtrip/home/models/flight_segment.dart';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 
-import '../../service/LocationService.dart';
+import '../../service/location_service.dart';
 
 part 'home_flight_event.dart';
 part 'home_flight_state.dart';
