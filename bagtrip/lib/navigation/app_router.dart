@@ -6,7 +6,6 @@ import 'package:bagtrip/pages/budget_page.dart';
 import 'package:bagtrip/pages/flight_search_result_page.dart';
 import 'package:bagtrip/pages/home_page.dart';
 import 'package:bagtrip/pages/map_page.dart';
-import 'package:bagtrip/pages/payment_page.dart';
 import 'package:bagtrip/pages/profile_page.dart';
 import 'package:go_router/go_router.dart';
 
@@ -68,13 +67,6 @@ final GoRouter appRouter = GoRouter(
           return const NoTransitionPage(child: HomePage());
         }
         return NoTransitionPage(child: FlightResultDetailsPage(flight: flight));
-      },
-    ),
-    GoRoute(
-      path: PaymentPage.routePath,
-      name: 'payment',
-      pageBuilder: (context, state) {
-        return const NoTransitionPage(child: PaymentPage());
       },
     ),
   ],

@@ -2,7 +2,7 @@
 
 import 'package:bagtrip/flightSearchResult/models/flight.dart';
 import 'package:bagtrip/home/models/flight_segment.dart';
-import 'package:bagtrip/service/location_service.dart';
+import 'package:bagtrip/service/LocationService.dart';
 import 'package:bloc/bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:meta/meta.dart';
