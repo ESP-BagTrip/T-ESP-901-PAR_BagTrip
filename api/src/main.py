@@ -14,6 +14,7 @@ from src.api.booking.routes import router as booking_router
 from src.api.booking_intents.book_routes import router as booking_intents_book_router
 from src.api.booking_intents.routes import router as booking_intents_router
 from src.api.flights.offers.routes import router as flight_offers_router
+from src.api.flights.pricing import router as flight_pricing_router
 from src.api.flights.searches.routes import router as flight_searches_router
 from src.api.hotels.offers.routes import router as hotel_offers_router
 from src.api.hotels.searches.routes import router as hotel_searches_router
@@ -92,6 +93,7 @@ app.include_router(trips_router)  # Déjà préfixé avec /v1/trips
 app.include_router(travelers_router)  # Déjà préfixé avec /v1/trips
 app.include_router(flight_searches_router)  # Déjà préfixé avec /v1/trips
 app.include_router(flight_offers_router)  # Déjà préfixé avec /v1/trips
+app.include_router(flight_pricing_router)  # Préfixé avec /v1/shopping/flight-offers
 app.include_router(hotel_searches_router)  # Déjà préfixé avec /v1/trips
 app.include_router(hotel_offers_router)  # Déjà préfixé avec /v1/trips
 app.include_router(booking_intents_router)  # Déjà préfixé avec /v1/trips
