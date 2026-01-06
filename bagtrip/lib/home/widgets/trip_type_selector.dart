@@ -19,11 +19,10 @@ class TripTypeSelector extends StatelessWidget {
       l10n.tripTypeRoundTrip,
       l10n.tripTypeMultiCity,
     ];
-
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFFF7F9FC),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -32,48 +31,47 @@ class TripTypeSelector extends StatelessWidget {
 
           return Expanded(
             child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
               onTap: () {
                 context.read<HomeFlightBloc>().add(SetTripType(index));
               },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeIn,
+              child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: selected ? ColorName.primary : Colors.white,
+                  color: selected ? Colors.white : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow:
                       selected
                           ? [
                             BoxShadow(
-                              color: ColorName.primary.withValues(alpha: 0.12),
-                              blurRadius: 6,
-                              offset: const Offset(0, 3),
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
                             ),
                           ]
-                          : [],
-                  border: Border.all(
-                    color:
-                        selected
-                            ? ColorName.primary.withValues(alpha: 0.1)
-                            : Colors.transparent,
-                  ),
+                          : null,
+                  border:
+                      selected
+                          ? Border.all(
+                            color: const Color.fromARGB(
+                              255,
+                              1,
+                              1,
+                              1,
+                            ).withValues(alpha: 0.1),
+                          )
+                          : null,
                 ),
                 alignment: Alignment.center,
-                child: AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.easeInOut,
+                child: Text(
+                  labels[index],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontFamily: FontFamily.b612,
                     fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                    color: selected ? Colors.white : ColorName.primary,
+                    color:
+                        selected ? ColorName.primary : const Color(0xFF9AA6AC),
                     fontSize: 13,
-                  ),
-                  child: Text(
-                    labels[index],
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),

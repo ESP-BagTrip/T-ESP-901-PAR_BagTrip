@@ -48,9 +48,10 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
   @override
   void didUpdateWidget(covariant AirportSearchField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.initialValue != oldWidget.initialValue &&
-        widget.initialValue != null) {
-      _controller.text = widget.initialValue?['name'] ?? '';
+    if (widget.initialValue != oldWidget.initialValue) {
+      if (widget.initialValue != null) {
+        _controller.text = widget.initialValue?['name'] ?? '';
+      }
     }
   }
 
@@ -84,10 +85,10 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
               child: Material(
                 elevation: 8,
                 borderRadius: BorderRadius.circular(12),
+                color: Colors.white,
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxHeight: 200),
                   child: ListView.separated(
-                    padding: EdgeInsets.zero,
                     shrinkWrap: true,
                     itemCount: airports.length,
                     separatorBuilder: (_, __) => const Divider(height: 1),
@@ -101,19 +102,13 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             fontFamily: FontFamily.b612,
-                            color: ColorName.primary,
                           ),
                         ),
                         subtitle: Text(
-                          [airport['iataCode'], airport['city']]
-                              .where(
-                                (e) => e != null && e.toString().isNotEmpty,
-                              )
-                              .join(' \u2022 '),
+                          '${airport['city'] ?? ''}, ${airport['countryCode'] ?? ''}',
                           style: const TextStyle(
                             fontSize: 12,
                             fontFamily: FontFamily.b612,
-                            color: Color(0xFF9AA6AC),
                           ),
                         ),
                         onTap: () {
@@ -137,44 +132,52 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
 
   @override
   Widget build(BuildContext context) {
+    // If we have a value selected, display the custom rich text instead of the text field
     if (widget.initialValue != null && !_showResults) {
-      final airport = widget.initialValue!;
+      final city = widget.initialValue?['city'] ?? '';
+      final name = widget.initialValue?['name'] ?? '';
+      final code = widget.initialValue?['iataCode'] ?? '';
+      final country =
+          widget.initialValue?['countryName'] ?? ''; // or countryCode
+
       return CompositedTransformTarget(
         link: _layerLink,
         child: GestureDetector(
           onTap: () {
+            // Switch to edit mode? Or just open search?
+            // For now, let's just allow clearing by tapping X or similar,
+            // or if the user taps the text, we could show the text field.
+            // Simplified: show text field on tap.
             setState(() {
-              _controller.clear();
-              _showResults = true;
-            });
-
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              _focusNode.requestFocus();
+              _controller.text = ''; // Clear to start search
+              _showResults = true; // Trigger search mode effectively
             });
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                airport['name'] ?? '',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                name.isNotEmpty
+                    ? name
+                    : city, // Prefer Name as primary per image "Paris Charles de Gaulle"
                 style:
                     widget.style ??
                     const TextStyle(
+                      fontFamily: FontFamily.b612,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      fontFamily: FontFamily.b612,
                       color: ColorName.primary,
                     ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 2),
               Text(
-                '${airport['iataCode']} · ${airport['countryName']}',
+                '$code \u00B7 $country', // CDG * France
                 style: const TextStyle(
-                  fontSize: 13,
                   fontFamily: FontFamily.b612,
-                  color: Color(0xFF9AA6AC),
+                  fontSize: 13,
+                  color: Color(0xFF9AA6AC), // Greyish color
                 ),
               ),
             ],
@@ -197,29 +200,41 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
         },
         builder: (context, state) {
           return TextField(
-            controller: _controller,
-            focusNode: _focusNode,
             textAlignVertical: TextAlignVertical.center,
+            controller: _controller,
             style:
                 widget.style ??
                 const TextStyle(
+                  fontFamily: FontFamily.b612,
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  fontFamily: FontFamily.b612,
                   color: ColorName.primary,
                 ),
             decoration: InputDecoration(
               hintText: widget.hintText,
               hintStyle: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.w500,
                 fontFamily: FontFamily.b612,
                 color:
                     widget.hasError ? ColorName.error : const Color(0xFF9AA6AC),
+                fontWeight: FontWeight.w500,
               ),
               border: InputBorder.none,
               isDense: true,
               contentPadding: EdgeInsets.zero,
+              suffixIcon:
+                  _controller.text.isNotEmpty
+                      ? IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        icon: const Icon(Icons.clear, size: 20),
+                        onPressed: () {
+                          _controller.clear();
+                          _removeOverlay();
+                          setState(() => _showResults = false);
+                        },
+                      )
+                      : null,
             ),
             onChanged: (value) {
               setState(() => _showResults = value.isNotEmpty);
