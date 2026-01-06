@@ -1,10 +1,10 @@
 import 'package:bagtrip/gen/fonts.gen.dart';
+import 'package:bagtrip/home/bloc/home_flight_bloc.dart';
+import 'package:bagtrip/home/models/airport_type.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../gen/colors.gen.dart';
-import '../bloc/home_flight_bloc.dart';
-import '../models/airport_type.dart';
 
 class AirportSearchField extends StatefulWidget {
   final AirportType type;
@@ -12,6 +12,7 @@ class AirportSearchField extends StatefulWidget {
   final Map<String, dynamic>? initialValue;
   final void Function(Map<String, dynamic>?, AirportType)? onSelected;
   final bool hasError;
+  final TextStyle? style;
 
   const AirportSearchField({
     super.key,
@@ -20,6 +21,7 @@ class AirportSearchField extends StatefulWidget {
     this.initialValue,
     this.onSelected,
     this.hasError = false,
+    this.style,
   });
 
   @override
@@ -46,9 +48,6 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
     if (widget.initialValue != oldWidget.initialValue) {
       if (widget.initialValue != null) {
         _controller.text = widget.initialValue?['name'] ?? '';
-      } else if (_controller.text.isNotEmpty) {
-        // Keep existing text or clear? Usually better to respect state.
-        // If initialValue became null, it might mean reset.
       }
     }
   }
@@ -82,10 +81,10 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
               child: Material(
                 elevation: 8,
                 borderRadius: BorderRadius.circular(12),
+                color: Colors.white,
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxHeight: 200),
                   child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
                     shrinkWrap: true,
                     itemCount: airports.length,
                     separatorBuilder:
@@ -96,11 +95,18 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
                         dense: true,
                         title: Text(
                           airport['name'] ?? '',
-                          style: const TextStyle(fontSize: 13),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: FontFamily.b612,
+                          ),
                         ),
                         subtitle: Text(
                           '${airport['city'] ?? ''}, ${airport['countryCode'] ?? ''}',
-                          style: const TextStyle(fontSize: 12),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontFamily: FontFamily.b612,
+                          ),
                         ),
                         onTap: () {
                           _controller.text = airport['name'] ?? '';
@@ -124,6 +130,60 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
 
   @override
   Widget build(BuildContext context) {
+    // If we have a value selected, display the custom rich text instead of the text field
+    if (widget.initialValue != null && !_showResults) {
+      final city = widget.initialValue?['city'] ?? '';
+      final name = widget.initialValue?['name'] ?? '';
+      final code = widget.initialValue?['iataCode'] ?? '';
+      final country =
+          widget.initialValue?['countryName'] ?? ''; // or countryCode
+
+      return CompositedTransformTarget(
+        link: _layerLink,
+        child: GestureDetector(
+          onTap: () {
+            // Switch to edit mode? Or just open search?
+            // For now, let's just allow clearing by tapping X or similar,
+            // or if the user taps the text, we could show the text field.
+            // Simplified: show text field on tap.
+            setState(() {
+              _controller.text = ''; // Clear to start search
+              _showResults = true; // Trigger search mode effectively
+            });
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                name.isNotEmpty
+                    ? name
+                    : city, // Prefer Name as primary per image "Paris Charles de Gaulle"
+                style:
+                    widget.style ??
+                    const TextStyle(
+                      fontFamily: FontFamily.b612,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: ColorName.primary,
+                    ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '$code \u00B7 $country', // CDG * France
+                style: const TextStyle(
+                  fontFamily: FontFamily.b612,
+                  fontSize: 13,
+                  color: Color(0xFF9AA6AC), // Greyish color
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return CompositedTransformTarget(
       link: _layerLink,
       child: BlocConsumer<HomeFlightBloc, HomeFlightState>(
@@ -138,18 +198,28 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
         },
         builder: (context, state) {
           return TextField(
-            // need to align text vertical center
             textAlignVertical: TextAlignVertical.center,
             controller: _controller,
-            style: const TextStyle(fontFamily: FontFamily.b612, fontSize: 13),
+            style:
+                widget.style ??
+                const TextStyle(
+                  fontFamily: FontFamily.b612,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: ColorName.primary,
+                ),
             decoration: InputDecoration(
               hintText: widget.hintText,
               hintStyle: TextStyle(
-                fontSize: 13,
-                color: widget.hasError ? ColorName.error : ColorName.primary,
+                fontSize: 16,
+                fontFamily: FontFamily.b612,
+                color:
+                    widget.hasError ? ColorName.error : const Color(0xFF9AA6AC),
+                fontWeight: FontWeight.w500,
               ),
               border: InputBorder.none,
               isDense: true,
+              contentPadding: EdgeInsets.zero,
               suffixIcon:
                   _controller.text.isNotEmpty
                       ? IconButton(

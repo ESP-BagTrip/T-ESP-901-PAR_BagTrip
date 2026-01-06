@@ -1,4 +1,3 @@
-import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_flight_bloc.dart';
@@ -19,39 +18,58 @@ class TripTypeSelector extends StatelessWidget {
       l10n.tripTypeRoundTrip,
       l10n.tripTypeMultiCity,
     ];
-    return SizedBox(
-      height: 42,
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F9FC),
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Row(
         children: List.generate(labels.length, (i) {
           final selected = i == state.tripTypeIndex;
           return Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(right: i == labels.length - 1 ? 0 : 8.0),
-              child: TextButton(
-                style: TextButton.styleFrom(
-                  minimumSize: const Size.fromHeight(AppSize.height42),
-                  padding: AppSpacing.allEdgeInsetSpace8,
-                  backgroundColor:
+            child: GestureDetector(
+              onTap: () {
+                context.read<HomeFlightBloc>().add(SetTripType(i));
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: selected ? Colors.white : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow:
                       selected
-                          ? ColorName.secondary
-                          : ColorName.primarySoftLight,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: AppRadius.large16,
-                  ),
+                          ? [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                          : null,
+                  border:
+                      selected
+                          ? Border.all(
+                            color: const Color.fromARGB(
+                              255,
+                              1,
+                              1,
+                              1,
+                            ).withValues(alpha: 0.1),
+                          )
+                          : null,
                 ),
-                onPressed: () {
-                  context.read<HomeFlightBloc>().add(SetTripType(i));
-                },
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    labels[i],
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontFamily: FontFamily.b612,
-                      color: selected ? Colors.white : ColorName.primary,
-                    ),
+                alignment: Alignment.center,
+                child: Text(
+                  labels[i],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: FontFamily.b612,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                    color:
+                        selected ? ColorName.primary : const Color(0xFF9AA6AC),
+                    fontSize: 13,
                   ),
                 ),
               ),

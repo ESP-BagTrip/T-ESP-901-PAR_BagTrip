@@ -19,24 +19,17 @@ class HomeDateField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: TextEditingController(
-        text: value != null ? DateFormat('dd/MM/yyyy').format(value!) : '',
-      ),
-      readOnly: true,
-      textAlignVertical: TextAlignVertical.center,
-      decoration: InputDecoration(
-        hintStyle: TextStyle(
-          fontSize: 13,
-          fontFamily: FontFamily.b612,
-          color: hasError ? ColorName.error : ColorName.primary,
-        ),
-        border: InputBorder.none,
-        contentPadding: EdgeInsets.zero,
-        isDense: true,
-        hintText: hint,
-      ),
+    return GestureDetector(
       onTap: onTap,
+      child: Text(
+        value != null ? DateFormat('d MMM yyyy').format(value!) : hint,
+        style: TextStyle(
+          fontSize: 18, // Large text as in the image
+          fontWeight: FontWeight.w700,
+          fontFamily: FontFamily.b612,
+          color: value != null ? ColorName.primary : const Color(0xFF9AA6AC),
+        ),
+      ),
     );
   }
 }

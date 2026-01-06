@@ -76,44 +76,48 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    return NestedScrollView(
-      headerSliverBuilder: (context, innerBoxIsScrolled) {
-        return [
-          SliverToBoxAdapter(
-            child: NotificationListener<ScrollNotification>(
-              onNotification: (n) => _onNotification(n, true),
-              child: Column(
-                children: [
-                  HomeTopCards(
-                    controller: _headerController,
-                    onPageChanged: _onPageChanged,
-                  ),
-                  const SizedBox(height: AppSize.boxSize16),
-                ],
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            SliverToBoxAdapter(
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (n) => _onNotification(n, true),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    HomeTopCards(
+                      controller: _headerController,
+                      onPageChanged: _onPageChanged,
+                    ),
+                    const SizedBox(height: AppSize.boxSize16),
+                  ],
+                ),
               ),
             ),
+          ];
+        },
+        body: NotificationListener<ScrollNotification>(
+          onNotification: (n) => _onNotification(n, false),
+          child: PageView.builder(
+            allowImplicitScrolling: true,
+            controller: _bodyController,
+            onPageChanged: _onPageChanged,
+            itemBuilder: (context, index) {
+              final formIndex = index % 3;
+              switch (formIndex) {
+                case 0:
+                  return const HomeFlightForm();
+                case 1:
+                  return const HomeHotelForm();
+                case 2:
+                  return const HomeOtherForm();
+                default:
+                  return const SizedBox();
+              }
+            },
           ),
-        ];
-      },
-      body: NotificationListener<ScrollNotification>(
-        onNotification: (n) => _onNotification(n, false),
-        child: PageView.builder(
-          allowImplicitScrolling: true,
-          controller: _bodyController,
-          onPageChanged: _onPageChanged,
-          itemBuilder: (context, index) {
-            final formIndex = index % 3;
-            switch (formIndex) {
-              case 0:
-                return const HomeFlightForm();
-              case 1:
-                return const HomeHotelForm();
-              case 2:
-                return const HomeOtherForm();
-              default:
-                return const SizedBox();
-            }
-          },
         ),
       ),
     );

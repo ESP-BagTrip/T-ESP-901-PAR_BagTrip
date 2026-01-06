@@ -33,14 +33,14 @@ class HomeTopCards extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Container(color: ColorName.secondary),
+                  Container(color: Colors.white),
                   Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
                           card['icon'] as IconData,
-                          color: ColorName.primaryLight,
+                          color: ColorName.secondary,
                           size: 40,
                         ),
                         // const SizedBox(height: 8),
@@ -49,7 +49,7 @@ class HomeTopCards extends StatelessWidget {
                           style: Theme.of(
                             context,
                           ).textTheme.titleLarge?.copyWith(
-                            color: ColorName.primaryLight,
+                            color: ColorName.primary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
