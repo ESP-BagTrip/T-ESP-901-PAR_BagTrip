@@ -24,8 +24,8 @@ class HomeDateField extends StatelessWidget {
       child: Text(
         value != null ? DateFormat('d MMM yyyy').format(value!) : hint,
         style: TextStyle(
-          fontSize: 18, // Large text as in the image
-          fontWeight: FontWeight.w700,
+          fontSize: 16, // Large text as in the image
+          fontWeight: FontWeight.w500,
           fontFamily: FontFamily.b612,
           color: value != null ? ColorName.primary : const Color(0xFF9AA6AC),
         ),

@@ -102,5 +102,15 @@
       }
     }
   },
-  "searchResults": "Résultats de recherche"
+  "searchResults": "Résultats de recherche",
+  "departureLabel": "Départ",
+  "destinationLabel": "Destination",
+  "travelDatesLabel": "Dates de voyage",
+  "outboundLabel": "Aller",
+  "returnLabel": "Retour",
+  "maxBudgetLabel": "Budget maximum",
+  "flightCardTitle": "Vol",
+  "hotelCardTitle": "Hôtel",
+  "flightAndHotelCardTitle": "Vol + Hôtel",
+  "otherCardTitle": "Autres"
 }

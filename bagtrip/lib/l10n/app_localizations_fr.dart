@@ -202,4 +202,34 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get searchResults => 'Résultats de recherche';
+
+  @override
+  String get departureLabel => 'Départ';
+
+  @override
+  String get destinationLabel => 'Destination';
+
+  @override
+  String get travelDatesLabel => 'Dates de voyage';
+
+  @override
+  String get outboundLabel => 'Aller';
+
+  @override
+  String get returnLabel => 'Retour';
+
+  @override
+  String get maxBudgetLabel => 'Budget maximum';
+
+  @override
+  String get flightCardTitle => 'Vol';
+
+  @override
+  String get hotelCardTitle => 'Hôtel';
+
+  @override
+  String get flightAndHotelCardTitle => 'Vol + Hôtel';
+
+  @override
+  String get otherCardTitle => 'Autres';
 }

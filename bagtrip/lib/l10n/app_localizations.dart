@@ -427,6 +427,66 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Résultats de recherche'**
   String get searchResults;
+
+  /// No description provided for @departureLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Départ'**
+  String get departureLabel;
+
+  /// No description provided for @destinationLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Destination'**
+  String get destinationLabel;
+
+  /// No description provided for @travelDatesLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dates de voyage'**
+  String get travelDatesLabel;
+
+  /// No description provided for @outboundLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aller'**
+  String get outboundLabel;
+
+  /// No description provided for @returnLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour'**
+  String get returnLabel;
+
+  /// No description provided for @maxBudgetLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Budget maximum'**
+  String get maxBudgetLabel;
+
+  /// No description provided for @flightCardTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vol'**
+  String get flightCardTitle;
+
+  /// No description provided for @hotelCardTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hôtel'**
+  String get hotelCardTitle;
+
+  /// No description provided for @flightAndHotelCardTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vol + Hôtel'**
+  String get flightAndHotelCardTitle;
+
+  /// No description provided for @otherCardTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autres'**
+  String get otherCardTitle;
 }
 
 class _AppLocalizationsDelegate
