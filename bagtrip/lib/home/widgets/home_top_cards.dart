@@ -40,6 +40,7 @@ class HomeTopCards extends StatelessWidget {
         onPageChanged: onPageChanged,
         itemBuilder: (context, index) {
           final card = cards[index % cards.length];
+          final hasImage = card.containsKey('image');
 
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -48,14 +49,29 @@ class HomeTopCards extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Container(color: Colors.white),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      image:
+                          hasImage
+                              ? DecorationImage(
+                                image: AssetImage(card['image'] as String),
+                                fit: BoxFit.cover,
+                                colorFilter: ColorFilter.mode(
+                                  Colors.black.withValues(alpha: 0.3),
+                                  BlendMode.darken,
+                                ),
+                              )
+                              : null,
+                    ),
+                  ),
                   Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
                           card['icon'] as IconData,
-                          color: ColorName.secondary,
+                          color: hasImage ? Colors.white : ColorName.secondary,
                           size: 40,
                         ),
                         // const SizedBox(height: 8),
@@ -64,7 +80,7 @@ class HomeTopCards extends StatelessWidget {
                           style: Theme.of(
                             context,
                           ).textTheme.titleLarge?.copyWith(
-                            color: ColorName.primary,
+                            color: hasImage ? Colors.white : ColorName.primary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
