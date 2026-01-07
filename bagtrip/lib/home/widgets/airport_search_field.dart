@@ -89,6 +89,7 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxHeight: 200),
                   child: ListView.separated(
+                    padding: EdgeInsets.zero,
                     shrinkWrap: true,
                     itemCount: airports.length,
                     separatorBuilder: (_, __) => const Divider(height: 1),
@@ -100,15 +101,22 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
                           airport['name'] ?? '',
                           style: const TextStyle(
                             fontSize: 14,
+                            color: ColorName.primary,
                             fontWeight: FontWeight.w600,
                             fontFamily: FontFamily.b612,
                           ),
                         ),
                         subtitle: Text(
-                          '${airport['city'] ?? ''}, ${airport['countryCode'] ?? ''}',
+                          [airport['iataCode'], airport['city']]
+                              .where(
+                                (e) => e != null && e.toString().isNotEmpty,
+                              )
+                              // \02022 is the middle dot to separate the items
+                              .join(' \u2022 '),
                           style: const TextStyle(
                             fontSize: 12,
                             fontFamily: FontFamily.b612,
+                            color: Color(0xFF9AA6AC),
                           ),
                         ),
                         onTap: () {
