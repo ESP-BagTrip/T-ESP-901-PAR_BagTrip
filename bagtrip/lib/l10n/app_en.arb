@@ -6,7 +6,7 @@
   "errorAddAtLeastOneFlight": "Please add at least one flight",
   "errorFillAllFields": "Please fill in all required fields",
   "travelClassEconomy": "Economy",
-  "travelClassPremiumEconomy": "Premium Economy",
+  "travelClassPremiumEconomy": "Premium Eco",
   "travelClassBusiness": "Business",
   "travelClassFirst": "First",
   "tripTypeRoundTrip": "Round-trip",

@@ -30,7 +30,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get travelClassEconomy => 'Economy';
 
   @override
-  String get travelClassPremiumEconomy => 'Premium Economy';
+  String get travelClassPremiumEconomy => 'Premium Eco';
 
   @override
   String get travelClassBusiness => 'Business';

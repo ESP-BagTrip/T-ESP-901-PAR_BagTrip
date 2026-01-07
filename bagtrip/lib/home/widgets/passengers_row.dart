@@ -40,7 +40,7 @@ class PassengersRow extends StatelessWidget {
               Container(
                 padding: AppSpacing.allEdgeInsetSpace16,
                 decoration: const BoxDecoration(
-                  color: ColorName.primarySoftLight,
+                  color: ColorName.primaryLight,
                   borderRadius: AppRadius.large16,
                 ),
                 child: Text('$value'),

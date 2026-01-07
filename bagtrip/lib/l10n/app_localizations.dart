@@ -143,7 +143,7 @@ abstract class AppLocalizations {
   /// No description provided for @travelClassPremiumEconomy.
   ///
   /// In fr, this message translates to:
-  /// **'Premium Économique'**
+  /// **'Premium Éco'**
   String get travelClassPremiumEconomy;
 
   /// No description provided for @travelClassBusiness.
