@@ -12,7 +12,6 @@ class HomePriceField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextField(
       keyboardType: TextInputType.number,
-      textInputAction: TextInputAction.done,
       textAlignVertical: TextAlignVertical.center,
       style: const TextStyle(
         color: ColorName.primary,
