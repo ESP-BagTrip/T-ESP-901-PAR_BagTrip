@@ -268,9 +268,9 @@ class HomeFlightForm extends StatelessWidget {
                               context,
                             )!.maxBudgetLabel.toUpperCase(),
                             style: const TextStyle(
-                              fontSize: 10,
+                              fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF9AA6AC),
+                              color: ColorName.secondary,
                               fontFamily: FontFamily.b612,
                             ),
                           ),
