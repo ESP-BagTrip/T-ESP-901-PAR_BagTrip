@@ -194,17 +194,35 @@ abstract class AppLocalizations {
   /// **'Adultes'**
   String get passengersAdults;
 
+  /// No description provided for @passengersAdultsDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'12 ans et plus'**
+  String get passengersAdultsDesc;
+
   /// No description provided for @passengersChildren.
   ///
   /// In fr, this message translates to:
   /// **'Enfants'**
   String get passengersChildren;
 
+  /// No description provided for @passengersChildrenDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'2-11 ans'**
+  String get passengersChildrenDesc;
+
   /// No description provided for @passengersInfants.
   ///
   /// In fr, this message translates to:
   /// **'Bébés'**
   String get passengersInfants;
+
+  /// No description provided for @passengersInfantsDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Moins de 2 ans'**
+  String get passengersInfantsDesc;
 
   /// No description provided for @multiDestFlightTitle.
   ///

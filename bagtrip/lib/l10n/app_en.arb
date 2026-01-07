@@ -15,8 +15,11 @@
   "airportDepartureHint": "Departure airport",
   "airportArrivalHint": "Arrival airport",
   "passengersAdults": "Adults",
+  "passengersAdultsDesc": "12+ years",
   "passengersChildren": "Children",
+  "passengersChildrenDesc": "2-11 years",
   "passengersInfants": "Infants",
+  "passengersInfantsDesc": "Under 2 years",
   "multiDestFlightTitle": "Flight {index}",
   "@multiDestFlightTitle": {
     "placeholders": {

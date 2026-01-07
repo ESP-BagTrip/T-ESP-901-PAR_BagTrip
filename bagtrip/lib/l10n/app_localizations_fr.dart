@@ -58,10 +58,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get passengersAdults => 'Adultes';
 
   @override
+  String get passengersAdultsDesc => '12 ans et plus';
+
+  @override
   String get passengersChildren => 'Enfants';
 
   @override
+  String get passengersChildrenDesc => '2-11 ans';
+
+  @override
   String get passengersInfants => 'Bébés';
+
+  @override
+  String get passengersInfantsDesc => 'Moins de 2 ans';
 
   @override
   String multiDestFlightTitle(int index) {
