@@ -79,6 +79,16 @@ class LocationService {
     }
   }
 
+  Map<String, dynamic> _flattenLocation(Map<String, dynamic> loc) {
+    if (loc['address'] is Map) {
+      final address = loc['address'] as Map;
+      loc['city'] = address['cityName'];
+      loc['countryCode'] = address['countryCode'];
+      loc['countryName'] = address['countryName'];
+    }
+    return loc;
+  }
+
   Future<List<Map<String, dynamic>>> searchLocationsByKeyword(
     String keyword,
     String subType,
@@ -95,7 +105,9 @@ class LocationService {
         // The API can return either a raw array or an object like { locations: [...], count: N }
         if (data is List) {
           return List<Map<String, dynamic>>.from(
-            data.map((e) => Map<String, dynamic>.from(e as Map)),
+            data.map(
+              (e) => _flattenLocation(Map<String, dynamic>.from(e as Map)),
+            ),
           );
         }
 
@@ -104,7 +116,7 @@ class LocationService {
           if (data['locations'] is List) {
             return List<Map<String, dynamic>>.from(
               (data['locations'] as List).map(
-                (e) => Map<String, dynamic>.from(e as Map),
+                (e) => _flattenLocation(Map<String, dynamic>.from(e as Map)),
               ),
             );
           }
@@ -112,7 +124,7 @@ class LocationService {
           if (data['data'] is List) {
             return List<Map<String, dynamic>>.from(
               (data['data'] as List).map(
-                (e) => Map<String, dynamic>.from(e as Map),
+                (e) => _flattenLocation(Map<String, dynamic>.from(e as Map)),
               ),
             );
           }
@@ -120,7 +132,7 @@ class LocationService {
           // If the response is a single object, wrap it into a list
           if (data.isNotEmpty) {
             try {
-              final m = Map<String, dynamic>.from(data);
+              final m = _flattenLocation(Map<String, dynamic>.from(data));
               return [m];
             } catch (_) {
               // fallthrough
