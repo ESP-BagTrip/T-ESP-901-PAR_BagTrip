@@ -44,17 +44,31 @@ services:
         uv run uvicorn src.main:app --host 0.0.0.0 --port 3000 --reload
       "
 
-  # admin-panel:
-  #   container_name: BagTrip-admin-panel
-  #   build:
-  #     context: ./admin-panel
-  #     dockerfile: Dockerfile.dev
-  #   ports:
-  #     - "5173:5173"
-  #   volumes:
-  #     - ./admin-panel/src:/app/src
-  #   environment:
-  #     - CHOKIDAR_USEPOLLING=true
+  admin-panel:
+    container_name: BagTrip-admin-panel
+    build:
+      context: ./admin-panel/application
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./admin-panel/application:/app
+      - /app/node_modules
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3000
+      - WATCHPACK_POLLING=true
+
+  mobile-web:
+    container_name: BagTrip-mobile-web
+    build:
+      context: ./bagtrip
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./bagtrip:/app
+    environment:
+      - API_URL=http://localhost:3000
 
 volumes:
   postgres_data:
