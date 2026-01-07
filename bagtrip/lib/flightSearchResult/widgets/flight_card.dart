@@ -24,9 +24,8 @@ class FlightCard extends StatelessWidget {
         margin: AppSpacing.onlyBottomSpace16,
         padding: AppSpacing.allEdgeInsetSpace24,
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFE8F8F7) : Colors.white,
+          color: isSelected ? const Color(0xFFE8F8F7) : ColorName.primaryLight,
           borderRadius: const BorderRadius.all(Radius.circular(24)),
-          border: Border.all(color: ColorName.primarySoftLight),
           boxShadow: [
             BoxShadow(
               color: ColorName.primary.withValues(alpha: 0.08),
