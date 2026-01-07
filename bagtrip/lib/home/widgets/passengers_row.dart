@@ -96,6 +96,7 @@ class PassengersRow extends StatelessWidget {
                     ),
                   ],
                 ),
+              ],
             ),
           ),
           if (!isLast)
