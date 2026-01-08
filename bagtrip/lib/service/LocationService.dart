@@ -5,8 +5,10 @@ import 'package:bagtrip/home/models/flight_segment.dart';
 import 'package:dio/dio.dart';
 
 class LocationService {
-  final Dio _dio = Dio();
+  final Dio _dio;
   final String baseUrl = 'http://localhost:3000/v1';
+
+  LocationService({Dio? dio}) : _dio = dio ?? Dio();
 
   Future<List<Flight>> searchFlights({
     required String departureCode,
