@@ -102,43 +102,43 @@ class LocationService {
       );
 
       final data = response.data;
+      List<Map<String, dynamic>>? results;
 
       // The API can return either a raw array or an object like { locations: [...], count: N }
       if (data is List) {
-        return List<Map<String, dynamic>>.from(
+        results = List<Map<String, dynamic>>.from(
           data.map(
             (e) => _flattenLocation(Map<String, dynamic>.from(e as Map)),
           ),
         );
-      }
-
-      if (data is Map) {
+      } else if (data is Map) {
         // try common keys
         if (data['locations'] is List) {
-          return List<Map<String, dynamic>>.from(
+          results = List<Map<String, dynamic>>.from(
             (data['locations'] as List).map(
               (e) => _flattenLocation(Map<String, dynamic>.from(e as Map)),
             ),
           );
-        }
-
-        if (data['data'] is List) {
-          return List<Map<String, dynamic>>.from(
+        } else if (data['data'] is List) {
+          results = List<Map<String, dynamic>>.from(
             (data['data'] as List).map(
               (e) => _flattenLocation(Map<String, dynamic>.from(e as Map)),
             ),
           );
-        }
-
-        // If the response is a single object, wrap it into a list
-        if (data.isNotEmpty) {
+        } else if (data.isNotEmpty) {
+          // If the response is a single object, wrap it into a list
           try {
             final m = _flattenLocation(Map<String, dynamic>.from(data));
-            return [m];
+            results = [m];
           } catch (_) {
             // fallthrough
           }
         }
+      }
+
+      // Si on a des résultats valides, les retourner même si le status code n'est pas 200
+      if (results != null && results.isNotEmpty) {
+        return results;
       }
 
       // Si pas de résultats mais status code 200, c'est une erreur de format
