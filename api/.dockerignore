@@ -49,3 +49,6 @@ README.md
 .DS_Store
 Thumbs.db
 
+# Misc
+node_modules/
+

@@ -30,7 +30,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get travelClassEconomy => 'Economy';
 
   @override
-  String get travelClassPremiumEconomy => 'Premium Economy';
+  String get travelClassPremiumEconomy => 'Premium Eco';
 
   @override
   String get travelClassBusiness => 'Business';
@@ -57,10 +57,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passengersAdults => 'Adults';
 
   @override
+  String get passengersAdultsDesc => '12+ years';
+
+  @override
   String get passengersChildren => 'Children';
 
   @override
+  String get passengersChildrenDesc => '2-11 years';
+
+  @override
   String get passengersInfants => 'Infants';
+
+  @override
+  String get passengersInfantsDesc => 'Under 2 years';
 
   @override
   String multiDestFlightTitle(int index) {
@@ -200,4 +209,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchResults => 'Search results';
+
+  @override
+  String get departureLabel => 'Departure';
+
+  @override
+  String get destinationLabel => 'Destination';
+
+  @override
+  String get travelDatesLabel => 'Travel dates';
+
+  @override
+  String get outboundLabel => 'Outbound';
+
+  @override
+  String get returnLabel => 'Return';
+
+  @override
+  String get maxBudgetLabel => 'Maximum budget';
+
+  @override
+  String get flightCardTitle => 'Flight';
+
+  @override
+  String get hotelCardTitle => 'Hotel';
+
+  @override
+  String get flightAndHotelCardTitle => 'Flight + Hotel';
+
+  @override
+  String get otherCardTitle => 'Others';
 }

@@ -30,7 +30,7 @@ class ClassSelector extends StatelessWidget {
                 minimumSize: const Size.fromHeight(AppSize.height42),
                 padding: AppSpacing.allEdgeInsetSpace8,
                 backgroundColor:
-                    selected ? ColorName.secondary : ColorName.primarySoftLight,
+                    selected ? ColorName.secondary : ColorName.primaryLight,
                 shape: const RoundedRectangleBorder(
                   borderRadius: AppRadius.large16,
                 ),
@@ -47,6 +47,7 @@ class ClassSelector extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontFamily: FontFamily.b612,
+                    fontSize: 12,
                     color: selected ? Colors.white : ColorName.primary,
                   ),
                 ),

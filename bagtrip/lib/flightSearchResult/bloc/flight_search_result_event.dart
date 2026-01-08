@@ -52,3 +52,21 @@ class SelectDate extends FlightSearchResultEvent {
 
   SelectDate(this.dateIndex);
 }
+
+class ApplyFilters extends FlightSearchResultEvent {
+  final String? priceSort; // 'lowest' or 'highest'
+  final String? selectedAirline;
+  final bool? cabinBagIncluded;
+  final bool? checkedBagIncluded;
+  final TimeOfDay? departureTimeBefore;
+  final TimeOfDay? departureTimeAfter;
+
+  ApplyFilters({
+    this.priceSort,
+    this.selectedAirline,
+    this.cabinBagIncluded,
+    this.checkedBagIncluded,
+    this.departureTimeBefore,
+    this.departureTimeAfter,
+  });
+}

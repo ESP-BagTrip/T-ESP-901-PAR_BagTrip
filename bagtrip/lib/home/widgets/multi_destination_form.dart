@@ -1,11 +1,10 @@
-import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_flight_bloc.dart';
 import 'package:bagtrip/home/models/airport_type.dart';
-import 'package:bagtrip/home/widgets/airport_search_field.dart';
-import 'package:bagtrip/home/widgets/home_date_field.dart';
-import 'package:bagtrip/home/widgets/home_field_row.dart';
+import 'package:bagtrip/home/widgets/home_airport_field.dart';
+import 'package:bagtrip/home/widgets/home_date_block.dart';
+import 'package:bagtrip/home/widgets/home_section_card.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,42 +21,45 @@ class MultiDestinationForm extends StatelessWidget {
       children: [
         ...List.generate(state.multiDestSegments.length, (index) {
           final segment = state.multiDestSegments[index];
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    l10n.multiDestFlightTitle(index + 1),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontFamily: FontFamily.b612,
-                      fontWeight: FontWeight.w700,
-                      color: ColorName.primary,
+          return HomeSectionCard(
+            margin: const EdgeInsets.only(bottom: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      l10n.multiDestFlightTitle(index + 1).toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: ColorName.secondary,
+                        fontFamily: FontFamily.b612,
+                        letterSpacing: 0.5,
+                      ),
                     ),
-                  ),
-                  if (state.multiDestSegments.length > 2)
-                    IconButton(
-                      icon: const Icon(Icons.close, color: ColorName.error),
-                      onPressed: () {
-                        context.read<HomeFlightBloc>().add(
-                          RemoveFlightSegment(index),
-                        );
-                      },
-                    ),
-                ],
-              ),
-              const SizedBox(height: AppSize.boxSize8),
-              HomeFieldRow(
-                icon: Icons.flight_takeoff,
-                field: AirportSearchField(
+                    if (state.multiDestSegments.length > 2)
+                      GestureDetector(
+                        onTap: () {
+                          context.read<HomeFlightBloc>().add(
+                            RemoveFlightSegment(index),
+                          );
+                        },
+                        child: const Icon(
+                          Icons.close,
+                          color: ColorName.error,
+                          size: 20,
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                HomeAirportField(
+                  icon: Icons.flight_takeoff,
+                  label: l10n.multiDestDepartureHint.toUpperCase(),
                   type: AirportType.departure,
-                  hintText: l10n.multiDestDepartureHint,
-                  initialValue: segment.departureAirport,
-                  hasError:
-                      state.showValidationErrors &&
-                      segment.departureAirport == null,
+                  value: segment.departureAirport,
                   onSelected: (airport, _) {
                     if (airport != null) {
                       context.read<HomeFlightBloc>().add(
@@ -66,16 +68,18 @@ class MultiDestinationForm extends StatelessWidget {
                     }
                   },
                 ),
-              ),
-              HomeFieldRow(
-                icon: Icons.flight_land,
-                field: AirportSearchField(
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Divider(
+                    height: 1,
+                    color: ColorName.primary.withValues(alpha: 0.1),
+                  ),
+                ),
+                HomeAirportField(
+                  icon: Icons.flight_land,
+                  label: l10n.multiDestArrivalHint.toUpperCase(),
                   type: AirportType.arrival,
-                  hintText: l10n.multiDestArrivalHint,
-                  initialValue: segment.arrivalAirport,
-                  hasError:
-                      state.showValidationErrors &&
-                      segment.arrivalAirport == null,
+                  value: segment.arrivalAirport,
                   onSelected: (airport, _) {
                     if (airport != null) {
                       context.read<HomeFlightBloc>().add(
@@ -84,15 +88,10 @@ class MultiDestinationForm extends StatelessWidget {
                     }
                   },
                 ),
-              ),
-              HomeFieldRow(
-                icon: Icons.calendar_today,
-                field: HomeDateField(
-                  hint: l10n.multiDestDateHint,
-                  value: segment.departureDate,
-                  hasError:
-                      state.showValidationErrors &&
-                      segment.departureDate == null,
+                const SizedBox(height: 16),
+                HomeDateBlock(
+                  label: l10n.multiDestDateHint,
+                  date: segment.departureDate,
                   onTap: () async {
                     DateTime minDate = DateTime.now();
                     if (index > 0) {
@@ -119,9 +118,8 @@ class MultiDestinationForm extends StatelessWidget {
                     }
                   },
                 ),
-              ),
-              const SizedBox(height: AppSize.boxSize16),
-            ],
+              ],
+            ),
           );
         }),
         TextButton.icon(

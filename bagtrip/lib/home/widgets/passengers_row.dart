@@ -1,5 +1,5 @@
-import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_flight_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -12,99 +12,140 @@ class PassengersRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget counter(
-      String label,
-      int value,
-      VoidCallback add,
-      VoidCallback sub,
-    ) {
+    Widget buildPassengerRow({
+      required String label,
+      required String description,
+      required int value,
+      required VoidCallback onAdd,
+      required VoidCallback onRemove,
+      bool isLast = false,
+    }) {
       return Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12)),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: 32,
-                height: 32,
-                child: IconButton(
-                  icon: const Icon(Icons.remove_circle_outline),
-                  color: ColorName.secondary,
-                  onPressed: sub,
-                  padding: EdgeInsets.zero,
-                  iconSize: 24,
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: ColorName.primary,
+                          fontFamily: FontFamily.b612,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        description,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: ColorName.primary.withValues(alpha: 0.6),
+                          fontFamily: FontFamily.b612,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Container(
-                padding: AppSpacing.allEdgeInsetSpace16,
-                decoration: const BoxDecoration(
-                  color: ColorName.primarySoftLight,
-                  borderRadius: AppRadius.large16,
+                Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: ColorName.primary.withValues(alpha: 0.05),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.remove),
+                        color: ColorName.primary,
+                        onPressed: onRemove,
+                        iconSize: 20,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 40,
+                      child: Text(
+                        '$value',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: ColorName.primary,
+                          fontFamily: FontFamily.b612,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: const BoxDecoration(
+                        color: ColorName.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.add),
+                        color: Colors.white,
+                        onPressed: onAdd,
+                        iconSize: 20,
+                      ),
+                    ),
+                  ],
                 ),
-                child: Text('$value'),
-              ),
-              SizedBox(
-                width: 32,
-                height: 32,
-                child: IconButton(
-                  icon: const Icon(Icons.add_circle_outline),
-                  color: ColorName.secondary,
-                  onPressed: add,
-                  padding: EdgeInsets.zero,
-                  iconSize: 24,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
+          if (!isLast)
+            Divider(height: 1, color: ColorName.primary.withValues(alpha: 0.1)),
         ],
       );
     }
 
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: Padding(
-            padding: AppSpacing.onlyRightSpace8,
-            child: counter(
-              AppLocalizations.of(context)!.passengersAdults,
-              state.adults,
+        buildPassengerRow(
+          label: AppLocalizations.of(context)!.passengersAdults,
+          description: AppLocalizations.of(context)!.passengersAdultsDesc,
+          value: state.adults,
+          onAdd:
               () => context.read<HomeFlightBloc>().add(
                 SetAdults(state.adults + 1),
               ),
+          onRemove:
               () => context.read<HomeFlightBloc>().add(
                 SetAdults(state.adults > 1 ? state.adults - 1 : 1),
               ),
-            ),
-          ),
         ),
-        Expanded(
-          child: Padding(
-            padding: AppSpacing.onlyRightSpace8,
-            child: counter(
-              AppLocalizations.of(context)!.passengersChildren,
-              state.children,
+        buildPassengerRow(
+          label: AppLocalizations.of(context)!.passengersChildren,
+          description: AppLocalizations.of(context)!.passengersChildrenDesc,
+          value: state.children,
+          onAdd:
               () => context.read<HomeFlightBloc>().add(
                 SetChildren(state.children + 1),
               ),
+          onRemove:
               () => context.read<HomeFlightBloc>().add(
                 SetChildren(state.children > 0 ? state.children - 1 : 0),
               ),
-            ),
-          ),
         ),
-        Expanded(
-          child: counter(
-            AppLocalizations.of(context)!.passengersInfants,
-            state.infants,
-            () => context.read<HomeFlightBloc>().add(
-              SetInfants(state.infants + 1),
-            ),
-            () => context.read<HomeFlightBloc>().add(
-              SetInfants(state.infants > 0 ? state.infants - 1 : 0),
-            ),
-          ),
+        buildPassengerRow(
+          label: AppLocalizations.of(context)!.passengersInfants,
+          description: AppLocalizations.of(context)!.passengersInfantsDesc,
+          value: state.infants,
+          onAdd:
+              () => context.read<HomeFlightBloc>().add(
+                SetInfants(state.infants + 1),
+              ),
+          onRemove:
+              () => context.read<HomeFlightBloc>().add(
+                SetInfants(state.infants > 0 ? state.infants - 1 : 0),
+              ),
+          isLast: true,
         ),
       ],
     );

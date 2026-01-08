@@ -1,4 +1,5 @@
 import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class HomeTopCards extends StatelessWidget {
@@ -13,19 +14,34 @@ class HomeTopCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final cards = [
-      {'title': 'VOL', 'icon': Icons.flight_takeoff},
-      {'title': 'HÔTEL', 'icon': Icons.hotel},
-      {'title': 'AUTRES', 'icon': Icons.explore},
+      {
+        'title': l10n.flightCardTitle.toUpperCase(),
+        'icon': Icons.flight_takeoff,
+        'image': 'assets/images/flight.jpg',
+      },
+      {
+        'title': l10n.hotelCardTitle.toUpperCase(),
+        'icon': Icons.hotel,
+        'image': 'assets/images/hotel.jpg',
+      },
+      {
+        'title': l10n.flightAndHotelCardTitle.toUpperCase(),
+        'icon': Icons.explore,
+        'image': 'assets/images/flight_hotel.jpg',
+      },
     ];
 
     return SizedBox(
-      height: 150,
+      height: 200,
       child: PageView.builder(
         controller: controller,
         onPageChanged: onPageChanged,
         itemBuilder: (context, index) {
           final card = cards[index % cards.length];
+          final hasImage = card.containsKey('image');
+
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: ClipRRect(
@@ -33,14 +49,29 @@ class HomeTopCards extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Container(color: ColorName.secondary),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      image:
+                          hasImage
+                              ? DecorationImage(
+                                image: AssetImage(card['image'] as String),
+                                fit: BoxFit.cover,
+                                colorFilter: ColorFilter.mode(
+                                  Colors.black.withValues(alpha: 0.3),
+                                  BlendMode.darken,
+                                ),
+                              )
+                              : null,
+                    ),
+                  ),
                   Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
                           card['icon'] as IconData,
-                          color: ColorName.primaryLight,
+                          color: hasImage ? Colors.white : ColorName.secondary,
                           size: 40,
                         ),
                         // const SizedBox(height: 8),
@@ -49,7 +80,7 @@ class HomeTopCards extends StatelessWidget {
                           style: Theme.of(
                             context,
                           ).textTheme.titleLarge?.copyWith(
-                            color: ColorName.primaryLight,
+                            color: hasImage ? Colors.white : ColorName.primary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
