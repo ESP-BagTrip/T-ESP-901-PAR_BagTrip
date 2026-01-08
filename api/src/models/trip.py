@@ -42,3 +42,6 @@ class Trip(Base):
     booking_intents = relationship(
         "BookingIntent", back_populates="trip", cascade="all, delete-orphan"
     )
+    conversations = relationship(
+        "Conversation", back_populates="trip", cascade="all, delete-orphan"
+    )

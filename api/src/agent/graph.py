@@ -5,11 +5,14 @@ from langgraph.graph import START, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
 
 from src.agent.state import AgentState
+from src.agent.tools.flights import search_flights_tool
+from src.agent.tools.hotels import search_hotels_tool
 from src.agent.tools.locations import (
     search_location_by_id_tool,
     search_location_nearest_tool,
     search_locations_by_keyword_tool,
 )
+from src.agent.tools.offers import book_offer_tool, select_offer_tool
 from src.config.env import settings
 
 # 1. Initialiser le modèle
@@ -25,6 +28,10 @@ tools = [
     search_locations_by_keyword_tool,
     search_location_by_id_tool,
     search_location_nearest_tool,
+    search_flights_tool,
+    search_hotels_tool,
+    select_offer_tool,
+    book_offer_tool,
 ]
 
 # 3. Lier les outils au modèle
