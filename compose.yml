@@ -87,10 +87,13 @@ services:
       - sonarqube_data:/opt/sonarqube/data
       - sonarqube_extensions:/opt/sonarqube/extensions
       - sonarqube_logs:/opt/sonarqube/logs
+      - ./sonar-flutter-plugin-0.5.2.jar:/opt/sonarqube/extensions/plugins/sonar-flutter-plugin-0.5.2.jar
     
 
   sonar-scanner:
-    image: sonarsource/sonar-scanner-cli
+    build:
+      context: .
+      dockerfile: Dockerfile.sonar-scanner
     container_name: BagTrip-sonar-scanner
     volumes:
       - .:/usr/src
