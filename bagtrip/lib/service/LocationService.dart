@@ -99,50 +99,93 @@ class LocationService {
         queryParameters: {'keyword': keyword, 'subType': subType},
       );
 
-      if (response.statusCode == 200) {
-        final data = response.data;
+      final data = response.data;
+      List<Map<String, dynamic>>? results;
 
-        // The API can return either a raw array or an object like { locations: [...], count: N }
-        if (data is List) {
-          return List<Map<String, dynamic>>.from(
-            data.map(
+      // The API can return either a raw array or an object like { locations: [...], count: N }
+      if (data is List) {
+        results = List<Map<String, dynamic>>.from(
+          data.map(
+            (e) => _flattenLocation(Map<String, dynamic>.from(e as Map)),
+          ),
+        );
+      } else if (data is Map) {
+        // try common keys
+        if (data['locations'] is List) {
+          results = List<Map<String, dynamic>>.from(
+            (data['locations'] as List).map(
               (e) => _flattenLocation(Map<String, dynamic>.from(e as Map)),
             ),
           );
-        }
-
-        if (data is Map) {
-          // try common keys
-          if (data['locations'] is List) {
-            return List<Map<String, dynamic>>.from(
-              (data['locations'] as List).map(
-                (e) => _flattenLocation(Map<String, dynamic>.from(e as Map)),
-              ),
-            );
-          }
-
-          if (data['data'] is List) {
-            return List<Map<String, dynamic>>.from(
-              (data['data'] as List).map(
-                (e) => _flattenLocation(Map<String, dynamic>.from(e as Map)),
-              ),
-            );
-          }
-
+        } else if (data['data'] is List) {
+          results = List<Map<String, dynamic>>.from(
+            (data['data'] as List).map(
+              (e) => _flattenLocation(Map<String, dynamic>.from(e as Map)),
+            ),
+          );
+        } else if (data.isNotEmpty) {
           // If the response is a single object, wrap it into a list
-          if (data.isNotEmpty) {
-            try {
-              final m = _flattenLocation(Map<String, dynamic>.from(data));
-              return [m];
-            } catch (_) {
-              // fallthrough
-            }
+          try {
+            final m = _flattenLocation(Map<String, dynamic>.from(data));
+            results = [m];
+          } catch (_) {
+            // fallthrough
           }
         }
+      }
 
+      // Si on a des résultats valides, les retourner même si le status code n'est pas 200
+      if (results != null && results.isNotEmpty) {
+        return results;
+      }
+
+      // Si pas de résultats mais status code 200, c'est une erreur de format
+      if (response.statusCode == 200) {
         throw Exception('Unexpected response shape when fetching locations');
       }
+
+      // Sinon, c'est une erreur HTTP
       throw Exception('Failed to fetch locations: HTTP ${response.statusCode}');
+    } on DioException catch (e) {
+      // Pour les erreurs Dio, vérifier si on a des données dans la réponse
+      if (e.response?.data != null) {
+        try {
+          final data = e.response!.data;
+          List<Map<String, dynamic>>? results;
+
+          if (data is List) {
+            results = List<Map<String, dynamic>>.from(
+              data.map(
+                (e) => _flattenLocation(Map<String, dynamic>.from(e as Map)),
+              ),
+            );
+          } else if (data is Map) {
+            if (data['locations'] is List) {
+              results = List<Map<String, dynamic>>.from(
+                (data['locations'] as List).map(
+                  (e) => _flattenLocation(Map<String, dynamic>.from(e as Map)),
+                ),
+              );
+            } else if (data['data'] is List) {
+              results = List<Map<String, dynamic>>.from(
+                (data['data'] as List).map(
+                  (e) => _flattenLocation(Map<String, dynamic>.from(e as Map)),
+                ),
+              );
+            }
+          }
+
+          // Si on a des résultats valides, les retourner même si le status code est une erreur
+          if (results != null && results.isNotEmpty) {
+            return results;
+          }
+        } catch (_) {
+          // Si le parsing échoue, continuer avec l'erreur originale
+        }
+      }
+
+      // Si pas de données valides, propager l'erreur
+      throw Exception('Error searching locations: ${e.message}');
     } catch (e) {
       throw Exception('Error searching locations: $e');
     }

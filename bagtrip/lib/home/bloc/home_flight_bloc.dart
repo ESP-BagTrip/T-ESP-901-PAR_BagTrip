@@ -56,7 +56,13 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
         event.keyword,
         'AIRPORT',
       );
-      emit(current.copyWith(isLoading: false, searchResults: airports));
+      emit(
+        current.copyWith(
+          isLoading: false,
+          searchResults: airports,
+          clearError: true,
+        ),
+      );
     } catch (e) {
       emit(current.copyWith(isLoading: false, errorMessage: e.toString()));
     }
@@ -74,7 +80,13 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
         event.keyword,
         'AIRPORT',
       );
-      emit(current.copyWith(isLoading: false, searchResults: airports));
+      emit(
+        current.copyWith(
+          isLoading: false,
+          searchResults: airports,
+          clearError: true,
+        ),
+      );
     } catch (e) {
       emit(current.copyWith(isLoading: false, errorMessage: e.toString()));
     }

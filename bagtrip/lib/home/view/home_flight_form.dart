@@ -25,7 +25,11 @@ class HomeFlightForm extends StatelessWidget {
     return BlocConsumer<HomeFlightBloc, HomeFlightState>(
       listener: (context, state) {
         if (state is HomeFlightLoaded && state.errorMessage != null) {
-          AppSnackBar.showError(context, message: state.errorMessage!);
+          // Ne pas afficher l'erreur si les résultats de recherche sont présents
+          // car cela signifie que la recherche a réussi malgré l'erreur
+          if (state.searchResults == null || state.searchResults!.isEmpty) {
+            AppSnackBar.showError(context, message: state.errorMessage!);
+          }
         }
       },
       builder: (context, state) {

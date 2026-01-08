@@ -24,19 +24,33 @@ class FlightCard extends StatelessWidget {
         margin: AppSpacing.onlyBottomSpace16,
         padding: AppSpacing.allEdgeInsetSpace24,
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFE8F8F7) : ColorName.primaryLight,
+          color: isSelected ? const Color(0xFFE8F8F7) : Colors.white,
           borderRadius: const BorderRadius.all(Radius.circular(24)),
+          border: Border.all(color: ColorName.primarySoftLight),
           boxShadow: [
             BoxShadow(
-              color: ColorName.primary.withValues(alpha: 0.5),
-              blurRadius: 8,
+              color: ColorName.primary.withValues(alpha: 0.08),
               offset: const Offset(0, 4),
+              blurRadius: 6,
+              spreadRadius: -1,
+            ),
+            BoxShadow(
+              color: ColorName.primary.withValues(alpha: 0.04),
+              offset: const Offset(0, 2),
+              blurRadius: 4,
+              spreadRadius: -1,
             ),
           ],
         ),
         child: Column(
           children: [
-            _buildFlightTimeline(flight),
+            Row(
+              children: [
+                Expanded(flex: 2, child: _buildDepartureInfo(flight)),
+                Expanded(flex: 2, child: _buildFlightTimeline(flight)),
+                Expanded(flex: 2, child: _buildArrivalInfo(flight)),
+              ],
+            ),
             const SizedBox(height: AppSpacing.space16),
             _buildAirlineInfo(flight, context),
             const SizedBox(height: AppSpacing.space8),
@@ -47,141 +61,158 @@ class FlightCard extends StatelessWidget {
     );
   }
 
-  Widget _buildFlightTimeline(Flight flight) {
-    return Row(
+  Widget _buildDepartureInfo(Flight flight) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                flight.departureTime,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: ColorName.primary,
-                ),
-              ),
-              Text(
-                flight.departureCode,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: ColorName.primary,
-                ),
-              ),
-            ],
+        Text(
+          flight.departureTime,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: ColorName.primary,
           ),
         ),
-        Expanded(
-          child: Column(
-            children: [
-              Text(
-                flight.duration,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: ColorName.secondary,
-                ),
-              ),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(height: 2, color: ColorName.secondary),
-                  ),
-
-                  Container(
-                    width: 12,
-                    height: 12,
-                    decoration: const BoxDecoration(
-                      color: ColorName.secondary,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                flight.arrivalTime,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: ColorName.primary,
-                ),
-              ),
-              Text(
-                flight.arrivalCode,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: ColorName.primary,
-                ),
-              ),
-            ],
+        const SizedBox(height: 4),
+        Text(
+          flight.departureCode,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: ColorName.secondary,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildAirlineInfo(Flight flight, BuildContext context) {
-    return Row(
+  Widget _buildArrivalInfo(Flight flight) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        const SizedBox(
-          width: 24,
-          height: 24,
-          child: Icon(
-            Icons.airplanemode_active,
-            size: 14,
-            color: Color(0xFFD32F2F),
+        Text(
+          flight.arrivalTime,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: ColorName.primary,
           ),
         ),
-        const SizedBox(width: AppSpacing.space8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        const SizedBox(height: 4),
+        Text(
+          flight.arrivalCode,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: ColorName.secondary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFlightTimeline(Flight flight) {
+    return Column(
+      children: [
+        Text(
+          flight.duration,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: ColorName.secondary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
           children: [
-            Text(
-              flight.airline ?? AppLocalizations.of(context)!.unknownAirline,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: ColorName.primary,
-              ),
-            ),
-            Text(
-              flight.aircraftType ??
-                  AppLocalizations.of(context)!.unknownAircraft,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+            Expanded(child: Container(height: 2, color: ColorName.secondary)),
+            Container(
+              width: 12,
+              height: 12,
+              decoration: const BoxDecoration(
                 color: ColorName.secondary,
+                shape: BoxShape.circle,
               ),
             ),
           ],
         ),
-        const Spacer(),
-        Container(
-          padding: AppSpacing.allEdgeInsetSpace8,
-          decoration: const BoxDecoration(
-            color: ColorName.secondary,
-            borderRadius: AppRadius.large16,
-          ),
-          child: Text(
-            '${flight.price.toStringAsFixed(0)} €',
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
+      ],
+    );
+  }
+
+  Widget _buildPrice(Flight flight) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.space16,
+        vertical: AppSpacing.space8,
+      ),
+      decoration: const BoxDecoration(
+        color: ColorName.secondary,
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
+      child: Text(
+        '${flight.price.toStringAsFixed(0)} €',
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAirlineInfo(Flight flight, BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Row(
+            children: [
+              const SizedBox(
+                width: 24,
+                height: 24,
+                child: Icon(
+                  Icons.airplanemode_active,
+                  size: 16,
+                  color: Color(0xFFD32F2F),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.space8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      flight.airline ??
+                          AppLocalizations.of(context)!.unknownAirline,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: ColorName.primary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                    Text(
+                      flight.aircraftType ??
+                          AppLocalizations.of(context)!.unknownAircraft,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: ColorName.secondary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
+        const SizedBox(width: AppSpacing.space32),
+        _buildPrice(flight),
       ],
     );
   }
@@ -189,7 +220,17 @@ class FlightCard extends StatelessWidget {
   Widget _buildAmenities(Flight flight, BuildContext context) {
     final amenities = <Widget>[];
 
-    // Check for baggage
+    // Check for cabin bags (hand baggage) - shown first
+    if (flight.cabinBags != null) {
+      amenities.add(
+        _buildAmenityBadge(
+          Icons.work_outline,
+          AppLocalizations.of(context)!.handBaggageIncluded,
+        ),
+      );
+    }
+
+    // Check for checked baggage
     if (flight.checkedBags != null) {
       String label;
       if (flight.checkedBags!.weight != null) {
@@ -206,22 +247,6 @@ class FlightCard extends StatelessWidget {
       amenities.add(_buildAmenityBadge(Icons.luggage_outlined, label));
     }
 
-    if (flight.cabinBags != null) {
-      String label;
-      if (flight.cabinBags!.weight != null) {
-        label = AppLocalizations.of(
-          context,
-        )!.baggageKg(flight.cabinBags!.weight!);
-      } else if (flight.cabinBags!.quantity != null) {
-        label = AppLocalizations.of(
-          context,
-        )!.baggageQuantity(flight.cabinBags!.quantity!);
-      } else {
-        label = AppLocalizations.of(context)!.cabinBag;
-      }
-      amenities.add(_buildAmenityBadge(Icons.work_outline, label));
-    }
-
     if (amenities.isEmpty) return const SizedBox.shrink();
 
     return Row(
@@ -236,30 +261,28 @@ class FlightCard extends StatelessWidget {
   }
 
   Widget _buildAmenityBadge(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.space8,
-        vertical: AppSpacing.space4,
-      ),
-      decoration: BoxDecoration(
-        color: ColorName.secondary.withValues(alpha: 0.08),
-        borderRadius: AppRadius.small4,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: ColorName.secondary),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: ColorName.secondary,
-            ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 20,
+          height: 20,
+          decoration: BoxDecoration(
+            color: ColorName.secondary,
+            borderRadius: BorderRadius.circular(4),
           ),
-        ],
-      ),
+          child: Icon(icon, size: 14, color: Colors.white),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: ColorName.secondary,
+          ),
+        ),
+      ],
     );
   }
 }

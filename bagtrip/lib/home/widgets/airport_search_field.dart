@@ -119,10 +119,7 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
                         onTap: () {
                           _controller.text = airport['name'] ?? '';
                           _removeOverlay();
-
-                          // 🔥 POINT CLÉ : on reprend le contrôle du focus
                           FocusManager.instance.primaryFocus?.unfocus();
-
                           setState(() => _showResults = false);
                           widget.onSelected?.call(airport, widget.type);
                         },
@@ -140,7 +137,6 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
 
   @override
   Widget build(BuildContext context) {
-    // Mode affichage (champ validé)
     if (widget.initialValue != null && !_showResults) {
       final airport = widget.initialValue!;
       return CompositedTransformTarget(
@@ -187,7 +183,6 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
       );
     }
 
-    // Mode saisie
     return CompositedTransformTarget(
       link: _layerLink,
       child: BlocConsumer<HomeFlightBloc, HomeFlightState>(

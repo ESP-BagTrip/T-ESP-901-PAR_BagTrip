@@ -98,7 +98,12 @@ class FlightSearchResultView extends StatelessWidget {
           return SingleChildScrollView(
             child: Column(
               children: [
-                DateSelector(selectedDateIndex: state.selectedDateIndex),
+                DateSelector(
+                  selectedDateIndex: state.selectedDateIndex,
+                  departureDate: state.departureDate,
+                  returnDate: state.returnDate,
+                  flights: state.flights,
+                ),
                 const SizedBox(height: AppSpacing.space16),
                 const FilterButton(),
                 const SizedBox(height: AppSpacing.space16),
