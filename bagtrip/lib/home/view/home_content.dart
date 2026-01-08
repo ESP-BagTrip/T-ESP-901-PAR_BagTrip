@@ -3,6 +3,7 @@ import 'package:bagtrip/home/view/home_flight_form.dart';
 import 'package:bagtrip/home/view/home_hotel_form.dart';
 import 'package:bagtrip/home/view/home_other_form.dart';
 import 'package:bagtrip/home/widgets/home_top_cards.dart';
+import 'package:bagtrip/pages/create_trip_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
@@ -88,6 +89,28 @@ class _HomeContentState extends State<HomeContent> {
                   HomeTopCards(
                     controller: _headerController,
                     onPageChanged: _onPageChanged,
+                  ),
+                  const SizedBox(height: AppSize.boxSize16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const CreateTripPage(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.auto_awesome),
+                      label: const Text('Planifier un voyage IA'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
+                        ),
+                        minimumSize: const Size(double.infinity, 56),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: AppSize.boxSize16),
                 ],

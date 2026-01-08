@@ -13,10 +13,15 @@ from src.api.auth.routes import router as auth_router
 from src.api.booking.routes import router as booking_router
 from src.api.booking_intents.book_routes import router as booking_intents_book_router
 from src.api.booking_intents.routes import router as booking_intents_router
+from src.api.conversations.routes import (
+    detail_router as conversations_detail_router,
+    router as conversations_router,
+)
 from src.api.flights.offers.routes import router as flight_offers_router
 from src.api.flights.searches.routes import router as flight_searches_router
 from src.api.hotels.offers.routes import router as hotel_offers_router
 from src.api.hotels.searches.routes import router as hotel_searches_router
+from src.api.messages.routes import router as messages_router
 from src.api.payments.routes import router as payments_router
 from src.api.stripe.webhooks.routes import router as stripe_webhooks_router
 from src.api.travel.routes import router as travel_router
@@ -24,6 +29,7 @@ from src.api.travelers.routes import router as travelers_router
 from src.api.trips.routes import router as trips_router
 from src.config.database import Base, check_database_connection, engine
 from src.config.env import settings
+from src.middleware.rate_limit import rate_limit_middleware
 from src.utils.errors import AppError, create_http_exception
 from src.utils.logger import LogLevel, logger
 
@@ -51,6 +57,14 @@ async def lifespan(app: FastAPI):
         migrate_booking_tables(engine)
     except Exception as e:
         logger.warn(f"Booking tables migration failed (may already be migrated): {e}")
+
+    # Migrer les tables de conversation si nécessaire
+    try:
+        from src.migrations.migrate_conversation_tables import migrate_conversation_tables
+
+        migrate_conversation_tables(engine)
+    except Exception as e:
+        logger.warn(f"Conversation tables migration failed (may already be migrated): {e}")
 
     # Initialiser les produits Stripe
     try:
@@ -84,12 +98,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Rate limiting middleware (après CORS)
+app.middleware("http")(rate_limit_middleware)
+
 # Inclusion des routes - toutes sous /v1
 # Routes principales selon PLAN.md
 app.include_router(auth_router)  # Déjà préfixé avec /v1/auth
 app.include_router(admin_router)  # Préfixé avec /admin
 app.include_router(trips_router)  # Déjà préfixé avec /v1/trips
 app.include_router(travelers_router)  # Déjà préfixé avec /v1/trips
+app.include_router(conversations_router)  # Préfixé avec /v1/trips/{tripId}/conversations
+app.include_router(conversations_detail_router)  # Préfixé avec /v1/conversations
+app.include_router(messages_router)  # Préfixé avec /v1/conversations/{conversationId}/messages
 app.include_router(flight_searches_router)  # Déjà préfixé avec /v1/trips
 app.include_router(flight_offers_router)  # Déjà préfixé avec /v1/trips
 app.include_router(hotel_searches_router)  # Déjà préfixé avec /v1/trips
