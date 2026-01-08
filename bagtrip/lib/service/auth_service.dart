@@ -5,7 +5,6 @@ import 'dart:io';
 
 class AuthService {
   // 10.0.2.2 for android emulator, localhost for apple simulator
-  // For physical device, use your machine's LAN IP (e.g. 192.168.1.164)
   static final String baseUrl = Platform.isAndroid 
       ? 'http://192.168.1.164:3000/auth' 
       : 'http://localhost:3000/auth';
