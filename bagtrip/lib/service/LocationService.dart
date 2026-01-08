@@ -5,7 +5,7 @@ import 'package:dio/dio.dart';
 class LocationService {
   final Dio _dio = Dio();
   final String baseUrl =
-      'http://localhost:3000/api'; // Ajustez l'URL selon votre configuration
+      'http://localhost:3000/api';
 
   Future<List<Map<String, dynamic>>> searchLocationsByKeyword(
     String keyword,
@@ -20,7 +20,6 @@ class LocationService {
       if (response.statusCode == 200) {
         final data = response.data;
 
-        // The API can return either a raw array or an object like { locations: [...], count: N }
         if (data is List) {
           return List<Map<String, dynamic>>.from(
             data.map((e) => Map<String, dynamic>.from(e as Map)),
