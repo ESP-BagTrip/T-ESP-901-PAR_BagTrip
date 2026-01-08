@@ -147,25 +147,37 @@ class TravelersService:
         number = phone_number
 
         if phone_number.startswith("+"):
-            # Extraire le country code (supposons max 3 chiffres)
+            # Extraire le country code (1 à 3 chiffres)
             # Format: +33612345678 -> countryCode="33", number="612345678"
-            for i in range(1, min(4, len(phone_number))):
-                if phone_number[i].isdigit():
-                    continue
-                else:
-                    # Extraire le code pays sans le "+"
+            # Format: +15550199 -> countryCode="1", number="5550199"
+            
+            # Stratégie : Essayer de trouver un séparateur non numérique
+            separator_found = False
+            for i in range(1, min(5, len(phone_number))):
+                if not phone_number[i].isdigit():
                     country_calling_code = phone_number[1:i]
                     number = phone_number[i:]
+                    separator_found = True
                     break
-            # Si on n'a pas trouvé de séparateur, extraire les 2 premiers chiffres
-            if country_calling_code == "33" and len(phone_number) > 3:
-                # Essayer d'extraire le code pays (généralement 1-3 chiffres)
-                if phone_number[1:3].isdigit():
-                    country_calling_code = phone_number[1:3]
-                    number = phone_number[3:]
-                elif phone_number[1:2].isdigit():
-                    country_calling_code = phone_number[1:2]
-                    number = phone_number[2:]
+            
+            if not separator_found:
+                # Pas de séparateur, on devine.
+                # Priorité aux codes pays connus ou heuristique simple.
+                # Pour l'instant, on prend 1 chiffre si c'est '1' (USA/Canada), sinon on tente 2 ou 3.
+                if len(phone_number) > 1 and phone_number[1] == '1':
+                     country_calling_code = "1"
+                     number = phone_number[2:]
+                elif len(phone_number) > 3:
+                     # Par défaut, on suppose 2 chiffres (ex: 33, 44, 49...) sauf si 3 chiffres semble mieux ?
+                     # C'est ambigu sans lookup table. On garde le comportement précédent "33" par défaut si c'est un format français déguisé ?
+                     # Non, si c'est "+...", c'est international.
+                     # Essayons de prendre 2 chiffres par défaut.
+                     country_calling_code = phone_number[1:3]
+                     number = phone_number[3:]
+                else:
+                     # Trop court ?
+                     country_calling_code = phone_number[1:]
+                     number = ""
         elif phone_number.startswith("00"):
             # Format international avec 00: 0033612345678 -> countryCode="33", number="612345678"
             if len(phone_number) > 4:
