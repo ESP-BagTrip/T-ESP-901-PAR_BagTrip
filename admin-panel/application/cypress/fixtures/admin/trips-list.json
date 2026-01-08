@@ -1,0 +1,60 @@
+{
+  "items": [
+    {
+      "id": "trip-001-uuid-4a5b-8c9d-123456789abc",
+      "user_id": "550e8400-e29b-41d4-a716-446655440001",
+      "user_email": "user1@example.com",
+      "title": "Paris to Rome",
+      "origin_iata": "CDG",
+      "destination_iata": "FCO",
+      "start_date": "2026-01-10",
+      "end_date": "2026-01-15",
+      "status": "planned",
+      "created_at": "2024-01-12T10:00:00.000Z",
+      "updated_at": "2024-01-12T10:00:00.000Z"
+    },
+    {
+      "id": "trip-002-uuid-4a5b-8c9d-223456789abc",
+      "user_id": "550e8400-e29b-41d4-a716-446655440002",
+      "user_email": "user2@example.com",
+      "title": "London to Barcelona",
+      "origin_iata": "LHR",
+      "destination_iata": "BCN",
+      "start_date": "2026-02-01",
+      "end_date": "2026-02-05",
+      "status": "draft",
+      "created_at": "2024-01-13T11:00:00.000Z",
+      "updated_at": "2024-01-13T11:00:00.000Z"
+    },
+    {
+      "id": "trip-003-uuid-4a5b-8c9d-323456789abc",
+      "user_id": "550e8400-e29b-41d4-a716-446655440003",
+      "user_email": "traveler@bagtrip.com",
+      "title": "New York to Miami",
+      "origin_iata": "JFK",
+      "destination_iata": "MIA",
+      "start_date": "2026-03-20",
+      "end_date": "2026-03-25",
+      "status": "booked",
+      "created_at": "2024-01-14T09:00:00.000Z",
+      "updated_at": "2024-01-15T14:30:00.000Z"
+    },
+    {
+      "id": "trip-004-uuid-4a5b-8c9d-423456789abc",
+      "user_id": "550e8400-e29b-41d4-a716-446655440004",
+      "user_email": "business@company.com",
+      "title": "Tokyo Business Trip",
+      "origin_iata": "CDG",
+      "destination_iata": "NRT",
+      "start_date": "2026-04-10",
+      "end_date": "2026-04-17",
+      "status": "cancelled",
+      "created_at": "2024-01-15T08:00:00.000Z",
+      "updated_at": "2024-01-16T10:00:00.000Z"
+    }
+  ],
+  "total": 15,
+  "page": 1,
+  "limit": 10,
+  "total_pages": 2
+}

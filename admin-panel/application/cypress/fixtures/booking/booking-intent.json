@@ -1,0 +1,11 @@
+{
+  "id": "booking-intent-001-uuid-4a5b-8c9d",
+  "trip_id": "created-trip-001-uuid-4a5b-8c9d",
+  "type": "flight",
+  "status": "INIT",
+  "amount": "245.50",
+  "currency": "EUR",
+  "selected_offer_id": "flight-offer-001-uuid",
+  "created_at": "2024-01-15T10:10:00.000Z",
+  "updated_at": "2024-01-15T10:10:00.000Z"
+}

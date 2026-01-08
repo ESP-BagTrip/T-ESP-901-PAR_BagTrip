@@ -1,0 +1,29 @@
+{
+  "search_id": "hotel-search-001-uuid",
+  "offers": [
+    {
+      "id": "hotel-offer-001-uuid",
+      "hotel_id": "HTFCO001",
+      "offer_id": "amadeus-hotel-offer-001",
+      "hotel_name": "Grand Hotel Roma",
+      "total_price": "320.00",
+      "currency": "EUR",
+      "check_in": "2026-01-10",
+      "check_out": "2026-01-13",
+      "room_type": "DOUBLE",
+      "adults": 2
+    },
+    {
+      "id": "hotel-offer-002-uuid",
+      "hotel_id": "HTFCO002",
+      "offer_id": "amadeus-hotel-offer-002",
+      "hotel_name": "Roma Luxury Suites",
+      "total_price": "450.00",
+      "currency": "EUR",
+      "check_in": "2026-01-10",
+      "check_out": "2026-01-13",
+      "room_type": "SUITE",
+      "adults": 2
+    }
+  ]
+}

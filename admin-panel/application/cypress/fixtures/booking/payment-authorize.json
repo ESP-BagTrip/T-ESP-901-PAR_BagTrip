@@ -1,0 +1,7 @@
+{
+  "stripe_payment_intent_id": "pi_test_123456789abcdef",
+  "client_secret": "pi_test_123456789abcdef_secret_abc123xyz",
+  "status": "requires_confirmation",
+  "amount": 24550,
+  "currency": "eur"
+}

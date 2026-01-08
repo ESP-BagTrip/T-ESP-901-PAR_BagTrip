@@ -1,0 +1,47 @@
+{
+  "items": [
+    {
+      "id": "flight-booking-001-uuid-4a5b-8c9d",
+      "trip_id": "trip-001-uuid-4a5b-8c9d-123456789abc",
+      "trip_title": "Paris to Rome",
+      "user_email": "user1@example.com",
+      "flight_offer_id": "flight-offer-001-uuid",
+      "booking_intent_id": "intent-003-uuid",
+      "amadeus_flight_order_id": "AMDFO001234",
+      "status": "TICKETED",
+      "booking_reference": "ABC123",
+      "created_at": "2024-01-14T11:00:00.000Z",
+      "updated_at": "2024-01-14T11:00:00.000Z"
+    },
+    {
+      "id": "flight-booking-002-uuid-4a5b-8c9d",
+      "trip_id": "trip-003-uuid-4a5b-8c9d-323456789abc",
+      "trip_title": "New York to Miami",
+      "user_email": "traveler@bagtrip.com",
+      "flight_offer_id": "flight-offer-002-uuid",
+      "booking_intent_id": "intent-004-uuid",
+      "amadeus_flight_order_id": "AMDFO005678",
+      "status": "CONFIRMED",
+      "booking_reference": "XYZ789",
+      "created_at": "2024-01-15T12:00:00.000Z",
+      "updated_at": "2024-01-15T12:00:00.000Z"
+    },
+    {
+      "id": "flight-booking-003-uuid-4a5b-8c9d",
+      "trip_id": "trip-002-uuid-4a5b-8c9d-223456789abc",
+      "trip_title": "London to Barcelona",
+      "user_email": "user2@example.com",
+      "flight_offer_id": "flight-offer-003-uuid",
+      "booking_intent_id": "intent-005-uuid",
+      "amadeus_flight_order_id": null,
+      "status": "PENDING",
+      "booking_reference": null,
+      "created_at": "2024-01-16T09:00:00.000Z",
+      "updated_at": "2024-01-16T09:00:00.000Z"
+    }
+  ],
+  "total": 8,
+  "page": 1,
+  "limit": 10,
+  "total_pages": 1
+}

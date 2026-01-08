@@ -1,0 +1,12 @@
+{
+  "all": true,
+  "include": ["src/**/*.{ts,tsx}"],
+  "exclude": [
+    "src/**/*.d.ts",
+    "src/**/*.test.{ts,tsx}",
+    "src/**/*.spec.{ts,tsx}",
+    "cypress/**/*"
+  ],
+  "reporter": ["lcov", "text", "html"],
+  "report-dir": "coverage"
+}

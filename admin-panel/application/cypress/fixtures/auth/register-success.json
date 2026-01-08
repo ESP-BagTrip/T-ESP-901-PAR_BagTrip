@@ -1,0 +1,9 @@
+{
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "email": "newuser@bagtrip.com",
+    "created_at": "2024-01-15T10:30:00.000Z",
+    "updated_at": "2024-01-15T10:30:00.000Z"
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDEiLCJlbWFpbCI6Im5ld3VzZXJAYmFndHJpcC5jb20iLCJpYXQiOjE3MDUzMTIyMDB9.new-user-token-signature"
+}

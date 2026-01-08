@@ -7,8 +7,11 @@ export default defineConfig({
     viewportHeight: 720,
     video: true,
     screenshotOnRunFailure: true,
+    reporter: 'cypress-multi-reporters',
+    reporterOptions: {
+      configFile: 'reporter-config.json',
+    },
     setupNodeEvents(on, config) {
-      // implement node event listeners here
       require('@cypress/code-coverage/task')(on, config)
       return config
     },
@@ -27,6 +30,7 @@ export default defineConfig({
     },
   },
   env: {
+    API_URL: 'http://localhost:3000',
     codeCoverage: {
       exclude: 'cypress/**/*.*',
     },

@@ -1,0 +1,34 @@
+{
+  "items": [
+    {
+      "id": "hotel-booking-001-uuid-4a5b-8c9d",
+      "trip_id": "trip-001-uuid-4a5b-8c9d-123456789abc",
+      "trip_title": "Paris to Rome",
+      "user_email": "user1@example.com",
+      "hotel_offer_id": "hotel-offer-001-uuid",
+      "hotel_id": "HTFCO001",
+      "booking_intent_id": "intent-001-uuid",
+      "amadeus_booking_id": "AMDHB001234",
+      "status": "CONFIRMED",
+      "created_at": "2024-01-14T10:00:00.000Z",
+      "updated_at": "2024-01-14T10:00:00.000Z"
+    },
+    {
+      "id": "hotel-booking-002-uuid-4a5b-8c9d",
+      "trip_id": "trip-003-uuid-4a5b-8c9d-323456789abc",
+      "trip_title": "New York to Miami",
+      "user_email": "traveler@bagtrip.com",
+      "hotel_offer_id": "hotel-offer-002-uuid",
+      "hotel_id": "HTMIA002",
+      "booking_intent_id": "intent-002-uuid",
+      "amadeus_booking_id": "AMDHB005678",
+      "status": "PENDING",
+      "created_at": "2024-01-15T11:00:00.000Z",
+      "updated_at": "2024-01-15T11:00:00.000Z"
+    }
+  ],
+  "total": 5,
+  "page": 1,
+  "limit": 10,
+  "total_pages": 1
+}

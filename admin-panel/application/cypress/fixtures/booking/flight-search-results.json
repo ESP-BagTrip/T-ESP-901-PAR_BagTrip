@@ -1,0 +1,73 @@
+{
+  "search_id": "flight-search-001-uuid",
+  "offers": [
+    {
+      "id": "flight-offer-001-uuid",
+      "grand_total": "245.50",
+      "currency": "EUR",
+      "itineraries": [
+        {
+          "duration": "PT2H30M",
+          "segments": [
+            {
+              "departure": {
+                "iataCode": "CDG",
+                "at": "2026-01-10T08:00:00"
+              },
+              "arrival": {
+                "iataCode": "FCO",
+                "at": "2026-01-10T10:30:00"
+              },
+              "carrierCode": "AF",
+              "number": "1234"
+            }
+          ]
+        }
+      ],
+      "traveler_pricings": [
+        {
+          "traveler_id": "1",
+          "traveler_type": "ADULT",
+          "price": {
+            "total": "245.50",
+            "currency": "EUR"
+          }
+        }
+      ]
+    },
+    {
+      "id": "flight-offer-002-uuid",
+      "grand_total": "189.00",
+      "currency": "EUR",
+      "itineraries": [
+        {
+          "duration": "PT2H45M",
+          "segments": [
+            {
+              "departure": {
+                "iataCode": "CDG",
+                "at": "2026-01-10T14:00:00"
+              },
+              "arrival": {
+                "iataCode": "FCO",
+                "at": "2026-01-10T16:45:00"
+              },
+              "carrierCode": "VY",
+              "number": "5678"
+            }
+          ]
+        }
+      ],
+      "traveler_pricings": [
+        {
+          "traveler_id": "1",
+          "traveler_type": "ADULT",
+          "price": {
+            "total": "189.00",
+            "currency": "EUR"
+          }
+        }
+      ]
+    }
+  ]
+}
