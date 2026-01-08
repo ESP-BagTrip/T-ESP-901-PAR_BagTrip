@@ -9,7 +9,6 @@ class FareInfoCard extends StatelessWidget {
   final double basePrice;
   final int numberOfBookableSeats;
   final String lastTicketingDate;
-  final VoidCallback? onPressed;
 
   const FareInfoCard({
     super.key,
@@ -17,7 +16,6 @@ class FareInfoCard extends StatelessWidget {
     required this.basePrice,
     required this.numberOfBookableSeats,
     required this.lastTicketingDate,
-    this.onPressed,
   });
 
   @override
@@ -125,7 +123,7 @@ class FareInfoCard extends StatelessWidget {
           const SizedBox(height: 16),
           // Button
           ElevatedButton(
-            onPressed: onPressed,
+            onPressed: () {},
             style: ElevatedButton.styleFrom(
               backgroundColor: ColorName.secondary,
               shape: RoundedRectangleBorder(

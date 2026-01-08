@@ -38,7 +38,6 @@ class Flight {
   final String fareBasis;
   final BaggageInfo? checkedBags;
   final BaggageInfo? cabinBags;
-  final Map<String, dynamic>? rawJson;
 
   Flight({
     required this.id,
@@ -74,7 +73,6 @@ class Flight {
     required this.fareBasis,
     this.checkedBags,
     this.cabinBags,
-    this.rawJson,
   });
 
   factory Flight.fromAmadeusJson(
@@ -303,7 +301,6 @@ class Flight {
       fareBasis: fareBasis,
       checkedBags: checkedBags,
       cabinBags: cabinBags,
-      rawJson: json,
     );
   }
 
@@ -341,7 +338,6 @@ class Flight {
     String? fareBasis,
     BaggageInfo? checkedBags,
     BaggageInfo? cabinBags,
-    Map<String, dynamic>? rawJson,
   }) {
     return Flight(
       id: id ?? this.id,
@@ -380,7 +376,6 @@ class Flight {
       fareBasis: fareBasis ?? this.fareBasis,
       checkedBags: checkedBags ?? this.checkedBags,
       cabinBags: cabinBags ?? this.cabinBags,
-      rawJson: rawJson ?? this.rawJson,
     );
   }
 

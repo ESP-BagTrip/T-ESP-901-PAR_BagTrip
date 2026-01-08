@@ -6,7 +6,7 @@
   "errorAddAtLeastOneFlight": "Please add at least one flight",
   "errorFillAllFields": "Please fill in all required fields",
   "travelClassEconomy": "Economy",
-  "travelClassPremiumEconomy": "Premium Economy",
+  "travelClassPremiumEconomy": "Premium Eco",
   "travelClassBusiness": "Business",
   "travelClassFirst": "First",
   "tripTypeRoundTrip": "Round-trip",
@@ -15,8 +15,11 @@
   "airportDepartureHint": "Departure airport",
   "airportArrivalHint": "Arrival airport",
   "passengersAdults": "Adults",
+  "passengersAdultsDesc": "12+ years",
   "passengersChildren": "Children",
+  "passengersChildrenDesc": "2-11 years",
   "passengersInfants": "Infants",
+  "passengersInfantsDesc": "Under 2 years",
   "multiDestFlightTitle": "Flight {index}",
   "@multiDestFlightTitle": {
     "placeholders": {
@@ -102,5 +105,15 @@
       }
     }
   },
-  "searchResults": "Search results"
+  "searchResults": "Search results",
+  "departureLabel": "Departure",
+  "destinationLabel": "Destination",
+  "travelDatesLabel": "Travel dates",
+  "outboundLabel": "Outbound",
+  "returnLabel": "Return",
+  "maxBudgetLabel": "Maximum budget",
+  "flightCardTitle": "Flight",
+  "hotelCardTitle": "Hotel",
+  "flightAndHotelCardTitle": "Flight + Hotel",
+  "otherCardTitle": "Others"
 }
