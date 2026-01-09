@@ -9,7 +9,6 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class FlightResultDetailsView extends StatelessWidget {
@@ -38,136 +37,114 @@ class FlightResultDetailsView extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: BlocBuilder<FlightResultDetailsBloc, FlightResultDetailsState>(
-        builder: (context, state) {
-          if (state is! FlightResultDetailsLoaded) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          final flight = state.flight;
-
-          // Helper to format date
-          String formatDate(DateTime? date) {
-            if (date == null) return '';
-            // Example: "Lundi 2 septembre"
-            final locale = Localizations.localeOf(context).toString();
-            return DateFormat('EEEE d MMMM', locale).format(date);
-          }
-
-          String getStopsLabel(int stops) {
-            return AppLocalizations.of(context)!.stopsLabel(stops);
-          }
-
-          Color getStopsColor(int stops) {
-            return stops == 0 ? ColorName.secondary : Colors.orange;
-          }
-
-          String formatTicketingDate(String dateStr) {
-            if (dateStr.isEmpty) return '';
-            try {
-              final date = DateTime.parse(dateStr);
-              return DateFormat('dd/MM/yyyy').format(date);
-            } catch (_) {
-              return dateStr;
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFF0F7FA), // #f0f7fa
+              Color(0xFFF5F9FB), // #f5f9fb
+              Color(0xFFFAFCFD), // #fafcfd
+            ],
+          ),
+        ),
+        child: BlocBuilder<FlightResultDetailsBloc, FlightResultDetailsState>(
+          builder: (context, state) {
+            if (state is! FlightResultDetailsLoaded) {
+              return const Center(child: CircularProgressIndicator());
             }
-          }
 
-          return SingleChildScrollView(
-            padding: AppSpacing.allEdgeInsetSpace16,
-            child: Column(
-              children: [
-                FlightDetailCard(
-                  title: AppLocalizations.of(context)!.outboundFlight,
-                  icon: Icons.flight_takeoff,
-                  date: formatDate(flight.departureDateTime),
-                  departureTime: flight.departureTime,
-                  departureAirport: flight.departureCode,
-                  arrivalTime: flight.arrivalTime,
-                  arrivalAirport: flight.arrivalCode,
-                  duration: flight.duration,
-                  airline: flight.airline, // Should be mapped to name ideally
-                  aircraft: flight.aircraftType,
-                  tagLabel: getStopsLabel(flight.outboundStops),
-                  tagColor: getStopsColor(flight.outboundStops),
-                ),
-                const SizedBox(height: 16),
-                // Return Flight (if exists)
-                if (flight.returnDepartureTime != null) ...[
+            final flight = state.flight;
+
+            // Helper to format date
+            String formatDate(DateTime? date) {
+              if (date == null) return '';
+              // Example: "Lundi 2 septembre"
+              final locale = Localizations.localeOf(context).toString();
+              return DateFormat('EEEE d MMMM', locale).format(date);
+            }
+
+            String getStopsLabel(int stops) {
+              return AppLocalizations.of(context)!.stopsLabel(stops);
+            }
+
+            Color getStopsColor(int stops) {
+              return stops == 0 ? ColorName.secondary : Colors.orange;
+            }
+
+            String formatTicketingDate(String dateStr) {
+              if (dateStr.isEmpty) return '';
+              try {
+                final date = DateTime.parse(dateStr);
+                return DateFormat('dd/MM/yyyy').format(date);
+              } catch (_) {
+                return dateStr;
+              }
+            }
+
+            return SingleChildScrollView(
+              padding: AppSpacing.allEdgeInsetSpace16,
+              child: Column(
+                children: [
                   FlightDetailCard(
-                    title: AppLocalizations.of(context)!.returnFlight,
-                    icon: Icons.flight_land,
-                    date: formatDate(flight.returnDepartureDateTime),
-                    departureTime: flight.returnDepartureTime!,
-                    departureAirport: flight.returnDepartureCode!,
-                    arrivalTime: flight.returnArrivalTime!,
-                    arrivalAirport: flight.returnArrivalCode!,
-                    duration: flight.returnDuration ?? '',
-                    airline: flight.returnAirline ?? flight.airline,
-                    aircraft: flight.returnAircraftType ?? '',
-                    tagLabel: getStopsLabel(flight.returnStops ?? 0),
-                    tagColor: getStopsColor(flight.returnStops ?? 0),
+                    title: AppLocalizations.of(context)!.outboundFlight,
+                    icon: Icons.flight_takeoff,
+                    date: formatDate(flight.departureDateTime),
+                    departureTime: flight.departureTime,
+                    departureAirport: flight.departureCode,
+                    arrivalTime: flight.arrivalTime,
+                    arrivalAirport: flight.arrivalCode,
+                    duration: flight.duration,
+                    airline: flight.airline, // Should be mapped to name ideally
+                    aircraft: flight.aircraftType,
+                    tagLabel: getStopsLabel(flight.outboundStops),
+                    tagColor: getStopsColor(flight.outboundStops),
                   ),
                   const SizedBox(height: 16),
+                  // Return Flight (if exists)
+                  if (flight.returnDepartureTime != null) ...[
+                    FlightDetailCard(
+                      title: AppLocalizations.of(context)!.returnFlight,
+                      icon: Icons.flight_land,
+                      date: formatDate(flight.returnDepartureDateTime),
+                      departureTime: flight.returnDepartureTime!,
+                      departureAirport: flight.returnDepartureCode!,
+                      arrivalTime: flight.returnArrivalTime!,
+                      arrivalAirport: flight.returnArrivalCode!,
+                      duration: flight.returnDuration ?? '',
+                      airline: flight.returnAirline ?? flight.airline,
+                      aircraft: flight.returnAircraftType ?? '',
+                      tagLabel: getStopsLabel(flight.returnStops ?? 0),
+                      tagColor: getStopsColor(flight.returnStops ?? 0),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  BaggageInfoCard(
+                    checkedBags: flight.checkedBags,
+                    cabinBags: flight.cabinBags,
+                  ),
+                  const SizedBox(height: 16),
+                  ClassInfoCard(
+                    bookingClass: flight.bookingClass,
+                    cabinClass: flight.cabinClass,
+                    fareBasis: flight.fareBasis,
+                  ),
+                  const SizedBox(height: 16),
+                  FareInfoCard(
+                    price: flight.price,
+                    basePrice: flight.basePrice,
+                    numberOfBookableSeats: flight.numberOfBookableSeats,
+                    lastTicketingDate: formatTicketingDate(
+                      flight.lastTicketingDate,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
                 ],
-                BaggageInfoCard(
-                  checkedBags: flight.checkedBags,
-                  cabinBags: flight.cabinBags,
-                ),
-                const SizedBox(height: 16),
-                ClassInfoCard(
-                  bookingClass: flight.bookingClass,
-                  cabinClass: flight.cabinClass,
-                  fareBasis: flight.fareBasis,
-                ),
-                const SizedBox(height: 16),
-                FareInfoCard(
-                  price: flight.price,
-                  basePrice: flight.basePrice,
-                  numberOfBookableSeats: flight.numberOfBookableSeats,
-                  lastTicketingDate: formatTicketingDate(
-                    flight.lastTicketingDate,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                // Book Flight button
-                Padding(
-                  padding: AppSpacing.allEdgeInsetSpace16,
-                  child: ElevatedButton(
-                    onPressed:
-                        tripId == null
-                            ? null
-                            : () {
-                              // Use databaseOfferId if available, otherwise fall back to flight.id
-                              final offerId =
-                                  flight.databaseOfferId ?? flight.id;
-                              context.pushNamed(
-                                'flight-booking',
-                                extra: {
-                                  'tripId': tripId,
-                                  'offerId': offerId,
-                                  'price': flight.price,
-                                  'currency': 'EUR', // Default currency
-                                },
-                              );
-                            },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: ColorName.primary,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text(
-                      'Book Flight',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
+              ),
+            );
+          },
+        ),
       ),
     );
   }
