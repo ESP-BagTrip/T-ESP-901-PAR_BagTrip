@@ -138,6 +138,8 @@ class FlightResultDetailsView extends StatelessWidget {
                     lastTicketingDate: formatTicketingDate(
                       flight.lastTicketingDate,
                     ),
+                    tripId: tripId,
+                    offerId: flight.databaseOfferId ?? flight.id,
                   ),
                   const SizedBox(height: 32),
                 ],

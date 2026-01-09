@@ -3,12 +3,15 @@ import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class FareInfoCard extends StatelessWidget {
   final double price;
   final double basePrice;
   final int numberOfBookableSeats;
   final String lastTicketingDate;
+  final String? tripId;
+  final String? offerId;
 
   const FareInfoCard({
     super.key,
@@ -16,6 +19,8 @@ class FareInfoCard extends StatelessWidget {
     required this.basePrice,
     required this.numberOfBookableSeats,
     required this.lastTicketingDate,
+    this.tripId,
+    this.offerId,
   });
 
   @override
@@ -138,7 +143,20 @@ class FareInfoCard extends StatelessWidget {
           const SizedBox(height: 16),
           // Button
           ElevatedButton(
-            onPressed: () {},
+            onPressed:
+                tripId != null && offerId != null
+                    ? () {
+                      context.go(
+                        '/flight-booking',
+                        extra: {
+                          'tripId': tripId,
+                          'offerId': offerId,
+                          'price': price,
+                          'currency': 'EUR',
+                        },
+                      );
+                    }
+                    : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: ColorName.secondary,
               shape: RoundedRectangleBorder(
