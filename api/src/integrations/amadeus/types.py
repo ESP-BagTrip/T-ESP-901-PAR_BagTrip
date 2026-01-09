@@ -405,6 +405,7 @@ class FlightDateResponse(BaseModel):
     """Réponse de recherche de dates les moins chères."""
 
     meta: FlightDateMeta
+    data: list[FlightDate]
 
 
 # ============================================================================
