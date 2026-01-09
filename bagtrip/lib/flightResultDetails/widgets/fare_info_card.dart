@@ -25,8 +25,23 @@ class FareInfoCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: ColorName.primaryLight,
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        borderRadius: AppRadius.large16,
+        border: Border.all(color: ColorName.primarySoftLight),
+        boxShadow: [
+          BoxShadow(
+            color: ColorName.primary.withValues(alpha: 0.08),
+            offset: const Offset(0, 4),
+            blurRadius: 6,
+            spreadRadius: -1,
+          ),
+          BoxShadow(
+            color: ColorName.primary.withValues(alpha: 0.04),
+            offset: const Offset(0, 2),
+            blurRadius: 4,
+            spreadRadius: -1,
+          ),
+        ],
       ),
       padding: AppSpacing.allEdgeInsetSpace16,
       child: Column(
