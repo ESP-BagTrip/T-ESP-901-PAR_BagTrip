@@ -1,13 +1,18 @@
 """Unit tests for the agent routes."""
 
 import json
+import uuid
 from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
 
 from src.api.agent.routes import router as agent_router
+from src.api.auth.middleware import get_current_user
+from src.config.database import get_db
+from src.models.user import User
 
 # Setup the test app
 app = FastAPI()
@@ -15,14 +20,50 @@ app.include_router(agent_router)
 
 
 @pytest.fixture
-def client():
+def mock_user():
+    return User(id=uuid.uuid4(), email="test@example.com")
+
+
+@pytest.fixture
+def mock_db_session():
+    return MagicMock(spec=Session)
+
+
+@pytest.fixture
+def client(mock_user, mock_db_session):
     """Provide a test client for the app."""
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+    app.dependency_overrides[get_db] = lambda: mock_db_session
+
     with TestClient(app) as client:
         yield client
 
+    app.dependency_overrides = {}
 
-def test_chat_endpoint_success(client):
+
+@patch("src.api.agent.routes.verify_trip_ownership")
+@patch("src.api.agent.routes.verify_conversation_ownership")
+@patch("src.api.agent.routes.ContextService")
+@patch("src.api.agent.routes.MessageService")
+def test_chat_endpoint_success(
+    mock_message_service,
+    mock_context_service,
+    mock_verify_conv,
+    mock_verify_trip,
+    client,
+    mock_user,
+):
     """Test successful chat interaction with streaming response."""
+    # Setup mocks
+    trip_id = uuid.uuid4()
+    mock_verify_trip.return_value = True
+    mock_verify_conv.return_value = MagicMock(trip_id=trip_id)
+
+    mock_context_service.get_context.return_value = MagicMock(
+        version=1, id=uuid.uuid4(), state={}, ui={}
+    )
+    mock_message_service.get_messages_by_conversation.return_value = []
+
     mock_events = [
         {
             "event": "on_chat_model_stream",
@@ -50,46 +91,76 @@ def test_chat_endpoint_success(client):
         for event in mock_events:
             yield event
 
-    with patch("src.api.agent.routes.graph.astream_events", side_effect=mock_astream_events):
+    with patch(
+        "src.api.agent.routes.graph.astream_events", side_effect=mock_astream_events
+    ):
         response = client.post(
-            "/v1/agent/agent/chat", json={"message": "hi", "userid": "user123"}
+            "/v1/agent/chat",
+            json={
+                "message": "hi",
+                "trip_id": str(trip_id),
+                "conversation_id": str(uuid.uuid4()),
+                "context_version": 1,
+            },
         )
 
         assert response.status_code == 200
         assert "text/event-stream" in response.headers["content-type"]
 
-        # Check if expected data is in the streaming response
-        lines = response.text.strip().split("\n\n")
-        assert 'data: {"type": "token", "content": "Hello"}' in lines
-        assert 'data: {"type": "tool_start", "tool": "search_locations"}' in lines
-        assert 'data: {"type": "tool_end", "tool": "search_locations"}' in lines
-        assert 'data: {"type": "token", "content": " world"}' in lines
-        assert "data: [DONE]" in lines
+        text = response.text
+        # Check for events in the stream
+        assert "event: message.delta" in text
+        assert 'data: {"text": "Hello"}' in text
+        assert "event: tool.start" in text
+        assert 'data: {"tool": "search_locations"}' in text
+        assert "event: tool.end" in text
+        assert 'data: {"text": " world"}' in text
 
 
-def test_chat_endpoint_error(client):
+@patch("src.api.agent.routes.verify_trip_ownership")
+@patch("src.api.agent.routes.verify_conversation_ownership")
+@patch("src.api.agent.routes.ContextService")
+@patch("src.api.agent.routes.MessageService")
+def test_chat_endpoint_error(
+    mock_message_service,
+    mock_context_service,
+    mock_verify_conv,
+    mock_verify_trip,
+    client,
+):
     """Test chat endpoint when an error occurs during streaming."""
+
+    # Setup minimal mocks for validation pass
+    trip_id = uuid.uuid4()
+    mock_verify_trip.return_value = True
+    mock_verify_conv.return_value = MagicMock(trip_id=trip_id)
+    mock_context_service.get_context.return_value = MagicMock(version=1)
+    mock_message_service.get_messages_by_conversation.return_value = []
 
     async def mock_astream_events_error(*args, **kwargs):
         raise Exception("Stream error")
-        # The following yield is needed to make this an async generator
-        yield  # pragma: no cover
+        yield  # Make it generator
 
-    with patch("src.api.agent.routes.graph.astream_events", side_effect=mock_astream_events_error):
+    with patch(
+        "src.api.agent.routes.graph.astream_events",
+        side_effect=mock_astream_events_error,
+    ):
         response = client.post(
-            "/v1/agent/agent/chat", json={"message": "hi", "userid": "user123"}
+            "/v1/agent/chat",
+            json={
+                "message": "hi",
+                "trip_id": str(trip_id),
+                "conversation_id": str(uuid.uuid4()),
+            },
         )
 
         assert response.status_code == 200
-        assert 'data: {"type": "error", "message": "Stream error"}' in response.text
+        assert "event: error" in response.text
+        assert 'data: {"message": "Stream error"}' in response.text
 
 
 def test_chat_endpoint_invalid_request(client):
     """Test chat endpoint with invalid request body."""
-    # Missing userid
-    response = client.post("/v1/agent/agent/chat", json={"message": "hi"})
-    assert response.status_code == 422
-
-    # Missing message
-    response = client.post("/v1/agent/agent/chat", json={"userid": "user123"})
+    # Missing parameters
+    response = client.post("/v1/agent/chat", json={"message": "hi"})
     assert response.status_code == 422
