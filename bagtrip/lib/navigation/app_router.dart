@@ -4,11 +4,16 @@ import 'package:bagtrip/flightSearchResult/models/flight_search_arguments.dart';
 import 'package:bagtrip/navigation/app_shell.dart';
 import 'package:bagtrip/pages/budget_page.dart';
 import 'package:bagtrip/pages/chat_page.dart';
+import 'package:bagtrip/pages/flight_booking_page.dart';
 import 'package:bagtrip/pages/flight_search_result_page.dart';
 import 'package:bagtrip/pages/home_page.dart';
 import 'package:bagtrip/pages/login_page.dart';
 import 'package:bagtrip/pages/map_page.dart';
+import 'package:bagtrip/pages/card_input_page.dart';
+import 'package:bagtrip/pages/payment_page.dart';
 import 'package:bagtrip/pages/profile_page.dart';
+import 'package:bagtrip/pages/booking_confirmation_page.dart';
+import 'package:bagtrip/payment/bloc/payment_bloc.dart';
 import 'package:bagtrip/service/auth_service.dart';
 import 'package:bagtrip/chat/bloc/chat_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -90,12 +95,104 @@ final GoRouter appRouter = GoRouter(
       path: FlightResultDetailsPage.routePath,
       name: 'flight-result-details',
       pageBuilder: (context, state) {
-        final flight = state.extra as Flight?;
+        final extra = state.extra;
+        Flight? flight;
+        String? tripId;
+
+        if (extra is Map) {
+          flight = extra['flight'] as Flight?;
+          tripId = extra['tripId'] as String?;
+        } else if (extra is Flight) {
+          flight = extra;
+        }
+
         if (flight == null) {
-          // Fallback or error handling
           return const NoTransitionPage(child: HomePage());
         }
-        return NoTransitionPage(child: FlightResultDetailsPage(flight: flight));
+        return NoTransitionPage(
+          child: FlightResultDetailsPage(flight: flight, tripId: tripId),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/flight-booking',
+      name: 'flight-booking',
+      pageBuilder: (context, state) {
+        final args = state.extra as Map<String, dynamic>?;
+        if (args == null ||
+            args['tripId'] == null ||
+            args['offerId'] == null ||
+            args['price'] == null) {
+          return const NoTransitionPage(child: HomePage());
+        }
+        return NoTransitionPage(
+          child: FlightBookingPage(
+            tripId: args['tripId'] as String,
+            flightOfferId: args['offerId'] as String,
+            price: (args['price'] as num).toDouble(),
+            currency: args['currency'] as String? ?? 'EUR',
+            intentId: args['intentId'] as String?,
+          ),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/payment/:intentId',
+      name: 'payment',
+      pageBuilder: (context, state) {
+        final intentId = state.pathParameters['intentId'];
+        final args = state.extra as Map<String, dynamic>?;
+        if (intentId == null || args == null) {
+          return const NoTransitionPage(child: HomePage());
+        }
+        return NoTransitionPage(
+          child: BlocProvider(
+            create: (context) => PaymentBloc(),
+            child: PaymentPage(
+              intentId: intentId,
+              tripId: args['tripId'] as String,
+              price: (args['price'] as num).toDouble(),
+              currency: args['currency'] as String? ?? 'EUR',
+              flightOfferId: args['flightOfferId'] as String?,
+            ),
+          ),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/card-input/:intentId',
+      name: 'card-input',
+      pageBuilder: (context, state) {
+        final intentId = state.pathParameters['intentId'];
+        final args = state.extra as Map<String, dynamic>?;
+        if (intentId == null || args == null) {
+          return const NoTransitionPage(child: HomePage());
+        }
+        return NoTransitionPage(
+          child: BlocProvider(
+            create: (context) => PaymentBloc(),
+            child: CardInputPage(
+              intentId: intentId,
+              tripId: args['tripId'] as String,
+              price: (args['price'] as num).toDouble(),
+              currency: args['currency'] as String? ?? 'EUR',
+              flightOfferId: args['flightOfferId'] as String?,
+            ),
+          ),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/booking-confirmation/:intentId',
+      name: 'booking-confirmation',
+      pageBuilder: (context, state) {
+        final intentId = state.pathParameters['intentId'];
+        if (intentId == null) {
+          return const NoTransitionPage(child: HomePage());
+        }
+        return NoTransitionPage(
+          child: BookingConfirmationPage(intentId: intentId),
+        );
       },
     ),
     GoRoute(

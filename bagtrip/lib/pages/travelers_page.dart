@@ -30,6 +30,7 @@ class _TravelersPageState extends State<TravelersPage> {
   bool _isAdding = false;
   String? _errorMessage;
   DateTime? _selectedDate;
+  String? _selectedGender;
 
   @override
   void initState() {
@@ -99,6 +100,7 @@ class _TravelersPageState extends State<TravelersPage> {
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         dateOfBirth: _selectedDate,
+        gender: _selectedGender,
         travelerType: 'ADULT', // Default traveler type
       );
 
@@ -107,6 +109,7 @@ class _TravelersPageState extends State<TravelersPage> {
       _lastNameController.clear();
       _dateOfBirthController.clear();
       _selectedDate = null;
+      _selectedGender = null;
 
       // Recharger la liste
       await _loadTravelers();
@@ -326,15 +329,51 @@ class _TravelersPageState extends State<TravelersPage> {
                               ],
                             ),
                             const SizedBox(height: 12),
+                            DropdownButtonFormField<String>(
+                              initialValue: _selectedGender,
+                              decoration: const InputDecoration(
+                                labelText: 'Genre *',
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.person),
+                              ),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 'MALE',
+                                  child: Text('Homme'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'FEMALE',
+                                  child: Text('Femme'),
+                                ),
+                              ],
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedGender = value;
+                                });
+                              },
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Requis';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 12),
                             TextFormField(
                               controller: _dateOfBirthController,
                               decoration: const InputDecoration(
-                                labelText: 'Date de naissance (optionnel)',
+                                labelText: 'Date de naissance *',
                                 border: OutlineInputBorder(),
                                 prefixIcon: Icon(Icons.calendar_today),
                               ),
                               readOnly: true,
                               onTap: () => _selectDate(context),
+                              validator: (value) {
+                                if (_selectedDate == null) {
+                                  return 'Requis';
+                                }
+                                return null;
+                              },
                             ),
                             if (_errorMessage != null) ...[
                               const SizedBox(height: 12),

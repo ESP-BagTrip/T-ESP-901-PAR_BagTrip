@@ -2,6 +2,7 @@ import 'package:bagtrip/flightSearchResult/models/baggage_info.dart';
 
 class Flight {
   final String id;
+  final String? databaseOfferId; // Database offer ID from FlightSearchResponse
   final String departureTime;
   final String arrivalTime;
   final String departureAirport;
@@ -41,6 +42,7 @@ class Flight {
 
   Flight({
     required this.id,
+    this.databaseOfferId,
     required this.departureTime,
     required this.arrivalTime,
     required this.departureAirport,
@@ -78,6 +80,7 @@ class Flight {
   factory Flight.fromAmadeusJson(
     Map<String, dynamic> json, {
     Map<String, dynamic>? dictionaries,
+    String? databaseOfferId,
   }) {
     // Helper to lookup dictionary values
     String? lookupDictionary(String type, String code) {
@@ -265,6 +268,7 @@ class Flight {
 
     return Flight(
       id: json['id']?.toString() ?? '',
+      databaseOfferId: databaseOfferId,
       departureTime: formatTime(outboundFirst['departure']?['at']),
       arrivalTime: formatTime(outboundLast['arrival']?['at']),
       departureAirport: outboundFirst['departure']?['iataCode'] ?? '',
@@ -306,6 +310,7 @@ class Flight {
 
   Flight copyWith({
     String? id,
+    String? databaseOfferId,
     String? departureTime,
     String? arrivalTime,
     String? departureAirport,
@@ -341,6 +346,7 @@ class Flight {
   }) {
     return Flight(
       id: id ?? this.id,
+      databaseOfferId: databaseOfferId ?? this.databaseOfferId,
       departureTime: departureTime ?? this.departureTime,
       arrivalTime: arrivalTime ?? this.arrivalTime,
       departureAirport: departureAirport ?? this.departureAirport,

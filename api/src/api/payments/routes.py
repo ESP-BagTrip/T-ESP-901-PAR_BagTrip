@@ -2,7 +2,7 @@
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Body, Depends, Path
 from sqlalchemy.orm import Session
 
 from src.api.auth.middleware import get_current_user
@@ -27,12 +27,16 @@ router = APIRouter(prefix="/v1/booking-intents", tags=["Payments"])
     description="Create a Stripe PaymentIntent with manual capture",
 )
 async def authorize_payment(
-    request: PaymentAuthorizeRequest,
+    request: PaymentAuthorizeRequest | None = None,
     intentId: UUID = Path(..., description="Booking Intent ID"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Autoriser un paiement selon PLAN.md."""
+    # Handle case where request body is not provided (empty body)
+    if request is None:
+        request = PaymentAuthorizeRequest()
+    
     try:
         result = StripePaymentsService.create_manual_capture_payment_intent(
             db=db,

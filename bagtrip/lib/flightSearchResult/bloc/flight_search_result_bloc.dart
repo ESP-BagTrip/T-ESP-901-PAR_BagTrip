@@ -2,6 +2,7 @@
 
 import 'package:bagtrip/flightSearchResult/models/flight.dart';
 import 'package:bagtrip/home/models/flight_segment.dart';
+import 'package:bagtrip/service/flight_search_service.dart';
 import 'package:bagtrip/service/LocationService.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
@@ -12,11 +13,13 @@ part 'flight_search_result_state.dart';
 
 class FlightSearchResultBloc
     extends Bloc<FlightSearchResultEvent, FlightSearchResultState> {
-  final LocationService _locationService;
+  final FlightSearchService _flightSearchService;
 
-  FlightSearchResultBloc({LocationService? locationService})
-    : _locationService = locationService ?? LocationService(),
-      super(FlightSearchResultInitial()) {
+  FlightSearchResultBloc({
+    FlightSearchService? flightSearchService,
+    LocationService? locationService,
+  }) : _flightSearchService = flightSearchService ?? FlightSearchService(),
+       super(FlightSearchResultInitial()) {
     on<LoadFlights>(_onLoadFlights);
     on<FilterFlightsByPrice>(_onFilterFlightsByPrice);
     on<SortFlights>(_onSortFlights);
@@ -33,6 +36,7 @@ class FlightSearchResultBloc
       flights: [],
       filteredFlights: [],
       departureDate: DateTime.now(),
+      tripId: '',
       departureCode: '',
       arrivalCode: '',
       adults: 1,
@@ -56,17 +60,43 @@ class FlightSearchResultBloc
               ? dateFormatter.format(event.returnDate!)
               : null;
 
-      final flights = await _locationService.searchFlights(
-        departureCode: event.departureCode,
-        arrivalCode: event.arrivalCode,
+      // Use trip-based search
+      final searchResponse = await _flightSearchService.searchFlights(
+        event.tripId,
+        originIata: event.departureCode,
+        destinationIata: event.arrivalCode,
         departureDate: departureDateStr,
         returnDate: returnDateStr,
         adults: event.adults,
         children: event.children,
         infants: event.infants,
         travelClass: event.travelClass.toUpperCase(),
-        multiDestSegments: event.multiDestSegments,
       );
+
+      // Fetch full details for each offer to create Flight objects
+      final flights = <Flight>[];
+      for (final offer in searchResponse.offers) {
+        try {
+          final offerDetails = await _flightSearchService.getFlightOffer(
+            event.tripId,
+            offer.id,
+          );
+          // Parse the offer JSON to create Flight object
+          if (offerDetails['offer'] != null) {
+            final flight = Flight.fromAmadeusJson(
+              offerDetails['offer'] as Map<String, dynamic>,
+              databaseOfferId: offer.id, // Pass the database offer ID
+            );
+            flights.add(flight);
+          }
+        } catch (e) {
+          // If we can't get full details, create a simplified flight from summary
+          // This is a fallback - ideally all offers should have full details
+          debugPrint(
+            'Warning: Could not fetch full details for offer ${offer.id}: $e',
+          );
+        }
+      }
 
       var filteredFlights = List<Flight>.from(flights);
       if (event.maxPrice != null) {
@@ -83,6 +113,8 @@ class FlightSearchResultBloc
           maxPrice: event.maxPrice,
           departureDate: event.departureDate,
           returnDate: event.returnDate,
+          tripId: event.tripId,
+          searchId: searchResponse.searchId,
           departureCode: event.departureCode,
           arrivalCode: event.arrivalCode,
           adults: event.adults,
@@ -177,17 +209,40 @@ class FlightSearchResultBloc
       final returnDateStr =
           newReturnDate != null ? dateFormatter.format(newReturnDate) : null;
 
-      final flights = await _locationService.searchFlights(
-        departureCode: current.departureCode,
-        arrivalCode: current.arrivalCode,
+      // Use trip-based search
+      final searchResponse = await _flightSearchService.searchFlights(
+        current.tripId,
+        originIata: current.departureCode,
+        destinationIata: current.arrivalCode,
         departureDate: departureDateStr,
         returnDate: returnDateStr,
         adults: current.adults,
         children: current.children,
         infants: current.infants,
         travelClass: current.travelClass.toUpperCase(),
-        multiDestSegments: current.multiDestSegments,
       );
+
+      // Fetch full details for each offer
+      final flights = <Flight>[];
+      for (final offer in searchResponse.offers) {
+        try {
+          final offerDetails = await _flightSearchService.getFlightOffer(
+            current.tripId,
+            offer.id,
+          );
+          if (offerDetails['offer'] != null) {
+            final flight = Flight.fromAmadeusJson(
+              offerDetails['offer'] as Map<String, dynamic>,
+              databaseOfferId: offer.id, // Pass the database offer ID
+            );
+            flights.add(flight);
+          }
+        } catch (e) {
+          debugPrint(
+            'Warning: Could not fetch full details for offer ${offer.id}: $e',
+          );
+        }
+      }
 
       var filteredFlights = List<Flight>.from(flights);
 
@@ -269,6 +324,8 @@ class FlightSearchResultBloc
           sortBy: current.sortBy,
           departureDate: newDepartureDate,
           returnDate: newReturnDate,
+          tripId: current.tripId,
+          searchId: searchResponse.searchId,
           departureCode: current.departureCode,
           arrivalCode: current.arrivalCode,
           adults: current.adults,

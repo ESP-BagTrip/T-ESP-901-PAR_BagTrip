@@ -50,12 +50,22 @@ class StripePaymentsService:
         if not user:
             raise AppError("USER_NOT_FOUND", 404, "User not found")
 
+        # Create Stripe customer on-demand if missing
         if not user.stripe_customer_id:
-            raise AppError(
-                "MISSING_STRIPE_CUSTOMER",
-                400,
-                "User does not have a Stripe customer ID. Please contact support or re-register.",
-            )
+            try:
+                stripe_customer = StripeClient.create_customer(
+                    email=user.email,
+                    name=user.full_name,
+                )
+                user.stripe_customer_id = stripe_customer.id
+                db.commit()
+                db.refresh(user)
+            except Exception as e:
+                raise AppError(
+                    "STRIPE_CUSTOMER_CREATION_FAILED",
+                    500,
+                    f"Failed to create Stripe customer: {str(e)}",
+                ) from e
 
         # Convertir le montant en cents (minor units)
         amount_cents = int(float(booking_intent.amount) * 100)

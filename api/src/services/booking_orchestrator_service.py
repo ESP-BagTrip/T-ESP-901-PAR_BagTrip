@@ -106,10 +106,72 @@ class BookingOrchestratorService:
         if not flight_offer:
             raise AppError("OFFER_NOT_FOUND", 404, "Flight offer not found")
 
-        # Charger les travelers
+        # Construire le payload Amadeus
+        # Amadeus recommande d'utiliser une offre repricée (priced) avant le booking
+        flight_offer_data = (
+            flight_offer.priced_offer_json
+            if flight_offer.priced_offer_json
+            else flight_offer.offer_json
+        )
+
+        if not flight_offer.priced_offer_json:
+            # Log a warning but proceed - some offers might work without repricing
+            from src.utils.logger import logger
+            logger.warning(
+                "Booking flight with unpriced offer",
+                {
+                    "offer_id": str(flight_offer.id),
+                    "note": "Consider pricing the offer first for better reliability",
+                },
+            )
+
+        if isinstance(flight_offer_data, dict):
+            amadeus_offer = FlightOffer(**flight_offer_data)
+        else:
+            amadeus_offer = flight_offer_data
+
+        # Extraire les traveler IDs de l'offre Amadeus
+        # Les travelerPricings contiennent les IDs attendus par Amadeus (ex: "1", "2", etc.)
+        traveler_pricing_ids = []
+        if hasattr(amadeus_offer, "travelerPricings") and amadeus_offer.travelerPricings:
+            traveler_pricing_ids = [
+                tp.travelerId for tp in amadeus_offer.travelerPricings if hasattr(tp, "travelerId")
+            ]
+        elif isinstance(flight_offer_data, dict):
+            # Fallback: extraire depuis le dict
+            traveler_pricings = flight_offer_data.get("travelerPricings", [])
+            traveler_pricing_ids = [
+                tp.get("travelerId")
+                for tp in traveler_pricings
+                if isinstance(tp, dict) and tp.get("travelerId")
+            ]
+
+        if not traveler_pricing_ids:
+            raise AppError(
+                "MISSING_TRAVELER_PRICINGS",
+                400,
+                "Flight offer does not contain travelerPricings. The offer may be invalid.",
+            )
+
+        if len(traveler_ids or []) != len(traveler_pricing_ids):
+            raise AppError(
+                "TRAVELER_COUNT_MISMATCH",
+                400,
+                f"Number of travelers ({len(traveler_ids or [])}) does not match "
+                f"travelerPricings in offer ({len(traveler_pricing_ids)}).",
+            )
+
+        # Charger les travelers et les mapper aux IDs Amadeus
         travelers = []
         if traveler_ids:
-            for traveler_id in traveler_ids:
+            for idx, traveler_id in enumerate(traveler_ids):
+                if idx >= len(traveler_pricing_ids):
+                    raise AppError(
+                        "TRAVELER_INDEX_OUT_OF_RANGE",
+                        400,
+                        f"Not enough travelerPricings in offer for traveler {traveler_id}",
+                    )
+
                 traveler = (
                     db.query(TripTraveler)
                     .filter(
@@ -122,20 +184,11 @@ class BookingOrchestratorService:
                 if not traveler:
                     raise AppError("TRAVELER_NOT_FOUND", 404, f"Traveler {traveler_id} not found")
 
-                # Mapper vers Amadeus
-                amadeus_traveler = TravelersService.traveler_to_amadeus_payload(traveler)
-                travelers.append(FlightOrderTraveler(**amadeus_traveler))
-
-        # Construire le payload Amadeus
-        flight_offer_data = (
-            flight_offer.priced_offer_json
-            if flight_offer.priced_offer_json
-            else flight_offer.offer_json
-        )
-        if isinstance(flight_offer_data, dict):
-            amadeus_offer = FlightOffer(**flight_offer_data)
-        else:
-            amadeus_offer = flight_offer_data
+                # Mapper vers Amadeus avec l'ID correct depuis travelerPricings
+                amadeus_traveler_payload = TravelersService.traveler_to_amadeus_payload(traveler)
+                # Remplacer l'ID par celui attendu par Amadeus
+                amadeus_traveler_payload["id"] = traveler_pricing_ids[idx]
+                travelers.append(FlightOrderTraveler(**amadeus_traveler_payload))
 
         # Appeler Amadeus
         order_response = await amadeus_client.create_flight_order(amadeus_offer, travelers)

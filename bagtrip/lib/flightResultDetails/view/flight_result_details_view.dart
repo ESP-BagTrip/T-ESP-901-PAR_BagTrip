@@ -9,10 +9,13 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class FlightResultDetailsView extends StatelessWidget {
-  const FlightResultDetailsView({super.key});
+  final String? tripId;
+
+  const FlightResultDetailsView({super.key, this.tripId});
 
   @override
   Widget build(BuildContext context) {
@@ -126,6 +129,41 @@ class FlightResultDetailsView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 32),
+                // Book Flight button
+                Padding(
+                  padding: AppSpacing.allEdgeInsetSpace16,
+                  child: ElevatedButton(
+                    onPressed:
+                        tripId == null
+                            ? null
+                            : () {
+                              // Use databaseOfferId if available, otherwise fall back to flight.id
+                              final offerId =
+                                  flight.databaseOfferId ?? flight.id;
+                              context.pushNamed(
+                                'flight-booking',
+                                extra: {
+                                  'tripId': tripId,
+                                  'offerId': offerId,
+                                  'price': flight.price,
+                                  'currency': 'EUR', // Default currency
+                                },
+                              );
+                            },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: ColorName.primary,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text(
+                      'Book Flight',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           );

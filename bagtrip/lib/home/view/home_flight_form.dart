@@ -13,6 +13,7 @@ import 'package:bagtrip/home/widgets/multi_destination_form.dart';
 import 'package:bagtrip/home/widgets/passengers_row.dart';
 import 'package:bagtrip/home/widgets/trip_type_selector.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/service/trip_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -325,13 +326,35 @@ class HomeFlightForm extends StatelessWidget {
     );
   }
 
-  void _onSearch(BuildContext context, HomeFlightLoaded loadedState) {
+  Future<void> _onSearch(
+    BuildContext context,
+    HomeFlightLoaded loadedState,
+  ) async {
     final classMap = {0: 'ECONOMY', 1: 'PREMIUM_ECONOMY', 2: 'BUSINESS'};
+
+    // Create a trip first if we don't have one
+    final tripService = TripService();
+    String tripId;
+    try {
+      final trip = await tripService.createTrip(
+        title: 'Flight Search',
+        originIata: loadedState.departureAirport?['iataCode'],
+        destinationIata: loadedState.arrivalAirport?['iataCode'],
+        startDate: loadedState.departureDate,
+        endDate: loadedState.returnDate,
+      );
+      tripId = trip.id;
+    } catch (e) {
+      if (!context.mounted) return;
+      AppSnackBar.showError(context, message: 'Failed to create trip: $e');
+      return;
+    }
 
     FlightSearchArguments? args;
 
     if (loadedState.tripTypeIndex == 2) {
       if (loadedState.multiDestSegments.isEmpty) {
+        if (!context.mounted) return;
         AppSnackBar.showError(
           context,
           message: AppLocalizations.of(context)!.errorAddAtLeastOneFlight,
@@ -350,6 +373,7 @@ class HomeFlightForm extends StatelessWidget {
       }
 
       if (hasError) {
+        if (!context.mounted) return;
         context.read<HomeFlightBloc>().add(ShowValidationErrors());
         AppSnackBar.showError(
           context,
@@ -360,6 +384,7 @@ class HomeFlightForm extends StatelessWidget {
 
       final firstSegment = loadedState.multiDestSegments.first;
       args = FlightSearchArguments(
+        tripId: tripId,
         departureCode: firstSegment.departureAirport!['iataCode'] ?? '',
         arrivalCode: firstSegment.arrivalAirport!['iataCode'] ?? '',
         departureDate: firstSegment.departureDate!,
@@ -380,6 +405,7 @@ class HomeFlightForm extends StatelessWidget {
       }
 
       if (hasError) {
+        if (!context.mounted) return;
         context.read<HomeFlightBloc>().add(ShowValidationErrors());
         AppSnackBar.showError(
           context,
@@ -389,6 +415,7 @@ class HomeFlightForm extends StatelessWidget {
       }
 
       args = FlightSearchArguments(
+        tripId: tripId,
         departureCode: loadedState.departureAirport!['iataCode'] ?? '',
         arrivalCode: loadedState.arrivalAirport!['iataCode'] ?? '',
         departureDate: loadedState.departureDate!,

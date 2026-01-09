@@ -125,7 +125,7 @@ class FlightSearchResultView extends StatelessWidget {
                           );
                           context.pushNamed(
                             'flight-result-details',
-                            extra: flight,
+                            extra: {'flight': flight, 'tripId': state.tripId},
                           );
                         }
                       },

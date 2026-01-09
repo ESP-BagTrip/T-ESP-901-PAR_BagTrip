@@ -462,7 +462,15 @@ async def create_flight_order(
     ).model_dump(by_alias=True, exclude_none=True)
 
     try:
-        logger.info("Making Amadeus flight order creation request", {"url": url})
+        logger.info(
+            "Making Amadeus flight order creation request",
+            {
+                "url": url,
+                "travelers_count": len(travelers),
+                "body_keys": list(body.keys()) if isinstance(body, dict) else None,
+            },
+        )
+        logger.debug("Amadeus flight order request body", {"body": body})
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
@@ -480,19 +488,37 @@ async def create_flight_order(
         )
 
         if response.status_code not in [200, 201]:
-            logger.error(
-                "Amadeus flight order creation failed",
-                {
-                    "status": response.status_code,
-                    "response": response.text,
-                },
-            )
+            error_message = f"Amadeus flight order creation failed: {response.status_code}"
             try:
                 error_data = response.json()
-                logger.error("Amadeus error details", {"errors": error_data.get("errors")})
-            except Exception:
-                pass
-            raise Exception(f"Amadeus flight order creation failed: {response.status_code}")
+                errors = error_data.get("errors", [])
+                if errors:
+                    error_details = []
+                    for error in errors:
+                        detail = error.get("detail", "")
+                        source = error.get("source", {})
+                        error_details.append(
+                            f"{detail} (field: {source.get('pointer', 'unknown')})"
+                        )
+                    error_message = f"{error_message}. Errors: {'; '.join(error_details)}"
+                logger.error(
+                    "Amadeus flight order creation failed",
+                    {
+                        "status": response.status_code,
+                        "errors": errors,
+                        "response": response.text[:500],  # Limit response size
+                    },
+                )
+            except Exception as e:
+                logger.error(
+                    "Amadeus flight order creation failed",
+                    {
+                        "status": response.status_code,
+                        "response": response.text[:500],
+                        "parse_error": str(e),
+                    },
+                )
+            raise Exception(error_message)
 
         data = response.json()
 

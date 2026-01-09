@@ -6,8 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class FlightResultDetailsPage extends StatelessWidget {
   final Flight flight;
+  final String? tripId;
 
-  const FlightResultDetailsPage({super.key, required this.flight});
+  const FlightResultDetailsPage({super.key, required this.flight, this.tripId});
 
   static const String routePath = '/flight-result-details';
 
@@ -17,7 +18,7 @@ class FlightResultDetailsPage extends StatelessWidget {
       create:
           (context) =>
               FlightResultDetailsBloc()..add(LoadFlightDetails(flight)),
-      child: const FlightResultDetailsView(),
+      child: FlightResultDetailsView(tripId: tripId),
     );
   }
 }

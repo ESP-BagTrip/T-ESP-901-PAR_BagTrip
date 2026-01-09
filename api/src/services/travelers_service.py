@@ -203,21 +203,51 @@ class TravelersService:
             else []
         ):
             if isinstance(doc, dict):
-                # Ajouter validityCountry si manquant (utiliser issuanceCountry ou nationality comme fallback)
+                # Ajouter validityCountry si manquant
+                # (utiliser issuanceCountry ou nationality comme fallback)
                 if "validityCountry" not in doc:
                     doc["validityCountry"] = (
-                        doc.get("issuanceCountry") or doc.get("nationality") or "FR"
+                        doc.get("issuanceCountry")
+                        or doc.get("nationality")
+                        or "FR"
                     )
                 documents.append(doc)
 
+        # Valider et normaliser le gender (requis pour Amadeus)
+        if not traveler.gender:
+            raise AppError(
+                "MISSING_GENDER",
+                400,
+                f"Gender is required for traveler {traveler.id}. "
+                "Please provide 'MALE' or 'FEMALE'.",
+            )
+
+        # Normaliser le gender en majuscules
+        gender_upper = traveler.gender.upper().strip()
+        if gender_upper not in ("MALE", "FEMALE"):
+            raise AppError(
+                "INVALID_GENDER",
+                400,
+                f"Invalid gender '{traveler.gender}' for traveler {traveler.id}. "
+                "Must be 'MALE' or 'FEMALE'.",
+            )
+
+        # Valider dateOfBirth (requis pour Amadeus)
+        if not traveler.date_of_birth:
+            raise AppError(
+                "MISSING_DATE_OF_BIRTH",
+                400,
+                f"Date of birth is required for traveler {traveler.id}.",
+            )
+
         payload = {
             "id": traveler.amadeus_traveler_ref or str(traveler.id),
-            "dateOfBirth": traveler.date_of_birth.isoformat() if traveler.date_of_birth else None,
+            "dateOfBirth": traveler.date_of_birth.isoformat(),
             "name": {
                 "firstName": traveler.first_name,
                 "lastName": traveler.last_name,
             },
-            "gender": traveler.gender,
+            "gender": gender_upper,
             "contact": contact,
             "documents": documents if documents else None,
         }

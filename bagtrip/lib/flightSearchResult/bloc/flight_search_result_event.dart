@@ -4,6 +4,7 @@ part of 'flight_search_result_bloc.dart';
 sealed class FlightSearchResultEvent {}
 
 class LoadFlights extends FlightSearchResultEvent {
+  final String tripId;
   final String departureCode;
   final String arrivalCode;
   final DateTime departureDate;
@@ -16,6 +17,7 @@ class LoadFlights extends FlightSearchResultEvent {
   final double? maxPrice;
 
   LoadFlights({
+    required this.tripId,
     required this.departureCode,
     required this.arrivalCode,
     required this.departureDate,

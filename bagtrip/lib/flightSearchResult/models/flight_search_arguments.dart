@@ -1,6 +1,7 @@
 import 'package:bagtrip/home/models/flight_segment.dart';
 
 class FlightSearchArguments {
+  final String tripId;
   final String departureCode;
   final String arrivalCode;
   final DateTime departureDate;
@@ -13,6 +14,7 @@ class FlightSearchArguments {
   final double? maxPrice;
 
   FlightSearchArguments({
+    required this.tripId,
     required this.departureCode,
     required this.arrivalCode,
     required this.departureDate,

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/primary_button.dart';
+import 'package:bagtrip/service/auth_service.dart';
+import 'package:go_router/go_router.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -51,6 +53,22 @@ class _ProfilePageState extends State<ProfilePage> {
                 label: 'Modifier le profil',
                 icon: const Icon(Icons.edit_outlined),
                 onPressed: () {},
+              ),
+              const SizedBox(height: AppSpacing.space16),
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final authService = AuthService();
+                  await authService.logout();
+                  if (context.mounted) {
+                    context.go('/login');
+                  }
+                },
+                icon: const Icon(Icons.logout),
+                label: const Text('Se déconnecter'),
+                style: OutlinedButton.styleFrom(
+                  padding: AppSpacing.allEdgeInsetSpace16,
+                  minimumSize: const Size(double.infinity, 48),
+                ),
               ),
             ],
           ),

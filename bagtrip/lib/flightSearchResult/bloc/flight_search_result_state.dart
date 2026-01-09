@@ -17,6 +17,8 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
   final DateTime departureDate;
   final DateTime? returnDate;
   // Store original search parameters for date change
+  final String tripId;
+  final String? searchId; // Store searchId from trip-based search
   final String departureCode;
   final String arrivalCode;
   final int adults;
@@ -41,6 +43,8 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
     this.selectedDateIndex = 0,
     required this.departureDate,
     this.returnDate,
+    required this.tripId,
+    this.searchId,
     required this.departureCode,
     required this.arrivalCode,
     required this.adults,
@@ -65,6 +69,8 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
     int? selectedDateIndex,
     DateTime? departureDate,
     DateTime? returnDate,
+    String? tripId,
+    String? searchId,
     String? departureCode,
     String? arrivalCode,
     int? adults,
@@ -88,6 +94,8 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
       selectedDateIndex: selectedDateIndex ?? this.selectedDateIndex,
       departureDate: departureDate ?? this.departureDate,
       returnDate: returnDate ?? this.returnDate,
+      tripId: tripId ?? this.tripId,
+      searchId: searchId ?? this.searchId,
       departureCode: departureCode ?? this.departureCode,
       arrivalCode: arrivalCode ?? this.arrivalCode,
       adults: adults ?? this.adults,

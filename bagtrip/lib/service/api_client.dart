@@ -74,13 +74,31 @@ class ApiClient {
     String message;
     int? statusCode;
 
+    // Helper function to safely extract string from error data
+    String extractDetail(dynamic data) {
+      if (data is! Map) return 'Une erreur est survenue';
+      final detail = data['detail'];
+      if (detail == null) return 'Une erreur est survenue';
+      if (detail is String) return detail;
+      if (detail is Map) {
+        // If detail is a map, try to extract a message field or convert to string
+        final msg = detail['message'] ?? detail['msg'];
+        if (msg is String) return msg;
+        return detail.toString();
+      }
+      return detail.toString();
+    }
+
     if (error.response != null) {
       statusCode = error.response!.statusCode;
       final data = error.response!.data;
 
       switch (statusCode) {
         case 400:
-          message = data['detail'] ?? 'Requête invalide';
+          message = extractDetail(data);
+          if (message == 'Une erreur est survenue') {
+            message = 'Requête invalide';
+          }
           break;
         case 401:
           message = 'Non authentifié. Veuillez vous reconnecter.';
@@ -97,7 +115,10 @@ class ApiClient {
           if (data is Map && data['error'] == 'stale_context') {
             message = 'Le contexte a été mis à jour. Veuillez rafraîchir.';
           } else {
-            message = data['detail'] ?? 'Conflit de version';
+            message = extractDetail(data);
+            if (message == 'Une erreur est survenue') {
+              message = 'Conflit de version';
+            }
           }
           break;
         case 429:
@@ -107,7 +128,7 @@ class ApiClient {
           message = 'Erreur serveur. Veuillez réessayer plus tard.';
           break;
         default:
-          message = data['detail'] ?? 'Une erreur est survenue';
+          message = extractDetail(data);
       }
     } else if (error.type == DioExceptionType.connectionTimeout ||
         error.type == DioExceptionType.receiveTimeout) {
