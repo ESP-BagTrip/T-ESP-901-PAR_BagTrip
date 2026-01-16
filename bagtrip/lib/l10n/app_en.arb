@@ -115,5 +115,32 @@
   "flightCardTitle": "Flight",
   "hotelCardTitle": "Hotel",
   "flightAndHotelCardTitle": "Flight + Hotel",
-  "otherCardTitle": "Others"
+  "otherCardTitle": "Others",
+  "handleBudget": "Manage your budget",
+  "trackExpensesAndPlan": "Track your expenses and plan your trip according to your budget",
+  "addExpense": "Add expense",
+  "myProfile": "My profile",
+  "managePersonalInfo": "Manage your personal information and preferences",
+  "editProfile": "Edit profile",
+  "viewDestinations": "View destinations",
+  "exploreDestinations": "Explore available destinations on an interactive map",
+  "startButton": "Start",
+  "newTrip": "New trip",
+  "createYourTrip": "Create your trip",
+  "nameTripToStart": "Name your trip to start planning",
+  "tripNameLabel": "Trip name",
+  "tripNameHint": "Ex: Vacation in Paris",
+  "continueButton": "Continue",
+  "aiPlanning": "AI Planning",
+  "retryButton": "Retry",
+  "searchingInProgress": "Searching...",
+  "typeYourMessage": "Type your message...",
+  "planningTitle": "Planning {title}",
+  "@planningTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  }
 }

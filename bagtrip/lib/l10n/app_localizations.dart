@@ -505,6 +505,126 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Autres'**
   String get otherCardTitle;
+
+  /// No description provided for @handleBudget.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gérer votre budget'**
+  String get handleBudget;
+
+  /// No description provided for @trackExpensesAndPlan.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivez vos dépenses et planifiez votre voyage selon votre budget'**
+  String get trackExpensesAndPlan;
+
+  /// No description provided for @addExpense.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une dépense'**
+  String get addExpense;
+
+  /// No description provided for @myProfile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon profil'**
+  String get myProfile;
+
+  /// No description provided for @managePersonalInfo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gérez vos informations personnelles et vos préférences'**
+  String get managePersonalInfo;
+
+  /// No description provided for @editProfile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le profil'**
+  String get editProfile;
+
+  /// No description provided for @viewDestinations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Visualiser les destinations'**
+  String get viewDestinations;
+
+  /// No description provided for @exploreDestinations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Explorez les destinations disponibles sur une carte interactive'**
+  String get exploreDestinations;
+
+  /// No description provided for @startButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commencer'**
+  String get startButton;
+
+  /// No description provided for @newTrip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau voyage'**
+  String get newTrip;
+
+  /// No description provided for @createYourTrip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créez votre voyage'**
+  String get createYourTrip;
+
+  /// No description provided for @nameTripToStart.
+  ///
+  /// In fr, this message translates to:
+  /// **'Donnez un nom à votre voyage pour commencer la planification'**
+  String get nameTripToStart;
+
+  /// No description provided for @tripNameLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom du voyage'**
+  String get tripNameLabel;
+
+  /// No description provided for @tripNameHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex: Vacances à Paris'**
+  String get tripNameHint;
+
+  /// No description provided for @continueButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Continuer'**
+  String get continueButton;
+
+  /// No description provided for @aiPlanning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planification IA'**
+  String get aiPlanning;
+
+  /// No description provided for @retryButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get retryButton;
+
+  /// No description provided for @searchingInProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recherche en cours...'**
+  String get searchingInProgress;
+
+  /// No description provided for @typeYourMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tapez votre message...'**
+  String get typeYourMessage;
+
+  /// No description provided for @planningTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planification {title}'**
+  String planningTitle(String title);
 }
 
 class _AppLocalizationsDelegate

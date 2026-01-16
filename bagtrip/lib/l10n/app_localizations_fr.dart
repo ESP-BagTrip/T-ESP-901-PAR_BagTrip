@@ -241,4 +241,70 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get otherCardTitle => 'Autres';
+
+  @override
+  String get handleBudget => 'Gérer votre budget';
+
+  @override
+  String get trackExpensesAndPlan =>
+      'Suivez vos dépenses et planifiez votre voyage selon votre budget';
+
+  @override
+  String get addExpense => 'Ajouter une dépense';
+
+  @override
+  String get myProfile => 'Mon profil';
+
+  @override
+  String get managePersonalInfo =>
+      'Gérez vos informations personnelles et vos préférences';
+
+  @override
+  String get editProfile => 'Modifier le profil';
+
+  @override
+  String get viewDestinations => 'Visualiser les destinations';
+
+  @override
+  String get exploreDestinations =>
+      'Explorez les destinations disponibles sur une carte interactive';
+
+  @override
+  String get startButton => 'Commencer';
+
+  @override
+  String get newTrip => 'Nouveau voyage';
+
+  @override
+  String get createYourTrip => 'Créez votre voyage';
+
+  @override
+  String get nameTripToStart =>
+      'Donnez un nom à votre voyage pour commencer la planification';
+
+  @override
+  String get tripNameLabel => 'Nom du voyage';
+
+  @override
+  String get tripNameHint => 'Ex: Vacances à Paris';
+
+  @override
+  String get continueButton => 'Continuer';
+
+  @override
+  String get aiPlanning => 'Planification IA';
+
+  @override
+  String get retryButton => 'Réessayer';
+
+  @override
+  String get searchingInProgress => 'Recherche en cours...';
+
+  @override
+  String get typeYourMessage => 'Tapez votre message...';
+
+  @override
+  String planningTitle(String title) {
+    return 'Planification $title';
+  }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/primary_button.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 
 class BudgetPage extends StatefulWidget {
   const BudgetPage({super.key});
@@ -27,12 +28,12 @@ class _BudgetPageState extends State<BudgetPage> {
               ),
               const SizedBox(height: AppSpacing.space16),
               Text(
-                'Gérer votre budget',
+                AppLocalizations.of(context)!.handleBudget,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: AppSpacing.space8),
               Text(
-                'Suivez vos dépenses et planifiez votre voyage selon votre budget',
+                AppLocalizations.of(context)!.trackExpensesAndPlan,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: ColorName.primaryTrueDark.withValues(alpha: 0.7),
@@ -40,7 +41,7 @@ class _BudgetPageState extends State<BudgetPage> {
               ),
               const SizedBox(height: AppSpacing.space32),
               PrimaryButton(
-                label: 'Ajouter une dépense',
+                label: AppLocalizations.of(context)!.addExpense,
                 icon: const Icon(Icons.add_circle_outline),
                 onPressed: () {},
               ),

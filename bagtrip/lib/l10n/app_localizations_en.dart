@@ -239,4 +239,69 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get otherCardTitle => 'Others';
+
+  @override
+  String get handleBudget => 'Manage your budget';
+
+  @override
+  String get trackExpensesAndPlan =>
+      'Track your expenses and plan your trip according to your budget';
+
+  @override
+  String get addExpense => 'Add expense';
+
+  @override
+  String get myProfile => 'My profile';
+
+  @override
+  String get managePersonalInfo =>
+      'Manage your personal information and preferences';
+
+  @override
+  String get editProfile => 'Edit profile';
+
+  @override
+  String get viewDestinations => 'View destinations';
+
+  @override
+  String get exploreDestinations =>
+      'Explore available destinations on an interactive map';
+
+  @override
+  String get startButton => 'Start';
+
+  @override
+  String get newTrip => 'New trip';
+
+  @override
+  String get createYourTrip => 'Create your trip';
+
+  @override
+  String get nameTripToStart => 'Name your trip to start planning';
+
+  @override
+  String get tripNameLabel => 'Trip name';
+
+  @override
+  String get tripNameHint => 'Ex: Vacation in Paris';
+
+  @override
+  String get continueButton => 'Continue';
+
+  @override
+  String get aiPlanning => 'AI Planning';
+
+  @override
+  String get retryButton => 'Retry';
+
+  @override
+  String get searchingInProgress => 'Searching...';
+
+  @override
+  String get typeYourMessage => 'Type your message...';
+
+  @override
+  String planningTitle(String title) {
+    return 'Planning $title';
+  }
 }

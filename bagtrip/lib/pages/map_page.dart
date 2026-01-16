@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/primary_button.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -27,12 +28,12 @@ class _MapPageState extends State<MapPage> {
               ),
               const SizedBox(height: AppSpacing.space16),
               Text(
-                'Visualiser les destinations',
+                AppLocalizations.of(context)!.viewDestinations,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: AppSpacing.space8),
               Text(
-                'Explorez les destinations disponibles sur une carte interactive',
+                AppLocalizations.of(context)!.exploreDestinations,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: ColorName.primaryTrueDark.withValues(alpha: 0.7),
@@ -40,7 +41,7 @@ class _MapPageState extends State<MapPage> {
               ),
               const SizedBox(height: AppSpacing.space32),
               PrimaryButton(
-                label: 'Commencer',
+                label: AppLocalizations.of(context)!.startButton,
                 icon: const Icon(Icons.location_on_outlined),
                 onPressed: () {},
               ),

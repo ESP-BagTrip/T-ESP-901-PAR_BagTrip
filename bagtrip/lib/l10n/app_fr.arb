@@ -115,5 +115,32 @@
   "flightCardTitle": "Vol",
   "hotelCardTitle": "Hôtel",
   "flightAndHotelCardTitle": "Vol + Hôtel",
-  "otherCardTitle": "Autres"
+  "otherCardTitle": "Autres",
+  "handleBudget": "Gérer votre budget",
+  "trackExpensesAndPlan": "Suivez vos dépenses et planifiez votre voyage selon votre budget",
+  "addExpense": "Ajouter une dépense",
+  "myProfile": "Mon profil",
+  "managePersonalInfo": "Gérez vos informations personnelles et vos préférences",
+  "editProfile": "Modifier le profil",
+  "viewDestinations": "Visualiser les destinations",
+  "exploreDestinations": "Explorez les destinations disponibles sur une carte interactive",
+  "startButton": "Commencer",
+  "newTrip": "Nouveau voyage",
+  "createYourTrip": "Créez votre voyage",
+  "nameTripToStart": "Donnez un nom à votre voyage pour commencer la planification",
+  "tripNameLabel": "Nom du voyage",
+  "tripNameHint": "Ex: Vacances à Paris",
+  "continueButton": "Continuer",
+  "aiPlanning": "Planification IA",
+  "retryButton": "Réessayer",
+  "searchingInProgress": "Recherche en cours...",
+  "typeYourMessage": "Tapez votre message...",
+  "planningTitle": "Planification {title}",
+  "@planningTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  }
 }

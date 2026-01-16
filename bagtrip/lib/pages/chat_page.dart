@@ -4,6 +4,7 @@ import 'package:bagtrip/chat/bloc/chat_state.dart';
 import 'package:bagtrip/chat/widgets/widget_renderer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 
 class ChatPage extends StatefulWidget {
   final String tripId;
@@ -77,7 +78,7 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Planification IA'),
+        title: Text(AppLocalizations.of(context)!.aiPlanning),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -120,7 +121,7 @@ class _ChatPageState extends State<ChatPage> {
                         LoadHistory(conversationId: widget.conversationId),
                       );
                     },
-                    child: const Text('Réessayer'),
+                    child: Text(AppLocalizations.of(context)!.retryButton),
                   ),
                 ],
               ),
@@ -216,7 +217,7 @@ class _ChatPageState extends State<ChatPage> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Recherche en cours...',
+                            AppLocalizations.of(context)!.searchingInProgress,
                             style: TextStyle(color: Colors.blue[800]),
                           ),
                         ],
@@ -269,10 +270,10 @@ class _ChatPageState extends State<ChatPage> {
                         Expanded(
                           child: TextField(
                             controller: _messageController,
-                            decoration: const InputDecoration(
-                              hintText: 'Tapez votre message...',
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(
+                            decoration: InputDecoration(
+                              hintText: AppLocalizations.of(context)!.typeYourMessage,
+                              border: const OutlineInputBorder(),
+                              contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 12,
                               ),

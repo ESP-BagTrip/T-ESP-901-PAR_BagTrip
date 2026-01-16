@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:bagtrip/service/trip_service.dart';
 import 'package:bagtrip/service/conversation_service.dart';
 import 'package:bagtrip/pages/travelers_page.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 
 class CreateTripPage extends StatefulWidget {
   const CreateTripPage({super.key});
@@ -40,10 +41,15 @@ class _CreateTripPageState extends State<CreateTripPage> {
         title: _titleController.text.trim(),
       );
 
+      // Préparer le titre de la conversation avant l'appel asynchrone
+      if (!mounted) return;
+      final localizations = AppLocalizations.of(context)!;
+      final conversationTitle = localizations.planningTitle(trip.title ?? 'Voyage');
+
       // Créer la conversation associée
       final conversation = await _conversationService.createConversation(
         trip.id,
-        title: 'Planification ${trip.title}',
+        title: conversationTitle,
       );
 
       // Navigation vers TravelersPage
@@ -69,7 +75,7 @@ class _CreateTripPageState extends State<CreateTripPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Nouveau voyage')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.newTrip)),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -80,12 +86,12 @@ class _CreateTripPageState extends State<CreateTripPage> {
               children: [
                 const SizedBox(height: 24),
                 Text(
-                  'Créez votre voyage',
+                  AppLocalizations.of(context)!.createYourTrip,
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Donnez un nom à votre voyage pour commencer la planification',
+                  AppLocalizations.of(context)!.nameTripToStart,
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
@@ -93,11 +99,11 @@ class _CreateTripPageState extends State<CreateTripPage> {
                 const SizedBox(height: 32),
                 TextFormField(
                   controller: _titleController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nom du voyage',
-                    hintText: 'Ex: Vacances à Paris',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.flight_takeoff),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.tripNameLabel,
+                    hintText: AppLocalizations.of(context)!.tripNameHint,
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.flight_takeoff),
                   ),
                   textCapitalization: TextCapitalization.words,
                   validator: (value) {
@@ -138,7 +144,7 @@ class _CreateTripPageState extends State<CreateTripPage> {
                             width: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                          : const Text('Continuer'),
+                          : Text(AppLocalizations.of(context)!.continueButton),
                 ),
                 const SizedBox(height: 16),
               ],

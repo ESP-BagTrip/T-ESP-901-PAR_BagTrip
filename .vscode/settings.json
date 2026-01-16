@@ -137,6 +137,7 @@
     "${workspaceFolder}/api/src"
   ],
   "python.analysis.autoImportCompletions": true,
-  "python.analysis.typeCheckingMode": "basic"
+  "python.analysis.typeCheckingMode": "basic",
+  "cmake.ignoreCMakeListsMissing": true
 }
 

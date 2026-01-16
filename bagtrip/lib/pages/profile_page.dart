@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/primary_button.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -35,12 +36,12 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: AppSpacing.space16),
               Text(
-                'Mon profil',
+                AppLocalizations.of(context)!.myProfile,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: AppSpacing.space8),
               Text(
-                'Gérez vos informations personnelles et vos préférences',
+                AppLocalizations.of(context)!.managePersonalInfo,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: ColorName.primaryTrueDark.withValues(alpha: 0.7),
@@ -48,7 +49,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: AppSpacing.space32),
               PrimaryButton(
-                label: 'Modifier le profil',
+                label: AppLocalizations.of(context)!.editProfile,
                 icon: const Icon(Icons.edit_outlined),
                 onPressed: () {},
               ),
