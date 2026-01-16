@@ -1,7 +1,9 @@
 describe('Flight Bookings Table', () => {
   beforeEach(() => {
     cy.visitDashboard()
-    cy.contains('Réservations Vols').click()
+    // Wait for dashboard to load and tabs to be visible
+    cy.get('table', { timeout: 10000 }).should('be.visible')
+    cy.contains('Réservations Vols', { timeout: 10000 }).should('be.visible').click()
     cy.wait('@getFlightBookings')
   })
 
@@ -55,25 +57,27 @@ describe('Flight Bookings Table', () => {
     })
   })
 
-  describe('Empty State', () => {
-    it('should show empty state when no flight bookings', () => {
-      cy.loginWithMock()
-      cy.mockUsersAPI()
-      cy.mockTripsAPI()
-      cy.mockTravelersAPI()
-      cy.mockHotelBookingsAPI()
-      cy.mockFlightBookingsAPI(true)
-
-      cy.visit('/dashboard')
-      cy.contains('Réservations Vols').click()
-
-      cy.contains('Aucune donnée disponible').should('be.visible')
-    })
-  })
-
   describe('Tab Count', () => {
     it('should show flight bookings count in tab', () => {
       cy.contains('Réservations Vols').parent().should('contain', '8')
     })
+  })
+})
+
+// Separate describe block for empty state test that needs different setup
+describe('Flight Bookings Table - Empty State', () => {
+  it('should show empty state when no flight bookings', () => {
+    cy.loginWithMock()
+    cy.mockUsersAPI()
+    cy.mockTripsAPI()
+    cy.mockTravelersAPI()
+    cy.mockHotelBookingsAPI()
+    cy.mockFlightBookingsAPI(true)
+
+    cy.visit('/dashboard')
+    cy.get('table', { timeout: 10000 }).should('be.visible')
+    cy.contains('Réservations Vols').click()
+
+    cy.contains('Aucune donnée disponible').should('be.visible')
   })
 })

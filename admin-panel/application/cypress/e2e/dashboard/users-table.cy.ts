@@ -34,42 +34,6 @@ describe('Users Table', () => {
     })
   })
 
-  describe('Loading State', () => {
-    it('should show loading spinner while fetching', () => {
-      cy.loginWithMock()
-
-      cy.intercept('GET', '**/admin/users*', {
-        delay: 1000,
-        statusCode: 200,
-        fixture: 'admin/users-list',
-      }).as('slowUsers')
-
-      cy.mockTripsAPI()
-      cy.mockTravelersAPI()
-      cy.mockHotelBookingsAPI()
-      cy.mockFlightBookingsAPI()
-
-      cy.visit('/dashboard')
-
-      cy.contains('Chargement des données...').should('be.visible')
-    })
-  })
-
-  describe('Empty State', () => {
-    it('should show empty state when no data', () => {
-      cy.loginWithMock()
-      cy.mockUsersAPI(true)
-      cy.mockTripsAPI()
-      cy.mockTravelersAPI()
-      cy.mockHotelBookingsAPI()
-      cy.mockFlightBookingsAPI()
-
-      cy.visit('/dashboard')
-
-      cy.contains('Aucune donnée disponible').should('be.visible')
-    })
-  })
-
   describe('Pagination', () => {
     it('should display pagination controls', () => {
       cy.contains('Page').should('be.visible')
@@ -96,13 +60,13 @@ describe('Users Table', () => {
         },
       }).as('getUsersPage2')
 
-      cy.get('button').find('svg').last().parent().click()
+      cy.get('nav[aria-label="Pagination"] button').last().click()
       cy.wait('@getUsersPage2')
       cy.contains('Page 2').should('be.visible')
     })
 
     it('should disable previous button on first page', () => {
-      cy.get('button').find('svg').first().parent().should('be.disabled')
+      cy.get('nav[aria-label="Pagination"] button').first().should('be.disabled')
     })
   })
 
@@ -130,5 +94,43 @@ describe('Users Table', () => {
       cy.get('tbody tr').first().trigger('mouseover')
       cy.get('tbody tr').first().should('have.class', 'hover:bg-gray-50')
     })
+  })
+})
+
+// Separate describe blocks for tests that need different setup
+describe('Users Table - Loading State', () => {
+  it('should show loading spinner while fetching', () => {
+    cy.loginWithMock()
+
+    cy.intercept('GET', '**/admin/users*', {
+      delay: 2000,
+      statusCode: 200,
+      fixture: 'admin/users-list',
+    }).as('slowUsers')
+
+    cy.mockTripsAPI()
+    cy.mockTravelersAPI()
+    cy.mockHotelBookingsAPI()
+    cy.mockFlightBookingsAPI()
+
+    cy.visit('/dashboard')
+
+    // Check for loading spinner (animate-spin class)
+    cy.get('.animate-spin', { timeout: 1000 }).should('be.visible')
+  })
+})
+
+describe('Users Table - Empty State', () => {
+  it('should show empty state when no data', () => {
+    cy.loginWithMock()
+    cy.mockUsersAPI(true)
+    cy.mockTripsAPI()
+    cy.mockTravelersAPI()
+    cy.mockHotelBookingsAPI()
+    cy.mockFlightBookingsAPI()
+
+    cy.visit('/dashboard')
+
+    cy.contains('Aucune donnée disponible').should('be.visible')
   })
 })

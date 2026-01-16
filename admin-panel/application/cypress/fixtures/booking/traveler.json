@@ -1,11 +1,11 @@
 {
   "id": "created-traveler-001-uuid-4a5b-8c9d",
-  "trip_id": "created-trip-001-uuid-4a5b-8c9d",
-  "amadeus_traveler_ref": "1",
-  "traveler_type": "ADULT",
-  "first_name": "John",
-  "last_name": "Doe",
-  "date_of_birth": "1990-05-15",
+  "tripId": "created-trip-001-uuid-4a5b-8c9d",
+  "amadeusTravelerRef": "1",
+  "travelerType": "ADULT",
+  "firstName": "John",
+  "lastName": "Doe",
+  "dateOfBirth": "1990-05-15",
   "gender": "MALE",
   "documents": [
     {
@@ -20,6 +20,6 @@
     "emailAddress": "admin@bagtrip.com",
     "phoneNumber": "+33612345678"
   },
-  "created_at": "2024-01-15T10:05:00.000Z",
-  "updated_at": "2024-01-15T10:05:00.000Z"
+  "createdAt": "2024-01-15T10:05:00.000Z",
+  "updatedAt": "2024-01-15T10:05:00.000Z"
 }

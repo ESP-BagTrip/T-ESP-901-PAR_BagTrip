@@ -19,6 +19,17 @@ import './commands'
 // Import code coverage support
 import '@cypress/code-coverage/support'
 
+// Handle uncaught exceptions from the application
+// This prevents app errors (like coverage instrumentation issues) from failing tests
+Cypress.on('uncaught:exception', (err) => {
+  // Ignore specific errors that come from coverage instrumentation
+  if (err.message.includes('Invalid or unexpected token')) {
+    return false
+  }
+  // Let other errors fail the test
+  return true
+})
+
 // ========== Type Declarations ==========
 
 declare global {

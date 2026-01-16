@@ -11,6 +11,10 @@ describe('Flight Booking Flow', () => {
     cy.mockBookingIntentStatus('AUTHORIZED')
     cy.visit('/test')
 
+    // Wait for authentication to complete and page to show content
+    cy.wait('@getCurrentUser')
+    cy.contains('Test View - Booking Flow', { timeout: 10000 }).should('be.visible')
+
     // Create trip first
     cy.contains('2. Create Trip').click()
     cy.contains('Créer un Trip (Paris → Rome)').click()
@@ -66,12 +70,14 @@ describe('Flight Booking Flow', () => {
 
     it('should allow selecting an offer', () => {
       cy.get('.cursor-pointer').first().click()
-      cy.contains('Sélectionné').should('be.visible')
+      // After selecting, the offer shows "✓ Sélectionné"
+      cy.contains('✓ Sélectionné').should('be.visible')
     })
 
     it('should show selected indicator', () => {
       cy.get('.cursor-pointer').first().click()
-      cy.contains('Offre sélectionnée').should('be.visible')
+      // The summary shows "• Offre sélectionnée" next to "Offres trouvées:"
+      cy.contains('• Offre sélectionnée').should('be.visible')
     })
 
     it('should toggle offer visibility', () => {
@@ -88,20 +94,29 @@ describe('Flight Booking Flow', () => {
       cy.contains('4. Flight Booking Flow').click()
       cy.contains('Rechercher des vols').click()
       cy.wait('@searchFlights')
+      // Wait for offers to appear, then select one
+      cy.contains('Offres trouvées:').should('be.visible')
       cy.get('.cursor-pointer').first().click()
+      // Wait for selection to be reflected
+      cy.contains('✓ Sélectionné').should('be.visible')
     })
 
     it('should create booking intent for flight', () => {
-      cy.contains('Créer Booking Intent (Flight)').click()
+      // Ensure button is enabled before clicking
+      cy.contains('Créer Booking Intent (Flight)').should('not.be.disabled').click()
 
       cy.wait('@createBookingIntent')
-      cy.contains('Status:').should('be.visible')
+      // Re-open the flight section since creating booking intent changes activeSection
+      cy.contains('4. Flight Booking Flow').click()
+      cy.contains('Status:', { timeout: 10000 }).should('be.visible')
     })
 
     it('should display booking intent status', () => {
       cy.contains('Créer Booking Intent (Flight)').click()
 
       cy.wait('@createBookingIntent')
+      // Re-open the flight section
+      cy.contains('4. Flight Booking Flow').click()
       cy.contains('INIT').should('be.visible')
     })
   })
@@ -111,30 +126,41 @@ describe('Flight Booking Flow', () => {
       cy.contains('4. Flight Booking Flow').click()
       cy.contains('Rechercher des vols').click()
       cy.wait('@searchFlights')
+      cy.contains('Offres trouvées:').should('be.visible')
       cy.get('.cursor-pointer').first().click()
-      cy.contains('Créer Booking Intent (Flight)').click()
+      cy.contains('✓ Sélectionné').should('be.visible')
+      cy.contains('Créer Booking Intent (Flight)').should('not.be.disabled').click()
       cy.wait('@createBookingIntent')
+      // Re-open the flight section after booking intent creation
+      cy.contains('4. Flight Booking Flow').click()
+      cy.contains('Status:', { timeout: 10000 }).should('be.visible')
     })
 
     it('should authorize payment', () => {
-      cy.contains('Autoriser le paiement').click()
+      cy.contains('Autoriser le paiement').should('be.visible').click()
 
       cy.wait('@authorizePayment')
-      cy.contains('Payment Intent ID:').should('be.visible')
+      // Re-open flight section after payment authorization changes activeSection
+      cy.contains('4. Flight Booking Flow').click()
+      cy.contains('Payment Intent ID:', { timeout: 10000 }).should('be.visible')
     })
 
     it('should display payment intent info', () => {
-      cy.contains('Autoriser le paiement').click()
+      cy.contains('Autoriser le paiement').should('be.visible').click()
 
       cy.wait('@authorizePayment')
-      cy.contains('pi_test_').should('be.visible')
+      // Re-open flight section
+      cy.contains('4. Flight Booking Flow').click()
+      cy.contains('pi_test_', { timeout: 10000 }).should('be.visible')
     })
 
     it('should have confirm payment button', () => {
-      cy.contains('Autoriser le paiement').click()
+      cy.contains('Autoriser le paiement').should('be.visible').click()
 
       cy.wait('@authorizePayment')
-      cy.contains('Confirmer le paiement (Test Card)').should('be.visible')
+      // Re-open flight section
+      cy.contains('4. Flight Booking Flow').click()
+      cy.contains('Confirmer le paiement (Test Card)', { timeout: 10000 }).should('be.visible')
     })
   })
 
@@ -143,11 +169,19 @@ describe('Flight Booking Flow', () => {
       cy.contains('4. Flight Booking Flow').click()
       cy.contains('Rechercher des vols').click()
       cy.wait('@searchFlights')
+      cy.contains('Offres trouvées:').should('be.visible')
       cy.get('.cursor-pointer').first().click()
-      cy.contains('Créer Booking Intent (Flight)').click()
+      cy.contains('✓ Sélectionné').should('be.visible')
+      cy.contains('Créer Booking Intent (Flight)').should('not.be.disabled').click()
       cy.wait('@createBookingIntent')
-      cy.contains('Autoriser le paiement').click()
+      // Re-open the flight section after booking intent creation
+      cy.contains('4. Flight Booking Flow').click()
+      cy.contains('Status:', { timeout: 10000 }).should('be.visible')
+      cy.contains('Autoriser le paiement').should('be.visible').click()
       cy.wait('@authorizePayment')
+      // Re-open flight section after payment authorization
+      cy.contains('4. Flight Booking Flow').click()
+      cy.contains('Payment Intent ID:', { timeout: 10000 }).should('be.visible')
     })
 
     it('should confirm test payment', () => {
@@ -184,11 +218,19 @@ describe('Flight Booking Flow', () => {
       cy.contains('4. Flight Booking Flow').click()
       cy.contains('Rechercher des vols').click()
       cy.wait('@searchFlights')
+      cy.contains('Offres trouvées:').should('be.visible')
       cy.get('.cursor-pointer').first().click()
-      cy.contains('Créer Booking Intent (Flight)').click()
+      cy.contains('✓ Sélectionné').should('be.visible')
+      cy.contains('Créer Booking Intent (Flight)').should('not.be.disabled').click()
       cy.wait('@createBookingIntent')
-      cy.contains('Autoriser le paiement').click()
+      // Re-open the flight section after booking intent creation
+      cy.contains('4. Flight Booking Flow').click()
+      cy.contains('Status:', { timeout: 10000 }).should('be.visible')
+      cy.contains('Autoriser le paiement').should('be.visible').click()
       cy.wait('@authorizePayment')
+      // Re-open flight section after payment authorization
+      cy.contains('4. Flight Booking Flow').click()
+      cy.contains('Payment Intent ID:', { timeout: 10000 }).should('be.visible')
       cy.contains('Confirmer le paiement (Test Card)').click()
       cy.wait('@confirmPaymentTest')
     })
@@ -214,6 +256,8 @@ describe('Flight Search Without Trip', () => {
     cy.loginWithMock()
     cy.mockDashboardAPIs()
     cy.visit('/test')
+    cy.wait('@getCurrentUser')
+    cy.contains('Test View - Booking Flow', { timeout: 10000 }).should('be.visible')
   })
 
   it('should disable search button without trip', () => {

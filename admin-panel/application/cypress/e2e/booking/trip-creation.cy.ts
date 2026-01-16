@@ -4,6 +4,9 @@ describe('Trip Creation Flow', () => {
     cy.mockDashboardAPIs()
     cy.mockTripCreation()
     cy.visit('/test')
+    // Wait for authentication to complete and page to show content
+    cy.wait('@getCurrentUser')
+    cy.contains('Test View - Booking Flow', { timeout: 10000 }).should('be.visible')
   })
 
   describe('Authentication Section', () => {
@@ -12,13 +15,12 @@ describe('Trip Creation Flow', () => {
     })
 
     it('should display authenticated user info', () => {
-      cy.contains('1. Authentication').click()
+      // Auth section is open by default, so content should be visible
       cy.contains('Utilisateur connecté').should('be.visible')
     })
 
     it('should show user email', () => {
-      cy.contains('1. Authentication').click()
-      // User email from mock data
+      // Auth section is open by default
       cy.get('.space-y-4').should('exist')
     })
   })

@@ -6,6 +6,10 @@ describe('Traveler Management', () => {
     cy.mockTravelerCreation()
     cy.visit('/test')
 
+    // Wait for authentication to complete and page to show content
+    cy.wait('@getCurrentUser')
+    cy.contains('Test View - Booking Flow', { timeout: 10000 }).should('be.visible')
+
     // First create a trip
     cy.contains('2. Create Trip').click()
     cy.contains('Créer un Trip (Paris → Rome)').click()
@@ -62,6 +66,8 @@ describe('Traveler Without Trip', () => {
     cy.loginWithMock()
     cy.mockDashboardAPIs()
     cy.visit('/test')
+    cy.wait('@getCurrentUser')
+    cy.contains('Test View - Booking Flow', { timeout: 10000 }).should('be.visible')
   })
 
   it('should disable add traveler button without trip', () => {

@@ -1,7 +1,9 @@
 describe('Hotel Bookings Table', () => {
   beforeEach(() => {
     cy.visitDashboard()
-    cy.contains('Réservations Hôtels').click()
+    cy.wait('@getUsers')
+    // Wait for tabs to be visible before clicking
+    cy.contains('Réservations Hôtels', { timeout: 10000 }).should('be.visible').click()
     cy.wait('@getHotelBookings')
   })
 

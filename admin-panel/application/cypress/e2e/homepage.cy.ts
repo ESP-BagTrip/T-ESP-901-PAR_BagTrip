@@ -11,7 +11,8 @@ describe('Homepage', () => {
 
     it('should navigate to login page', () => {
       cy.get('[data-cy="login-btn"]').click()
-      cy.url().should('include', '/login')
+      // Wait for navigation to complete
+      cy.url({ timeout: 10000 }).should('include', '/login')
     })
   })
 
