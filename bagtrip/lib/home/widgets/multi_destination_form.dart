@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/custom_calendar_picker.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_flight_bloc.dart';
@@ -104,7 +105,7 @@ class MultiDestinationForm extends StatelessWidget {
 
                     final initialDate = segment.departureDate ?? minDate;
 
-                    final pickedDate = await showDatePicker(
+                    final pickedDate = await showCustomCalendarPicker(
                       context: context,
                       initialDate:
                           initialDate.isBefore(minDate) ? minDate : initialDate,
@@ -113,7 +114,7 @@ class MultiDestinationForm extends StatelessWidget {
                     );
                     if (pickedDate != null && context.mounted) {
                       context.read<HomeFlightBloc>().add(
-                        SetMultiDestDate(index, pickedDate),
+                        SetMultiDestDate(index, pickedDate.startDate),
                       );
                     }
                   },

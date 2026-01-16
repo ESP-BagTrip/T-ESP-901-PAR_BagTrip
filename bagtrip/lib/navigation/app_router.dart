@@ -1,3 +1,4 @@
+import 'package:bagtrip/chat/bloc/chat_bloc.dart';
 import 'package:bagtrip/flightResultDetails/view/flight_result_details_page.dart';
 import 'package:bagtrip/flightSearchResult/models/flight.dart';
 import 'package:bagtrip/flightSearchResult/models/flight_search_arguments.dart';
@@ -10,7 +11,6 @@ import 'package:bagtrip/pages/login_page.dart';
 import 'package:bagtrip/pages/map_page.dart';
 import 'package:bagtrip/pages/profile_page.dart';
 import 'package:bagtrip/service/auth_service.dart';
-import 'package:bagtrip/chat/bloc/chat_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
