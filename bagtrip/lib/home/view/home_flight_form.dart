@@ -1,4 +1,5 @@
 import 'package:bagtrip/components/app_snackbar.dart';
+import 'package:bagtrip/components/custom_calendar_picker.dart';
 import 'package:bagtrip/flightSearchResult/models/flight_search_arguments.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -131,16 +132,43 @@ class HomeFlightForm extends StatelessWidget {
                             label: AppLocalizations.of(context)!.outboundLabel,
                             date: loadedState.departureDate,
                             onTap: () async {
-                              final picked = await showDatePicker(
-                                context: context,
-                                initialDate: DateTime.now(),
-                                firstDate: DateTime.now(),
-                                lastDate: DateTime(2101),
-                              );
-                              if (picked != null && context.mounted) {
-                                context.read<HomeFlightBloc>().add(
-                                  SetDepartureDate(picked),
+                              if (loadedState.tripTypeIndex == 1) {
+                                // Aller-retour: sélection de plage
+                                final picked = await showCustomCalendarPicker(
+                                  context: context,
+                                  initialDate:
+                                      loadedState.departureDate ??
+                                      DateTime.now(),
+                                  initialEndDate: loadedState.returnDate,
+                                  firstDate: DateTime.now(),
+                                  lastDate: DateTime(2101),
+                                  isRangeSelection: true,
                                 );
+                                if (picked != null && context.mounted) {
+                                  context.read<HomeFlightBloc>().add(
+                                    SetDepartureDate(picked.startDate),
+                                  );
+                                  if (picked.endDate != null) {
+                                    context.read<HomeFlightBloc>().add(
+                                      SetReturnDate(picked.endDate!),
+                                    );
+                                  }
+                                }
+                              } else {
+                                // Aller simple: sélection simple
+                                final picked = await showCustomCalendarPicker(
+                                  context: context,
+                                  initialDate:
+                                      loadedState.departureDate ??
+                                      DateTime.now(),
+                                  firstDate: DateTime.now(),
+                                  lastDate: DateTime(2101),
+                                );
+                                if (picked != null && context.mounted) {
+                                  context.read<HomeFlightBloc>().add(
+                                    SetDepartureDate(picked.startDate),
+                                  );
+                                }
                               }
                             },
                           ),
@@ -152,18 +180,28 @@ class HomeFlightForm extends StatelessWidget {
                               label: AppLocalizations.of(context)!.returnLabel,
                               date: loadedState.returnDate,
                               onTap: () async {
-                                final initial =
-                                    loadedState.departureDate ?? DateTime.now();
-                                final picked = await showDatePicker(
+                                // Pour aller-retour, on ouvre le même calendrier avec plage
+                                final picked = await showCustomCalendarPicker(
                                   context: context,
-                                  initialDate: initial,
-                                  firstDate: initial,
+                                  initialDate:
+                                      loadedState.departureDate ??
+                                      DateTime.now(),
+                                  initialEndDate: loadedState.returnDate,
+                                  firstDate:
+                                      loadedState.departureDate ??
+                                      DateTime.now(),
                                   lastDate: DateTime(2101),
+                                  isRangeSelection: true,
                                 );
                                 if (picked != null && context.mounted) {
                                   context.read<HomeFlightBloc>().add(
-                                    SetReturnDate(picked),
+                                    SetDepartureDate(picked.startDate),
                                   );
+                                  if (picked.endDate != null) {
+                                    context.read<HomeFlightBloc>().add(
+                                      SetReturnDate(picked.endDate!),
+                                    );
+                                  }
                                 }
                               },
                             ),

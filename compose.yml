@@ -58,17 +58,17 @@ services:
       - NEXT_PUBLIC_API_URL=http://localhost:3000
       - WATCHPACK_POLLING=true
 
-  mobile-web:
-    container_name: BagTrip-mobile-web
-    build:
-      context: ./bagtrip
-      dockerfile: Dockerfile.dev
-    ports:
-      - "5000:5000"
-    volumes:
-      - ./bagtrip:/app
-    environment:
-      - API_URL=http://localhost:3000
+  # mobile-web:
+  #   container_name: BagTrip-mobile-web
+  #   build:
+  #     context: ./bagtrip
+  #     dockerfile: Dockerfile.dev
+  #   ports:
+  #     - "5000:5000"
+  #   volumes:
+  #     - ./bagtrip:/app
+  #   environment:
+  #     - API_URL=http://localhost:3000
 
 volumes:
   postgres_data:
