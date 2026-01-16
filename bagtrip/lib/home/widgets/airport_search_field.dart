@@ -90,7 +90,7 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
                     padding: EdgeInsets.zero,
                     shrinkWrap: true,
                     itemCount: airports.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    separatorBuilder: (_, _) => const Divider(height: 1),
                     itemBuilder: (context, index) {
                       final airport = airports[index];
                       return ListTile(
