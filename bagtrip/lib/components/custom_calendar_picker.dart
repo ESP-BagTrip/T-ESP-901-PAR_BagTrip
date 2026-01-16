@@ -3,6 +3,8 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../design/tokens.dart';
+
 class DateRangeResult {
   final DateTime startDate;
   final DateTime? endDate;
@@ -263,7 +265,7 @@ class _CustomCalendarPickerState extends State<CustomCalendarPicker> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      padding: AppSpacing.allEdgeInsetSpace24,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
