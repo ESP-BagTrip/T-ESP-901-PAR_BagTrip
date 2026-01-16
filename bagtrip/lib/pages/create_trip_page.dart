@@ -44,7 +44,9 @@ class _CreateTripPageState extends State<CreateTripPage> {
       // Préparer le titre de la conversation avant l'appel asynchrone
       if (!mounted) return;
       final localizations = AppLocalizations.of(context)!;
-      final conversationTitle = localizations.planningTitle(trip.title ?? 'Voyage');
+      final conversationTitle = localizations.planningTitle(
+        trip.title ?? 'Voyage',
+      );
 
       // Créer la conversation associée
       final conversation = await _conversationService.createConversation(

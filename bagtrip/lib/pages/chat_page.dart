@@ -271,7 +271,8 @@ class _ChatPageState extends State<ChatPage> {
                           child: TextField(
                             controller: _messageController,
                             decoration: InputDecoration(
-                              hintText: AppLocalizations.of(context)!.typeYourMessage,
+                              hintText:
+                                  AppLocalizations.of(context)!.typeYourMessage,
                               border: const OutlineInputBorder(),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
