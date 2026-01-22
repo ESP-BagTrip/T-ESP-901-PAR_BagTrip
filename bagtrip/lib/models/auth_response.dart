@@ -7,10 +7,29 @@ class AuthResponse {
   AuthResponse({required this.token, required this.user});
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
-    return AuthResponse(
-      token: json['token'] as String,
-      user: User.fromJson(json['user'] as Map<String, dynamic>),
-    );
+    try {
+      // Vérifier que les champs requis sont présents
+      if (json['token'] == null) {
+        throw Exception('Missing required field: token');
+      }
+      if (json['user'] == null) {
+        throw Exception('Missing required field: user');
+      }
+      if (json['user'] is! Map<String, dynamic>) {
+        throw Exception(
+          'Invalid user field: expected Map, got ${json['user'].runtimeType}',
+        );
+      }
+
+      return AuthResponse(
+        token: json['token'].toString(),
+        user: User.fromJson(json['user'] as Map<String, dynamic>),
+      );
+    } catch (e) {
+      throw Exception(
+        'Failed to parse AuthResponse: ${e.toString()}. JSON: $json',
+      );
+    }
   }
 
   Map<String, dynamic> toJson() {

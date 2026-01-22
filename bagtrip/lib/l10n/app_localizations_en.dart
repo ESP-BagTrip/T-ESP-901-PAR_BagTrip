@@ -261,6 +261,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editProfile => 'Edit profile';
 
   @override
+  String get disconnect => 'Disconnect';
+
+  @override
   String get viewDestinations => 'View destinations';
 
   @override

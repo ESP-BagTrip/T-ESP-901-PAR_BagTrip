@@ -542,6 +542,12 @@ abstract class AppLocalizations {
   /// **'Modifier le profil'**
   String get editProfile;
 
+  /// No description provided for @disconnect.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se déconnecter'**
+  String get disconnect;
+
   /// No description provided for @viewDestinations.
   ///
   /// In fr, this message translates to:
