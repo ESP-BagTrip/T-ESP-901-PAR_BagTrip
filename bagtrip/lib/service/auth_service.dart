@@ -102,6 +102,13 @@ class AuthService {
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
+      // Vérifier que le token d'identité est disponible
+      if (googleAuth.idToken == null || googleAuth.idToken!.isEmpty) {
+        throw Exception(
+          'Google Sign-In failed: identity token is missing. Please check your Firebase configuration.',
+        );
+      }
+
       // Envoyer le token à l'API
       final response = await _apiClient.post(
         '/auth/google',
@@ -109,17 +116,56 @@ class AuthService {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final authResponse = AuthResponse.fromJson(response.data);
+        // Vérifier que response.data est bien un Map
+        if (response.data is! Map<String, dynamic>) {
+          throw Exception(
+            'Invalid response format from server: expected Map, got ${response.data.runtimeType}',
+          );
+        }
 
-        // Sauvegarder le token
-        await _storageService.saveToken(authResponse.token);
+        try {
+          final authResponse = AuthResponse.fromJson(
+            response.data as Map<String, dynamic>,
+          );
 
-        return authResponse;
+          // Vérifier que le token est présent
+          if (authResponse.token.isEmpty) {
+            throw Exception('Token is missing in server response');
+          }
+
+          // Sauvegarder le token
+          await _storageService.saveToken(authResponse.token);
+
+          return authResponse;
+        } catch (e) {
+          // Erreur de parsing JSON
+          throw Exception(
+            'Failed to parse server response: ${e.toString()}. Response data: ${response.data}',
+          );
+        }
       } else {
-        throw Exception('Google login failed: ${response.statusCode}');
+        final errorMessage =
+            response.data is Map
+                ? response.data['detail'] ?? 'Google login failed'
+                : 'Google login failed: ${response.statusCode}';
+        throw Exception(errorMessage);
       }
+    } on DioException catch (e) {
+      // Gérer les erreurs Dio spécifiquement
+      final errorMessage =
+          e.response?.data is Map
+              ? e.response!.data['detail'] ??
+                  e.error?.toString() ??
+                  'Erreur de connexion'
+              : e.error?.toString() ?? 'Erreur lors de la connexion Google';
+      throw Exception(errorMessage);
     } catch (e) {
-      throw Exception('Error during Google login: $e');
+      // Gérer les autres erreurs (y compris les erreurs de GoogleSignIn)
+      if (e.toString().contains('cancelled') ||
+          e.toString().contains('canceled')) {
+        throw Exception('Connexion Google annulée');
+      }
+      throw Exception('Erreur lors de la connexion Google: ${e.toString()}');
     }
   }
 

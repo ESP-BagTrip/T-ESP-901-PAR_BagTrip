@@ -63,8 +63,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final authResponse = await _authService.loginWithGoogle();
       emit(AuthSuccess(authResponse: authResponse));
-    } catch (e) {
-      emit(AuthError(errorMessage: e.toString(), isLoginMode: _isLoginMode));
+    } catch (e, stackTrace) {
+      // Log l'erreur pour le débogage
+      developer.log('Google Sign-In Error: ${e.toString()}');
+      developer.log('Stack trace: $stackTrace');
+
+      // Extraire le message d'erreur
+      String errorMessage = 'Erreur lors de la connexion Google';
+      if (e is Exception) {
+        errorMessage = e.toString().replaceFirst('Exception: ', '');
+      } else {
+        errorMessage = e.toString();
+      }
+
+      emit(AuthError(errorMessage: errorMessage, isLoginMode: _isLoginMode));
     }
   }
 

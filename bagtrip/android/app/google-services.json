@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "1073046051180",
+    "project_id": "bagtrip-7d2d8",
+    "storage_bucket": "bagtrip-7d2d8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1073046051180:android:4f76589b84752cea8f3b49",
+        "android_client_info": {
+          "package_name": "com.example.bagtrip"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1073046051180-ldk7rfpmi9tpvml9qph7o3n6g5d5nhj0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.bagtrip",
+            "certificate_hash": "9427bb6779e78fe963228837db8c76edf863161c"
+          }
+        },
+        {
+          "client_id": "1073046051180-depu6msh70av01d9ivfa1h7a5ssnsmap.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAan5YoU-oASJ83q72hQIdPcShAodyeDPc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1073046051180-depu6msh70av01d9ivfa1h7a5ssnsmap.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1073046051180-5fsoi8768piur2kl8njknsio4jqmifrs.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.bagtrip"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
