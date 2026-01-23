@@ -192,4 +192,36 @@ class LocationService {
       throw Exception('Error searching locations: $e');
     }
   }
+
+  Future<List<Map<String, dynamic>>> searchNearestLocations(
+    double latitude,
+    double longitude,
+  ) async {
+    try {
+      final response = await _dio.get(
+        '$baseUrl/travel/locations/nearest',
+        queryParameters: {'latitude': latitude, 'longitude': longitude},
+      );
+
+      final data = response.data;
+      List<Map<String, dynamic>>? results;
+
+      if (data is Map && data['locations'] is List) {
+        results = List<Map<String, dynamic>>.from(
+          (data['locations'] as List).map(
+            (e) => _flattenLocation(Map<String, dynamic>.from(e as Map)),
+          ),
+        );
+      }
+
+      if (results != null) {
+        return results;
+      }
+
+      throw Exception('Unexpected response shape when fetching nearest locations');
+    } catch (e) {
+      // Just return empty list on error for now to avoid breaking the map
+      return [];
+    }
+  }
 }
