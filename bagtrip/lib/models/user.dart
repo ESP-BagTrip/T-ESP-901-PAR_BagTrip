@@ -19,8 +19,8 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'] as String,
-      email: json['email'] as String,
+      id: json['id']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
       fullName: json['fullName'] as String? ?? json['full_name'] as String?,
       phone: json['phone'] as String?,
       stripeCustomerId:

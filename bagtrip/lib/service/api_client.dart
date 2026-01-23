@@ -1,5 +1,5 @@
-import 'package:dio/dio.dart';
 import 'package:bagtrip/service/storage_service.dart';
+import 'package:dio/dio.dart';
 
 class ApiClient {
   late final Dio _dio;

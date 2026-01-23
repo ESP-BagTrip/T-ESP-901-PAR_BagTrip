@@ -35,6 +35,18 @@ class UserResponse(BaseModel):
         populate_by_name = True
 
 
+class GoogleSignInRequest(BaseModel):
+    """Requête de connexion avec Google."""
+
+    idToken: str = Field(..., description="Google ID token")
+
+
+class AppleSignInRequest(BaseModel):
+    """Requête de connexion avec Apple."""
+
+    idToken: str = Field(..., description="Apple ID token")
+
+
 class AuthResponse(BaseModel):
     """Réponse d'authentification."""
 

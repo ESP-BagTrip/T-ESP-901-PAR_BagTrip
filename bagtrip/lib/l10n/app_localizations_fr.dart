@@ -263,6 +263,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get editProfile => 'Modifier le profil';
 
   @override
+  String get disconnect => 'Se déconnecter';
+
+  @override
   String get viewDestinations => 'Visualiser les destinations';
 
   @override
