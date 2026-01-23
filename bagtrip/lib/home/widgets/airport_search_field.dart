@@ -74,62 +74,61 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
     final size = renderBox.size;
 
     _overlayEntry = OverlayEntry(
-      builder:
-          (context) => Positioned(
-            width: size.width,
-            child: CompositedTransformFollower(
-              link: _layerLink,
-              offset: Offset(0, size.height + 4),
-              showWhenUnlinked: false,
-              child: Material(
-                elevation: 8,
-                borderRadius: BorderRadius.circular(12),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 200),
-                  child: ListView.separated(
-                    padding: EdgeInsets.zero,
-                    shrinkWrap: true,
-                    itemCount: airports.length,
-                    separatorBuilder: (_, _) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final airport = airports[index];
-                      return ListTile(
-                        dense: true,
-                        title: Text(
-                          airport['name'] ?? '',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: FontFamily.b612,
-                            color: ColorName.primary,
-                          ),
-                        ),
-                        subtitle: Text(
-                          [airport['iataCode'], airport['city']]
-                              .where(
-                                (e) => e != null && e.toString().isNotEmpty,
-                              )
-                              .join(' \u2022 '),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontFamily: FontFamily.b612,
-                            color: Color(0xFF9AA6AC),
-                          ),
-                        ),
-                        onTap: () {
-                          _controller.text = airport['name'] ?? '';
-                          _removeOverlay();
-                          FocusManager.instance.primaryFocus?.unfocus();
-                          setState(() => _showResults = false);
-                          widget.onSelected?.call(airport, widget.type);
-                        },
-                      );
+      builder: (context) => Positioned(
+        width: size.width,
+        child: CompositedTransformFollower(
+          link: _layerLink,
+          offset: Offset(0, size.height + 4),
+          showWhenUnlinked: false,
+          child: Material(
+            elevation: 8,
+            borderRadius: BorderRadius.circular(12),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 200),
+              child: ListView.separated(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: airports.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final airport = airports[index];
+                  return ListTile(
+                    dense: true,
+                    title: Text(
+                      airport['name'] ?? '',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: FontFamily.b612,
+                        color: ColorName.primary,
+                      ),
+                    ),
+                    subtitle: Text(
+                      [airport['iataCode'], airport['city']]
+                          .where(
+                            (e) => e != null && e.toString().isNotEmpty,
+                          )
+                          .join(' \u2022 '),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontFamily: FontFamily.b612,
+                        color: Color(0xFF9AA6AC),
+                      ),
+                    ),
+                    onTap: () {
+                      _controller.text = airport['name'] ?? '';
+                      _removeOverlay();
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      setState(() => _showResults = false);
+                      widget.onSelected?.call(airport, widget.type);
                     },
-                  ),
-                ),
+                  );
+                },
               ),
             ),
           ),
+        ),
+      ),
     );
 
     Overlay.of(context).insert(_overlayEntry!);
@@ -159,8 +158,7 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
                 airport['name'] ?? '',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style:
-                    widget.style ??
+                style: widget.style ??
                     const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -200,8 +198,7 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
             controller: _controller,
             focusNode: _focusNode,
             textAlignVertical: TextAlignVertical.center,
-            style:
-                widget.style ??
+            style: widget.style ??
                 const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -225,10 +222,10 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
               setState(() => _showResults = value.isNotEmpty);
               if (value.length >= 2) {
                 context.read<HomeFlightBloc>().add(
-                  widget.type == AirportType.departure
-                      ? SearchDepartureAirport(value)
-                      : SearchArrivalAirport(value),
-                );
+                      widget.type == AirportType.departure
+                          ? SearchDepartureAirport(value)
+                          : SearchArrivalAirport(value),
+                    );
               } else {
                 _removeOverlay();
               }

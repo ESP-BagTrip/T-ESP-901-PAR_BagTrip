@@ -13,16 +13,19 @@ import 'package:bagtrip/pages/profile_page.dart';
 import 'package:bagtrip/service/auth_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:bagtrip/pages/test_front_dev.dart';
 
 final GoRouter appRouter = GoRouter(
-  initialLocation: '/home',
+  initialLocation: '/env-test',
   redirect: (context, state) async {
     final authService = AuthService();
     final isAuthenticated = await authService.isAuthenticated();
     final isLoginPage = state.uri.path == '/login';
+    
+    final isEnvTestPage = state.uri.path == '/env-test';
 
     // If not authenticated and not on login page, redirect to login
-    if (!isAuthenticated && !isLoginPage) {
+    if (!isAuthenticated && !isLoginPage && !isEnvTestPage) {
       return '/login';
     }
 
@@ -69,6 +72,10 @@ final GoRouter appRouter = GoRouter(
           name: 'profile',
           pageBuilder:
               (context, state) => const NoTransitionPage(child: ProfilePage()),
+        ),
+        GoRoute(
+          path: '/env-test',
+          builder : (context, state) => const EnvTestPage(),
         ),
       ],
     ),
