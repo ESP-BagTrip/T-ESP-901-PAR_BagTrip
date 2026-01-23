@@ -279,9 +279,8 @@ async def google_sign_in(
     try:
         # Décoder le token Google (sans vérification complète pour MVP)
         # En production, il faudrait vérifier le token avec les clés publiques Google
-        decoded_token = jwt.decode(
-            request.idToken, options={"verify_signature": False}
-        )
+        # Utiliser get_unverified_claims pour éviter les vérifications (at_hash, etc.)
+        decoded_token = jwt.get_unverified_claims(request.idToken)
 
         email = decoded_token.get("email")
         if not email:
@@ -411,10 +410,9 @@ async def apple_sign_in(request: AppleSignInRequest, db: Session = Depends(get_d
 
         # Décoder le token Apple (sans vérification complète pour MVP)
         # En production, il faudrait vérifier le token avec les clés publiques Apple
+        # Utiliser get_unverified_claims pour éviter les vérifications
         try:
-            decoded_token = jwt.decode(
-                request.idToken, options={"verify_signature": False}
-            )
+            decoded_token = jwt.get_unverified_claims(request.idToken)
         except jwt.JWTError as jwt_error:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
