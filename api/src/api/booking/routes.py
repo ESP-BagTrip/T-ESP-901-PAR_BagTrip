@@ -146,11 +146,11 @@ async def create_booking(
 
         return BookingResponse(
             id=str(booking.id),
-            amadeusOrderId=booking.amadeus_order_id,
-            status=booking.status,
-            priceTotal=booking.price_total,
-            currency=booking.currency,
-            createdAt=booking.created_at,
+            amadeusOrderId=(booking.amadeus_order_id),
+            status=(booking.status),
+            priceTotal=(booking.price_total),
+            currency=(booking.currency),
+            createdAt=(booking.created_at),
         )
 
     except Exception as e:
