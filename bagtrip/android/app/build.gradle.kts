@@ -31,6 +31,16 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Read .env file
+        val envFile = rootProject.file("../.env")
+        val mapboxAccessToken = java.util.Properties().apply {
+            if (envFile.exists()) {
+                load(java.io.FileInputStream(envFile))
+            }
+        }.getProperty("MAPBOX_ACCESS_TOKEN") ?: ""
+
+        manifestPlaceholders["mapboxAccessToken"] = mapboxAccessToken
     }
 
     buildTypes {
