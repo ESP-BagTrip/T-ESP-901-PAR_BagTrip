@@ -5,6 +5,9 @@ sealed class ProfileEvent {}
 
 class LoadProfile extends ProfileEvent {}
 
+/// Réinitialise le bloc à ProfileInitial (ex. après connexion pour pouvoir recharger le profil).
+class ResetProfile extends ProfileEvent {}
+
 class UpdateTheme extends ProfileEvent {
   final String theme; // 'light', 'dark', 'system'
 

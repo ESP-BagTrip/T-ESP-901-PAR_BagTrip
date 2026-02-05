@@ -19,11 +19,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => ProfileBloc()..add(LoadProfile()),
+      create: (context) => ProfileBloc(),
       child: BlocBuilder<ProfileBloc, ProfileState>(
         builder: (context, state) {
-          // Get theme from state or default to 'light'
-          String themeValue = 'light';
+          // Get theme from state or default to system (first launch)
+          String themeValue = 'system';
           if (state is ProfileLoaded) {
             themeValue = state.selectedTheme;
           }
@@ -34,12 +34,12 @@ class MyApp extends StatelessWidget {
             case 'dark':
               themeMode = ThemeMode.dark;
               break;
-            case 'system':
-              themeMode = ThemeMode.system;
-              break;
             case 'light':
-            default:
               themeMode = ThemeMode.light;
+              break;
+            case 'system':
+            default:
+              themeMode = ThemeMode.system;
               break;
           }
 

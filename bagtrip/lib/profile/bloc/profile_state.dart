@@ -11,6 +11,10 @@ final class ProfileLoadFailure extends ProfileState {
   ProfileLoadFailure({this.message});
 }
 
+/// Émis quand l'utilisateur n'est pas authentifié (token absent/invalide).
+/// La vue doit rediriger vers /login.
+final class ProfileUnauthenticated extends ProfileState {}
+
 final class ProfileLoaded extends ProfileState {
   final String name;
   final String email;

@@ -17,6 +17,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       _bookingService = bookingService ?? BookingService(),
       super(ProfileInitial()) {
     on<LoadProfile>(_onLoadProfile);
+    on<ResetProfile>(_onResetProfile);
     on<UpdateTheme>(_onUpdateTheme);
     on<UpdateLanguage>(_onUpdateLanguage);
     on<SetDefaultPaymentMethod>(_onSetDefaultPaymentMethod);
@@ -58,7 +59,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     try {
       final User? user = await _authService.getCurrentUser();
       if (user == null) {
-        emit(ProfileLoadFailure(message: 'Non authentifié'));
+        await _authService.logout();
+        emit(ProfileUnauthenticated());
         return;
       }
 
@@ -79,8 +81,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
                   ? user.fullName!
                   : user.email,
           email: user.email,
-          phone: user.phone ?? '',
-          address: '',
+          phone: user.phone?.trim().isNotEmpty == true ? user.phone! : '—',
+          address: '—',
           memberSince: memberSince,
           paymentCards: [],
           selectedTheme: previousTheme,
@@ -89,8 +91,21 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         ),
       );
     } catch (e) {
-      emit(ProfileLoadFailure(message: e.toString()));
+      final msg = e.toString();
+      if (msg.contains('401') ||
+          msg.contains('Non authentifié') ||
+          msg.contains('Invalid') ||
+          msg.contains('Unauthorized')) {
+        await _authService.logout();
+        emit(ProfileUnauthenticated());
+      } else {
+        emit(ProfileLoadFailure(message: msg));
+      }
     }
+  }
+
+  void _onResetProfile(ResetProfile event, Emitter<ProfileState> emit) {
+    emit(ProfileInitial());
   }
 
   RecentBooking _mapBookingToRecentBooking(BookingResponse b) {

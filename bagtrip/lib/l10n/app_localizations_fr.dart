@@ -374,4 +374,78 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get profileLoadFailureMessage => 'Impossible de charger le profil.';
+
+  @override
+  String get loginWelcomeTitle => 'Bienvenue sur Bag Trip';
+
+  @override
+  String get loginWelcomeSubtitle =>
+      'Connectez-vous ou créez un compte pour accéder à votre espace';
+
+  @override
+  String get login => 'Connexion';
+
+  @override
+  String get signUp => 'Inscription';
+
+  @override
+  String get loginOrContinueWithEmail => 'OU CONTINUER AVEC L\'EMAIL';
+
+  @override
+  String get loginEmailPlaceholder => 'Adresse e-mail';
+
+  @override
+  String get loginPasswordPlaceholder => 'Mot de passe';
+
+  @override
+  String get loginForgotPassword => 'Mot de passe oublié ?';
+
+  @override
+  String get loginButton => 'Connexion';
+
+  @override
+  String get loginLegalBySigningIn => 'En vous connectant, vous acceptez les ';
+
+  @override
+  String get loginTermsOfService => 'Conditions d\'utilisation';
+
+  @override
+  String get loginPrivacyPolicy => 'Politique de confidentialité';
+
+  @override
+  String get loginLegalAnd => ' et ';
+
+  @override
+  String get loginContinueWithGoogle => 'Google';
+
+  @override
+  String get loginContinueWithApple => 'Apple';
+
+  @override
+  String get loginFullNameLabel => 'Nom complet (optionnel)';
+
+  @override
+  String get loginFullNameHint => 'Jean Dupont';
+
+  @override
+  String get loginToggleNoAccount => 'Pas de compte ? S\'inscrire';
+
+  @override
+  String get loginToggleHasAccount => 'Déjà un compte ? Se connecter';
+
+  @override
+  String get loginErrorEmailRequired => 'Veuillez entrer votre email';
+
+  @override
+  String get loginErrorEmailInvalid => 'Email invalide';
+
+  @override
+  String get loginErrorPasswordRequired => 'Veuillez entrer votre mot de passe';
+
+  @override
+  String get loginErrorPasswordMinLength =>
+      'Le mot de passe doit contenir au moins 6 caractères';
+
+  @override
+  String get loginRegisterButton => 'S\'inscrire';
 }

@@ -128,8 +128,6 @@ async def register(request: SignupRequest, db: Session = Depends(get_db)):
         user=UserResponse(
             id=user.id,
             email=user.email,
-            full_name=user.full_name,
-            phone=user.phone,
             created_at=user.created_at,
             updated_at=user.updated_at,
         ),
@@ -199,8 +197,6 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
         user=UserResponse(
             id=user.id,
             email=user.email,
-            full_name=user.full_name,
-            phone=user.phone,
             created_at=user.created_at,
             updated_at=user.updated_at,
         ),
@@ -239,8 +235,6 @@ async def me(current_user: User = Depends(get_current_user)):
     return UserResponse(
         id=current_user.id,
         email=current_user.email,
-        full_name=current_user.full_name,
-        phone=current_user.phone,
         created_at=current_user.created_at,
         updated_at=current_user.updated_at,
     )
@@ -355,8 +349,6 @@ async def google_sign_in(
             user=UserResponse(
                 id=user.id,
                 email=user.email,
-                full_name=user.full_name,
-                phone=user.phone,
                 created_at=user.created_at,
                 updated_at=user.updated_at,
             ),
@@ -487,8 +479,6 @@ async def apple_sign_in(request: AppleSignInRequest, db: Session = Depends(get_d
             user=UserResponse(
                 id=user.id,
                 email=user.email,
-                full_name=user.full_name,
-                phone=user.phone,
                 created_at=user.created_at,
                 updated_at=user.updated_at,
             ),

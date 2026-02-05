@@ -751,6 +751,150 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Impossible de charger le profil.'**
   String get profileLoadFailureMessage;
+
+  /// No description provided for @loginWelcomeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bienvenue sur Bag Trip'**
+  String get loginWelcomeTitle;
+
+  /// No description provided for @loginWelcomeSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connectez-vous ou créez un compte pour accéder à votre espace'**
+  String get loginWelcomeSubtitle;
+
+  /// No description provided for @login.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connexion'**
+  String get login;
+
+  /// No description provided for @signUp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inscription'**
+  String get signUp;
+
+  /// No description provided for @loginOrContinueWithEmail.
+  ///
+  /// In fr, this message translates to:
+  /// **'OU CONTINUER AVEC L\'EMAIL'**
+  String get loginOrContinueWithEmail;
+
+  /// No description provided for @loginEmailPlaceholder.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse e-mail'**
+  String get loginEmailPlaceholder;
+
+  /// No description provided for @loginPasswordPlaceholder.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe'**
+  String get loginPasswordPlaceholder;
+
+  /// No description provided for @loginForgotPassword.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe oublié ?'**
+  String get loginForgotPassword;
+
+  /// No description provided for @loginButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connexion'**
+  String get loginButton;
+
+  /// No description provided for @loginLegalBySigningIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'En vous connectant, vous acceptez les '**
+  String get loginLegalBySigningIn;
+
+  /// No description provided for @loginTermsOfService.
+  ///
+  /// In fr, this message translates to:
+  /// **'Conditions d\'utilisation'**
+  String get loginTermsOfService;
+
+  /// No description provided for @loginPrivacyPolicy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Politique de confidentialité'**
+  String get loginPrivacyPolicy;
+
+  /// No description provided for @loginLegalAnd.
+  ///
+  /// In fr, this message translates to:
+  /// **' et '**
+  String get loginLegalAnd;
+
+  /// No description provided for @loginContinueWithGoogle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Google'**
+  String get loginContinueWithGoogle;
+
+  /// No description provided for @loginContinueWithApple.
+  ///
+  /// In fr, this message translates to:
+  /// **'Apple'**
+  String get loginContinueWithApple;
+
+  /// No description provided for @loginFullNameLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom complet (optionnel)'**
+  String get loginFullNameLabel;
+
+  /// No description provided for @loginFullNameHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jean Dupont'**
+  String get loginFullNameHint;
+
+  /// No description provided for @loginToggleNoAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas de compte ? S\'inscrire'**
+  String get loginToggleNoAccount;
+
+  /// No description provided for @loginToggleHasAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déjà un compte ? Se connecter'**
+  String get loginToggleHasAccount;
+
+  /// No description provided for @loginErrorEmailRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Veuillez entrer votre email'**
+  String get loginErrorEmailRequired;
+
+  /// No description provided for @loginErrorEmailInvalid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Email invalide'**
+  String get loginErrorEmailInvalid;
+
+  /// No description provided for @loginErrorPasswordRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Veuillez entrer votre mot de passe'**
+  String get loginErrorPasswordRequired;
+
+  /// No description provided for @loginErrorPasswordMinLength.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le mot de passe doit contenir au moins 6 caractères'**
+  String get loginErrorPasswordMinLength;
+
+  /// No description provided for @loginRegisterButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'S\'inscrire'**
+  String get loginRegisterButton;
 }
 
 class _AppLocalizationsDelegate

@@ -10,31 +10,42 @@ import 'package:bagtrip/pages/home_page.dart';
 import 'package:bagtrip/pages/login_page.dart';
 import 'package:bagtrip/pages/map_page.dart';
 import 'package:bagtrip/pages/profile_page.dart';
+import 'package:bagtrip/pages/splash_page.dart';
 import 'package:bagtrip/service/auth_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 final GoRouter appRouter = GoRouter(
-  initialLocation: '/home',
+  initialLocation: '/',
   redirect: (context, state) async {
+    final path = state.uri.path;
+
+    // Laisser la splash gérer la vérification auth au démarrage
+    if (path == '/') {
+      return null;
+    }
+
     final authService = AuthService();
     final isAuthenticated = await authService.isAuthenticated();
-    final isLoginPage = state.uri.path == '/login';
+    final isLoginPage = path == '/login';
 
-    // If not authenticated and not on login page, redirect to login
     if (!isAuthenticated && !isLoginPage) {
       return '/login';
     }
 
-    // If authenticated and on login page, redirect to home
     if (isAuthenticated && isLoginPage) {
       return '/home';
     }
 
-    return null; // No redirect needed
+    return null;
   },
   routes: [
-    // Login route (outside ShellRoute, no bottom nav)
+    GoRoute(
+      path: '/',
+      name: 'splash',
+      pageBuilder:
+          (context, state) => const NoTransitionPage(child: SplashPage()),
+    ),
     GoRoute(
       path: '/login',
       name: 'login',

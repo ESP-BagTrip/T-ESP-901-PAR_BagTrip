@@ -371,4 +371,78 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileLoadFailureMessage => 'Unable to load profile.';
+
+  @override
+  String get loginWelcomeTitle => 'Welcome to Bag Trip';
+
+  @override
+  String get loginWelcomeSubtitle => 'Login or Sign up to access your account';
+
+  @override
+  String get login => 'Login';
+
+  @override
+  String get signUp => 'Sign Up';
+
+  @override
+  String get loginOrContinueWithEmail => 'OR CONTINUE WITH EMAIL';
+
+  @override
+  String get loginEmailPlaceholder => 'Email Address';
+
+  @override
+  String get loginPasswordPlaceholder => 'Password';
+
+  @override
+  String get loginForgotPassword => 'Forgot password?';
+
+  @override
+  String get loginButton => 'LOGIN';
+
+  @override
+  String get loginLegalBySigningIn =>
+      'By signing in with an account, you agree to Bag Trip\'s ';
+
+  @override
+  String get loginTermsOfService => 'Terms of Service';
+
+  @override
+  String get loginPrivacyPolicy => 'Privacy Policy';
+
+  @override
+  String get loginLegalAnd => ' and ';
+
+  @override
+  String get loginContinueWithGoogle => 'Google';
+
+  @override
+  String get loginContinueWithApple => 'Apple';
+
+  @override
+  String get loginFullNameLabel => 'Full name (optional)';
+
+  @override
+  String get loginFullNameHint => 'John Doe';
+
+  @override
+  String get loginToggleNoAccount => 'No account? Sign up';
+
+  @override
+  String get loginToggleHasAccount => 'Already have an account? Login';
+
+  @override
+  String get loginErrorEmailRequired => 'Please enter your email';
+
+  @override
+  String get loginErrorEmailInvalid => 'Invalid email';
+
+  @override
+  String get loginErrorPasswordRequired => 'Please enter your password';
+
+  @override
+  String get loginErrorPasswordMinLength =>
+      'Password must be at least 6 characters';
+
+  @override
+  String get loginRegisterButton => 'Sign Up';
 }

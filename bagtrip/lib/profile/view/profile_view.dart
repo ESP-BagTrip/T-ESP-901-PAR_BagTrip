@@ -18,7 +18,7 @@ class ProfileView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileBloc, ProfileState>(
       builder: (context, state) {
-        if (state is ProfileInitial) {
+        if (state is ProfileInitial || state is ProfileUnauthenticated) {
           return const Center(child: CircularProgressIndicator());
         }
 

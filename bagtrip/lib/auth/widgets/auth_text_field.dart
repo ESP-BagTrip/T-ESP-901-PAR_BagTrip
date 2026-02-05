@@ -11,6 +11,12 @@ class AuthTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final String? hintText;
   final Widget? suffixIcon;
+  final Widget? prefixIcon;
+  final Color? backgroundColor;
+  final Color? textColor;
+  final Color? hintColor;
+  final Color? borderColor;
+  final double borderWidth;
 
   const AuthTextField({
     super.key,
@@ -21,6 +27,12 @@ class AuthTextField extends StatelessWidget {
     this.validator,
     this.hintText,
     this.suffixIcon,
+    this.prefixIcon,
+    this.backgroundColor,
+    this.textColor,
+    this.hintColor,
+    this.borderColor,
+    this.borderWidth = 1.0,
   });
 
   @override
@@ -28,40 +40,55 @@ class AuthTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: ColorName.primaryTrueDark,
+        if (label.isNotEmpty) ...[
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: ColorName.primaryTrueDark,
+            ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.space8),
+          const SizedBox(height: AppSpacing.space8),
+        ],
         Container(
-          decoration: const BoxDecoration(
-            color: ColorName.primaryLight,
+          decoration: BoxDecoration(
+            color: backgroundColor ?? ColorName.primaryLight,
             borderRadius: AppRadius.large16,
+            border:
+                borderColor != null
+                    ? Border.all(color: borderColor!, width: borderWidth)
+                    : null,
           ),
           child: TextFormField(
             controller: controller,
             obscureText: obscureText,
             keyboardType: keyboardType,
             validator: validator,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
               fontFamily: FontFamily.b612,
-              color: ColorName.primaryTrueDark,
+              color: textColor ?? ColorName.primaryTrueDark,
             ),
             decoration: InputDecoration(
               hintText: hintText,
-              hintStyle: const TextStyle(
+              hintStyle: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
                 fontFamily: FontFamily.b612,
-                color: Color(0xFF9AA6AC),
+                color: hintColor ?? const Color(0xFF9AA6AC),
               ),
               border: InputBorder.none,
               contentPadding: AppSpacing.allEdgeInsetSpace16,
+              prefixIcon:
+                  prefixIcon != null
+                      ? IconTheme.merge(
+                        data: IconThemeData(
+                          color: hintColor ?? const Color(0xFF9AA6AC),
+                        ),
+                        child: prefixIcon!,
+                      )
+                      : null,
               suffixIcon: suffixIcon,
             ),
           ),
