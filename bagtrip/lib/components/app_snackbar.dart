@@ -1,6 +1,8 @@
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:flutter/material.dart';
+
+/// Softer red for error toaster (not too vivid).
+const Color _kErrorToastBackground = Color(0xFFB71C1C);
 
 class AppSnackBar {
   static OverlayEntry? _currentEntry;
@@ -66,7 +68,7 @@ class _SnackBarWidgetState extends State<_SnackBarWidget>
     );
 
     _offset = Tween<Offset>(
-      begin: const Offset(0, 1),
+      begin: const Offset(0, -1),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
 
@@ -89,7 +91,7 @@ class _SnackBarWidgetState extends State<_SnackBarWidget>
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      bottom: 0,
+      top: 0,
       left: 0,
       right: 0,
       child: SafeArea(
@@ -107,13 +109,13 @@ class _SnackBarWidgetState extends State<_SnackBarWidget>
                     vertical: 14,
                   ),
                   decoration: BoxDecoration(
-                    color: ColorName.error,
+                    color: _kErrorToastBackground,
                     borderRadius: AppRadius.large16,
                     boxShadow: [
                       BoxShadow(
-                        color: ColorName.primary.withValues(alpha: 0.1),
+                        color: Colors.black.withValues(alpha: 0.15),
                         blurRadius: 8,
-                        offset: const Offset(0, 4),
+                        offset: const Offset(0, -4),
                       ),
                     ],
                   ),

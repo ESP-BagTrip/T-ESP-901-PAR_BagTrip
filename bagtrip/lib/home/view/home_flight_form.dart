@@ -1,5 +1,6 @@
 import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/components/custom_calendar_picker.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:bagtrip/flightSearchResult/models/flight_search_arguments.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -29,7 +30,10 @@ class HomeFlightForm extends StatelessWidget {
           // Ne pas afficher l'erreur si les résultats de recherche sont présents
           // car cela signifie que la recherche a réussi malgré l'erreur
           if (state.searchResults == null || state.searchResults!.isEmpty) {
-            AppSnackBar.showError(context, message: state.errorMessage!);
+            AppSnackBar.showError(
+              context,
+              message: toUserFriendlyMessage(state.errorMessage),
+            );
           }
         }
       },

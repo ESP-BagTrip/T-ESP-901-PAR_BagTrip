@@ -434,13 +434,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get loginToggleHasAccount => 'Déjà un compte ? Se connecter';
 
   @override
-  String get loginErrorEmailRequired => 'Veuillez entrer votre email';
+  String get loginErrorEmailRequired =>
+      'Veuillez renseigner votre adresse e-mail';
 
   @override
-  String get loginErrorEmailInvalid => 'Email invalide';
+  String get loginErrorEmailInvalid => 'Adresse e-mail incorrecte';
 
   @override
-  String get loginErrorPasswordRequired => 'Veuillez entrer votre mot de passe';
+  String get loginErrorPasswordRequired =>
+      'Veuillez renseigner votre mot de passe';
 
   @override
   String get loginErrorPasswordMinLength =>

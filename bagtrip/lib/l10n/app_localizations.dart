@@ -869,19 +869,19 @@ abstract class AppLocalizations {
   /// No description provided for @loginErrorEmailRequired.
   ///
   /// In fr, this message translates to:
-  /// **'Veuillez entrer votre email'**
+  /// **'Veuillez renseigner votre adresse e-mail'**
   String get loginErrorEmailRequired;
 
   /// No description provided for @loginErrorEmailInvalid.
   ///
   /// In fr, this message translates to:
-  /// **'Email invalide'**
+  /// **'Adresse e-mail incorrecte'**
   String get loginErrorEmailInvalid;
 
   /// No description provided for @loginErrorPasswordRequired.
   ///
   /// In fr, this message translates to:
-  /// **'Veuillez entrer votre mot de passe'**
+  /// **'Veuillez renseigner votre mot de passe'**
   String get loginErrorPasswordRequired;
 
   /// No description provided for @loginErrorPasswordMinLength.

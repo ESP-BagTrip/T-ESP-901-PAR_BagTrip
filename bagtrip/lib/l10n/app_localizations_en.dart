@@ -431,10 +431,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginToggleHasAccount => 'Already have an account? Login';
 
   @override
-  String get loginErrorEmailRequired => 'Please enter your email';
+  String get loginErrorEmailRequired => 'Please enter your email address';
 
   @override
-  String get loginErrorEmailInvalid => 'Invalid email';
+  String get loginErrorEmailInvalid => 'Invalid email address';
 
   @override
   String get loginErrorPasswordRequired => 'Please enter your password';

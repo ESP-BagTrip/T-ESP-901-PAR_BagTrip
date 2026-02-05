@@ -32,8 +32,14 @@ class AuthService {
       } else {
         throw Exception('Login failed: ${response.statusCode}');
       }
+    } on DioException catch (e) {
+      final message =
+          e.error is String
+              ? e.error as String
+              : 'Erreur de connexion. Veuillez réessayer.';
+      throw Exception(message);
     } catch (e) {
-      throw Exception('Error during login: $e');
+      throw Exception('Une erreur est survenue. Veuillez réessayer.');
     }
   }
 
@@ -59,8 +65,14 @@ class AuthService {
       } else {
         throw Exception('Registration failed: ${response.statusCode}');
       }
+    } on DioException catch (e) {
+      final message =
+          e.error is String
+              ? e.error as String
+              : 'Erreur de connexion. Veuillez réessayer.';
+      throw Exception(message);
     } catch (e) {
-      throw Exception('Error during registration: $e');
+      throw Exception('Une erreur est survenue. Veuillez réessayer.');
     }
   }
 

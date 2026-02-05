@@ -1,11 +1,13 @@
 import 'package:bagtrip/auth/bloc/auth_bloc.dart';
 import 'package:bagtrip/auth/widgets/auth_text_field.dart';
 import 'package:bagtrip/auth/widgets/social_login_button.dart';
+import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/primary_button.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -54,6 +56,9 @@ class _LoginPageContentState extends State<_LoginPageContent> {
   final _passwordController = TextEditingController();
   final _fullNameController = TextEditingController();
   bool _obscurePassword = true;
+  bool _emailHasError = false;
+  bool _passwordHasError = false;
+  bool _fullNameHasError = false;
 
   @override
   void dispose() {
@@ -65,30 +70,68 @@ class _LoginPageContentState extends State<_LoginPageContent> {
 
   void _toggleMode(bool currentMode) {
     _formKey.currentState?.reset();
+    setState(() {
+      _emailHasError = false;
+      _passwordHasError = false;
+      _fullNameHasError = false;
+    });
     context.read<AuthBloc>().add(AuthModeChanged(isLoginMode: !currentMode));
   }
 
   void _handleSubmit(bool isLoginMode) {
-    if (!_formKey.currentState!.validate()) {
+    final l10n = AppLocalizations.of(context)!;
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final fullName = _fullNameController.text.trim();
+
+    bool emailHasError = false;
+    bool passwordHasError = false;
+    bool fullNameHasError = false;
+    String? firstError;
+
+    if (email.isEmpty) {
+      emailHasError = true;
+      firstError ??= l10n.loginErrorEmailRequired;
+    } else if (!email.contains('@') || !email.contains('.')) {
+      emailHasError = true;
+      firstError ??= l10n.loginErrorEmailInvalid;
+    }
+    if (password.isEmpty) {
+      passwordHasError = true;
+      firstError ??= l10n.loginErrorPasswordRequired;
+    } else if (!isLoginMode && password.length < 6) {
+      passwordHasError = true;
+      firstError ??= l10n.loginErrorPasswordMinLength;
+    }
+
+    if (emailHasError || passwordHasError || fullNameHasError) {
+      setState(() {
+        _emailHasError = emailHasError;
+        _passwordHasError = passwordHasError;
+        _fullNameHasError = fullNameHasError;
+      });
+      if (firstError != null && context.mounted) {
+        AppSnackBar.showError(context, message: firstError);
+      }
       return;
     }
 
+    setState(() {
+      _emailHasError = false;
+      _passwordHasError = false;
+      _fullNameHasError = false;
+    });
+
     if (isLoginMode) {
       context.read<AuthBloc>().add(
-        LoginRequested(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-        ),
+        LoginRequested(email: email, password: password),
       );
     } else {
       context.read<AuthBloc>().add(
         RegisterRequested(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-          fullName:
-              _fullNameController.text.trim().isNotEmpty
-                  ? _fullNameController.text.trim()
-                  : null,
+          email: email,
+          password: password,
+          fullName: fullName.isNotEmpty ? fullName : null,
         ),
       );
     }
@@ -126,6 +169,7 @@ class _LoginPageContentState extends State<_LoginPageContent> {
     final inputBackgroundColor =
         isDark ? _kInputBackgroundDark : ColorName.primaryLight;
     final inputBorderColor = isDark ? _kBorderDark : _kBorderLight;
+    const errorBorderColor = Color(0xFFB71C1C);
 
     return Scaffold(
       backgroundColor: scaffoldBackground,
@@ -139,12 +183,16 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                 }
               });
             }
+            if (state is AuthError && context.mounted) {
+              AppSnackBar.showError(
+                context,
+                message: toUserFriendlyMessage(state.errorMessage),
+              );
+            }
           },
           child: BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
               final isLoading = state is AuthLoading;
-              final errorMessage =
-                  state is AuthError ? state.errorMessage : null;
               final isLoginMode =
                   state is AuthModeChangedState
                       ? state.isLoginMode
@@ -263,16 +311,8 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                               textColor: textOnSurface,
                               hintColor: hintOnSurface,
                               borderColor: inputBorderColor,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return l10n.loginErrorEmailRequired;
-                                }
-                                if (!value.contains('@') ||
-                                    !value.contains('.')) {
-                                  return l10n.loginErrorEmailInvalid;
-                                }
-                                return null;
-                              },
+                              hasError: _emailHasError,
+                              errorBorderColor: errorBorderColor,
                             ),
                             const SizedBox(height: AppSpacing.space16),
                             if (!isLoginMode) ...[
@@ -290,6 +330,8 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                                 textColor: textOnSurface,
                                 hintColor: hintOnSurface,
                                 borderColor: inputBorderColor,
+                                hasError: _fullNameHasError,
+                                errorBorderColor: errorBorderColor,
                               ),
                               const SizedBox(height: AppSpacing.space16),
                             ],
@@ -307,6 +349,8 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                               textColor: textOnSurface,
                               hintColor: hintOnSurface,
                               borderColor: inputBorderColor,
+                              hasError: _passwordHasError,
+                              errorBorderColor: errorBorderColor,
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _obscurePassword
@@ -321,15 +365,6 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                                   });
                                 },
                               ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return l10n.loginErrorPasswordRequired;
-                                }
-                                if (!isLoginMode && value.length < 6) {
-                                  return l10n.loginErrorPasswordMinLength;
-                                }
-                                return null;
-                              },
                             ),
                             if (isLoginMode) ...[
                               const SizedBox(height: AppSpacing.space8),
@@ -346,38 +381,6 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                                       color: ColorName.secondary,
                                     ),
                                   ),
-                                ),
-                              ),
-                            ],
-                            if (errorMessage != null) ...[
-                              const SizedBox(height: AppSpacing.space16),
-                              Container(
-                                padding: AppSpacing.allEdgeInsetSpace16,
-                                decoration: BoxDecoration(
-                                  color: ColorName.error.withValues(
-                                    alpha: 0.15,
-                                  ),
-                                  borderRadius: AppRadius.medium8,
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.error_outline,
-                                      color: ColorName.error,
-                                      size: 20,
-                                    ),
-                                    const SizedBox(width: AppSpacing.space8),
-                                    Expanded(
-                                      child: Text(
-                                        errorMessage,
-                                        style: const TextStyle(
-                                          color: ColorName.error,
-                                          fontFamily: FontFamily.b612,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
                                 ),
                               ),
                             ],

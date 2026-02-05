@@ -2,9 +2,11 @@ import 'package:bagtrip/chat/bloc/chat_bloc.dart';
 import 'package:bagtrip/chat/bloc/chat_event.dart';
 import 'package:bagtrip/chat/bloc/chat_state.dart';
 import 'package:bagtrip/chat/widgets/widget_renderer.dart';
+import 'package:bagtrip/components/app_snackbar.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:bagtrip/l10n/app_localizations.dart';
 
 class ChatPage extends StatefulWidget {
   final String tripId;
@@ -95,6 +97,12 @@ class _ChatPageState extends State<ChatPage> {
           if (state is ChatLoaded) {
             // Auto-scroll quand de nouveaux messages arrivent
             Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
+          }
+          if (state is ChatLoaded && state.error != null && context.mounted) {
+            AppSnackBar.showError(
+              context,
+              message: toUserFriendlyMessage(state.error),
+            );
           }
         },
         builder: (context, state) {
@@ -219,35 +227,6 @@ class _ChatPageState extends State<ChatPage> {
                           Text(
                             AppLocalizations.of(context)!.searchingInProgress,
                             style: TextStyle(color: Colors.blue[800]),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                  // Erreur
-                  if (state.error != null)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      color: Colors.red[50],
-                      child: Row(
-                        children: [
-                          Icon(Icons.error_outline, color: Colors.red[800]),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              state.error!,
-                              style: TextStyle(color: Colors.red[800]),
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.close),
-                            onPressed: () {
-                              context.read<ChatBloc>().add(
-                                LoadHistory(
-                                  conversationId: widget.conversationId,
-                                ),
-                              );
-                            },
                           ),
                         ],
                       ),

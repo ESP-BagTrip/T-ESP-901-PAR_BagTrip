@@ -200,8 +200,8 @@
   "loginFullNameHint": "John Doe",
   "loginToggleNoAccount": "No account? Sign up",
   "loginToggleHasAccount": "Already have an account? Login",
-  "loginErrorEmailRequired": "Please enter your email",
-  "loginErrorEmailInvalid": "Invalid email",
+  "loginErrorEmailRequired": "Please enter your email address",
+  "loginErrorEmailInvalid": "Invalid email address",
   "loginErrorPasswordRequired": "Please enter your password",
   "loginErrorPasswordMinLength": "Password must be at least 6 characters",
   "loginRegisterButton": "Sign Up"

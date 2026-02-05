@@ -17,6 +17,9 @@ class AuthTextField extends StatelessWidget {
   final Color? hintColor;
   final Color? borderColor;
   final double borderWidth;
+  final bool hasError;
+  final Color? errorBorderColor;
+  final Key? formFieldKey;
 
   const AuthTextField({
     super.key,
@@ -33,6 +36,9 @@ class AuthTextField extends StatelessWidget {
     this.hintColor,
     this.borderColor,
     this.borderWidth = 1.0,
+    this.hasError = false,
+    this.errorBorderColor,
+    this.formFieldKey,
   });
 
   @override
@@ -55,11 +61,17 @@ class AuthTextField extends StatelessWidget {
             color: backgroundColor ?? ColorName.primaryLight,
             borderRadius: AppRadius.large16,
             border:
-                borderColor != null
-                    ? Border.all(color: borderColor!, width: borderWidth)
-                    : null,
+                hasError
+                    ? Border.all(
+                      color: errorBorderColor ?? ColorName.error,
+                      width: 1.5,
+                    )
+                    : (borderColor != null
+                        ? Border.all(color: borderColor!, width: borderWidth)
+                        : null),
           ),
           child: TextFormField(
+            key: formFieldKey,
             controller: controller,
             obscureText: obscureText,
             keyboardType: keyboardType,

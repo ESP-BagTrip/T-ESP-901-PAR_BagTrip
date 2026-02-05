@@ -200,9 +200,9 @@
   "loginFullNameHint": "Jean Dupont",
   "loginToggleNoAccount": "Pas de compte ? S'inscrire",
   "loginToggleHasAccount": "Déjà un compte ? Se connecter",
-  "loginErrorEmailRequired": "Veuillez entrer votre email",
-  "loginErrorEmailInvalid": "Email invalide",
-  "loginErrorPasswordRequired": "Veuillez entrer votre mot de passe",
+  "loginErrorEmailRequired": "Veuillez renseigner votre adresse e-mail",
+  "loginErrorEmailInvalid": "Adresse e-mail incorrecte",
+  "loginErrorPasswordRequired": "Veuillez renseigner votre mot de passe",
   "loginErrorPasswordMinLength": "Le mot de passe doit contenir au moins 6 caractères",
   "loginRegisterButton": "S'inscrire"
 }
