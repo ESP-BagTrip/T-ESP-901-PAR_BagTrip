@@ -1,33 +1,46 @@
 // ignore_for_file: depend_on_referenced_packages
 
+import 'package:bagtrip/models/booking_response.dart';
+import 'package:bagtrip/models/user.dart';
+import 'package:bagtrip/service/auth_service.dart';
+import 'package:bagtrip/service/booking_service.dart';
 import 'package:bloc/bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:meta/meta.dart';
 
 part 'profile_event.dart';
 part 'profile_state.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
-  ProfileBloc() : super(ProfileInitial()) {
+  ProfileBloc({AuthService? authService, BookingService? bookingService})
+    : _authService = authService ?? AuthService(),
+      _bookingService = bookingService ?? BookingService(),
+      super(ProfileInitial()) {
     on<LoadProfile>(_onLoadProfile);
     on<UpdateTheme>(_onUpdateTheme);
     on<UpdateLanguage>(_onUpdateLanguage);
     on<SetDefaultPaymentMethod>(_onSetDefaultPaymentMethod);
   }
 
+  final AuthService _authService;
+  final BookingService _bookingService;
+
+  static const String _defaultTheme = 'light';
+  static const String _defaultLanguage = 'Français';
+
   ProfileLoaded _currentState() {
     if (state is ProfileLoaded) {
       return state as ProfileLoaded;
     }
-    // Return default state if not loaded yet
     return ProfileLoaded(
-      name: 'Sophie Laurent',
-      email: 'sophie.laurent@example.com',
-      phone: '+33 6 12 34 56 78',
-      address: 'Paris, France',
-      memberSince: 'Janvier 2023',
+      name: '',
+      email: '',
+      phone: '',
+      address: '',
+      memberSince: '',
       paymentCards: [],
-      selectedTheme: 'light',
-      selectedLanguage: 'Français',
+      selectedTheme: _defaultTheme,
+      selectedLanguage: _defaultLanguage,
       recentBookings: [],
     );
   }
@@ -36,61 +49,59 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     LoadProfile event,
     Emitter<ProfileState> emit,
   ) async {
-    // Mock data for UI
-    final mockCards = [
-      PaymentCard(
-        id: '1',
-        lastFourDigits: '4242',
-        expiryDate: '12/26',
-        isDefault: true,
-      ),
-      PaymentCard(
-        id: '2',
-        lastFourDigits: '8888',
-        expiryDate: '03/27',
-        isDefault: false,
-      ),
-    ];
+    final current = state;
+    final previousTheme =
+        current is ProfileLoaded ? current.selectedTheme : _defaultTheme;
+    final previousLanguage =
+        current is ProfileLoaded ? current.selectedLanguage : _defaultLanguage;
 
-    final mockBookings = [
-      RecentBooking(
-        id: '1',
-        route: 'Paris → Rome',
-        details: 'Vol direct · Air France',
-        date: '2 Sept 2026',
-        price: '149,99 €',
-        status: 'Confirmé',
-      ),
-      RecentBooking(
-        id: '2',
-        route: 'Rome → Paris',
-        details: 'Vol direct · Air France',
-        date: '9 Sept 2026',
-        price: '149,99 €',
-        status: 'Confirmé',
-      ),
-      RecentBooking(
-        id: '3',
-        route: 'Paris → New York',
-        details: 'Vol direct · Delta Airlines',
-        date: '15 Déc 2025',
-        price: '789,99 €',
-        status: 'Terminé',
-      ),
-    ];
+    try {
+      final User? user = await _authService.getCurrentUser();
+      if (user == null) {
+        emit(ProfileLoadFailure(message: 'Non authentifié'));
+        return;
+      }
 
-    emit(
-      ProfileLoaded(
-        name: 'Sophie Laurent',
-        email: 'sophie.laurent@example.com',
-        phone: '+33 6 12 34 56 78',
-        address: 'Paris, France',
-        memberSince: 'Janvier 2023',
-        paymentCards: mockCards,
-        selectedTheme: 'light',
-        selectedLanguage: 'Français',
-        recentBookings: mockBookings,
-      ),
+      List<RecentBooking> recentBookings = [];
+      try {
+        final bookings = await _bookingService.listBookings();
+        recentBookings = bookings.map(_mapBookingToRecentBooking).toList();
+      } catch (_) {
+        // Keep empty list on booking list failure; profile still shows user
+      }
+
+      final memberSince = DateFormat.yMMM('fr').format(user.createdAt);
+
+      emit(
+        ProfileLoaded(
+          name:
+              user.fullName?.trim().isNotEmpty == true
+                  ? user.fullName!
+                  : user.email,
+          email: user.email,
+          phone: user.phone ?? '',
+          address: '',
+          memberSince: memberSince,
+          paymentCards: [],
+          selectedTheme: previousTheme,
+          selectedLanguage: previousLanguage,
+          recentBookings: recentBookings,
+        ),
+      );
+    } catch (e) {
+      emit(ProfileLoadFailure(message: e.toString()));
+    }
+  }
+
+  RecentBooking _mapBookingToRecentBooking(BookingResponse b) {
+    return RecentBooking(
+      id: b.id,
+      route: 'Réservation',
+      details: b.status,
+      date: DateFormat('d MMM yyyy', 'fr').format(b.createdAt),
+      price:
+          '${NumberFormat.decimalPattern('fr').format(b.priceTotal)} ${b.currency}',
+      status: b.status,
     );
   }
 

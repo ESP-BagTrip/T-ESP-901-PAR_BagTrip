@@ -368,4 +368,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bookingStatusConfirmed => 'Confirmed';
+
+  @override
+  String get profileLoadFailureMessage => 'Unable to load profile.';
 }

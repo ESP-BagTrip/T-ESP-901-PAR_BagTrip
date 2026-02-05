@@ -5,6 +5,12 @@ sealed class ProfileState {}
 
 final class ProfileInitial extends ProfileState {}
 
+final class ProfileLoadFailure extends ProfileState {
+  final String? message;
+
+  ProfileLoadFailure({this.message});
+}
+
 final class ProfileLoaded extends ProfileState {
   final String name;
   final String email;

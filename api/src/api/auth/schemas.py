@@ -27,6 +27,8 @@ class UserResponse(BaseModel):
 
     id: UUID
     email: str
+    full_name: str | None = Field(None, alias="fullName")
+    phone: str | None = None
     created_at: datetime = Field(..., alias="createdAt")
     updated_at: datetime | None = Field(None, alias="updatedAt")
 

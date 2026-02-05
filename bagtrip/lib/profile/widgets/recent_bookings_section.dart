@@ -99,11 +99,9 @@ class RecentBookingsSection extends StatelessWidget {
 
   Widget _buildBookingRow(RecentBooking booking, BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
-    // Map booking status to localized text
-    // Note: In a real app, status should be a constant (e.g., 'completed', 'confirmed')
-    // and should be localized here. For now, we compare with localized strings for mock data.
     final localizedStatus = _getLocalizedStatus(booking.status, localizations);
     final isCompleted =
+        booking.status.toUpperCase() == 'CONFIRMED' ||
         booking.status == localizations.bookingStatusCompleted ||
         localizedStatus == localizations.bookingStatusCompleted;
 
@@ -211,14 +209,13 @@ class RecentBookingsSection extends StatelessWidget {
   }
 
   String _getLocalizedStatus(String status, AppLocalizations localizations) {
-    // Map hardcoded French statuses to localized versions
-    // In a real app, status should be a constant and this mapping should be done properly
-    if (status == 'Terminé') {
-      return localizations.bookingStatusCompleted;
-    } else if (status == 'Confirmé') {
+    final upper = status.toUpperCase();
+    if (upper == 'CONFIRMED' || status == 'Confirmé') {
       return localizations.bookingStatusConfirmed;
     }
-    // Return original status if no mapping found
+    if (status == 'Terminé') {
+      return localizations.bookingStatusCompleted;
+    }
     return status;
   }
 }

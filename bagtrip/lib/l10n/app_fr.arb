@@ -179,5 +179,6 @@
   "viewAllButton": "Voir tout",
   "noRecentBookings": "Aucune réservation récente",
   "bookingStatusCompleted": "Terminé",
-  "bookingStatusConfirmed": "Confirmé"
+  "bookingStatusConfirmed": "Confirmé",
+  "profileLoadFailureMessage": "Impossible de charger le profil."
 }

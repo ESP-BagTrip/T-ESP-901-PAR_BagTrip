@@ -11,8 +11,8 @@ class ProfilePage extends StatelessWidget {
     // Get the ProfileBloc from the parent context (provided in MyApp)
     final profileBloc = context.read<ProfileBloc>();
 
-    // Load profile if not already loaded
-    if (profileBloc.state is! ProfileLoaded) {
+    // Load profile only when still initial (not on failure, to avoid loop)
+    if (profileBloc.state is ProfileInitial) {
       profileBloc.add(LoadProfile());
     }
 

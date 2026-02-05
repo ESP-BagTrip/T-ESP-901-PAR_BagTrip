@@ -745,6 +745,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Confirmé'**
   String get bookingStatusConfirmed;
+
+  /// No description provided for @profileLoadFailureMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger le profil.'**
+  String get profileLoadFailureMessage;
 }
 
 class _AppLocalizationsDelegate
