@@ -143,5 +143,41 @@
         "type": "String"
       }
     }
-  }
+  },
+  "personalInfoTitle": "Personal Information",
+  "emailLabel": "EMAIL",
+  "phoneLabel": "PHONE",
+  "addressLabel": "ADDRESS",
+  "modifyButton": "Modify",
+  "preferencesTitle": "Preferences",
+  "languageLabel": "LANGUAGE",
+  "themeLabel": "THEME",
+  "chooseThemeHint": "Choose your preferred theme",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "themeSystem": "System",
+  "profileFooterText": "Version {version} · © {year} Vol Airlines",
+  "@profileFooterText": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "memberSinceText": "Member since {date}",
+  "@memberSinceText": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "recentBookingsTitle": "Recent Bookings",
+  "viewAllButton": "View All",
+  "noRecentBookings": "No recent bookings",
+  "bookingStatusCompleted": "Completed",
+  "bookingStatusConfirmed": "Confirmed"
 }

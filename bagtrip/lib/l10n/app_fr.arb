@@ -143,5 +143,41 @@
         "type": "String"
       }
     }
-  }
+  },
+  "personalInfoTitle": "Informations personnelles",
+  "emailLabel": "EMAIL",
+  "phoneLabel": "TÉLÉPHONE",
+  "addressLabel": "ADRESSE",
+  "modifyButton": "Modifier",
+  "preferencesTitle": "Préférences",
+  "languageLabel": "LANGUE",
+  "themeLabel": "THÈME",
+  "chooseThemeHint": "Choisissez votre thème préféré",
+  "themeLight": "Clair",
+  "themeDark": "Sombre",
+  "themeSystem": "Système",
+  "profileFooterText": "Version {version} · © {year} Vol Airlines",
+  "@profileFooterText": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "memberSinceText": "Membre depuis {date}",
+  "@memberSinceText": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "recentBookingsTitle": "Réservations récentes",
+  "viewAllButton": "Voir tout",
+  "noRecentBookings": "Aucune réservation récente",
+  "bookingStatusCompleted": "Terminé",
+  "bookingStatusConfirmed": "Confirmé"
 }

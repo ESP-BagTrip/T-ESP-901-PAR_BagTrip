@@ -307,4 +307,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String planningTitle(String title) {
     return 'Planning $title';
   }
+
+  @override
+  String get personalInfoTitle => 'Personal Information';
+
+  @override
+  String get emailLabel => 'EMAIL';
+
+  @override
+  String get phoneLabel => 'PHONE';
+
+  @override
+  String get addressLabel => 'ADDRESS';
+
+  @override
+  String get modifyButton => 'Modify';
+
+  @override
+  String get preferencesTitle => 'Preferences';
+
+  @override
+  String get languageLabel => 'LANGUAGE';
+
+  @override
+  String get themeLabel => 'THEME';
+
+  @override
+  String get chooseThemeHint => 'Choose your preferred theme';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get themeSystem => 'System';
+
+  @override
+  String profileFooterText(String version, int year) {
+    return 'Version $version · © $year Vol Airlines';
+  }
+
+  @override
+  String memberSinceText(String date) {
+    return 'Member since $date';
+  }
+
+  @override
+  String get recentBookingsTitle => 'Recent Bookings';
+
+  @override
+  String get viewAllButton => 'View All';
+
+  @override
+  String get noRecentBookings => 'No recent bookings';
+
+  @override
+  String get bookingStatusCompleted => 'Completed';
+
+  @override
+  String get bookingStatusConfirmed => 'Confirmed';
 }

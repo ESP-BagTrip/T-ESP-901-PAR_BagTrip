@@ -631,6 +631,120 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Planification {title}'**
   String planningTitle(String title);
+
+  /// No description provided for @personalInfoTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Informations personnelles'**
+  String get personalInfoTitle;
+
+  /// No description provided for @emailLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'EMAIL'**
+  String get emailLabel;
+
+  /// No description provided for @phoneLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'TÉLÉPHONE'**
+  String get phoneLabel;
+
+  /// No description provided for @addressLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'ADRESSE'**
+  String get addressLabel;
+
+  /// No description provided for @modifyButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get modifyButton;
+
+  /// No description provided for @preferencesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Préférences'**
+  String get preferencesTitle;
+
+  /// No description provided for @languageLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'LANGUE'**
+  String get languageLabel;
+
+  /// No description provided for @themeLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'THÈME'**
+  String get themeLabel;
+
+  /// No description provided for @chooseThemeHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisissez votre thème préféré'**
+  String get chooseThemeHint;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clair'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sombre'**
+  String get themeDark;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In fr, this message translates to:
+  /// **'Système'**
+  String get themeSystem;
+
+  /// No description provided for @profileFooterText.
+  ///
+  /// In fr, this message translates to:
+  /// **'Version {version} · © {year} Vol Airlines'**
+  String profileFooterText(String version, int year);
+
+  /// No description provided for @memberSinceText.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membre depuis {date}'**
+  String memberSinceText(String date);
+
+  /// No description provided for @recentBookingsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réservations récentes'**
+  String get recentBookingsTitle;
+
+  /// No description provided for @viewAllButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir tout'**
+  String get viewAllButton;
+
+  /// No description provided for @noRecentBookings.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune réservation récente'**
+  String get noRecentBookings;
+
+  /// No description provided for @bookingStatusCompleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminé'**
+  String get bookingStatusCompleted;
+
+  /// No description provided for @bookingStatusConfirmed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmé'**
+  String get bookingStatusConfirmed;
 }
 
 class _AppLocalizationsDelegate
