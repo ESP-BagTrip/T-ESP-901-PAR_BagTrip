@@ -1,8 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
+import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/models/traveler.dart';
 import 'package:bagtrip/service/traveler_service.dart';
 import 'package:bagtrip/utils/error_display.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -146,7 +148,7 @@ class _TravelersPageState extends State<TravelersPage> {
               ),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                style: TextButton.styleFrom(foregroundColor: ColorName.error),
                 child: const Text('Supprimer'),
               ),
             ],
@@ -205,10 +207,10 @@ class _TravelersPageState extends State<TravelersPage> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(
+                                    const Icon(
                                       Icons.people_outline,
                                       size: 64,
-                                      color: Colors.grey[400],
+                                      color: AppColors.hint,
                                     ),
                                     const SizedBox(height: 16),
                                     Text(
@@ -216,15 +218,16 @@ class _TravelersPageState extends State<TravelersPage> {
                                       style: Theme.of(context)
                                           .textTheme
                                           .titleMedium
-                                          ?.copyWith(color: Colors.grey[600]),
+                                          ?.copyWith(color: AppColors.hint),
                                     ),
                                     const SizedBox(height: 8),
                                     Text(
                                       'Ajoutez au moins un voyageur pour continuer',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(color: Colors.grey[500]),
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall?.copyWith(
+                                        color: AppColors.textMutedLight,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -267,10 +270,10 @@ class _TravelersPageState extends State<TravelersPage> {
                     // Formulaire d'ajout
                     Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[50],
+                      decoration: const BoxDecoration(
+                        color: AppColors.surfaceLight,
                         border: Border(
-                          top: BorderSide(color: Colors.grey[300]!),
+                          top: BorderSide(color: AppColors.border),
                         ),
                       ),
                       child: Form(
@@ -340,7 +343,9 @@ class _TravelersPageState extends State<TravelersPage> {
                               const SizedBox(height: 12),
                               Text(
                                 _errorMessage!,
-                                style: TextStyle(color: Colors.red[800]),
+                                style: const TextStyle(
+                                  color: ColorName.errorDark,
+                                ),
                               ),
                             ],
                             const SizedBox(height: 12),
@@ -366,10 +371,10 @@ class _TravelersPageState extends State<TravelersPage> {
                     // Bouton continuer
                     Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
+                      decoration: const BoxDecoration(
+                        color: AppColors.surface,
                         border: Border(
-                          top: BorderSide(color: Colors.grey[300]!),
+                          top: BorderSide(color: AppColors.border),
                         ),
                       ),
                       child: ElevatedButton(

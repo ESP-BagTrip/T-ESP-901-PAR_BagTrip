@@ -1,9 +1,9 @@
+import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/navigation/bloc/navigation_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
-import 'package:bagtrip/navigation/bloc/navigation_bloc.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
-import 'package:bagtrip/design/tokens.dart';
 
 class BottomTabBar extends StatelessWidget {
   final NavigationTab activeTab;
@@ -16,7 +16,7 @@ class BottomTabBar extends StatelessWidget {
   });
 
   Color _getTabColor(NavigationTab tab, bool isActive) {
-    return isActive ? ColorName.secondary : Colors.grey;
+    return isActive ? ColorName.secondary : AppColors.hint;
   }
 
   Widget _buildTabItem(
@@ -60,10 +60,10 @@ class BottomTabBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: AppColors.primaryTrueDark.withValues(alpha: 0.08),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),

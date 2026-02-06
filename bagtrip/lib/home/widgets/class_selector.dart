@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -48,7 +49,7 @@ class ClassSelector extends StatelessWidget {
                   style: TextStyle(
                     fontFamily: FontFamily.b612,
                     fontSize: 12,
-                    color: selected ? Colors.white : ColorName.primary,
+                    color: selected ? AppColors.surface : ColorName.primary,
                   ),
                 ),
               ),

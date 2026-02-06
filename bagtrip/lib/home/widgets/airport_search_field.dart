@@ -1,10 +1,10 @@
+import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_flight_bloc.dart';
 import 'package:bagtrip/home/models/airport_type.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../gen/colors.gen.dart';
 
 class AirportSearchField extends StatefulWidget {
   final AirportType type;
@@ -113,7 +113,7 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
                           style: const TextStyle(
                             fontSize: 12,
                             fontFamily: FontFamily.b612,
-                            color: Color(0xFF9AA6AC),
+                            color: AppColors.hint,
                           ),
                         ),
                         onTap: () {
@@ -174,7 +174,7 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
                 style: const TextStyle(
                   fontSize: 13,
                   fontFamily: FontFamily.b612,
-                  color: Color(0xFF9AA6AC),
+                  color: AppColors.hint,
                 ),
               ),
             ],
@@ -214,8 +214,7 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
                 fontFamily: FontFamily.b612,
-                color:
-                    widget.hasError ? ColorName.error : const Color(0xFF9AA6AC),
+                color: widget.hasError ? ColorName.error : AppColors.hint,
               ),
               border: InputBorder.none,
               isDense: true,

@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -43,19 +44,19 @@ class SocialLoginButton extends StatelessWidget {
     if (useDarkStyle) return ColorName.primaryLight;
     switch (provider) {
       case SocialProvider.google:
-        return Colors.white;
+        return AppColors.surface;
       case SocialProvider.apple:
-        return Colors.black;
+        return AppColors.primaryTrueDark;
     }
   }
 
   Color get _textColor {
-    if (useDarkStyle) return Colors.white;
+    if (useDarkStyle) return AppColors.surface;
     switch (provider) {
       case SocialProvider.google:
         return ColorName.primaryTrueDark;
       case SocialProvider.apple:
-        return Colors.white;
+        return AppColors.surface;
     }
   }
 
@@ -67,7 +68,7 @@ class SocialLoginButton extends StatelessWidget {
       color:
           provider == SocialProvider.google
               ? ColorName.primarySoftLight
-              : Colors.black,
+              : AppColors.primaryTrueDark,
       width: 1.5,
     );
   }

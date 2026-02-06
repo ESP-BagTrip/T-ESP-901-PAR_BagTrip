@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -24,7 +25,7 @@ class HomePriceField extends StatelessWidget {
           fontSize: 14,
           fontWeight: FontWeight.w500,
           fontFamily: FontFamily.b612,
-          color: Color(0xFF9AA6AC),
+          color: AppColors.hint,
         ),
         border: InputBorder.none,
         contentPadding: const EdgeInsets.only(top: 4),

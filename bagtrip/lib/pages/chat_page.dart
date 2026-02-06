@@ -3,6 +3,8 @@ import 'package:bagtrip/chat/bloc/chat_event.dart';
 import 'package:bagtrip/chat/bloc/chat_state.dart';
 import 'package:bagtrip/chat/widgets/widget_renderer.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
+import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
@@ -115,11 +117,15 @@ class _ChatPageState extends State<ChatPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                  const Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: ColorName.error,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     state.message,
-                    style: TextStyle(color: Colors.red[800]),
+                    style: const TextStyle(color: ColorName.errorDark),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
@@ -215,7 +221,7 @@ class _ChatPageState extends State<ChatPage> {
                         horizontal: 16,
                         vertical: 8,
                       ),
-                      color: Colors.blue[50],
+                      color: ColorName.infoLight,
                       child: Row(
                         children: [
                           const SizedBox(
@@ -226,7 +232,7 @@ class _ChatPageState extends State<ChatPage> {
                           const SizedBox(width: 8),
                           Text(
                             AppLocalizations.of(context)!.searchingInProgress,
-                            style: TextStyle(color: Colors.blue[800]),
+                            style: const TextStyle(color: ColorName.info),
                           ),
                         ],
                       ),
@@ -240,9 +246,9 @@ class _ChatPageState extends State<ChatPage> {
                       top: 16,
                       bottom: 16 + MediaQuery.of(context).padding.bottom,
                     ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border(top: BorderSide(color: Colors.grey[300]!)),
+                    decoration: const BoxDecoration(
+                      color: AppColors.surface,
+                      border: Border(top: BorderSide(color: AppColors.border)),
                     ),
                     child: Row(
                       children: [
@@ -294,10 +300,10 @@ class _ChatPageState extends State<ChatPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isUser) ...[
-            CircleAvatar(
+            const CircleAvatar(
               radius: 16,
-              backgroundColor: Colors.blue[100],
-              child: const Icon(Icons.smart_toy, size: 18),
+              backgroundColor: ColorName.infoLight,
+              child: Icon(Icons.smart_toy, size: 18),
             ),
             const SizedBox(width: 8),
           ],
@@ -305,13 +311,13 @@ class _ChatPageState extends State<ChatPage> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: isUser ? Colors.blue[600] : Colors.grey[200],
+                color: isUser ? ColorName.info : AppColors.border,
                 borderRadius: BorderRadius.circular(18),
               ),
               child: Text(
                 message.content,
                 style: TextStyle(
-                  color: isUser ? Colors.white : Colors.black87,
+                  color: isUser ? AppColors.surface : AppColors.primaryTrueDark,
                   fontSize: 15,
                 ),
               ),
@@ -319,10 +325,10 @@ class _ChatPageState extends State<ChatPage> {
           ),
           if (isUser) ...[
             const SizedBox(width: 8),
-            CircleAvatar(
+            const CircleAvatar(
               radius: 16,
-              backgroundColor: Colors.grey[300],
-              child: const Icon(Icons.person, size: 18),
+              backgroundColor: AppColors.border,
+              child: Icon(Icons.person, size: 18),
             ),
           ],
         ],
@@ -336,17 +342,17 @@ class _ChatPageState extends State<ChatPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
+          const CircleAvatar(
             radius: 16,
-            backgroundColor: Colors.blue[100],
-            child: const Icon(Icons.smart_toy, size: 18),
+            backgroundColor: ColorName.infoLight,
+            child: Icon(Icons.smart_toy, size: 18),
           ),
           const SizedBox(width: 8),
           Flexible(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.grey[200],
+                color: AppColors.border,
                 borderRadius: BorderRadius.circular(18),
               ),
               child: Row(
@@ -354,17 +360,18 @@ class _ChatPageState extends State<ChatPage> {
                 children: [
                   Text(
                     text,
-                    style: const TextStyle(color: Colors.black87, fontSize: 15),
+                    style: const TextStyle(
+                      color: AppColors.primaryTrueDark,
+                      fontSize: 15,
+                    ),
                   ),
                   const SizedBox(width: 4),
-                  SizedBox(
+                  const SizedBox(
                     width: 12,
                     height: 12,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Colors.blue[600]!,
-                      ),
+                      valueColor: AlwaysStoppedAnimation<Color>(ColorName.info),
                     ),
                   ),
                 ],

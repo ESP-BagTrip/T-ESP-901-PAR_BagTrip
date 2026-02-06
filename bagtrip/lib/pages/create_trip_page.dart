@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
+import 'package:bagtrip/design/app_colors.dart';
+import 'package:flutter/material.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/pages/travelers_page.dart';
 import 'package:bagtrip/service/conversation_service.dart';
@@ -98,7 +99,7 @@ class _CreateTripPageState extends State<CreateTripPage> {
                   AppLocalizations.of(context)!.nameTripToStart,
                   style: Theme.of(
                     context,
-                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.hint),
                 ),
                 const SizedBox(height: 32),
                 TextFormField(

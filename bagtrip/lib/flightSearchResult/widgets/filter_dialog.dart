@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/flightSearchResult/bloc/flight_search_result_bloc.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -118,9 +119,9 @@ class _FilterDialogState extends State<FilterDialog> {
                     ),
                     const SizedBox(height: AppSpacing.space8),
                     if (availableAirlines.isEmpty)
-                      Text(
+                      const Text(
                         'Aucune compagnie disponible',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                        style: TextStyle(fontSize: 14, color: AppColors.hint),
                       )
                     else
                       DropdownButtonFormField<String>(
@@ -270,7 +271,7 @@ class _FilterDialogState extends State<FilterDialog> {
                     ),
                     child: const Text(
                       'Appliquer',
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(color: AppColors.surface),
                     ),
                   ),
                 ),
@@ -293,7 +294,7 @@ class _FilterDialogState extends State<FilterDialog> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color: isSelected ? ColorName.secondary : Colors.white,
+          color: isSelected ? ColorName.secondary : AppColors.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color:
@@ -304,7 +305,7 @@ class _FilterDialogState extends State<FilterDialog> {
           child: Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.white : ColorName.primary,
+              color: isSelected ? AppColors.surface : ColorName.primary,
               fontWeight: FontWeight.w500,
             ),
           ),

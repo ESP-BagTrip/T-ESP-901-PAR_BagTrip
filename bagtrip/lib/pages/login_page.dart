@@ -2,6 +2,7 @@ import 'package:bagtrip/auth/bloc/auth_bloc.dart';
 import 'package:bagtrip/auth/widgets/auth_text_field.dart';
 import 'package:bagtrip/auth/widgets/social_login_button.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/primary_button.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -12,24 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-/// Dark surface color for inputs and buttons on login page (slightly lighter than primaryTrueDark).
-const Color _kLoginSurfaceDark = Color(0xFF2A2F3D);
-
-/// Grey for secondary text (works in both themes with appropriate contrast).
-const Color _kSubtitleGrey = Color(0xFF9AA6AC);
-const Color _kSubtitleGreyLight = Color(0xFF6B7280);
-
 /// Toggle and content container corner radius.
 const double _kPanelRadius = 16.0;
-
-/// Border color for selected toggle and content container (dark theme).
-final Color _kBorderDark = Colors.white.withValues(alpha: 0.15);
-
-/// Border color for selected toggle and content container (light theme).
-const Color _kBorderLight = Color(0xFFDFE7F0);
-
-/// Input field background in dark theme (slightly lighter than container).
-const Color _kInputBackgroundDark = Color(0xFF353B4A);
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -160,16 +145,20 @@ class _LoginPageContentState extends State<_LoginPageContent> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final scaffoldBackground =
         isDark ? ColorName.primaryTrueDark : ColorName.primaryLight;
-    final titleColor = isDark ? Colors.white : ColorName.primaryTrueDark;
-    final subtitleColor = isDark ? _kSubtitleGrey : _kSubtitleGreyLight;
-    final surfaceColor = isDark ? _kLoginSurfaceDark : Colors.white;
-    final textOnSurface = isDark ? Colors.white : ColorName.primaryTrueDark;
-    final hintOnSurface = isDark ? _kSubtitleGrey : _kSubtitleGreyLight;
-    final borderColor = isDark ? _kBorderDark : _kBorderLight;
+    final titleColor = isDark ? AppColors.surface : AppColors.primaryTrueDark;
+    final subtitleColor = isDark ? AppColors.hint : AppColors.textMutedLight;
+    final surfaceColor = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textOnSurface =
+        isDark ? AppColors.surface : AppColors.primaryTrueDark;
+    final hintOnSurface = isDark ? AppColors.hint : AppColors.textMutedLight;
+    final borderColor =
+        isDark
+            ? AppColors.surface.withValues(alpha: 0.15)
+            : ColorName.primarySoftLight;
     final inputBackgroundColor =
-        isDark ? _kInputBackgroundDark : ColorName.primaryLight;
-    final inputBorderColor = isDark ? _kBorderDark : _kBorderLight;
-    const errorBorderColor = Color(0xFFB71C1C);
+        isDark ? AppColors.inputBackgroundDark : AppColors.primaryLight;
+    final inputBorderColor = borderColor;
+    const errorBorderColor = ColorName.errorDark;
 
     return Scaffold(
       backgroundColor: scaffoldBackground,
