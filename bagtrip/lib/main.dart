@@ -2,8 +2,10 @@ import 'package:bagtrip/design/app_theme.dart';
 import 'package:bagtrip/firebase_options.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/app_router.dart';
+import 'package:bagtrip/profile/bloc/profile_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,11 +18,41 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      theme: AppTheme.light(),
-      routerConfig: appRouter,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
+    return BlocProvider(
+      create: (context) => ProfileBloc(),
+      child: BlocBuilder<ProfileBloc, ProfileState>(
+        builder: (context, state) {
+          // Get theme from state or default to system (first launch)
+          String themeValue = 'system';
+          if (state is ProfileLoaded) {
+            themeValue = state.selectedTheme;
+          }
+
+          // Convert theme string to ThemeMode
+          ThemeMode themeMode;
+          switch (themeValue) {
+            case 'dark':
+              themeMode = ThemeMode.dark;
+              break;
+            case 'light':
+              themeMode = ThemeMode.light;
+              break;
+            case 'system':
+            default:
+              themeMode = ThemeMode.system;
+              break;
+          }
+
+          return MaterialApp.router(
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
+            themeMode: themeMode,
+            routerConfig: appRouter,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          );
+        },
+      ),
     );
   }
 }

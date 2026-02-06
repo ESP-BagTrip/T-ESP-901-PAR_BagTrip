@@ -1,13 +1,35 @@
 import 'package:bagtrip/auth/bloc/auth_bloc.dart';
 import 'package:bagtrip/auth/widgets/auth_text_field.dart';
 import 'package:bagtrip/auth/widgets/social_login_button.dart';
+import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/primary_button.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+
+/// Dark surface color for inputs and buttons on login page (slightly lighter than primaryTrueDark).
+const Color _kLoginSurfaceDark = Color(0xFF2A2F3D);
+
+/// Grey for secondary text (works in both themes with appropriate contrast).
+const Color _kSubtitleGrey = Color(0xFF9AA6AC);
+const Color _kSubtitleGreyLight = Color(0xFF6B7280);
+
+/// Toggle and content container corner radius.
+const double _kPanelRadius = 16.0;
+
+/// Border color for selected toggle and content container (dark theme).
+final Color _kBorderDark = Colors.white.withValues(alpha: 0.15);
+
+/// Border color for selected toggle and content container (light theme).
+const Color _kBorderLight = Color(0xFFDFE7F0);
+
+/// Input field background in dark theme (slightly lighter than container).
+const Color _kInputBackgroundDark = Color(0xFF353B4A);
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -34,6 +56,9 @@ class _LoginPageContentState extends State<_LoginPageContent> {
   final _passwordController = TextEditingController();
   final _fullNameController = TextEditingController();
   bool _obscurePassword = true;
+  bool _emailHasError = false;
+  bool _passwordHasError = false;
+  bool _fullNameHasError = false;
 
   @override
   void dispose() {
@@ -45,30 +70,68 @@ class _LoginPageContentState extends State<_LoginPageContent> {
 
   void _toggleMode(bool currentMode) {
     _formKey.currentState?.reset();
+    setState(() {
+      _emailHasError = false;
+      _passwordHasError = false;
+      _fullNameHasError = false;
+    });
     context.read<AuthBloc>().add(AuthModeChanged(isLoginMode: !currentMode));
   }
 
   void _handleSubmit(bool isLoginMode) {
-    if (!_formKey.currentState!.validate()) {
+    final l10n = AppLocalizations.of(context)!;
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final fullName = _fullNameController.text.trim();
+
+    bool emailHasError = false;
+    bool passwordHasError = false;
+    bool fullNameHasError = false;
+    String? firstError;
+
+    if (email.isEmpty) {
+      emailHasError = true;
+      firstError ??= l10n.loginErrorEmailRequired;
+    } else if (!email.contains('@') || !email.contains('.')) {
+      emailHasError = true;
+      firstError ??= l10n.loginErrorEmailInvalid;
+    }
+    if (password.isEmpty) {
+      passwordHasError = true;
+      firstError ??= l10n.loginErrorPasswordRequired;
+    } else if (!isLoginMode && password.length < 6) {
+      passwordHasError = true;
+      firstError ??= l10n.loginErrorPasswordMinLength;
+    }
+
+    if (emailHasError || passwordHasError || fullNameHasError) {
+      setState(() {
+        _emailHasError = emailHasError;
+        _passwordHasError = passwordHasError;
+        _fullNameHasError = fullNameHasError;
+      });
+      if (firstError != null && context.mounted) {
+        AppSnackBar.showError(context, message: firstError);
+      }
       return;
     }
 
+    setState(() {
+      _emailHasError = false;
+      _passwordHasError = false;
+      _fullNameHasError = false;
+    });
+
     if (isLoginMode) {
       context.read<AuthBloc>().add(
-        LoginRequested(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-        ),
+        LoginRequested(email: email, password: password),
       );
     } else {
       context.read<AuthBloc>().add(
         RegisterRequested(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-          fullName:
-              _fullNameController.text.trim().isNotEmpty
-                  ? _fullNameController.text.trim()
-                  : null,
+          email: email,
+          password: password,
+          fullName: fullName.isNotEmpty ? fullName : null,
         ),
       );
     }
@@ -82,27 +145,54 @@ class _LoginPageContentState extends State<_LoginPageContent> {
     context.read<AuthBloc>().add(AppleSignInRequested());
   }
 
+  void _onTermsTap() {
+    // Placeholder: navigate to terms or launch URL
+  }
+
+  void _onPrivacyTap() {
+    // Placeholder: navigate to privacy or launch URL
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    const horizontalPadding = 24.0;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scaffoldBackground =
+        isDark ? ColorName.primaryTrueDark : ColorName.primaryLight;
+    final titleColor = isDark ? Colors.white : ColorName.primaryTrueDark;
+    final subtitleColor = isDark ? _kSubtitleGrey : _kSubtitleGreyLight;
+    final surfaceColor = isDark ? _kLoginSurfaceDark : Colors.white;
+    final textOnSurface = isDark ? Colors.white : ColorName.primaryTrueDark;
+    final hintOnSurface = isDark ? _kSubtitleGrey : _kSubtitleGreyLight;
+    final borderColor = isDark ? _kBorderDark : _kBorderLight;
+    final inputBackgroundColor =
+        isDark ? _kInputBackgroundDark : ColorName.primaryLight;
+    final inputBorderColor = isDark ? _kBorderDark : _kBorderLight;
+    const errorBorderColor = Color(0xFFB71C1C);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: scaffoldBackground,
       body: SafeArea(
         child: BlocListener<AuthBloc, AuthState>(
           listener: (context, state) {
             if (state is AuthSuccess) {
-              // Petit délai pour s'assurer que l'état est bien émis
               Future.delayed(const Duration(milliseconds: 100), () {
                 if (context.mounted) {
                   context.go('/home');
                 }
               });
             }
+            if (state is AuthError && context.mounted) {
+              AppSnackBar.showError(
+                context,
+                message: toUserFriendlyMessage(state.errorMessage),
+              );
+            }
           },
           child: BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
               final isLoading = state is AuthLoading;
-              final errorMessage =
-                  state is AuthError ? state.errorMessage : null;
               final isLoginMode =
                   state is AuthModeChangedState
                       ? state.isLoginMode
@@ -113,194 +203,206 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                       : true;
 
               return SingleChildScrollView(
-                padding: AppSpacing.allEdgeInsetSpace16,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: horizontalPadding,
+                ),
                 child: Form(
                   key: _formKey,
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.1,
-                      ),
-                      // Logo/Title
+                      const SizedBox(height: 100),
                       Text(
-                        'BagTrip',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontSize: 32,
+                        l10n.loginWelcomeTitle,
+                        style: TextStyle(
+                          fontSize: 28,
                           fontWeight: FontWeight.w700,
-                          color: ColorName.primary,
+                          fontFamily: FontFamily.b612,
+                          color: titleColor,
                         ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: AppSpacing.space8),
                       Text(
-                        isLoginMode ? 'Connectez-vous' : 'Créez votre compte',
-                        style: Theme.of(context).textTheme.titleMedium,
+                        l10n.loginWelcomeSubtitle,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          fontFamily: FontFamily.b612,
+                          color: subtitleColor,
+                        ),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.08,
+                      const SizedBox(height: AppSpacing.space24),
+                      _LoginSignUpToggle(
+                        isLogin: isLoginMode,
+                        onToggle:
+                            isLoading ? null : () => _toggleMode(isLoginMode),
+                        l10n: l10n,
+                        surfaceColor: surfaceColor,
+                        textColor: textOnSurface,
+                        borderColor: borderColor,
                       ),
-                      // Email field
-                      AuthTextField(
-                        label: 'Email',
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        hintText: 'votre@email.com',
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Veuillez entrer votre email';
-                          }
-                          if (!value.contains('@') || !value.contains('.')) {
-                            return 'Email invalide';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: AppSpacing.space16),
-                      // Full name field (only for register)
-                      if (!isLoginMode) ...[
-                        AuthTextField(
-                          label: 'Nom complet (optionnel)',
-                          controller: _fullNameController,
-                          keyboardType: TextInputType.name,
-                          hintText: 'Jean Dupont',
-                        ),
-                        const SizedBox(height: AppSpacing.space16),
-                      ],
-                      // Password field
-                      AuthTextField(
-                        label: 'Mot de passe',
-                        controller: _passwordController,
-                        obscureText: _obscurePassword,
-                        hintText: '••••••••',
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
-                            color: ColorName.primary,
+                      Container(
+                        decoration: BoxDecoration(
+                          color: surfaceColor,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(
+                              isLoginMode ? 0 : _kPanelRadius,
+                            ),
+                            topRight: Radius.circular(
+                              isLoginMode ? _kPanelRadius : 0,
+                            ),
+                            bottomLeft: const Radius.circular(_kPanelRadius),
+                            bottomRight: const Radius.circular(_kPanelRadius),
                           ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Veuillez entrer votre mot de passe';
-                          }
-                          if (!isLoginMode && value.length < 6) {
-                            return 'Le mot de passe doit contenir au moins 6 caractères';
-                          }
-                          return null;
-                        },
-                      ),
-                      // Error message
-                      if (errorMessage != null) ...[
-                        const SizedBox(height: AppSpacing.space16),
-                        Container(
-                          padding: AppSpacing.allEdgeInsetSpace16,
-                          decoration: BoxDecoration(
-                            color: ColorName.error.withValues(alpha: 0.1),
-                            borderRadius: AppRadius.medium8,
+                          border: Border(
+                            right: BorderSide(color: borderColor),
+                            bottom: BorderSide(color: borderColor),
+                            left: BorderSide(color: borderColor),
                           ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.error_outline,
-                                color: ColorName.error,
-                                size: 20,
+                        ),
+                        padding: const EdgeInsets.all(AppSpacing.space24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: SocialLoginButton(
+                                    provider: SocialProvider.google,
+                                    onPressed:
+                                        isLoading ? null : _handleGoogleSignIn,
+                                    isLoading: isLoading,
+                                    useDarkStyle: isDark,
+                                    label: l10n.loginContinueWithGoogle,
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.space8),
+                                Expanded(
+                                  child: SocialLoginButton(
+                                    provider: SocialProvider.apple,
+                                    onPressed:
+                                        isLoading ? null : _handleAppleSignIn,
+                                    isLoading: isLoading,
+                                    useDarkStyle: isDark,
+                                    label: l10n.loginContinueWithApple,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: AppSpacing.space24),
+                            _buildSeparator(
+                              l10n.loginOrContinueWithEmail,
+                              subtitleColor,
+                            ),
+                            const SizedBox(height: AppSpacing.space24),
+                            AuthTextField(
+                              label: '',
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              hintText: l10n.loginEmailPlaceholder,
+                              prefixIcon: Icon(
+                                Icons.mail_outline,
+                                size: 22,
+                                color: hintOnSurface,
                               ),
-                              const SizedBox(width: AppSpacing.space8),
-                              Expanded(
-                                child: Text(
-                                  errorMessage,
-                                  style: const TextStyle(
-                                    color: ColorName.error,
-                                    fontFamily: FontFamily.b612,
-                                    fontSize: 14,
+                              backgroundColor: inputBackgroundColor,
+                              textColor: textOnSurface,
+                              hintColor: hintOnSurface,
+                              borderColor: inputBorderColor,
+                              hasError: _emailHasError,
+                              errorBorderColor: errorBorderColor,
+                            ),
+                            const SizedBox(height: AppSpacing.space16),
+                            if (!isLoginMode) ...[
+                              AuthTextField(
+                                label: l10n.loginFullNameLabel,
+                                controller: _fullNameController,
+                                keyboardType: TextInputType.name,
+                                hintText: l10n.loginFullNameHint,
+                                prefixIcon: Icon(
+                                  Icons.person_outline,
+                                  size: 22,
+                                  color: hintOnSurface,
+                                ),
+                                backgroundColor: inputBackgroundColor,
+                                textColor: textOnSurface,
+                                hintColor: hintOnSurface,
+                                borderColor: inputBorderColor,
+                                hasError: _fullNameHasError,
+                                errorBorderColor: errorBorderColor,
+                              ),
+                              const SizedBox(height: AppSpacing.space16),
+                            ],
+                            AuthTextField(
+                              label: '',
+                              controller: _passwordController,
+                              obscureText: _obscurePassword,
+                              hintText: l10n.loginPasswordPlaceholder,
+                              prefixIcon: Icon(
+                                Icons.lock_outline,
+                                size: 22,
+                                color: hintOnSurface,
+                              ),
+                              backgroundColor: inputBackgroundColor,
+                              textColor: textOnSurface,
+                              hintColor: hintOnSurface,
+                              borderColor: inputBorderColor,
+                              hasError: _passwordHasError,
+                              errorBorderColor: errorBorderColor,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                  color: hintOnSurface,
+                                  size: 22,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
+                              ),
+                            ),
+                            if (isLoginMode) ...[
+                              const SizedBox(height: AppSpacing.space8),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton(
+                                  onPressed: isLoading ? null : () {},
+                                  child: Text(
+                                    l10n.loginForgotPassword,
+                                    style: const TextStyle(
+                                      fontFamily: FontFamily.b612,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
+                                      color: ColorName.secondary,
+                                    ),
                                   ),
                                 ),
                               ),
                             ],
-                          ),
+                            const SizedBox(height: AppSpacing.space24),
+                            PrimaryButton(
+                              label:
+                                  isLoginMode
+                                      ? l10n.loginButton
+                                      : l10n.loginRegisterButton,
+                              onPressed:
+                                  isLoading
+                                      ? null
+                                      : () => _handleSubmit(isLoginMode),
+                              isLoading: isLoading,
+                            ),
+                            const SizedBox(height: AppSpacing.space32),
+                            _buildLegalText(l10n, subtitleColor),
+                          ],
                         ),
-                      ],
-                      const SizedBox(height: AppSpacing.space24),
-                      // Submit button
-                      PrimaryButton(
-                        label: isLoginMode ? 'Se connecter' : 'S\'inscrire',
-                        onPressed:
-                            isLoading ? null : () => _handleSubmit(isLoginMode),
-                        isLoading: isLoading,
-                      ),
-                      const SizedBox(height: AppSpacing.space16),
-                      // Toggle mode button
-                      TextButton(
-                        onPressed:
-                            isLoading ? null : () => _toggleMode(isLoginMode),
-                        child: Text(
-                          isLoginMode
-                              ? 'Pas de compte ? S\'inscrire'
-                              : 'Déjà un compte ? Se connecter',
-                          style: const TextStyle(
-                            fontFamily: FontFamily.b612,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.space32),
-                      // Divider
-                      Row(
-                        children: [
-                          const Expanded(
-                            child: Divider(
-                              color: ColorName.primarySoftLight,
-                              thickness: 1,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.space16,
-                            ),
-                            child: Text(
-                              'OU',
-                              style: TextStyle(
-                                color: ColorName.primaryTrueDark.withValues(
-                                  alpha: 0.6,
-                                ),
-                                fontFamily: FontFamily.b612,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                          const Expanded(
-                            child: Divider(
-                              color: ColorName.primarySoftLight,
-                              thickness: 1,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.space24),
-                      // Social login buttons
-                      SocialLoginButton(
-                        provider: SocialProvider.google,
-                        onPressed: isLoading ? null : _handleGoogleSignIn,
-                        isLoading: isLoading,
-                      ),
-                      const SizedBox(height: AppSpacing.space16),
-                      SocialLoginButton(
-                        provider: SocialProvider.apple,
-                        onPressed: isLoading ? null : _handleAppleSignIn,
-                        isLoading: isLoading,
                       ),
                       SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.05,
+                        height: MediaQuery.of(context).padding.bottom + 24,
                       ),
                     ],
                   ),
@@ -310,6 +412,173 @@ class _LoginPageContentState extends State<_LoginPageContent> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSeparator(String text, Color color) {
+    return Row(
+      children: [
+        Expanded(
+          child: Divider(color: color.withValues(alpha: 0.6), thickness: 1),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space8),
+          child: Text(
+            text,
+            style: TextStyle(
+              color: color,
+              fontFamily: FontFamily.b612,
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Divider(color: color.withValues(alpha: 0.6), thickness: 1),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLegalText(AppLocalizations l10n, Color baseTextColor) {
+    return RichText(
+      textAlign: TextAlign.center,
+      text: TextSpan(
+        style: TextStyle(
+          fontSize: 12,
+          fontFamily: FontFamily.b612,
+          color: baseTextColor,
+        ),
+        children: [
+          TextSpan(text: l10n.loginLegalBySigningIn),
+          WidgetSpan(
+            alignment: PlaceholderAlignment.baseline,
+            baseline: TextBaseline.alphabetic,
+            child: GestureDetector(
+              onTap: _onTermsTap,
+              child: Text(
+                l10n.loginTermsOfService,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontFamily: FontFamily.b612,
+                  color: ColorName.secondary,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ),
+          TextSpan(text: l10n.loginLegalAnd),
+          WidgetSpan(
+            alignment: PlaceholderAlignment.baseline,
+            baseline: TextBaseline.alphabetic,
+            child: GestureDetector(
+              onTap: _onPrivacyTap,
+              child: Text(
+                l10n.loginPrivacyPolicy,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontFamily: FontFamily.b612,
+                  color: ColorName.secondary,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ),
+          const TextSpan(text: '.'),
+        ],
+      ),
+    );
+  }
+}
+
+class _LoginSignUpToggle extends StatelessWidget {
+  const _LoginSignUpToggle({
+    required this.isLogin,
+    required this.onToggle,
+    required this.l10n,
+    required this.surfaceColor,
+    required this.textColor,
+    required this.borderColor,
+  });
+
+  final bool isLogin;
+  final VoidCallback? onToggle;
+  final AppLocalizations l10n;
+  final Color surfaceColor;
+  final Color textColor;
+  final Color borderColor;
+
+  static const BorderRadius _selectedTopRadius = BorderRadius.only(
+    topLeft: Radius.circular(_kPanelRadius),
+    topRight: Radius.circular(_kPanelRadius),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            onTap: onToggle != null ? () => onToggle!() : null,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                color: isLogin ? surfaceColor : Colors.transparent,
+                borderRadius: isLogin ? _selectedTopRadius : null,
+                border:
+                    isLogin
+                        ? Border(
+                          top: BorderSide(color: borderColor),
+                          left: BorderSide(color: borderColor),
+                          right: BorderSide(color: borderColor),
+                        )
+                        : null,
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                l10n.login,
+                style: TextStyle(
+                  fontFamily: FontFamily.b612,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                  color: textColor,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.space8),
+        Expanded(
+          child: GestureDetector(
+            onTap: onToggle != null ? () => onToggle!() : null,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                color: !isLogin ? surfaceColor : Colors.transparent,
+                borderRadius: !isLogin ? _selectedTopRadius : null,
+                border:
+                    !isLogin
+                        ? Border(
+                          top: BorderSide(color: borderColor),
+                          left: BorderSide(color: borderColor),
+                          right: BorderSide(color: borderColor),
+                        )
+                        : null,
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                l10n.signUp,
+                style: TextStyle(
+                  fontFamily: FontFamily.b612,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                  color: textColor,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

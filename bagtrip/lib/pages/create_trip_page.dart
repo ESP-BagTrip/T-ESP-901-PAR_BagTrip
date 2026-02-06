@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:bagtrip/service/trip_service.dart';
-import 'package:bagtrip/service/conversation_service.dart';
-import 'package:bagtrip/pages/travelers_page.dart';
+import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/pages/travelers_page.dart';
+import 'package:bagtrip/service/conversation_service.dart';
+import 'package:bagtrip/service/trip_service.dart';
+import 'package:bagtrip/utils/error_display.dart';
 
 class CreateTripPage extends StatefulWidget {
   const CreateTripPage({super.key});
@@ -17,7 +19,6 @@ class _CreateTripPageState extends State<CreateTripPage> {
   final _tripService = TripService();
   final _conversationService = ConversationService();
   bool _isLoading = false;
-  String? _errorMessage;
 
   @override
   void dispose() {
@@ -32,7 +33,6 @@ class _CreateTripPageState extends State<CreateTripPage> {
 
     setState(() {
       _isLoading = true;
-      _errorMessage = null;
     });
 
     try {
@@ -68,9 +68,11 @@ class _CreateTripPageState extends State<CreateTripPage> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage = e.toString();
         _isLoading = false;
       });
+      if (mounted) {
+        AppSnackBar.showError(context, message: toUserFriendlyMessage(e));
+      }
     }
   }
 
@@ -118,21 +120,6 @@ class _CreateTripPageState extends State<CreateTripPage> {
                     return null;
                   },
                 ),
-                if (_errorMessage != null) ...[
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.red[50],
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.red[200]!),
-                    ),
-                    child: Text(
-                      _errorMessage!,
-                      style: TextStyle(color: Colors.red[800]),
-                    ),
-                  ),
-                ],
                 const Spacer(),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _handleSubmit,

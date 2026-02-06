@@ -143,5 +143,66 @@
         "type": "String"
       }
     }
-  }
+  },
+  "personalInfoTitle": "Personal Information",
+  "emailLabel": "EMAIL",
+  "phoneLabel": "PHONE",
+  "addressLabel": "ADDRESS",
+  "modifyButton": "Modify",
+  "preferencesTitle": "Preferences",
+  "languageLabel": "LANGUAGE",
+  "themeLabel": "THEME",
+  "chooseThemeHint": "Choose your preferred theme",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "themeSystem": "System",
+  "profileFooterText": "Version {version} · © {year} Vol Airlines",
+  "@profileFooterText": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "memberSinceText": "Member since {date}",
+  "@memberSinceText": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "recentBookingsTitle": "Recent Bookings",
+  "viewAllButton": "View All",
+  "noRecentBookings": "No recent bookings",
+  "bookingStatusCompleted": "Completed",
+  "bookingStatusConfirmed": "Confirmed",
+  "profileLoadFailureMessage": "Unable to load profile.",
+  "loginWelcomeTitle": "Welcome to Bag Trip",
+  "loginWelcomeSubtitle": "Login or Sign up to access your account",
+  "login": "Login",
+  "signUp": "Sign Up",
+  "loginOrContinueWithEmail": "OR CONTINUE WITH EMAIL",
+  "loginEmailPlaceholder": "Email Address",
+  "loginPasswordPlaceholder": "Password",
+  "loginForgotPassword": "Forgot password?",
+  "loginButton": "LOGIN",
+  "loginLegalBySigningIn": "By signing in with an account, you agree to Bag Trip's ",
+  "loginTermsOfService": "Terms of Service",
+  "loginPrivacyPolicy": "Privacy Policy",
+  "loginLegalAnd": " and ",
+  "loginContinueWithGoogle": "Google",
+  "loginContinueWithApple": "Apple",
+  "loginFullNameLabel": "Full name (optional)",
+  "loginFullNameHint": "John Doe",
+  "loginToggleNoAccount": "No account? Sign up",
+  "loginToggleHasAccount": "Already have an account? Login",
+  "loginErrorEmailRequired": "Please enter your email address",
+  "loginErrorEmailInvalid": "Invalid email address",
+  "loginErrorPasswordRequired": "Please enter your password",
+  "loginErrorPasswordMinLength": "Password must be at least 6 characters",
+  "loginRegisterButton": "Sign Up"
 }

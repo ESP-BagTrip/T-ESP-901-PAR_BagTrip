@@ -71,4 +71,70 @@ class AppTheme {
       ),
     );
   }
+
+  static ThemeData dark() {
+    final base = ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: ColorName.secondary,
+        primary: ColorName.secondary,
+        secondary: ColorName.secondary,
+        surface: ColorName.primaryDark,
+        error: ColorName.error,
+        brightness: Brightness.dark,
+      ),
+      scaffoldBackgroundColor: ColorName.primaryTrueDark,
+      fontFamily: FontFamily.b612,
+    );
+
+    return base.copyWith(
+      textTheme: base.textTheme.copyWith(
+        titleLarge: base.textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+          color: ColorName.secondary,
+        ),
+        titleMedium: base.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+        ),
+        bodyMedium: base.textTheme.bodyMedium?.copyWith(color: Colors.white),
+        labelLarge: base.textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: ColorName.secondary,
+          foregroundColor: Colors.white,
+          minimumSize: const Size.fromHeight(AppSize.height42),
+          padding: AppSpacing.allEdgeInsetSpace16,
+          shape: const RoundedRectangleBorder(borderRadius: AppRadius.large16),
+          elevation: 0,
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          minimumSize: const Size.fromHeight(AppSize.height42),
+          padding: AppSpacing.allEdgeInsetSpace8,
+          shape: const RoundedRectangleBorder(borderRadius: AppRadius.large16),
+        ),
+      ),
+      inputDecorationTheme: const InputDecorationTheme(
+        border: InputBorder.none,
+        hintStyle: TextStyle(
+          fontSize: 13,
+          fontFamily: FontFamily.b612,
+          color: Colors.white70,
+        ),
+      ),
+      cardTheme: const CardThemeData(
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        color: ColorName.primaryDark,
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.large16),
+      ),
+    );
+  }
 }

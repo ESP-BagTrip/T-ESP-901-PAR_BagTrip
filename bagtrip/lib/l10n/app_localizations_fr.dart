@@ -310,4 +310,144 @@ class AppLocalizationsFr extends AppLocalizations {
   String planningTitle(String title) {
     return 'Planification $title';
   }
+
+  @override
+  String get personalInfoTitle => 'Informations personnelles';
+
+  @override
+  String get emailLabel => 'EMAIL';
+
+  @override
+  String get phoneLabel => 'TÉLÉPHONE';
+
+  @override
+  String get addressLabel => 'ADRESSE';
+
+  @override
+  String get modifyButton => 'Modifier';
+
+  @override
+  String get preferencesTitle => 'Préférences';
+
+  @override
+  String get languageLabel => 'LANGUE';
+
+  @override
+  String get themeLabel => 'THÈME';
+
+  @override
+  String get chooseThemeHint => 'Choisissez votre thème préféré';
+
+  @override
+  String get themeLight => 'Clair';
+
+  @override
+  String get themeDark => 'Sombre';
+
+  @override
+  String get themeSystem => 'Système';
+
+  @override
+  String profileFooterText(String version, int year) {
+    return 'Version $version · © $year Vol Airlines';
+  }
+
+  @override
+  String memberSinceText(String date) {
+    return 'Membre depuis $date';
+  }
+
+  @override
+  String get recentBookingsTitle => 'Réservations récentes';
+
+  @override
+  String get viewAllButton => 'Voir tout';
+
+  @override
+  String get noRecentBookings => 'Aucune réservation récente';
+
+  @override
+  String get bookingStatusCompleted => 'Terminé';
+
+  @override
+  String get bookingStatusConfirmed => 'Confirmé';
+
+  @override
+  String get profileLoadFailureMessage => 'Impossible de charger le profil.';
+
+  @override
+  String get loginWelcomeTitle => 'Bienvenue sur Bag Trip';
+
+  @override
+  String get loginWelcomeSubtitle =>
+      'Connectez-vous ou créez un compte pour accéder à votre espace';
+
+  @override
+  String get login => 'Connexion';
+
+  @override
+  String get signUp => 'Inscription';
+
+  @override
+  String get loginOrContinueWithEmail => 'OU CONTINUER AVEC L\'EMAIL';
+
+  @override
+  String get loginEmailPlaceholder => 'Adresse e-mail';
+
+  @override
+  String get loginPasswordPlaceholder => 'Mot de passe';
+
+  @override
+  String get loginForgotPassword => 'Mot de passe oublié ?';
+
+  @override
+  String get loginButton => 'Connexion';
+
+  @override
+  String get loginLegalBySigningIn => 'En vous connectant, vous acceptez les ';
+
+  @override
+  String get loginTermsOfService => 'Conditions d\'utilisation';
+
+  @override
+  String get loginPrivacyPolicy => 'Politique de confidentialité';
+
+  @override
+  String get loginLegalAnd => ' et ';
+
+  @override
+  String get loginContinueWithGoogle => 'Google';
+
+  @override
+  String get loginContinueWithApple => 'Apple';
+
+  @override
+  String get loginFullNameLabel => 'Nom complet (optionnel)';
+
+  @override
+  String get loginFullNameHint => 'Jean Dupont';
+
+  @override
+  String get loginToggleNoAccount => 'Pas de compte ? S\'inscrire';
+
+  @override
+  String get loginToggleHasAccount => 'Déjà un compte ? Se connecter';
+
+  @override
+  String get loginErrorEmailRequired =>
+      'Veuillez renseigner votre adresse e-mail';
+
+  @override
+  String get loginErrorEmailInvalid => 'Adresse e-mail incorrecte';
+
+  @override
+  String get loginErrorPasswordRequired =>
+      'Veuillez renseigner votre mot de passe';
+
+  @override
+  String get loginErrorPasswordMinLength =>
+      'Le mot de passe doit contenir au moins 6 caractères';
+
+  @override
+  String get loginRegisterButton => 'S\'inscrire';
 }

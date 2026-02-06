@@ -1,0 +1,273 @@
+import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/profile/bloc/profile_bloc.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+class PreferencesSection extends StatelessWidget {
+  final String selectedTheme;
+  final String selectedLanguage;
+
+  const PreferencesSection({
+    super.key,
+    required this.selectedTheme,
+    required this.selectedLanguage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: AppRadius.large16,
+        border: Border.all(color: ColorName.primarySoftLight),
+        boxShadow: [
+          BoxShadow(
+            color: ColorName.primary.withValues(alpha: 0.08),
+            offset: const Offset(0, 4),
+            blurRadius: 6,
+            spreadRadius: -1,
+          ),
+          BoxShadow(
+            color: ColorName.primary.withValues(alpha: 0.04),
+            offset: const Offset(0, 2),
+            blurRadius: 4,
+            spreadRadius: -1,
+          ),
+        ],
+      ),
+      padding: AppSpacing.allEdgeInsetSpace24,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.language_outlined,
+                color: ColorName.secondary,
+                size: 20,
+              ),
+              const SizedBox(width: AppSpacing.space8),
+              Text(
+                AppLocalizations.of(context)!.preferencesTitle,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: ColorName.primaryTrueDark,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.space16),
+          _buildLanguageRow(context),
+          const SizedBox(height: AppSpacing.space16),
+          _buildThemeSelector(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLanguageRow(BuildContext context) {
+    return Row(
+      children: [
+        Icon(
+          Icons.language_outlined,
+          color: ColorName.secondary.withValues(alpha: 0.7),
+          size: 20,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                AppLocalizations.of(context)!.languageLabel,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: ColorName.primaryTrueDark.withValues(alpha: 0.5),
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.space4),
+              Text(
+                selectedLanguage,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: ColorName.primaryTrueDark,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Icon(
+          Icons.chevron_right,
+          color: ColorName.primaryTrueDark.withValues(alpha: 0.4),
+          size: 20,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildThemeSelector(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.dark_mode_outlined,
+              color: ColorName.secondary.withValues(alpha: 0.7),
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.themeLabel,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: ColorName.primaryTrueDark.withValues(alpha: 0.5),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.space4),
+                  Text(
+                    AppLocalizations.of(context)!.chooseThemeHint,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: ColorName.primaryTrueDark.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        BlocBuilder<ProfileBloc, ProfileState>(
+          builder: (context, state) {
+            final currentTheme =
+                state is ProfileLoaded ? state.selectedTheme : selectedTheme;
+
+            return Row(
+              children: [
+                Expanded(
+                  child: _buildThemeOption(
+                    context,
+                    'light',
+                    AppLocalizations.of(context)!.themeLight,
+                    Icons.light_mode_outlined,
+                    currentTheme == 'light',
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.space8),
+                Expanded(
+                  child: _buildThemeOption(
+                    context,
+                    'dark',
+                    AppLocalizations.of(context)!.themeDark,
+                    Icons.dark_mode_outlined,
+                    currentTheme == 'dark',
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.space8),
+                Expanded(
+                  child: _buildThemeOption(
+                    context,
+                    'system',
+                    AppLocalizations.of(context)!.themeSystem,
+                    Icons.desktop_windows_outlined,
+                    currentTheme == 'system',
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildThemeOption(
+    BuildContext context,
+    String themeValue,
+    String label,
+    IconData icon,
+    bool isSelected,
+  ) {
+    return InkWell(
+      onTap: () {
+        context.read<ProfileBloc>().add(UpdateTheme(themeValue));
+      },
+      borderRadius: AppRadius.medium8,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          vertical: 12,
+          horizontal: AppSpacing.space8,
+        ),
+        decoration: BoxDecoration(
+          color:
+              isSelected
+                  ? ColorName.secondary.withValues(alpha: 0.1)
+                  : ColorName.primaryLight,
+          borderRadius: AppRadius.medium8,
+          border: Border.all(
+            color:
+                isSelected ? ColorName.secondary : ColorName.primarySoftLight,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  color:
+                      isSelected
+                          ? ColorName.secondary
+                          : ColorName.primaryTrueDark.withValues(alpha: 0.6),
+                  size: 20,
+                ),
+                const SizedBox(height: AppSpacing.space4),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color:
+                        isSelected
+                            ? ColorName.secondary
+                            : ColorName.primaryTrueDark.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
+            ),
+            if (isSelected)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  width: 18,
+                  height: 18,
+                  decoration: const BoxDecoration(
+                    color: ColorName.secondary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.check, size: 12, color: Colors.white),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}

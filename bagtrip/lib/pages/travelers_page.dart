@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:bagtrip/service/traveler_service.dart';
+import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/models/traveler.dart';
+import 'package:bagtrip/service/traveler_service.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -162,9 +164,7 @@ class _TravelersPageState extends State<TravelersPage> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+          AppSnackBar.showError(context, message: toUserFriendlyMessage(e));
         }
       }
     }
