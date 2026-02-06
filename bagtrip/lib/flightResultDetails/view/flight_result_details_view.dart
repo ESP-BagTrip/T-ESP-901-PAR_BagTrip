@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/flightResultDetails/bloc/flight_result_details_bloc.dart';
 import 'package:bagtrip/flightResultDetails/widgets/baggage_info_card.dart';
@@ -18,7 +19,7 @@ class FlightResultDetailsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: ColorName.secondary),
@@ -41,9 +42,9 @@ class FlightResultDetailsView extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFFF0F7FA), // #f0f7fa
-              Color(0xFFF5F9FB), // #f5f9fb
-              Color(0xFFFAFCFD), // #fafcfd
+              ColorName.backgroundGradientStart,
+              ColorName.backgroundGradientMid,
+              ColorName.backgroundGradientEnd,
             ],
           ),
         ),
@@ -68,7 +69,7 @@ class FlightResultDetailsView extends StatelessWidget {
             }
 
             Color getStopsColor(int stops) {
-              return stops == 0 ? ColorName.secondary : Colors.orange;
+              return stops == 0 ? ColorName.secondary : ColorName.warning;
             }
 
             String formatTicketingDate(String dateStr) {

@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -88,16 +89,14 @@ class AuthTextField extends StatelessWidget {
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
                 fontFamily: FontFamily.b612,
-                color: hintColor ?? const Color(0xFF9AA6AC),
+                color: hintColor ?? AppColors.hint,
               ),
               border: InputBorder.none,
               contentPadding: AppSpacing.allEdgeInsetSpace16,
               prefixIcon:
                   prefixIcon != null
                       ? IconTheme.merge(
-                        data: IconThemeData(
-                          color: hintColor ?? const Color(0xFF9AA6AC),
-                        ),
+                        data: IconThemeData(color: hintColor ?? AppColors.hint),
                         child: prefixIcon!,
                       )
                       : null,

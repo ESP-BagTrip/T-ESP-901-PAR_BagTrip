@@ -1,5 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:bagtrip/chat/models/context.dart';
+import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:flutter/material.dart';
 
 class FlightOfferCard extends StatelessWidget {
   final WidgetData widgetData;
@@ -32,12 +34,12 @@ class FlightOfferCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.blue[50],
+                        color: ColorName.infoLight,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
                         Icons.flight_takeoff,
-                        color: Colors.blue,
+                        color: ColorName.info,
                         size: 20,
                       ),
                     ),
@@ -60,9 +62,9 @@ class FlightOfferCard extends StatelessWidget {
                             const SizedBox(height: 4),
                             Text(
                               widgetData.subtitle!,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 14,
-                                color: Colors.grey[600],
+                                color: AppColors.hint,
                               ),
                             ),
                           ],
@@ -139,11 +141,11 @@ class FlightOfferCard extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: Colors.grey[600]),
+          Icon(icon, size: 16, color: AppColors.hint),
           const SizedBox(width: 8),
           Text(
             '$label: ',
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            style: const TextStyle(fontSize: 12, color: AppColors.hint),
           ),
           Expanded(
             child: Text(
@@ -166,8 +168,9 @@ class FlightOfferCard extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         backgroundColor:
-            isPrimary ? Theme.of(context).primaryColor : Colors.grey[200],
-        foregroundColor: isPrimary ? Colors.white : Colors.black87,
+            isPrimary ? Theme.of(context).primaryColor : AppColors.border,
+        foregroundColor:
+            isPrimary ? AppColors.surface : AppColors.primaryTrueDark,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         elevation: isPrimary ? 2 : 0,
       ),

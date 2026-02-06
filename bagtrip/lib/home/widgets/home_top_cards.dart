@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -51,14 +52,16 @@ class HomeTopCards extends StatelessWidget {
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.surface,
                       image:
                           hasImage
                               ? DecorationImage(
                                 image: AssetImage(card['image'] as String),
                                 fit: BoxFit.cover,
                                 colorFilter: ColorFilter.mode(
-                                  Colors.black.withValues(alpha: 0.3),
+                                  AppColors.primaryTrueDark.withValues(
+                                    alpha: 0.3,
+                                  ),
                                   BlendMode.darken,
                                 ),
                               )
@@ -71,7 +74,10 @@ class HomeTopCards extends StatelessWidget {
                       children: [
                         Icon(
                           card['icon'] as IconData,
-                          color: hasImage ? Colors.white : ColorName.secondary,
+                          color:
+                              hasImage
+                                  ? AppColors.surface
+                                  : ColorName.secondary,
                           size: 40,
                         ),
                         // const SizedBox(height: 8),
@@ -80,7 +86,10 @@ class HomeTopCards extends StatelessWidget {
                           style: Theme.of(
                             context,
                           ).textTheme.titleLarge?.copyWith(
-                            color: hasImage ? Colors.white : ColorName.primary,
+                            color:
+                                hasImage
+                                    ? AppColors.surface
+                                    : ColorName.primary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

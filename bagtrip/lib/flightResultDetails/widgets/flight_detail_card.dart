@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -38,7 +39,7 @@ class FlightDetailCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: AppRadius.large16,
         border: Border.all(color: ColorName.primarySoftLight),
         boxShadow: [
@@ -188,11 +189,11 @@ class FlightDetailCard extends StatelessWidget {
                   Container(
                     width: 24,
                     height: 24,
-                    color: Colors.grey.shade300, // Replace with actual logo
+                    color: AppColors.border,
                     child: const Icon(
                       Icons.airlines,
                       size: 16,
-                      color: Colors.grey,
+                      color: AppColors.hint,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -236,7 +237,7 @@ class FlightDetailCard extends StatelessWidget {
                     fontFamily: FontFamily.b612,
                     fontWeight: FontWeight.w600,
                     fontSize: 12,
-                    color: Colors.white,
+                    color: AppColors.surface,
                   ),
                 ),
               ),

@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:flutter/material.dart';
@@ -212,7 +213,7 @@ class _CustomCalendarPickerState extends State<CustomCalendarPicker> {
       width: widget.dialogWidth,
       height: totalHeight,
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.all(Radius.circular(16)),
       ),
       child: ClipRRect(
@@ -282,15 +283,13 @@ class _CustomCalendarPickerState extends State<CustomCalendarPicker> {
                       color:
                           canGoPrevious
                               ? ColorName.secondary.withValues(alpha: 0.1)
-                              : Colors.grey.withValues(alpha: 0.05),
+                              : AppColors.border.withValues(alpha: 0.3),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.chevron_left,
                       color:
-                          canGoPrevious
-                              ? ColorName.secondary
-                              : Colors.grey.withValues(alpha: 0.3),
+                          canGoPrevious ? ColorName.secondary : AppColors.hint,
                       size: iconSize,
                     ),
                   ),
@@ -318,15 +317,12 @@ class _CustomCalendarPickerState extends State<CustomCalendarPicker> {
                       color:
                           canGoNext
                               ? ColorName.secondary.withValues(alpha: 0.1)
-                              : Colors.grey.withValues(alpha: 0.05),
+                              : AppColors.border.withValues(alpha: 0.3),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.chevron_right,
-                      color:
-                          canGoNext
-                              ? ColorName.secondary
-                              : Colors.grey.withValues(alpha: 0.3),
+                      color: canGoNext ? ColorName.secondary : AppColors.hint,
                       size: iconSize,
                     ),
                   ),
@@ -482,9 +478,9 @@ class _CustomCalendarPickerState extends State<CustomCalendarPicker> {
               style: TextStyle(
                 color:
                     isSelected
-                        ? Colors.white
+                        ? AppColors.surface
                         : (isDisabled
-                            ? Colors.grey.withValues(alpha: 0.3)
+                            ? AppColors.hint
                             : (isToday
                                 ? ColorName.primary
                                 : ColorName.secondary)),

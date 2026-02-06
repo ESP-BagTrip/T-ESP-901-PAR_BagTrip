@@ -1,3 +1,4 @@
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/home/view/home_content.dart';
 import 'package:flutter/material.dart';
 
@@ -14,9 +15,9 @@ class HomeView extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFFF0F7FA), // #f0f7fa
-              Color(0xFFF5F9FB), // #f5f9fb
-              Color(0xFFFAFCFD), // #fafcfd
+              ColorName.backgroundGradientStart,
+              ColorName.backgroundGradientMid,
+              ColorName.backgroundGradientEnd,
             ],
           ),
         ),

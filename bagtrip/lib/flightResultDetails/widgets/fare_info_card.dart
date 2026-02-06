@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -25,7 +26,7 @@ class FareInfoCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: AppRadius.large16,
         border: Border.all(color: ColorName.primarySoftLight),
         boxShadow: [
@@ -72,7 +73,7 @@ class FareInfoCard extends StatelessWidget {
           Container(
             padding: AppSpacing.allEdgeInsetSpace16,
             decoration: BoxDecoration(
-              color: const Color(0xFFE8EDF1), // Light grey/blue from screenshot
+              color: ColorName.surfaceVariant,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
@@ -127,7 +128,7 @@ class FareInfoCard extends StatelessWidget {
           ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
-            child: Divider(height: 1, color: Colors.black12),
+            child: Divider(height: 1, color: AppColors.border),
           ),
           _buildPriceRow(
             AppLocalizations.of(context)!.totalPrice,
@@ -156,11 +157,15 @@ class FareInfoCard extends StatelessWidget {
                     fontFamily: FontFamily.b612,
                     fontWeight: FontWeight.w700,
                     fontSize: 16,
-                    color: Colors.white,
+                    color: AppColors.surface,
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Icon(Icons.arrow_forward, size: 20, color: Colors.white),
+                const Icon(
+                  Icons.arrow_forward,
+                  size: 20,
+                  color: AppColors.surface,
+                ),
               ],
             ),
           ),

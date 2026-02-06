@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/flightSearchResult/models/flight.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -24,7 +25,7 @@ class FlightCard extends StatelessWidget {
         margin: AppSpacing.onlyBottomSpace16,
         padding: AppSpacing.allEdgeInsetSpace24,
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFE8F8F7) : Colors.white,
+          color: isSelected ? ColorName.secondaryLight : AppColors.surface,
           borderRadius: const BorderRadius.all(Radius.circular(24)),
           border: Border.all(color: ColorName.primarySoftLight),
           boxShadow: [
@@ -155,7 +156,7 @@ class FlightCard extends StatelessWidget {
         style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: Colors.white,
+          color: AppColors.surface,
         ),
       ),
     );
@@ -174,7 +175,7 @@ class FlightCard extends StatelessWidget {
                 child: Icon(
                   Icons.airplanemode_active,
                   size: 16,
-                  color: Color(0xFFD32F2F),
+                  color: ColorName.errorDark,
                 ),
               ),
               const SizedBox(width: AppSpacing.space8),
@@ -271,7 +272,7 @@ class FlightCard extends StatelessWidget {
             color: ColorName.secondary,
             borderRadius: BorderRadius.circular(4),
           ),
-          child: Icon(icon, size: 14, color: Colors.white),
+          child: Icon(icon, size: 14, color: AppColors.surface),
         ),
         const SizedBox(width: 8),
         Text(

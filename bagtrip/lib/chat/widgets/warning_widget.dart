@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:bagtrip/chat/models/context.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:flutter/material.dart';
 
 class WarningWidget extends StatelessWidget {
   final WidgetData widgetData;
@@ -16,9 +17,9 @@ class WarningWidget extends StatelessWidget {
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: Colors.orange[300]!),
+          side: const BorderSide(color: ColorName.warningLight),
         ),
-        color: Colors.orange[50],
+        color: ColorName.warningLight,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -31,12 +32,12 @@ class WarningWidget extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.orange[100],
+                      color: ColorName.warningLight,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.warning_amber_rounded,
-                      color: Colors.orange[800],
+                      color: ColorName.warning,
                       size: 20,
                     ),
                   ),
@@ -44,10 +45,10 @@ class WarningWidget extends StatelessWidget {
                   Expanded(
                     child: Text(
                       widgetData.title ?? 'Avertissement',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.orange[900],
+                        color: ColorName.warning,
                       ),
                     ),
                   ),
@@ -60,7 +61,10 @@ class WarningWidget extends StatelessWidget {
               if (widgetData.subtitle != null)
                 Text(
                   widgetData.subtitle!,
-                  style: TextStyle(fontSize: 14, color: Colors.orange[800]),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: ColorName.warning,
+                  ),
                 ),
 
               // Informations supplémentaires
@@ -86,8 +90,8 @@ class WarningWidget extends StatelessWidget {
                               horizontal: 16,
                               vertical: 10,
                             ),
-                            side: BorderSide(color: Colors.orange[800]!),
-                            foregroundColor: Colors.orange[800],
+                            side: const BorderSide(color: ColorName.warning),
+                            foregroundColor: ColorName.warning,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -143,9 +147,9 @@ class WarningWidget extends StatelessWidget {
         children: [
           Text(
             '$label: ',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 12,
-              color: Colors.orange[700],
+              color: ColorName.warning,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -154,7 +158,7 @@ class WarningWidget extends StatelessWidget {
               value,
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.orange[800],
+                color: ColorName.warning,
                 fontWeight: isImportant ? FontWeight.bold : FontWeight.normal,
               ),
             ),

@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -13,7 +14,7 @@ class RecentBookingsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: AppRadius.large16,
         border: Border.all(color: ColorName.primarySoftLight),
         boxShadow: [
@@ -118,7 +119,7 @@ class RecentBookingsSection extends StatelessWidget {
               colors: [ColorName.primary, ColorName.secondary],
             ),
           ),
-          child: const Icon(Icons.flight, color: Colors.white, size: 24),
+          child: const Icon(Icons.flight, color: AppColors.surface, size: 24),
         ),
         const SizedBox(width: 12),
         Expanded(

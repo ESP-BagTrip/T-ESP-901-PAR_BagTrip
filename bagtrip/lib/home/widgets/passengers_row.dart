@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_flight_bloc.dart';
@@ -89,7 +90,7 @@ class PassengersRow extends StatelessWidget {
                       ),
                       child: IconButton(
                         icon: const Icon(Icons.add),
-                        color: Colors.white,
+                        color: AppColors.surface,
                         onPressed: onAdd,
                         iconSize: 20,
                       ),

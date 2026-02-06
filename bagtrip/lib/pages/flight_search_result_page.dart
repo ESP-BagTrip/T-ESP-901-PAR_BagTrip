@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/flightSearchResult/bloc/flight_search_result_bloc.dart';
 import 'package:bagtrip/flightSearchResult/models/flight_search_arguments.dart';
 import 'package:bagtrip/flightSearchResult/widgets/flight_search_result_widget.dart';
@@ -17,8 +18,8 @@ class FlightSearchResultPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.searchResults),
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1F3A5F),
+        backgroundColor: AppColors.surface,
+        foregroundColor: AppColors.onSurface,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/home'),

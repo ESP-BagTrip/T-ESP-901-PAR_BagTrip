@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/flightSearchResult/bloc/flight_search_result_bloc.dart';
 import 'package:bagtrip/flightSearchResult/models/flight.dart';
@@ -92,7 +93,7 @@ class DateSelector extends StatelessWidget {
         Expanded(
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.surface,
               borderRadius: AppRadius.large16,
               border: Border.all(color: ColorName.primarySoftLight),
               boxShadow: [
@@ -139,7 +140,7 @@ class DateSelector extends StatelessWidget {
           width: iconSize,
           height: iconSize,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.surface,
             borderRadius: AppRadius.large16,
             border: Border.all(color: ColorName.primarySoftLight),
             boxShadow: [
@@ -201,7 +202,7 @@ class DateSelector extends StatelessWidget {
                   style: TextStyle(
                     fontSize: isSmallScreen ? 10 : 11,
                     fontWeight: FontWeight.w500,
-                    color: isSelected ? Colors.white : ColorName.primary,
+                    color: isSelected ? AppColors.surface : ColorName.primary,
                   ),
                   textAlign: TextAlign.center,
                   maxLines: 1,
@@ -213,7 +214,7 @@ class DateSelector extends StatelessWidget {
                   style: TextStyle(
                     fontSize: isSmallScreen ? 13 : 14,
                     fontWeight: FontWeight.w600,
-                    color: isSelected ? Colors.white : ColorName.primary,
+                    color: isSelected ? AppColors.surface : ColorName.primary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -223,7 +224,7 @@ class DateSelector extends StatelessWidget {
                   style: TextStyle(
                     fontSize: isSmallScreen ? 10 : 11,
                     fontWeight: FontWeight.w500,
-                    color: isSelected ? Colors.white : ColorName.primary,
+                    color: isSelected ? AppColors.surface : ColorName.primary,
                   ),
                   textAlign: TextAlign.center,
                   maxLines: 1,
@@ -236,7 +237,7 @@ class DateSelector extends StatelessWidget {
                   style: TextStyle(
                     fontSize: isSmallScreen ? 10 : 12,
                     fontWeight: FontWeight.w500,
-                    color: isSelected ? Colors.white : ColorName.primary,
+                    color: isSelected ? AppColors.surface : ColorName.primary,
                   ),
                   child: Text(
                     date,
@@ -253,7 +254,7 @@ class DateSelector extends StatelessWidget {
                   style: TextStyle(
                     fontSize: isSmallScreen ? 12 : 14,
                     fontWeight: FontWeight.w600,
-                    color: isSelected ? Colors.white : ColorName.primary,
+                    color: isSelected ? AppColors.surface : ColorName.primary,
                   ),
                   child: Text(
                     price,

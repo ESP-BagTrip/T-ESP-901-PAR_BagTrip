@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/flightSearchResult/models/baggage_info.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -32,7 +33,7 @@ class BaggageInfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: AppRadius.large16,
         border: Border.all(color: ColorName.primarySoftLight),
         boxShadow: [
@@ -80,7 +81,7 @@ class BaggageInfoCard extends StatelessWidget {
           ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
-            child: Divider(height: 1, color: Colors.black12),
+            child: Divider(height: 1, color: AppColors.border),
           ),
           // Checked Baggage
           _buildBaggageRow(

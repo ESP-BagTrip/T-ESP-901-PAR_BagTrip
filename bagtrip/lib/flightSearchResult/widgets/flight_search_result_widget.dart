@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/flightSearchResult/bloc/flight_search_result_bloc.dart';
 import 'package:bagtrip/flightSearchResult/widgets/date_selector.dart';
@@ -84,7 +85,7 @@ class FlightSearchResultView extends StatelessWidget {
                           AppLocalizations.of(context)!.clearPriceFilterButton,
                           style: const TextStyle(
                             fontFamily: FontFamily.b612,
-                            color: Colors.white,
+                            color: AppColors.surface,
                           ),
                         ),
                       ),

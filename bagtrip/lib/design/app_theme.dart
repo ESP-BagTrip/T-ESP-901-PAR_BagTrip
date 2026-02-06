@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -16,7 +17,7 @@ class AppTheme {
         surface: ColorName.primaryLight,
         error: ColorName.error,
       ),
-      scaffoldBackgroundColor: Colors.white,
+      scaffoldBackgroundColor: AppColors.surface,
       fontFamily: FontFamily.b612,
     );
 
@@ -35,13 +36,13 @@ class AppTheme {
         ),
         labelLarge: base.textTheme.labelLarge?.copyWith(
           fontWeight: FontWeight.w600,
-          color: Colors.white,
+          color: AppColors.surface,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: ColorName.secondary,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.surface,
           minimumSize: const Size.fromHeight(AppSize.height42),
           padding: AppSpacing.allEdgeInsetSpace16,
           shape: const RoundedRectangleBorder(borderRadius: AppRadius.large16),
@@ -96,18 +97,20 @@ class AppTheme {
         ),
         titleMedium: base.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w700,
-          color: Colors.white,
+          color: AppColors.surface,
         ),
-        bodyMedium: base.textTheme.bodyMedium?.copyWith(color: Colors.white),
+        bodyMedium: base.textTheme.bodyMedium?.copyWith(
+          color: AppColors.surface,
+        ),
         labelLarge: base.textTheme.labelLarge?.copyWith(
           fontWeight: FontWeight.w600,
-          color: Colors.white,
+          color: AppColors.surface,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: ColorName.secondary,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.surface,
           minimumSize: const Size.fromHeight(AppSize.height42),
           padding: AppSpacing.allEdgeInsetSpace16,
           shape: const RoundedRectangleBorder(borderRadius: AppRadius.large16),
@@ -121,12 +124,12 @@ class AppTheme {
           shape: const RoundedRectangleBorder(borderRadius: AppRadius.large16),
         ),
       ),
-      inputDecorationTheme: const InputDecorationTheme(
+      inputDecorationTheme: InputDecorationTheme(
         border: InputBorder.none,
         hintStyle: TextStyle(
           fontSize: 13,
           fontFamily: FontFamily.b612,
-          color: Colors.white70,
+          color: ColorName.surface.withValues(alpha: 0.7),
         ),
       ),
       cardTheme: const CardThemeData(

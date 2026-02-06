@@ -13,8 +13,8 @@ class FlightSearchResultShimmer extends StatelessWidget {
         children: [
           // Date Selector Shimmer
           Shimmer.fromColors(
-            baseColor: Colors.grey[300]!,
-            highlightColor: Colors.grey[100]!,
+            baseColor: ColorName.shimmerBase,
+            highlightColor: ColorName.shimmerHighlight,
             child: SizedBox(
               height: 60,
               child: Row(
@@ -43,8 +43,8 @@ class FlightSearchResultShimmer extends StatelessWidget {
           const SizedBox(height: AppSpacing.space16),
           // Filter Button Shimmer
           Shimmer.fromColors(
-            baseColor: Colors.grey[300]!,
-            highlightColor: Colors.grey[100]!,
+            baseColor: ColorName.shimmerBase,
+            highlightColor: ColorName.shimmerHighlight,
             child: Container(
               height: 50,
               decoration: const BoxDecoration(
@@ -61,8 +61,8 @@ class FlightSearchResultShimmer extends StatelessWidget {
             itemCount: 4,
             itemBuilder: (context, index) {
               return Shimmer.fromColors(
-                baseColor: Colors.grey[300]!,
-                highlightColor: Colors.grey[100]!,
+                baseColor: ColorName.shimmerBase,
+                highlightColor: ColorName.shimmerHighlight,
                 child: Container(
                   height: 120,
                   margin: AppSpacing.onlyBottomSpace16,

@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/flightSearchResult/bloc/flight_search_result_bloc.dart';
 import 'package:bagtrip/flightSearchResult/widgets/filter_dialog.dart';
@@ -26,7 +27,7 @@ class FilterButton extends StatelessWidget {
           child: Container(
             // padding: AppSpacing.allEdgeInsetSpace16,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.surface,
               borderRadius: AppRadius.large16,
               border: Border.all(color: ColorName.primarySoftLight),
               boxShadow: [
@@ -53,7 +54,7 @@ class FilterButton extends StatelessWidget {
                     color: ColorName.secondary,
                     borderRadius: AppRadius.large16,
                   ),
-                  child: const Icon(Icons.tune, color: Colors.white),
+                  child: const Icon(Icons.tune, color: AppColors.surface),
                 ),
                 const SizedBox(width: AppSpacing.space16),
                 const Expanded(

@@ -345,7 +345,7 @@ class HomeFlightForm extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.search, color: Colors.white),
+                    const Icon(Icons.search, color: ColorName.surface),
                     const SizedBox(width: 8),
                     Text(
                       AppLocalizations.of(context)!.searchFlightButton,
@@ -353,7 +353,7 @@ class HomeFlightForm extends StatelessWidget {
                         fontSize: 16,
                         fontFamily: FontFamily.b612,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: ColorName.surface,
                       ),
                     ),
                   ],

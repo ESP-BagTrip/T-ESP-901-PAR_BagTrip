@@ -24,7 +24,7 @@ class HomeDateBlock extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         width: double.infinity,
         decoration: BoxDecoration(
-          color: const Color(0xFFF7F9FC),
+          color: ColorName.surfaceLight,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(

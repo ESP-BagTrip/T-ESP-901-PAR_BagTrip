@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +28,7 @@ class HomeDateField extends StatelessWidget {
           fontSize: 16, // Large text as in the image
           fontWeight: FontWeight.w500,
           fontFamily: FontFamily.b612,
-          color: value != null ? ColorName.primary : const Color(0xFF9AA6AC),
+          color: value != null ? ColorName.primary : AppColors.hint,
         ),
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -27,7 +28,7 @@ class ProfileHeaderCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: AppRadius.large16,
         border: Border.all(color: ColorName.primarySoftLight),
         boxShadow: [
@@ -65,7 +66,7 @@ class ProfileHeaderCard extends StatelessWidget {
                   child: Text(
                     initials,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.surface,
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
                     ),
@@ -81,12 +82,12 @@ class ProfileHeaderCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: ColorName.secondary,
-                    border: Border.all(color: Colors.white, width: 2),
+                    border: Border.all(color: AppColors.surface, width: 2),
                   ),
                   child: const Icon(
                     Icons.edit_outlined,
                     size: 14,
-                    color: Colors.white,
+                    color: AppColors.surface,
                   ),
                 ),
               ),

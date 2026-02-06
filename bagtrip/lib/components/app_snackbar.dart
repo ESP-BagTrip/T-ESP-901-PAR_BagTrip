@@ -1,8 +1,6 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:flutter/material.dart';
-
-/// Softer red for error toaster (not too vivid).
-const Color _kErrorToastBackground = Color(0xFFB71C1C);
 
 class AppSnackBar {
   static OverlayEntry? _currentEntry;
@@ -109,11 +107,13 @@ class _SnackBarWidgetState extends State<_SnackBarWidget>
                     vertical: 14,
                   ),
                   decoration: BoxDecoration(
-                    color: _kErrorToastBackground,
+                    color: AppColors.errorDark,
                     borderRadius: AppRadius.large16,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.15),
+                        color: AppColors.primaryTrueDark.withValues(
+                          alpha: 0.15,
+                        ),
                         blurRadius: 8,
                         offset: const Offset(0, -4),
                       ),
@@ -122,7 +122,7 @@ class _SnackBarWidgetState extends State<_SnackBarWidget>
                   child: Text(
                     widget.message,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.surface,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),

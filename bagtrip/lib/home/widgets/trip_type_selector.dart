@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_flight_bloc.dart';
@@ -23,7 +24,7 @@ class TripTypeSelector extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -41,7 +42,7 @@ class TripTypeSelector extends StatelessWidget {
                 curve: Curves.easeIn,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: selected ? ColorName.primary : Colors.white,
+                  color: selected ? ColorName.primary : AppColors.surface,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow:
                       selected
@@ -67,7 +68,7 @@ class TripTypeSelector extends StatelessWidget {
                   style: TextStyle(
                     fontFamily: FontFamily.b612,
                     fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                    color: selected ? Colors.white : ColorName.primary,
+                    color: selected ? AppColors.surface : ColorName.primary,
                     fontSize: 13,
                   ),
                   child: Text(
