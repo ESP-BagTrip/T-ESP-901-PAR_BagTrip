@@ -57,7 +57,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       '[ChatBloc] Loading history for conversation: ${event.conversationId}',
     );
     final currentState = state;
-    // Si on est déjà en ChatLoaded, ne pas passer par ChatLoading pour éviter de perdre l'état
+    // If already ChatLoaded, skip ChatLoading to avoid losing state.
     if (currentState is! ChatLoaded) {
       emit(const ChatLoading());
     }
@@ -83,7 +83,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
               )
               .toList();
 
-      // Préserver l'état actuel (contexte, erreur, etc.) si on était déjà en ChatLoaded
       if (currentState is ChatLoaded) {
         emit(currentState.copyWith(messages: chatMessages, isStreaming: false));
       } else {
@@ -105,7 +104,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       return;
     }
 
-    // Ajouter le message utilisateur à la liste
     final userMessage = ChatMessage(
       id: 'temp-${DateTime.now().millisecondsSinceEpoch}',
       role: 'user',
@@ -121,10 +119,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       ),
     );
 
-    // Le message utilisateur sera sauvegardé côté serveur par l'endpoint agent/chat
-    // Pas besoin de le créer ici
-
-    // Démarrer le stream SSE
     _currentTripId = event.tripId;
     _currentConversationId = event.conversationId;
     _currentContextVersion = event.contextVersion;
@@ -150,12 +144,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     debugPrint('[ChatBloc] tripId: $tripId, conversationId: $conversationId');
     debugPrint('[ChatBloc] message: $message, contextVersion: $contextVersion');
 
-    // Fermer la connexion précédente si elle existe
     _sseSubscription?.cancel();
 
     final baseUrl = _apiClient.baseUrl;
     debugPrint('[ChatBloc] baseUrl: $baseUrl');
-    // Le baseUrl contient déjà /v1, donc on utilise juste /agent/chat
+    // baseUrl already includes /v1, so use /agent/chat only.
     final endpoint = '/agent/chat';
     final fullUrl = '$baseUrl$endpoint';
     debugPrint('[ChatBloc] Full URL: $fullUrl');
@@ -185,11 +178,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
             }
 
             if (sseEvent is MessageDeltaEvent) {
-              // Accumuler le texte en streaming
               final currentText = currentState.streamingText ?? '';
               add(UpdateStreamingTextEvent(currentText + sseEvent.text));
             } else if (sseEvent is MessageFinalEvent) {
-              // Remplacer le message temporaire par le message final
               add(
                 MessageFinalReceivedEvent(
                   messageId: sseEvent.messageId,
@@ -197,7 +188,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
                 ),
               );
             } else if (sseEvent is ContextUpdatedEvent) {
-              // Mettre à jour le contexte
               final context = ChatContext.fromJson({
                 'version': sseEvent.version,
                 'state': sseEvent.state,
@@ -211,7 +201,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
             } else if (sseEvent is ToolEndEvent) {
               add(const ToolEndReceivedEvent());
             } else if (sseEvent is ErrorEvent) {
-              // Gérer les erreurs selon le type
               bool shouldRefresh =
                   sseEvent.message.contains('stale_context') ||
                   sseEvent.message.contains('Context version mismatch');
@@ -222,7 +211,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
                 ),
               );
             } else {
-              // Événement inconnu - log pour debug
               debugPrint('Unknown SSE event type: ${sseEvent.eventType}');
             }
           },
@@ -230,19 +218,15 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
             debugPrint('[ChatBloc] Stream error: $error');
             debugPrint('[ChatBloc] Stack trace: $stackTrace');
 
-            // Gérer les erreurs DioException spécifiques
             if (error is DioException) {
-              String message = error.error?.toString() ?? 'Erreur de connexion';
+              String message = error.error?.toString() ?? 'Connection error';
               bool shouldRefresh = false;
 
               if (error.response?.statusCode == 409) {
-                // Context mismatch
-                message = 'Le contexte a été mis à jour. Veuillez rafraîchir.';
+                message = 'Context was updated. Please refresh.';
                 shouldRefresh = true;
               } else if (error.response?.statusCode == 429) {
-                // Rate limit
-                message =
-                    'Trop de requêtes. Veuillez patienter quelques instants.';
+                message = 'Too many requests. Please wait a moment.';
               }
 
               add(
@@ -252,7 +236,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
                 ),
               );
             } else {
-              // Autres erreurs
               add(
                 SSEErrorReceivedEvent(
                   message: 'Stream error: $error',
@@ -268,15 +251,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
               debugPrint(
                 '[ChatBloc] Current state - isStreaming: ${currentState.isStreaming}, hasStreamingText: ${currentState.streamingText != null}, error: ${currentState.error}',
               );
-              // Si le stream se termine mais qu'on n'a pas reçu MessageFinalEvent,
-              // recharger les messages pour obtenir la réponse sauvegardée côté serveur
-              // Même si on a une erreur, on peut avoir reçu du texte partiel
+              // If stream ended without MessageFinalEvent, reload messages to get server-saved response.
               if (currentState.isStreaming ||
                   currentState.streamingText != null) {
                 debugPrint(
                   '[ChatBloc] Stream ended while streaming or with partial text, will reload messages in 500ms',
                 );
-                // Attendre un peu pour laisser le temps au serveur de sauvegarder
                 Future.delayed(const Duration(milliseconds: 500), () {
                   if (!isClosed && _currentConversationId != null) {
                     debugPrint('[ChatBloc] Reloading messages...');
@@ -289,7 +269,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
                 });
               } else {
                 debugPrint('[ChatBloc] Stream ended normally');
-                // Sinon, juste arrêter le streaming via an event
                 add(const ToolEndReceivedEvent());
               }
             } else {
@@ -316,8 +295,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         contextVersion: event.contextVersion,
       );
 
-      // Recharger le contexte si nécessaire
-      // (l'API peut retourner un nouveau contexte)
       if (response['context'] != null) {
         final currentState = state;
         if (currentState is ChatLoaded) {
@@ -344,7 +321,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         contextVersion: event.contextVersion,
       );
 
-      // Recharger le contexte si nécessaire
       if (response['context'] != null) {
         final currentState = state;
         if (currentState is ChatLoaded) {
@@ -369,7 +345,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     final currentState = state;
     if (currentState is! ChatLoaded) return;
 
-    // Envoyer le quick reply comme un message normal
     add(
       SendMessage(
         tripId: _currentTripId ?? '',
@@ -391,7 +366,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   void _onReconnectStream(ReconnectStream event, Emitter<ChatState> emit) {
-    // Réessayer la dernière requête si possible
     if (_currentTripId != null &&
         _currentConversationId != null &&
         _lastMessage != null) {
@@ -404,7 +378,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         ),
       );
     } else {
-      // Sinon, juste réinitialiser
       _onResetChat(const ResetChat(), emit);
     }
   }
@@ -413,8 +386,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     RefreshContext event,
     Emitter<ChatState> emit,
   ) async {
-    // Recharger l'historique pour obtenir le contexte à jour
-    // Le contexte sera mis à jour lors du prochain message ou via les événements SSE
     emit(const ChatLoading());
     try {
       final messages = await _messageService.getMessagesByConversation(
@@ -434,7 +405,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
               )
               .toList();
 
-      // Réinitialiser le context_version pour forcer une mise à jour
       _currentContextVersion = null;
 
       emit(ChatLoaded(messages: chatMessages));
@@ -461,7 +431,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     final currentState = state;
     if (currentState is ChatLoaded) {
       final messages = currentState.messages.toList();
-      // Retirer le message temporaire en streaming s'il existe
       if (messages.isNotEmpty &&
           messages.last.id.startsWith('temp-') &&
           messages.last.role == 'assistant') {
@@ -518,21 +487,18 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     debugPrint('[ChatBloc] Handling SSE error: ${event.message}');
     final currentState = state;
     if (currentState is ChatLoaded) {
-      // Extraire un message d'erreur plus lisible
       String errorMessage = event.message;
       if (errorMessage.contains('RESOURCE_EXHAUSTED') ||
           errorMessage.contains('429') ||
           errorMessage.contains('quota')) {
-        errorMessage = 'Quota API dépassé. Veuillez réessayer plus tard.';
+        errorMessage = 'API quota exceeded. Please try again later.';
       } else if (errorMessage.length > 200) {
-        // Tronquer les messages trop longs
         errorMessage = '${errorMessage.substring(0, 200)}...';
       }
 
       debugPrint('[ChatBloc] Emitting error state with message: $errorMessage');
       emit(currentState.copyWith(error: errorMessage, isStreaming: false));
 
-      // Toujours recharger les messages après une erreur pour voir si quelque chose a été sauvegardé
       Future.delayed(const Duration(milliseconds: 1000), () {
         if (!isClosed && _currentConversationId != null) {
           debugPrint('[ChatBloc] Reloading messages after error...');

@@ -31,7 +31,6 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
-    // Charger l'historique au démarrage après que le widget soit monté
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<ChatBloc>().add(

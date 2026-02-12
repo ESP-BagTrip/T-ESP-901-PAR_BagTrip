@@ -64,12 +64,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final authResponse = await _authService.loginWithGoogle();
       emit(AuthSuccess(authResponse: authResponse));
     } catch (e, stackTrace) {
-      // Log l'erreur pour le débogage
       developer.log('Google Sign-In Error: ${e.toString()}');
       developer.log('Stack trace: $stackTrace');
 
-      // Extraire le message d'erreur
-      String errorMessage = 'Erreur lors de la connexion Google';
+      String errorMessage = 'Google sign-in error';
       if (e is Exception) {
         errorMessage = e.toString().replaceFirst('Exception: ', '');
       } else {
@@ -89,12 +87,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final authResponse = await _authService.loginWithApple();
       emit(AuthSuccess(authResponse: authResponse));
     } catch (e, stackTrace) {
-      // Log l'erreur pour le débogage
       developer.log('Apple Sign-In Error: ${e.toString()}');
       developer.log('Stack trace: $stackTrace');
 
-      // Extraire le message d'erreur
-      String errorMessage = 'Erreur lors de la connexion Apple';
+      String errorMessage = 'Apple sign-in error';
       if (e is Exception) {
         errorMessage = e.toString().replaceFirst('Exception: ', '');
       } else {

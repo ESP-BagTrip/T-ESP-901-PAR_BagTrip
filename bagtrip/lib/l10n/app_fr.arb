@@ -204,5 +204,16 @@
   "loginErrorEmailInvalid": "Adresse e-mail incorrecte",
   "loginErrorPasswordRequired": "Veuillez renseigner votre mot de passe",
   "loginErrorPasswordMinLength": "Le mot de passe doit contenir au moins 6 caractères",
-  "loginRegisterButton": "S'inscrire"
+  "loginRegisterButton": "S'inscrire",
+  "onboardingTitle": "Bienvenue !",
+  "onboardingSubtitle": "Personnalisons votre expérience de voyage en quelques étapes simples.",
+  "onboardingFeature1Title": "Planification simplifiée",
+  "onboardingFeature1Desc": "Créez votre voyage en quelques étapes. Plus besoin de jongler entre mille onglets.",
+  "onboardingFeature2Title": "Voyage personnalisé",
+  "onboardingFeature2Desc": "Chaque voyage s'adapte à vos envies, votre budget et votre rythme.",
+  "onboardingFeature3Title": "IA à votre service",
+  "onboardingFeature3Desc": "Pas d'idée de destination ? Notre IA vous guide vers le voyage parfait.",
+  "onboardingCtaButton": "Commencer",
+  "onboardingSkip": "Passer l'introduction",
+  "splashLoading": "Chargement..."
 }

@@ -27,8 +27,6 @@ class HomeFlightForm extends StatelessWidget {
     return BlocConsumer<HomeFlightBloc, HomeFlightState>(
       listener: (context, state) {
         if (state is HomeFlightLoaded && state.errorMessage != null) {
-          // Ne pas afficher l'erreur si les résultats de recherche sont présents
-          // car cela signifie que la recherche a réussi malgré l'erreur
           if (state.searchResults == null || state.searchResults!.isEmpty) {
             AppSnackBar.showError(
               context,
@@ -137,7 +135,6 @@ class HomeFlightForm extends StatelessWidget {
                             date: loadedState.departureDate,
                             onTap: () async {
                               if (loadedState.tripTypeIndex == 1) {
-                                // Aller-retour: sélection de plage
                                 final picked = await showCustomCalendarPicker(
                                   context: context,
                                   initialDate:
@@ -159,7 +156,6 @@ class HomeFlightForm extends StatelessWidget {
                                   }
                                 }
                               } else {
-                                // Aller simple: sélection simple
                                 final picked = await showCustomCalendarPicker(
                                   context: context,
                                   initialDate:
@@ -184,7 +180,6 @@ class HomeFlightForm extends StatelessWidget {
                               label: AppLocalizations.of(context)!.returnLabel,
                               date: loadedState.returnDate,
                               onTap: () async {
-                                // Pour aller-retour, on ouvre le même calendrier avec plage
                                 final picked = await showCustomCalendarPicker(
                                   context: context,
                                   initialDate:

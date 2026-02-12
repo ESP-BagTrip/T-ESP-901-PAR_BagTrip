@@ -6,7 +6,7 @@ class TripService {
 
   TripService({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
 
-  /// Créer un nouveau trip
+  /// Create a new trip.
   Future<Trip> createTrip({
     required String title,
     String? originIata,
@@ -36,7 +36,7 @@ class TripService {
     }
   }
 
-  /// Récupérer tous les trips de l'utilisateur
+  /// Get all trips for the current user.
   Future<List<Trip>> getTrips() async {
     try {
       final response = await _apiClient.get('/trips');
@@ -59,7 +59,7 @@ class TripService {
     }
   }
 
-  /// Récupérer un trip par ID
+  /// Get a trip by ID.
   Future<Trip> getTripById(String tripId) async {
     try {
       final response = await _apiClient.get('/trips/$tripId');
@@ -79,7 +79,7 @@ class TripService {
     }
   }
 
-  /// Mettre à jour un trip
+  /// Update a trip.
   Future<Trip> updateTrip(String tripId, Map<String, dynamic> updates) async {
     try {
       final response = await _apiClient.patch('/trips/$tripId', data: updates);
@@ -94,7 +94,7 @@ class TripService {
     }
   }
 
-  /// Supprimer un trip
+  /// Delete a trip.
   Future<void> deleteTrip(String tripId) async {
     try {
       final response = await _apiClient.delete('/trips/$tripId');

@@ -7,7 +7,7 @@ class ConversationService {
   ConversationService({ApiClient? apiClient})
     : _apiClient = apiClient ?? ApiClient();
 
-  /// Créer une conversation pour un trip
+  /// Create a conversation for a trip.
   Future<Conversation> createConversation(
     String tripId, {
     String? title,
@@ -37,7 +37,7 @@ class ConversationService {
     }
   }
 
-  /// Récupérer toutes les conversations d'un trip
+  /// Get all conversations for a trip.
   Future<List<Conversation>> getConversationsByTrip(String tripId) async {
     try {
       final response = await _apiClient.get('/trips/$tripId/conversations');
@@ -62,7 +62,7 @@ class ConversationService {
     }
   }
 
-  /// Récupérer une conversation par ID
+  /// Get a conversation by ID.
   Future<Conversation> getConversationById(String conversationId) async {
     try {
       final response = await _apiClient.get('/conversations/$conversationId');

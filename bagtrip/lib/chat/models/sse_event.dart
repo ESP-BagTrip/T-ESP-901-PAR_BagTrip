@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-/// Événement de base pour tous les événements SSE
+/// Base event for all SSE events.
 abstract class SSEEvent {
   final String eventType;
   final Map<String, dynamic> data;
@@ -28,7 +28,6 @@ abstract class SSEEvent {
           return UnknownEvent(eventType: eventType, data: jsonData);
       }
     } catch (e) {
-      // Si le parsing JSON échoue, retourner un ErrorEvent
       return ErrorEvent(
         message: 'Failed to parse SSE event: $e',
         code: 'PARSE_ERROR',
@@ -37,7 +36,7 @@ abstract class SSEEvent {
   }
 }
 
-/// Événement : delta de texte en streaming
+/// Event: streaming text delta.
 class MessageDeltaEvent extends SSEEvent {
   final String text;
 
@@ -49,7 +48,7 @@ class MessageDeltaEvent extends SSEEvent {
   }
 }
 
-/// Événement : message final avec ID
+/// Event: final message with ID.
 class MessageFinalEvent extends SSEEvent {
   final String messageId;
   final String text;
@@ -68,7 +67,7 @@ class MessageFinalEvent extends SSEEvent {
   }
 }
 
-/// Événement : contexte mis à jour
+/// Event: context updated.
 class ContextUpdatedEvent extends SSEEvent {
   final int version;
   final Map<String, dynamic> state;
@@ -92,7 +91,7 @@ class ContextUpdatedEvent extends SSEEvent {
   }
 }
 
-/// Événement : début d'utilisation d'un outil
+/// Event: tool usage started.
 class ToolStartEvent extends SSEEvent {
   final String tool;
 
@@ -104,7 +103,7 @@ class ToolStartEvent extends SSEEvent {
   }
 }
 
-/// Événement : fin d'utilisation d'un outil
+/// Event: tool usage ended.
 class ToolEndEvent extends SSEEvent {
   final String tool;
 
@@ -116,7 +115,7 @@ class ToolEndEvent extends SSEEvent {
   }
 }
 
-/// Événement : erreur
+/// Event: error.
 class ErrorEvent extends SSEEvent {
   final String message;
   final String? code;
@@ -135,7 +134,7 @@ class ErrorEvent extends SSEEvent {
   }
 }
 
-/// Événement inconnu
+/// Unknown event type.
 class UnknownEvent extends SSEEvent {
   UnknownEvent({required super.eventType, required super.data});
 }

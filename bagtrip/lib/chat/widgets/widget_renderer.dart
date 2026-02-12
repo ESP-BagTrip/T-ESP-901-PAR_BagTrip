@@ -5,7 +5,7 @@ import 'package:bagtrip/chat/widgets/hotel_offer_card.dart';
 import 'package:bagtrip/chat/widgets/itinerary_summary.dart';
 import 'package:bagtrip/chat/widgets/warning_widget.dart';
 
-/// Widget factory pour rendre les widgets dynamiques selon leur type
+/// Widget factory to render dynamic widgets by type.
 class WidgetRenderer extends StatelessWidget {
   final WidgetData widgetData;
   final Function(String actionType, String? offerId)? onAction;
@@ -29,7 +29,7 @@ class WidgetRenderer extends StatelessWidget {
   }
 }
 
-/// Widget de fallback pour types inconnus
+/// Fallback widget for unknown types.
 class _UnknownWidget extends StatelessWidget {
   final WidgetData widgetData;
 

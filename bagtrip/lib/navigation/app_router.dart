@@ -9,6 +9,7 @@ import 'package:bagtrip/pages/flight_search_result_page.dart';
 import 'package:bagtrip/pages/home_page.dart';
 import 'package:bagtrip/pages/login_page.dart';
 import 'package:bagtrip/pages/map_page.dart';
+import 'package:bagtrip/pages/onboarding_page.dart';
 import 'package:bagtrip/pages/profile_page.dart';
 import 'package:bagtrip/pages/splash_page.dart';
 import 'package:bagtrip/service/auth_service.dart';
@@ -20,7 +21,7 @@ final GoRouter appRouter = GoRouter(
   redirect: (context, state) async {
     final path = state.uri.path;
 
-    // Laisser la splash gérer la vérification auth au démarrage
+    // Let the splash screen handle auth check on startup.
     if (path == '/') {
       return null;
     }
@@ -28,8 +29,9 @@ final GoRouter appRouter = GoRouter(
     final authService = AuthService();
     final isAuthenticated = await authService.isAuthenticated();
     final isLoginPage = path == '/login';
+    final isOnboardingPage = path == '/onboarding';
 
-    if (!isAuthenticated && !isLoginPage) {
+    if (!isAuthenticated && !isLoginPage && !isOnboardingPage) {
       return '/login';
     }
 
@@ -51,6 +53,12 @@ final GoRouter appRouter = GoRouter(
       name: 'login',
       pageBuilder:
           (context, state) => const NoTransitionPage(child: LoginPage()),
+    ),
+    GoRoute(
+      path: '/onboarding',
+      name: 'onboarding',
+      pageBuilder:
+          (context, state) => const NoTransitionPage(child: OnboardingPage()),
     ),
     ShellRoute(
       builder: (context, state, child) {

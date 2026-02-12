@@ -136,20 +136,19 @@ class LocationService {
         }
       }
 
-      // Si on a des résultats valides, les retourner même si le status code n'est pas 200
+      // Return valid results even when status code is not 200.
       if (results != null && results.isNotEmpty) {
         return results;
       }
 
-      // Si pas de résultats mais status code 200, c'est une erreur de format
+      // No results with 200 means invalid response format.
       if (response.statusCode == 200) {
         throw Exception('Unexpected response shape when fetching locations');
       }
 
-      // Sinon, c'est une erreur HTTP
       throw Exception('Failed to fetch locations: HTTP ${response.statusCode}');
     } on DioException catch (e) {
-      // Pour les erreurs Dio, vérifier si on a des données dans la réponse
+      // For Dio errors, check if response body contains usable data.
       if (e.response?.data != null) {
         try {
           final data = e.response!.data;
@@ -177,16 +176,15 @@ class LocationService {
             }
           }
 
-          // Si on a des résultats valides, les retourner même si le status code est une erreur
+          // Return valid results even when status code indicates an error.
           if (results != null && results.isNotEmpty) {
             return results;
           }
         } catch (_) {
-          // Si le parsing échoue, continuer avec l'erreur originale
+          // If parsing fails, fall through to rethrow original error.
         }
       }
 
-      // Si pas de données valides, propager l'erreur
       throw Exception('Error searching locations: ${e.message}');
     } catch (e) {
       throw Exception('Error searching locations: $e');

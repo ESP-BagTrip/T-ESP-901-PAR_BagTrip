@@ -6,7 +6,7 @@ class MessageService {
   MessageService({ApiClient? apiClient})
     : _apiClient = apiClient ?? ApiClient();
 
-  /// Récupérer les messages d'une conversation
+  /// Get messages for a conversation.
   Future<List<MessageModel>> getMessagesByConversation(
     String conversationId, {
     int limit = 20,
@@ -32,7 +32,7 @@ class MessageService {
     }
   }
 
-  /// Créer un message
+  /// Create a message.
   Future<MessageModel> createMessage(
     String conversationId, {
     required String role,
@@ -60,7 +60,7 @@ class MessageService {
   }
 }
 
-/// Modèle de message pour le service
+/// Message model for the service layer.
 class MessageModel {
   final String id;
   final String conversationId;
