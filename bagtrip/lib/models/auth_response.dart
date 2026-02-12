@@ -8,7 +8,6 @@ class AuthResponse {
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
     try {
-      // Vérifier que les champs requis sont présents
       if (json['token'] == null) {
         throw Exception('Missing required field: token');
       }

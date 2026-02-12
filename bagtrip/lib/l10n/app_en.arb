@@ -204,5 +204,16 @@
   "loginErrorEmailInvalid": "Invalid email address",
   "loginErrorPasswordRequired": "Please enter your password",
   "loginErrorPasswordMinLength": "Password must be at least 6 characters",
-  "loginRegisterButton": "Sign Up"
+  "loginRegisterButton": "Sign Up",
+  "onboardingTitle": "Welcome!",
+  "onboardingSubtitle": "Let's personalize your travel experience in a few simple steps.",
+  "onboardingFeature1Title": "Simplified planning",
+  "onboardingFeature1Desc": "Create your trip in a few steps. No more juggling a thousand tabs.",
+  "onboardingFeature2Title": "Custom trip",
+  "onboardingFeature2Desc": "Each trip adapts to your desires, your budget, and your pace.",
+  "onboardingFeature3Title": "AI at your service",
+  "onboardingFeature3Desc": "No destination in mind? Our AI guides you to the perfect trip.",
+  "onboardingCtaButton": "Start",
+  "onboardingSkip": "Skip introduction",
+  "splashLoading": "Loading..."
 }

@@ -25,7 +25,6 @@ class HotelOfferCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Header avec icône
                 Row(
                   children: [
                     Container(
@@ -71,7 +70,6 @@ class HotelOfferCard extends StatelessWidget {
                   ],
                 ),
 
-                // Informations supplémentaires depuis data
                 if (widgetData.data != null) ...[
                   const SizedBox(height: 12),
                   _buildDataInfo(widgetData.data!),

@@ -13,7 +13,7 @@ class SSEClient {
   SSEClient({StorageService? storageService})
     : _storageService = storageService ?? StorageService();
 
-  /// Connecter au stream SSE
+  /// Connect to the SSE stream.
   Stream<SSEEvent> connect({
     required String url,
     required Map<String, String> headers,
@@ -23,7 +23,6 @@ class SSEClient {
       debugPrint('[SSE] Connecting to: $url');
       debugPrint('[SSE] Body: ${jsonEncode(body)}');
 
-      // Créer la requête POST
       final request = http.Request('POST', Uri.parse(url));
       request.headers.addAll(headers);
       request.headers['Accept'] = 'text/event-stream';
@@ -31,7 +30,6 @@ class SSEClient {
       request.body = jsonEncode(body);
 
       debugPrint('[SSE] Sending request...');
-      // Envoyer la requête
       final streamedResponse =
           await _client?.send(request) ?? await http.Client().send(request);
 
@@ -51,7 +49,6 @@ class SSEClient {
 
       debugPrint('[SSE] Connection successful, starting to read stream...');
 
-      // Parser le stream SSE
       String buffer = '';
       String? currentEventType;
       int lineCount = 0;
@@ -65,7 +62,7 @@ class SSEClient {
         }
 
         if (chunk.isEmpty) {
-          // Ligne vide = fin d'événement
+          // Empty line marks end of event.
           if (currentEventType != null && buffer.isNotEmpty) {
             debugPrint(
               '[SSE] Parsing event: $currentEventType with data: ${buffer.substring(0, buffer.length > 100 ? 100 : buffer.length)}...',
@@ -99,9 +96,9 @@ class SSEClient {
             buffer = data;
           }
         } else if (chunk.startsWith('id:')) {
-          // ID optionnel, ignoré pour l'instant
+          // Optional ID, ignored for now.
         } else if (chunk.startsWith('retry:')) {
-          // Retry optionnel, ignoré pour l'instant
+          // Optional retry, ignored for now.
         } else {
           debugPrint(
             '[SSE] Unknown chunk format: ${chunk.substring(0, chunk.length > 50 ? 50 : chunk.length)}',
@@ -111,7 +108,7 @@ class SSEClient {
 
       debugPrint('[SSE] Stream ended. Total lines: $lineCount');
 
-      // Si on a encore un événement en buffer à la fin du stream, l'émettre
+      // Emit any event still in buffer at end of stream.
       if (currentEventType != null && buffer.isNotEmpty) {
         try {
           final event = SSEEvent.fromSSE(currentEventType, buffer.trim());
@@ -130,7 +127,7 @@ class SSEClient {
     }
   }
 
-  /// Connecter avec authentification automatique
+  /// Connect with automatic authentication.
   Stream<SSEEvent> connectWithAuth({
     required String baseUrl,
     required String endpoint,
@@ -150,7 +147,7 @@ class SSEClient {
     yield* connect(url: '$baseUrl$endpoint', headers: headers, body: body);
   }
 
-  /// Fermer la connexion
+  /// Close the connection.
   void close() {
     _subscription?.cancel();
     _client?.close();

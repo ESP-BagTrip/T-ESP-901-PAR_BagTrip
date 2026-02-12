@@ -7,7 +7,7 @@ class TravelerService {
   TravelerService({ApiClient? apiClient})
     : _apiClient = apiClient ?? ApiClient();
 
-  /// Créer un traveler pour un trip
+  /// Create a traveler for a trip.
   Future<Traveler> createTraveler(
     String tripId, {
     String? amadeusTravelerRef,
@@ -45,7 +45,7 @@ class TravelerService {
     }
   }
 
-  /// Récupérer tous les travelers d'un trip
+  /// Get all travelers for a trip.
   Future<List<Traveler>> getTravelersByTrip(String tripId) async {
     try {
       final response = await _apiClient.get('/trips/$tripId/travelers');
@@ -68,7 +68,7 @@ class TravelerService {
     }
   }
 
-  /// Mettre à jour un traveler
+  /// Update a traveler.
   Future<Traveler> updateTraveler(
     String tripId,
     String travelerId,
@@ -90,7 +90,7 @@ class TravelerService {
     }
   }
 
-  /// Supprimer un traveler
+  /// Delete a traveler.
   Future<void> deleteTraveler(String tripId, String travelerId) async {
     try {
       final response = await _apiClient.delete(

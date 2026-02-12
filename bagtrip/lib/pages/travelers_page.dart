@@ -106,16 +106,13 @@ class _TravelersPageState extends State<TravelersPage> {
         travelerType: 'ADULT', // Default traveler type
       );
 
-      // Réinitialiser le formulaire
       _firstNameController.clear();
       _lastNameController.clear();
       _dateOfBirthController.clear();
       _selectedDate = null;
 
-      // Recharger la liste
       await _loadTravelers();
 
-      // Afficher un message de succès
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Voyageur ajouté avec succès')),
@@ -173,7 +170,6 @@ class _TravelersPageState extends State<TravelersPage> {
   }
 
   Future<void> _handleContinue() async {
-    // Vérifier qu'il y a au moins un traveler
     if (_travelers.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Veuillez ajouter au moins un voyageur')),
@@ -199,7 +195,7 @@ class _TravelersPageState extends State<TravelersPage> {
                 ? const Center(child: CircularProgressIndicator())
                 : Column(
                   children: [
-                    // Liste des travelers
+                    // Travelers list
                     Expanded(
                       child:
                           _travelers.isEmpty

@@ -7,7 +7,7 @@ abstract class ChatEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Charger l'historique des messages
+/// Load message history.
 class LoadHistory extends ChatEvent {
   final String conversationId;
   final int limit;
@@ -23,7 +23,7 @@ class LoadHistory extends ChatEvent {
   List<Object?> get props => [conversationId, limit, offset];
 }
 
-/// Envoyer un message
+/// Send a message.
 class SendMessage extends ChatEvent {
   final String tripId;
   final String conversationId;
@@ -41,7 +41,7 @@ class SendMessage extends ChatEvent {
   List<Object?> get props => [tripId, conversationId, message, contextVersion];
 }
 
-/// Sélectionner une offre (flight/hotel)
+/// Select an offer (flight/hotel).
 class SelectOffer extends ChatEvent {
   final String tripId;
   final String conversationId;
@@ -67,7 +67,7 @@ class SelectOffer extends ChatEvent {
   ];
 }
 
-/// Réserver une offre
+/// Book an offer.
 class BookOffer extends ChatEvent {
   final String tripId;
   final String conversationId;
@@ -93,7 +93,7 @@ class BookOffer extends ChatEvent {
   ];
 }
 
-/// Utiliser une quick reply
+/// Use a quick reply.
 class UseQuickReply extends ChatEvent {
   final String quickReply;
 
@@ -103,17 +103,17 @@ class UseQuickReply extends ChatEvent {
   List<Object?> get props => [quickReply];
 }
 
-/// Réinitialiser le chat
+/// Reset the chat.
 class ResetChat extends ChatEvent {
   const ResetChat();
 }
 
-/// Reconnecter au stream SSE
+/// Reconnect to the SSE stream.
 class ReconnectStream extends ChatEvent {
   const ReconnectStream();
 }
 
-/// Rafraîchir le contexte
+/// Refresh the context.
 class RefreshContext extends ChatEvent {
   final String tripId;
   final String conversationId;

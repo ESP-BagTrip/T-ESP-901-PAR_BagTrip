@@ -21,7 +21,7 @@ class ApiClient {
       ),
     );
 
-    // Intercepteur pour ajouter le token JWT
+    // Interceptor to add JWT token.
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
@@ -32,12 +32,10 @@ class ApiClient {
           return handler.next(options);
         },
         onError: (error, handler) {
-          // Gestion centralisée des erreurs
           final apiError = _handleError(error);
           if (apiError.response?.statusCode == 401) {
-            // Token expiré ou invalide
+            // Token expired or invalid.
             _storageService.deleteToken();
-            // Optionnel : rediriger vers login
           }
           return handler.reject(apiError);
         },
@@ -45,7 +43,7 @@ class ApiClient {
     );
   }
 
-  // Méthodes helper pour les requêtes
+  // Helper methods for HTTP requests.
   Future<Response> get(
     String path, {
     Map<String, dynamic>? queryParameters,
@@ -66,11 +64,10 @@ class ApiClient {
     return _dio.delete(path, options: options);
   }
 
-  // Getter pour accès direct au Dio (si nécessaire)
+  /// Direct access to Dio (if needed).
   Dio get dio => _dio;
 
   DioException _handleError(DioException error) {
-    // Créer une erreur personnalisée avec message clair
     String message;
     int? statusCode;
 

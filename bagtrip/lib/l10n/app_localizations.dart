@@ -895,6 +895,72 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'S\'inscrire'**
   String get loginRegisterButton;
+
+  /// No description provided for @onboardingTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bienvenue !'**
+  String get onboardingTitle;
+
+  /// No description provided for @onboardingSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Personnalisons votre expérience de voyage en quelques étapes simples.'**
+  String get onboardingSubtitle;
+
+  /// No description provided for @onboardingFeature1Title.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planification simplifiée'**
+  String get onboardingFeature1Title;
+
+  /// No description provided for @onboardingFeature1Desc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créez votre voyage en quelques étapes. Plus besoin de jongler entre mille onglets.'**
+  String get onboardingFeature1Desc;
+
+  /// No description provided for @onboardingFeature2Title.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voyage personnalisé'**
+  String get onboardingFeature2Title;
+
+  /// No description provided for @onboardingFeature2Desc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque voyage s\'adapte à vos envies, votre budget et votre rythme.'**
+  String get onboardingFeature2Desc;
+
+  /// No description provided for @onboardingFeature3Title.
+  ///
+  /// In fr, this message translates to:
+  /// **'IA à votre service'**
+  String get onboardingFeature3Title;
+
+  /// No description provided for @onboardingFeature3Desc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas d\'idée de destination ? Notre IA vous guide vers le voyage parfait.'**
+  String get onboardingFeature3Desc;
+
+  /// No description provided for @onboardingCtaButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commencer'**
+  String get onboardingCtaButton;
+
+  /// No description provided for @onboardingSkip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passer l\'introduction'**
+  String get onboardingSkip;
+
+  /// No description provided for @splashLoading.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement...'**
+  String get splashLoading;
 }
 
 class _AppLocalizationsDelegate

@@ -8,17 +8,17 @@ abstract class ChatState extends Equatable {
   List<Object?> get props => [];
 }
 
-/// État initial
+/// Initial state.
 class ChatInitial extends ChatState {
   const ChatInitial();
 }
 
-/// Chargement de l'historique
+/// Loading history.
 class ChatLoading extends ChatState {
   const ChatLoading();
 }
 
-/// Chat chargé avec messages et contexte
+/// Chat loaded with messages and context.
 class ChatLoaded extends ChatState {
   final List<ChatMessage> messages;
   final ChatContext? context;
@@ -71,7 +71,7 @@ class ChatLoaded extends ChatState {
   ];
 }
 
-/// Erreur
+/// Error state.
 class ChatError extends ChatState {
   final String message;
   final bool shouldRefreshContext;
@@ -82,7 +82,7 @@ class ChatError extends ChatState {
   List<Object?> get props => [message, shouldRefreshContext];
 }
 
-/// Modèle de message de chat
+/// Chat message model.
 class ChatMessage {
   final String id;
   final String role; // "user" | "assistant" | "tool"

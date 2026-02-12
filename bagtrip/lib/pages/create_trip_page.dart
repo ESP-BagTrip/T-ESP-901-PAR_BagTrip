@@ -37,25 +37,21 @@ class _CreateTripPageState extends State<CreateTripPage> {
     });
 
     try {
-      // Créer le trip
       final trip = await _tripService.createTrip(
         title: _titleController.text.trim(),
       );
 
-      // Préparer le titre de la conversation avant l'appel asynchrone
       if (!mounted) return;
       final localizations = AppLocalizations.of(context)!;
       final conversationTitle = localizations.planningTitle(
         trip.title ?? 'Voyage',
       );
 
-      // Créer la conversation associée
       final conversation = await _conversationService.createConversation(
         trip.id,
         title: conversationTitle,
       );
 
-      // Navigation vers TravelersPage
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(

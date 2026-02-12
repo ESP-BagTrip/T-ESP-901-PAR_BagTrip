@@ -5,7 +5,7 @@ sealed class ProfileEvent {}
 
 class LoadProfile extends ProfileEvent {}
 
-/// Réinitialise le bloc à ProfileInitial (ex. après connexion pour pouvoir recharger le profil).
+/// Resets the bloc to ProfileInitial (e.g. after login so profile can be reloaded).
 class ResetProfile extends ProfileEvent {}
 
 class UpdateTheme extends ProfileEvent {

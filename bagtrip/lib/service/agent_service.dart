@@ -5,20 +5,19 @@ class AgentService {
 
   AgentService({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
 
-  /// Chat avec l'agent (SSE streaming)
-  /// TODO: Implémenter dans Epic 6
+  /// Chat with the agent (SSE streaming).
+  /// TODO: Implement in Epic 6.
   Stream<Map<String, dynamic>> chat({
     required String tripId,
     required String conversationId,
     required String message,
     int? contextVersion,
   }) {
-    // Stub - sera implémenté dans Epic 6 avec SSE client
     throw UnimplementedError('Chat SSE will be implemented in Epic 6');
   }
 
-  /// Action rapide (SELECT/BOOK)
-  /// TODO: Implémenter dans Epic 6
+  /// Quick action (SELECT/BOOK).
+  /// TODO: Implement in Epic 6.
   Future<Map<String, dynamic>> action({
     required String tripId,
     required String conversationId,

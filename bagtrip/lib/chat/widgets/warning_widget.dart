@@ -26,7 +26,6 @@ class WarningWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header avec icône warning
               Row(
                 children: [
                   Container(
@@ -67,7 +66,6 @@ class WarningWidget extends StatelessWidget {
                   ),
                 ),
 
-              // Informations supplémentaires
               if (widgetData.data != null && widgetData.data!.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 _buildWarningDetails(widgetData.data!),

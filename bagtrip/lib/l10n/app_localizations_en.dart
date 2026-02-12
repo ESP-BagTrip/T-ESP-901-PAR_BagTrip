@@ -445,4 +445,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loginRegisterButton => 'Sign Up';
+
+  @override
+  String get onboardingTitle => 'Welcome!';
+
+  @override
+  String get onboardingSubtitle =>
+      'Let\'s personalize your travel experience in a few simple steps.';
+
+  @override
+  String get onboardingFeature1Title => 'Simplified planning';
+
+  @override
+  String get onboardingFeature1Desc =>
+      'Create your trip in a few steps. No more juggling a thousand tabs.';
+
+  @override
+  String get onboardingFeature2Title => 'Custom trip';
+
+  @override
+  String get onboardingFeature2Desc =>
+      'Each trip adapts to your desires, your budget, and your pace.';
+
+  @override
+  String get onboardingFeature3Title => 'AI at your service';
+
+  @override
+  String get onboardingFeature3Desc =>
+      'No destination in mind? Our AI guides you to the perfect trip.';
+
+  @override
+  String get onboardingCtaButton => 'Start';
+
+  @override
+  String get onboardingSkip => 'Skip introduction';
+
+  @override
+  String get splashLoading => 'Loading...';
 }

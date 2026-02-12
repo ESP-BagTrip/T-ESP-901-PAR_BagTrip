@@ -19,16 +19,13 @@ class FlightOfferCard extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: () {
-            // Optionnel : action par défaut au tap
-          },
+          onTap: () {},
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Header avec icône
                 Row(
                   children: [
                     Container(
@@ -74,7 +71,6 @@ class FlightOfferCard extends StatelessWidget {
                   ],
                 ),
 
-                // Informations supplémentaires depuis data
                 if (widgetData.data != null) ...[
                   const SizedBox(height: 12),
                   _buildDataInfo(widgetData.data!),
