@@ -215,5 +215,7 @@
   "onboardingFeature3Desc": "Pas d'idée de destination ? Notre IA vous guide vers le voyage parfait.",
   "onboardingCtaButton": "Commencer",
   "onboardingSkip": "Passer l'introduction",
+  "splashConnectionErrorTitle": "Erreur de connexion",
+  "splashConnectionErrorMessage": "Impossible de joindre le serveur. Vérifiez votre connexion internet et réessayez.",
   "splashLoading": "Chargement..."
 }

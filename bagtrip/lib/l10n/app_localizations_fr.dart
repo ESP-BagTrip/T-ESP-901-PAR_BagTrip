@@ -486,5 +486,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get onboardingSkip => 'Passer l\'introduction';
 
   @override
+  String get splashConnectionErrorTitle => 'Erreur de connexion';
+
+  @override
+  String get splashConnectionErrorMessage =>
+      'Impossible de joindre le serveur. Vérifiez votre connexion internet et réessayez.';
+
+  @override
   String get splashLoading => 'Chargement...';
 }

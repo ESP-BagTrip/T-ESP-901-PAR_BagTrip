@@ -16,9 +16,9 @@ String get _healthOrigin {
 /// Retries every [retryInterval] until [maxWait].
 /// Returns true if backend became ready, false if timeout.
 Future<bool> waitForBackendReady({
-  Duration maxWait = const Duration(seconds: 10),
-  Duration retryInterval = const Duration(seconds: 1),
-  Duration requestTimeout = const Duration(seconds: 3),
+  Duration maxWait = const Duration(seconds: 3),
+  Duration retryInterval = const Duration(milliseconds: 500),
+  Duration requestTimeout = const Duration(seconds: 1),
 }) async {
   final deadline = DateTime.now().add(maxWait);
   final dio = Dio(

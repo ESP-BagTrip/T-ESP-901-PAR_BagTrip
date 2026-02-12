@@ -5,6 +5,8 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/service/auth_service.dart';
 import 'package:bagtrip/service/backend_health.dart';
 import 'package:bagtrip/service/onboarding_storage.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -32,7 +34,12 @@ class _SplashPageState extends State<SplashPage> {
   Future<void> _waitBackendThenCheckAuthAndNavigate() async {
     final startedAt = DateTime.now();
 
-    await waitForBackendReady();
+    final backendReady = await waitForBackendReady();
+    if (!backendReady) {
+      if (!mounted) return;
+      _showConnectionErrorDialog();
+      return;
+    }
 
     final elapsed = DateTime.now().difference(startedAt);
     if (elapsed < _kMinSplashDuration) {
@@ -59,6 +66,54 @@ class _SplashPageState extends State<SplashPage> {
         context.go('/onboarding');
       }
     }
+  }
+
+  void _showConnectionErrorDialog() {
+    final l10n = AppLocalizations.of(context)!;
+    final useCupertino =
+        defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS;
+
+    final Future<bool?> dialogFuture =
+        useCupertino
+            ? showCupertinoDialog<bool>(
+              context: context,
+              builder:
+                  (context) => CupertinoAlertDialog(
+                    title: Text(l10n.splashConnectionErrorTitle),
+                    content: Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(l10n.splashConnectionErrorMessage),
+                    ),
+                    actions: [
+                      CupertinoDialogAction(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: Text(l10n.retryButton),
+                      ),
+                    ],
+                  ),
+            )
+            : showDialog<bool>(
+              context: context,
+              barrierDismissible: false,
+              builder:
+                  (context) => AlertDialog(
+                    title: Text(l10n.splashConnectionErrorTitle),
+                    content: Text(l10n.splashConnectionErrorMessage),
+                    actions: [
+                      ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: Text(l10n.retryButton),
+                      ),
+                    ],
+                  ),
+            );
+
+    dialogFuture.then((retry) {
+      if (retry == true && mounted) {
+        _waitBackendThenCheckAuthAndNavigate();
+      }
+    });
   }
 
   @override

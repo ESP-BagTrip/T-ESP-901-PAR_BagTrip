@@ -215,5 +215,7 @@
   "onboardingFeature3Desc": "No destination in mind? Our AI guides you to the perfect trip.",
   "onboardingCtaButton": "Start",
   "onboardingSkip": "Skip introduction",
+  "splashConnectionErrorTitle": "Connection error",
+  "splashConnectionErrorMessage": "Unable to reach the server. Please check your internet connection and try again.",
   "splashLoading": "Loading..."
 }
