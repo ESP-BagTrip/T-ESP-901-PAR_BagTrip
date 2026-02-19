@@ -8,6 +8,8 @@ import 'package:bagtrip/design/widgets/primary_button.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/service/auth_service.dart';
+import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -166,9 +168,21 @@ class _LoginPageContentState extends State<_LoginPageContent> {
         child: BlocListener<AuthBloc, AuthState>(
           listener: (context, state) {
             if (state is AuthSuccess) {
-              Future.delayed(const Duration(milliseconds: 100), () {
-                if (context.mounted) {
+              Future.delayed(const Duration(milliseconds: 100), () async {
+                if (!context.mounted) return;
+                final user = await AuthService().getCurrentUser();
+                if (!context.mounted) return;
+                if (user == null || user.id.isEmpty) {
                   context.go('/home');
+                  return;
+                }
+                final hasSeen = await PersonalizationStorage()
+                    .hasSeenPersonalizationPrompt(user.id);
+                if (!context.mounted) return;
+                if (hasSeen) {
+                  context.go('/home');
+                } else {
+                  context.go('/personalization');
                 }
               });
             }

@@ -10,6 +10,7 @@ import 'package:bagtrip/pages/home_page.dart';
 import 'package:bagtrip/pages/login_page.dart';
 import 'package:bagtrip/pages/map_page.dart';
 import 'package:bagtrip/pages/onboarding_page.dart';
+import 'package:bagtrip/pages/personalization_page.dart';
 import 'package:bagtrip/pages/profile_page.dart';
 import 'package:bagtrip/pages/splash_page.dart';
 import 'package:bagtrip/service/auth_service.dart';
@@ -36,7 +37,7 @@ final GoRouter appRouter = GoRouter(
     }
 
     if (isAuthenticated && isLoginPage) {
-      return '/home';
+      return null;
     }
 
     return null;
@@ -59,6 +60,13 @@ final GoRouter appRouter = GoRouter(
       name: 'onboarding',
       pageBuilder:
           (context, state) => const NoTransitionPage(child: OnboardingPage()),
+    ),
+    GoRoute(
+      path: '/personalization',
+      name: 'personalization',
+      pageBuilder:
+          (context, state) =>
+              const NoTransitionPage(child: PersonalizationPage()),
     ),
     ShellRoute(
       builder: (context, state, child) {

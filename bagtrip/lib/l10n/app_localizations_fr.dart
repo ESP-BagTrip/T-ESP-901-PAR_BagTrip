@@ -487,4 +487,132 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get splashLoading => 'Chargement...';
+
+  @override
+  String get personalizationPromptTitle => 'Personnalisez votre expérience';
+
+  @override
+  String get personalizationPromptSubtitle =>
+      'Quelques questions pour mieux vous connaître et vous proposer des voyages sur mesure.';
+
+  @override
+  String get personalizationOptionTravelTypes => 'Vos types de voyage préférés';
+
+  @override
+  String get personalizationOptionBudget => 'Votre budget habituel';
+
+  @override
+  String get personalizationOptionCompanions => 'Avec qui vous voyagez';
+
+  @override
+  String get personalizationCompleteProfile => 'Compléter mon profil >';
+
+  @override
+  String get personalizationSkipStep => 'Passer cette étape';
+
+  @override
+  String get personalizationProfileSectionTitle =>
+      'Personnalisation de l\'expérience';
+
+  @override
+  String get personalizationPageTitle => 'Mon profil voyage';
+
+  @override
+  String get personalizationDone => 'Terminer';
+
+  @override
+  String get personalizationStepTitleTravelTypes =>
+      'Vos types de voyage préférés';
+
+  @override
+  String get personalizationStepSubtitleTravelTypes =>
+      'Sélectionnez un ou plusieurs types';
+
+  @override
+  String get personalizationTravelTypeBeach => 'Plage & Détente';
+
+  @override
+  String get personalizationTravelTypeAdventure => 'Aventure & Nature';
+
+  @override
+  String get personalizationTravelTypeCity => 'Ville & Culture';
+
+  @override
+  String get personalizationTravelTypeGastronomy => 'Gastronomie';
+
+  @override
+  String get personalizationTravelTypeWellness => 'Bien-être & Spa';
+
+  @override
+  String get personalizationTravelTypeNightlife => 'Fête & Vie nocturne';
+
+  @override
+  String get personalizationStepTitleTravelStyle => 'Votre style de voyage';
+
+  @override
+  String get personalizationStepSubtitleTravelStyle =>
+      'Comment aimez-vous organiser vos voyages ?';
+
+  @override
+  String get personalizationTravelStylePlanned => 'Tout planifié';
+
+  @override
+  String get personalizationTravelStyleFlexible => 'Flexible';
+
+  @override
+  String get personalizationTravelStyleSpontaneous => 'Spontané';
+
+  @override
+  String get personalizationStepTitleBudget => 'Votre budget habituel';
+
+  @override
+  String get personalizationStepSubtitleBudget =>
+      'Quel est votre niveau de dépense préféré ?';
+
+  @override
+  String get personalizationBudgetEconomical => 'Économique';
+
+  @override
+  String get personalizationBudgetEconomicalDesc =>
+      'Auberges, transports locaux';
+
+  @override
+  String get personalizationBudgetModerate => 'Modéré';
+
+  @override
+  String get personalizationBudgetModerateDesc => 'Hôtels 3★, confort';
+
+  @override
+  String get personalizationBudgetLuxury => 'Luxe';
+
+  @override
+  String get personalizationBudgetLuxuryDesc => 'Hôtels 5★, expériences VIP';
+
+  @override
+  String get personalizationStepTitleCompanions => 'Avec qui voyagez-vous ?';
+
+  @override
+  String get personalizationStepSubtitleCompanions =>
+      'Généralement, vous voyagez...';
+
+  @override
+  String get personalizationCompanionSolo => 'Solo';
+
+  @override
+  String get personalizationCompanionCouple => 'En couple';
+
+  @override
+  String get personalizationCompanionFamily => 'En famille';
+
+  @override
+  String get personalizationCompanionFriends => 'Entre amis';
+
+  @override
+  String get personalizationContinue => 'Continuer';
+
+  @override
+  String get personalizationFinish => 'Terminer';
+
+  @override
+  String get personalizationSkip => 'Passer';
 }
