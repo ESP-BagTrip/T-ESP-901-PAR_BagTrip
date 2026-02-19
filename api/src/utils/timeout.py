@@ -1,6 +1,7 @@
 """Décorateurs pour ajouter des timeouts aux fonctions."""
 
 import asyncio
+import builtins
 import logging
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
@@ -27,7 +28,7 @@ def with_timeout(timeout_seconds: float, fallback_value: Any = None):
                     func(*args, **kwargs),
                     timeout=timeout_seconds,
                 )
-            except asyncio.TimeoutError:
+            except builtins.TimeoutError:
                 logger.warning(
                     f"Function {func.__name__} timed out after {timeout_seconds}s"
                 )

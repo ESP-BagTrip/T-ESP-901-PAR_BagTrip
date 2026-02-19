@@ -93,7 +93,7 @@ async def search_hotels_tool(
                     ),
                     timeout=30.0,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.warning("Hotel search timed out after 30s")
                 return "Erreur: La recherche d'hôtels a pris trop de temps. Veuillez réessayer."
 
