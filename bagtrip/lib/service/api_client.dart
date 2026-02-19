@@ -5,6 +5,7 @@ class ApiClient {
   late final Dio _dio;
   final String baseUrl;
   final StorageService _storageService;
+  bool _isRefreshing = false;
 
   ApiClient({String? baseUrl, StorageService? storageService})
     : baseUrl = baseUrl ?? 'http://localhost:3000/v1',
@@ -31,16 +32,59 @@ class ApiClient {
           }
           return handler.next(options);
         },
-        onError: (error, handler) {
-          final apiError = _handleError(error);
-          if (apiError.response?.statusCode == 401) {
-            // Token expired or invalid.
-            _storageService.deleteToken();
+        onError: (error, handler) async {
+          if (error.response?.statusCode == 401 && !_isRefreshing) {
+            final refreshed = await _tryRefreshToken();
+            if (refreshed) {
+              // Retry the original request with the new token
+              final token = await _storageService.getToken();
+              final opts = error.requestOptions;
+              opts.headers['Authorization'] = 'Bearer $token';
+              try {
+                final response = await _dio.fetch(opts);
+                return handler.resolve(response);
+              } on DioException catch (e) {
+                return handler.reject(e);
+              }
+            } else {
+              await _storageService.deleteToken();
+            }
           }
+          final apiError = _handleError(error);
           return handler.reject(apiError);
         },
       ),
     );
+  }
+
+  Future<bool> _tryRefreshToken() async {
+    _isRefreshing = true;
+    try {
+      final refreshToken = await _storageService.getRefreshToken();
+      if (refreshToken == null || refreshToken.isEmpty) return false;
+
+      // Use a separate Dio instance to avoid interceptor loops
+      final refreshDio = Dio(BaseOptions(baseUrl: baseUrl));
+      final response = await refreshDio.post(
+        '/auth/refresh',
+        data: {'refresh_token': refreshToken},
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final newAccessToken = data['access_token'] as String?;
+        final newRefreshToken = data['refresh_token'] as String?;
+        if (newAccessToken != null && newRefreshToken != null) {
+          await _storageService.saveTokens(newAccessToken, newRefreshToken);
+          return true;
+        }
+      }
+      return false;
+    } catch (_) {
+      return false;
+    } finally {
+      _isRefreshing = false;
+    }
   }
 
   // Helper methods for HTTP requests.
@@ -58,6 +102,10 @@ class ApiClient {
 
   Future<Response> patch(String path, {dynamic data, Options? options}) {
     return _dio.patch(path, data: data, options: options);
+  }
+
+  Future<Response> put(String path, {dynamic data, Options? options}) {
+    return _dio.put(path, data: data, options: options);
   }
 
   Future<Response> delete(String path, {Options? options}) {

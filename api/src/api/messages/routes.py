@@ -2,7 +2,7 @@
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from sqlalchemy.orm import Session
 
 from src.api.auth.middleware import get_current_user
@@ -10,7 +10,6 @@ from src.api.conversations.routes import verify_conversation_ownership
 from src.api.messages.schemas import MessageListResponse, MessageResponse
 from src.config.database import get_db
 from src.models.user import User
-from src.services.conversation_service import ConversationService
 from src.services.message_service import MessageService
 from src.utils.errors import AppError, create_http_exception
 

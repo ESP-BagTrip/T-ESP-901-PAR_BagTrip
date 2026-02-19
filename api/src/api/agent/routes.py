@@ -117,7 +117,7 @@ async def stream_agent_response(
                                     "message.delta",
                                     {"text": message_content},
                                 )
-            
+
             # Capturer aussi les messages AI depuis les événements de mise à jour d'état
             elif kind == "on_chain_stream" and event_name == "agent":
                 chunk = event.get("data", {}).get("chunk", {})

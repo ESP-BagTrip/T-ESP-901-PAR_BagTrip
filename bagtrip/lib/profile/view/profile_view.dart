@@ -2,6 +2,7 @@ import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/profile/bloc/profile_bloc.dart';
+import 'package:bagtrip/profile/widgets/experience_personalization_section.dart';
 import 'package:bagtrip/profile/widgets/logout_button.dart';
 import 'package:bagtrip/profile/widgets/personal_info_section.dart';
 import 'package:bagtrip/profile/widgets/preferences_section.dart';
@@ -77,6 +78,8 @@ class ProfileView extends StatelessWidget {
                   selectedTheme: state.selectedTheme,
                   selectedLanguage: state.selectedLanguage,
                 ),
+                const SizedBox(height: AppSpacing.space16),
+                const ExperiencePersonalizationSection(),
                 const SizedBox(height: AppSpacing.space16),
                 RecentBookingsSection(recentBookings: state.recentBookings),
                 const SizedBox(height: AppSpacing.space24),

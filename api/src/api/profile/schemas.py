@@ -1,0 +1,42 @@
+"""Schémas Pydantic pour le profil voyageur."""
+
+from datetime import datetime
+from uuid import UUID
+
+from pydantic import BaseModel, Field
+
+
+class ProfileCreateUpdateRequest(BaseModel):
+    """Requête de création/mise à jour du profil voyageur."""
+
+    travelTypes: list[str] | None = None
+    travelStyle: str | None = None
+    budget: str | None = None
+    companions: str | None = None
+
+
+class ProfileResponse(BaseModel):
+    """Réponse du profil voyageur."""
+
+    id: UUID
+    travel_types: list[str] | None = Field(None, alias="travelTypes")
+    travel_style: str | None = Field(None, alias="travelStyle")
+    budget: str | None = None
+    companions: str | None = None
+    is_completed: bool = Field(False, alias="isCompleted")
+    created_at: datetime = Field(..., alias="createdAt")
+    updated_at: datetime = Field(..., alias="updatedAt")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
+class ProfileCompletionResponse(BaseModel):
+    """Réponse de vérification de completion du profil."""
+
+    is_completed: bool = Field(..., alias="isCompleted")
+    missing_fields: list[str] = Field(..., alias="missingFields")
+
+    class Config:
+        populate_by_name = True

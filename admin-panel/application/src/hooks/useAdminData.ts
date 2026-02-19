@@ -50,3 +50,63 @@ export function useAdminFlightBookings(params?: QueryParams) {
       }),
   })
 }
+
+export function useAdminTravelerProfiles(params?: QueryParams) {
+  return useQuery({
+    queryKey: ['admin', 'traveler-profiles', params],
+    queryFn: () =>
+      adminService.getAllTravelerProfiles({
+        page: params?.page || PAGINATION_DEFAULTS.PAGE,
+        limit: params?.limit || PAGINATION_DEFAULTS.LIMIT,
+        ...params,
+      }),
+  })
+}
+
+export function useAdminBookingIntents(params?: QueryParams) {
+  return useQuery({
+    queryKey: ['admin', 'booking-intents', params],
+    queryFn: () =>
+      adminService.getAllBookingIntents({
+        page: params?.page || PAGINATION_DEFAULTS.PAGE,
+        limit: params?.limit || PAGINATION_DEFAULTS.LIMIT,
+        ...params,
+      }),
+  })
+}
+
+export function useAdminConversations(params?: QueryParams) {
+  return useQuery({
+    queryKey: ['admin', 'conversations', params],
+    queryFn: () =>
+      adminService.getAllConversations({
+        page: params?.page || PAGINATION_DEFAULTS.PAGE,
+        limit: params?.limit || PAGINATION_DEFAULTS.LIMIT,
+        ...params,
+      }),
+  })
+}
+
+export function useAdminFlightSearches(params?: QueryParams) {
+  return useQuery({
+    queryKey: ['admin', 'flight-searches', params],
+    queryFn: () =>
+      adminService.getAllFlightSearches({
+        page: params?.page || PAGINATION_DEFAULTS.PAGE,
+        limit: params?.limit || PAGINATION_DEFAULTS.LIMIT,
+        ...params,
+      }),
+  })
+}
+
+export function useAdminHotelSearches(params?: QueryParams) {
+  return useQuery({
+    queryKey: ['admin', 'hotel-searches', params],
+    queryFn: () =>
+      adminService.getAllHotelSearches({
+        page: params?.page || PAGINATION_DEFAULTS.PAGE,
+        limit: params?.limit || PAGINATION_DEFAULTS.LIMIT,
+        ...params,
+      }),
+  })
+}

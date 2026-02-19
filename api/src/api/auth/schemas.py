@@ -29,6 +29,7 @@ class UserResponse(BaseModel):
     email: str
     created_at: datetime = Field(..., alias="createdAt")
     updated_at: datetime | None = Field(None, alias="updatedAt")
+    is_profile_completed: bool = Field(False, alias="isProfileCompleted")
 
     class Config:
         from_attributes = True
@@ -48,7 +49,22 @@ class AppleSignInRequest(BaseModel):
 
 
 class AuthResponse(BaseModel):
-    """Réponse d'authentification."""
+    """Réponse d'authentification avec access + refresh tokens."""
 
-    token: str
+    access_token: str
+    refresh_token: str
+    expires_in: int
+    token_type: str = "Bearer"
     user: UserResponse
+
+
+class RefreshTokenRequest(BaseModel):
+    """Requête de rafraîchissement de token."""
+
+    refresh_token: str
+
+
+class LogoutRequest(BaseModel):
+    """Requête de déconnexion."""
+
+    refresh_token: str

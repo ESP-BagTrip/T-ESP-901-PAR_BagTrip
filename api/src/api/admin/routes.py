@@ -4,9 +4,14 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from src.api.admin.schemas import (
+    AdminBookingIntentResponse,
+    AdminConversationResponse,
     AdminFlightBookingResponse,
+    AdminFlightSearchResponse,
     AdminHotelBookingResponse,
+    AdminHotelSearchResponse,
     AdminListResponse,
+    AdminTravelerProfileResponse,
     AdminTravelerResponse,
     AdminTripResponse,
     AdminUserResponse,
@@ -173,4 +178,164 @@ async def list_all_flight_bookings(
     except Exception as e:
         raise create_http_exception(
             AppError("INTERNAL_ERROR", 500, f"Failed to fetch flight bookings: {str(e)}")
+        ) from e
+
+
+@router.get(
+    "/traveler-profiles",
+    response_model=AdminListResponse[AdminTravelerProfileResponse],
+    summary="List all traveler profiles (admin)",
+    description="Get all traveler profiles with user information (admin only)",
+)
+async def list_all_traveler_profiles(
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Lister tous les profils voyageurs (admin)."""
+    try:
+        items, total, total_pages = AdminService.get_all_traveler_profiles(
+            db, page=page, limit=limit
+        )
+        return AdminListResponse[AdminTravelerProfileResponse](
+            items=[AdminTravelerProfileResponse(**item) for item in items],
+            total=total,
+            page=page,
+            limit=limit,
+            total_pages=total_pages,
+        )
+    except AppError as e:
+        raise create_http_exception(e) from e
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, f"Failed to fetch traveler profiles: {str(e)}")
+        ) from e
+
+
+@router.get(
+    "/booking-intents",
+    response_model=AdminListResponse[AdminBookingIntentResponse],
+    summary="List all booking intents (admin)",
+    description="Get all booking intents with trip and user information (admin only)",
+)
+async def list_all_booking_intents(
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Lister tous les booking intents (admin)."""
+    try:
+        items, total, total_pages = AdminService.get_all_booking_intents(
+            db, page=page, limit=limit
+        )
+        return AdminListResponse[AdminBookingIntentResponse](
+            items=[AdminBookingIntentResponse(**item) for item in items],
+            total=total,
+            page=page,
+            limit=limit,
+            total_pages=total_pages,
+        )
+    except AppError as e:
+        raise create_http_exception(e) from e
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, f"Failed to fetch booking intents: {str(e)}")
+        ) from e
+
+
+@router.get(
+    "/conversations",
+    response_model=AdminListResponse[AdminConversationResponse],
+    summary="List all conversations (admin)",
+    description="Get all conversations with trip, user information and message count (admin only)",
+)
+async def list_all_conversations(
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Lister toutes les conversations (admin)."""
+    try:
+        items, total, total_pages = AdminService.get_all_conversations(
+            db, page=page, limit=limit
+        )
+        return AdminListResponse[AdminConversationResponse](
+            items=[AdminConversationResponse(**item) for item in items],
+            total=total,
+            page=page,
+            limit=limit,
+            total_pages=total_pages,
+        )
+    except AppError as e:
+        raise create_http_exception(e) from e
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, f"Failed to fetch conversations: {str(e)}")
+        ) from e
+
+
+@router.get(
+    "/flight-searches",
+    response_model=AdminListResponse[AdminFlightSearchResponse],
+    summary="List all flight searches (admin)",
+    description="Get all flight searches with trip information (admin only)",
+)
+async def list_all_flight_searches(
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Lister toutes les recherches de vols (admin)."""
+    try:
+        items, total, total_pages = AdminService.get_all_flight_searches(
+            db, page=page, limit=limit
+        )
+        return AdminListResponse[AdminFlightSearchResponse](
+            items=[AdminFlightSearchResponse(**item) for item in items],
+            total=total,
+            page=page,
+            limit=limit,
+            total_pages=total_pages,
+        )
+    except AppError as e:
+        raise create_http_exception(e) from e
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, f"Failed to fetch flight searches: {str(e)}")
+        ) from e
+
+
+@router.get(
+    "/hotel-searches",
+    response_model=AdminListResponse[AdminHotelSearchResponse],
+    summary="List all hotel searches (admin)",
+    description="Get all hotel searches with trip information (admin only)",
+)
+async def list_all_hotel_searches(
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Lister toutes les recherches d'hôtels (admin)."""
+    try:
+        items, total, total_pages = AdminService.get_all_hotel_searches(
+            db, page=page, limit=limit
+        )
+        return AdminListResponse[AdminHotelSearchResponse](
+            items=[AdminHotelSearchResponse(**item) for item in items],
+            total=total,
+            page=page,
+            limit=limit,
+            total_pages=total_pages,
+        )
+    except AppError as e:
+        raise create_http_exception(e) from e
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, f"Failed to fetch hotel searches: {str(e)}")
         ) from e

@@ -55,6 +55,72 @@ export interface AdminFlightBooking {
   updated_at: string
 }
 
+export interface AdminTravelerProfile {
+  id: string
+  user_id: string
+  user_email: string
+  travel_types: string[] | null
+  travel_style: string | null
+  budget: string | null
+  companions: string | null
+  is_completed: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface AdminBookingIntent {
+  id: string
+  user_id: string
+  user_email: string
+  trip_id: string
+  trip_title: string | null
+  type: string
+  status: string
+  amount: number
+  currency: string
+  stripe_payment_intent_id: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface AdminConversation {
+  id: string
+  user_id: string
+  user_email: string
+  trip_id: string
+  trip_title: string | null
+  title: string | null
+  message_count: number
+  created_at: string
+  updated_at: string
+}
+
+export interface AdminFlightSearch {
+  id: string
+  trip_id: string
+  trip_title: string | null
+  origin_iata: string
+  destination_iata: string
+  departure_date: string
+  return_date: string | null
+  adults: number
+  children: number | null
+  travel_class: string | null
+  created_at: string
+}
+
+export interface AdminHotelSearch {
+  id: string
+  trip_id: string
+  trip_title: string | null
+  city_code: string | null
+  check_in: string
+  check_out: string
+  adults: number
+  room_qty: number
+  created_at: string
+}
+
 export interface AdminListResponse<T> {
   items: T[]
   total: number

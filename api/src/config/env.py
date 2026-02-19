@@ -42,7 +42,17 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: str | None = Field(None, description="Stripe Secret Key")
     STRIPE_WEBHOOK_SECRET: str | None = Field(None, description="Stripe Webhook Secret")
 
-    @field_validator("AMADEUS_CLIENT_ID", "AMADEUS_CLIENT_SECRET", "GOOGLE_API_KEY")
+    # Auth / JWT
+    JWT_SECRET: str  # Required — no fallback
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 30
+
+    # OAuth verification
+    GOOGLE_FIREBASE_PROJECT_ID: str = "bagtrip-7d2d8"
+    GOOGLE_OAUTH_CLIENT_ID: str | None = None
+    APPLE_BUNDLE_ID: str | None = None
+
+    @field_validator("AMADEUS_CLIENT_ID", "AMADEUS_CLIENT_SECRET", "GOOGLE_API_KEY", "JWT_SECRET")
     @classmethod
     def validate_required_strings(cls, v: str) -> str:
         """Validate that required API keys are not empty."""

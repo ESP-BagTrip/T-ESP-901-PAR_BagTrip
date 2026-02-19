@@ -26,7 +26,7 @@ export const useAuth = () => {
   const loginMutation = useMutation({
     mutationFn: authService.login,
     onSuccess: data => {
-      setCookie('auth-token', data.token, {
+      setCookie('auth-token', data.access_token, {
         httpOnly: false,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
@@ -41,7 +41,7 @@ export const useAuth = () => {
   const registerMutation = useMutation({
     mutationFn: authService.register,
     onSuccess: data => {
-      setCookie('auth-token', data.token, {
+      setCookie('auth-token', data.access_token, {
         httpOnly: false,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',

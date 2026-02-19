@@ -25,7 +25,10 @@ class AuthService {
       if (response.statusCode == 200) {
         final authResponse = AuthResponse.fromJson(response.data);
 
-        await _storageService.saveToken(authResponse.token);
+        await _storageService.saveTokens(
+          authResponse.accessToken,
+          authResponse.refreshToken,
+        );
 
         return authResponse;
       } else {
@@ -57,7 +60,10 @@ class AuthService {
       if (response.statusCode == 201 || response.statusCode == 200) {
         final authResponse = AuthResponse.fromJson(response.data);
 
-        await _storageService.saveToken(authResponse.token);
+        await _storageService.saveTokens(
+          authResponse.accessToken,
+          authResponse.refreshToken,
+        );
 
         return authResponse;
       } else {
@@ -134,11 +140,14 @@ class AuthService {
             response.data as Map<String, dynamic>,
           );
 
-          if (authResponse.token.isEmpty) {
+          if (authResponse.accessToken.isEmpty) {
             throw Exception('Token is missing in server response');
           }
 
-          await _storageService.saveToken(authResponse.token);
+          await _storageService.saveTokens(
+            authResponse.accessToken,
+            authResponse.refreshToken,
+          );
 
           return authResponse;
         } catch (e) {
@@ -211,11 +220,14 @@ class AuthService {
             response.data as Map<String, dynamic>,
           );
 
-          if (authResponse.token.isEmpty) {
+          if (authResponse.accessToken.isEmpty) {
             throw Exception('Token is missing in server response');
           }
 
-          await _storageService.saveToken(authResponse.token);
+          await _storageService.saveTokens(
+            authResponse.accessToken,
+            authResponse.refreshToken,
+          );
 
           return authResponse;
         } catch (e) {
@@ -247,8 +259,19 @@ class AuthService {
     }
   }
 
-  /// Logout
+  /// Logout — call server to revoke refresh token, then clear local storage.
   Future<void> logout() async {
+    try {
+      final refreshToken = await _storageService.getRefreshToken();
+      if (refreshToken != null && refreshToken.isNotEmpty) {
+        await _apiClient.post(
+          '/auth/logout',
+          data: {'refresh_token': refreshToken},
+        );
+      }
+    } catch (_) {
+      // Best effort — clear tokens even if server call fails
+    }
     await _storageService.clearAll();
   }
 }

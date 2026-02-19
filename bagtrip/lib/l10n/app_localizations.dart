@@ -961,6 +961,246 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Chargement...'**
   String get splashLoading;
+
+  /// No description provided for @personalizationPromptTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Personnalisez votre expérience'**
+  String get personalizationPromptTitle;
+
+  /// No description provided for @personalizationPromptSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quelques questions pour mieux vous connaître et vous proposer des voyages sur mesure.'**
+  String get personalizationPromptSubtitle;
+
+  /// No description provided for @personalizationOptionTravelTypes.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos types de voyage préférés'**
+  String get personalizationOptionTravelTypes;
+
+  /// No description provided for @personalizationOptionBudget.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre budget habituel'**
+  String get personalizationOptionBudget;
+
+  /// No description provided for @personalizationOptionCompanions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avec qui vous voyagez'**
+  String get personalizationOptionCompanions;
+
+  /// No description provided for @personalizationCompleteProfile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compléter mon profil >'**
+  String get personalizationCompleteProfile;
+
+  /// No description provided for @personalizationSkipStep.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passer cette étape'**
+  String get personalizationSkipStep;
+
+  /// No description provided for @personalizationProfileSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Personnalisation de l\'expérience'**
+  String get personalizationProfileSectionTitle;
+
+  /// No description provided for @personalizationPageTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon profil voyage'**
+  String get personalizationPageTitle;
+
+  /// No description provided for @personalizationDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminer'**
+  String get personalizationDone;
+
+  /// No description provided for @personalizationStepTitleTravelTypes.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos types de voyage préférés'**
+  String get personalizationStepTitleTravelTypes;
+
+  /// No description provided for @personalizationStepSubtitleTravelTypes.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sélectionnez un ou plusieurs types'**
+  String get personalizationStepSubtitleTravelTypes;
+
+  /// No description provided for @personalizationTravelTypeBeach.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plage & Détente'**
+  String get personalizationTravelTypeBeach;
+
+  /// No description provided for @personalizationTravelTypeAdventure.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aventure & Nature'**
+  String get personalizationTravelTypeAdventure;
+
+  /// No description provided for @personalizationTravelTypeCity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ville & Culture'**
+  String get personalizationTravelTypeCity;
+
+  /// No description provided for @personalizationTravelTypeGastronomy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gastronomie'**
+  String get personalizationTravelTypeGastronomy;
+
+  /// No description provided for @personalizationTravelTypeWellness.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bien-être & Spa'**
+  String get personalizationTravelTypeWellness;
+
+  /// No description provided for @personalizationTravelTypeNightlife.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fête & Vie nocturne'**
+  String get personalizationTravelTypeNightlife;
+
+  /// No description provided for @personalizationStepTitleTravelStyle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre style de voyage'**
+  String get personalizationStepTitleTravelStyle;
+
+  /// No description provided for @personalizationStepSubtitleTravelStyle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comment aimez-vous organiser vos voyages ?'**
+  String get personalizationStepSubtitleTravelStyle;
+
+  /// No description provided for @personalizationTravelStylePlanned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout planifié'**
+  String get personalizationTravelStylePlanned;
+
+  /// No description provided for @personalizationTravelStyleFlexible.
+  ///
+  /// In fr, this message translates to:
+  /// **'Flexible'**
+  String get personalizationTravelStyleFlexible;
+
+  /// No description provided for @personalizationTravelStyleSpontaneous.
+  ///
+  /// In fr, this message translates to:
+  /// **'Spontané'**
+  String get personalizationTravelStyleSpontaneous;
+
+  /// No description provided for @personalizationStepTitleBudget.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre budget habituel'**
+  String get personalizationStepTitleBudget;
+
+  /// No description provided for @personalizationStepSubtitleBudget.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quel est votre niveau de dépense préféré ?'**
+  String get personalizationStepSubtitleBudget;
+
+  /// No description provided for @personalizationBudgetEconomical.
+  ///
+  /// In fr, this message translates to:
+  /// **'Économique'**
+  String get personalizationBudgetEconomical;
+
+  /// No description provided for @personalizationBudgetEconomicalDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Auberges, transports locaux'**
+  String get personalizationBudgetEconomicalDesc;
+
+  /// No description provided for @personalizationBudgetModerate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modéré'**
+  String get personalizationBudgetModerate;
+
+  /// No description provided for @personalizationBudgetModerateDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hôtels 3★, confort'**
+  String get personalizationBudgetModerateDesc;
+
+  /// No description provided for @personalizationBudgetLuxury.
+  ///
+  /// In fr, this message translates to:
+  /// **'Luxe'**
+  String get personalizationBudgetLuxury;
+
+  /// No description provided for @personalizationBudgetLuxuryDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hôtels 5★, expériences VIP'**
+  String get personalizationBudgetLuxuryDesc;
+
+  /// No description provided for @personalizationStepTitleCompanions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avec qui voyagez-vous ?'**
+  String get personalizationStepTitleCompanions;
+
+  /// No description provided for @personalizationStepSubtitleCompanions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Généralement, vous voyagez...'**
+  String get personalizationStepSubtitleCompanions;
+
+  /// No description provided for @personalizationCompanionSolo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Solo'**
+  String get personalizationCompanionSolo;
+
+  /// No description provided for @personalizationCompanionCouple.
+  ///
+  /// In fr, this message translates to:
+  /// **'En couple'**
+  String get personalizationCompanionCouple;
+
+  /// No description provided for @personalizationCompanionFamily.
+  ///
+  /// In fr, this message translates to:
+  /// **'En famille'**
+  String get personalizationCompanionFamily;
+
+  /// No description provided for @personalizationCompanionFriends.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entre amis'**
+  String get personalizationCompanionFriends;
+
+  /// No description provided for @personalizationContinue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Continuer'**
+  String get personalizationContinue;
+
+  /// No description provided for @personalizationFinish.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminer'**
+  String get personalizationFinish;
+
+  /// No description provided for @personalizationSkip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passer'**
+  String get personalizationSkip;
 }
 
 class _AppLocalizationsDelegate

@@ -93,7 +93,7 @@ async def search_flights_tool(
                     ),
                     timeout=30.0,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.warning("Flight search timed out after 30s")
                 return "Erreur: La recherche de vols a pris trop de temps. Veuillez réessayer."
 

@@ -7,7 +7,7 @@ export const travelersColumns: ColumnDef<AdminTraveler>[] = [
     accessorKey: 'id',
     header: 'ID',
     cell: ({ row }) => (
-      <span className="font-mono text-xs">{row.getValue('id').slice(0, 8)}...</span>
+      <span className="font-mono text-xs">{(row.getValue('id') as string).slice(0, 8)}...</span>
     ),
   },
   {

@@ -30,6 +30,10 @@ class AppleSignInRequested extends AuthEvent {
   AppleSignInRequested();
 }
 
+class LogoutRequested extends AuthEvent {
+  LogoutRequested();
+}
+
 class AuthModeChanged extends AuthEvent {
   final bool isLoginMode;
 

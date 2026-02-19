@@ -1,106 +1,91 @@
-# Bag_Trip
+# BagTrip
+
 Student Project
 
-## 🚀 Quick Start
+## Prerequisites
 
-### Prerequisites (Manual Installation Required)
+- **Docker & Docker Compose** (required) — [Install Docker](https://docs.docker.com/get-docker/)
+- **Flutter SDK** (required for mobile dev) — [Install Flutter](https://docs.flutter.dev/get-started/install)
+- **pre-commit** (recommended) — [Install pre-commit](https://pre-commit.com/#install)
 
-Before running `make init`, ensure you have the following installed:
+> Python, Node.js and all other dependencies run inside Docker containers — no local install needed.
 
-1. **Node.js and npm** - [Install Node.js](https://nodejs.org/)
-2. **Flutter SDK** - [Install Flutter](https://flutter.dev/docs/get-started/install)
-3. **Docker and Docker Compose** - [Install Docker](https://docs.docker.com/get-docker/)
-
-> **Note:** Python 3.14+ will be automatically installed via `uv` if not present.
-
-### Installation
-
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd Bag_Trip
-   ```
-
-2. **Initialize the project (recommended):**
-   ```bash
-   make init
-   make init
-   ```
-
-   This will automatically:
-   - Install `uv` (Python package manager)
-   - Install Python 3.14+ if needed
-   - Install all project dependencies (API, Admin Panel, Mobile App)
-   - Set up pre-commit hooks
-   - Configure linters and formatters
-   - Create `.env` file from `.env.example`
-
-3. **Configure environment variables:**
-
-   Edit `.env` file and fill in the required API keys:
-   - `AMADEUS_CLIENT_ID`
-   - `AMADEUS_CLIENT_SECRET`
-   - `GOOGLE_API_KEY`
-   - Other configuration values as needed
-
-4. **Start the database:**
-   ```bash
-   make db
-   ```
-
-## 🛠️ Development
-
-### Pre-commit Hooks
-
-The project uses pre-commit hooks that automatically run on every commit:
-
-- ✅ **Large file check** - Prevents files >500KB from being committed
-- ✅ **Code formatting** - Runs Prettier on both API and Admin Panel
-- ✅ **Code linting** - Runs ESLint on both packages with auto-fix
-
-### Available Commands
+## Quick Start
 
 ```bash
-# View all available make targets
-make help
+git clone <repository-url>
+cd BagTrip
 
-# Install only pre-commit hooks
-make install-pre-commit
-
-# Install only dependencies
-make install-deps
-
-# Complete initialization
+# Setup project (env file, dependencies, git hooks)
 make init
+
+# Edit .env and fill in your API keys (Amadeus, Google, Stripe, etc.)
+
+# Start everything (Docker services + Flutter app)
+make dev
 ```
 
-## 🏗️ Project Structure
-
-```
-Bag_Trip/
-├── api/                 # Backend API (Node.js + Express + Prisma)
-├── admin-panel/         # Frontend (React + TypeScript + Vite)
-├── compose.yml          # Docker Compose configuration
-├── .pre-commit-config.yaml  # Pre-commit hooks configuration
-└── Makefile            # Development automation
-```
-
-## 🐳 Docker Development
-
-Start the development environment:
+## Development
 
 ```bash
-docker-compose up
+make dev            # Start Docker services + Flutter app (interactive)
+make dev-docker     # Start Docker services only (db, api, admin-panel)
+make dev-mobile     # Start Flutter app only
+make stop           # Stop Docker services
+make logs           # Follow Docker logs
 ```
 
-This will start:
-- PostgreSQL database on port 5432
-- API server on port 3000
-- Admin Panel on port 5173
+Services available after `make dev` or `make dev-docker`:
 
-## 📝 Code Quality
+| Service     | URL                          |
+|-------------|------------------------------|
+| API         | http://localhost:3000         |
+| API Docs    | http://localhost:3000/docs    |
+| Admin Panel | http://localhost:8000         |
 
-- **ESLint**: Code linting with auto-fix
-- **Prettier**: Code formatting
-- **Pre-commit**: Automated quality checks before commit
-- **TypeScript**: Type safety for both API and Admin Panel
+## Code Quality
+
+```bash
+make check          # Run pre-commit hooks on all files
+make lint           # Run all linters (api + admin + mobile)
+make test           # Run all tests (api + mobile)
+```
+
+Individual targets are also available: `lint-api`, `lint-admin`, `lint-mobile`, `test-api`, `test-mobile`.
+
+## Database
+
+```bash
+make db-migrate                     # Run Alembic migrations (upgrade head)
+make db-revision MSG="add column"   # Create a new Alembic revision
+make db-shell                       # Open psql shell
+```
+
+## Cleanup
+
+```bash
+make dev-clean      # Remove Docker volumes, caches, build artifacts (with confirmation)
+```
+
+## Utilities
+
+```bash
+make shell-api      # Bash shell in the API container
+make shell-admin    # Shell in the admin-panel container
+make help           # Show all available commands
+```
+
+## Project Structure
+
+```
+BagTrip/
+├── api/                    # Backend (FastAPI + SQLAlchemy + PostgreSQL)
+│   ├── src/                # Application source code
+│   └── alembic/            # Database migrations
+├── admin-panel/
+│   └── application/        # Admin Panel (Next.js)
+├── bagtrip/                # Mobile app (Flutter)
+├── compose.yml             # Docker Compose configuration
+├── .pre-commit-config.yaml # Pre-commit hooks
+└── Makefile                # Development automation
+```
