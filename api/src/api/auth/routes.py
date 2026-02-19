@@ -252,17 +252,24 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
         404: {"description": "User not found"},
     },
 )
-async def me(current_user: User = Depends(get_current_user)):
+async def me(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     """
     Me - Obtenir les informations de l'utilisateur actuel.
 
     Requiert un token JWT valide dans le header Authorization.
     """
+    from src.services.profile_service import ProfileService
+
+    is_completed, _ = ProfileService.check_completion(db, current_user.id)
     return UserResponse(
         id=current_user.id,
         email=current_user.email,
         created_at=current_user.created_at,
         updated_at=current_user.updated_at,
+        is_profile_completed=is_completed,
     )
 
 

@@ -1,5 +1,6 @@
 import 'package:bagtrip/service/auth_service.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
+import 'package:bagtrip/service/profile_api_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 
@@ -13,8 +14,10 @@ class PersonalizationBloc
   PersonalizationBloc({
     AuthService? authService,
     PersonalizationStorage? personalizationStorage,
+    ProfileApiService? profileApiService,
   }) : _authService = authService ?? AuthService(),
        _storage = personalizationStorage ?? PersonalizationStorage(),
+       _profileApi = profileApiService ?? ProfileApiService(),
        super(PersonalizationInitial()) {
     on<LoadPersonalization>(_onLoadPersonalization);
     on<SetTravelTypes>(_onSetTravelTypes);
@@ -29,6 +32,7 @@ class PersonalizationBloc
 
   final AuthService _authService;
   final PersonalizationStorage _storage;
+  final ProfileApiService _profileApi;
 
   Future<void> _onLoadPersonalization(
     LoadPersonalization event,
@@ -41,20 +45,40 @@ class PersonalizationBloc
         emit(PersonalizationInitial());
         return;
       }
-      final typesStr = await _storage.getTravelTypes(user.id);
-      final style = await _storage.getTravelStyle(user.id);
-      final budget = await _storage.getBudget(user.id);
-      final companions = await _storage.getCompanions(user.id);
-      final selectedTypes =
-          typesStr.isNotEmpty ? typesStr.split(',').toSet() : <String>{};
+
+      // Try loading from API first
+      Set<String> selectedTypes = {};
+      String? style;
+      String? budget;
+      String? companions;
+
+      try {
+        final profile = await _profileApi.getProfile();
+        selectedTypes = profile.travelTypes.toSet();
+        style = profile.travelStyle;
+        budget = profile.budget;
+        companions = profile.companions;
+      } catch (_) {
+        // Fallback to local storage
+        final typesStr = await _storage.getTravelTypes(user.id);
+        final localStyle = await _storage.getTravelStyle(user.id);
+        final localBudget = await _storage.getBudget(user.id);
+        final localCompanions = await _storage.getCompanions(user.id);
+        selectedTypes =
+            typesStr.isNotEmpty ? typesStr.split(',').toSet() : <String>{};
+        style = localStyle.isEmpty ? null : localStyle;
+        budget = localBudget.isEmpty ? null : localBudget;
+        companions = localCompanions.isEmpty ? null : localCompanions;
+      }
+
       emit(
         PersonalizationLoaded(
           step: 1,
           userId: user.id,
           selectedTravelTypes: selectedTypes,
-          travelStyle: style.isEmpty ? null : style,
-          budget: budget.isEmpty ? null : budget,
-          companions: companions.isEmpty ? null : companions,
+          travelStyle: style,
+          budget: budget,
+          companions: companions,
         ),
       );
     } catch (_) {
@@ -140,6 +164,8 @@ class PersonalizationBloc
       emit(PersonalizationSkipped());
       return;
     }
+
+    // Save to local storage
     await _storage.setTravelTypes(
       userId,
       current.selectedTravelTypes.join(','),
@@ -154,6 +180,19 @@ class PersonalizationBloc
       await _storage.setCompanions(userId, current.companions!);
     }
     await _storage.setPersonalizationPromptSeen(userId);
+
+    // Persist to backend (best effort)
+    try {
+      await _profileApi.updateProfile(
+        travelTypes: current.selectedTravelTypes.toList(),
+        travelStyle: current.travelStyle,
+        budget: current.budget,
+        companions: current.companions,
+      );
+    } catch (_) {
+      // Best effort — local storage is the fallback
+    }
+
     emit(PersonalizationCompleted());
   }
 }

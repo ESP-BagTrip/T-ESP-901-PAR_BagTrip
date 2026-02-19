@@ -15,6 +15,8 @@ from src.api.booking_intents.book_routes import router as booking_intents_book_r
 from src.api.booking_intents.routes import router as booking_intents_router
 from src.api.conversations.routes import (
     detail_router as conversations_detail_router,
+)
+from src.api.conversations.routes import (
     router as conversations_router,
 )
 from src.api.flights.offers.routes import router as flight_offers_router
@@ -23,6 +25,7 @@ from src.api.hotels.offers.routes import router as hotel_offers_router
 from src.api.hotels.searches.routes import router as hotel_searches_router
 from src.api.messages.routes import router as messages_router
 from src.api.payments.routes import router as payments_router
+from src.api.profile.routes import router as profile_router
 from src.api.stripe.webhooks.routes import router as stripe_webhooks_router
 from src.api.travel.routes import router as travel_router
 from src.api.travelers.routes import router as travelers_router
@@ -73,6 +76,14 @@ async def lifespan(app: FastAPI):
         migrate_refresh_tokens(engine)
     except Exception as e:
         logger.warn(f"Refresh tokens migration failed (may already be migrated): {e}")
+
+    # Migrer la table traveler_profiles si nécessaire
+    try:
+        from src.migrations.migrate_traveler_profiles import migrate_traveler_profiles
+
+        migrate_traveler_profiles(engine)
+    except Exception as e:
+        logger.warn(f"Traveler profiles migration failed (may already be migrated): {e}")
 
     # Initialiser les produits Stripe
     try:
@@ -134,6 +145,7 @@ app.include_router(agent_router)  # Déjà préfixé avec /v1/agent
 
 # Routes dépréciées (ancien pattern, remplacé par booking_intents)
 # Conservées pour compatibilité mais marquées comme deprecated
+app.include_router(profile_router)  # Préfixé avec /v1/profile
 app.include_router(booking_router)  # DÉPRÉCIÉ - utiliser /v1/trips/{tripId}/booking-intents
 
 

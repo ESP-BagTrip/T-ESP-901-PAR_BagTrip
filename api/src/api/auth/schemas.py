@@ -29,6 +29,7 @@ class UserResponse(BaseModel):
     email: str
     created_at: datetime = Field(..., alias="createdAt")
     updated_at: datetime | None = Field(None, alias="updatedAt")
+    is_profile_completed: bool = Field(False, alias="isProfileCompleted")
 
     class Config:
         from_attributes = True

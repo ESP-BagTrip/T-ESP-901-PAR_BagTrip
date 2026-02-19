@@ -4,6 +4,7 @@ class User {
   final String? fullName;
   final String? phone;
   final String? stripeCustomerId;
+  final bool isProfileCompleted;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -13,6 +14,7 @@ class User {
     this.fullName,
     this.phone,
     this.stripeCustomerId,
+    this.isProfileCompleted = false,
     required this.createdAt,
     this.updatedAt,
   });
@@ -26,6 +28,10 @@ class User {
       stripeCustomerId:
           json['stripeCustomerId'] as String? ??
           json['stripe_customer_id'] as String?,
+      isProfileCompleted:
+          json['isProfileCompleted'] as bool? ??
+          json['is_profile_completed'] as bool? ??
+          false,
       createdAt:
           json['createdAt'] != null
               ? DateTime.parse(json['createdAt'] as String)
@@ -48,6 +54,7 @@ class User {
       'fullName': fullName,
       'phone': phone,
       'stripeCustomerId': stripeCustomerId,
+      'isProfileCompleted': isProfileCompleted,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
     };

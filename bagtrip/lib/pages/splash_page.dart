@@ -5,6 +5,7 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/service/auth_service.dart';
 import 'package:bagtrip/service/backend_health.dart';
 import 'package:bagtrip/service/onboarding_storage.dart';
+import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -47,6 +48,16 @@ class _SplashPageState extends State<SplashPage> {
     if (!mounted) return;
 
     if (user != null) {
+      if (!user.isProfileCompleted) {
+        final hasSeen = await PersonalizationStorage()
+            .hasSeenPersonalizationPrompt(user.id);
+        if (!hasSeen) {
+          if (!mounted) return;
+          context.go('/personalization');
+          return;
+        }
+      }
+      if (!mounted) return;
       context.go('/home');
     } else {
       await authService.logout();
