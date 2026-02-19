@@ -1,3 +1,4 @@
+import 'package:bagtrip/auth/bloc/auth_bloc.dart';
 import 'package:bagtrip/design/app_theme.dart';
 import 'package:bagtrip/firebase_options.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -18,8 +19,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => ProfileBloc(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => ProfileBloc()),
+        BlocProvider(create: (context) => AuthBloc()),
+      ],
       child: BlocBuilder<ProfileBloc, ProfileState>(
         builder: (context, state) {
           // Get theme from state or default to system (first launch)

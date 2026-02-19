@@ -1,9 +1,10 @@
+import 'package:bagtrip/auth/bloc/auth_bloc.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/service/auth_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 class LogoutButton extends StatelessWidget {
@@ -34,12 +35,9 @@ class LogoutButton extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () async {
-            final authService = AuthService();
-            await authService.logout();
-            if (context.mounted) {
-              context.go('/login');
-            }
+          onTap: () {
+            context.read<AuthBloc>().add(LogoutRequested());
+            context.go('/login');
           },
           borderRadius: AppRadius.large16,
           child: Container(

@@ -19,6 +19,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<RegisterRequested>(_onRegisterRequested);
     on<GoogleSignInRequested>(_onGoogleSignInRequested);
     on<AppleSignInRequested>(_onAppleSignInRequested);
+    on<LogoutRequested>(_onLogoutRequested);
     on<AuthModeChanged>(_onAuthModeChanged);
   }
 
@@ -99,6 +100,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       emit(AuthError(errorMessage: errorMessage, isLoginMode: _isLoginMode));
     }
+  }
+
+  Future<void> _onLogoutRequested(
+    LogoutRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    await _authService.logout();
+    emit(AuthInitial());
   }
 
   void _onAuthModeChanged(AuthModeChanged event, Emitter<AuthState> emit) {

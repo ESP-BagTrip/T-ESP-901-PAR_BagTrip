@@ -3,6 +3,7 @@
 import time
 from collections import defaultdict
 
+from cachetools import TTLCache
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
@@ -60,6 +61,48 @@ class RateLimiter:
 
 # Instance globale (pour POC, en production utiliser Redis)
 agent_chat_rate_limiter = RateLimiter(max_requests=10, window_seconds=60)
+
+# Auth rate limiter: per-IP, 5 requests/minute, auto-expiring via TTLCache
+_AUTH_RATE_LIMIT_MAX = 5
+_AUTH_RATE_LIMIT_WINDOW = 60
+_auth_rate_cache: TTLCache = TTLCache(maxsize=10000, ttl=_AUTH_RATE_LIMIT_WINDOW)
+
+_AUTH_RATE_LIMITED_PATHS = {
+    "/v1/auth/login",
+    "/v1/auth/register",
+    "/v1/auth/google",
+    "/v1/auth/apple",
+    "/v1/auth/refresh",
+}
+
+
+def _get_client_ip(request: Request) -> str:
+    forwarded = request.headers.get("X-Forwarded-For")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+async def auth_rate_limit_middleware(request: Request, call_next):
+    """Per-IP rate limiting for auth endpoints."""
+    if request.method == "POST" and request.url.path in _AUTH_RATE_LIMITED_PATHS:
+        ip = _get_client_ip(request)
+        key = f"auth:{ip}"
+
+        count = _auth_rate_cache.get(key, 0)
+        if count >= _AUTH_RATE_LIMIT_MAX:
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "detail": "Too many requests. Please try again later.",
+                    "retry_after": _AUTH_RATE_LIMIT_WINDOW,
+                },
+                headers={"Retry-After": str(_AUTH_RATE_LIMIT_WINDOW)},
+            )
+
+        _auth_rate_cache[key] = count + 1
+
+    return await call_next(request)
 
 
 async def rate_limit_middleware(request: Request, call_next):

@@ -12,6 +12,7 @@ from .hotel_booking import HotelBooking
 from .hotel_offer import HotelOffer
 from .hotel_search import HotelSearch
 from .message import Message
+from .refresh_token import RefreshToken
 from .stripe_event import StripeEvent
 from .traveler import TripTraveler
 from .trip import Trip
@@ -31,6 +32,7 @@ __all__ = [
     "HotelOffer",
     "HotelBooking",
     "BookingIntent",
+    "RefreshToken",
     "StripeEvent",
     "AmadeusApiLog",
     "Booking",  # Deprecated

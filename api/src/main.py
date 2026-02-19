@@ -29,7 +29,7 @@ from src.api.travelers.routes import router as travelers_router
 from src.api.trips.routes import router as trips_router
 from src.config.database import Base, check_database_connection, engine
 from src.config.env import settings
-from src.middleware.rate_limit import rate_limit_middleware
+from src.middleware.rate_limit import auth_rate_limit_middleware, rate_limit_middleware
 from src.utils.errors import AppError, create_http_exception
 from src.utils.logger import LogLevel, logger
 
@@ -66,6 +66,14 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warn(f"Conversation tables migration failed (may already be migrated): {e}")
 
+    # Migrer la table refresh_tokens si nécessaire
+    try:
+        from src.migrations.migrate_refresh_tokens import migrate_refresh_tokens
+
+        migrate_refresh_tokens(engine)
+    except Exception as e:
+        logger.warn(f"Refresh tokens migration failed (may already be migrated): {e}")
+
     # Initialiser les produits Stripe
     try:
         from src.services.stripe_products_service import StripeProductsService
@@ -100,6 +108,7 @@ app.add_middleware(
 
 # Rate limiting middleware (après CORS)
 app.middleware("http")(rate_limit_middleware)
+app.middleware("http")(auth_rate_limit_middleware)
 
 # Inclusion des routes - toutes sous /v1
 # Routes principales selon PLAN.md

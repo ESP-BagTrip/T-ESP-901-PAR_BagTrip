@@ -1,40 +1,58 @@
 """Routes d'authentification."""
 
 import os
-from datetime import datetime, timedelta
+import secrets
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from jose import jwt
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from src.api.auth.apple_token_verifier import verify_apple_id_token
+from src.api.auth.google_token_verifier import verify_google_id_token
 from src.api.auth.middleware import get_current_user
 from src.api.auth.schemas import (
     AppleSignInRequest,
     AuthResponse,
     GoogleSignInRequest,
     LoginRequest,
+    LogoutRequest,
+    RefreshTokenRequest,
     SignupRequest,
     UserResponse,
 )
 from src.config.database import get_db
+from src.config.env import settings
 from src.integrations.stripe.client import StripeClient
+from src.models.refresh_token import RefreshToken
 from src.models.user import User
 from src.utils.logger import logger
 
 router = APIRouter(prefix="/v1/auth", tags=["Auth"])
 
-JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key")
-JWT_EXPIRATION = "365d"  # Expiration "abusée" comme demandé
+
+def create_access_token(user_id: str) -> tuple[str, int]:
+    """Create an access token. Returns (token, expires_in_seconds)."""
+    expires_in = settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    expire = datetime.now(UTC) + timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
+    payload = {"userId": str(user_id), "exp": expire, "type": "access"}
+    token = jwt.encode(payload, settings.JWT_SECRET, algorithm="HS256")
+    return token, expires_in
 
 
-def create_jwt_token(user_id: str) -> str:
-    """Crée un token JWT."""
-    # Calculer l'expiration (365 jours)
-    expire = datetime.utcnow() + timedelta(days=365)
-    payload = {"userId": str(user_id), "exp": expire}
-    return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+def create_refresh_token(user_id: str, db: Session) -> str:
+    """Create a refresh token, store in DB, return the raw token."""
+    raw_token = secrets.token_urlsafe(64)
+    expires_at = datetime.now(UTC) + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS)
+    refresh = RefreshToken(
+        user_id=user_id,
+        token=raw_token,
+        expires_at=expires_at,
+    )
+    db.add(refresh)
+    return raw_token
 
 
 @router.post(
@@ -120,11 +138,15 @@ async def register(request: SignupRequest, db: Session = Depends(get_db)):
             detail="User already exists",
         ) from None
 
-    # Générer le token JWT
-    token = create_jwt_token(str(user.id))
+    # Generate tokens
+    access_token, expires_in = create_access_token(str(user.id))
+    refresh_token = create_refresh_token(str(user.id), db)
+    db.commit()
 
     return AuthResponse(
-        token=token,
+        access_token=access_token,
+        refresh_token=refresh_token,
+        expires_in=expires_in,
         user=UserResponse(
             id=user.id,
             email=user.email,
@@ -189,11 +211,15 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
             detail="Invalid credentials",
         )
 
-    # Générer le token JWT
-    token = create_jwt_token(str(user.id))
+    # Generate tokens
+    access_token, expires_in = create_access_token(str(user.id))
+    refresh_token = create_refresh_token(str(user.id), db)
+    db.commit()
 
     return AuthResponse(
-        token=token,
+        access_token=access_token,
+        refresh_token=refresh_token,
+        expires_in=expires_in,
         user=UserResponse(
             id=user.id,
             email=user.email,
@@ -277,10 +303,7 @@ async def google_sign_in(
     Retourne un token JWT valide pendant 365 jours.
     """
     try:
-        # Décoder le token Google (sans vérification complète pour MVP)
-        # En production, il faudrait vérifier le token avec les clés publiques Google
-        # Utiliser get_unverified_claims pour éviter les vérifications (at_hash, etc.)
-        decoded_token = jwt.get_unverified_claims(request.idToken)
+        decoded_token = await verify_google_id_token(request.idToken)
 
         email = decoded_token.get("email")
         if not email:
@@ -341,11 +364,15 @@ async def google_sign_in(
                 db.commit()
                 db.refresh(user)
 
-        # Générer le token JWT
-        token = create_jwt_token(str(user.id))
+        # Generate tokens
+        access_token, expires_in = create_access_token(str(user.id))
+        refresh_token = create_refresh_token(str(user.id), db)
+        db.commit()
 
         return AuthResponse(
-            token=token,
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_in=expires_in,
             user=UserResponse(
                 id=user.id,
                 email=user.email,
@@ -408,11 +435,8 @@ async def apple_sign_in(request: AppleSignInRequest, db: Session = Depends(get_d
                 detail="Invalid Apple token: token is empty",
             )
 
-        # Décoder le token Apple (sans vérification complète pour MVP)
-        # En production, il faudrait vérifier le token avec les clés publiques Apple
-        # Utiliser get_unverified_claims pour éviter les vérifications
         try:
-            decoded_token = jwt.get_unverified_claims(request.idToken)
+            decoded_token = await verify_apple_id_token(request.idToken)
         except jwt.JWTError as jwt_error:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -471,11 +495,15 @@ async def apple_sign_in(request: AppleSignInRequest, db: Session = Depends(get_d
             db.commit()
             db.refresh(user)
 
-        # Générer le token JWT
-        token = create_jwt_token(str(user.id))
+        # Generate tokens
+        access_token, expires_in = create_access_token(str(user.id))
+        refresh_token = create_refresh_token(str(user.id), db)
+        db.commit()
 
         return AuthResponse(
-            token=token,
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_in=expires_in,
             user=UserResponse(
                 id=user.id,
                 email=user.email,
@@ -494,3 +522,97 @@ async def apple_sign_in(request: AppleSignInRequest, db: Session = Depends(get_d
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error during Apple authentication",
         ) from None
+
+
+@router.post(
+    "/refresh",
+    response_model=AuthResponse,
+    summary="Refresh access token",
+    description="Exchange a valid refresh token for a new access + refresh token pair",
+)
+async def refresh(request: RefreshTokenRequest, db: Session = Depends(get_db)):
+    """Refresh — rotate tokens."""
+    stored = (
+        db.query(RefreshToken)
+        .filter(
+            RefreshToken.token == request.refresh_token,
+            RefreshToken.revoked.is_(False),
+        )
+        .first()
+    )
+
+    if not stored or stored.expires_at < datetime.now(UTC):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token",
+        )
+
+    # Revoke old token (rotation)
+    stored.revoked = True
+
+    user = db.query(User).filter(User.id == stored.user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
+
+    access_token, expires_in = create_access_token(str(user.id))
+    new_refresh = create_refresh_token(str(user.id), db)
+    db.commit()
+
+    return AuthResponse(
+        access_token=access_token,
+        refresh_token=new_refresh,
+        expires_in=expires_in,
+        user=UserResponse(
+            id=user.id,
+            email=user.email,
+            created_at=user.created_at,
+            updated_at=user.updated_at,
+        ),
+    )
+
+
+@router.post(
+    "/logout",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Logout — revoke a refresh token",
+)
+async def logout(
+    request: LogoutRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Logout — revoke the given refresh token."""
+    stored = (
+        db.query(RefreshToken)
+        .filter(
+            RefreshToken.token == request.refresh_token,
+            RefreshToken.user_id == current_user.id,
+            RefreshToken.revoked.is_(False),
+        )
+        .first()
+    )
+    if stored:
+        stored.revoked = True
+        db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/logout-all",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Logout all — revoke all refresh tokens for the user",
+)
+async def logout_all(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Logout all — revoke every refresh token for the authenticated user."""
+    db.query(RefreshToken).filter(
+        RefreshToken.user_id == current_user.id,
+        RefreshToken.revoked.is_(False),
+    ).update({"revoked": True})
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

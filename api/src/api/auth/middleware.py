@@ -1,23 +1,24 @@
 """Middleware d'authentification JWT."""
 
-import os
-
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from src.config.database import get_db
+from src.config.env import settings
 from src.models.user import User
 
-JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key")
 security = HTTPBearer(auto_error=True)
 
 
 def verify_jwt_token(token: str) -> str | None:
     """Vérifie un token JWT et retourne l'ID utilisateur."""
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=["HS256"])
+        token_type = payload.get("type")
+        if token_type is not None and token_type != "access":
+            return None
         return payload.get("userId")
     except JWTError:
         return None
