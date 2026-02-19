@@ -21,7 +21,12 @@ export default function LoginPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginCredentials & RegisterCredentials>()
+  } = useForm<LoginCredentials & RegisterCredentials>({
+    defaultValues: {
+      email: 'admin@bagtrip.com',
+      password: 'admin123456',
+    },
+  })
 
   const onSubmit = (data: LoginCredentials & RegisterCredentials) => {
     if (isRegisterMode) {

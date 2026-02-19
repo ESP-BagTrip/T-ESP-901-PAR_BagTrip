@@ -96,6 +96,15 @@ async def lifespan(app: FastAPI):
     # Créer les tables au démarrage
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created")
+
+    # Créer l'admin par défaut
+    try:
+        from src.seeds.create_admin import create_default_admin
+
+        create_default_admin()
+    except Exception as e:
+        logger.warn(f"Default admin seed failed: {e}")
+
     yield
     # Nettoyage à l'arrêt (si nécessaire)
     logger.info("Application shutting down")
