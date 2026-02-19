@@ -2,12 +2,19 @@
 
 from math import ceil
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from src.models.booking_intent import BookingIntent
+from src.models.conversation import Conversation
 from src.models.flight_order import FlightOrder
+from src.models.flight_search import FlightSearch
 from src.models.hotel_booking import HotelBooking
 from src.models.hotel_offer import HotelOffer
+from src.models.hotel_search import HotelSearch
+from src.models.message import Message
 from src.models.traveler import TripTraveler
+from src.models.traveler_profile import TravelerProfile
 from src.models.trip import Trip
 from src.models.user import User
 
@@ -245,6 +252,232 @@ class AdminService:
                     "booking_reference": order.booking_reference,
                     "created_at": order.created_at,
                     "updated_at": order.updated_at,
+                }
+            )
+
+        total_pages = ceil(total / limit) if limit > 0 else 0
+        return items, total, total_pages
+
+    @staticmethod
+    def get_all_traveler_profiles(
+        db: Session, page: int = 1, limit: int = 10
+    ) -> tuple[list[dict], int, int]:
+        """
+        Récupérer tous les profils voyageurs avec informations utilisateur.
+        Retourne (items, total, total_pages).
+        """
+        offset = (page - 1) * limit
+
+        query = (
+            db.query(
+                TravelerProfile,
+                User.email.label("user_email"),
+            )
+            .join(User, TravelerProfile.user_id == User.id)
+            .order_by(TravelerProfile.created_at.desc())
+        )
+
+        total = query.count()
+        results = query.offset(offset).limit(limit).all()
+
+        items = []
+        for profile, user_email in results:
+            items.append(
+                {
+                    "id": profile.id,
+                    "user_id": profile.user_id,
+                    "user_email": user_email,
+                    "travel_types": profile.travel_types,
+                    "travel_style": profile.travel_style,
+                    "budget": profile.budget,
+                    "companions": profile.companions,
+                    "is_completed": profile.is_completed,
+                    "created_at": profile.created_at,
+                    "updated_at": profile.updated_at,
+                }
+            )
+
+        total_pages = ceil(total / limit) if limit > 0 else 0
+        return items, total, total_pages
+
+    @staticmethod
+    def get_all_booking_intents(
+        db: Session, page: int = 1, limit: int = 10
+    ) -> tuple[list[dict], int, int]:
+        """
+        Récupérer tous les booking intents avec informations trip et utilisateur.
+        Retourne (items, total, total_pages).
+        """
+        offset = (page - 1) * limit
+
+        query = (
+            db.query(
+                BookingIntent,
+                Trip.title.label("trip_title"),
+                User.email.label("user_email"),
+            )
+            .join(Trip, BookingIntent.trip_id == Trip.id)
+            .join(User, BookingIntent.user_id == User.id)
+            .order_by(BookingIntent.created_at.desc())
+        )
+
+        total = query.count()
+        results = query.offset(offset).limit(limit).all()
+
+        items = []
+        for intent, trip_title, user_email in results:
+            items.append(
+                {
+                    "id": intent.id,
+                    "user_id": intent.user_id,
+                    "user_email": user_email,
+                    "trip_id": intent.trip_id,
+                    "trip_title": trip_title,
+                    "type": intent.type,
+                    "status": intent.status,
+                    "amount": float(intent.amount),
+                    "currency": intent.currency,
+                    "stripe_payment_intent_id": intent.stripe_payment_intent_id,
+                    "created_at": intent.created_at,
+                    "updated_at": intent.updated_at,
+                }
+            )
+
+        total_pages = ceil(total / limit) if limit > 0 else 0
+        return items, total, total_pages
+
+    @staticmethod
+    def get_all_conversations(
+        db: Session, page: int = 1, limit: int = 10
+    ) -> tuple[list[dict], int, int]:
+        """
+        Récupérer toutes les conversations avec informations trip, utilisateur et nombre de messages.
+        Retourne (items, total, total_pages).
+        """
+        offset = (page - 1) * limit
+
+        message_count_subq = (
+            db.query(
+                Message.conversation_id,
+                func.count(Message.id).label("message_count"),
+            )
+            .group_by(Message.conversation_id)
+            .subquery()
+        )
+
+        query = (
+            db.query(
+                Conversation,
+                Trip.title.label("trip_title"),
+                User.email.label("user_email"),
+                func.coalesce(message_count_subq.c.message_count, 0).label("message_count"),
+            )
+            .join(Trip, Conversation.trip_id == Trip.id)
+            .join(User, Conversation.user_id == User.id)
+            .outerjoin(message_count_subq, Conversation.id == message_count_subq.c.conversation_id)
+            .order_by(Conversation.created_at.desc())
+        )
+
+        total = query.count()
+        results = query.offset(offset).limit(limit).all()
+
+        items = []
+        for conversation, trip_title, user_email, message_count in results:
+            items.append(
+                {
+                    "id": conversation.id,
+                    "user_id": conversation.user_id,
+                    "user_email": user_email,
+                    "trip_id": conversation.trip_id,
+                    "trip_title": trip_title,
+                    "title": conversation.title,
+                    "message_count": message_count,
+                    "created_at": conversation.created_at,
+                    "updated_at": conversation.updated_at,
+                }
+            )
+
+        total_pages = ceil(total / limit) if limit > 0 else 0
+        return items, total, total_pages
+
+    @staticmethod
+    def get_all_flight_searches(
+        db: Session, page: int = 1, limit: int = 10
+    ) -> tuple[list[dict], int, int]:
+        """
+        Récupérer toutes les recherches de vols avec informations trip.
+        Retourne (items, total, total_pages).
+        """
+        offset = (page - 1) * limit
+
+        query = (
+            db.query(
+                FlightSearch,
+                Trip.title.label("trip_title"),
+            )
+            .join(Trip, FlightSearch.trip_id == Trip.id)
+            .order_by(FlightSearch.created_at.desc())
+        )
+
+        total = query.count()
+        results = query.offset(offset).limit(limit).all()
+
+        items = []
+        for search, trip_title in results:
+            items.append(
+                {
+                    "id": search.id,
+                    "trip_id": search.trip_id,
+                    "trip_title": trip_title,
+                    "origin_iata": search.origin_iata,
+                    "destination_iata": search.destination_iata,
+                    "departure_date": search.departure_date,
+                    "return_date": search.return_date,
+                    "adults": search.adults,
+                    "children": search.children,
+                    "travel_class": search.travel_class,
+                    "created_at": search.created_at,
+                }
+            )
+
+        total_pages = ceil(total / limit) if limit > 0 else 0
+        return items, total, total_pages
+
+    @staticmethod
+    def get_all_hotel_searches(
+        db: Session, page: int = 1, limit: int = 10
+    ) -> tuple[list[dict], int, int]:
+        """
+        Récupérer toutes les recherches d'hôtels avec informations trip.
+        Retourne (items, total, total_pages).
+        """
+        offset = (page - 1) * limit
+
+        query = (
+            db.query(
+                HotelSearch,
+                Trip.title.label("trip_title"),
+            )
+            .join(Trip, HotelSearch.trip_id == Trip.id)
+            .order_by(HotelSearch.created_at.desc())
+        )
+
+        total = query.count()
+        results = query.offset(offset).limit(limit).all()
+
+        items = []
+        for search, trip_title in results:
+            items.append(
+                {
+                    "id": search.id,
+                    "trip_id": search.trip_id,
+                    "trip_title": trip_title,
+                    "city_code": search.city_code,
+                    "check_in": search.check_in,
+                    "check_out": search.check_out,
+                    "adults": search.adults,
+                    "room_qty": search.room_qty,
+                    "created_at": search.created_at,
                 }
             )
 

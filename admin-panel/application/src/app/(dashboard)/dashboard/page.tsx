@@ -2,15 +2,25 @@
 
 import { DataTable } from '@/components/DataTable'
 import {
+  bookingIntentsColumns,
+  conversationsColumns,
   flightBookingsColumns,
+  flightSearchesColumns,
   hotelBookingsColumns,
+  hotelSearchesColumns,
+  profilesColumns,
   travelersColumns,
   tripsColumns,
 } from '@/components/tables'
 import { useAuth } from '@/hooks'
 import {
+  useAdminBookingIntents,
+  useAdminConversations,
   useAdminFlightBookings,
+  useAdminFlightSearches,
   useAdminHotelBookings,
+  useAdminHotelSearches,
+  useAdminTravelerProfiles,
   useAdminTravelers,
   useAdminTrips,
 } from '@/hooks/useAdminData'
@@ -57,7 +67,17 @@ const usersColumns: ColumnDef<User>[] = [
   },
 ]
 
-type TabType = 'users' | 'trips' | 'travelers' | 'hotels' | 'flights'
+type TabType =
+  | 'users'
+  | 'trips'
+  | 'travelers'
+  | 'hotels'
+  | 'flights'
+  | 'profiles'
+  | 'bookingIntents'
+  | 'conversations'
+  | 'flightSearches'
+  | 'hotelSearches'
 
 export default function DashboardPage() {
   const { user, logout } = useAuth()
@@ -67,6 +87,11 @@ export default function DashboardPage() {
   const [travelersPage, setTravelersPage] = useState(1)
   const [hotelsPage, setHotelsPage] = useState(1)
   const [flightsPage, setFlightsPage] = useState(1)
+  const [profilesPage, setProfilesPage] = useState(1)
+  const [bookingIntentsPage, setBookingIntentsPage] = useState(1)
+  const [conversationsPage, setConversationsPage] = useState(1)
+  const [flightSearchesPage, setFlightSearchesPage] = useState(1)
+  const [hotelSearchesPage, setHotelSearchesPage] = useState(1)
 
   // Users query
   const { data: usersData, isLoading: usersLoading } = useQuery({
@@ -99,6 +124,31 @@ export default function DashboardPage() {
     limit: PAGINATION_DEFAULTS.LIMIT,
   })
 
+  const { data: profilesData, isLoading: profilesLoading } = useAdminTravelerProfiles({
+    page: profilesPage,
+    limit: PAGINATION_DEFAULTS.LIMIT,
+  })
+
+  const { data: bookingIntentsData, isLoading: bookingIntentsLoading } = useAdminBookingIntents({
+    page: bookingIntentsPage,
+    limit: PAGINATION_DEFAULTS.LIMIT,
+  })
+
+  const { data: conversationsData, isLoading: conversationsLoading } = useAdminConversations({
+    page: conversationsPage,
+    limit: PAGINATION_DEFAULTS.LIMIT,
+  })
+
+  const { data: flightSearchesData, isLoading: flightSearchesLoading } = useAdminFlightSearches({
+    page: flightSearchesPage,
+    limit: PAGINATION_DEFAULTS.LIMIT,
+  })
+
+  const { data: hotelSearchesData, isLoading: hotelSearchesLoading } = useAdminHotelSearches({
+    page: hotelSearchesPage,
+    limit: PAGINATION_DEFAULTS.LIMIT,
+  })
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -110,9 +160,22 @@ export default function DashboardPage() {
   const tabs = [
     { id: 'users' as TabType, name: 'Utilisateurs', count: usersData?.pagination?.total },
     { id: 'trips' as TabType, name: 'Trips', count: tripsData?.total },
+    { id: 'profiles' as TabType, name: 'Profils Voyageurs', count: profilesData?.total },
     { id: 'travelers' as TabType, name: 'Voyageurs', count: travelersData?.total },
-    { id: 'hotels' as TabType, name: 'Réservations Hôtels', count: hotelsData?.total },
-    { id: 'flights' as TabType, name: 'Réservations Vols', count: flightsData?.total },
+    { id: 'bookingIntents' as TabType, name: 'Booking Intents', count: bookingIntentsData?.total },
+    { id: 'hotels' as TabType, name: 'Rés. Hôtels', count: hotelsData?.total },
+    { id: 'flights' as TabType, name: 'Rés. Vols', count: flightsData?.total },
+    { id: 'conversations' as TabType, name: 'Conversations', count: conversationsData?.total },
+    {
+      id: 'flightSearches' as TabType,
+      name: 'Rech. Vols',
+      count: flightSearchesData?.total,
+    },
+    {
+      id: 'hotelSearches' as TabType,
+      name: 'Rech. Hôtels',
+      count: hotelSearchesData?.total,
+    },
   ]
 
   return (
@@ -143,7 +206,7 @@ export default function DashboardPage() {
 
             {/* Tabs */}
             <div className="border-b border-gray-200">
-              <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+              <nav className="-mb-px flex space-x-4 overflow-x-auto" aria-label="Tabs">
                 {tabs.map(tab => (
                   <button
                     key={tab.id}
@@ -192,7 +255,7 @@ export default function DashboardPage() {
                       }
                     : undefined
                 }
-                onPaginationChange={(page, limit) => {
+                onPaginationChange={(page) => {
                   setUsersPage(page)
                 }}
               />
@@ -213,8 +276,29 @@ export default function DashboardPage() {
                       }
                     : undefined
                 }
-                onPaginationChange={(page, limit) => {
+                onPaginationChange={(page) => {
                   setTripsPage(page)
+                }}
+              />
+            )}
+
+            {activeTab === 'profiles' && (
+              <DataTable
+                data={profilesData?.items || []}
+                columns={profilesColumns}
+                isLoading={profilesLoading}
+                pagination={
+                  profilesData
+                    ? {
+                        page: profilesData.page,
+                        limit: profilesData.limit,
+                        total: profilesData.total,
+                        total_pages: profilesData.total_pages,
+                      }
+                    : undefined
+                }
+                onPaginationChange={(page) => {
+                  setProfilesPage(page)
                 }}
               />
             )}
@@ -234,8 +318,29 @@ export default function DashboardPage() {
                       }
                     : undefined
                 }
-                onPaginationChange={(page, limit) => {
+                onPaginationChange={(page) => {
                   setTravelersPage(page)
+                }}
+              />
+            )}
+
+            {activeTab === 'bookingIntents' && (
+              <DataTable
+                data={bookingIntentsData?.items || []}
+                columns={bookingIntentsColumns}
+                isLoading={bookingIntentsLoading}
+                pagination={
+                  bookingIntentsData
+                    ? {
+                        page: bookingIntentsData.page,
+                        limit: bookingIntentsData.limit,
+                        total: bookingIntentsData.total,
+                        total_pages: bookingIntentsData.total_pages,
+                      }
+                    : undefined
+                }
+                onPaginationChange={(page) => {
+                  setBookingIntentsPage(page)
                 }}
               />
             )}
@@ -255,7 +360,7 @@ export default function DashboardPage() {
                       }
                     : undefined
                 }
-                onPaginationChange={(page, limit) => {
+                onPaginationChange={(page) => {
                   setHotelsPage(page)
                 }}
               />
@@ -276,8 +381,71 @@ export default function DashboardPage() {
                       }
                     : undefined
                 }
-                onPaginationChange={(page, limit) => {
+                onPaginationChange={(page) => {
                   setFlightsPage(page)
+                }}
+              />
+            )}
+
+            {activeTab === 'conversations' && (
+              <DataTable
+                data={conversationsData?.items || []}
+                columns={conversationsColumns}
+                isLoading={conversationsLoading}
+                pagination={
+                  conversationsData
+                    ? {
+                        page: conversationsData.page,
+                        limit: conversationsData.limit,
+                        total: conversationsData.total,
+                        total_pages: conversationsData.total_pages,
+                      }
+                    : undefined
+                }
+                onPaginationChange={(page) => {
+                  setConversationsPage(page)
+                }}
+              />
+            )}
+
+            {activeTab === 'flightSearches' && (
+              <DataTable
+                data={flightSearchesData?.items || []}
+                columns={flightSearchesColumns}
+                isLoading={flightSearchesLoading}
+                pagination={
+                  flightSearchesData
+                    ? {
+                        page: flightSearchesData.page,
+                        limit: flightSearchesData.limit,
+                        total: flightSearchesData.total,
+                        total_pages: flightSearchesData.total_pages,
+                      }
+                    : undefined
+                }
+                onPaginationChange={(page) => {
+                  setFlightSearchesPage(page)
+                }}
+              />
+            )}
+
+            {activeTab === 'hotelSearches' && (
+              <DataTable
+                data={hotelSearchesData?.items || []}
+                columns={hotelSearchesColumns}
+                isLoading={hotelSearchesLoading}
+                pagination={
+                  hotelSearchesData
+                    ? {
+                        page: hotelSearchesData.page,
+                        limit: hotelSearchesData.limit,
+                        total: hotelSearchesData.total,
+                        total_pages: hotelSearchesData.total_pages,
+                      }
+                    : undefined
+                }
+                onPaginationChange={(page) => {
+                  setHotelSearchesPage(page)
                 }}
               />
             )}
