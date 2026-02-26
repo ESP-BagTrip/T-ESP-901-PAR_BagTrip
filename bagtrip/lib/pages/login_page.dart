@@ -170,14 +170,14 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                 final user = await AuthService().getCurrentUser();
                 if (!context.mounted) return;
                 if (user == null || user.id.isEmpty) {
-                  context.go('/home');
+                  context.go('/planifier');
                   return;
                 }
                 final hasSeen = await PersonalizationStorage()
                     .hasSeenPersonalizationPrompt(user.id);
                 if (!context.mounted) return;
                 if (hasSeen) {
-                  context.go('/home');
+                  context.go('/planifier');
                 } else {
                   context.go('/personalization');
                 }

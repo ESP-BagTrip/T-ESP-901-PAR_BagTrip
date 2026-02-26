@@ -22,7 +22,7 @@ class FlightSearchResultPage extends StatelessWidget {
         foregroundColor: AppColors.onSurface,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/home'),
+          onPressed: () => context.go('/planifier'),
         ),
       ),
       body: BlocProvider(

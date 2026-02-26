@@ -255,5 +255,21 @@
   "personalizationCompanionFriends": "Entre amis",
   "personalizationContinue": "Continuer",
   "personalizationFinish": "Terminer",
-  "personalizationSkip": "Passer"
+  "personalizationSkip": "Passer",
+  "planifierTab": "Planifier",
+  "planifierSectionCreateTrip": "Créer un voyage",
+  "planifierManualTitle": "Planifier manuellement",
+  "planifierManualDesc": "Créez votre voyage étape par étape avec tous les détails",
+  "planifierAITitle": "Assistant IA",
+  "planifierAIDesc": "Laissez l'IA vous aider à créer un voyage personnalisé",
+  "planifierSectionMyTrips": "Mes voyages",
+  "planifierInProgressTitle": "En cours de planification",
+  "planifierInProgressCount": "{count} voyage(s) en attente",
+  "@planifierInProgressCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "planifierCompletedTitle": "Voyages terminés",
+  "planifierCompletedDesc": "Consultez vos voyages passés et budgets"
 }

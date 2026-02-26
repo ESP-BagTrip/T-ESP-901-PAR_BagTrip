@@ -608,4 +608,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get personalizationSkip => 'Skip';
+
+  @override
+  String get planifierTab => 'Plan';
+
+  @override
+  String get planifierSectionCreateTrip => 'Create a trip';
+
+  @override
+  String get planifierManualTitle => 'Plan manually';
+
+  @override
+  String get planifierManualDesc =>
+      'Create your trip step by step with all the details';
+
+  @override
+  String get planifierAITitle => 'AI Assistant';
+
+  @override
+  String get planifierAIDesc => 'Let AI help you create a personalized trip';
+
+  @override
+  String get planifierSectionMyTrips => 'My trips';
+
+  @override
+  String get planifierInProgressTitle => 'In progress';
+
+  @override
+  String planifierInProgressCount(int count) {
+    return '$count trip(s) pending';
+  }
+
+  @override
+  String get planifierCompletedTitle => 'Completed trips';
+
+  @override
+  String get planifierCompletedDesc => 'View your past trips and budgets';
 }

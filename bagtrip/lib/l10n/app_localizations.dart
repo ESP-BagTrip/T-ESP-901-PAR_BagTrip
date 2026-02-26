@@ -1201,6 +1201,72 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Passer'**
   String get personalizationSkip;
+
+  /// No description provided for @planifierTab.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planifier'**
+  String get planifierTab;
+
+  /// No description provided for @planifierSectionCreateTrip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer un voyage'**
+  String get planifierSectionCreateTrip;
+
+  /// No description provided for @planifierManualTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planifier manuellement'**
+  String get planifierManualTitle;
+
+  /// No description provided for @planifierManualDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créez votre voyage étape par étape avec tous les détails'**
+  String get planifierManualDesc;
+
+  /// No description provided for @planifierAITitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Assistant IA'**
+  String get planifierAITitle;
+
+  /// No description provided for @planifierAIDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Laissez l\'IA vous aider à créer un voyage personnalisé'**
+  String get planifierAIDesc;
+
+  /// No description provided for @planifierSectionMyTrips.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes voyages'**
+  String get planifierSectionMyTrips;
+
+  /// No description provided for @planifierInProgressTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours de planification'**
+  String get planifierInProgressTitle;
+
+  /// No description provided for @planifierInProgressCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} voyage(s) en attente'**
+  String planifierInProgressCount(int count);
+
+  /// No description provided for @planifierCompletedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voyages terminés'**
+  String get planifierCompletedTitle;
+
+  /// No description provided for @planifierCompletedDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Consultez vos voyages passés et budgets'**
+  String get planifierCompletedDesc;
 }
 
 class _AppLocalizationsDelegate

@@ -615,4 +615,42 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get personalizationSkip => 'Passer';
+
+  @override
+  String get planifierTab => 'Planifier';
+
+  @override
+  String get planifierSectionCreateTrip => 'Créer un voyage';
+
+  @override
+  String get planifierManualTitle => 'Planifier manuellement';
+
+  @override
+  String get planifierManualDesc =>
+      'Créez votre voyage étape par étape avec tous les détails';
+
+  @override
+  String get planifierAITitle => 'Assistant IA';
+
+  @override
+  String get planifierAIDesc =>
+      'Laissez l\'IA vous aider à créer un voyage personnalisé';
+
+  @override
+  String get planifierSectionMyTrips => 'Mes voyages';
+
+  @override
+  String get planifierInProgressTitle => 'En cours de planification';
+
+  @override
+  String planifierInProgressCount(int count) {
+    return '$count voyage(s) en attente';
+  }
+
+  @override
+  String get planifierCompletedTitle => 'Voyages terminés';
+
+  @override
+  String get planifierCompletedDesc =>
+      'Consultez vos voyages passés et budgets';
 }

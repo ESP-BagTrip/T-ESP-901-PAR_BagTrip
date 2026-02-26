@@ -1,9 +1,9 @@
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/bloc/navigation_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 class BottomTabBar extends StatelessWidget {
   final NavigationTab activeTab;
@@ -24,17 +24,13 @@ class BottomTabBar extends StatelessWidget {
     NavigationTab tab,
     String label,
     IconData icon,
-    String route,
   ) {
     final isActive = activeTab == tab;
     final color = _getTabColor(tab, isActive);
 
     return Expanded(
       child: GestureDetector(
-        onTap: () {
-          onTabChanged(tab);
-          context.go(route);
-        },
+        onTap: () => onTabChanged(tab),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
@@ -78,31 +74,27 @@ class BottomTabBar extends StatelessWidget {
             children: [
               _buildTabItem(
                 context,
-                NavigationTab.home,
-                'Accueil',
-                Icons.home_outlined,
-                '/home',
-              ),
-              _buildTabItem(
-                context,
                 NavigationTab.map,
                 'Carte',
                 Icons.map_outlined,
-                '/map',
               ),
               _buildTabItem(
                 context,
                 NavigationTab.budget,
                 'Budget',
                 Icons.wallet_outlined,
-                '/budget',
+              ),
+              _buildTabItem(
+                context,
+                NavigationTab.planifier,
+                AppLocalizations.of(context)!.planifierTab,
+                Icons.calendar_month_outlined,
               ),
               _buildTabItem(
                 context,
                 NavigationTab.profile,
                 'Profil',
                 Icons.person_outlined,
-                '/profile',
               ),
             ],
           ),
