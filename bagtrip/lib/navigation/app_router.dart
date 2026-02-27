@@ -11,6 +11,7 @@ import 'package:bagtrip/pages/login_page.dart';
 import 'package:bagtrip/pages/map_page.dart';
 import 'package:bagtrip/pages/onboarding_page.dart';
 import 'package:bagtrip/pages/personalization_page.dart';
+import 'package:bagtrip/pages/create_trip_ai_flow_page.dart';
 import 'package:bagtrip/pages/planifier_manual_page.dart';
 import 'package:bagtrip/pages/planifier_page.dart';
 import 'package:bagtrip/pages/profile_page.dart';
@@ -112,6 +113,15 @@ final GoRouter appRouter = GoRouter(
                       (context, state) => buildSlideTransitionPage<void>(
                         state: state,
                         child: const PlanifierManualPage(),
+                      ),
+                ),
+                GoRoute(
+                  path: 'create-trip-ai',
+                  name: 'createTripAi',
+                  pageBuilder:
+                      (context, state) => buildSlideTransitionPage<void>(
+                        state: state,
+                        child: const CreateTripAiFlowPage(),
                       ),
                 ),
               ],

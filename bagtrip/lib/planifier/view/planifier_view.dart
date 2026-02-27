@@ -1,9 +1,10 @@
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/pages/create_trip_page.dart';
 import 'package:bagtrip/planifier/bloc/planifier_bloc.dart';
 import 'package:bagtrip/planifier/widgets/planifier_card.dart';
+import 'package:bagtrip/service/auth_service.dart';
+import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -64,30 +65,19 @@ class PlanifierView extends StatelessWidget {
                     ),
                     title: l10n.planifierAITitle,
                     description: l10n.planifierAIDesc,
-                    onTap: () {
-                      Navigator.of(context).push(
-                        PageRouteBuilder<void>(
-                          pageBuilder: (_, _, _) => const CreateTripPage(),
-                          transitionDuration: const Duration(milliseconds: 350),
-                          transitionsBuilder: (_, animation, _, child) {
-                            final curved = CurvedAnimation(
-                              parent: animation,
-                              curve: Curves.easeOutCubic,
-                              reverseCurve: Curves.easeInCubic,
-                            );
-                            return SlideTransition(
-                              position: Tween<Offset>(
-                                begin: const Offset(0.15, 0),
-                                end: Offset.zero,
-                              ).animate(curved),
-                              child: FadeTransition(
-                                opacity: curved,
-                                child: child,
-                              ),
-                            );
-                          },
-                        ),
-                      );
+                    onTap: () async {
+                      final user = await AuthService().getCurrentUser();
+                      final userId = user?.id ?? '';
+                      final hasSeen =
+                          userId.isEmpty ||
+                          await PersonalizationStorage()
+                              .hasSeenPersonalizationPrompt(userId);
+                      if (!context.mounted) return;
+                      if (hasSeen) {
+                        context.push('/planifier/create-trip-ai');
+                      } else {
+                        context.push('/personalization?from=createTripAi');
+                      }
                     },
                   ),
                   const SizedBox(height: AppSpacing.space32),

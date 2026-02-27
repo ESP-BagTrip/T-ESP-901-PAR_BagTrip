@@ -23,7 +23,12 @@ class PersonalizationView extends StatelessWidget {
       listener: (context, state) {
         if (state is PersonalizationCompleted ||
             state is PersonalizationSkipped) {
-          if (Navigator.of(context).canPop()) {
+          final fromCreateTripAi =
+              GoRouterState.of(context).uri.queryParameters['from'] ==
+              'createTripAi';
+          if (fromCreateTripAi) {
+            context.go('/planifier/create-trip-ai');
+          } else if (Navigator.of(context).canPop()) {
             context.pop();
           } else {
             context.go('/planifier');
