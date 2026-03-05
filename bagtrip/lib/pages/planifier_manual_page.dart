@@ -1,8 +1,6 @@
-import 'package:bagtrip/design/app_colors.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/home/bloc/home_flight_bloc.dart';
 import 'package:bagtrip/home/view/home_flight_form.dart';
-import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -11,37 +9,24 @@ class PlanifierManualPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     return BlocProvider(
       create: (context) => HomeFlightBloc(),
       child: Scaffold(
+        backgroundColor: PersonalizationColors.gradientStart,
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: Text(l10n.planifierManualTitle),
           elevation: 0,
-          backgroundColor: ColorName.backgroundGradientStart,
-          foregroundColor: AppColors.onSurface,
+          scrolledUnderElevation: 0,
+          backgroundColor: PersonalizationColors.gradientStart,
+          foregroundColor: PersonalizationColors.textPrimary,
         ),
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                ColorName.backgroundGradientStart,
-                ColorName.backgroundGradientMid,
-                ColorName.backgroundGradientEnd,
-              ],
-            ),
-          ),
-          child: const SafeArea(
-            left: false,
-            right: false,
-            child: HomeFlightForm(),
-          ),
+        body: const SafeArea(
+          left: false,
+          right: false,
+          child: HomeFlightForm(),
         ),
       ),
     );

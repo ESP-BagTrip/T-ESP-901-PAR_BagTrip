@@ -1,4 +1,5 @@
 import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/primary_button.dart';
 import 'package:bagtrip/gen/assets.gen.dart';
@@ -30,11 +31,7 @@ class OnboardingPage extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              AppColors.backgroundGradientStart,
-              AppColors.backgroundGradientMid,
-              AppColors.backgroundGradientEnd,
-            ],
+            colors: PersonalizationColors.backgroundGradient,
           ),
         ),
         child: SafeArea(

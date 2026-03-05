@@ -1,4 +1,5 @@
 import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/assets.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -84,11 +85,7 @@ class _SplashPageState extends State<SplashPage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              AppColors.backgroundGradientStart,
-              AppColors.backgroundGradientMid,
-              AppColors.backgroundGradientEnd,
-            ],
+            colors: PersonalizationColors.backgroundGradient,
           ),
         ),
         child: SafeArea(

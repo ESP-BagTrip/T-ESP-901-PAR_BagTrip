@@ -229,6 +229,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get maxBudgetLabel => 'Maximum budget';
 
   @override
+  String get whereNextLabel => 'What\'s your next trip?';
+
+  @override
+  String get findYourFlightTitle => 'Find your flight';
+
+  @override
+  String get departLabel => 'Depart';
+
+  @override
+  String get cabinClassLabel => 'Cabin class';
+
+  @override
+  String get tripDetailsLabel => 'Trip details';
+
+  @override
   String get flightCardTitle => 'Flight';
 
   @override

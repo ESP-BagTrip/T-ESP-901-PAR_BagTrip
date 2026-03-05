@@ -1,6 +1,7 @@
 import 'package:bagtrip/create_trip_ai/bloc/create_trip_ai_bloc.dart';
 import 'package:bagtrip/create_trip_ai/models/ai_trip_proposal.dart';
 import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -24,11 +25,11 @@ class CreateTripAiResultsView extends StatelessWidget {
 
   Widget _buildResults(BuildContext context, List<AiTripProposal> proposals) {
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: PersonalizationColors.gradientStart,
       appBar: AppBar(
         title: const Text('Résultats IA'),
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.onSurface,
+        backgroundColor: PersonalizationColors.gradientStart,
+        foregroundColor: PersonalizationColors.textPrimary,
         elevation: 0,
       ),
       body: SafeArea(

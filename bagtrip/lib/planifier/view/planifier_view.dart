@@ -1,4 +1,5 @@
 import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/planifier/bloc/planifier_bloc.dart';
@@ -21,7 +22,7 @@ class PlanifierView extends StatelessWidget {
         final l10n = AppLocalizations.of(context)!;
 
         return Scaffold(
-          backgroundColor: AppColors.surface,
+          backgroundColor: PersonalizationColors.gradientStart,
           body: SafeArea(
             child: SingleChildScrollView(
               padding: AppSpacing.allEdgeInsetSpace24,

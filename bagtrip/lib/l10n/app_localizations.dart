@@ -482,6 +482,36 @@ abstract class AppLocalizations {
   /// **'Budget maximum'**
   String get maxBudgetLabel;
 
+  /// No description provided for @whereNextLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quel est votre prochain voyage'**
+  String get whereNextLabel;
+
+  /// No description provided for @findYourFlightTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trouvez votre vol'**
+  String get findYourFlightTitle;
+
+  /// No description provided for @departLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Départ'**
+  String get departLabel;
+
+  /// No description provided for @cabinClassLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Classe'**
+  String get cabinClassLabel;
+
+  /// No description provided for @tripDetailsLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Détails du voyage'**
+  String get tripDetailsLabel;
+
   /// No description provided for @flightCardTitle.
   ///
   /// In fr, this message translates to:

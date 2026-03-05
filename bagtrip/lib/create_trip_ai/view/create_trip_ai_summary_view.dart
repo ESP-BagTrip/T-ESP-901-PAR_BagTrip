@@ -1,6 +1,6 @@
 import 'package:bagtrip/create_trip_ai/bloc/create_trip_ai_bloc.dart';
 import 'package:bagtrip/create_trip_ai/models/trip_summary.dart';
-import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -25,15 +25,15 @@ class CreateTripAiSummaryView extends StatelessWidget {
 
   Widget _buildSummary(BuildContext context, TripSummary s) {
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: PersonalizationColors.gradientStart,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
         title: const Text('Retour'),
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.onSurface,
+        backgroundColor: PersonalizationColors.gradientStart,
+        foregroundColor: PersonalizationColors.textPrimary,
         elevation: 0,
       ),
       body: SafeArea(

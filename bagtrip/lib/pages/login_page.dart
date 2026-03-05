@@ -3,6 +3,7 @@ import 'package:bagtrip/auth/widgets/auth_text_field.dart';
 import 'package:bagtrip/auth/widgets/social_login_button.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/primary_button.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -143,7 +144,9 @@ class _LoginPageContentState extends State<_LoginPageContent> {
     const horizontalPadding = 24.0;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final scaffoldBackground =
-        isDark ? ColorName.primaryTrueDark : ColorName.primaryLight;
+        isDark
+            ? ColorName.primaryTrueDark
+            : PersonalizationColors.gradientStart;
     final titleColor = isDark ? AppColors.surface : AppColors.primaryTrueDark;
     final subtitleColor = isDark ? AppColors.hint : AppColors.textMutedLight;
     final surfaceColor = isDark ? AppColors.surfaceDark : AppColors.surface;

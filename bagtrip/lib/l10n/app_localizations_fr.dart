@@ -231,6 +231,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get maxBudgetLabel => 'Budget maximum';
 
   @override
+  String get whereNextLabel => 'Quel est votre prochain voyage';
+
+  @override
+  String get findYourFlightTitle => 'Trouvez votre vol';
+
+  @override
+  String get departLabel => 'Départ';
+
+  @override
+  String get cabinClassLabel => 'Classe';
+
+  @override
+  String get tripDetailsLabel => 'Détails du voyage';
+
+  @override
   String get flightCardTitle => 'Vol';
 
   @override

@@ -1,6 +1,7 @@
 import 'package:bagtrip/components/custom_calendar_picker.dart';
 import 'package:bagtrip/create_trip_ai/bloc/create_trip_ai_bloc.dart';
 import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -34,11 +35,11 @@ class CreateTripAiRecapView extends StatelessWidget {
     final canLaunch = s.departureDate != null && s.returnDate != null;
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: PersonalizationColors.gradientStart,
       appBar: AppBar(
         title: const Text('Récapitulatif'),
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.onSurface,
+        backgroundColor: PersonalizationColors.gradientStart,
+        foregroundColor: PersonalizationColors.textPrimary,
         elevation: 0,
       ),
       body: SafeArea(
