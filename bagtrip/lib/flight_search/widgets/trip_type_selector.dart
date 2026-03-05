@@ -24,14 +24,14 @@ class TripTypeSelector extends StatelessWidget {
     ];
 
     return ClipRRect(
-      borderRadius: AppRadius.large20,
+      borderRadius: AppRadius.large24,
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
         child: Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: ColorName.surface.withValues(alpha: 0.85),
-            borderRadius: AppRadius.large20,
+            borderRadius: AppRadius.large24,
             border: Border.all(
               color: ColorName.primarySoftLight.withValues(alpha: 0.5),
             ),
@@ -58,7 +58,7 @@ class TripTypeSelector extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
                       color: selected ? ColorName.primary : Colors.transparent,
-                      borderRadius: AppRadius.large16,
+                      borderRadius: AppRadius.pill,
                       boxShadow:
                           selected
                               ? [

@@ -1,8 +1,7 @@
 import 'package:bagtrip/components/custom_calendar_picker.dart';
-import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/flight_search/bloc/flight_search_bloc.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
-import 'package:bagtrip/flight_search/bloc/flight_search_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -107,16 +106,17 @@ class _DateCard extends StatelessWidget {
     final monthYear =
         date != null ? DateFormat('MMMM yyyy').format(date!) : null;
 
+    const dateCardRadius = BorderRadius.all(Radius.circular(48));
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: AppRadius.large20,
+        borderRadius: dateCardRadius,
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             color: ColorName.surface,
-            borderRadius: AppRadius.large20,
+            borderRadius: dateCardRadius,
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.05),

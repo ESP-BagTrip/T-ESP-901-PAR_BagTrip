@@ -67,6 +67,8 @@ class AppRadius {
   static const double cornerRaidus16 = 16.0;
   static const double cornerRadius20 = 20.0;
   static const double cornerRadius24 = 24.0;
+  static const double cornerRadius28 = 28.0;
+  static const double cornerRadius32 = 32.0;
 
   static const BorderRadius small4 = BorderRadius.all(
     Radius.circular(cornerRaidus4),
@@ -83,4 +85,13 @@ class AppRadius {
   static const BorderRadius large24 = BorderRadius.all(
     Radius.circular(cornerRadius24),
   );
+  static const BorderRadius large28 = BorderRadius.all(
+    Radius.circular(cornerRadius28),
+  );
+  static const BorderRadius large32 = BorderRadius.all(
+    Radius.circular(cornerRadius32),
+  );
+
+  /// Pilule (bords entièrement arrondis), comme dans la maquette.
+  static const BorderRadius pill = BorderRadius.all(Radius.circular(999));
 }

@@ -1,8 +1,5 @@
 import 'package:bagtrip/components/app_snackbar.dart';
-import 'package:bagtrip/utils/error_display.dart';
 import 'package:bagtrip/flightSearchResult/models/flight_search_arguments.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
-import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/flight_search/bloc/flight_search_bloc.dart';
 import 'package:bagtrip/flight_search/widgets/manual_flight_airports_card.dart';
 import 'package:bagtrip/flight_search/widgets/manual_flight_cabin_selector.dart';
@@ -11,7 +8,10 @@ import 'package:bagtrip/flight_search/widgets/manual_flight_header.dart';
 import 'package:bagtrip/flight_search/widgets/manual_flight_trip_details_card.dart';
 import 'package:bagtrip/flight_search/widgets/multi_destination_form.dart';
 import 'package:bagtrip/flight_search/widgets/trip_type_selector.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -163,7 +163,7 @@ class _SearchFlightsButton extends StatelessWidget {
         gradient: const LinearGradient(
           colors: [ColorName.primary, ColorName.secondary],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
             color: ColorName.primary.withValues(alpha: 0.3),
@@ -176,7 +176,7 @@ class _SearchFlightsButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24),
           child: Center(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,

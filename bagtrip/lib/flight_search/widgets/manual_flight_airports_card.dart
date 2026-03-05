@@ -1,9 +1,9 @@
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
-import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/flight_search/bloc/flight_search_bloc.dart';
 import 'package:bagtrip/flight_search/models/airport_type.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -23,7 +23,7 @@ class ManualFlightAirportsCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.space24),
       decoration: BoxDecoration(
         color: ColorName.surface,
-        borderRadius: AppRadius.large24,
+        borderRadius: BorderRadius.circular(48),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
@@ -36,7 +36,7 @@ class ManualFlightAirportsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _AirportRow(
-            dotColor: ColorName.secondary,
+            icon: Icons.flight_takeoff_rounded,
             label: l10n.departureLabel.toUpperCase(),
             airport: state.departureAirport,
             onTap:
@@ -58,7 +58,7 @@ class ManualFlightAirportsCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _AirportRow(
-            dotColor: ColorName.hint,
+            icon: Icons.flight_land_rounded,
             label: l10n.destinationLabel.toUpperCase(),
             airport: state.arrivalAirport,
             onTap:
@@ -231,13 +231,13 @@ class ManualFlightAirportsCard extends StatelessWidget {
 
 class _AirportRow extends StatelessWidget {
   const _AirportRow({
-    required this.dotColor,
+    required this.icon,
     required this.label,
     required this.airport,
     required this.onTap,
   });
 
-  final Color dotColor;
+  final IconData icon;
   final String label;
   final Map<String, dynamic>? airport;
   final VoidCallback onTap;
@@ -258,15 +258,8 @@ class _AirportRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: dotColor,
-                    shape: BoxShape.circle,
-                  ),
-                ),
+                padding: const EdgeInsets.only(top: 4),
+                child: Icon(icon, size: 20, color: ColorName.primaryTrueDark),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -312,7 +305,7 @@ class _AirportRow extends StatelessWidget {
                               color: ColorName.primaryLight.withValues(
                                 alpha: 0.7,
                               ),
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: AppRadius.pill,
                             ),
                             child: Text(
                               code,
