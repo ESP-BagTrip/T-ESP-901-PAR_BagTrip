@@ -5,6 +5,9 @@ String _keyTravelTypes(String userId) => 'personalization_travel_types_$userId';
 String _keyBudget(String userId) => 'personalization_budget_$userId';
 String _keyCompanions(String userId) => 'personalization_companions_$userId';
 String _keyTravelStyle(String userId) => 'personalization_travel_style_$userId';
+String _keyTravelFrequency(String userId) =>
+    'personalization_travel_frequency_$userId';
+String _keyWelcomeSeen(String userId) => 'personalization_welcome_seen_$userId';
 
 /// Persists whether the user has seen the personalization prompt (per user)
 /// and the user's travel preferences.
@@ -67,5 +70,30 @@ class PersonalizationStorage {
     if (userId.isEmpty) return;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyTravelStyle(userId), value);
+  }
+
+  Future<String> getTravelFrequency(String userId) async {
+    if (userId.isEmpty) return '';
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyTravelFrequency(userId)) ?? '';
+  }
+
+  Future<void> setTravelFrequency(String userId, String value) async {
+    if (userId.isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyTravelFrequency(userId), value);
+  }
+
+  /// True if the user has already seen the welcome screen (first launch only).
+  Future<bool> hasSeenPersonalizationWelcome(String userId) async {
+    if (userId.isEmpty) return true;
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keyWelcomeSeen(userId)) ?? false;
+  }
+
+  Future<void> setPersonalizationWelcomeSeen(String userId) async {
+    if (userId.isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyWelcomeSeen(userId), true);
   }
 }

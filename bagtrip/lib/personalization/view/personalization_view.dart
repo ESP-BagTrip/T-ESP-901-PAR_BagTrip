@@ -1,18 +1,27 @@
-import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/design/widgets/primary_button.dart';
+import 'package:bagtrip/design/widgets/premium_cta_button.dart';
+import 'package:bagtrip/design/widgets/premium_step_indicator.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/personalization/bloc/personalization_bloc.dart';
 import 'package:bagtrip/personalization/widgets/budget_step_content.dart';
 import 'package:bagtrip/personalization/widgets/companions_step_content.dart';
-import 'package:bagtrip/personalization/widgets/personalization_progress_bar.dart';
-import 'package:bagtrip/personalization/widgets/travel_style_step_content.dart';
+import 'package:bagtrip/personalization/widgets/travel_frequency_step_content.dart';
 import 'package:bagtrip/personalization/widgets/travel_types_step_content.dart';
+import 'package:bagtrip/personalization/widgets/welcome_step_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-const int _kTotalSteps = 4;
+/// Welcome = 0, content steps 1–4 = companions, budget, interests, frequency.
+const int _kContentSteps = 4;
+
+double _responsiveHorizontalPadding(BuildContext context) {
+  final width = MediaQuery.sizeOf(context).width;
+  if (width < 360) return 16;
+  if (width > 600) return 32;
+  return 24;
+}
 
 class PersonalizationView extends StatelessWidget {
   const PersonalizationView({super.key});
@@ -54,28 +63,41 @@ class PersonalizationView extends StatelessWidget {
   Widget _buildLoaded(BuildContext context, PersonalizationLoaded state) {
     final l10n = AppLocalizations.of(context)!;
     final bloc = context.read<PersonalizationBloc>();
-    final isLastStep = state.step == _kTotalSteps;
+
+    if (state.step == 0) {
+      return Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: PersonalizationColors.backgroundGradient,
+            ),
+          ),
+          child: SafeArea(
+            child: WelcomeStepContent(
+              totalSteps: _kContentSteps,
+              onStart: () => bloc.add(PersonalizationNextStep()),
+              onSkip: () => bloc.add(SkipPersonalization()),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final isLastStep = state.step == _kContentSteps;
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: PersonalizationColors.gradientEnd,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.primaryTrueDark,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.chevron_left),
-          onPressed: () {
-            if (state.step > 1) {
-              bloc.add(PersonalizationPreviousStep());
-            } else {
-              bloc.add(SkipPersonalization());
-            }
-          },
+          color: PersonalizationColors.textPrimary,
+          onPressed: () => bloc.add(PersonalizationPreviousStep()),
         ),
-        title: PersonalizationProgressBar(
-          current: state.step,
-          total: _kTotalSteps,
-        ),
+        title: PremiumStepIndicator(current: state.step, total: _kContentSteps),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -84,41 +106,55 @@ class PersonalizationView extends StatelessWidget {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: AppSpacing.allEdgeInsetSpace24,
+                padding: EdgeInsets.fromLTRB(
+                  _responsiveHorizontalPadding(context),
+                  8,
+                  _responsiveHorizontalPadding(context),
+                  24,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const SizedBox(height: AppSpacing.space16),
                     Text(
                       _stepTitle(l10n, state.step),
                       style: Theme.of(
                         context,
                       ).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primaryTrueDark,
+                        fontWeight: FontWeight.w600,
+                        color: PersonalizationColors.textPrimary,
+                        letterSpacing: -0.3,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.space8),
                     Text(
                       _stepSubtitle(l10n, state.step),
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppColors.textMutedLight,
+                        color: PersonalizationColors.textSecondary,
+                        height: 1.4,
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.space24),
+                    const SizedBox(height: AppSpacing.space32),
                     _stepContent(context, state, bloc),
+                    const SizedBox(height: AppSpacing.space48),
                   ],
                 ),
               ),
             ),
             Padding(
-              padding: AppSpacing.allEdgeInsetSpace24,
+              padding: EdgeInsets.fromLTRB(
+                _responsiveHorizontalPadding(context),
+                16,
+                _responsiveHorizontalPadding(context),
+                24,
+              ),
               child: Column(
                 children: [
-                  PrimaryButton(
+                  PremiumCtaButton(
                     label:
                         isLastStep
-                            ? '${l10n.personalizationFinish} >'
-                            : '${l10n.personalizationContinue} >',
+                            ? l10n.personalizationFinish
+                            : l10n.personalizationContinue,
                     onPressed: () {
                       if (isLastStep) {
                         bloc.add(SaveAndFinishPersonalization());
@@ -133,7 +169,10 @@ class PersonalizationView extends StatelessWidget {
                       onPressed: () => bloc.add(SkipPersonalization()),
                       child: Text(
                         l10n.personalizationSkip,
-                        style: const TextStyle(color: AppColors.textMutedLight),
+                        style: const TextStyle(
+                          color: PersonalizationColors.textSecondary,
+                          fontSize: 15,
+                        ),
                       ),
                     ),
                   ],
@@ -149,13 +188,13 @@ class PersonalizationView extends StatelessWidget {
   String _stepTitle(AppLocalizations l10n, int step) {
     switch (step) {
       case 1:
-        return l10n.personalizationStepTitleTravelTypes;
+        return l10n.personalizationStepTitleHowYouTravel;
       case 2:
-        return l10n.personalizationStepTitleTravelStyle;
+        return l10n.personalizationStepTitleBudgetQuestion;
       case 3:
-        return l10n.personalizationStepTitleBudget;
+        return l10n.personalizationStepTitleInterests;
       case 4:
-        return l10n.personalizationStepTitleCompanions;
+        return l10n.personalizationStepTitleFrequency;
       default:
         return '';
     }
@@ -164,13 +203,13 @@ class PersonalizationView extends StatelessWidget {
   String _stepSubtitle(AppLocalizations l10n, int step) {
     switch (step) {
       case 1:
-        return l10n.personalizationStepSubtitleTravelTypes;
-      case 2:
-        return l10n.personalizationStepSubtitleTravelStyle;
-      case 3:
-        return l10n.personalizationStepSubtitleBudget;
-      case 4:
         return l10n.personalizationStepSubtitleCompanions;
+      case 2:
+        return l10n.personalizationStepSubtitleBudget;
+      case 3:
+        return l10n.personalizationStepSubtitleInterests;
+      case 4:
+        return l10n.personalizationStepSubtitleFrequency;
       default:
         return '';
     }
@@ -183,6 +222,16 @@ class PersonalizationView extends StatelessWidget {
   ) {
     switch (state.step) {
       case 1:
+        return CompanionsStepContent(
+          selectedId: state.companions,
+          onSelect: (id) => bloc.add(SetCompanions(id)),
+        );
+      case 2:
+        return BudgetStepContent(
+          selectedId: state.budget,
+          onSelect: (id) => bloc.add(SetBudget(id)),
+        );
+      case 3:
         return TravelTypesStepContent(
           selectedIds: state.selectedTravelTypes,
           onToggle: (id) {
@@ -195,20 +244,10 @@ class PersonalizationView extends StatelessWidget {
             bloc.add(SetTravelTypes(next));
           },
         );
-      case 2:
-        return TravelStyleStepContent(
-          selectedId: state.travelStyle,
-          onSelect: (id) => bloc.add(SetTravelStyle(id)),
-        );
-      case 3:
-        return BudgetStepContent(
-          selectedId: state.budget,
-          onSelect: (id) => bloc.add(SetBudget(id)),
-        );
       case 4:
-        return CompanionsStepContent(
-          selectedId: state.companions,
-          onSelect: (id) => bloc.add(SetCompanions(id)),
+        return TravelFrequencyStepContent(
+          selectedId: state.travelFrequency,
+          onSelect: (id) => bloc.add(SetTravelFrequency(id)),
         );
       default:
         return const SizedBox.shrink();

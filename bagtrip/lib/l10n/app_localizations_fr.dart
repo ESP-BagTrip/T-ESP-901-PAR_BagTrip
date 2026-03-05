@@ -617,6 +617,58 @@ class AppLocalizationsFr extends AppLocalizations {
   String get personalizationSkip => 'Passer';
 
   @override
+  String get personalizationWelcomeTitle => 'Bienvenue';
+
+  @override
+  String get personalizationWelcomeSubtitle =>
+      'Personnalisons votre expérience de voyage';
+
+  @override
+  String get personalizationWelcomeCta => 'Commencer';
+
+  @override
+  String get personalizationStepTitleHowYouTravel => 'Comment voyagez-vous ?';
+
+  @override
+  String get personalizationStepTitleInterests => 'Vos centres d\'intérêt';
+
+  @override
+  String get personalizationStepSubtitleInterests =>
+      'Sélectionnez un ou plusieurs';
+
+  @override
+  String get personalizationStepTitleBudgetQuestion =>
+      'Quel est votre budget ?';
+
+  @override
+  String get personalizationStepTitleFrequency =>
+      'À quelle fréquence voyagez-vous ?';
+
+  @override
+  String get personalizationStepSubtitleFrequency => 'Par an';
+
+  @override
+  String get personalizationBudgetComfort => 'Confort';
+
+  @override
+  String get personalizationBudgetComfortDesc => 'Hôtels 4★, bon équilibre';
+
+  @override
+  String get personalizationFrequency1_2 => '1–2 fois';
+
+  @override
+  String get personalizationFrequency3_5 => '3–5 fois';
+
+  @override
+  String get personalizationFrequency6Plus => '6+ fois';
+
+  @override
+  String get personalizationInterestPhotography => 'Photographie';
+
+  @override
+  String get personalizationInterestShopping => 'Shopping';
+
+  @override
   String get planifierTab => 'Planifier';
 
   @override

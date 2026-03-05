@@ -1202,6 +1202,102 @@ abstract class AppLocalizations {
   /// **'Passer'**
   String get personalizationSkip;
 
+  /// No description provided for @personalizationWelcomeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bienvenue'**
+  String get personalizationWelcomeTitle;
+
+  /// No description provided for @personalizationWelcomeSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Personnalisons votre expérience de voyage'**
+  String get personalizationWelcomeSubtitle;
+
+  /// No description provided for @personalizationWelcomeCta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commencer'**
+  String get personalizationWelcomeCta;
+
+  /// No description provided for @personalizationStepTitleHowYouTravel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comment voyagez-vous ?'**
+  String get personalizationStepTitleHowYouTravel;
+
+  /// No description provided for @personalizationStepTitleInterests.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos centres d\'intérêt'**
+  String get personalizationStepTitleInterests;
+
+  /// No description provided for @personalizationStepSubtitleInterests.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sélectionnez un ou plusieurs'**
+  String get personalizationStepSubtitleInterests;
+
+  /// No description provided for @personalizationStepTitleBudgetQuestion.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quel est votre budget ?'**
+  String get personalizationStepTitleBudgetQuestion;
+
+  /// No description provided for @personalizationStepTitleFrequency.
+  ///
+  /// In fr, this message translates to:
+  /// **'À quelle fréquence voyagez-vous ?'**
+  String get personalizationStepTitleFrequency;
+
+  /// No description provided for @personalizationStepSubtitleFrequency.
+  ///
+  /// In fr, this message translates to:
+  /// **'Par an'**
+  String get personalizationStepSubtitleFrequency;
+
+  /// No description provided for @personalizationBudgetComfort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confort'**
+  String get personalizationBudgetComfort;
+
+  /// No description provided for @personalizationBudgetComfortDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hôtels 4★, bon équilibre'**
+  String get personalizationBudgetComfortDesc;
+
+  /// No description provided for @personalizationFrequency1_2.
+  ///
+  /// In fr, this message translates to:
+  /// **'1–2 fois'**
+  String get personalizationFrequency1_2;
+
+  /// No description provided for @personalizationFrequency3_5.
+  ///
+  /// In fr, this message translates to:
+  /// **'3–5 fois'**
+  String get personalizationFrequency3_5;
+
+  /// No description provided for @personalizationFrequency6Plus.
+  ///
+  /// In fr, this message translates to:
+  /// **'6+ fois'**
+  String get personalizationFrequency6Plus;
+
+  /// No description provided for @personalizationInterestPhotography.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photographie'**
+  String get personalizationInterestPhotography;
+
+  /// No description provided for @personalizationInterestShopping.
+  ///
+  /// In fr, this message translates to:
+  /// **'Shopping'**
+  String get personalizationInterestShopping;
+
   /// No description provided for @planifierTab.
   ///
   /// In fr, this message translates to:

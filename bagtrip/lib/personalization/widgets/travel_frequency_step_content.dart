@@ -3,8 +3,8 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/personalization/widgets/premium_select_card.dart';
 import 'package:flutter/material.dart';
 
-class BudgetStepContent extends StatelessWidget {
-  const BudgetStepContent({
+class TravelFrequencyStepContent extends StatelessWidget {
+  const TravelFrequencyStepContent({
     super.key,
     required this.selectedId,
     required this.onSelect,
@@ -17,30 +17,9 @@ class BudgetStepContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final options = [
-      (
-        'economical',
-        l10n.personalizationBudgetEconomical,
-        l10n.personalizationBudgetEconomicalDesc,
-        Icons.account_balance_wallet_outlined,
-      ),
-      (
-        'moderate',
-        l10n.personalizationBudgetModerate,
-        l10n.personalizationBudgetModerateDesc,
-        Icons.star_outline,
-      ),
-      (
-        'comfort',
-        l10n.personalizationBudgetComfort,
-        l10n.personalizationBudgetComfortDesc,
-        Icons.hotel_outlined,
-      ),
-      (
-        'luxury',
-        l10n.personalizationBudgetLuxury,
-        l10n.personalizationBudgetLuxuryDesc,
-        Icons.diamond_outlined,
-      ),
+      ('1-2', l10n.personalizationFrequency1_2),
+      ('3-5', l10n.personalizationFrequency3_5),
+      ('6+', l10n.personalizationFrequency6Plus),
     ];
     return Column(
       children:
@@ -48,9 +27,7 @@ class BudgetStepContent extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.space24),
               child: PremiumSelectCard(
-                icon: opt.$4,
                 label: opt.$2,
-                description: opt.$3,
                 selected: selectedId == opt.$1,
                 onTap: () => onSelect(opt.$1),
               ),

@@ -35,4 +35,10 @@ class PersonalizationPreviousStep extends PersonalizationEvent {}
 
 class SkipPersonalization extends PersonalizationEvent {}
 
+class SetTravelFrequency extends PersonalizationEvent {
+  final String? value;
+
+  SetTravelFrequency(this.value);
+}
+
 class SaveAndFinishPersonalization extends PersonalizationEvent {}

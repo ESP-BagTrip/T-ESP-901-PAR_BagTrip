@@ -7,7 +7,8 @@ import 'package:meta/meta.dart';
 part 'personalization_event.dart';
 part 'personalization_state.dart';
 
-const int _kTotalSteps = 4;
+/// Welcome = 0, then 4 content steps: companions, budget, interests, frequency.
+const int _kTotalSteps = 5;
 
 class PersonalizationBloc
     extends Bloc<PersonalizationEvent, PersonalizationState> {
@@ -24,6 +25,7 @@ class PersonalizationBloc
     on<SetTravelStyle>(_onSetTravelStyle);
     on<SetBudget>(_onSetBudget);
     on<SetCompanions>(_onSetCompanions);
+    on<SetTravelFrequency>(_onSetTravelFrequency);
     on<PersonalizationNextStep>(_onNextStep);
     on<PersonalizationPreviousStep>(_onPreviousStep);
     on<SkipPersonalization>(_onSkipPersonalization);
@@ -51,6 +53,7 @@ class PersonalizationBloc
       String? style;
       String? budget;
       String? companions;
+      String? travelFrequency;
 
       try {
         final profile = await _profileApi.getProfile();
@@ -70,15 +73,26 @@ class PersonalizationBloc
         budget = localBudget.isEmpty ? null : localBudget;
         companions = localCompanions.isEmpty ? null : localCompanions;
       }
+      final freq = await _storage.getTravelFrequency(user.id);
+      travelFrequency = freq.isEmpty ? null : freq;
+
+      final welcomeSeen = await _storage.hasSeenPersonalizationWelcome(user.id);
+      final hasExistingPreferences =
+          selectedTypes.isNotEmpty ||
+          budget != null ||
+          companions != null ||
+          (travelFrequency != null && travelFrequency.isNotEmpty);
+      final showWelcome = !welcomeSeen && !hasExistingPreferences;
 
       emit(
         PersonalizationLoaded(
-          step: 1,
+          step: showWelcome ? 0 : 1,
           userId: user.id,
           selectedTravelTypes: selectedTypes,
           travelStyle: style,
           budget: budget,
           companions: companions,
+          travelFrequency: travelFrequency,
         ),
       );
     } catch (_) {
@@ -119,13 +133,25 @@ class PersonalizationBloc
     emit(current.copyWith(companions: event.value));
   }
 
-  void _onNextStep(
-    PersonalizationNextStep event,
+  void _onSetTravelFrequency(
+    SetTravelFrequency event,
     Emitter<PersonalizationState> emit,
   ) {
     final current = state;
     if (current is! PersonalizationLoaded) return;
-    if (current.step < _kTotalSteps) {
+    emit(current.copyWith(travelFrequency: event.value));
+  }
+
+  Future<void> _onNextStep(
+    PersonalizationNextStep event,
+    Emitter<PersonalizationState> emit,
+  ) async {
+    final current = state;
+    if (current is! PersonalizationLoaded) return;
+    if (current.step < _kTotalSteps - 1) {
+      if (current.step == 0) {
+        await _storage.setPersonalizationWelcomeSeen(current.userId);
+      }
       emit(current.copyWith(step: current.step + 1));
     }
   }
@@ -136,7 +162,7 @@ class PersonalizationBloc
   ) {
     final current = state;
     if (current is! PersonalizationLoaded) return;
-    if (current.step > 1) {
+    if (current.step > 0) {
       emit(current.copyWith(step: current.step - 1));
     }
   }
@@ -149,6 +175,9 @@ class PersonalizationBloc
     final userId = current is PersonalizationLoaded ? current.userId : null;
     if (userId != null && userId.isNotEmpty) {
       await _storage.setPersonalizationPromptSeen(userId);
+      if (current is PersonalizationLoaded && current.step == 0) {
+        await _storage.setPersonalizationWelcomeSeen(userId);
+      }
     }
     emit(PersonalizationSkipped());
   }
@@ -179,13 +208,17 @@ class PersonalizationBloc
     if (current.companions != null) {
       await _storage.setCompanions(userId, current.companions!);
     }
+    if (current.travelFrequency != null) {
+      await _storage.setTravelFrequency(userId, current.travelFrequency!);
+    }
     await _storage.setPersonalizationPromptSeen(userId);
+    await _storage.setPersonalizationWelcomeSeen(userId);
 
-    // Persist to backend (best effort)
+    // Persist to backend (best effort). Default travelStyle so backend can mark profile complete.
     try {
       await _profileApi.updateProfile(
         travelTypes: current.selectedTravelTypes.toList(),
-        travelStyle: current.travelStyle,
+        travelStyle: current.travelStyle ?? 'flexible',
         budget: current.budget,
         companions: current.companions,
       );

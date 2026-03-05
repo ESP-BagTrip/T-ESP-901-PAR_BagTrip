@@ -21,6 +21,9 @@ class AppSpacing {
   static const double space16 = 16.0;
   static const double space24 = 24.0;
   static const double space32 = 32.0;
+  static const double space40 = 40.0;
+  static const double space48 = 48.0;
+  static const double space56 = 56.0;
 
   // Convenience EdgeInsets
   static const EdgeInsets allEdgeInsetSpace4 = EdgeInsets.all(space4);
@@ -28,6 +31,8 @@ class AppSpacing {
   static const EdgeInsets allEdgeInsetSpace16 = EdgeInsets.all(space16);
   static const EdgeInsets allEdgeInsetSpace24 = EdgeInsets.all(space24);
   static const EdgeInsets allEdgeInsetSpace32 = EdgeInsets.all(space32);
+  static const EdgeInsets allEdgeInsetSpace40 = EdgeInsets.all(space40);
+  static const EdgeInsets allEdgeInsetSpace48 = EdgeInsets.all(space48);
 
   static const EdgeInsets onlyTopSpace8 = EdgeInsets.only(top: space8);
   static const EdgeInsets onlyBottomSpace8 = EdgeInsets.only(bottom: space8);
@@ -60,6 +65,8 @@ class AppRadius {
   static const double cornerRaidus4 = 4.0;
   static const double cornerRaidus8 = 8.0;
   static const double cornerRaidus16 = 16.0;
+  static const double cornerRadius20 = 20.0;
+  static const double cornerRadius24 = 24.0;
 
   static const BorderRadius small4 = BorderRadius.all(
     Radius.circular(cornerRaidus4),
@@ -69,5 +76,11 @@ class AppRadius {
   );
   static const BorderRadius large16 = BorderRadius.all(
     Radius.circular(cornerRaidus16),
+  );
+  static const BorderRadius large20 = BorderRadius.all(
+    Radius.circular(cornerRadius20),
+  );
+  static const BorderRadius large24 = BorderRadius.all(
+    Radius.circular(cornerRadius24),
   );
 }
