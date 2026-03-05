@@ -1,15 +1,15 @@
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
-import 'package:bagtrip/home/widgets/home_date_field.dart';
+import 'package:bagtrip/flight_search/widgets/date_field.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
-class HomeDateBlock extends StatelessWidget {
+class DateBlock extends StatelessWidget {
   final String label;
   final DateTime? date;
   final VoidCallback onTap;
 
-  const HomeDateBlock({
+  const DateBlock({
     super.key,
     required this.label,
     required this.date,
@@ -40,7 +40,7 @@ class HomeDateBlock extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            HomeDateField(
+            DateField(
               hint: AppLocalizations.of(context)!.dateFormatHint,
               value: date,
               onTap: onTap,

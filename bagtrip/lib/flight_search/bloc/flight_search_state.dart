@@ -1,11 +1,11 @@
-part of 'home_flight_bloc.dart';
+part of 'flight_search_bloc.dart';
 
 @immutable
-sealed class HomeFlightState {}
+sealed class FlightSearchState {}
 
-final class HomeFlightInitial extends HomeFlightState {}
+final class FlightSearchInitial extends FlightSearchState {}
 
-final class HomeFlightLoaded extends HomeFlightState {
+final class FlightSearchLoaded extends FlightSearchState {
   final int tripTypeIndex;
   final int adults;
   final int children;
@@ -22,7 +22,7 @@ final class HomeFlightLoaded extends HomeFlightState {
   final String? errorMessage;
   final bool showValidationErrors;
 
-  HomeFlightLoaded({
+  FlightSearchLoaded({
     this.tripTypeIndex = 0,
     this.adults = 1,
     this.children = 0,
@@ -41,7 +41,7 @@ final class HomeFlightLoaded extends HomeFlightState {
   }) : multiDestSegments =
            multiDestSegments ?? [FlightSegment(), FlightSegment()];
 
-  HomeFlightLoaded copyWith({
+  FlightSearchLoaded copyWith({
     int? tripTypeIndex,
     int? adults,
     int? children,
@@ -59,7 +59,7 @@ final class HomeFlightLoaded extends HomeFlightState {
     bool clearError = false,
     bool? showValidationErrors,
   }) {
-    return HomeFlightLoaded(
+    return FlightSearchLoaded(
       tripTypeIndex: tripTypeIndex ?? this.tripTypeIndex,
       adults: adults ?? this.adults,
       children: children ?? this.children,

@@ -3,29 +3,29 @@ import 'package:bagtrip/utils/error_display.dart';
 import 'package:bagtrip/flightSearchResult/models/flight_search_arguments.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
-import 'package:bagtrip/home/bloc/home_flight_bloc.dart';
-import 'package:bagtrip/home/widgets/manual_flight_airports_card.dart';
-import 'package:bagtrip/home/widgets/manual_flight_cabin_selector.dart';
-import 'package:bagtrip/home/widgets/manual_flight_date_cards.dart';
-import 'package:bagtrip/home/widgets/manual_flight_header.dart';
-import 'package:bagtrip/home/widgets/manual_flight_trip_details_card.dart';
-import 'package:bagtrip/home/widgets/multi_destination_form.dart';
-import 'package:bagtrip/home/widgets/trip_type_selector.dart';
+import 'package:bagtrip/flight_search/bloc/flight_search_bloc.dart';
+import 'package:bagtrip/flight_search/widgets/manual_flight_airports_card.dart';
+import 'package:bagtrip/flight_search/widgets/manual_flight_cabin_selector.dart';
+import 'package:bagtrip/flight_search/widgets/manual_flight_date_cards.dart';
+import 'package:bagtrip/flight_search/widgets/manual_flight_header.dart';
+import 'package:bagtrip/flight_search/widgets/manual_flight_trip_details_card.dart';
+import 'package:bagtrip/flight_search/widgets/multi_destination_form.dart';
+import 'package:bagtrip/flight_search/widgets/trip_type_selector.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-class HomeFlightForm extends StatelessWidget {
-  const HomeFlightForm({super.key});
+class FlightSearchForm extends StatelessWidget {
+  const FlightSearchForm({super.key});
 
   static const double _sectionSpacing = 24;
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<HomeFlightBloc, HomeFlightState>(
+    return BlocConsumer<FlightSearchBloc, FlightSearchState>(
       listener: (context, state) {
-        if (state is HomeFlightLoaded && state.errorMessage != null) {
+        if (state is FlightSearchLoaded && state.errorMessage != null) {
           if (state.searchResults == null || state.searchResults!.isEmpty) {
             AppSnackBar.showError(
               context,
@@ -36,7 +36,7 @@ class HomeFlightForm extends StatelessWidget {
       },
       builder: (context, state) {
         final loadedState =
-            state is HomeFlightLoaded ? state : HomeFlightLoaded();
+            state is FlightSearchLoaded ? state : FlightSearchLoaded();
 
         return ListView(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
@@ -67,7 +67,7 @@ class HomeFlightForm extends StatelessWidget {
     );
   }
 
-  void _onSearch(BuildContext context, HomeFlightLoaded loadedState) {
+  void _onSearch(BuildContext context, FlightSearchLoaded loadedState) {
     final classMap = {0: 'ECONOMY', 1: 'PREMIUM_ECONOMY', 2: 'BUSINESS'};
 
     FlightSearchArguments? args;
@@ -92,7 +92,7 @@ class HomeFlightForm extends StatelessWidget {
       }
 
       if (hasError) {
-        context.read<HomeFlightBloc>().add(ShowValidationErrors());
+        context.read<FlightSearchBloc>().add(ShowValidationErrors());
         AppSnackBar.showError(
           context,
           message: AppLocalizations.of(context)!.errorFillAllFields,
@@ -122,7 +122,7 @@ class HomeFlightForm extends StatelessWidget {
       }
 
       if (hasError) {
-        context.read<HomeFlightBloc>().add(ShowValidationErrors());
+        context.read<FlightSearchBloc>().add(ShowValidationErrors());
         AppSnackBar.showError(
           context,
           message: AppLocalizations.of(context)!.errorFillAllFields,

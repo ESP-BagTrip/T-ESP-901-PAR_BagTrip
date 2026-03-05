@@ -1,20 +1,20 @@
 // ignore_for_file: depend_on_referenced_packages
 
-import 'package:bagtrip/home/models/flight_segment.dart';
+import 'package:bagtrip/flight_search/models/flight_segment.dart';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 
 import '../../service/LocationService.dart';
 
-part 'home_flight_event.dart';
-part 'home_flight_state.dart';
+part 'flight_search_event.dart';
+part 'flight_search_state.dart';
 
-class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
+class FlightSearchBloc extends Bloc<FlightSearchEvent, FlightSearchState> {
   final LocationService _locationService;
 
-  HomeFlightBloc({LocationService? locationService})
+  FlightSearchBloc({LocationService? locationService})
     : _locationService = locationService ?? LocationService(),
-      super(HomeFlightInitial()) {
+      super(FlightSearchInitial()) {
     on<SearchDepartureAirport>(_onSearchDepartureAirport);
     on<SearchArrivalAirport>(_onSearchArrivalAirport);
     on<SetTripType>(_onSetTripType);
@@ -37,16 +37,16 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
     on<SwapAirports>(_onSwapAirports);
   }
 
-  HomeFlightLoaded _currentState() {
-    if (state is HomeFlightLoaded) {
-      return state as HomeFlightLoaded;
+  FlightSearchLoaded _currentState() {
+    if (state is FlightSearchLoaded) {
+      return state as FlightSearchLoaded;
     }
-    return HomeFlightLoaded();
+    return FlightSearchLoaded();
   }
 
   Future<void> _onSearchDepartureAirport(
     SearchDepartureAirport event,
-    Emitter<HomeFlightState> emit,
+    Emitter<FlightSearchState> emit,
   ) async {
     final current = _currentState();
     emit(current.copyWith(isLoading: true, clearError: true));
@@ -70,7 +70,7 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
 
   Future<void> _onSearchArrivalAirport(
     SearchArrivalAirport event,
-    Emitter<HomeFlightState> emit,
+    Emitter<FlightSearchState> emit,
   ) async {
     final current = _currentState();
     emit(current.copyWith(isLoading: true, clearError: true));
@@ -94,77 +94,77 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
 
   Future<void> _onSetTripType(
     SetTripType event,
-    Emitter<HomeFlightState> emit,
+    Emitter<FlightSearchState> emit,
   ) async {
     emit(_currentState().copyWith(tripTypeIndex: event.index));
   }
 
   Future<void> _onSetAdults(
     SetAdults event,
-    Emitter<HomeFlightState> emit,
+    Emitter<FlightSearchState> emit,
   ) async {
     emit(_currentState().copyWith(adults: event.count));
   }
 
   Future<void> _onSetChildren(
     SetChildren event,
-    Emitter<HomeFlightState> emit,
+    Emitter<FlightSearchState> emit,
   ) async {
     emit(_currentState().copyWith(children: event.count));
   }
 
   Future<void> _onSetInfants(
     SetInfants event,
-    Emitter<HomeFlightState> emit,
+    Emitter<FlightSearchState> emit,
   ) async {
     emit(_currentState().copyWith(infants: event.count));
   }
 
   Future<void> _onSetTravelClass(
     SetTravelClass event,
-    Emitter<HomeFlightState> emit,
+    Emitter<FlightSearchState> emit,
   ) async {
     emit(_currentState().copyWith(selectedClass: event.index));
   }
 
   Future<void> _onSelectDepartureAirport(
     SelectDepartureAirport event,
-    Emitter<HomeFlightState> emit,
+    Emitter<FlightSearchState> emit,
   ) async {
     emit(_currentState().copyWith(departureAirport: event.airport));
   }
 
   Future<void> _onSelectArrivalAirport(
     SelectArrivalAirport event,
-    Emitter<HomeFlightState> emit,
+    Emitter<FlightSearchState> emit,
   ) async {
     emit(_currentState().copyWith(arrivalAirport: event.airport));
   }
 
   Future<void> _onSetDepartureDate(
     SetDepartureDate event,
-    Emitter<HomeFlightState> emit,
+    Emitter<FlightSearchState> emit,
   ) async {
     emit(_currentState().copyWith(departureDate: event.date));
   }
 
   Future<void> _onSetReturnDate(
     SetReturnDate event,
-    Emitter<HomeFlightState> emit,
+    Emitter<FlightSearchState> emit,
   ) async {
     emit(_currentState().copyWith(returnDate: event.date));
   }
 
   Future<void> _onSetMaxPrice(
     SetMaxPrice event,
-    Emitter<HomeFlightState> emit,
+    Emitter<FlightSearchState> emit,
   ) async {
     emit(_currentState().copyWith(maxPrice: event.price));
   }
 
   Future<void> _onAddFlightSegment(
     AddFlightSegment event,
-    Emitter<HomeFlightState> emit,
+    Emitter<FlightSearchState> emit,
   ) async {
     final current = _currentState();
     final updatedSegments = List<FlightSegment>.from(current.multiDestSegments);
@@ -181,7 +181,7 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
 
   Future<void> _onRemoveFlightSegment(
     RemoveFlightSegment event,
-    Emitter<HomeFlightState> emit,
+    Emitter<FlightSearchState> emit,
   ) async {
     final current = _currentState();
     if (event.index < current.multiDestSegments.length) {
@@ -195,7 +195,7 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
 
   Future<void> _onSelectMultiDestDepartureAirport(
     SelectMultiDestDepartureAirport event,
-    Emitter<HomeFlightState> emit,
+    Emitter<FlightSearchState> emit,
   ) async {
     final current = _currentState();
     if (event.index < current.multiDestSegments.length) {
@@ -211,7 +211,7 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
 
   Future<void> _onSelectMultiDestArrivalAirport(
     SelectMultiDestArrivalAirport event,
-    Emitter<HomeFlightState> emit,
+    Emitter<FlightSearchState> emit,
   ) async {
     final current = _currentState();
     if (event.index < current.multiDestSegments.length) {
@@ -227,7 +227,7 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
 
   Future<void> _onSetMultiDestDate(
     SetMultiDestDate event,
-    Emitter<HomeFlightState> emit,
+    Emitter<FlightSearchState> emit,
   ) async {
     final current = _currentState();
     if (event.index < current.multiDestSegments.length) {
@@ -243,7 +243,7 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
 
   Future<void> _onSearchFlights(
     SearchFlights event,
-    Emitter<HomeFlightState> emit,
+    Emitter<FlightSearchState> emit,
   ) async {
     final current = _currentState();
     emit(current.copyWith(isLoading: true, clearError: true));
@@ -257,14 +257,14 @@ class HomeFlightBloc extends Bloc<HomeFlightEvent, HomeFlightState> {
 
   Future<void> _onShowValidationErrors(
     ShowValidationErrors event,
-    Emitter<HomeFlightState> emit,
+    Emitter<FlightSearchState> emit,
   ) async {
     emit(_currentState().copyWith(showValidationErrors: true));
   }
 
   Future<void> _onSwapAirports(
     SwapAirports event,
-    Emitter<HomeFlightState> emit,
+    Emitter<FlightSearchState> emit,
   ) async {
     final current = _currentState();
     emit(

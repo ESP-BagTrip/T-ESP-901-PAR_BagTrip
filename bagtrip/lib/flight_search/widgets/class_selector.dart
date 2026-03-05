@@ -2,13 +2,13 @@ import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
-import 'package:bagtrip/home/bloc/home_flight_bloc.dart';
+import 'package:bagtrip/flight_search/bloc/flight_search_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ClassSelector extends StatelessWidget {
-  final HomeFlightLoaded state;
+  final FlightSearchLoaded state;
 
   const ClassSelector({super.key, required this.state});
 
@@ -38,7 +38,7 @@ class ClassSelector extends StatelessWidget {
                 elevation: 0,
               ),
               onPressed: () {
-                context.read<HomeFlightBloc>().add(SetTravelClass(i));
+                context.read<FlightSearchBloc>().add(SetTravelClass(i));
               },
               child: FittedBox(
                 fit: BoxFit.scaleDown,

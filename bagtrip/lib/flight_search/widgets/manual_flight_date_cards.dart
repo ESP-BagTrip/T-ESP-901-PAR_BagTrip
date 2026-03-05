@@ -2,7 +2,7 @@ import 'package:bagtrip/components/custom_calendar_picker.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
-import 'package:bagtrip/home/bloc/home_flight_bloc.dart';
+import 'package:bagtrip/flight_search/bloc/flight_search_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,7 +12,7 @@ import 'package:intl/intl.dart';
 class ManualFlightDateCards extends StatelessWidget {
   const ManualFlightDateCards({super.key, required this.state});
 
-  final HomeFlightLoaded state;
+  final FlightSearchLoaded state;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +42,7 @@ class ManualFlightDateCards extends StatelessWidget {
   }
 
   Future<void> _pickDepartureDate(BuildContext context) async {
-    final bloc = context.read<HomeFlightBloc>();
+    final bloc = context.read<FlightSearchBloc>();
     if (state.tripTypeIndex == 1) {
       final picked = await showCustomCalendarPicker(
         context: context,
@@ -72,7 +72,7 @@ class ManualFlightDateCards extends StatelessWidget {
   }
 
   Future<void> _pickReturnDate(BuildContext context) async {
-    final bloc = context.read<HomeFlightBloc>();
+    final bloc = context.read<FlightSearchBloc>();
     final picked = await showCustomCalendarPicker(
       context: context,
       initialDate: state.departureDate ?? DateTime.now(),

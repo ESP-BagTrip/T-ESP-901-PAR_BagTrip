@@ -2,12 +2,12 @@ import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:flutter/material.dart';
 
-class HomeSectionCard extends StatelessWidget {
+class SectionCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   final EdgeInsetsGeometry? margin;
 
-  const HomeSectionCard({
+  const SectionCard({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(20),

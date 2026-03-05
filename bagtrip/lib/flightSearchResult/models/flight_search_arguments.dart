@@ -1,4 +1,4 @@
-import 'package:bagtrip/home/models/flight_segment.dart';
+import 'package:bagtrip/flight_search/models/flight_segment.dart';
 
 class FlightSearchArguments {
   final String departureCode;

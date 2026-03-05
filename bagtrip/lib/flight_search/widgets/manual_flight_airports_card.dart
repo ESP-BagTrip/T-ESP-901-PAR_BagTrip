@@ -2,8 +2,8 @@ import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
-import 'package:bagtrip/home/bloc/home_flight_bloc.dart';
-import 'package:bagtrip/home/models/airport_type.dart';
+import 'package:bagtrip/flight_search/bloc/flight_search_bloc.dart';
+import 'package:bagtrip/flight_search/models/airport_type.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,7 +13,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class ManualFlightAirportsCard extends StatelessWidget {
   const ManualFlightAirportsCard({super.key, required this.state});
 
-  final HomeFlightLoaded state;
+  final FlightSearchLoaded state;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +44,7 @@ class ManualFlightAirportsCard extends StatelessWidget {
                   context,
                   type: AirportType.departure,
                   onSelect:
-                      (a) => context.read<HomeFlightBloc>().add(
+                      (a) => context.read<FlightSearchBloc>().add(
                         SelectDepartureAirport(a),
                       ),
                 ),
@@ -53,7 +53,7 @@ class ManualFlightAirportsCard extends StatelessWidget {
           _SeparatorWithSwap(
             onSwap: () {
               HapticFeedback.lightImpact();
-              context.read<HomeFlightBloc>().add(SwapAirports());
+              context.read<FlightSearchBloc>().add(SwapAirports());
             },
           ),
           const SizedBox(height: 16),
@@ -66,7 +66,7 @@ class ManualFlightAirportsCard extends StatelessWidget {
                   context,
                   type: AirportType.arrival,
                   onSelect:
-                      (a) => context.read<HomeFlightBloc>().add(
+                      (a) => context.read<FlightSearchBloc>().add(
                         SelectArrivalAirport(a),
                       ),
                 ),
@@ -81,7 +81,7 @@ class ManualFlightAirportsCard extends StatelessWidget {
     required AirportType type,
     required void Function(Map<String, dynamic>) onSelect,
   }) {
-    final bloc = context.read<HomeFlightBloc>();
+    final bloc = context.read<FlightSearchBloc>();
     final hint =
         type == AirportType.departure
             ? AppLocalizations.of(context)!.airportDepartureHint
@@ -158,66 +158,67 @@ class ManualFlightAirportsCard extends StatelessWidget {
                           ),
                         ),
                         Expanded(
-                          child: BlocBuilder<HomeFlightBloc, HomeFlightState>(
-                            builder: (context, state) {
-                              final results =
-                                  state is HomeFlightLoaded
-                                      ? state.searchResults
-                                      : null;
-                              if (results == null || results.isEmpty) {
-                                return const Center(
-                                  child: Text(
-                                    'Type to search',
-                                    style: TextStyle(
-                                      fontFamily: FontFamily.b612,
-                                      color: AppColors.hint,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                );
-                              }
-                              return ListView.separated(
-                                controller: scrollController,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                ),
-                                itemCount: results.length,
-                                separatorBuilder:
-                                    (_, _) => const Divider(height: 1),
-                                itemBuilder: (context, index) {
-                                  final airport = results[index];
-                                  return ListTile(
-                                    title: Text(
-                                      airport['name'] ?? '',
-                                      style: const TextStyle(
-                                        fontFamily: FontFamily.b612,
-                                        fontWeight: FontWeight.w600,
-                                        color: ColorName.primaryTrueDark,
+                          child:
+                              BlocBuilder<FlightSearchBloc, FlightSearchState>(
+                                builder: (context, state) {
+                                  final results =
+                                      state is FlightSearchLoaded
+                                          ? state.searchResults
+                                          : null;
+                                  if (results == null || results.isEmpty) {
+                                    return const Center(
+                                      child: Text(
+                                        'Type to search',
+                                        style: TextStyle(
+                                          fontFamily: FontFamily.b612,
+                                          color: AppColors.hint,
+                                          fontSize: 14,
+                                        ),
                                       ),
+                                    );
+                                  }
+                                  return ListView.separated(
+                                    controller: scrollController,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
                                     ),
-                                    subtitle: Text(
-                                      [airport['iataCode'], airport['city']]
-                                          .where(
-                                            (e) =>
-                                                e != null &&
-                                                e.toString().isNotEmpty,
-                                          )
-                                          .join(' · '),
-                                      style: const TextStyle(
-                                        fontFamily: FontFamily.b612,
-                                        fontSize: 13,
-                                        color: AppColors.hint,
-                                      ),
-                                    ),
-                                    onTap: () {
-                                      onSelect(airport);
-                                      Navigator.of(sheetContext).pop();
+                                    itemCount: results.length,
+                                    separatorBuilder:
+                                        (_, _) => const Divider(height: 1),
+                                    itemBuilder: (context, index) {
+                                      final airport = results[index];
+                                      return ListTile(
+                                        title: Text(
+                                          airport['name'] ?? '',
+                                          style: const TextStyle(
+                                            fontFamily: FontFamily.b612,
+                                            fontWeight: FontWeight.w600,
+                                            color: ColorName.primaryTrueDark,
+                                          ),
+                                        ),
+                                        subtitle: Text(
+                                          [airport['iataCode'], airport['city']]
+                                              .where(
+                                                (e) =>
+                                                    e != null &&
+                                                    e.toString().isNotEmpty,
+                                              )
+                                              .join(' · '),
+                                          style: const TextStyle(
+                                            fontFamily: FontFamily.b612,
+                                            fontSize: 13,
+                                            color: AppColors.hint,
+                                          ),
+                                        ),
+                                        onTap: () {
+                                          onSelect(airport);
+                                          Navigator.of(sheetContext).pop();
+                                        },
+                                      );
                                     },
                                   );
                                 },
-                              );
-                            },
-                          ),
+                              ),
                         ),
                       ],
                     ),

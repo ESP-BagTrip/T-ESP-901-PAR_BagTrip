@@ -2,7 +2,7 @@ import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
-import 'package:bagtrip/home/bloc/home_flight_bloc.dart';
+import 'package:bagtrip/flight_search/bloc/flight_search_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,7 +12,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class ManualFlightTripDetailsCard extends StatelessWidget {
   const ManualFlightTripDetailsCard({super.key, required this.state});
 
-  final HomeFlightLoaded state;
+  final FlightSearchLoaded state;
 
   static const double _budgetMin = 50;
   static const double _budgetMax = 2000;
@@ -63,7 +63,7 @@ class ManualFlightTripDetailsCard extends StatelessWidget {
               _BudgetSlider(
                 value: (state.maxPrice ?? 500).clamp(_budgetMin, _budgetMax),
                 onChanged:
-                    (v) => context.read<HomeFlightBloc>().add(SetMaxPrice(v)),
+                    (v) => context.read<FlightSearchBloc>().add(SetMaxPrice(v)),
               ),
             ],
           ),
@@ -100,7 +100,7 @@ class ManualFlightTripDetailsCard extends StatelessWidget {
 
   void _showPassengersSheet(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final bloc = context.read<HomeFlightBloc>();
+    final bloc = context.read<FlightSearchBloc>();
 
     showModalBottomSheet<void>(
       context: context,
@@ -109,9 +109,9 @@ class ManualFlightTripDetailsCard extends StatelessWidget {
       builder:
           (sheetContext) => BlocProvider.value(
             value: bloc,
-            child: BlocBuilder<HomeFlightBloc, HomeFlightState>(
+            child: BlocBuilder<FlightSearchBloc, FlightSearchState>(
               builder: (context, sheetState) {
-                final s = sheetState is HomeFlightLoaded ? sheetState : state;
+                final s = sheetState is FlightSearchLoaded ? sheetState : state;
                 return Container(
                   padding: EdgeInsets.only(
                     bottom: MediaQuery.of(context).padding.bottom,
@@ -143,11 +143,11 @@ class ManualFlightTripDetailsCard extends StatelessWidget {
                             description: l10n.passengersAdultsDesc,
                             value: s.adults,
                             onAdd:
-                                () => context.read<HomeFlightBloc>().add(
+                                () => context.read<FlightSearchBloc>().add(
                                   SetAdults(s.adults + 1),
                                 ),
                             onRemove:
-                                () => context.read<HomeFlightBloc>().add(
+                                () => context.read<FlightSearchBloc>().add(
                                   SetAdults(s.adults > 1 ? s.adults - 1 : 1),
                                 ),
                           ),
@@ -156,11 +156,11 @@ class ManualFlightTripDetailsCard extends StatelessWidget {
                             description: l10n.passengersChildrenDesc,
                             value: s.children,
                             onAdd:
-                                () => context.read<HomeFlightBloc>().add(
+                                () => context.read<FlightSearchBloc>().add(
                                   SetChildren(s.children + 1),
                                 ),
                             onRemove:
-                                () => context.read<HomeFlightBloc>().add(
+                                () => context.read<FlightSearchBloc>().add(
                                   SetChildren(
                                     s.children > 0 ? s.children - 1 : 0,
                                   ),
@@ -171,11 +171,11 @@ class ManualFlightTripDetailsCard extends StatelessWidget {
                             description: l10n.passengersInfantsDesc,
                             value: s.infants,
                             onAdd:
-                                () => context.read<HomeFlightBloc>().add(
+                                () => context.read<FlightSearchBloc>().add(
                                   SetInfants(s.infants + 1),
                                 ),
                             onRemove:
-                                () => context.read<HomeFlightBloc>().add(
+                                () => context.read<FlightSearchBloc>().add(
                                   SetInfants(s.infants > 0 ? s.infants - 1 : 0),
                                 ),
                           ),

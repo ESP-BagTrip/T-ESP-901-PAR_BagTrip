@@ -1,17 +1,17 @@
 import 'package:bagtrip/components/custom_calendar_picker.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
-import 'package:bagtrip/home/bloc/home_flight_bloc.dart';
-import 'package:bagtrip/home/models/airport_type.dart';
-import 'package:bagtrip/home/widgets/home_airport_field.dart';
-import 'package:bagtrip/home/widgets/home_date_block.dart';
-import 'package:bagtrip/home/widgets/home_section_card.dart';
+import 'package:bagtrip/flight_search/bloc/flight_search_bloc.dart';
+import 'package:bagtrip/flight_search/models/airport_type.dart';
+import 'package:bagtrip/flight_search/widgets/airport_field.dart';
+import 'package:bagtrip/flight_search/widgets/date_block.dart';
+import 'package:bagtrip/flight_search/widgets/section_card.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class MultiDestinationForm extends StatelessWidget {
-  final HomeFlightLoaded state;
+  final FlightSearchLoaded state;
 
   const MultiDestinationForm({super.key, required this.state});
 
@@ -22,7 +22,7 @@ class MultiDestinationForm extends StatelessWidget {
       children: [
         ...List.generate(state.multiDestSegments.length, (index) {
           final segment = state.multiDestSegments[index];
-          return HomeSectionCard(
+          return SectionCard(
             margin: const EdgeInsets.only(bottom: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,7 +43,7 @@ class MultiDestinationForm extends StatelessWidget {
                     if (state.multiDestSegments.length > 2)
                       GestureDetector(
                         onTap: () {
-                          context.read<HomeFlightBloc>().add(
+                          context.read<FlightSearchBloc>().add(
                             RemoveFlightSegment(index),
                           );
                         },
@@ -56,14 +56,14 @@ class MultiDestinationForm extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                HomeAirportField(
+                AirportField(
                   icon: Icons.flight_takeoff,
                   label: l10n.multiDestDepartureHint.toUpperCase(),
                   type: AirportType.departure,
                   value: segment.departureAirport,
                   onSelected: (airport, _) {
                     if (airport != null) {
-                      context.read<HomeFlightBloc>().add(
+                      context.read<FlightSearchBloc>().add(
                         SelectMultiDestDepartureAirport(index, airport),
                       );
                     }
@@ -76,21 +76,21 @@ class MultiDestinationForm extends StatelessWidget {
                     color: ColorName.primary.withValues(alpha: 0.1),
                   ),
                 ),
-                HomeAirportField(
+                AirportField(
                   icon: Icons.flight_land,
                   label: l10n.multiDestArrivalHint.toUpperCase(),
                   type: AirportType.arrival,
                   value: segment.arrivalAirport,
                   onSelected: (airport, _) {
                     if (airport != null) {
-                      context.read<HomeFlightBloc>().add(
+                      context.read<FlightSearchBloc>().add(
                         SelectMultiDestArrivalAirport(index, airport),
                       );
                     }
                   },
                 ),
                 const SizedBox(height: 16),
-                HomeDateBlock(
+                DateBlock(
                   label: l10n.multiDestDateHint,
                   date: segment.departureDate,
                   onTap: () async {
@@ -113,7 +113,7 @@ class MultiDestinationForm extends StatelessWidget {
                       lastDate: DateTime(2101),
                     );
                     if (pickedDate != null && context.mounted) {
-                      context.read<HomeFlightBloc>().add(
+                      context.read<FlightSearchBloc>().add(
                         SetMultiDestDate(index, pickedDate.startDate),
                       );
                     }
@@ -125,7 +125,7 @@ class MultiDestinationForm extends StatelessWidget {
         }),
         TextButton.icon(
           onPressed: () {
-            context.read<HomeFlightBloc>().add(AddFlightSegment());
+            context.read<FlightSearchBloc>().add(AddFlightSegment());
           },
           icon: const Icon(Icons.add, color: ColorName.secondary),
           label: Text(

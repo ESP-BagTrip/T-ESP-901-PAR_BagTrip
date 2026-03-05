@@ -4,13 +4,13 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class HomeDateField extends StatelessWidget {
+class DateField extends StatelessWidget {
   final String hint;
   final DateTime? value;
   final VoidCallback onTap;
   final bool hasError;
 
-  const HomeDateField({
+  const DateField({
     super.key,
     required this.hint,
     this.value,
@@ -25,7 +25,7 @@ class HomeDateField extends StatelessWidget {
       child: Text(
         value != null ? DateFormat('d MMM yyyy').format(value!) : hint,
         style: TextStyle(
-          fontSize: 16, // Large text as in the image
+          fontSize: 16,
           fontWeight: FontWeight.w500,
           fontFamily: FontFamily.b612,
           color: value != null ? ColorName.primary : AppColors.hint,

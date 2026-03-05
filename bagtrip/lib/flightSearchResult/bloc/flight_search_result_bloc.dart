@@ -1,7 +1,7 @@
 // ignore_for_file: depend_on_referenced_packages
 
 import 'package:bagtrip/flightSearchResult/models/flight.dart';
-import 'package:bagtrip/home/models/flight_segment.dart';
+import 'package:bagtrip/flight_search/models/flight_segment.dart';
 import 'package:bagtrip/service/LocationService.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';

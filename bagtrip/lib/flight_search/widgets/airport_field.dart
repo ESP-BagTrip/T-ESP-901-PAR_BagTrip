@@ -1,17 +1,17 @@
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
-import 'package:bagtrip/home/models/airport_type.dart';
-import 'package:bagtrip/home/widgets/airport_search_field.dart';
+import 'package:bagtrip/flight_search/models/airport_type.dart';
+import 'package:bagtrip/flight_search/widgets/airport_search_field.dart';
 import 'package:flutter/material.dart';
 
-class HomeAirportField extends StatelessWidget {
+class AirportField extends StatelessWidget {
   final IconData icon;
   final String label;
   final AirportType type;
   final Map<String, dynamic>? value;
   final Function(Map<String, dynamic>?, AirportType) onSelected;
 
-  const HomeAirportField({
+  const AirportField({
     super.key,
     required this.icon,
     required this.label,

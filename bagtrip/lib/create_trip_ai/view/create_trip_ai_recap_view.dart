@@ -5,7 +5,7 @@ import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
-import 'package:bagtrip/home/widgets/home_section_card.dart';
+import 'package:bagtrip/flight_search/widgets/section_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -59,7 +59,7 @@ class CreateTripAiRecapView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              HomeSectionCard(
+              SectionCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -96,7 +96,7 @@ class CreateTripAiRecapView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              HomeSectionCard(
+              SectionCard(
                 child: Column(
                   children: [
                     Row(

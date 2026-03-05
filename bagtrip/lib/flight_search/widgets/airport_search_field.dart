@@ -1,8 +1,8 @@
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
-import 'package:bagtrip/home/bloc/home_flight_bloc.dart';
-import 'package:bagtrip/home/models/airport_type.dart';
+import 'package:bagtrip/flight_search/bloc/flight_search_bloc.dart';
+import 'package:bagtrip/flight_search/models/airport_type.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -185,9 +185,9 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
 
     return CompositedTransformTarget(
       link: _layerLink,
-      child: BlocConsumer<HomeFlightBloc, HomeFlightState>(
+      child: BlocConsumer<FlightSearchBloc, FlightSearchState>(
         listener: (context, state) {
-          if (state is HomeFlightLoaded &&
+          if (state is FlightSearchLoaded &&
               state.searchResults != null &&
               _showResults) {
             _showOverlay(context, state.searchResults!);
@@ -223,7 +223,7 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
             onChanged: (value) {
               setState(() => _showResults = value.isNotEmpty);
               if (value.length >= 2) {
-                context.read<HomeFlightBloc>().add(
+                context.read<FlightSearchBloc>().add(
                   widget.type == AirportType.departure
                       ? SearchDepartureAirport(value)
                       : SearchArrivalAirport(value),

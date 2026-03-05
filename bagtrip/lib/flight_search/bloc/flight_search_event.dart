@@ -1,111 +1,111 @@
-part of 'home_flight_bloc.dart';
+part of 'flight_search_bloc.dart';
 
 @immutable
-sealed class HomeFlightEvent {}
+sealed class FlightSearchEvent {}
 
-class SearchDepartureAirport extends HomeFlightEvent {
+class SearchDepartureAirport extends FlightSearchEvent {
   final String keyword;
 
   SearchDepartureAirport(this.keyword);
 }
 
-class SearchArrivalAirport extends HomeFlightEvent {
+class SearchArrivalAirport extends FlightSearchEvent {
   final String keyword;
 
   SearchArrivalAirport(this.keyword);
 }
 
-class SetTripType extends HomeFlightEvent {
+class SetTripType extends FlightSearchEvent {
   final int index;
 
   SetTripType(this.index);
 }
 
-class SetAdults extends HomeFlightEvent {
+class SetAdults extends FlightSearchEvent {
   final int count;
 
   SetAdults(this.count);
 }
 
-class SetChildren extends HomeFlightEvent {
+class SetChildren extends FlightSearchEvent {
   final int count;
 
   SetChildren(this.count);
 }
 
-class SetInfants extends HomeFlightEvent {
+class SetInfants extends FlightSearchEvent {
   final int count;
 
   SetInfants(this.count);
 }
 
-class SetTravelClass extends HomeFlightEvent {
+class SetTravelClass extends FlightSearchEvent {
   final int index;
 
   SetTravelClass(this.index);
 }
 
-class SelectDepartureAirport extends HomeFlightEvent {
+class SelectDepartureAirport extends FlightSearchEvent {
   final Map<String, dynamic> airport;
 
   SelectDepartureAirport(this.airport);
 }
 
-class SelectArrivalAirport extends HomeFlightEvent {
+class SelectArrivalAirport extends FlightSearchEvent {
   final Map<String, dynamic> airport;
 
   SelectArrivalAirport(this.airport);
 }
 
-class SetDepartureDate extends HomeFlightEvent {
+class SetDepartureDate extends FlightSearchEvent {
   final DateTime date;
 
   SetDepartureDate(this.date);
 }
 
-class SetReturnDate extends HomeFlightEvent {
+class SetReturnDate extends FlightSearchEvent {
   final DateTime date;
 
   SetReturnDate(this.date);
 }
 
-class SetMaxPrice extends HomeFlightEvent {
+class SetMaxPrice extends FlightSearchEvent {
   final double? price;
 
   SetMaxPrice(this.price);
 }
 
-class AddFlightSegment extends HomeFlightEvent {}
+class AddFlightSegment extends FlightSearchEvent {}
 
-class RemoveFlightSegment extends HomeFlightEvent {
+class RemoveFlightSegment extends FlightSearchEvent {
   final int index;
 
   RemoveFlightSegment(this.index);
 }
 
-class SelectMultiDestDepartureAirport extends HomeFlightEvent {
+class SelectMultiDestDepartureAirport extends FlightSearchEvent {
   final int index;
   final Map<String, dynamic> airport;
 
   SelectMultiDestDepartureAirport(this.index, this.airport);
 }
 
-class SelectMultiDestArrivalAirport extends HomeFlightEvent {
+class SelectMultiDestArrivalAirport extends FlightSearchEvent {
   final int index;
   final Map<String, dynamic> airport;
 
   SelectMultiDestArrivalAirport(this.index, this.airport);
 }
 
-class SetMultiDestDate extends HomeFlightEvent {
+class SetMultiDestDate extends FlightSearchEvent {
   final int index;
   final DateTime date;
 
   SetMultiDestDate(this.index, this.date);
 }
 
-class SearchFlights extends HomeFlightEvent {}
+class SearchFlights extends FlightSearchEvent {}
 
-class ShowValidationErrors extends HomeFlightEvent {}
+class ShowValidationErrors extends FlightSearchEvent {}
 
-class SwapAirports extends HomeFlightEvent {}
+class SwapAirports extends FlightSearchEvent {}
