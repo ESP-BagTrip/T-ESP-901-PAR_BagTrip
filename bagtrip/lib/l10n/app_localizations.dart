@@ -1393,6 +1393,60 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Consultez vos voyages passés et budgets'**
   String get planifierCompletedDesc;
+
+  /// No description provided for @recapTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Récapitulatif'**
+  String get recapTitle;
+
+  /// No description provided for @recapFinalStepLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'ÉTAPE FINALE'**
+  String get recapFinalStepLabel;
+
+  /// No description provided for @recapDateChoose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir'**
+  String get recapDateChoose;
+
+  /// No description provided for @recapDateSelectHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sélectionner'**
+  String get recapDateSelectHint;
+
+  /// No description provided for @recapTravelTypesLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'TYPES DE VOYAGE'**
+  String get recapTravelTypesLabel;
+
+  /// No description provided for @recapStyleLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'STYLE'**
+  String get recapStyleLabel;
+
+  /// No description provided for @recapBudgetLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'BUDGET'**
+  String get recapBudgetLabel;
+
+  /// No description provided for @recapCompanionsLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'COMPAGNONS'**
+  String get recapCompanionsLabel;
+
+  /// No description provided for @recapLaunchSearchButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lancer la recherche IA'**
+  String get recapLaunchSearchButton;
 }
 
 class _AppLocalizationsDelegate

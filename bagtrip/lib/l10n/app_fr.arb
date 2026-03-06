@@ -292,5 +292,14 @@
     }
   },
   "planifierCompletedTitle": "Voyages terminés",
-  "planifierCompletedDesc": "Consultez vos voyages passés et budgets"
+  "planifierCompletedDesc": "Consultez vos voyages passés et budgets",
+  "recapTitle": "Récapitulatif",
+  "recapFinalStepLabel": "ÉTAPE FINALE",
+  "recapDateChoose": "Choisir",
+  "recapDateSelectHint": "Sélectionner",
+  "recapTravelTypesLabel": "TYPES DE VOYAGE",
+  "recapStyleLabel": "STYLE",
+  "recapBudgetLabel": "BUDGET",
+  "recapCompanionsLabel": "COMPAGNONS",
+  "recapLaunchSearchButton": "Lancer la recherche IA"
 }

@@ -285,7 +285,7 @@ class _ExpandableBudgetSectionState extends State<_ExpandableBudgetSection> {
             onTap: () => setState(() => _expanded = !_expanded),
             borderRadius: AppRadius.large24,
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: AppSpacing.onlyTopSpace16,
               child: Row(
                 children: [
                   const Icon(
@@ -369,16 +369,6 @@ class _BudgetSlider extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '€${value.toStringAsFixed(0)}',
-          style: const TextStyle(
-            fontFamily: FontFamily.b612,
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: ColorName.secondary,
-          ),
-        ),
-        const SizedBox(height: 8),
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
             activeTrackColor: ColorName.secondary,
@@ -396,6 +386,7 @@ class _BudgetSlider extends StatelessWidget {
         ),
         const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          spacing: AppSpacing.space8,
           children: [
             Text(
               '€50',

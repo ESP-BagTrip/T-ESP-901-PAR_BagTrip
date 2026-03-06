@@ -708,4 +708,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get planifierCompletedDesc => 'View your past trips and budgets';
+
+  @override
+  String get recapTitle => 'Summary';
+
+  @override
+  String get recapFinalStepLabel => 'FINAL STEP';
+
+  @override
+  String get recapDateChoose => 'Choose';
+
+  @override
+  String get recapDateSelectHint => 'Select';
+
+  @override
+  String get recapTravelTypesLabel => 'TRAVEL TYPES';
+
+  @override
+  String get recapStyleLabel => 'STYLE';
+
+  @override
+  String get recapBudgetLabel => 'BUDGET';
+
+  @override
+  String get recapCompanionsLabel => 'COMPANIONS';
+
+  @override
+  String get recapLaunchSearchButton => 'Launch AI search';
 }

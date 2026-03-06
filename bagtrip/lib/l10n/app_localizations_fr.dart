@@ -720,4 +720,31 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get planifierCompletedDesc =>
       'Consultez vos voyages passés et budgets';
+
+  @override
+  String get recapTitle => 'Récapitulatif';
+
+  @override
+  String get recapFinalStepLabel => 'ÉTAPE FINALE';
+
+  @override
+  String get recapDateChoose => 'Choisir';
+
+  @override
+  String get recapDateSelectHint => 'Sélectionner';
+
+  @override
+  String get recapTravelTypesLabel => 'TYPES DE VOYAGE';
+
+  @override
+  String get recapStyleLabel => 'STYLE';
+
+  @override
+  String get recapBudgetLabel => 'BUDGET';
+
+  @override
+  String get recapCompanionsLabel => 'COMPAGNONS';
+
+  @override
+  String get recapLaunchSearchButton => 'Lancer la recherche IA';
 }

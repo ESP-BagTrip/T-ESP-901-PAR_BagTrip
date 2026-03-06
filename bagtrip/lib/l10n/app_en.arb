@@ -292,5 +292,14 @@
     }
   },
   "planifierCompletedTitle": "Completed trips",
-  "planifierCompletedDesc": "View your past trips and budgets"
+  "planifierCompletedDesc": "View your past trips and budgets",
+  "recapTitle": "Summary",
+  "recapFinalStepLabel": "FINAL STEP",
+  "recapDateChoose": "Choose",
+  "recapDateSelectHint": "Select",
+  "recapTravelTypesLabel": "TRAVEL TYPES",
+  "recapStyleLabel": "STYLE",
+  "recapBudgetLabel": "BUDGET",
+  "recapCompanionsLabel": "COMPANIONS",
+  "recapLaunchSearchButton": "Launch AI search"
 }

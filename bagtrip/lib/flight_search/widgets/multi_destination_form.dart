@@ -1,14 +1,16 @@
 import 'package:bagtrip/components/custom_calendar_picker.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
-import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/flight_search/bloc/flight_search_bloc.dart';
 import 'package:bagtrip/flight_search/models/airport_type.dart';
 import 'package:bagtrip/flight_search/widgets/airport_field.dart';
 import 'package:bagtrip/flight_search/widgets/date_block.dart';
 import 'package:bagtrip/flight_search/widgets/section_card.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../design/tokens.dart';
 
 class MultiDestinationForm extends StatelessWidget {
   final FlightSearchLoaded state;
@@ -23,7 +25,7 @@ class MultiDestinationForm extends StatelessWidget {
         ...List.generate(state.multiDestSegments.length, (index) {
           final segment = state.multiDestSegments[index];
           return SectionCard(
-            margin: const EdgeInsets.only(bottom: 16),
+            margin: AppSpacing.onlyBottomSpace16,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

@@ -1,15 +1,20 @@
 import 'package:bagtrip/components/custom_calendar_picker.dart';
+import 'package:bagtrip/components/summary_date_card.dart';
 import 'package:bagtrip/create_trip_ai/bloc/create_trip_ai_bloc.dart';
-import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/flight_search/widgets/section_card.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
-import 'package:bagtrip/flight_search/widgets/section_card.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+
+const Color _kRecapTravelTypesTint = Color(0xFFE8F5E9);
+const Color _kRecapStyleTint = Color(0xFFE3F2FD);
+const Color _kRecapBudgetTint = Color(0xFFFFF3E0);
+const Color _kRecapCompanionsTint = Color(0xFFF3E5F5);
 
 class CreateTripAiRecapView extends StatelessWidget {
   const CreateTripAiRecapView({super.key});
@@ -32,15 +37,27 @@ class CreateTripAiRecapView extends StatelessWidget {
   }
 
   Widget _buildLoaded(BuildContext context, CreateTripAiRecapLoaded s) {
+    final l10n = AppLocalizations.of(context)!;
     final canLaunch = s.departureDate != null && s.returnDate != null;
 
     return Scaffold(
       backgroundColor: PersonalizationColors.gradientStart,
       appBar: AppBar(
-        title: const Text('Récapitulatif'),
         backgroundColor: PersonalizationColors.gradientStart,
         foregroundColor: PersonalizationColors.textPrimary,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/planifier');
+            }
+          },
+        ),
+        title: const SizedBox.shrink(),
+        centerTitle: true,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -49,133 +66,13 @@ class CreateTripAiRecapView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 8),
-              const Text(
-                'Préférences',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: ColorName.primaryTrueDark,
-                  fontFamily: FontFamily.b612,
-                ),
-              ),
-              const SizedBox(height: 12),
-              SectionCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _row('Types de voyage', s.travelTypes),
-                    if (s.travelStyle != null) _row('Style', s.travelStyle!),
-                    if (s.budget != null) _row('Budget', s.budget!),
-                    if (s.companions != null) _row('Compagnons', s.companions!),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextButton.icon(
-                onPressed:
-                    () => context.push('/personalization?from=createTripAi'),
-                icon: const Icon(
-                  Icons.edit,
-                  size: 20,
-                  color: ColorName.primary,
-                ),
-                label: const Text('Modifier mes préférences'),
-                style: TextButton.styleFrom(
-                  foregroundColor: ColorName.primary,
-                  textStyle: const TextStyle(fontFamily: FontFamily.b612),
-                ),
-              ),
+              _buildHeader(context, l10n),
               const SizedBox(height: 24),
-              const Text(
-                'Dates du voyage',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: ColorName.primaryTrueDark,
-                  fontFamily: FontFamily.b612,
-                ),
-              ),
-              const SizedBox(height: 12),
-              SectionCard(
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _dateBlock(
-                            context,
-                            'Date de départ',
-                            s.departureDate,
-                            () => _pickDate(
-                              context,
-                              s.departureDate ?? DateTime.now(),
-                              s.returnDate,
-                              true,
-                              (start, end) {
-                                context.read<CreateTripAiBloc>().add(
-                                  CreateTripAiSetDepartureDate(start),
-                                );
-                                if (end != null) {
-                                  context.read<CreateTripAiBloc>().add(
-                                    CreateTripAiSetReturnDate(end),
-                                  );
-                                }
-                              },
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _dateBlock(
-                            context,
-                            'Date de retour',
-                            s.returnDate,
-                            () => _pickDate(
-                              context,
-                              s.departureDate ?? DateTime.now(),
-                              s.returnDate,
-                              true,
-                              (start, end) {
-                                if (end != null) {
-                                  context.read<CreateTripAiBloc>().add(
-                                    CreateTripAiSetReturnDate(end),
-                                  );
-                                }
-                                context.read<CreateTripAiBloc>().add(
-                                  CreateTripAiSetDepartureDate(start),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+              _buildPreferencesSection(context, l10n, s),
+              const SizedBox(height: 24),
+              _buildDatesSection(context, l10n, s),
               const SizedBox(height: 32),
-              SizedBox(
-                height: 56,
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed:
-                      canLaunch
-                          ? () {
-                            context.read<CreateTripAiBloc>().add(
-                              CreateTripAiLaunchSearch(),
-                            );
-                          }
-                          : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ColorName.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: const Text('Lancer la recherche IA'),
-                ),
-              ),
+              _buildLaunchButton(context, l10n, canLaunch),
               const SizedBox(height: 48),
             ],
           ),
@@ -184,77 +81,346 @@ class CreateTripAiRecapView extends StatelessWidget {
     );
   }
 
-  Widget _row(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
+  Widget _buildHeader(BuildContext context, AppLocalizations l10n) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.diamond, size: 14, color: ColorName.secondary),
+            const SizedBox(width: 6),
+            Text(
+              l10n.recapFinalStepLabel,
               style: const TextStyle(
+                fontFamily: FontFamily.b612,
                 fontSize: 12,
+                fontWeight: FontWeight.w600,
                 color: ColorName.secondary,
-                fontFamily: FontFamily.b612,
+                letterSpacing: 0.5,
               ),
             ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          l10n.recapTitle,
+          style: const TextStyle(
+            fontFamily: FontFamily.b612,
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: ColorName.primaryTrueDark,
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 14,
-                color: ColorName.primaryTrueDark,
-                fontFamily: FontFamily.b612,
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _dateBlock(
+  Widget _buildPreferencesSection(
     BuildContext context,
-    String label,
-    DateTime? date,
-    VoidCallback onTap,
+    AppLocalizations l10n,
+    CreateTripAiRecapLoaded s,
   ) {
-    final dateFormat = DateFormat('dd/MM/yyyy');
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              color: ColorName.secondary,
-              fontWeight: FontWeight.w600,
-              fontFamily: FontFamily.b612,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: AppSpacing.allEdgeInsetSpace16,
-            decoration: BoxDecoration(
-              color: ColorName.surfaceLight,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              date != null ? dateFormat.format(date) : 'Choisir',
-              style: TextStyle(
-                fontSize: 14,
-                color:
-                    date != null ? ColorName.primaryTrueDark : AppColors.hint,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              l10n.preferencesTitle,
+              style: const TextStyle(
                 fontFamily: FontFamily.b612,
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: ColorName.primaryTrueDark,
               ),
             ),
+            TextButton.icon(
+              onPressed:
+                  () => context.push('/personalization?from=createTripAi'),
+              icon: const Icon(
+                Icons.edit_outlined,
+                size: 18,
+                color: ColorName.hint,
+              ),
+              label: Text(
+                l10n.modifyButton,
+                style: const TextStyle(
+                  fontFamily: FontFamily.b612,
+                  fontSize: 14,
+                  color: ColorName.hint,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                foregroundColor: ColorName.hint,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SectionCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: _preferenceRow(
+                  context,
+                  iconBg: _kRecapTravelTypesTint,
+                  iconData: Icons.terrain,
+                  label: l10n.recapTravelTypesLabel,
+                  child: _buildTravelTypesChips(s.travelTypes),
+                ),
+              ),
+              const Divider(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: _preferenceRow(
+                  context,
+                  iconBg: _kRecapStyleTint,
+                  iconData: Icons.schedule,
+                  label: l10n.recapStyleLabel,
+                  value: s.travelStyle,
+                ),
+              ),
+              const Divider(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: _preferenceRow(
+                  context,
+                  iconBg: _kRecapBudgetTint,
+                  iconData: Icons.euro,
+                  label: l10n.recapBudgetLabel,
+                  value: s.budget,
+                ),
+              ),
+              const Divider(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: _preferenceRow(
+                  context,
+                  iconBg: _kRecapCompanionsTint,
+                  iconData: Icons.people_outline,
+                  label: l10n.recapCompanionsLabel,
+                  value: s.companions,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
+      ],
+    );
+  }
+
+  Widget _preferenceRow(
+    BuildContext context, {
+    required Color iconBg,
+    required IconData iconData,
+    required String label,
+    String? value,
+    Widget? child,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
+          alignment: Alignment.center,
+          child: Icon(iconData, size: 20, color: ColorName.primaryTrueDark),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontFamily: FontFamily.b612,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: ColorName.hint,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 6),
+              if (child != null)
+                child
+              else
+                Text(
+                  value ?? '—',
+                  style: const TextStyle(
+                    fontFamily: FontFamily.b612,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: ColorName.primaryTrueDark,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTravelTypesChips(String travelTypes) {
+    final list =
+        travelTypes
+            .split(',')
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty)
+            .toList();
+    if (list.isEmpty) {
+      return const Text(
+        '—',
+        style: TextStyle(
+          fontFamily: FontFamily.b612,
+          fontSize: 14,
+          color: ColorName.primaryTrueDark,
+        ),
+      );
+    }
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children:
+          list
+              .map(
+                (label) => Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.space16,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _kRecapTravelTypesTint.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: _kRecapTravelTypesTint),
+                  ),
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      fontFamily: FontFamily.b612,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: ColorName.primaryTrueDark,
+                    ),
+                  ),
+                ),
+              )
+              .toList(),
+    );
+  }
+
+  Widget _buildDatesSection(
+    BuildContext context,
+    AppLocalizations l10n,
+    CreateTripAiRecapLoaded s,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.travelDatesLabel,
+          style: const TextStyle(
+            fontFamily: FontFamily.b612,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: ColorName.primaryTrueDark,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: SummaryDateCard(
+                label: l10n.departLabel.toUpperCase(),
+                date: s.departureDate,
+                onTap:
+                    () => _pickDate(
+                      context,
+                      s.departureDate ?? DateTime.now(),
+                      s.returnDate,
+                      true,
+                      (start, end) {
+                        context.read<CreateTripAiBloc>().add(
+                          CreateTripAiSetDepartureDate(start),
+                        );
+                        if (end != null) {
+                          context.read<CreateTripAiBloc>().add(
+                            CreateTripAiSetReturnDate(end),
+                          );
+                        }
+                      },
+                    ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: SummaryDateCard(
+                label: l10n.returnLabel.toUpperCase(),
+                date: s.returnDate,
+                onTap:
+                    () => _pickDate(
+                      context,
+                      s.departureDate ?? DateTime.now(),
+                      s.returnDate,
+                      true,
+                      (start, end) {
+                        if (end != null) {
+                          context.read<CreateTripAiBloc>().add(
+                            CreateTripAiSetReturnDate(end),
+                          );
+                        }
+                        context.read<CreateTripAiBloc>().add(
+                          CreateTripAiSetDepartureDate(start),
+                        );
+                      },
+                    ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLaunchButton(
+    BuildContext context,
+    AppLocalizations l10n,
+    bool canLaunch,
+  ) {
+    return SizedBox(
+      height: 48,
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed:
+            canLaunch
+                ? () {
+                  context.read<CreateTripAiBloc>().add(
+                    CreateTripAiLaunchSearch(),
+                  );
+                }
+                : null,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: ColorName.primary,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(50),
+          ),
+        ),
+        child: Text(
+          l10n.recapLaunchSearchButton,
+          style: const TextStyle(
+            fontFamily: FontFamily.b612,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
     );
   }

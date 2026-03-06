@@ -9,11 +9,15 @@ class PremiumStepIndicator extends StatelessWidget {
     required this.current,
     required this.total,
     this.showLabel = false,
+
+    /// If set, the current step dot uses this color (e.g. success green for final step).
+    this.currentStepColor,
   });
 
   final int current;
   final int total;
   final bool showLabel;
+  final Color? currentStepColor;
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +28,14 @@ class PremiumStepIndicator extends StatelessWidget {
         ...List.generate(total, (i) {
           final isActive = i < current;
           final isCurrent = i == current - 1;
+          final color =
+              currentStepColor != null
+                  ? (isCurrent
+                      ? currentStepColor!
+                      : PersonalizationColors.cardBorderUnselected)
+                  : isActive
+                  ? PersonalizationColors.accentBlue
+                  : PersonalizationColors.cardBorderUnselected;
           return Padding(
             padding: EdgeInsets.only(
               right: i < total - 1 ? AppSpacing.space8 : 0,
@@ -33,10 +45,7 @@ class PremiumStepIndicator extends StatelessWidget {
               width: isCurrent ? 20 : 8,
               height: 8,
               decoration: BoxDecoration(
-                color:
-                    isActive
-                        ? PersonalizationColors.accentBlue
-                        : PersonalizationColors.cardBorderUnselected,
+                color: color,
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
