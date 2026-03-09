@@ -1394,6 +1394,264 @@ abstract class AppLocalizations {
   /// **'Consultez vos voyages passés et budgets'**
   String get planifierCompletedDesc;
 
+  /// No description provided for @planifierGreeting.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bonjour'**
+  String get planifierGreeting;
+
+  /// No description provided for @planifierMainTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planifiez votre\nprochain voyage'**
+  String get planifierMainTitle;
+
+  /// No description provided for @planifierSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créez et gérez vos voyages'**
+  String get planifierSubtitle;
+
+  /// No description provided for @planifierManualDescriptionCard.
+  ///
+  /// In fr, this message translates to:
+  /// **'Construisez votre itinéraire étape par étape en gardant le contrôle.'**
+  String get planifierManualDescriptionCard;
+
+  /// No description provided for @planifierAIDescriptionCard.
+  ///
+  /// In fr, this message translates to:
+  /// **'Laissez l\'IA créer un voyage personnalisé pour vous.'**
+  String get planifierAIDescriptionCard;
+
+  /// No description provided for @planifierNewBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'NOUVEAU'**
+  String get planifierNewBadge;
+
+  /// No description provided for @planifierPlanningTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get planifierPlanningTitle;
+
+  /// No description provided for @planifierPlanningDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voyages en préparation'**
+  String get planifierPlanningDescription;
+
+  /// No description provided for @planifierInProgressSuffix.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} en cours'**
+  String planifierInProgressSuffix(int count);
+
+  /// No description provided for @planifierCompletedShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminés'**
+  String get planifierCompletedShort;
+
+  /// No description provided for @planifierCompletedDescriptionCard.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voyages passés et budgets'**
+  String get planifierCompletedDescriptionCard;
+
+  /// No description provided for @planifierCompletedSuffix.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} terminés'**
+  String planifierCompletedSuffix(int count);
+
+  /// No description provided for @planifierSectionExploreDestinations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Explorer les destinations'**
+  String get planifierSectionExploreDestinations;
+
+  /// No description provided for @destinationKyoto.
+  ///
+  /// In fr, this message translates to:
+  /// **'Kyoto'**
+  String get destinationKyoto;
+
+  /// No description provided for @destinationSantorini.
+  ///
+  /// In fr, this message translates to:
+  /// **'Santorini'**
+  String get destinationSantorini;
+
+  /// No description provided for @destinationMarrakech.
+  ///
+  /// In fr, this message translates to:
+  /// **'Marrakech'**
+  String get destinationMarrakech;
+
+  /// No description provided for @countryJapan.
+  ///
+  /// In fr, this message translates to:
+  /// **'JAPAN'**
+  String get countryJapan;
+
+  /// No description provided for @countryGreece.
+  ///
+  /// In fr, this message translates to:
+  /// **'GREECE'**
+  String get countryGreece;
+
+  /// No description provided for @countryMorocco.
+  ///
+  /// In fr, this message translates to:
+  /// **'MOROCCO'**
+  String get countryMorocco;
+
+  /// No description provided for @yourDestinationTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre destination'**
+  String get yourDestinationTitle;
+
+  /// No description provided for @destinationPlaceholder.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paris, Tokyo, New York...'**
+  String get destinationPlaceholder;
+
+  /// No description provided for @numberOfTravelersLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nombre de voyageurs'**
+  String get numberOfTravelersLabel;
+
+  /// No description provided for @nextButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivant'**
+  String get nextButton;
+
+  /// No description provided for @travelerCount5Plus.
+  ///
+  /// In fr, this message translates to:
+  /// **'5+'**
+  String get travelerCount5Plus;
+
+  /// No description provided for @transportTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transport'**
+  String get transportTitle;
+
+  /// No description provided for @transportOptionFlightTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Oui, chercher un vol'**
+  String get transportOptionFlightTitle;
+
+  /// No description provided for @transportOptionFlightSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recherche via Amadeus'**
+  String get transportOptionFlightSubtitle;
+
+  /// No description provided for @transportOptionOtherTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non, autre transport'**
+  String get transportOptionOtherTitle;
+
+  /// No description provided for @transportOptionOtherSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voiture, train, bus...'**
+  String get transportOptionOtherSubtitle;
+
+  /// No description provided for @transportOptionSkipTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non, passer cette étape'**
+  String get transportOptionSkipTitle;
+
+  /// No description provided for @transportOptionSkipSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun transport à ajouter'**
+  String get transportOptionSkipSubtitle;
+
+  /// No description provided for @otherTransportTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autres transport'**
+  String get otherTransportTitle;
+
+  /// No description provided for @transportTypeLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type de transport'**
+  String get transportTypeLabel;
+
+  /// No description provided for @transportTypeCar.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voiture'**
+  String get transportTypeCar;
+
+  /// No description provided for @transportTypeTrain.
+  ///
+  /// In fr, this message translates to:
+  /// **'Train'**
+  String get transportTypeTrain;
+
+  /// No description provided for @transportTypeBus.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bus'**
+  String get transportTypeBus;
+
+  /// No description provided for @transportTypeFlightBooked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vol (déjà réservé)'**
+  String get transportTypeFlightBooked;
+
+  /// No description provided for @transportDetailsLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Détails (optionnel)'**
+  String get transportDetailsLabel;
+
+  /// No description provided for @transportDetailsPlaceholder.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex: Location chez Hertz, TGV Paris-Lyon...'**
+  String get transportDetailsPlaceholder;
+
+  /// No description provided for @transportBudgetLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Budget transport (€)'**
+  String get transportBudgetLabel;
+
+  /// No description provided for @transportBudgetPlaceholder.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex: 150'**
+  String get transportBudgetPlaceholder;
+
+  /// No description provided for @transportBudgetHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce montant sera ajouté à votre budget voyage'**
+  String get transportBudgetHint;
+
+  /// No description provided for @skipThisStepLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passer cette étape'**
+  String get skipThisStepLabel;
+
   /// No description provided for @recapTitle.
   ///
   /// In fr, this message translates to:

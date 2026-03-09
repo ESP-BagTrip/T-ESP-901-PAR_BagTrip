@@ -722,6 +722,143 @@ class AppLocalizationsFr extends AppLocalizations {
       'Consultez vos voyages passés et budgets';
 
   @override
+  String get planifierGreeting => 'Bonjour';
+
+  @override
+  String get planifierMainTitle => 'Planifiez votre\nprochain voyage';
+
+  @override
+  String get planifierSubtitle => 'Créez et gérez vos voyages';
+
+  @override
+  String get planifierManualDescriptionCard =>
+      'Construisez votre itinéraire étape par étape en gardant le contrôle.';
+
+  @override
+  String get planifierAIDescriptionCard =>
+      'Laissez l\'IA créer un voyage personnalisé pour vous.';
+
+  @override
+  String get planifierNewBadge => 'NOUVEAU';
+
+  @override
+  String get planifierPlanningTitle => 'En cours';
+
+  @override
+  String get planifierPlanningDescription => 'Voyages en préparation';
+
+  @override
+  String planifierInProgressSuffix(int count) {
+    return '$count en cours';
+  }
+
+  @override
+  String get planifierCompletedShort => 'Terminés';
+
+  @override
+  String get planifierCompletedDescriptionCard => 'Voyages passés et budgets';
+
+  @override
+  String planifierCompletedSuffix(int count) {
+    return '$count terminés';
+  }
+
+  @override
+  String get planifierSectionExploreDestinations => 'Explorer les destinations';
+
+  @override
+  String get destinationKyoto => 'Kyoto';
+
+  @override
+  String get destinationSantorini => 'Santorini';
+
+  @override
+  String get destinationMarrakech => 'Marrakech';
+
+  @override
+  String get countryJapan => 'JAPAN';
+
+  @override
+  String get countryGreece => 'GREECE';
+
+  @override
+  String get countryMorocco => 'MOROCCO';
+
+  @override
+  String get yourDestinationTitle => 'Votre destination';
+
+  @override
+  String get destinationPlaceholder => 'Paris, Tokyo, New York...';
+
+  @override
+  String get numberOfTravelersLabel => 'Nombre de voyageurs';
+
+  @override
+  String get nextButton => 'Suivant';
+
+  @override
+  String get travelerCount5Plus => '5+';
+
+  @override
+  String get transportTitle => 'Transport';
+
+  @override
+  String get transportOptionFlightTitle => 'Oui, chercher un vol';
+
+  @override
+  String get transportOptionFlightSubtitle => 'Recherche via Amadeus';
+
+  @override
+  String get transportOptionOtherTitle => 'Non, autre transport';
+
+  @override
+  String get transportOptionOtherSubtitle => 'Voiture, train, bus...';
+
+  @override
+  String get transportOptionSkipTitle => 'Non, passer cette étape';
+
+  @override
+  String get transportOptionSkipSubtitle => 'Aucun transport à ajouter';
+
+  @override
+  String get otherTransportTitle => 'Autres transport';
+
+  @override
+  String get transportTypeLabel => 'Type de transport';
+
+  @override
+  String get transportTypeCar => 'Voiture';
+
+  @override
+  String get transportTypeTrain => 'Train';
+
+  @override
+  String get transportTypeBus => 'Bus';
+
+  @override
+  String get transportTypeFlightBooked => 'Vol (déjà réservé)';
+
+  @override
+  String get transportDetailsLabel => 'Détails (optionnel)';
+
+  @override
+  String get transportDetailsPlaceholder =>
+      'Ex: Location chez Hertz, TGV Paris-Lyon...';
+
+  @override
+  String get transportBudgetLabel => 'Budget transport (€)';
+
+  @override
+  String get transportBudgetPlaceholder => 'Ex: 150';
+
+  @override
+  String get transportBudgetHint =>
+      'Ce montant sera ajouté à votre budget voyage';
+
+  @override
+  String get skipThisStepLabel => 'Passer cette étape';
+
+  @override
   String get recapTitle => 'Récapitulatif';
 
   @override

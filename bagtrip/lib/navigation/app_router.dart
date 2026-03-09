@@ -12,7 +12,10 @@ import 'package:bagtrip/pages/map_page.dart';
 import 'package:bagtrip/pages/onboarding_page.dart';
 import 'package:bagtrip/pages/personalization_page.dart';
 import 'package:bagtrip/pages/create_trip_ai_flow_page.dart';
+import 'package:bagtrip/pages/planifier_manual_flight_page.dart';
 import 'package:bagtrip/pages/planifier_manual_page.dart';
+import 'package:bagtrip/pages/planifier_manual_other_transport_page.dart';
+import 'package:bagtrip/pages/planifier_manual_transport_page.dart';
 import 'package:bagtrip/pages/planifier_page.dart';
 import 'package:bagtrip/pages/profile_page.dart';
 import 'package:bagtrip/pages/splash_page.dart';
@@ -114,6 +117,41 @@ final GoRouter appRouter = GoRouter(
                         state: state,
                         child: const PlanifierManualPage(),
                       ),
+                  routes: [
+                    GoRoute(
+                      path: 'transport',
+                      name: 'planifierManualTransport',
+                      pageBuilder:
+                          (context, state) => buildSlideTransitionPage<void>(
+                            state: state,
+                            child: const PlanifierManualTransportPage(),
+                          ),
+                      routes: [
+                        GoRoute(
+                          path: 'other',
+                          name: 'planifierManualOtherTransport',
+                          pageBuilder:
+                              (
+                                context,
+                                state,
+                              ) => buildSlideTransitionPage<void>(
+                                state: state,
+                                child:
+                                    const PlanifierManualOtherTransportPage(),
+                              ),
+                        ),
+                      ],
+                    ),
+                    GoRoute(
+                      path: 'flight-search',
+                      name: 'planifierManualFlightSearch',
+                      pageBuilder:
+                          (context, state) => buildSlideTransitionPage<void>(
+                            state: state,
+                            child: const PlanifierManualFlightPage(),
+                          ),
+                    ),
+                  ],
                 ),
                 GoRoute(
                   path: 'create-trip-ai',
