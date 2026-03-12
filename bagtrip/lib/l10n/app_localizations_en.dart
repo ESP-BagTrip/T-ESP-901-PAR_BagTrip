@@ -229,6 +229,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get maxBudgetLabel => 'Maximum budget';
 
   @override
+  String get whereNextLabel => 'What\'s your next trip?';
+
+  @override
+  String get findYourFlightTitle => 'Find your flight';
+
+  @override
+  String get departLabel => 'Depart';
+
+  @override
+  String get cabinClassLabel => 'Cabin class';
+
+  @override
+  String get tripDetailsLabel => 'Trip details';
+
+  @override
   String get flightCardTitle => 'Flight';
 
   @override
@@ -608,4 +623,382 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get personalizationSkip => 'Skip';
+
+  @override
+  String get personalizationWelcomeTitle => 'Welcome';
+
+  @override
+  String get personalizationWelcomeSubtitle =>
+      'Let\'s personalize your travel experience';
+
+  @override
+  String get personalizationWelcomeCta => 'Start';
+
+  @override
+  String get personalizationStepTitleHowYouTravel => 'How do you travel?';
+
+  @override
+  String get personalizationStepTitleInterests => 'Your interests';
+
+  @override
+  String get personalizationStepSubtitleInterests => 'Select one or more';
+
+  @override
+  String get personalizationStepTitleBudgetQuestion => 'What is your budget?';
+
+  @override
+  String get personalizationStepTitleFrequency => 'How often do you travel?';
+
+  @override
+  String get personalizationStepSubtitleFrequency => 'Per year';
+
+  @override
+  String get personalizationBudgetComfort => 'Comfort';
+
+  @override
+  String get personalizationBudgetComfortDesc => '4★ Hotels, good balance';
+
+  @override
+  String get personalizationFrequency1_2 => '1–2 times';
+
+  @override
+  String get personalizationFrequency3_5 => '3–5 times';
+
+  @override
+  String get personalizationFrequency6Plus => '6+ times';
+
+  @override
+  String get personalizationInterestPhotography => 'Photography';
+
+  @override
+  String get personalizationInterestShopping => 'Shopping';
+
+  @override
+  String get planifierTab => 'Plan';
+
+  @override
+  String get planifierSectionCreateTrip => 'Create a trip';
+
+  @override
+  String get planifierManualTitle => 'Plan manually';
+
+  @override
+  String get planifierManualDesc =>
+      'Create your trip step by step with all the details';
+
+  @override
+  String get planifierAITitle => 'AI Assistant';
+
+  @override
+  String get planifierAIDesc => 'Let AI help you create a personalized trip';
+
+  @override
+  String get planifierSectionMyTrips => 'My trips';
+
+  @override
+  String get planifierInProgressTitle => 'In progress';
+
+  @override
+  String planifierInProgressCount(int count) {
+    return '$count trip(s) pending';
+  }
+
+  @override
+  String get planifierCompletedTitle => 'Completed trips';
+
+  @override
+  String get planifierCompletedDesc => 'View your past trips and budgets';
+
+  @override
+  String get planifierGreeting => 'Good morning';
+
+  @override
+  String get planifierMainTitle => 'Plan your\nnext journey';
+
+  @override
+  String get planifierSubtitle => 'Create and manage your trips';
+
+  @override
+  String get planifierManualDescriptionCard =>
+      'Build your itinerary step by step with full control.';
+
+  @override
+  String get planifierAIDescriptionCard =>
+      'Let AI craft a personalized trip for you.';
+
+  @override
+  String get planifierNewBadge => 'NEW';
+
+  @override
+  String get planifierPlanningTitle => 'Planning';
+
+  @override
+  String get planifierPlanningDescription => 'Trips being prepared';
+
+  @override
+  String planifierInProgressSuffix(int count) {
+    return '$count in progress';
+  }
+
+  @override
+  String get planifierCompletedShort => 'Completed';
+
+  @override
+  String get planifierCompletedDescriptionCard => 'Past trips & budgets';
+
+  @override
+  String planifierCompletedSuffix(int count) {
+    return '$count completed';
+  }
+
+  @override
+  String get planifierSectionExploreDestinations => 'Explore destinations';
+
+  @override
+  String get destinationKyoto => 'Kyoto';
+
+  @override
+  String get destinationSantorini => 'Santorini';
+
+  @override
+  String get destinationMarrakech => 'Marrakech';
+
+  @override
+  String get countryJapan => 'JAPAN';
+
+  @override
+  String get countryGreece => 'GREECE';
+
+  @override
+  String get countryMorocco => 'MOROCCO';
+
+  @override
+  String get yourDestinationTitle => 'Your destination';
+
+  @override
+  String get destinationPlaceholder => 'Paris, Tokyo, New York...';
+
+  @override
+  String get numberOfTravelersLabel => 'Number of travelers';
+
+  @override
+  String get nextButton => 'Next';
+
+  @override
+  String get travelerCount5Plus => '5+';
+
+  @override
+  String get transportTitle => 'Transport';
+
+  @override
+  String get transportOptionFlightTitle => 'Yes, search for a flight';
+
+  @override
+  String get transportOptionFlightSubtitle => 'Search via Amadeus';
+
+  @override
+  String get transportOptionOtherTitle => 'No, other transport';
+
+  @override
+  String get transportOptionOtherSubtitle => 'Car, train, bus...';
+
+  @override
+  String get transportOptionSkipTitle => 'No, skip this step';
+
+  @override
+  String get transportOptionSkipSubtitle => 'No transport to add';
+
+  @override
+  String get otherTransportTitle => 'Other transport';
+
+  @override
+  String get transportTypeLabel => 'Type of transport';
+
+  @override
+  String get transportTypeCar => 'Car';
+
+  @override
+  String get transportTypeTrain => 'Train';
+
+  @override
+  String get transportTypeBus => 'Bus';
+
+  @override
+  String get transportTypeFlightBooked => 'Flight (already booked)';
+
+  @override
+  String get transportDetailsLabel => 'Details (optional)';
+
+  @override
+  String get transportDetailsPlaceholder =>
+      'Ex: Hertz rental, TGV Paris-Lyon...';
+
+  @override
+  String get transportBudgetLabel => 'Transport budget (€)';
+
+  @override
+  String get transportBudgetPlaceholder => 'Ex: 150';
+
+  @override
+  String get transportBudgetHint =>
+      'This amount will be added to your trip budget';
+
+  @override
+  String get skipThisStepLabel => 'Skip this step';
+
+  @override
+  String get recapTitle => 'Summary';
+
+  @override
+  String get recapFinalStepLabel => 'FINAL STEP';
+
+  @override
+  String get recapDateChoose => 'Choose';
+
+  @override
+  String get recapDateSelectHint => 'Select';
+
+  @override
+  String get recapTravelTypesLabel => 'TRAVEL TYPES';
+
+  @override
+  String get recapStyleLabel => 'STYLE';
+
+  @override
+  String get recapBudgetLabel => 'BUDGET';
+
+  @override
+  String get recapCompanionsLabel => 'COMPANIONS';
+
+  @override
+  String get recapLaunchSearchButton => 'Launch AI search';
+
+  @override
+  String get summaryTitle => 'Your personalized trip';
+
+  @override
+  String get summarySubtitle => '+ Generated by AI';
+
+  @override
+  String get summaryUpcomingJourney => '◆ UPCOMING JOURNEY';
+
+  @override
+  String get summaryDays => 'days';
+
+  @override
+  String get summaryBudget => 'budget';
+
+  @override
+  String get summarySolo => 'Solo';
+
+  @override
+  String get summarySectionCurated => 'CURATED FOR YOU';
+
+  @override
+  String get summaryTripHighlights => 'Trip highlights';
+
+  @override
+  String get summarySectionWhereStay => 'WHERE YOU\'LL STAY';
+
+  @override
+  String get summaryAccommodation => 'Accommodation';
+
+  @override
+  String get summarySectionFlight => 'FLIGHT';
+
+  @override
+  String get summaryFlight => 'Flight';
+
+  @override
+  String get summaryFlightRouteMock => 'Paris CDG → Paris Orly';
+
+  @override
+  String get summaryFlightDetailsMock => 'Round trip · Economy';
+
+  @override
+  String get summarySectionYourJourney => 'YOUR JOURNEY';
+
+  @override
+  String get summaryDayByDay => 'Day by day';
+
+  @override
+  String get summarySectionEssentials => 'ESSENTIALS';
+
+  @override
+  String get summaryWhatToBring => 'What to bring';
+
+  @override
+  String get summaryBestPick => 'Best pick';
+
+  @override
+  String get summaryDayPrefix => 'D';
+
+  @override
+  String get summaryDay1Date => 'MONDAY · JUNE 9';
+
+  @override
+  String get summaryDay2Date => 'TUESDAY · JUNE 10';
+
+  @override
+  String get summaryDay3Date => 'WEDNESDAY · JUNE 11';
+
+  @override
+  String get summaryDay4Date => 'THURSDAY · JUNE 12';
+
+  @override
+  String get summaryDay5Date => 'FRIDAY · JUNE 13';
+
+  @override
+  String get summaryDay1Description =>
+      'Check in to Le Marais, stroll the historic streets, evening aperitif at Place des Vosges.';
+
+  @override
+  String get summaryDay2Description =>
+      'Louvre in the morning, Notre-Dame area, Seine banks in the afternoon.';
+
+  @override
+  String get summaryDay3Description =>
+      'Cooking class, market visit, dinner in a typical bistro.';
+
+  @override
+  String get summaryDay4Description =>
+      'Palace of Versailles, the Hall of Mirrors and the gardens in full bloom.';
+
+  @override
+  String get summaryDay5Description =>
+      'Morning at Sacré-Cœur, last café crème, afternoon flight home.';
+
+  @override
+  String get summaryCategoryTravelDay => 'Travel day';
+
+  @override
+  String get summaryCategoryCulture => 'Culture';
+
+  @override
+  String get summaryCategoryCuisine => 'Cuisine';
+
+  @override
+  String get summaryCategoryDayTrip => 'Day trip';
+
+  @override
+  String get summaryCategoryDeparture => 'Departure';
+
+  @override
+  String get summarySaveTrip => 'Save this trip';
+
+  @override
+  String get summaryRegenerate => 'Regenerate';
+
+  @override
+  String get summaryTripSaved => 'Trip saved';
+
+  @override
+  String summaryDaysCount(int count) {
+    return '$count days';
+  }
+
+  @override
+  String summaryBudgetAmount(String amount) {
+    return '$amount budget';
+  }
 }

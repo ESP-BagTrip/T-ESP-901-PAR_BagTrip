@@ -30,8 +30,18 @@ class $AssetsImagesGen {
   /// File path: assets/images/hotel.jpg
   AssetGenImage get hotel => const AssetGenImage('assets/images/hotel.jpg');
 
+  /// File path: assets/images/parisMockPicture.jpg
+  AssetGenImage get parisMockPicture =>
+      const AssetGenImage('assets/images/parisMockPicture.jpg');
+
   /// List of all assets
-  List<dynamic> get values => [appIcon, flight, flightHotel, hotel];
+  List<dynamic> get values => [
+    appIcon,
+    flight,
+    flightHotel,
+    hotel,
+    parisMockPicture,
+  ];
 }
 
 class Assets {

@@ -1,4 +1,4 @@
-import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/flightSearchResult/bloc/flight_search_result_bloc.dart';
 import 'package:bagtrip/flightSearchResult/models/flight_search_arguments.dart';
 import 'package:bagtrip/flightSearchResult/widgets/flight_search_result_widget.dart';
@@ -15,14 +15,15 @@ class FlightSearchResultPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: PersonalizationColors.gradientStart,
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.searchResults),
         elevation: 0,
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.onSurface,
+        backgroundColor: PersonalizationColors.gradientStart,
+        foregroundColor: PersonalizationColors.textPrimary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/home'),
+          onPressed: () => context.go('/planifier'),
         ),
       ),
       body: BlocProvider(

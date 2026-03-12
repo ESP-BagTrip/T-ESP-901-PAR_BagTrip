@@ -1,7 +1,7 @@
 // ignore_for_file: file-names
 
 import 'package:bagtrip/flightSearchResult/models/flight.dart';
-import 'package:bagtrip/home/models/flight_segment.dart';
+import 'package:bagtrip/flight_search/models/flight_segment.dart';
 import 'package:bagtrip/service/LocationService.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';

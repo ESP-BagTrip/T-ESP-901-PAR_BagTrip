@@ -1,11 +1,11 @@
 part of 'navigation_bloc.dart';
 
-enum NavigationTab { home, map, budget, profile }
+enum NavigationTab { map, budget, planifier, profile }
 
 class NavigationState extends Equatable {
   final NavigationTab activeTab;
 
-  const NavigationState({this.activeTab = NavigationTab.home});
+  const NavigationState({this.activeTab = NavigationTab.planifier});
 
   NavigationState copyWith({NavigationTab? activeTab}) {
     return NavigationState(activeTab: activeTab ?? this.activeTab);

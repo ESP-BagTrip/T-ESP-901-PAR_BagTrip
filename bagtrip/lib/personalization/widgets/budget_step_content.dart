@@ -1,6 +1,6 @@
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/personalization/widgets/personalization_single_select_card.dart';
+import 'package:bagtrip/personalization/widgets/premium_select_card.dart';
 import 'package:flutter/material.dart';
 
 class BudgetStepContent extends StatelessWidget {
@@ -30,6 +30,12 @@ class BudgetStepContent extends StatelessWidget {
         Icons.star_outline,
       ),
       (
+        'comfort',
+        l10n.personalizationBudgetComfort,
+        l10n.personalizationBudgetComfortDesc,
+        Icons.hotel_outlined,
+      ),
+      (
         'luxury',
         l10n.personalizationBudgetLuxury,
         l10n.personalizationBudgetLuxuryDesc,
@@ -40,8 +46,8 @@ class BudgetStepContent extends StatelessWidget {
       children:
           options.map((opt) {
             return Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.space16),
-              child: PersonalizationSingleSelectCard(
+              padding: const EdgeInsets.only(bottom: AppSpacing.space24),
+              child: PremiumSelectCard(
                 icon: opt.$4,
                 label: opt.$2,
                 description: opt.$3,

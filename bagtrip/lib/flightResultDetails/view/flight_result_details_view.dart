@@ -1,4 +1,4 @@
-import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/flightResultDetails/bloc/flight_result_details_bloc.dart';
 import 'package:bagtrip/flightResultDetails/widgets/baggage_info_card.dart';
@@ -18,8 +18,9 @@ class FlightResultDetailsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: PersonalizationColors.gradientStart,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: PersonalizationColors.gradientStart,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: ColorName.secondary),
@@ -41,11 +42,7 @@ class FlightResultDetailsView extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              ColorName.backgroundGradientStart,
-              ColorName.backgroundGradientMid,
-              ColorName.backgroundGradientEnd,
-            ],
+            colors: PersonalizationColors.backgroundGradient,
           ),
         ),
         child: BlocBuilder<FlightResultDetailsBloc, FlightResultDetailsState>(

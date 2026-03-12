@@ -14,6 +14,7 @@ final class PersonalizationLoaded extends PersonalizationState {
   final String? travelStyle;
   final String? budget;
   final String? companions;
+  final String? travelFrequency;
 
   PersonalizationLoaded({
     required this.step,
@@ -22,6 +23,7 @@ final class PersonalizationLoaded extends PersonalizationState {
     this.travelStyle,
     this.budget,
     this.companions,
+    this.travelFrequency,
   });
 
   PersonalizationLoaded copyWith({
@@ -31,6 +33,7 @@ final class PersonalizationLoaded extends PersonalizationState {
     String? travelStyle,
     String? budget,
     String? companions,
+    String? travelFrequency,
   }) {
     return PersonalizationLoaded(
       step: step ?? this.step,
@@ -39,6 +42,7 @@ final class PersonalizationLoaded extends PersonalizationState {
       travelStyle: travelStyle ?? this.travelStyle,
       budget: budget ?? this.budget,
       companions: companions ?? this.companions,
+      travelFrequency: travelFrequency ?? this.travelFrequency,
     );
   }
 }

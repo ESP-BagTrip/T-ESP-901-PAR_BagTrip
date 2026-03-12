@@ -1,4 +1,5 @@
 import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -17,7 +18,7 @@ class AppTheme {
         surface: ColorName.primaryLight,
         error: ColorName.error,
       ),
-      scaffoldBackgroundColor: AppColors.surface,
+      scaffoldBackgroundColor: PersonalizationColors.gradientStart,
       fontFamily: FontFamily.b612,
     );
 
