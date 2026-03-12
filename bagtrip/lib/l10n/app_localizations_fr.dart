@@ -732,7 +732,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get planifierManualDescriptionCard =>
-      'Construisez votre itinéraire étape par étape en gardant le contrôle.';
+      'Construisez votre itinéraire étape par étape.';
 
   @override
   String get planifierAIDescriptionCard =>
@@ -884,4 +884,133 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get recapLaunchSearchButton => 'Lancer la recherche IA';
+
+  @override
+  String get summaryTitle => 'Votre voyage personnalisé';
+
+  @override
+  String get summarySubtitle => '+ Généré par l\'IA';
+
+  @override
+  String get summaryUpcomingJourney => '◆ PROCHAIN VOYAGE';
+
+  @override
+  String get summaryDays => 'jours';
+
+  @override
+  String get summaryBudget => 'budget';
+
+  @override
+  String get summarySolo => 'Solo';
+
+  @override
+  String get summarySectionCurated => 'POUR VOUS';
+
+  @override
+  String get summaryTripHighlights => 'Points forts du voyage';
+
+  @override
+  String get summarySectionWhereStay => 'OÙ LOGER';
+
+  @override
+  String get summaryAccommodation => 'Hébergement';
+
+  @override
+  String get summarySectionFlight => 'VOL';
+
+  @override
+  String get summaryFlight => 'Vol';
+
+  @override
+  String get summaryFlightRouteMock => 'Paris CDG → Paris Orly';
+
+  @override
+  String get summaryFlightDetailsMock => 'Aller-retour · Économique';
+
+  @override
+  String get summarySectionYourJourney => 'VOTRE VOYAGE';
+
+  @override
+  String get summaryDayByDay => 'Jour par jour';
+
+  @override
+  String get summarySectionEssentials => 'ESSENTIELS';
+
+  @override
+  String get summaryWhatToBring => 'À emporter';
+
+  @override
+  String get summaryBestPick => 'Best pick';
+
+  @override
+  String get summaryDayPrefix => 'J';
+
+  @override
+  String get summaryDay1Date => 'LUNDI · 9 JUIN';
+
+  @override
+  String get summaryDay2Date => 'MARDI · 10 JUIN';
+
+  @override
+  String get summaryDay3Date => 'MERCREDI · 11 JUIN';
+
+  @override
+  String get summaryDay4Date => 'JEUDI · 12 JUIN';
+
+  @override
+  String get summaryDay5Date => 'VENDREDI · 13 JUIN';
+
+  @override
+  String get summaryDay1Description =>
+      'Installation au Marais, balade dans les rues historiques, apéritif en soirée place des Vosges.';
+
+  @override
+  String get summaryDay2Description =>
+      'Louvre le matin, quartier Notre-Dame, berges de la Seine l\'après-midi.';
+
+  @override
+  String get summaryDay3Description =>
+      'Atelier cuisine, marché, dîner dans un bistro typique.';
+
+  @override
+  String get summaryDay4Description =>
+      'Château de Versailles, la Galerie des Glaces et les jardins en fleurs.';
+
+  @override
+  String get summaryDay5Description =>
+      'Matin à Sacré-Cœur, dernier café crème, vol retour l\'après-midi.';
+
+  @override
+  String get summaryCategoryTravelDay => 'Jour de voyage';
+
+  @override
+  String get summaryCategoryCulture => 'Culture';
+
+  @override
+  String get summaryCategoryCuisine => 'Cuisine';
+
+  @override
+  String get summaryCategoryDayTrip => 'Excursion';
+
+  @override
+  String get summaryCategoryDeparture => 'Départ';
+
+  @override
+  String get summarySaveTrip => 'Sauvegarder ce voyage';
+
+  @override
+  String get summaryRegenerate => 'Régénérer';
+
+  @override
+  String get summaryTripSaved => 'Voyage sauvegardé';
+
+  @override
+  String summaryDaysCount(int count) {
+    return '$count jours';
+  }
+
+  @override
+  String summaryBudgetAmount(String amount) {
+    return '$amount budget';
+  }
 }

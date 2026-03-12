@@ -355,5 +355,59 @@
   "recapStyleLabel": "STYLE",
   "recapBudgetLabel": "BUDGET",
   "recapCompanionsLabel": "COMPAGNONS",
-  "recapLaunchSearchButton": "Lancer la recherche IA"
+  "recapLaunchSearchButton": "Lancer la recherche IA",
+  "summaryTitle": "Votre voyage personnalisé",
+  "summarySubtitle": "+ Généré par l'IA",
+  "summaryUpcomingJourney": "◆ PROCHAIN VOYAGE",
+  "summaryDays": "jours",
+  "summaryBudget": "budget",
+  "summarySolo": "Solo",
+  "summarySectionCurated": "POUR VOUS",
+  "summaryTripHighlights": "Points forts du voyage",
+  "summarySectionWhereStay": "OÙ LOGER",
+  "summaryAccommodation": "Hébergement",
+  "summarySectionFlight": "VOL",
+  "summaryFlight": "Vol",
+  "summaryFlightRouteMock": "Paris CDG → Paris Orly",
+  "summaryFlightDetailsMock": "Aller-retour · Économique",
+  "summarySectionYourJourney": "VOTRE VOYAGE",
+  "summaryDayByDay": "Jour par jour",
+  "summarySectionEssentials": "ESSENTIELS",
+  "summaryWhatToBring": "À emporter",
+  "summaryBestPick": "Best pick",
+  "summaryDayPrefix": "J",
+  "summaryDay1Date": "LUNDI · 9 JUIN",
+  "summaryDay2Date": "MARDI · 10 JUIN",
+  "summaryDay3Date": "MERCREDI · 11 JUIN",
+  "summaryDay4Date": "JEUDI · 12 JUIN",
+  "summaryDay5Date": "VENDREDI · 13 JUIN",
+  "summaryDay1Description": "Installation au Marais, balade dans les rues historiques, apéritif en soirée place des Vosges.",
+  "summaryDay2Description": "Louvre le matin, quartier Notre-Dame, berges de la Seine l'après-midi.",
+  "summaryDay3Description": "Atelier cuisine, marché, dîner dans un bistro typique.",
+  "summaryDay4Description": "Château de Versailles, la Galerie des Glaces et les jardins en fleurs.",
+  "summaryDay5Description": "Matin à Sacré-Cœur, dernier café crème, vol retour l'après-midi.",
+  "summaryCategoryTravelDay": "Jour de voyage",
+  "summaryCategoryCulture": "Culture",
+  "summaryCategoryCuisine": "Cuisine",
+  "summaryCategoryDayTrip": "Excursion",
+  "summaryCategoryDeparture": "Départ",
+  "summarySaveTrip": "Sauvegarder ce voyage",
+  "summaryRegenerate": "Régénérer",
+  "summaryTripSaved": "Voyage sauvegardé",
+  "summaryDaysCount": "{count} jours",
+  "@summaryDaysCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "summaryBudgetAmount": "{amount} budget",
+  "@summaryBudgetAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  }
 }

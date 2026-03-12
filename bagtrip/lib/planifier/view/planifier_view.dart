@@ -23,74 +23,89 @@ class PlanifierView extends StatelessWidget {
             state is PlanifierLoaded ? state.inProgressCount : 0;
         final l10n = AppLocalizations.of(context)!;
 
+        final horizontalPadding = EdgeInsets.only(
+          left: MediaQuery.paddingOf(context).left + AppSpacing.space24,
+          right: MediaQuery.paddingOf(context).right + AppSpacing.space24,
+        );
+
         return Scaffold(
           backgroundColor: PersonalizationColors.gradientStart,
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: AppSpacing.allEdgeInsetSpace24,
-              child: FutureBuilder<User?>(
-                future: AuthService().getCurrentUser(),
-                builder: (context, userSnapshot) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHeader(context, l10n, userSnapshot.data),
-                      const SizedBox(height: AppSpacing.space24),
-                      _buildSectionLabel(
-                        context,
-                        l10n.planifierSectionCreateTrip.toUpperCase(),
+          body: SingleChildScrollView(
+            padding: EdgeInsets.only(
+              top: MediaQuery.paddingOf(context).top + AppSpacing.space24,
+              bottom: MediaQuery.paddingOf(context).bottom + AppSpacing.space24,
+            ),
+            child: FutureBuilder<User?>(
+              future: AuthService().getCurrentUser(),
+              builder: (context, userSnapshot) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: horizontalPadding,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildHeader(context, l10n, userSnapshot.data),
+                          const SizedBox(height: AppSpacing.space24),
+                          _buildSectionLabel(
+                            context,
+                            l10n.planifierSectionCreateTrip.toUpperCase(),
+                          ),
+                          const SizedBox(height: AppSpacing.space8),
+                          _buildCreateTripSection(context, l10n),
+                          const SizedBox(height: AppSpacing.space32),
+                          _buildSectionLabel(
+                            context,
+                            l10n.planifierSectionMyTrips.toUpperCase(),
+                          ),
+                          const SizedBox(height: AppSpacing.space8),
+                          _buildMyTripRow(
+                            context,
+                            l10n,
+                            icon: Icons.calendar_today_rounded,
+                            iconDecoration: const BoxDecoration(
+                              color: ColorName.primaryLight,
+                              borderRadius: AppRadius.medium8,
+                            ),
+                            iconColor: ColorName.primary,
+                            title: l10n.planifierPlanningTitle,
+                            description: l10n.planifierPlanningDescription,
+                            trailing: l10n.planifierInProgressSuffix(
+                              inProgressCount,
+                            ),
+                            onTap: () {},
+                          ),
+                          const SizedBox(height: AppSpacing.space8),
+                          _buildMyTripRow(
+                            context,
+                            l10n,
+                            icon: Icons.check_circle_rounded,
+                            iconDecoration: const BoxDecoration(
+                              color: AppColors.success,
+                              shape: BoxShape.circle,
+                            ),
+                            iconColor: AppColors.surface,
+                            title: l10n.planifierCompletedShort,
+                            description: l10n.planifierCompletedDescriptionCard,
+                            trailing: l10n.planifierCompletedSuffix(0),
+                            onTap: () {},
+                          ),
+                          const SizedBox(height: AppSpacing.space32),
+                          _buildSectionLabel(
+                            context,
+                            l10n.planifierSectionExploreDestinations
+                                .toUpperCase(),
+                          ),
+                          const SizedBox(height: AppSpacing.space8),
+                        ],
                       ),
-                      const SizedBox(height: AppSpacing.space8),
-                      _buildCreateTripSection(context, l10n),
-                      const SizedBox(height: AppSpacing.space32),
-                      _buildSectionLabel(
-                        context,
-                        l10n.planifierSectionMyTrips.toUpperCase(),
-                      ),
-                      const SizedBox(height: AppSpacing.space8),
-                      _buildMyTripRow(
-                        context,
-                        l10n,
-                        icon: Icons.calendar_today_rounded,
-                        iconDecoration: const BoxDecoration(
-                          color: ColorName.primaryLight,
-                          borderRadius: AppRadius.medium8,
-                        ),
-                        iconColor: ColorName.primary,
-                        title: l10n.planifierPlanningTitle,
-                        description: l10n.planifierPlanningDescription,
-                        trailing: l10n.planifierInProgressSuffix(
-                          inProgressCount,
-                        ),
-                        onTap: () {},
-                      ),
-                      const SizedBox(height: AppSpacing.space8),
-                      _buildMyTripRow(
-                        context,
-                        l10n,
-                        icon: Icons.check_circle_rounded,
-                        iconDecoration: const BoxDecoration(
-                          color: AppColors.success,
-                          shape: BoxShape.circle,
-                        ),
-                        iconColor: AppColors.surface,
-                        title: l10n.planifierCompletedShort,
-                        description: l10n.planifierCompletedDescriptionCard,
-                        trailing: l10n.planifierCompletedSuffix(0),
-                        onTap: () {},
-                      ),
-                      const SizedBox(height: AppSpacing.space32),
-                      _buildSectionLabel(
-                        context,
-                        l10n.planifierSectionExploreDestinations.toUpperCase(),
-                      ),
-                      const SizedBox(height: AppSpacing.space8),
-                      _buildExploreDestinationsSection(context, l10n),
-                      const SizedBox(height: AppSpacing.space32),
-                    ],
-                  );
-                },
-              ),
+                    ),
+                    _buildExploreDestinationsSection(context, l10n),
+                    const SizedBox(height: AppSpacing.space32),
+                  ],
+                );
+              },
             ),
           ),
         );
@@ -298,6 +313,7 @@ class PlanifierView extends StatelessWidget {
       height: cardHeight,
       child: ListView(
         scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space24),
         children: [
           _DestinationCard(
             city: l10n.destinationKyoto,

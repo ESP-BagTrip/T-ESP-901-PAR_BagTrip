@@ -1415,7 +1415,7 @@ abstract class AppLocalizations {
   /// No description provided for @planifierManualDescriptionCard.
   ///
   /// In fr, this message translates to:
-  /// **'Construisez votre itinéraire étape par étape en gardant le contrôle.'**
+  /// **'Construisez votre itinéraire étape par étape.'**
   String get planifierManualDescriptionCard;
 
   /// No description provided for @planifierAIDescriptionCard.
@@ -1705,6 +1705,246 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Lancer la recherche IA'**
   String get recapLaunchSearchButton;
+
+  /// No description provided for @summaryTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre voyage personnalisé'**
+  String get summaryTitle;
+
+  /// No description provided for @summarySubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'+ Généré par l\'IA'**
+  String get summarySubtitle;
+
+  /// No description provided for @summaryUpcomingJourney.
+  ///
+  /// In fr, this message translates to:
+  /// **'◆ PROCHAIN VOYAGE'**
+  String get summaryUpcomingJourney;
+
+  /// No description provided for @summaryDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'jours'**
+  String get summaryDays;
+
+  /// No description provided for @summaryBudget.
+  ///
+  /// In fr, this message translates to:
+  /// **'budget'**
+  String get summaryBudget;
+
+  /// No description provided for @summarySolo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Solo'**
+  String get summarySolo;
+
+  /// No description provided for @summarySectionCurated.
+  ///
+  /// In fr, this message translates to:
+  /// **'POUR VOUS'**
+  String get summarySectionCurated;
+
+  /// No description provided for @summaryTripHighlights.
+  ///
+  /// In fr, this message translates to:
+  /// **'Points forts du voyage'**
+  String get summaryTripHighlights;
+
+  /// No description provided for @summarySectionWhereStay.
+  ///
+  /// In fr, this message translates to:
+  /// **'OÙ LOGER'**
+  String get summarySectionWhereStay;
+
+  /// No description provided for @summaryAccommodation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hébergement'**
+  String get summaryAccommodation;
+
+  /// No description provided for @summarySectionFlight.
+  ///
+  /// In fr, this message translates to:
+  /// **'VOL'**
+  String get summarySectionFlight;
+
+  /// No description provided for @summaryFlight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vol'**
+  String get summaryFlight;
+
+  /// No description provided for @summaryFlightRouteMock.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paris CDG → Paris Orly'**
+  String get summaryFlightRouteMock;
+
+  /// No description provided for @summaryFlightDetailsMock.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aller-retour · Économique'**
+  String get summaryFlightDetailsMock;
+
+  /// No description provided for @summarySectionYourJourney.
+  ///
+  /// In fr, this message translates to:
+  /// **'VOTRE VOYAGE'**
+  String get summarySectionYourJourney;
+
+  /// No description provided for @summaryDayByDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jour par jour'**
+  String get summaryDayByDay;
+
+  /// No description provided for @summarySectionEssentials.
+  ///
+  /// In fr, this message translates to:
+  /// **'ESSENTIELS'**
+  String get summarySectionEssentials;
+
+  /// No description provided for @summaryWhatToBring.
+  ///
+  /// In fr, this message translates to:
+  /// **'À emporter'**
+  String get summaryWhatToBring;
+
+  /// No description provided for @summaryBestPick.
+  ///
+  /// In fr, this message translates to:
+  /// **'Best pick'**
+  String get summaryBestPick;
+
+  /// No description provided for @summaryDayPrefix.
+  ///
+  /// In fr, this message translates to:
+  /// **'J'**
+  String get summaryDayPrefix;
+
+  /// No description provided for @summaryDay1Date.
+  ///
+  /// In fr, this message translates to:
+  /// **'LUNDI · 9 JUIN'**
+  String get summaryDay1Date;
+
+  /// No description provided for @summaryDay2Date.
+  ///
+  /// In fr, this message translates to:
+  /// **'MARDI · 10 JUIN'**
+  String get summaryDay2Date;
+
+  /// No description provided for @summaryDay3Date.
+  ///
+  /// In fr, this message translates to:
+  /// **'MERCREDI · 11 JUIN'**
+  String get summaryDay3Date;
+
+  /// No description provided for @summaryDay4Date.
+  ///
+  /// In fr, this message translates to:
+  /// **'JEUDI · 12 JUIN'**
+  String get summaryDay4Date;
+
+  /// No description provided for @summaryDay5Date.
+  ///
+  /// In fr, this message translates to:
+  /// **'VENDREDI · 13 JUIN'**
+  String get summaryDay5Date;
+
+  /// No description provided for @summaryDay1Description.
+  ///
+  /// In fr, this message translates to:
+  /// **'Installation au Marais, balade dans les rues historiques, apéritif en soirée place des Vosges.'**
+  String get summaryDay1Description;
+
+  /// No description provided for @summaryDay2Description.
+  ///
+  /// In fr, this message translates to:
+  /// **'Louvre le matin, quartier Notre-Dame, berges de la Seine l\'après-midi.'**
+  String get summaryDay2Description;
+
+  /// No description provided for @summaryDay3Description.
+  ///
+  /// In fr, this message translates to:
+  /// **'Atelier cuisine, marché, dîner dans un bistro typique.'**
+  String get summaryDay3Description;
+
+  /// No description provided for @summaryDay4Description.
+  ///
+  /// In fr, this message translates to:
+  /// **'Château de Versailles, la Galerie des Glaces et les jardins en fleurs.'**
+  String get summaryDay4Description;
+
+  /// No description provided for @summaryDay5Description.
+  ///
+  /// In fr, this message translates to:
+  /// **'Matin à Sacré-Cœur, dernier café crème, vol retour l\'après-midi.'**
+  String get summaryDay5Description;
+
+  /// No description provided for @summaryCategoryTravelDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jour de voyage'**
+  String get summaryCategoryTravelDay;
+
+  /// No description provided for @summaryCategoryCulture.
+  ///
+  /// In fr, this message translates to:
+  /// **'Culture'**
+  String get summaryCategoryCulture;
+
+  /// No description provided for @summaryCategoryCuisine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cuisine'**
+  String get summaryCategoryCuisine;
+
+  /// No description provided for @summaryCategoryDayTrip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Excursion'**
+  String get summaryCategoryDayTrip;
+
+  /// No description provided for @summaryCategoryDeparture.
+  ///
+  /// In fr, this message translates to:
+  /// **'Départ'**
+  String get summaryCategoryDeparture;
+
+  /// No description provided for @summarySaveTrip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sauvegarder ce voyage'**
+  String get summarySaveTrip;
+
+  /// No description provided for @summaryRegenerate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Régénérer'**
+  String get summaryRegenerate;
+
+  /// No description provided for @summaryTripSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voyage sauvegardé'**
+  String get summaryTripSaved;
+
+  /// No description provided for @summaryDaysCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} jours'**
+  String summaryDaysCount(int count);
+
+  /// No description provided for @summaryBudgetAmount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{amount} budget'**
+  String summaryBudgetAmount(String amount);
 }
 
 class _AppLocalizationsDelegate
