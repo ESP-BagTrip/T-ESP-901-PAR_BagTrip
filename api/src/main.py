@@ -30,7 +30,7 @@ from src.api.stripe.webhooks.routes import router as stripe_webhooks_router
 from src.api.travel.routes import router as travel_router
 from src.api.travelers.routes import router as travelers_router
 from src.api.trips.routes import router as trips_router
-from src.config.database import Base, check_database_connection, engine
+from src.config.database import check_database_connection
 from src.config.env import settings
 from src.middleware.rate_limit import auth_rate_limit_middleware, rate_limit_middleware
 from src.utils.errors import AppError, create_http_exception
@@ -45,53 +45,7 @@ async def lifespan(app: FastAPI):
     check_database_connection()
     logger.info("Database connection successful")
 
-    # Migrer la table users si nécessaire
-    try:
-        from src.migrations.migrate_user_table import migrate_user_table
-
-        migrate_user_table(engine)
-    except Exception as e:
-        logger.warn(f"User table migration failed (may already be migrated): {e}")
-
-    # Migrer les tables de booking si nécessaire
-    try:
-        from src.migrations.migrate_booking_tables import migrate_booking_tables
-
-        migrate_booking_tables(engine)
-    except Exception as e:
-        logger.warn(f"Booking tables migration failed (may already be migrated): {e}")
-
-    # Migrer les tables de conversation si nécessaire
-    try:
-        from src.migrations.migrate_conversation_tables import migrate_conversation_tables
-
-        migrate_conversation_tables(engine)
-    except Exception as e:
-        logger.warn(f"Conversation tables migration failed (may already be migrated): {e}")
-
-    # Migrer la table refresh_tokens si nécessaire
-    try:
-        from src.migrations.migrate_refresh_tokens import migrate_refresh_tokens
-
-        migrate_refresh_tokens(engine)
-    except Exception as e:
-        logger.warn(f"Refresh tokens migration failed (may already be migrated): {e}")
-
-    # Migrer la table traveler_profiles si nécessaire
-    try:
-        from src.migrations.migrate_traveler_profiles import migrate_traveler_profiles
-
-        migrate_traveler_profiles(engine)
-    except Exception as e:
-        logger.warn(f"Traveler profiles migration failed (may already be migrated): {e}")
-
-    # Migrer la table trips si nécessaire
-    try:
-        from src.migrations.migrate_trips_table import migrate_trips_table
-
-        migrate_trips_table(engine)
-    except Exception as e:
-        logger.warn(f"Trips table migration failed (may already be migrated): {e}")
+    # Schema managed by: alembic upgrade head
 
     # Initialiser les produits Stripe
     try:
@@ -100,10 +54,6 @@ async def lifespan(app: FastAPI):
         StripeProductsService.initialize_products()
     except Exception as e:
         logger.warn(f"Stripe products initialization failed: {e}")
-
-    # Créer les tables au démarrage
-    Base.metadata.create_all(bind=engine)
-    logger.info("Database tables created")
 
     # Créer l'admin par défaut
     try:
