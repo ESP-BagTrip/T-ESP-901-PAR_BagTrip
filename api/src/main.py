@@ -157,6 +157,9 @@ app.include_router(agent_router)  # Déjà préfixé avec /v1/agent
 app.include_router(profile_router)  # Préfixé avec /v1/profile
 app.include_router(booking_router)  # DÉPRÉCIÉ - utiliser /v1/trips/{tripId}/booking-intents
 
+from src.api.ai.baggage_suggest_routes import router as ai_baggage_suggest_router
+app.include_router(ai_baggage_suggest_router)
+
 
 # Gestion globale des erreurs
 @app.exception_handler(AppError)
