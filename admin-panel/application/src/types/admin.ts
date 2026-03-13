@@ -85,6 +85,35 @@ export interface AdminFlightSearch {
   created_at: string
 }
 
+export interface AdminAccommodation {
+  id: string
+  trip_id: string
+  trip_title: string | null
+  user_email: string
+  name: string
+  address: string | null
+  check_in: string | null
+  check_out: string | null
+  price: number | null
+  currency: string | null
+  booking_reference: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface AdminBaggageItem {
+  id: string
+  trip_id: string
+  trip_title: string | null
+  user_email: string
+  name: string
+  category: string | null
+  quantity: number | null
+  is_packed: boolean | null
+  created_at: string
+  updated_at: string
+}
+
 export interface AdminListResponse<T> {
   items: T[]
   total: number

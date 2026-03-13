@@ -8,11 +8,15 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from src.api.accommodations.routes import router as accommodations_router
+from src.api.activities.routes import router as activities_router
 from src.api.admin.routes import router as admin_router
 from src.api.auth.routes import router as auth_router
+from src.api.baggage.routes import router as baggage_router
 from src.api.booking.routes import router as booking_router
 from src.api.booking_intents.book_routes import router as booking_intents_book_router
 from src.api.booking_intents.routes import router as booking_intents_router
+from src.api.budget_items.routes import router as budget_items_router
 from src.api.flights.offers.routes import router as flight_offers_router
 from src.api.flights.searches.routes import router as flight_searches_router
 from src.api.payments.routes import router as payments_router
@@ -97,6 +101,10 @@ app.include_router(auth_router)  # Déjà préfixé avec /v1/auth
 app.include_router(admin_router)  # Préfixé avec /admin
 app.include_router(trips_router)  # Déjà préfixé avec /v1/trips
 app.include_router(travelers_router)  # Déjà préfixé avec /v1/trips
+app.include_router(activities_router)  # Déjà préfixé avec /v1/trips
+app.include_router(accommodations_router)  # Déjà préfixé avec /v1/trips
+app.include_router(baggage_router)  # Déjà préfixé avec /v1/trips
+app.include_router(budget_items_router)  # Déjà préfixé avec /v1/trips
 app.include_router(flight_searches_router)  # Déjà préfixé avec /v1/trips
 app.include_router(flight_offers_router)  # Déjà préfixé avec /v1/trips
 app.include_router(booking_intents_router)  # Déjà préfixé avec /v1/trips

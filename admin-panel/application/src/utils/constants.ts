@@ -47,6 +47,8 @@ export const API_ENDPOINTS = {
     TRAVELER_PROFILES: '/admin/traveler-profiles',
     BOOKING_INTENTS: '/admin/booking-intents',
     FLIGHT_SEARCHES: '/admin/flight-searches',
+    ACCOMMODATIONS: '/admin/accommodations',
+    BAGGAGE_ITEMS: '/admin/baggage-items',
   },
   USERS: '/admin/users',
   FEEDBACKS: '/admin/feedbacks',

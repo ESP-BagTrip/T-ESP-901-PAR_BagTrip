@@ -3,6 +3,8 @@ import 'package:bagtrip/flightSearchResult/models/flight.dart';
 import 'package:bagtrip/flightSearchResult/models/flight_search_arguments.dart';
 import 'package:bagtrip/navigation/app_shell.dart';
 import 'package:bagtrip/navigation/page_transitions.dart';
+import 'package:bagtrip/pages/accommodations_page.dart';
+import 'package:bagtrip/pages/baggage_page.dart';
 import 'package:bagtrip/pages/budget_page.dart';
 import 'package:bagtrip/pages/flight_search_result_page.dart';
 import 'package:bagtrip/pages/login_page.dart';
@@ -184,6 +186,30 @@ final GoRouter appRouter = GoRouter(
                       child: TripHomePage(tripId: tripId),
                     );
                   },
+                  routes: [
+                    GoRoute(
+                      path: 'accommodations',
+                      name: 'accommodations',
+                      pageBuilder: (context, state) {
+                        final tripId = state.pathParameters['tripId']!;
+                        return buildSlideTransitionPage<void>(
+                          state: state,
+                          child: AccommodationsPage(tripId: tripId),
+                        );
+                      },
+                    ),
+                    GoRoute(
+                      path: 'baggage',
+                      name: 'baggage',
+                      pageBuilder: (context, state) {
+                        final tripId = state.pathParameters['tripId']!;
+                        return buildSlideTransitionPage<void>(
+                          state: state,
+                          child: BaggagePage(tripId: tripId),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),

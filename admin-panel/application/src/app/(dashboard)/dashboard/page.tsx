@@ -2,6 +2,8 @@
 
 import { DataTable } from '@/components/DataTable'
 import {
+  accommodationsColumns,
+  baggageItemsColumns,
   bookingIntentsColumns,
   flightBookingsColumns,
   flightSearchesColumns,
@@ -11,6 +13,8 @@ import {
 } from '@/components/tables'
 import { useAuth } from '@/hooks'
 import {
+  useAdminAccommodations,
+  useAdminBaggageItems,
   useAdminBookingIntents,
   useAdminFlightBookings,
   useAdminFlightSearches,
@@ -69,6 +73,8 @@ type TabType =
   | 'profiles'
   | 'bookingIntents'
   | 'flightSearches'
+  | 'accommodations'
+  | 'baggageItems'
 
 export default function DashboardPage() {
   const { user, logout } = useAuth()
@@ -80,6 +86,8 @@ export default function DashboardPage() {
   const [profilesPage, setProfilesPage] = useState(1)
   const [bookingIntentsPage, setBookingIntentsPage] = useState(1)
   const [flightSearchesPage, setFlightSearchesPage] = useState(1)
+  const [accommodationsPage, setAccommodationsPage] = useState(1)
+  const [baggageItemsPage, setBaggageItemsPage] = useState(1)
 
   // Users query
   const { data: usersData, isLoading: usersLoading } = useQuery({
@@ -122,6 +130,16 @@ export default function DashboardPage() {
     limit: PAGINATION_DEFAULTS.LIMIT,
   })
 
+  const { data: accommodationsData, isLoading: accommodationsLoading } = useAdminAccommodations({
+    page: accommodationsPage,
+    limit: PAGINATION_DEFAULTS.LIMIT,
+  })
+
+  const { data: baggageItemsData, isLoading: baggageItemsLoading } = useAdminBaggageItems({
+    page: baggageItemsPage,
+    limit: PAGINATION_DEFAULTS.LIMIT,
+  })
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -141,6 +159,16 @@ export default function DashboardPage() {
       id: 'flightSearches' as TabType,
       name: 'Rech. Vols',
       count: flightSearchesData?.total,
+    },
+    {
+      id: 'accommodations' as TabType,
+      name: 'Hébergements',
+      count: accommodationsData?.total,
+    },
+    {
+      id: 'baggageItems' as TabType,
+      name: 'Bagages',
+      count: baggageItemsData?.total,
     },
   ]
 
@@ -349,6 +377,48 @@ export default function DashboardPage() {
                 }
                 onPaginationChange={(page) => {
                   setFlightSearchesPage(page)
+                }}
+              />
+            )}
+
+            {activeTab === 'accommodations' && (
+              <DataTable
+                data={accommodationsData?.items || []}
+                columns={accommodationsColumns}
+                isLoading={accommodationsLoading}
+                pagination={
+                  accommodationsData
+                    ? {
+                        page: accommodationsData.page,
+                        limit: accommodationsData.limit,
+                        total: accommodationsData.total,
+                        total_pages: accommodationsData.total_pages,
+                      }
+                    : undefined
+                }
+                onPaginationChange={(page) => {
+                  setAccommodationsPage(page)
+                }}
+              />
+            )}
+
+            {activeTab === 'baggageItems' && (
+              <DataTable
+                data={baggageItemsData?.items || []}
+                columns={baggageItemsColumns}
+                isLoading={baggageItemsLoading}
+                pagination={
+                  baggageItemsData
+                    ? {
+                        page: baggageItemsData.page,
+                        limit: baggageItemsData.limit,
+                        total: baggageItemsData.total,
+                        total_pages: baggageItemsData.total_pages,
+                      }
+                    : undefined
+                }
+                onPaginationChange={(page) => {
+                  setBaggageItemsPage(page)
                 }}
               />
             )}

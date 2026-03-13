@@ -116,8 +116,15 @@ class TripHomeView extends StatelessWidget {
                     children:
                         tripHome.features
                             .map(
-                              (feature) =>
-                                  TripFeatureTileWidget(feature: feature),
+                              (feature) => TripFeatureTileWidget(
+                                feature: feature,
+                                onTap:
+                                    feature.enabled
+                                        ? () => context.go(
+                                          '/trips/$tripId/${feature.route}',
+                                        )
+                                        : null,
+                              ),
                             )
                             .toList(),
                   ),

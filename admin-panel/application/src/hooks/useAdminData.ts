@@ -74,3 +74,27 @@ export function useAdminFlightSearches(params?: QueryParams) {
       }),
   })
 }
+
+export function useAdminAccommodations(params?: QueryParams) {
+  return useQuery({
+    queryKey: ['admin', 'accommodations', params],
+    queryFn: () =>
+      adminService.getAllAccommodations({
+        page: params?.page || PAGINATION_DEFAULTS.PAGE,
+        limit: params?.limit || PAGINATION_DEFAULTS.LIMIT,
+        ...params,
+      }),
+  })
+}
+
+export function useAdminBaggageItems(params?: QueryParams) {
+  return useQuery({
+    queryKey: ['admin', 'baggage-items', params],
+    queryFn: () =>
+      adminService.getAllBaggageItems({
+        page: params?.page || PAGINATION_DEFAULTS.PAGE,
+        limit: params?.limit || PAGINATION_DEFAULTS.LIMIT,
+        ...params,
+      }),
+  })
+}

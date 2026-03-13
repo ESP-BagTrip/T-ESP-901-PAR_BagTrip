@@ -1,6 +1,8 @@
 import { apiClient } from '@/lib/axios'
 import { API_ENDPOINTS } from '@/utils/constants'
 import type {
+  AdminAccommodation,
+  AdminBaggageItem,
   AdminBookingIntent,
   AdminFlightBooking,
   AdminFlightSearch,
@@ -60,6 +62,26 @@ export const adminService = {
   ): Promise<AdminListResponse<AdminFlightSearch>> {
     const response = await apiClient.get<AdminListResponse<AdminFlightSearch>>(
       API_ENDPOINTS.ADMIN.FLIGHT_SEARCHES,
+      { params }
+    )
+    return response.data
+  },
+
+  async getAllAccommodations(
+    params?: QueryParams
+  ): Promise<AdminListResponse<AdminAccommodation>> {
+    const response = await apiClient.get<AdminListResponse<AdminAccommodation>>(
+      API_ENDPOINTS.ADMIN.ACCOMMODATIONS,
+      { params }
+    )
+    return response.data
+  },
+
+  async getAllBaggageItems(
+    params?: QueryParams
+  ): Promise<AdminListResponse<AdminBaggageItem>> {
+    const response = await apiClient.get<AdminListResponse<AdminBaggageItem>>(
+      API_ENDPOINTS.ADMIN.BAGGAGE_ITEMS,
       { params }
     )
     return response.data

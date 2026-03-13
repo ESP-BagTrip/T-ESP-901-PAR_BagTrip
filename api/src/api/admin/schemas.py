@@ -113,6 +113,47 @@ class AdminBookingIntentResponse(BaseModel):
         populate_by_name = True
 
 
+class AdminAccommodationResponse(BaseModel):
+    """Réponse accommodation pour admin avec informations trip et utilisateur."""
+
+    id: UUID
+    tripId: UUID = Field(alias="trip_id")
+    tripTitle: str | None = Field(default=None, alias="trip_title")
+    userEmail: str = Field(alias="user_email")
+    name: str
+    address: str | None = None
+    checkIn: date | None = Field(default=None, alias="check_in")
+    checkOut: date | None = Field(default=None, alias="check_out")
+    price: float | None = None
+    currency: str | None = None
+    bookingReference: str | None = Field(default=None, alias="booking_reference")
+    createdAt: datetime = Field(alias="created_at")
+    updatedAt: datetime = Field(alias="updated_at")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
+class AdminBaggageItemResponse(BaseModel):
+    """Réponse baggage item pour admin avec informations trip et utilisateur."""
+
+    id: UUID
+    tripId: UUID = Field(alias="trip_id")
+    tripTitle: str | None = Field(default=None, alias="trip_title")
+    userEmail: str = Field(alias="user_email")
+    name: str
+    category: str | None = None
+    quantity: int | None = None
+    isPacked: bool | None = Field(default=None, alias="is_packed")
+    createdAt: datetime = Field(alias="created_at")
+    updatedAt: datetime = Field(alias="updated_at")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
 class AdminFlightSearchResponse(BaseModel):
     """Réponse flight search pour admin avec informations trip."""
 
@@ -127,6 +168,50 @@ class AdminFlightSearchResponse(BaseModel):
     children: int | None = None
     travelClass: str | None = Field(default=None, alias="travel_class")
     createdAt: datetime = Field(alias="created_at")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
+class AdminActivityResponse(BaseModel):
+    """Réponse activity pour admin avec informations trip et utilisateur."""
+
+    id: UUID
+    tripId: UUID = Field(alias="trip_id")
+    tripTitle: str | None = Field(default=None, alias="trip_title")
+    userEmail: str = Field(alias="user_email")
+    title: str
+    description: str | None = None
+    date: date
+    startTime: Any | None = Field(default=None, alias="start_time")
+    endTime: Any | None = Field(default=None, alias="end_time")
+    location: str | None = None
+    category: str
+    estimatedCost: float | None = Field(default=None, alias="estimated_cost")
+    isBooked: bool = Field(alias="is_booked")
+    createdAt: datetime = Field(alias="created_at")
+    updatedAt: datetime = Field(alias="updated_at")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
+class AdminBudgetItemResponse(BaseModel):
+    """Réponse budget item pour admin avec informations trip et utilisateur."""
+
+    id: UUID
+    tripId: UUID = Field(alias="trip_id")
+    tripTitle: str | None = Field(default=None, alias="trip_title")
+    userEmail: str = Field(alias="user_email")
+    label: str
+    amount: float
+    category: str
+    date: date | None = None
+    isPlanned: bool = Field(alias="is_planned")
+    createdAt: datetime = Field(alias="created_at")
+    updatedAt: datetime = Field(alias="updated_at")
 
     class Config:
         from_attributes = True

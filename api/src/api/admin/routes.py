@@ -4,7 +4,11 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from src.api.admin.schemas import (
+    AdminAccommodationResponse,
+    AdminActivityResponse,
+    AdminBaggageItemResponse,
     AdminBookingIntentResponse,
+    AdminBudgetItemResponse,
     AdminFlightBookingResponse,
     AdminFlightSearchResponse,
     AdminListResponse,
@@ -241,4 +245,132 @@ async def list_all_flight_searches(
     except Exception as e:
         raise create_http_exception(
             AppError("INTERNAL_ERROR", 500, f"Failed to fetch flight searches: {str(e)}")
+        ) from e
+
+
+@router.get(
+    "/accommodations",
+    response_model=AdminListResponse[AdminAccommodationResponse],
+    summary="List all accommodations (admin)",
+    description="Get all accommodations with trip and user information (admin only)",
+)
+async def list_all_accommodations(
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Lister tous les hébergements (admin)."""
+    try:
+        items, total, total_pages = AdminService.get_all_accommodations(
+            db, page=page, limit=limit
+        )
+        return AdminListResponse[AdminAccommodationResponse](
+            items=[AdminAccommodationResponse(**item) for item in items],
+            total=total,
+            page=page,
+            limit=limit,
+            total_pages=total_pages,
+        )
+    except AppError as e:
+        raise create_http_exception(e) from e
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, f"Failed to fetch accommodations: {str(e)}")
+        ) from e
+
+
+@router.get(
+    "/activities",
+    response_model=AdminListResponse[AdminActivityResponse],
+    summary="List all activities (admin)",
+    description="Get all activities with trip and user information (admin only)",
+)
+async def list_all_activities(
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Lister toutes les activités (admin)."""
+    try:
+        items, total, total_pages = AdminService.get_all_activities(
+            db, page=page, limit=limit
+        )
+        return AdminListResponse[AdminActivityResponse](
+            items=[AdminActivityResponse(**item) for item in items],
+            total=total,
+            page=page,
+            limit=limit,
+            total_pages=total_pages,
+        )
+    except AppError as e:
+        raise create_http_exception(e) from e
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, f"Failed to fetch activities: {str(e)}")
+        ) from e
+
+
+@router.get(
+    "/budget-items",
+    response_model=AdminListResponse[AdminBudgetItemResponse],
+    summary="List all budget items (admin)",
+    description="Get all budget items with trip and user information (admin only)",
+)
+async def list_all_budget_items(
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Lister tous les budget items (admin)."""
+    try:
+        items, total, total_pages = AdminService.get_all_budget_items(
+            db, page=page, limit=limit
+        )
+        return AdminListResponse[AdminBudgetItemResponse](
+            items=[AdminBudgetItemResponse(**item) for item in items],
+            total=total,
+            page=page,
+            limit=limit,
+            total_pages=total_pages,
+        )
+    except AppError as e:
+        raise create_http_exception(e) from e
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, f"Failed to fetch budget items: {str(e)}")
+        ) from e
+
+
+@router.get(
+    "/baggage-items",
+    response_model=AdminListResponse[AdminBaggageItemResponse],
+    summary="List all baggage items (admin)",
+    description="Get all baggage items with trip and user information (admin only)",
+)
+async def list_all_baggage_items(
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Lister tous les éléments de bagage (admin)."""
+    try:
+        items, total, total_pages = AdminService.get_all_baggage_items(
+            db, page=page, limit=limit
+        )
+        return AdminListResponse[AdminBaggageItemResponse](
+            items=[AdminBaggageItemResponse(**item) for item in items],
+            total=total,
+            page=page,
+            limit=limit,
+            total_pages=total_pages,
+        )
+    except AppError as e:
+        raise create_http_exception(e) from e
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, f"Failed to fetch baggage items: {str(e)}")
         ) from e

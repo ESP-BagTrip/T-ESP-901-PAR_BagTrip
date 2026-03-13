@@ -40,6 +40,12 @@ class Trip(Base):
 
     # Relationships
     travelers = relationship("TripTraveler", back_populates="trip", cascade="all, delete-orphan")
+    accommodations = relationship(
+        "Accommodation", back_populates="trip", cascade="all, delete-orphan"
+    )
+    baggage_items = relationship(
+        "BaggageItem", back_populates="trip", cascade="all, delete-orphan"
+    )
     flight_searches = relationship(
         "FlightSearch", back_populates="trip", cascade="all, delete-orphan"
     )
@@ -47,3 +53,5 @@ class Trip(Base):
         "BookingIntent", back_populates="trip", cascade="all, delete-orphan"
     )
     shares = relationship("TripShare", back_populates="trip", cascade="all, delete-orphan")
+    activities = relationship("Activity", back_populates="trip", cascade="all, delete-orphan")
+    budget_items = relationship("BudgetItem", back_populates="trip", cascade="all, delete-orphan")

@@ -189,9 +189,9 @@ class TripsService:
         }
 
         features = [
-            {"id": "baggage", "label": "Bagages", "icon": "luggage", "route": "baggage", "enabled": False},
+            {"id": "baggage", "label": "Bagages", "icon": "luggage", "route": "baggage", "enabled": True},
             {"id": "budget", "label": "Budget", "icon": "wallet", "route": "budget", "enabled": False},
-            {"id": "accommodation", "label": "Hébergement", "icon": "hotel", "route": "accommodation", "enabled": False},
+            {"id": "accommodation", "label": "Hébergement", "icon": "hotel", "route": "accommodations", "enabled": True},
             {"id": "activities", "label": "Activités", "icon": "hiking", "route": "activities", "enabled": False},
             {"id": "transport", "label": "Transport", "icon": "directions_car", "route": "transport", "enabled": False},
             {"id": "map", "label": "Carte", "icon": "map", "route": "map", "enabled": False},
