@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 from src.models.booking_intent import BookingIntent
 from src.models.flight_offer import FlightOffer
 from src.models.hotel_offer import HotelOffer
-from src.services.trips_service import TripsService
 from src.utils.errors import AppError
 
 
@@ -26,13 +25,8 @@ class BookingIntentsService:
     ) -> BookingIntent:
         """
         Créer un booking intent selon PLAN.md.
-        Calcule le montant depuis l'offre sélectionnée.
+        Accès vérifié par la dependency en amont.
         """
-        # Vérifier que le trip existe et appartient à l'utilisateur
-        trip = TripsService.get_trip_by_id(db, trip_id, user_id)
-        if not trip:
-            raise AppError("TRIP_NOT_FOUND", 404, "Trip not found")
-
         # Charger l'offre selon le type
         amount = Decimal("0")
         currency = "EUR"

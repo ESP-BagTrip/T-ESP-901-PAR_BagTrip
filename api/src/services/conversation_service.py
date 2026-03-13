@@ -5,8 +5,6 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from src.models.conversation import Conversation
-from src.services.trips_service import TripsService
-from src.utils.errors import AppError
 
 
 class ConversationService:
@@ -19,17 +17,7 @@ class ConversationService:
         user_id: UUID,
         title: str | None = None,
     ) -> Conversation:
-        """
-        Créer une nouvelle conversation pour un trip.
-        - Vérifier que le trip appartient à l'utilisateur
-        - Créer la conversation
-        - Retourner la conversation créée
-        """
-        # Vérifier que le trip existe et appartient à l'utilisateur
-        trip = TripsService.get_trip_by_id(db, trip_id, user_id)
-        if not trip:
-            raise AppError("TRIP_NOT_FOUND", 404, "Trip not found")
-
+        """Créer une nouvelle conversation (accès vérifié par la dependency)."""
         conversation = Conversation(
             trip_id=trip_id,
             user_id=user_id,
@@ -46,17 +34,12 @@ class ConversationService:
         conversation_id: UUID,
         user_id: UUID,
     ) -> Conversation | None:
-        """
-        Récupérer une conversation par ID.
-        - Vérifier que la conversation appartient à l'utilisateur
-        - Retourner None si non trouvée ou non autorisée
-        """
-        conversation = (
+        """Récupérer une conversation par ID."""
+        return (
             db.query(Conversation)
             .filter(Conversation.id == conversation_id, Conversation.user_id == user_id)
             .first()
         )
-        return conversation
 
     @staticmethod
     def get_conversations_by_trip(
@@ -64,16 +47,7 @@ class ConversationService:
         trip_id: UUID,
         user_id: UUID,
     ) -> list[Conversation]:
-        """
-        Récupérer toutes les conversations d'un trip.
-        - Vérifier que le trip appartient à l'utilisateur
-        - Retourner liste triée par created_at DESC
-        """
-        # Vérifier que le trip existe et appartient à l'utilisateur
-        trip = TripsService.get_trip_by_id(db, trip_id, user_id)
-        if not trip:
-            raise AppError("TRIP_NOT_FOUND", 404, "Trip not found")
-
+        """Récupérer toutes les conversations d'un trip (accès vérifié par la dependency)."""
         return (
             db.query(Conversation)
             .filter(Conversation.trip_id == trip_id, Conversation.user_id == user_id)

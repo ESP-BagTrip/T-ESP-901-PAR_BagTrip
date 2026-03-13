@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 from src.integrations.amadeus import amadeus_client
 from src.models.hotel_offer import HotelOffer
 from src.models.hotel_search import HotelSearch
-from src.services.trips_service import TripsService
 from src.utils.errors import AppError
 
 
@@ -19,7 +18,6 @@ class HotelSearchService:
     async def create_search(
         db: Session,
         trip_id: UUID,
-        user_id: UUID,
         city_code: str | None = None,
         latitude: float | None = None,
         longitude: float | None = None,
@@ -31,13 +29,8 @@ class HotelSearchService:
     ) -> tuple[HotelSearch, list[HotelOffer]]:
         """
         Créer une recherche d'hôtel et persister les résultats.
-        Retourne la recherche et les offres créées.
+        Accès vérifié par la dependency en amont.
         """
-        # Vérifier que le trip existe et appartient à l'utilisateur
-        trip = TripsService.get_trip_by_id(db, trip_id, user_id)
-        if not trip:
-            raise AppError("TRIP_NOT_FOUND", 404, "Trip not found")
-
         if not check_in or not check_out:
             raise AppError("INVALID_REQUEST", 400, "check_in and check_out are required")
 
@@ -122,14 +115,9 @@ class HotelSearchService:
 
     @staticmethod
     def get_search_by_id(
-        db: Session, search_id: UUID, trip_id: UUID, user_id: UUID
+        db: Session, search_id: UUID, trip_id: UUID
     ) -> HotelSearch | None:
-        """Récupérer une recherche par ID."""
-        # Vérifier que le trip existe et appartient à l'utilisateur
-        trip = TripsService.get_trip_by_id(db, trip_id, user_id)
-        if not trip:
-            raise AppError("TRIP_NOT_FOUND", 404, "Trip not found")
-
+        """Récupérer une recherche par ID (accès vérifié par la dependency)."""
         return (
             db.query(HotelSearch)
             .filter(HotelSearch.id == search_id, HotelSearch.trip_id == trip_id)
@@ -138,11 +126,10 @@ class HotelSearchService:
 
     @staticmethod
     def get_offers_by_search(
-        db: Session, search_id: UUID, trip_id: UUID, user_id: UUID
+        db: Session, search_id: UUID, trip_id: UUID
     ) -> list[HotelOffer]:
-        """Récupérer les offres d'une recherche."""
-        # Vérifier que la recherche existe
-        search = HotelSearchService.get_search_by_id(db, search_id, trip_id, user_id)
+        """Récupérer les offres d'une recherche (accès vérifié par la dependency)."""
+        search = HotelSearchService.get_search_by_id(db, search_id, trip_id)
         if not search:
             raise AppError("SEARCH_NOT_FOUND", 404, "Hotel search not found")
 

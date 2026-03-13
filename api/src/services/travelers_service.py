@@ -5,7 +5,6 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from src.models.traveler import TripTraveler
-from src.services.trips_service import TripsService
 from src.utils.errors import AppError
 
 
@@ -16,7 +15,6 @@ class TravelersService:
     def create_traveler(
         db: Session,
         trip_id: UUID,
-        user_id: UUID,
         amadeus_traveler_ref: str | None,
         traveler_type: str,
         first_name: str,
@@ -27,12 +25,7 @@ class TravelersService:
         contacts: dict | None = None,
         raw: dict | None = None,
     ) -> TripTraveler:
-        """Créer un nouveau traveler."""
-        # Vérifier que le trip existe et appartient à l'utilisateur
-        trip = TripsService.get_trip_by_id(db, trip_id, user_id)
-        if not trip:
-            raise AppError("TRIP_NOT_FOUND", 404, "Trip not found")
-
+        """Créer un nouveau traveler (accès vérifié par la dependency)."""
         traveler = TripTraveler(
             trip_id=trip_id,
             amadeus_traveler_ref=amadeus_traveler_ref,
@@ -51,25 +44,15 @@ class TravelersService:
         return traveler
 
     @staticmethod
-    def get_travelers_by_trip(db: Session, trip_id: UUID, user_id: UUID) -> list[TripTraveler]:
-        """Récupérer tous les travelers d'un trip."""
-        # Vérifier que le trip existe et appartient à l'utilisateur
-        trip = TripsService.get_trip_by_id(db, trip_id, user_id)
-        if not trip:
-            raise AppError("TRIP_NOT_FOUND", 404, "Trip not found")
-
+    def get_travelers_by_trip(db: Session, trip_id: UUID) -> list[TripTraveler]:
+        """Récupérer tous les travelers d'un trip (accès vérifié par la dependency)."""
         return db.query(TripTraveler).filter(TripTraveler.trip_id == trip_id).all()
 
     @staticmethod
     def get_traveler_by_id(
-        db: Session, traveler_id: UUID, trip_id: UUID, user_id: UUID
+        db: Session, traveler_id: UUID, trip_id: UUID
     ) -> TripTraveler | None:
         """Récupérer un traveler par ID."""
-        # Vérifier que le trip existe et appartient à l'utilisateur
-        trip = TripsService.get_trip_by_id(db, trip_id, user_id)
-        if not trip:
-            raise AppError("TRIP_NOT_FOUND", 404, "Trip not found")
-
         return (
             db.query(TripTraveler)
             .filter(TripTraveler.id == traveler_id, TripTraveler.trip_id == trip_id)
@@ -81,7 +64,6 @@ class TravelersService:
         db: Session,
         traveler_id: UUID,
         trip_id: UUID,
-        user_id: UUID,
         amadeus_traveler_ref: str | None = None,
         traveler_type: str | None = None,
         first_name: str | None = None,
@@ -92,8 +74,8 @@ class TravelersService:
         contacts: dict | None = None,
         raw: dict | None = None,
     ) -> TripTraveler:
-        """Mettre à jour un traveler."""
-        traveler = TravelersService.get_traveler_by_id(db, traveler_id, trip_id, user_id)
+        """Mettre à jour un traveler (accès vérifié par la dependency)."""
+        traveler = TravelersService.get_traveler_by_id(db, traveler_id, trip_id)
         if not traveler:
             raise AppError("TRAVELER_NOT_FOUND", 404, "Traveler not found")
 
@@ -121,9 +103,9 @@ class TravelersService:
         return traveler
 
     @staticmethod
-    def delete_traveler(db: Session, traveler_id: UUID, trip_id: UUID, user_id: UUID) -> None:
-        """Supprimer un traveler."""
-        traveler = TravelersService.get_traveler_by_id(db, traveler_id, trip_id, user_id)
+    def delete_traveler(db: Session, traveler_id: UUID, trip_id: UUID) -> None:
+        """Supprimer un traveler (accès vérifié par la dependency)."""
+        traveler = TravelersService.get_traveler_by_id(db, traveler_id, trip_id)
         if not traveler:
             raise AppError("TRAVELER_NOT_FOUND", 404, "Traveler not found")
 

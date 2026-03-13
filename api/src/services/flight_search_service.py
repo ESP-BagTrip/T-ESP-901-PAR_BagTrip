@@ -9,7 +9,6 @@ from src.integrations.amadeus import amadeus_client
 from src.integrations.amadeus.types import FlightOfferSearchQuery
 from src.models.flight_offer import FlightOffer
 from src.models.flight_search import FlightSearch
-from src.services.trips_service import TripsService
 from src.utils.errors import AppError
 
 
@@ -20,7 +19,6 @@ class FlightSearchService:
     async def create_search(
         db: Session,
         trip_id: UUID,
-        user_id: UUID,
         origin_iata: str,
         destination_iata: str,
         departure_date: date,
@@ -34,13 +32,8 @@ class FlightSearchService:
     ) -> tuple[FlightSearch, list[FlightOffer]]:
         """
         Créer une recherche de vol et persister les résultats.
-        Retourne la recherche et les offres créées.
+        Accès vérifié par la dependency en amont.
         """
-        # Vérifier que le trip existe et appartient à l'utilisateur
-        trip = TripsService.get_trip_by_id(db, trip_id, user_id)
-        if not trip:
-            raise AppError("TRIP_NOT_FOUND", 404, "Trip not found")
-
         # Construire la requête Amadeus
         query = FlightOfferSearchQuery(
             originLocationCode=origin_iata,
@@ -139,14 +132,9 @@ class FlightSearchService:
 
     @staticmethod
     def get_search_by_id(
-        db: Session, search_id: UUID, trip_id: UUID, user_id: UUID
+        db: Session, search_id: UUID, trip_id: UUID
     ) -> FlightSearch | None:
-        """Récupérer une recherche par ID."""
-        # Vérifier que le trip existe et appartient à l'utilisateur
-        trip = TripsService.get_trip_by_id(db, trip_id, user_id)
-        if not trip:
-            raise AppError("TRIP_NOT_FOUND", 404, "Trip not found")
-
+        """Récupérer une recherche par ID (accès vérifié par la dependency)."""
         return (
             db.query(FlightSearch)
             .filter(FlightSearch.id == search_id, FlightSearch.trip_id == trip_id)
@@ -155,11 +143,10 @@ class FlightSearchService:
 
     @staticmethod
     def get_offers_by_search(
-        db: Session, search_id: UUID, trip_id: UUID, user_id: UUID
+        db: Session, search_id: UUID, trip_id: UUID
     ) -> list[FlightOffer]:
-        """Récupérer les offres d'une recherche."""
-        # Vérifier que la recherche existe
-        search = FlightSearchService.get_search_by_id(db, search_id, trip_id, user_id)
+        """Récupérer les offres d'une recherche (accès vérifié par la dependency)."""
+        search = FlightSearchService.get_search_by_id(db, search_id, trip_id)
         if not search:
             raise AppError("SEARCH_NOT_FOUND", 404, "Flight search not found")
 
