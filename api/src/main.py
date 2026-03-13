@@ -129,6 +129,10 @@ from src.api.ai.activity_suggest_routes import router as ai_activity_suggest_rou
 
 app.include_router(ai_activity_suggest_router)
 
+from src.api.ai.baggage_suggest_routes import router as ai_baggage_suggest_router
+
+app.include_router(ai_baggage_suggest_router)
+
 
 # Gestion globale des erreurs
 @app.exception_handler(AppError)

@@ -2,6 +2,7 @@ import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/models/baggage_item.dart';
+import 'package:bagtrip/service/baggage_ai_service.dart';
 import 'package:bagtrip/service/baggage_item_service.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
@@ -24,13 +25,16 @@ class BaggagePage extends StatefulWidget {
 
 class _BaggagePageState extends State<BaggagePage> {
   final _baggageItemService = BaggageItemService();
+  final _baggageAiService = BaggageAiService();
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _quantityController = TextEditingController(text: '1');
 
   List<BaggageItem> _baggageItems = [];
+  List<Map<String, dynamic>> _suggestions = [];
   bool _isLoading = true;
   bool _isAdding = false;
+  bool _isSuggestLoading = false;
   String? _errorMessage;
   String? _selectedCategory;
 
@@ -174,6 +178,52 @@ class _BaggagePageState extends State<BaggagePage> {
     }
   }
 
+  Future<void> _handleSuggestBaggage() async {
+    setState(() {
+      _isSuggestLoading = true;
+    });
+    try {
+      final suggestions = await _baggageAiService.suggestBaggage(widget.tripId);
+      setState(() {
+        _suggestions = suggestions;
+        _isSuggestLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isSuggestLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+      }
+    }
+  }
+
+  Future<void> _handleAddSuggestion(Map<String, dynamic> suggestion) async {
+    try {
+      await _baggageItemService.createBaggageItem(
+        widget.tripId,
+        name: suggestion['name'] ?? '',
+        quantity: suggestion['quantity'] ?? 1,
+        category: suggestion['category'],
+      );
+      setState(() {
+        _suggestions.remove(suggestion);
+      });
+      await _loadBaggageItems();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Élément ajouté depuis suggestion')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.showError(context, message: toUserFriendlyMessage(e));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final packedCount = _baggageItems.where((item) => item.isPacked).length;
@@ -184,6 +234,19 @@ class _BaggagePageState extends State<BaggagePage> {
       appBar: AppBar(
         title: const Text('Bagages'),
         actions: [
+          if (!isReadOnly)
+            IconButton(
+              icon:
+                  _isSuggestLoading
+                      ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                      : const Icon(Icons.auto_awesome),
+              tooltip: 'Suggestions IA',
+              onPressed: _isSuggestLoading ? null : _handleSuggestBaggage,
+            ),
           if (_baggageItems.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(right: 16),
@@ -314,6 +377,70 @@ class _BaggagePageState extends State<BaggagePage> {
                                 },
                               ),
                     ),
+                    if (_suggestions.isNotEmpty && !isReadOnly)
+                      Container(
+                        constraints: const BoxConstraints(maxHeight: 200),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF0F7FF),
+                          border: Border(
+                            top: BorderSide(color: AppColors.border),
+                            bottom: BorderSide(color: AppColors.border),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Suggestions IA',
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.close, size: 18),
+                                  onPressed:
+                                      () => setState(() => _suggestions = []),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Flexible(
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: _suggestions.length,
+                                itemBuilder: (context, index) {
+                                  final s = _suggestions[index];
+                                  return ListTile(
+                                    dense: true,
+                                    contentPadding: EdgeInsets.zero,
+                                    title: Text(s['name'] ?? ''),
+                                    subtitle: Text(
+                                      '${s['category'] ?? 'Autre'} · x${s['quantity'] ?? 1}',
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                    trailing: IconButton(
+                                      icon: const Icon(
+                                        Icons.add_circle,
+                                        color: Colors.green,
+                                        size: 24,
+                                      ),
+                                      onPressed: () => _handleAddSuggestion(s),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     if (!isReadOnly)
                       Container(
                         padding: const EdgeInsets.all(16),
