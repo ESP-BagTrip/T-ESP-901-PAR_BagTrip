@@ -195,7 +195,6 @@ async def update_trip(
             destination_iata=request.destinationIata,
             start_date=request.startDate,
             end_date=request.endDate,
-            status=request.status,
             description=request.description,
             destination_name=request.destinationName,
             nb_travelers=request.nbTravelers,

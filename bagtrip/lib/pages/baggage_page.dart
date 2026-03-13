@@ -9,8 +9,14 @@ import 'package:flutter/material.dart';
 class BaggagePage extends StatefulWidget {
   final String tripId;
   final String role;
+  final bool isCompleted;
 
-  const BaggagePage({super.key, required this.tripId, this.role = 'OWNER'});
+  const BaggagePage({
+    super.key,
+    required this.tripId,
+    this.role = 'OWNER',
+    this.isCompleted = false,
+  });
 
   @override
   State<BaggagePage> createState() => _BaggagePageState();
@@ -172,6 +178,7 @@ class _BaggagePageState extends State<BaggagePage> {
   Widget build(BuildContext context) {
     final packedCount = _baggageItems.where((item) => item.isPacked).length;
     final isViewer = widget.role == 'VIEWER';
+    final isReadOnly = isViewer || widget.isCompleted;
 
     return Scaffold(
       appBar: AppBar(
@@ -240,7 +247,7 @@ class _BaggagePageState extends State<BaggagePage> {
                                       leading: Checkbox(
                                         value: item.isPacked,
                                         onChanged:
-                                            isViewer
+                                            isReadOnly
                                                 ? null
                                                 : (_) =>
                                                     _handleTogglePacked(item),
@@ -289,7 +296,7 @@ class _BaggagePageState extends State<BaggagePage> {
                                         ],
                                       ),
                                       trailing:
-                                          isViewer
+                                          isReadOnly
                                               ? null
                                               : IconButton(
                                                 icon: const Icon(
@@ -307,7 +314,7 @@ class _BaggagePageState extends State<BaggagePage> {
                                 },
                               ),
                     ),
-                    if (!isViewer)
+                    if (!isReadOnly)
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: const BoxDecoration(

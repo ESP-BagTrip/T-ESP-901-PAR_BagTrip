@@ -10,11 +10,13 @@ import 'package:intl/intl.dart';
 class AccommodationsPage extends StatefulWidget {
   final String tripId;
   final String role;
+  final bool isCompleted;
 
   const AccommodationsPage({
     super.key,
     required this.tripId,
     this.role = 'OWNER',
+    this.isCompleted = false,
   });
 
   @override
@@ -191,6 +193,7 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
   @override
   Widget build(BuildContext context) {
     final isViewer = widget.role == 'VIEWER';
+    final isReadOnly = isViewer || widget.isCompleted;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Hébergements')),
@@ -267,7 +270,7 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
                                       ),
                                       isThreeLine: true,
                                       trailing:
-                                          isViewer
+                                          isReadOnly
                                               ? null
                                               : IconButton(
                                                 icon: const Icon(
@@ -284,7 +287,7 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
                                 },
                               ),
                     ),
-                    if (!isViewer)
+                    if (!isReadOnly)
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: const BoxDecoration(

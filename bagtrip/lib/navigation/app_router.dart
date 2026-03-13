@@ -196,10 +196,14 @@ final GoRouter appRouter = GoRouter(
                       name: 'accommodations',
                       pageBuilder: (context, state) {
                         final tripId = state.pathParameters['tripId']!;
-                        final role = state.extra as String? ?? 'OWNER';
+                        final extra = _parseRouteExtra(state.extra);
                         return buildSlideTransitionPage<void>(
                           state: state,
-                          child: AccommodationsPage(tripId: tripId, role: role),
+                          child: AccommodationsPage(
+                            tripId: tripId,
+                            role: extra.$1,
+                            isCompleted: extra.$2,
+                          ),
                         );
                       },
                     ),
@@ -208,10 +212,14 @@ final GoRouter appRouter = GoRouter(
                       name: 'baggage',
                       pageBuilder: (context, state) {
                         final tripId = state.pathParameters['tripId']!;
-                        final role = state.extra as String? ?? 'OWNER';
+                        final extra = _parseRouteExtra(state.extra);
                         return buildSlideTransitionPage<void>(
                           state: state,
-                          child: BaggagePage(tripId: tripId, role: role),
+                          child: BaggagePage(
+                            tripId: tripId,
+                            role: extra.$1,
+                            isCompleted: extra.$2,
+                          ),
                         );
                       },
                     ),
@@ -220,10 +228,14 @@ final GoRouter appRouter = GoRouter(
                       name: 'tripActivities',
                       pageBuilder: (context, state) {
                         final tripId = state.pathParameters['tripId']!;
-                        final role = state.extra as String? ?? 'OWNER';
+                        final extra = _parseRouteExtra(state.extra);
                         return buildSlideTransitionPage<void>(
                           state: state,
-                          child: ActivitiesPage(tripId: tripId, role: role),
+                          child: ActivitiesPage(
+                            tripId: tripId,
+                            role: extra.$1,
+                            isCompleted: extra.$2,
+                          ),
                         );
                       },
                     ),
@@ -232,10 +244,14 @@ final GoRouter appRouter = GoRouter(
                       name: 'tripBudget',
                       pageBuilder: (context, state) {
                         final tripId = state.pathParameters['tripId']!;
-                        final role = state.extra as String? ?? 'OWNER';
+                        final extra = _parseRouteExtra(state.extra);
                         return buildSlideTransitionPage<void>(
                           state: state,
-                          child: BudgetPage(tripId: tripId, role: role),
+                          child: BudgetPage(
+                            tripId: tripId,
+                            role: extra.$1,
+                            isCompleted: extra.$2,
+                          ),
                         );
                       },
                     ),
@@ -311,3 +327,14 @@ final GoRouter appRouter = GoRouter(
     ),
   ],
 );
+
+/// Parse route extra that can be either a String (role) or a Map with role + isCompleted.
+(String, bool) _parseRouteExtra(Object? extra) {
+  if (extra is Map<String, dynamic>) {
+    return (
+      extra['role'] as String? ?? 'OWNER',
+      extra['isCompleted'] as bool? ?? false,
+    );
+  }
+  return (extra as String? ?? 'OWNER', false);
+}

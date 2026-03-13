@@ -30,7 +30,6 @@ class TripUpdateRequest(BaseModel):
     destinationIata: str | None = None
     startDate: date | None = None
     endDate: date | None = None
-    status: str | None = None
     description: str | None = None
     destinationName: str | None = None
     nbTravelers: int | None = None

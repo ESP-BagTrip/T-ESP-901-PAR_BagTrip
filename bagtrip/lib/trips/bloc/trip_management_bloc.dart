@@ -73,7 +73,7 @@ class TripManagementBloc
   ) async {
     try {
       await _tripService.updateTripStatus(event.tripId, event.status);
-      add(LoadTrips());
+      add(LoadTripHome(tripId: event.tripId));
     } catch (e) {
       emit(TripManagementError(message: e.toString()));
     }

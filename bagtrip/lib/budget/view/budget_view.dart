@@ -10,8 +10,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class BudgetView extends StatelessWidget {
   final String tripId;
   final String role;
+  final bool isCompleted;
 
-  const BudgetView({super.key, required this.tripId, this.role = 'OWNER'});
+  const BudgetView({
+    super.key,
+    required this.tripId,
+    this.role = 'OWNER',
+    this.isCompleted = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +55,8 @@ class BudgetView extends StatelessWidget {
           }
           if (state is BudgetLoaded) {
             final isViewer = role == 'VIEWER';
-            if (state.items.isEmpty && !isViewer) {
+            final isReadOnly = isViewer || isCompleted;
+            if (state.items.isEmpty && !isReadOnly) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -115,11 +122,16 @@ class BudgetView extends StatelessWidget {
                 ...state.items.map(
                   (item) => BudgetItemCard(
                     item: item,
-                    onEdit: () => _showForm(context, tripId, item: item),
+                    onEdit:
+                        isReadOnly
+                            ? null
+                            : () => _showForm(context, tripId, item: item),
                     onDelete:
-                        () => context.read<BudgetBloc>().add(
-                          DeleteBudgetItem(tripId: tripId, itemId: item.id),
-                        ),
+                        isReadOnly
+                            ? null
+                            : () => context.read<BudgetBloc>().add(
+                              DeleteBudgetItem(tripId: tripId, itemId: item.id),
+                            ),
                   ),
                 ),
               ],
@@ -129,7 +141,7 @@ class BudgetView extends StatelessWidget {
         },
       ),
       floatingActionButton:
-          role != 'VIEWER'
+          role != 'VIEWER' && !isCompleted
               ? FloatingActionButton(
                 onPressed: () => _showForm(context, tripId),
                 child: const Icon(Icons.add),

@@ -35,7 +35,7 @@ async def create_baggage_item(
     try:
         baggage_item = BaggageItemsService.create_baggage_item(
             db=db,
-            trip_id=access.trip.id,
+            trip=access.trip,
             name=request.name,
             quantity=request.quantity,
             is_packed=request.isPacked,
@@ -84,7 +84,7 @@ async def update_baggage_item(
         baggage_item = BaggageItemsService.update_baggage_item(
             db=db,
             baggage_item_id=baggageItemId,
-            trip_id=access.trip.id,
+            trip=access.trip,
             name=request.name,
             quantity=request.quantity,
             is_packed=request.isPacked,
@@ -109,6 +109,6 @@ async def delete_baggage_item(
 ):
     """Supprimer un élément de bagage."""
     try:
-        BaggageItemsService.delete_baggage_item(db, baggageItemId, access.trip.id)
+        BaggageItemsService.delete_baggage_item(db, baggageItemId, access.trip)
     except AppError as e:
         raise create_http_exception(e) from e

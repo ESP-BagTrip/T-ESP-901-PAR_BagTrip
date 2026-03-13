@@ -4,6 +4,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from src.models.trip import Trip
 from src.models.trip_share import TripShare
 from src.models.user import User
 from src.utils.errors import AppError
@@ -13,8 +14,19 @@ class TripShareService:
     """Service pour les opérations CRUD sur les partages de trips."""
 
     @staticmethod
+    def _check_trip_not_completed(db: Session, trip_id: UUID) -> None:
+        trip = db.query(Trip).filter(Trip.id == trip_id).first()
+        if trip and trip.status == "COMPLETED":
+            raise AppError(
+                "TRIP_COMPLETED",
+                403,
+                "Cannot modify shares on a completed trip.",
+            )
+
+    @staticmethod
     def create_share(db: Session, trip_id: UUID, owner_user_id: UUID, email: str) -> dict:
         """Inviter un utilisateur par email à rejoindre un trip."""
+        TripShareService._check_trip_not_completed(db, trip_id)
         # Resolve user by email
         user = db.query(User).filter(User.email == email).first()
         if not user:
@@ -79,6 +91,7 @@ class TripShareService:
     @staticmethod
     def delete_share(db: Session, share_id: UUID, trip_id: UUID) -> None:
         """Révoquer un partage."""
+        TripShareService._check_trip_not_completed(db, trip_id)
         share = (
             db.query(TripShare)
             .filter(TripShare.id == share_id, TripShare.trip_id == trip_id)

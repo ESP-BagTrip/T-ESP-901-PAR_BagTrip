@@ -6,14 +6,24 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class ActivitiesPage extends StatelessWidget {
   final String tripId;
   final String role;
+  final bool isCompleted;
 
-  const ActivitiesPage({super.key, required this.tripId, this.role = 'OWNER'});
+  const ActivitiesPage({
+    super.key,
+    required this.tripId,
+    this.role = 'OWNER',
+    this.isCompleted = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => ActivityBloc()..add(LoadActivities(tripId: tripId)),
-      child: ActivitiesView(tripId: tripId, role: role),
+      child: ActivitiesView(
+        tripId: tripId,
+        role: role,
+        isCompleted: isCompleted,
+      ),
     );
   }
 }

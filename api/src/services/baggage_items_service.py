@@ -5,6 +5,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from src.models.baggage_item import BaggageItem
+from src.models.trip import Trip
 from src.utils.errors import AppError
 
 
@@ -12,9 +13,18 @@ class BaggageItemsService:
     """Service pour les opérations CRUD sur les baggage items."""
 
     @staticmethod
+    def _check_trip_not_completed(trip: Trip) -> None:
+        if trip.status == "COMPLETED":
+            raise AppError(
+                "TRIP_COMPLETED",
+                403,
+                "Cannot modify baggage items on a completed trip.",
+            )
+
+    @staticmethod
     def create_baggage_item(
         db: Session,
-        trip_id: UUID,
+        trip: Trip,
         name: str,
         quantity: int | None = None,
         is_packed: bool | None = None,
@@ -22,8 +32,9 @@ class BaggageItemsService:
         notes: str | None = None,
     ) -> BaggageItem:
         """Créer un nouvel élément de bagage (accès vérifié par la dependency)."""
+        BaggageItemsService._check_trip_not_completed(trip)
         baggage_item = BaggageItem(
-            trip_id=trip_id,
+            trip_id=trip.id,
             name=name,
             quantity=quantity,
             is_packed=is_packed,
@@ -55,7 +66,7 @@ class BaggageItemsService:
     def update_baggage_item(
         db: Session,
         baggage_item_id: UUID,
-        trip_id: UUID,
+        trip: Trip,
         name: str | None = None,
         quantity: int | None = None,
         is_packed: bool | None = None,
@@ -63,7 +74,8 @@ class BaggageItemsService:
         notes: str | None = None,
     ) -> BaggageItem:
         """Mettre à jour un élément de bagage (accès vérifié par la dependency)."""
-        baggage_item = BaggageItemsService.get_baggage_item_by_id(db, baggage_item_id, trip_id)
+        BaggageItemsService._check_trip_not_completed(trip)
+        baggage_item = BaggageItemsService.get_baggage_item_by_id(db, baggage_item_id, trip.id)
         if not baggage_item:
             raise AppError("BAGGAGE_ITEM_NOT_FOUND", 404, "Baggage item not found")
 
@@ -83,9 +95,10 @@ class BaggageItemsService:
         return baggage_item
 
     @staticmethod
-    def delete_baggage_item(db: Session, baggage_item_id: UUID, trip_id: UUID) -> None:
+    def delete_baggage_item(db: Session, baggage_item_id: UUID, trip: Trip) -> None:
         """Supprimer un élément de bagage (accès vérifié par la dependency)."""
-        baggage_item = BaggageItemsService.get_baggage_item_by_id(db, baggage_item_id, trip_id)
+        BaggageItemsService._check_trip_not_completed(trip)
+        baggage_item = BaggageItemsService.get_baggage_item_by_id(db, baggage_item_id, trip.id)
         if not baggage_item:
             raise AppError("BAGGAGE_ITEM_NOT_FOUND", 404, "Baggage item not found")
 

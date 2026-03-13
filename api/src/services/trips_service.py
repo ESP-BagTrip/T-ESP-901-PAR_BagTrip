@@ -87,7 +87,6 @@ class TripsService:
         destination_iata: str | None = None,
         start_date: str | None = None,
         end_date: str | None = None,
-        status: str | None = None,
         description: str | None = None,
         destination_name: str | None = None,
         nb_travelers: int | None = None,
@@ -95,6 +94,9 @@ class TripsService:
         budget_total: float | None = None,
     ) -> Trip:
         """Mettre à jour un trip (ownership déjà vérifiée par la dependency)."""
+        if trip.status == "COMPLETED":
+            raise AppError("TRIP_COMPLETED", 403, "Cannot modify a completed trip.")
+
         if title is not None:
             trip.title = title
         if origin_iata is not None:
@@ -105,8 +107,6 @@ class TripsService:
             trip.start_date = start_date
         if end_date is not None:
             trip.end_date = end_date
-        if status is not None:
-            trip.status = status
         if description is not None:
             trip.description = description
         if destination_name is not None:
@@ -159,6 +159,28 @@ class TripsService:
                 f"Cannot transition from '{current_status}' to '{new_status}'. "
                 f"Allowed transitions: {allowed}",
             )
+
+        # S11: validate required fields before DRAFT→PLANNED
+        if current_status == "DRAFT" and new_status == "PLANNED":
+            missing = []
+            if not trip.destination_iata and not trip.destination_name:
+                missing.append("destination")
+            if not trip.start_date:
+                missing.append("start_date")
+            if not trip.end_date:
+                missing.append("end_date")
+            if missing:
+                raise AppError(
+                    "TRIP_INCOMPLETE",
+                    400,
+                    f"Cannot plan trip: missing {', '.join(missing)}",
+                )
+            if trip.start_date and trip.end_date and trip.start_date > trip.end_date:
+                raise AppError(
+                    "INVALID_DATES",
+                    400,
+                    "start_date must be before or equal to end_date",
+                )
 
         trip.status = new_status
 

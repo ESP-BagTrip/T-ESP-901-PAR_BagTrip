@@ -12,6 +12,15 @@ class BudgetItemService:
     """Service for BudgetItem CRUD operations."""
 
     @staticmethod
+    def _check_trip_not_completed(trip: Trip) -> None:
+        if trip.status == "COMPLETED":
+            raise AppError(
+                "TRIP_COMPLETED",
+                403,
+                "Cannot modify budget items on a completed trip.",
+            )
+
+    @staticmethod
     def create(
         db: Session,
         trip: Trip,
@@ -21,6 +30,7 @@ class BudgetItemService:
         date: date | None = None,
         is_planned: bool = True,
     ) -> BudgetItem:
+        BudgetItemService._check_trip_not_completed(trip)
         item = BudgetItem(
             trip_id=trip.id,
             label=label,
@@ -73,6 +83,7 @@ class BudgetItemService:
         date: date | None = None,
         is_planned: bool | None = None,
     ) -> BudgetItem:
+        BudgetItemService._check_trip_not_completed(trip)
         item = BudgetItemService.get_by_id(db, item_id, trip.id)
 
         if label is not None:
@@ -92,6 +103,7 @@ class BudgetItemService:
 
     @staticmethod
     def delete(db: Session, trip: Trip, item_id: UUID) -> None:
+        BudgetItemService._check_trip_not_completed(trip)
         item = BudgetItemService.get_by_id(db, item_id, trip.id)
         db.delete(item)
         db.commit()

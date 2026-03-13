@@ -35,7 +35,7 @@ async def create_accommodation(
     try:
         accommodation = AccommodationsService.create_accommodation(
             db=db,
-            trip_id=access.trip.id,
+            trip=access.trip,
             name=request.name,
             address=request.address,
             check_in=request.checkIn,
@@ -92,7 +92,7 @@ async def update_accommodation(
         accommodation = AccommodationsService.update_accommodation(
             db=db,
             accommodation_id=accommodationId,
-            trip_id=access.trip.id,
+            trip=access.trip,
             name=request.name,
             address=request.address,
             check_in=request.checkIn,
@@ -121,6 +121,6 @@ async def delete_accommodation(
 ):
     """Supprimer un hébergement."""
     try:
-        AccommodationsService.delete_accommodation(db, accommodationId, access.trip.id)
+        AccommodationsService.delete_accommodation(db, accommodationId, access.trip)
     except AppError as e:
         raise create_http_exception(e) from e

@@ -10,8 +10,14 @@ import 'package:intl/intl.dart';
 class ActivitiesView extends StatelessWidget {
   final String tripId;
   final String role;
+  final bool isCompleted;
 
-  const ActivitiesView({super.key, required this.tripId, this.role = 'OWNER'});
+  const ActivitiesView({
+    super.key,
+    required this.tripId,
+    this.role = 'OWNER',
+    this.isCompleted = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +106,7 @@ class ActivitiesView extends StatelessWidget {
                     ...dayActivities.map(
                       (activity) => ActivityCard(
                         activity: activity,
-                        isViewer: role == 'VIEWER',
+                        isViewer: role == 'VIEWER' || isCompleted,
                         onEdit:
                             () =>
                                 _showForm(context, tripId, activity: activity),
@@ -122,7 +128,7 @@ class ActivitiesView extends StatelessWidget {
         },
       ),
       floatingActionButton:
-          role != 'VIEWER'
+          role != 'VIEWER' && !isCompleted
               ? FloatingActionButton(
                 onPressed: () => _showForm(context, tripId),
                 child: const Icon(Icons.add),

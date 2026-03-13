@@ -4,15 +4,15 @@ import 'package:intl/intl.dart';
 
 class BudgetItemCard extends StatelessWidget {
   final BudgetItem item;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
   final bool isViewer;
 
   const BudgetItemCard({
     super.key,
     required this.item,
-    required this.onEdit,
-    required this.onDelete,
+    this.onEdit,
+    this.onDelete,
     this.isViewer = false,
   });
 
@@ -75,12 +75,12 @@ class BudgetItemCard extends StatelessWidget {
           ],
         ),
         trailing:
-            isViewer
+            isViewer || (onEdit == null && onDelete == null)
                 ? null
                 : PopupMenuButton<String>(
                   onSelected: (value) {
-                    if (value == 'edit') onEdit();
-                    if (value == 'delete') onDelete();
+                    if (value == 'edit') onEdit?.call();
+                    if (value == 'delete') onDelete?.call();
                   },
                   itemBuilder:
                       (_) => const [

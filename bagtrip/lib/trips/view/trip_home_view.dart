@@ -1,3 +1,4 @@
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bagtrip/trips/widgets/trip_feature_tile.dart';
@@ -18,6 +19,14 @@ class TripHomeView extends StatelessWidget {
         listener: (context, state) {
           if (state is TripManagementLoaded || state is TripDeleted) {
             context.go('/trips');
+          }
+          if (state is TripManagementError) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
+            context.read<TripManagementBloc>().add(
+              LoadTripHome(tripId: tripId),
+            );
           }
         },
         builder: (context, state) {
@@ -56,6 +65,7 @@ class TripHomeView extends StatelessWidget {
             final trip = tripHome.trip;
             final stats = tripHome.stats;
             final isViewer = trip.role == 'VIEWER';
+            final isCompleted = trip.status == TripStatus.completed;
 
             return CustomScrollView(
               slivers: [
@@ -93,6 +103,33 @@ class TripHomeView extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (isCompleted)
+                  SliverToBoxAdapter(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.lock_outline, color: Colors.grey.shade600),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              AppLocalizations.of(
+                                context,
+                              )!.tripCompletedReadOnly,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -136,7 +173,10 @@ class TripHomeView extends StatelessWidget {
                                     feature.enabled
                                         ? () => context.go(
                                           '/trips/$tripId/${feature.route}',
-                                          extra: trip.role,
+                                          extra: {
+                                            'role': trip.role,
+                                            'isCompleted': isCompleted,
+                                          },
                                         )
                                         : null,
                               ),
@@ -144,6 +184,27 @@ class TripHomeView extends StatelessWidget {
                             .toList(),
                   ),
                 ),
+                if (trip.status == TripStatus.draft && !isViewer)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 8,
+                      ),
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          context.read<TripManagementBloc>().add(
+                            UpdateTripStatus(tripId: tripId, status: 'PLANNED'),
+                          );
+                        },
+                        icon: const Icon(Icons.check_circle),
+                        label: Text(AppLocalizations.of(context)!.markAsReady),
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
+                    ),
+                  ),
                 if (trip.status == TripStatus.ongoing && !isViewer)
                   SliverToBoxAdapter(
                     child: Padding(
@@ -165,7 +226,7 @@ class TripHomeView extends StatelessWidget {
                       ),
                     ),
                   ),
-                if (trip.status == TripStatus.completed)
+                if (isCompleted)
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(

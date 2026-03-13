@@ -1945,6 +1945,222 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{amount} budget'**
   String summaryBudgetAmount(String amount);
+
+  /// No description provided for @activities.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activités'**
+  String get activities;
+
+  /// No description provided for @addActivity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une activité'**
+  String get addActivity;
+
+  /// No description provided for @editActivity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier l’activité'**
+  String get editActivity;
+
+  /// No description provided for @noActivities.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune activité'**
+  String get noActivities;
+
+  /// No description provided for @activityTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Titre'**
+  String get activityTitle;
+
+  /// No description provided for @activityDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date'**
+  String get activityDate;
+
+  /// No description provided for @activityDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Description'**
+  String get activityDescription;
+
+  /// No description provided for @activityStartTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heure de début'**
+  String get activityStartTime;
+
+  /// No description provided for @activityEndTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heure de fin'**
+  String get activityEndTime;
+
+  /// No description provided for @activityLocation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lieu'**
+  String get activityLocation;
+
+  /// No description provided for @activityCategory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Catégorie'**
+  String get activityCategory;
+
+  /// No description provided for @activityEstimatedCost.
+  ///
+  /// In fr, this message translates to:
+  /// **'Coût estimé'**
+  String get activityEstimatedCost;
+
+  /// No description provided for @activityBooked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réservé'**
+  String get activityBooked;
+
+  /// No description provided for @categoryVisit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Visite'**
+  String get categoryVisit;
+
+  /// No description provided for @categoryRestaurant.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurant'**
+  String get categoryRestaurant;
+
+  /// No description provided for @categoryTransport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transport'**
+  String get categoryTransport;
+
+  /// No description provided for @categoryLeisure.
+  ///
+  /// In fr, this message translates to:
+  /// **'Loisir'**
+  String get categoryLeisure;
+
+  /// No description provided for @categoryOther.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autre'**
+  String get categoryOther;
+
+  /// No description provided for @budgetItems.
+  ///
+  /// In fr, this message translates to:
+  /// **'Budget'**
+  String get budgetItems;
+
+  /// No description provided for @editExpense.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier la dépense'**
+  String get editExpense;
+
+  /// No description provided for @noExpenses.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune dépense'**
+  String get noExpenses;
+
+  /// No description provided for @expenseLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Libellé'**
+  String get expenseLabel;
+
+  /// No description provided for @expenseAmount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant'**
+  String get expenseAmount;
+
+  /// No description provided for @expenseCategory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Catégorie'**
+  String get expenseCategory;
+
+  /// No description provided for @expenseDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date'**
+  String get expenseDate;
+
+  /// No description provided for @expensePlanned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planifié'**
+  String get expensePlanned;
+
+  /// No description provided for @expenseReal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réel'**
+  String get expenseReal;
+
+  /// No description provided for @budgetTotal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Budget total'**
+  String get budgetTotal;
+
+  /// No description provided for @budgetSpent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dépensé'**
+  String get budgetSpent;
+
+  /// No description provided for @budgetRemaining.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restant'**
+  String get budgetRemaining;
+
+  /// No description provided for @categoryFlight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vol'**
+  String get categoryFlight;
+
+  /// No description provided for @categoryAccommodation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hébergement'**
+  String get categoryAccommodation;
+
+  /// No description provided for @categoryFood.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nourriture'**
+  String get categoryFood;
+
+  /// No description provided for @categoryActivity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activité'**
+  String get categoryActivity;
+
+  /// No description provided for @markAsReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as ready'**
+  String get markAsReady;
+
+  /// No description provided for @tripCompletedReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'This trip is completed. No modifications allowed.'**
+  String get tripCompletedReadOnly;
 }
 
 class _AppLocalizationsDelegate

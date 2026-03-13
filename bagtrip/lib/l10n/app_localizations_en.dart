@@ -1001,4 +1001,113 @@ class AppLocalizationsEn extends AppLocalizations {
   String summaryBudgetAmount(String amount) {
     return '$amount budget';
   }
+
+  @override
+  String get activities => 'Activities';
+
+  @override
+  String get addActivity => 'Add Activity';
+
+  @override
+  String get editActivity => 'Edit Activity';
+
+  @override
+  String get noActivities => 'No activities yet';
+
+  @override
+  String get activityTitle => 'Title';
+
+  @override
+  String get activityDate => 'Date';
+
+  @override
+  String get activityDescription => 'Description';
+
+  @override
+  String get activityStartTime => 'Start time';
+
+  @override
+  String get activityEndTime => 'End time';
+
+  @override
+  String get activityLocation => 'Location';
+
+  @override
+  String get activityCategory => 'Category';
+
+  @override
+  String get activityEstimatedCost => 'Estimated cost';
+
+  @override
+  String get activityBooked => 'Booked';
+
+  @override
+  String get categoryVisit => 'Visit';
+
+  @override
+  String get categoryRestaurant => 'Restaurant';
+
+  @override
+  String get categoryTransport => 'Transport';
+
+  @override
+  String get categoryLeisure => 'Leisure';
+
+  @override
+  String get categoryOther => 'Other';
+
+  @override
+  String get budgetItems => 'Budget';
+
+  @override
+  String get editExpense => 'Edit expense';
+
+  @override
+  String get noExpenses => 'No expenses yet';
+
+  @override
+  String get expenseLabel => 'Label';
+
+  @override
+  String get expenseAmount => 'Amount';
+
+  @override
+  String get expenseCategory => 'Category';
+
+  @override
+  String get expenseDate => 'Date';
+
+  @override
+  String get expensePlanned => 'Planned';
+
+  @override
+  String get expenseReal => 'Real';
+
+  @override
+  String get budgetTotal => 'Total budget';
+
+  @override
+  String get budgetSpent => 'Spent';
+
+  @override
+  String get budgetRemaining => 'Remaining';
+
+  @override
+  String get categoryFlight => 'Flight';
+
+  @override
+  String get categoryAccommodation => 'Accommodation';
+
+  @override
+  String get categoryFood => 'Food';
+
+  @override
+  String get categoryActivity => 'Activity';
+
+  @override
+  String get markAsReady => 'Mark as ready';
+
+  @override
+  String get tripCompletedReadOnly =>
+      'This trip is completed. No modifications allowed.';
 }
