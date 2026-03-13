@@ -15,7 +15,7 @@ class StripeProductsService:
     @staticmethod
     def initialize_products() -> dict[str, str]:
         """
-        Initialise les produits Stripe (flight et hotel) si ils n'existent pas.
+        Initialise les produits Stripe (flight) si ils n'existent pas.
         Retourne un dictionnaire avec les product IDs.
         """
         if not settings.STRIPE_SECRET_KEY:
@@ -30,16 +30,8 @@ class StripeProductsService:
                 metadata={"type": "flight"},
             )
 
-            # Rechercher ou créer le produit Hotel
-            hotel_product_id = StripeProductsService._get_or_create_product(
-                name="Hotel Booking",
-                description="Hotel booking service",
-                metadata={"type": "hotel"},
-            )
-
             product_ids = {
                 "flight": flight_product_id,
-                "hotel": hotel_product_id,
             }
 
             # Mettre à jour le cache global

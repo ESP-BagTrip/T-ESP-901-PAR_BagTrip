@@ -35,7 +35,6 @@ async def create_booking_intent(
             user_id=access.trip.user_id,
             type=request.type,
             flight_offer_id=request.flightOfferId,
-            hotel_offer_id=request.hotelOfferId,
         )
 
         return BookingIntentResponse(

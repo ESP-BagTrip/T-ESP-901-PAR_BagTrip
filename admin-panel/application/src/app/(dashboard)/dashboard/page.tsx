@@ -3,11 +3,8 @@
 import { DataTable } from '@/components/DataTable'
 import {
   bookingIntentsColumns,
-  conversationsColumns,
   flightBookingsColumns,
   flightSearchesColumns,
-  hotelBookingsColumns,
-  hotelSearchesColumns,
   profilesColumns,
   travelersColumns,
   tripsColumns,
@@ -15,11 +12,8 @@ import {
 import { useAuth } from '@/hooks'
 import {
   useAdminBookingIntents,
-  useAdminConversations,
   useAdminFlightBookings,
   useAdminFlightSearches,
-  useAdminHotelBookings,
-  useAdminHotelSearches,
   useAdminTravelerProfiles,
   useAdminTravelers,
   useAdminTrips,
@@ -71,13 +65,10 @@ type TabType =
   | 'users'
   | 'trips'
   | 'travelers'
-  | 'hotels'
   | 'flights'
   | 'profiles'
   | 'bookingIntents'
-  | 'conversations'
   | 'flightSearches'
-  | 'hotelSearches'
 
 export default function DashboardPage() {
   const { user, logout } = useAuth()
@@ -85,13 +76,10 @@ export default function DashboardPage() {
   const [usersPage, setUsersPage] = useState(1)
   const [tripsPage, setTripsPage] = useState(1)
   const [travelersPage, setTravelersPage] = useState(1)
-  const [hotelsPage, setHotelsPage] = useState(1)
   const [flightsPage, setFlightsPage] = useState(1)
   const [profilesPage, setProfilesPage] = useState(1)
   const [bookingIntentsPage, setBookingIntentsPage] = useState(1)
-  const [conversationsPage, setConversationsPage] = useState(1)
   const [flightSearchesPage, setFlightSearchesPage] = useState(1)
-  const [hotelSearchesPage, setHotelSearchesPage] = useState(1)
 
   // Users query
   const { data: usersData, isLoading: usersLoading } = useQuery({
@@ -114,11 +102,6 @@ export default function DashboardPage() {
     limit: PAGINATION_DEFAULTS.LIMIT,
   })
 
-  const { data: hotelsData, isLoading: hotelsLoading } = useAdminHotelBookings({
-    page: hotelsPage,
-    limit: PAGINATION_DEFAULTS.LIMIT,
-  })
-
   const { data: flightsData, isLoading: flightsLoading } = useAdminFlightBookings({
     page: flightsPage,
     limit: PAGINATION_DEFAULTS.LIMIT,
@@ -134,18 +117,8 @@ export default function DashboardPage() {
     limit: PAGINATION_DEFAULTS.LIMIT,
   })
 
-  const { data: conversationsData, isLoading: conversationsLoading } = useAdminConversations({
-    page: conversationsPage,
-    limit: PAGINATION_DEFAULTS.LIMIT,
-  })
-
   const { data: flightSearchesData, isLoading: flightSearchesLoading } = useAdminFlightSearches({
     page: flightSearchesPage,
-    limit: PAGINATION_DEFAULTS.LIMIT,
-  })
-
-  const { data: hotelSearchesData, isLoading: hotelSearchesLoading } = useAdminHotelSearches({
-    page: hotelSearchesPage,
     limit: PAGINATION_DEFAULTS.LIMIT,
   })
 
@@ -163,18 +136,11 @@ export default function DashboardPage() {
     { id: 'profiles' as TabType, name: 'Profils Voyageurs', count: profilesData?.total },
     { id: 'travelers' as TabType, name: 'Voyageurs', count: travelersData?.total },
     { id: 'bookingIntents' as TabType, name: 'Booking Intents', count: bookingIntentsData?.total },
-    { id: 'hotels' as TabType, name: 'Rés. Hôtels', count: hotelsData?.total },
     { id: 'flights' as TabType, name: 'Rés. Vols', count: flightsData?.total },
-    { id: 'conversations' as TabType, name: 'Conversations', count: conversationsData?.total },
     {
       id: 'flightSearches' as TabType,
       name: 'Rech. Vols',
       count: flightSearchesData?.total,
-    },
-    {
-      id: 'hotelSearches' as TabType,
-      name: 'Rech. Hôtels',
-      count: hotelSearchesData?.total,
     },
   ]
 
@@ -345,27 +311,6 @@ export default function DashboardPage() {
               />
             )}
 
-            {activeTab === 'hotels' && (
-              <DataTable
-                data={hotelsData?.items || []}
-                columns={hotelBookingsColumns}
-                isLoading={hotelsLoading}
-                pagination={
-                  hotelsData
-                    ? {
-                        page: hotelsData.page,
-                        limit: hotelsData.limit,
-                        total: hotelsData.total,
-                        total_pages: hotelsData.total_pages,
-                      }
-                    : undefined
-                }
-                onPaginationChange={(page) => {
-                  setHotelsPage(page)
-                }}
-              />
-            )}
-
             {activeTab === 'flights' && (
               <DataTable
                 data={flightsData?.items || []}
@@ -387,27 +332,6 @@ export default function DashboardPage() {
               />
             )}
 
-            {activeTab === 'conversations' && (
-              <DataTable
-                data={conversationsData?.items || []}
-                columns={conversationsColumns}
-                isLoading={conversationsLoading}
-                pagination={
-                  conversationsData
-                    ? {
-                        page: conversationsData.page,
-                        limit: conversationsData.limit,
-                        total: conversationsData.total,
-                        total_pages: conversationsData.total_pages,
-                      }
-                    : undefined
-                }
-                onPaginationChange={(page) => {
-                  setConversationsPage(page)
-                }}
-              />
-            )}
-
             {activeTab === 'flightSearches' && (
               <DataTable
                 data={flightSearchesData?.items || []}
@@ -425,27 +349,6 @@ export default function DashboardPage() {
                 }
                 onPaginationChange={(page) => {
                   setFlightSearchesPage(page)
-                }}
-              />
-            )}
-
-            {activeTab === 'hotelSearches' && (
-              <DataTable
-                data={hotelSearchesData?.items || []}
-                columns={hotelSearchesColumns}
-                isLoading={hotelSearchesLoading}
-                pagination={
-                  hotelSearchesData
-                    ? {
-                        page: hotelSearchesData.page,
-                        limit: hotelSearchesData.limit,
-                        total: hotelSearchesData.total,
-                        total_pages: hotelSearchesData.total_pages,
-                      }
-                    : undefined
-                }
-                onPaginationChange={(page) => {
-                  setHotelSearchesPage(page)
                 }}
               />
             )}

@@ -2,11 +2,8 @@ import { apiClient } from '@/lib/axios'
 import { API_ENDPOINTS } from '@/utils/constants'
 import type {
   AdminBookingIntent,
-  AdminConversation,
   AdminFlightBooking,
   AdminFlightSearch,
-  AdminHotelBooking,
-  AdminHotelSearch,
   AdminListResponse,
   AdminTrip,
   AdminTraveler,
@@ -25,14 +22,6 @@ export const adminService = {
   async getAllTravelers(params?: QueryParams): Promise<AdminListResponse<AdminTraveler>> {
     const response = await apiClient.get<AdminListResponse<AdminTraveler>>(
       API_ENDPOINTS.ADMIN.TRAVELERS,
-      { params }
-    )
-    return response.data
-  },
-
-  async getAllHotelBookings(params?: QueryParams): Promise<AdminListResponse<AdminHotelBooking>> {
-    const response = await apiClient.get<AdminListResponse<AdminHotelBooking>>(
-      API_ENDPOINTS.ADMIN.HOTEL_BOOKINGS,
       { params }
     )
     return response.data
@@ -66,31 +55,11 @@ export const adminService = {
     return response.data
   },
 
-  async getAllConversations(
-    params?: QueryParams
-  ): Promise<AdminListResponse<AdminConversation>> {
-    const response = await apiClient.get<AdminListResponse<AdminConversation>>(
-      API_ENDPOINTS.ADMIN.CONVERSATIONS,
-      { params }
-    )
-    return response.data
-  },
-
   async getAllFlightSearches(
     params?: QueryParams
   ): Promise<AdminListResponse<AdminFlightSearch>> {
     const response = await apiClient.get<AdminListResponse<AdminFlightSearch>>(
       API_ENDPOINTS.ADMIN.FLIGHT_SEARCHES,
-      { params }
-    )
-    return response.data
-  },
-
-  async getAllHotelSearches(
-    params?: QueryParams
-  ): Promise<AdminListResponse<AdminHotelSearch>> {
-    const response = await apiClient.get<AdminListResponse<AdminHotelSearch>>(
-      API_ENDPOINTS.ADMIN.HOTEL_SEARCHES,
       { params }
     )
     return response.data

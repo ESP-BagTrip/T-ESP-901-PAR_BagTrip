@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session
 from src.integrations.stripe.client import StripeClient
 from src.models.booking_intent import BookingIntent
 from src.models.flight_offer import FlightOffer
-from src.models.hotel_offer import HotelOffer
 from src.models.user import User
 from src.services.stripe_products_service import StripeProductsService
 from src.utils.errors import AppError
@@ -243,7 +242,7 @@ class StripePaymentsService:
     @staticmethod
     def _get_offer_details(db: Session, booking_intent: BookingIntent) -> dict:
         """
-        Récupère les détails de l'offre (flight ou hotel) pour les inclure dans metadata et description.
+        Récupère les détails de l'offre pour les inclure dans metadata et description.
         """
         if not booking_intent.selected_offer_id or not booking_intent.selected_offer_type:
             return {
@@ -305,44 +304,6 @@ class StripePaymentsService:
                             )
                             if len(offer_summary) <= 200:
                                 details["metadata"]["offer_summary"] = offer_summary
-
-            elif (
-                booking_intent.type == "hotel"
-                and booking_intent.selected_offer_type == "hotel_offer"
-            ):
-                hotel_offer = (
-                    db.query(HotelOffer)
-                    .filter(HotelOffer.id == booking_intent.selected_offer_id)
-                    .first()
-                )
-                if hotel_offer and hotel_offer.offer_json:
-                    offer_json = hotel_offer.offer_json
-                    if isinstance(offer_json, dict):
-                        # Extraire les informations d'hôtel
-                        hotel = offer_json.get("hotel", {})
-                        hotel_name = hotel.get("name", "Hotel")
-                        hotel_id = hotel.get("hotelId", "")
-                        chain_code = hotel_offer.chain_code or ""
-                        room_type = hotel_offer.room_type or ""
-
-                        details["description"] = f"Hotel: {hotel_name}"
-                        details["metadata"] = {
-                            "hotel_name": hotel_name,
-                            "hotel_id": hotel_id,
-                            "chain_code": chain_code,
-                            "room_type": room_type,
-                            "hotel_offer_id": str(hotel_offer.id),
-                            "offer_id": hotel_offer.offer_id or "",
-                        }
-                        # Ajouter les détails complets en JSON (limité pour Stripe)
-                        offer_summary = json.dumps(
-                            {
-                                "hotel_name": hotel_name,
-                                "chain_code": chain_code,
-                            }
-                        )
-                        if len(offer_summary) <= 200:
-                            details["metadata"]["offer_summary"] = offer_summary
 
         except Exception:
             # En cas d'erreur, continuer avec les détails de base

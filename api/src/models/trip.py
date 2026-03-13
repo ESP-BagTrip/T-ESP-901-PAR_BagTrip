@@ -43,13 +43,7 @@ class Trip(Base):
     flight_searches = relationship(
         "FlightSearch", back_populates="trip", cascade="all, delete-orphan"
     )
-    hotel_searches = relationship(
-        "HotelSearch", back_populates="trip", cascade="all, delete-orphan"
-    )
     booking_intents = relationship(
         "BookingIntent", back_populates="trip", cascade="all, delete-orphan"
-    )
-    conversations = relationship(
-        "Conversation", back_populates="trip", cascade="all, delete-orphan"
     )
     shares = relationship("TripShare", back_populates="trip", cascade="all, delete-orphan")

@@ -10,13 +10,8 @@ import 'package:intl/intl.dart';
 
 class TravelersPage extends StatefulWidget {
   final String tripId;
-  final String conversationId;
 
-  const TravelersPage({
-    super.key,
-    required this.tripId,
-    required this.conversationId,
-  });
+  const TravelersPage({super.key, required this.tripId});
 
   @override
   State<TravelersPage> createState() => _TravelersPageState();
@@ -177,11 +172,9 @@ class _TravelersPageState extends State<TravelersPage> {
       return;
     }
 
-    // Navigation vers ChatPage via router
+    // Navigation vers TripHomePage
     if (mounted) {
-      context.go(
-        '/chat?tripId=${widget.tripId}&conversationId=${widget.conversationId}',
-      );
+      context.go('/trips/${widget.tripId}');
     }
   }
 

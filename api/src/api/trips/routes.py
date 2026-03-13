@@ -17,7 +17,6 @@ from src.api.trips.schemas import (
 )
 from src.config.database import get_db
 from src.models.flight_order import FlightOrder
-from src.models.hotel_booking import HotelBooking
 from src.models.user import User
 from src.services.trips_service import TripsService
 from src.utils.errors import AppError, create_http_exception
@@ -129,7 +128,6 @@ async def get_trip(
         trip = access.trip
 
         flight_order = db.query(FlightOrder).filter(FlightOrder.trip_id == trip.id).first()
-        hotel_booking = db.query(HotelBooking).filter(HotelBooking.trip_id == trip.id).first()
 
         flight_order_dict = None
         if flight_order:
@@ -139,21 +137,12 @@ async def get_trip(
                 "status": flight_order.status,
             }
 
-        hotel_booking_dict = None
-        if hotel_booking:
-            hotel_booking_dict = {
-                "id": str(hotel_booking.id),
-                "amadeusBookingId": hotel_booking.amadeus_booking_id,
-                "status": hotel_booking.status,
-            }
-
         trip_resp = TripResponse.model_validate(trip)
         trip_resp.role = access.role.value
 
         return TripDetailResponse(
             trip=trip_resp,
             flightOrder=flight_order_dict,
-            hotelBooking=hotel_booking_dict,
         )
     except AppError as e:
         raise create_http_exception(e) from e

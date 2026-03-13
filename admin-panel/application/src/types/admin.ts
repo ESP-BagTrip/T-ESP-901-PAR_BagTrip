@@ -29,20 +29,6 @@ export interface AdminTraveler {
   updated_at: string
 }
 
-export interface AdminHotelBooking {
-  id: string
-  trip_id: string
-  trip_title: string | null
-  user_email: string
-  hotel_offer_id: string
-  hotel_id: string | null
-  booking_intent_id: string | null
-  amadeus_booking_id: string | null
-  status: string | null
-  created_at: string
-  updated_at: string
-}
-
 export interface AdminFlightBooking {
   id: string
   trip_id: string
@@ -85,18 +71,6 @@ export interface AdminBookingIntent {
   updated_at: string
 }
 
-export interface AdminConversation {
-  id: string
-  user_id: string
-  user_email: string
-  trip_id: string
-  trip_title: string | null
-  title: string | null
-  message_count: number
-  created_at: string
-  updated_at: string
-}
-
 export interface AdminFlightSearch {
   id: string
   trip_id: string
@@ -108,18 +82,6 @@ export interface AdminFlightSearch {
   adults: number
   children: number | null
   travel_class: string | null
-  created_at: string
-}
-
-export interface AdminHotelSearch {
-  id: string
-  trip_id: string
-  trip_title: string | null
-  city_code: string | null
-  check_in: string
-  check_out: string
-  adults: number
-  room_qty: number
   created_at: string
 }
 

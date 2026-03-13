@@ -5,7 +5,7 @@ export * from './dashboard'
 export * from './trips'
 export * from './travelers'
 export * from './flights'
-export * from './hotels'
+
 export * from './booking-intents'
 export * from './payments'
 export * from './admin'

@@ -75,7 +75,6 @@ class TripDetailResponse(BaseModel):
 
     trip: TripResponse
     flightOrder: dict | None = None
-    hotelBooking: dict | None = None
 
 
 class TripStatusUpdateRequest(BaseModel):

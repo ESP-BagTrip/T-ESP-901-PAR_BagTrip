@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session
 
 from src.models.booking_intent import BookingIntent
 from src.models.flight_offer import FlightOffer
-from src.models.hotel_offer import HotelOffer
 from src.utils.errors import AppError
 
 
@@ -19,9 +18,8 @@ class BookingIntentsService:
         db: Session,
         trip_id: UUID,
         user_id: UUID,
-        type: str,  # flight | hotel
+        type: str,  # flight
         flight_offer_id: UUID | None = None,
-        hotel_offer_id: UUID | None = None,
     ) -> BookingIntent:
         """
         Créer un booking intent selon PLAN.md.
@@ -70,30 +68,9 @@ class BookingIntentsService:
             selected_offer_type = "flight_offer"
             selected_offer_id = flight_offer_id
 
-        elif type == "hotel":
-            if not hotel_offer_id:
-                raise AppError("INVALID_REQUEST", 400, "hotelOfferId is required for hotel type")
-
-            offer = (
-                db.query(HotelOffer)
-                .filter(
-                    HotelOffer.id == hotel_offer_id,
-                    HotelOffer.trip_id == trip_id,
-                )
-                .first()
-            )
-
-            if not offer:
-                raise AppError("OFFER_NOT_FOUND", 404, "Hotel offer not found")
-
-            amount = Decimal(str(offer.total_price or 0))
-            currency = offer.currency or "EUR"
-            selected_offer_type = "hotel_offer"
-            selected_offer_id = hotel_offer_id
-
         else:
             raise AppError(
-                "INVALID_REQUEST", 400, f"Invalid type: {type}. Must be 'flight' or 'hotel'"
+                "INVALID_REQUEST", 400, f"Invalid type: {type}. Must be 'flight'"
             )
 
         # Créer le booking intent

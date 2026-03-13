@@ -25,7 +25,6 @@ export interface TripListResponse {
 export interface TripDetailResponse {
   trip: Trip
   flightOrder: Record<string, unknown> | null
-  hotelBooking: Record<string, unknown> | null
 }
 
 export interface Traveler {
@@ -91,41 +90,6 @@ export interface FlightSearchCreateRequest {
   nonStop?: boolean
 }
 
-export interface HotelOfferSummary {
-  id: string
-  hotelId: string | null
-  offerId: string | null
-  totalPrice: number | null
-  currency: string | null
-}
-
-export interface HotelSearchResponse {
-  searchId: string
-  offers: HotelOfferSummary[]
-}
-
-export interface HotelOfferDetail {
-  id: string
-  hotelId: string | null
-  offerId: string | null
-  chainCode: string | null
-  roomType: string | null
-  currency: string | null
-  totalPrice: number | null
-  offer: Record<string, unknown>
-}
-
-export interface HotelSearchCreateRequest {
-  cityCode?: string
-  latitude?: number
-  longitude?: number
-  checkIn: string
-  checkOut: string
-  adults: number
-  roomQty: number
-  currency?: string
-}
-
 export interface BookingIntent {
   id: string
   type: string
@@ -136,19 +100,13 @@ export interface BookingIntent {
 }
 
 export interface BookingIntentCreateRequest {
-  type: 'flight' | 'hotel'
+  type: 'flight'
   flightOfferId?: string
-  hotelOfferId?: string
 }
 
 export interface BookingIntentBookRequestFlight {
   travelerIds: string[]
   contacts: Array<Record<string, unknown>>
-}
-
-export interface BookingIntentBookRequestHotel {
-  guests: Array<Record<string, unknown>>
-  roomAssociations?: Array<Record<string, unknown>>
 }
 
 export interface BookingIntentBookResponse {

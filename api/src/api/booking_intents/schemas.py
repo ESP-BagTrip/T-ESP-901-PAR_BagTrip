@@ -8,9 +8,8 @@ from pydantic import BaseModel
 class BookingIntentCreateRequest(BaseModel):
     """Requête de création de booking intent selon PLAN.md."""
 
-    type: str  # flight | hotel
+    type: str  # flight
     flightOfferId: UUID | None = None
-    hotelOfferId: UUID | None = None
 
 
 class BookingIntentResponse(BaseModel):
@@ -29,13 +28,6 @@ class BookingIntentBookRequestFlight(BaseModel):
 
     travelerIds: list[UUID]
     contacts: list[dict]
-
-
-class BookingIntentBookRequestHotel(BaseModel):
-    """Requête de booking pour un hôtel selon PLAN.md."""
-
-    guests: list[dict]
-    roomAssociations: list[dict] | None = None
 
 
 class BookingIntentBookResponse(BaseModel):

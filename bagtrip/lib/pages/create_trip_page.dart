@@ -2,10 +2,9 @@ import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/pages/travelers_page.dart';
-import 'package:bagtrip/service/conversation_service.dart';
 import 'package:bagtrip/service/trip_service.dart';
 import 'package:bagtrip/utils/error_display.dart';
+import 'package:go_router/go_router.dart';
 
 class CreateTripPage extends StatefulWidget {
   const CreateTripPage({super.key});
@@ -21,7 +20,6 @@ class _CreateTripPageState extends State<CreateTripPage> {
   final _destinationController = TextEditingController();
   final _nbTravelersController = TextEditingController(text: '1');
   final _tripService = TripService();
-  final _conversationService = ConversationService();
   bool _isLoading = false;
   DateTimeRange? _dateRange;
 
@@ -80,27 +78,8 @@ class _CreateTripPageState extends State<CreateTripPage> {
         endDate: _dateRange?.end,
       );
 
-      if (!mounted) return;
-      final localizations = AppLocalizations.of(context)!;
-      final conversationTitle = localizations.planningTitle(
-        trip.title ?? 'Voyage',
-      );
-
-      final conversation = await _conversationService.createConversation(
-        trip.id,
-        title: conversationTitle,
-      );
-
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder:
-                (_) => TravelersPage(
-                  tripId: trip.id,
-                  conversationId: conversation.id,
-                ),
-          ),
-        );
+        context.go('/trips/${trip.id}');
       }
     } catch (e) {
       setState(() {

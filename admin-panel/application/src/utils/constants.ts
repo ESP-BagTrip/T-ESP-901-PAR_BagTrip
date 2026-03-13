@@ -25,7 +25,6 @@ export const API_ENDPOINTS = {
     BY_ID: (tripId: string) => `/v1/trips/${tripId}`,
     TRAVELERS: (tripId: string) => `/v1/trips/${tripId}/travelers`,
     FLIGHT_SEARCHES: (tripId: string) => `/v1/trips/${tripId}/flights/searches`,
-    HOTEL_SEARCHES: (tripId: string) => `/v1/trips/${tripId}/hotels/searches`,
     BOOKING_INTENTS: (tripId: string) => `/v1/trips/${tripId}/booking-intents`,
   },
   BOOKING_INTENTS: {
@@ -44,13 +43,10 @@ export const API_ENDPOINTS = {
   ADMIN: {
     TRIPS: '/admin/trips',
     TRAVELERS: '/admin/travelers',
-    HOTEL_BOOKINGS: '/admin/hotel-bookings',
     FLIGHT_BOOKINGS: '/admin/flight-bookings',
     TRAVELER_PROFILES: '/admin/traveler-profiles',
     BOOKING_INTENTS: '/admin/booking-intents',
-    CONVERSATIONS: '/admin/conversations',
     FLIGHT_SEARCHES: '/admin/flight-searches',
-    HOTEL_SEARCHES: '/admin/hotel-searches',
   },
   USERS: '/admin/users',
   FEEDBACKS: '/admin/feedbacks',

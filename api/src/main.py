@@ -8,22 +8,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from src.api.admin.routes import router as admin_router
-from src.api.agent.routes import router as agent_router
 from src.api.auth.routes import router as auth_router
 from src.api.booking.routes import router as booking_router
 from src.api.booking_intents.book_routes import router as booking_intents_book_router
 from src.api.booking_intents.routes import router as booking_intents_router
-from src.api.conversations.routes import (
-    detail_router as conversations_detail_router,
-)
-from src.api.conversations.routes import (
-    router as conversations_router,
-)
 from src.api.flights.offers.routes import router as flight_offers_router
 from src.api.flights.searches.routes import router as flight_searches_router
-from src.api.hotels.offers.routes import router as hotel_offers_router
-from src.api.hotels.searches.routes import router as hotel_searches_router
-from src.api.messages.routes import router as messages_router
 from src.api.payments.routes import router as payments_router
 from src.api.profile.routes import router as profile_router
 from src.api.stripe.webhooks.routes import router as stripe_webhooks_router
@@ -94,13 +84,8 @@ app.include_router(auth_router)  # Déjà préfixé avec /v1/auth
 app.include_router(admin_router)  # Préfixé avec /admin
 app.include_router(trips_router)  # Déjà préfixé avec /v1/trips
 app.include_router(travelers_router)  # Déjà préfixé avec /v1/trips
-app.include_router(conversations_router)  # Préfixé avec /v1/trips/{tripId}/conversations
-app.include_router(conversations_detail_router)  # Préfixé avec /v1/conversations
-app.include_router(messages_router)  # Préfixé avec /v1/conversations/{conversationId}/messages
 app.include_router(flight_searches_router)  # Déjà préfixé avec /v1/trips
 app.include_router(flight_offers_router)  # Déjà préfixé avec /v1/trips
-app.include_router(hotel_searches_router)  # Déjà préfixé avec /v1/trips
-app.include_router(hotel_offers_router)  # Déjà préfixé avec /v1/trips
 app.include_router(booking_intents_router)  # Déjà préfixé avec /v1/trips
 app.include_router(booking_intents_book_router)  # Déjà préfixé avec /v1/booking-intents
 app.include_router(payments_router)  # Déjà préfixé avec /v1/booking-intents
@@ -108,7 +93,6 @@ app.include_router(stripe_webhooks_router)  # Déjà préfixé avec /v1/stripe
 
 # Routes utilitaires
 app.include_router(travel_router)  # Déjà préfixé avec /v1/travel (locations, inspirations)
-app.include_router(agent_router)  # Déjà préfixé avec /v1/agent
 
 # Routes dépréciées (ancien pattern, remplacé par booking_intents)
 # Conservées pour compatibilité mais marquées comme deprecated

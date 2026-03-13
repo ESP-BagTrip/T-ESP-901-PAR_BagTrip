@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 from src.api.auth.middleware import get_current_user
 from src.api.booking_intents.schemas import (
     BookingIntentBookRequestFlight,
-    BookingIntentBookRequestHotel,
     BookingIntentBookResponse,
     BookingIntentResponse,
 )
@@ -59,11 +58,11 @@ async def get_booking_intent(
     "/{intentId}/book",
     response_model=BookingIntentBookResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Book flight or hotel",
-    description="Book a flight or hotel through Amadeus (requires AUTHORIZED status)",
+    summary="Book flight",
+    description="Book a flight through Amadeus (requires AUTHORIZED status)",
 )
 async def book(
-    request: BookingIntentBookRequestFlight | BookingIntentBookRequestHotel,
+    request: BookingIntentBookRequestFlight,
     intentId: UUID = Path(..., description="Booking Intent ID"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -74,30 +73,15 @@ async def book(
             db=db,
             intent_id=intentId,
             user_id=current_user.id,
-            traveler_ids=request.travelerIds
-            if isinstance(request, BookingIntentBookRequestFlight)
-            else None,
-            contacts=request.contacts
-            if isinstance(request, BookingIntentBookRequestFlight)
-            else None,
-            guests=request.guests if isinstance(request, BookingIntentBookRequestHotel) else None,
-            room_associations=request.roomAssociations
-            if isinstance(request, BookingIntentBookRequestHotel)
-            else None,
+            traveler_ids=request.travelerIds,
+            contacts=request.contacts,
         )
 
         # Construire la réponse
-        amadeus_data = {}
-        if booking_intent.type == "flight":
-            amadeus_data = {
-                "type": "flight",
-                "orderId": booking_intent.amadeus_order_id,
-            }
-        elif booking_intent.type == "hotel":
-            amadeus_data = {
-                "type": "hotel",
-                "bookingId": booking_intent.amadeus_booking_id,
-            }
+        amadeus_data = {
+            "type": "flight",
+            "orderId": booking_intent.amadeus_order_id,
+        }
 
         return BookingIntentBookResponse(
             bookingIntent={

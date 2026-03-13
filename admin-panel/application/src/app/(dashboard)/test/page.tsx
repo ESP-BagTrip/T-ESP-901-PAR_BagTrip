@@ -4,7 +4,6 @@ import { useAuth } from '@/hooks'
 import {
   bookingIntentsService,
   flightsService,
-  hotelsService,
   paymentsService,
   travelersService,
   tripsService,
@@ -12,12 +11,9 @@ import {
 import type {
   BookingIntent,
   BookingIntentBookRequestFlight,
-  BookingIntentBookRequestHotel,
   BookingIntentCreateRequest,
   FlightSearchCreateRequest,
   FlightSearchResponse,
-  HotelSearchCreateRequest,
-  HotelSearchResponse,
   PaymentAuthorizeResponse,
   Traveler,
   TravelerCreateRequest,
@@ -39,14 +35,11 @@ export default function TestPage() {
   const [traveler, setTraveler] = useState<Traveler | null>(null)
   const [flightSearch, setFlightSearch] = useState<FlightSearchResponse | null>(null)
   const [selectedFlightOfferId, setSelectedFlightOfferId] = useState<string | null>(null)
-  const [hotelSearch, setHotelSearch] = useState<HotelSearchResponse | null>(null)
-  const [selectedHotelOfferId, setSelectedHotelOfferId] = useState<string | null>(null)
   const [bookingIntent, setBookingIntent] = useState<BookingIntent | null>(null)
   const [paymentAuth, setPaymentAuth] = useState<PaymentAuthorizeResponse | null>(null)
   const [polling, setPolling] = useState(false)
   const [pollingError, setPollingError] = useState<string | null>(null)
   const [showFlightOffers, setShowFlightOffers] = useState(true)
-  const [showHotelOffers, setShowHotelOffers] = useState(true)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const stripeRef = useRef<Awaited<ReturnType<typeof loadStripe>> | null>(null)
 
@@ -229,32 +222,14 @@ export default function TestPage() {
     setFlightSearch(result as FlightSearchResponse)
   }
 
-  const handleSearchHotels = async () => {
-    if (!trip) {
-      setError("Veuillez d'abord créer un trip")
-      return
-    }
-    const data: HotelSearchCreateRequest = {
-      cityCode: 'ROM',
-      checkIn: '2026-01-10',
-      checkOut: '2026-01-13',
-      adults: 1,
-      roomQty: 1,
-      currency: 'EUR',
-    }
-    const result = await handleApiCall(() => hotelsService.searchHotels(trip.id, data), 'hotel')
-    setHotelSearch(result as HotelSearchResponse)
-  }
-
-  const handleCreateBookingIntent = async (type: 'flight' | 'hotel') => {
+  const handleCreateBookingIntent = async () => {
     if (!trip) {
       setError("Veuillez d'abord créer un trip")
       return
     }
     const data: BookingIntentCreateRequest = {
-      type,
-      flightOfferId: type === 'flight' && selectedFlightOfferId ? selectedFlightOfferId : undefined,
-      hotelOfferId: type === 'hotel' && selectedHotelOfferId ? selectedHotelOfferId : undefined,
+      type: 'flight',
+      flightOfferId: selectedFlightOfferId ? selectedFlightOfferId : undefined,
     }
     const result = await handleApiCall(
       () => bookingIntentsService.createBookingIntent(trip.id, data),
@@ -293,47 +268,6 @@ export default function TestPage() {
     }
     const result = await handleApiCall(
       () => bookingIntentsService.bookFlight(bookingIntent.id, data),
-      'book'
-    )
-    // Update booking intent status after booking
-    if (result && bookingIntent) {
-      const updatedIntent = await bookingIntentsService.getBookingIntent(bookingIntent.id)
-      setBookingIntent(updatedIntent)
-    }
-  }
-
-  const handleBookHotel = async () => {
-    if (!bookingIntent) {
-      setError("Veuillez d'abord créer un booking intent")
-      return
-    }
-    // Find the selected offer to get the Amadeus offerId
-    const selectedOffer = hotelSearch?.offers.find(offer => offer.id === selectedHotelOfferId)
-    const amadeusOfferId = selectedOffer?.offerId || selectedHotelOfferId || ''
-
-    const data: BookingIntentBookRequestHotel = {
-      guests: [
-        {
-          name: {
-            title: 'MR',
-            firstName: 'John',
-            lastName: 'Doe',
-          },
-          contact: {
-            phone: '+33612345678',
-            email: user?.email || 'test@example.com',
-          },
-        },
-      ],
-      roomAssociations: [
-        {
-          guestReferences: ['1'],
-          hotelOfferId: amadeusOfferId,
-        },
-      ],
-    }
-    const result = await handleApiCall(
-      () => bookingIntentsService.bookHotel(bookingIntent.id, data),
       'book'
     )
     // Update booking intent status after booking
@@ -525,7 +459,7 @@ export default function TestPage() {
             <div>
               <h4 className="font-semibold mb-2">4.3 Create Booking Intent</h4>
               <button
-                onClick={() => handleCreateBookingIntent('flight')}
+                onClick={handleCreateBookingIntent}
                 disabled={loading || !selectedFlightOfferId}
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
               >
@@ -608,165 +542,6 @@ export default function TestPage() {
                   <button
                     onClick={handleCapturePayment}
                     disabled={loading || bookingIntent.status !== 'BOOKED'}
-                    className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
-                  >
-                    {loading ? 'Capture...' : 'Capturer le paiement'}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </Section>
-
-        <Section id="hotel" title="5. Hotel Booking Flow">
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-semibold">5.1 Search Hotels</h4>
-                {hotelSearch && (
-                  <button
-                    onClick={() => setShowHotelOffers(!showHotelOffers)}
-                    className="text-xs text-blue-600 hover:text-blue-800"
-                  >
-                    {showHotelOffers ? 'Masquer' : 'Afficher'} les offres
-                  </button>
-                )}
-              </div>
-              {hotelSearch ? (
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm mb-2">Search ID: {hotelSearch.searchId}</p>
-                  <p className="text-sm mb-2">
-                    Offres trouvées: {hotelSearch.offers.length}
-                    {selectedHotelOfferId && (
-                      <span className="ml-2 text-green-600">• Offre sélectionnée</span>
-                    )}
-                  </p>
-                  {showHotelOffers && (
-                    <div className="space-y-2 max-h-64 overflow-y-auto mt-2">
-                      {hotelSearch.offers.map(offer => (
-                        <div
-                          key={offer.id}
-                          className="p-2 border rounded cursor-pointer hover:bg-blue-50"
-                          onClick={() => setSelectedHotelOfferId(offer.id)}
-                        >
-                          <p className="text-sm font-semibold">
-                            {offer.totalPrice} {offer.currency}
-                          </p>
-                          <p className="text-xs text-gray-600">ID: {offer.id}</p>
-                          {selectedHotelOfferId === offer.id && (
-                            <p className="text-xs text-blue-600">✓ Sélectionné</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <button
-                  onClick={handleSearchHotels}
-                  disabled={loading || !trip}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {loading ? 'Recherche...' : 'Rechercher des hôtels'}
-                </button>
-              )}
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-2">5.2 Create Booking Intent</h4>
-              <button
-                onClick={() => handleCreateBookingIntent('hotel')}
-                disabled={loading || !selectedHotelOfferId}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-              >
-                {loading ? 'Création...' : 'Créer Booking Intent (Hotel)'}
-              </button>
-            </div>
-
-            {bookingIntent && bookingIntent.type === 'hotel' && (
-              <>
-                <div>
-                  <h4 className="font-semibold mb-2">5.3 Authorize Payment</h4>
-                  <p className="text-sm text-gray-600 mb-2">
-                    Status: <strong>{bookingIntent.status}</strong>
-                  </p>
-                  {paymentAuth ? (
-                    <div className="p-4 bg-yellow-50 rounded-lg space-y-3">
-                      <div>
-                        <p className="text-sm font-semibold">
-                          Payment Intent ID: {paymentAuth.stripePaymentIntentId}
-                        </p>
-                        <p className="text-xs text-gray-600 mt-1">Status: {paymentAuth.status}</p>
-                      </div>
-                      {polling && (
-                        <div className="p-2 bg-blue-50 rounded border border-blue-200">
-                          <div className="flex items-center">
-                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
-                            <p className="text-xs text-blue-700">
-                              Attente de l&apos;autorisation du paiement...
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                      {pollingError && (
-                        <div className="p-2 bg-red-50 rounded border border-red-200">
-                          <p className="text-xs text-red-700">{pollingError}</p>
-                        </div>
-                      )}
-                      {bookingIntent?.status === 'AUTHORIZED' ? (
-                        <div className="p-2 bg-green-50 rounded border border-green-200">
-                          <p className="text-xs text-green-700 font-semibold">
-                            ✓ Paiement autorisé! Vous pouvez maintenant réserver l&apos;hôtel.
-                          </p>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={handleConfirmPayment}
-                          disabled={loading || polling || bookingIntent?.status === 'AUTHORIZED'}
-                          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 text-sm"
-                        >
-                          {loading || polling
-                            ? 'Confirmation...'
-                            : 'Confirmer le paiement (Test Card)'}
-                        </button>
-                      )}
-                    </div>
-                  ) : (
-                    <button
-                      onClick={handleAuthorizePayment}
-                      disabled={loading || bookingIntent.status !== 'INIT'}
-                      className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 disabled:opacity-50"
-                    >
-                      {loading ? 'Autorisation...' : 'Autoriser le paiement'}
-                    </button>
-                  )}
-                </div>
-
-                <div>
-                  <h4 className="font-semibold mb-2">5.4 Book Hotel (POC: Skipped)</h4>
-                  <div className="p-3 bg-gray-50 rounded border border-gray-200">
-                    <p className="text-xs text-gray-600 mb-2">
-                      POC Mode: Hotel booking step is skipped. Payment can be captured directly
-                      after authorization.
-                    </p>
-                    <button
-                      onClick={handleBookHotel}
-                      disabled={loading || bookingIntent.status !== 'AUTHORIZED'}
-                      className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 disabled:opacity-50 text-sm"
-                    >
-                      {loading ? 'Réservation...' : "Réserver l'hôtel (Optionnel POC)"}
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold mb-2">5.5 Capture Payment</h4>
-                  <p className="text-xs text-gray-600 mb-2">
-                    POC: Can capture directly from AUTHORIZED status (booking step skipped)
-                  </p>
-                  <button
-                    onClick={handleCapturePayment}
-                    disabled={loading || !['AUTHORIZED', 'BOOKED'].includes(bookingIntent.status)}
                     className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
                   >
                     {loading ? 'Capture...' : 'Capturer le paiement'}
