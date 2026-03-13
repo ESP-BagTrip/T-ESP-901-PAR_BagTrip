@@ -216,7 +216,7 @@ db-revision: ## Create Alembic revision (MSG="description")
 	$(call ok,"Revision created")
 
 db-shell: ## Open psql shell in db container
-	@$(COMPOSE) exec db psql -U $${POSTGRES_USER:-user} -d $${POSTGRES_DB:-bagtrip}
+	@$(COMPOSE) exec db psql -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-bagtrip}
 
 # ══════════════════════════════════════════════════════════════
 #  UTILITIES
