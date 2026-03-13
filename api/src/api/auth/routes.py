@@ -28,6 +28,7 @@ from src.config.env import settings
 from src.integrations.stripe.client import StripeClient
 from src.models.refresh_token import RefreshToken
 from src.models.user import User
+from src.services.plan_service import PlanService
 from src.utils.logger import logger
 
 router = APIRouter(prefix="/v1/auth", tags=["Auth"])
@@ -143,6 +144,7 @@ async def register(request: SignupRequest, db: Session = Depends(get_db)):
     refresh_token = create_refresh_token(str(user.id), db)
     db.commit()
 
+    plan_info = PlanService.get_plan_info(db, user)
     return AuthResponse(
         access_token=access_token,
         refresh_token=refresh_token,
@@ -152,6 +154,9 @@ async def register(request: SignupRequest, db: Session = Depends(get_db)):
             email=user.email,
             created_at=user.created_at,
             updated_at=user.updated_at,
+            plan=user.plan or "FREE",
+            ai_generations_remaining=plan_info["ai_generations_remaining"],
+            plan_expires_at=user.plan_expires_at,
         ),
     )
 
@@ -216,6 +221,7 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
     refresh_token = create_refresh_token(str(user.id), db)
     db.commit()
 
+    plan_info = PlanService.get_plan_info(db, user)
     return AuthResponse(
         access_token=access_token,
         refresh_token=refresh_token,
@@ -225,6 +231,9 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
             email=user.email,
             created_at=user.created_at,
             updated_at=user.updated_at,
+            plan=user.plan or "FREE",
+            ai_generations_remaining=plan_info["ai_generations_remaining"],
+            plan_expires_at=user.plan_expires_at,
         ),
     )
 
@@ -264,12 +273,16 @@ async def me(
     from src.services.profile_service import ProfileService
 
     is_completed, _ = ProfileService.check_completion(db, current_user.id)
+    plan_info = PlanService.get_plan_info(db, current_user)
     return UserResponse(
         id=current_user.id,
         email=current_user.email,
         created_at=current_user.created_at,
         updated_at=current_user.updated_at,
         is_profile_completed=is_completed,
+        plan=current_user.plan or "FREE",
+        ai_generations_remaining=plan_info["ai_generations_remaining"],
+        plan_expires_at=current_user.plan_expires_at,
     )
 
 
@@ -376,6 +389,7 @@ async def google_sign_in(
         refresh_token = create_refresh_token(str(user.id), db)
         db.commit()
 
+        plan_info = PlanService.get_plan_info(db, user)
         return AuthResponse(
             access_token=access_token,
             refresh_token=refresh_token,
@@ -385,6 +399,9 @@ async def google_sign_in(
                 email=user.email,
                 created_at=user.created_at,
                 updated_at=user.updated_at,
+                plan=user.plan or "FREE",
+                ai_generations_remaining=plan_info["ai_generations_remaining"],
+                plan_expires_at=user.plan_expires_at,
             ),
         )
     except jwt.JWTError as e:
@@ -507,6 +524,7 @@ async def apple_sign_in(request: AppleSignInRequest, db: Session = Depends(get_d
         refresh_token = create_refresh_token(str(user.id), db)
         db.commit()
 
+        plan_info = PlanService.get_plan_info(db, user)
         return AuthResponse(
             access_token=access_token,
             refresh_token=refresh_token,
@@ -516,6 +534,9 @@ async def apple_sign_in(request: AppleSignInRequest, db: Session = Depends(get_d
                 email=user.email,
                 created_at=user.created_at,
                 updated_at=user.updated_at,
+                plan=user.plan or "FREE",
+                ai_generations_remaining=plan_info["ai_generations_remaining"],
+                plan_expires_at=user.plan_expires_at,
             ),
         )
     except jwt.JWTError as e:
@@ -568,6 +589,7 @@ async def refresh(request: RefreshTokenRequest, db: Session = Depends(get_db)):
     new_refresh = create_refresh_token(str(user.id), db)
     db.commit()
 
+    plan_info = PlanService.get_plan_info(db, user)
     return AuthResponse(
         access_token=access_token,
         refresh_token=new_refresh,
@@ -577,6 +599,9 @@ async def refresh(request: RefreshTokenRequest, db: Session = Depends(get_db)):
             email=user.email,
             created_at=user.created_at,
             updated_at=user.updated_at,
+            plan=user.plan or "FREE",
+            ai_generations_remaining=plan_info["ai_generations_remaining"],
+            plan_expires_at=user.plan_expires_at,
         ),
     )
 

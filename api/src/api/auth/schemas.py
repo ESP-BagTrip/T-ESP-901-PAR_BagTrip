@@ -30,6 +30,9 @@ class UserResponse(BaseModel):
     created_at: datetime = Field(..., alias="createdAt")
     updated_at: datetime | None = Field(None, alias="updatedAt")
     is_profile_completed: bool = Field(False, alias="isProfileCompleted")
+    plan: str = Field("FREE")
+    ai_generations_remaining: int | None = Field(None, alias="aiGenerationsRemaining")
+    plan_expires_at: datetime | None = Field(None, alias="planExpiresAt")
 
     class Config:
         from_attributes = True

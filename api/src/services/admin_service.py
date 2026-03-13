@@ -49,6 +49,7 @@ class AdminService:
                 {
                     "id": user.id,
                     "email": user.email,
+                    "plan": user.plan or "FREE",
                     "created_at": user.created_at,
                     "updated_at": user.updated_at,
                 }
@@ -567,6 +568,17 @@ class AdminService:
         if not feedback:
             raise AppError("FEEDBACK_NOT_FOUND", 404, "Feedback not found")
         db.delete(feedback)
+        db.commit()
+
+    @staticmethod
+    def update_user_plan(db: Session, user_id, plan: str) -> None:
+        """Update a user's plan."""
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise AppError("USER_NOT_FOUND", 404, "User not found")
+        if plan not in ("FREE", "PREMIUM", "ADMIN"):
+            raise AppError("INVALID_PLAN", 400, "Plan must be FREE, PREMIUM or ADMIN")
+        user.plan = plan
         db.commit()
 
     @staticmethod

@@ -18,7 +18,12 @@ def create_default_admin() -> None:
     try:
         existing = db.query(User).filter(User.email == ADMIN_EMAIL).first()
         if existing:
-            logger.info(f"Default admin already exists ({ADMIN_EMAIL})")
+            if existing.plan != "ADMIN":
+                existing.plan = "ADMIN"
+                db.commit()
+                logger.info(f"Default admin upgraded to ADMIN plan ({ADMIN_EMAIL})")
+            else:
+                logger.info(f"Default admin already exists ({ADMIN_EMAIL})")
             return
 
         password_hash = bcrypt.hashpw(
@@ -30,6 +35,7 @@ def create_default_admin() -> None:
             email=ADMIN_EMAIL,
             password_hash=password_hash,
             full_name=ADMIN_FULL_NAME,
+            plan="ADMIN",
         )
         db.add(admin)
         db.commit()

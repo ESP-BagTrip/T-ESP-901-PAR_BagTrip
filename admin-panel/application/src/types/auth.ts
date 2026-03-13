@@ -1,6 +1,7 @@
 export interface User {
   id: string
   email: string
+  plan: 'FREE' | 'PREMIUM' | 'ADMIN'
   created_at: string
   updated_at: string | null
 }

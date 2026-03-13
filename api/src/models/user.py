@@ -2,7 +2,7 @@
 
 import uuid
 
-from sqlalchemy import Column, DateTime, String
+from sqlalchemy import Column, DateTime, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
@@ -20,6 +20,11 @@ class User(Base):
     full_name = Column(String, nullable=True)
     phone = Column(String, nullable=True)
     stripe_customer_id = Column(String, nullable=True, index=True)
+    plan = Column(String(10), nullable=False, server_default="FREE")
+    stripe_subscription_id = Column(String, nullable=True, index=True)
+    plan_expires_at = Column(DateTime(timezone=True), nullable=True)
+    ai_generations_count = Column(Integer, nullable=False, server_default="0")
+    ai_generations_reset_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(
         DateTime(timezone=True),

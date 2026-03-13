@@ -127,6 +127,10 @@ app.include_router(booking_intents_router)  # Déjà préfixé avec /v1/trips
 app.include_router(booking_intents_book_router)  # Déjà préfixé avec /v1/booking-intents
 app.include_router(payments_router)  # Déjà préfixé avec /v1/booking-intents
 app.include_router(stripe_webhooks_router)  # Déjà préfixé avec /v1/stripe
+
+from src.api.subscription.routes import router as subscription_router
+
+app.include_router(subscription_router)  # Préfixé avec /v1/subscription
 app.include_router(device_tokens_router)  # Déjà préfixé avec /v1/device-tokens
 app.include_router(notifications_router)  # Déjà préfixé avec /v1/notifications
 

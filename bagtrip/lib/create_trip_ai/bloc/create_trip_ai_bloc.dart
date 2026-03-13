@@ -110,6 +110,15 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
   ) async {
     emit(CreateTripAiSearchLoading());
     try {
+      // Check AI quota
+      final user = await _authService.getCurrentUser();
+      if (user != null &&
+          user.aiGenerationsRemaining != null &&
+          user.aiGenerationsRemaining! <= 0) {
+        emit(CreateTripAiQuotaExceeded());
+        return;
+      }
+
       int? durationDays;
       if (_lastDepartureDate != null && _lastReturnDate != null) {
         durationDays = _lastReturnDate!.difference(_lastDepartureDate!).inDays;

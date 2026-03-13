@@ -21,8 +21,9 @@ from src.api.admin.schemas import (
     AdminTripResponse,
     AdminTripShareResponse,
     AdminUserResponse,
+    UpdatePlanRequest,
 )
-from src.api.auth.middleware import get_current_user
+from src.api.auth.admin_guard import require_admin
 from src.config.database import get_db
 from src.models.user import User
 from src.services.admin_service import AdminService
@@ -46,7 +47,7 @@ async def admin_health():
 async def list_all_users(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(10, ge=1, le=100, description="Items per page"),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Lister tous les utilisateurs (admin)."""
@@ -76,7 +77,7 @@ async def list_all_users(
 async def list_all_trips(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(10, ge=1, le=100, description="Items per page"),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Lister tous les trips (admin)."""
@@ -106,7 +107,7 @@ async def list_all_trips(
 async def list_all_travelers(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(10, ge=1, le=100, description="Items per page"),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Lister tous les travelers (admin)."""
@@ -136,7 +137,7 @@ async def list_all_travelers(
 async def list_all_flight_bookings(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(10, ge=1, le=100, description="Items per page"),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Lister toutes les flight bookings (admin)."""
@@ -166,7 +167,7 @@ async def list_all_flight_bookings(
 async def list_all_traveler_profiles(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(10, ge=1, le=100, description="Items per page"),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Lister tous les profils voyageurs (admin)."""
@@ -198,7 +199,7 @@ async def list_all_traveler_profiles(
 async def list_all_booking_intents(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(10, ge=1, le=100, description="Items per page"),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Lister tous les booking intents (admin)."""
@@ -230,7 +231,7 @@ async def list_all_booking_intents(
 async def list_all_flight_searches(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(10, ge=1, le=100, description="Items per page"),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Lister toutes les recherches de vols (admin)."""
@@ -262,7 +263,7 @@ async def list_all_flight_searches(
 async def list_all_accommodations(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(10, ge=1, le=100, description="Items per page"),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Lister tous les hébergements (admin)."""
@@ -294,7 +295,7 @@ async def list_all_accommodations(
 async def list_all_activities(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(10, ge=1, le=100, description="Items per page"),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Lister toutes les activités (admin)."""
@@ -326,7 +327,7 @@ async def list_all_activities(
 async def list_all_budget_items(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(10, ge=1, le=100, description="Items per page"),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Lister tous les budget items (admin)."""
@@ -358,7 +359,7 @@ async def list_all_budget_items(
 async def list_all_baggage_items(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(10, ge=1, le=100, description="Items per page"),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Lister tous les éléments de bagage (admin)."""
@@ -390,7 +391,7 @@ async def list_all_baggage_items(
 async def list_all_trip_shares(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(10, ge=1, le=100, description="Items per page"),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Lister tous les partages de trips (admin)."""
@@ -420,7 +421,7 @@ async def list_all_trip_shares(
 async def list_all_feedbacks(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(10, ge=1, le=100, description="Items per page"),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Lister tous les feedbacks (admin)."""
@@ -450,7 +451,7 @@ async def list_all_feedbacks(
 async def list_all_notifications(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(10, ge=1, le=100, description="Items per page"),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Lister toutes les notifications (admin)."""
@@ -479,7 +480,7 @@ async def list_all_notifications(
 )
 async def delete_feedback(
     feedbackId: UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Supprimer un feedback (admin)."""
@@ -490,4 +491,27 @@ async def delete_feedback(
     except Exception as e:
         raise create_http_exception(
             AppError("INTERNAL_ERROR", 500, f"Failed to delete feedback: {str(e)}")
+        ) from e
+
+
+@router.patch(
+    "/users/{userId}/plan",
+    summary="Update user plan (admin)",
+    description="Change a user's plan (admin only)",
+)
+async def update_user_plan(
+    userId: UUID,
+    body: UpdatePlanRequest,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Mettre à jour le plan d'un utilisateur (admin)."""
+    try:
+        AdminService.update_user_plan(db, userId, body.plan)
+        return {"message": "Plan updated", "user_id": str(userId), "plan": body.plan}
+    except AppError as e:
+        raise create_http_exception(e) from e
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, f"Failed to update user plan: {str(e)}")
         ) from e

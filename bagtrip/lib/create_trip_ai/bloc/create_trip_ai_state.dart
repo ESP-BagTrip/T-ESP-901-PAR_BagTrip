@@ -64,3 +64,5 @@ final class CreateTripAiTripCreated extends CreateTripAiState {
   CreateTripAiTripCreated(this.tripData);
   final Map<String, dynamic> tripData;
 }
+
+final class CreateTripAiQuotaExceeded extends CreateTripAiState {}

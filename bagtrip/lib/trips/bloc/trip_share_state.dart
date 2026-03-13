@@ -15,3 +15,5 @@ class TripShareError extends TripShareState {
   final String message;
   TripShareError({required this.message});
 }
+
+class TripShareQuotaExceeded extends TripShareState {}

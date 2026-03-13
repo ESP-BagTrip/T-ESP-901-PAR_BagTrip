@@ -122,4 +122,8 @@ export const adminService = {
     )
     return response.data
   },
+
+  async updateUserPlan(userId: string, plan: string): Promise<void> {
+    await apiClient.patch(`${API_ENDPOINTS.USERS}/${userId}/plan`, { plan })
+  },
 }

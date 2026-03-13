@@ -38,7 +38,11 @@ class TripShareBloc extends Bloc<TripShareEvent, TripShareState> {
       await _tripShareService.createShare(event.tripId, email: event.email);
       add(LoadShares(tripId: event.tripId));
     } catch (e) {
-      emit(TripShareError(message: e.toString()));
+      if (e.toString().contains('SHARE_QUOTA_EXCEEDED')) {
+        emit(TripShareQuotaExceeded());
+      } else {
+        emit(TripShareError(message: e.toString()));
+      }
     }
   }
 

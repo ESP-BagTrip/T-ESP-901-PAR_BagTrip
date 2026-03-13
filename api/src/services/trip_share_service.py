@@ -45,10 +45,18 @@ class TripShareService:
         if existing:
             raise AppError("ALREADY_SHARED", 409, "Trip already shared with this user")
 
-        # Check quota (max 2 for Free tier)
+        # Check quota based on owner's plan
+        from src.services.plan_service import PlanService
+
+        owner = db.query(User).filter(User.id == owner_user_id).first()
+        limit = PlanService.get_share_limit(owner) if owner else 2
         share_count = db.query(TripShare).filter(TripShare.trip_id == trip_id).count()
-        if share_count >= 2:
-            raise AppError("SHARE_QUOTA_EXCEEDED", 403, "Maximum number of shares reached")
+        if limit is not None and share_count >= limit:
+            raise AppError(
+                "SHARE_QUOTA_EXCEEDED",
+                403,
+                f"Maximum {limit} shares reached. Upgrade for more.",
+            )
 
         # Create share
         share = TripShare(trip_id=trip_id, user_id=user.id, role="VIEWER")

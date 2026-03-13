@@ -22,12 +22,19 @@ class AdminUserResponse(BaseModel):
 
     id: UUID
     email: str
+    plan: str = Field("FREE")
     createdAt: datetime = Field(alias="created_at")
     updatedAt: datetime | None = Field(None, alias="updated_at")
 
     class Config:
         from_attributes = True
         populate_by_name = True
+
+
+class UpdatePlanRequest(BaseModel):
+    """Requête de mise à jour du plan utilisateur."""
+
+    plan: str = Field(..., pattern="^(FREE|PREMIUM|ADMIN)$")
 
 
 class AdminTripResponse(BaseModel):

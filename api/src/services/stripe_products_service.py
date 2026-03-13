@@ -30,8 +30,19 @@ class StripeProductsService:
                 metadata={"type": "flight"},
             )
 
+            # Premium Subscription product + recurring price
+            premium_price_id = StripeProductsService._get_or_create_subscription_price(
+                product_name="BagTrip Premium",
+                product_description="Premium subscription — unlimited AI, more viewers, offline notifications",
+                product_metadata={"type": "premium_subscription"},
+                unit_amount=999,  # 9.99 EUR/month
+                currency="eur",
+                interval="month",
+            )
+
             product_ids = {
                 "flight": flight_product_id,
+                "premium_subscription": premium_price_id,
             }
 
             # Mettre à jour le cache global
@@ -67,6 +78,43 @@ class StripeProductsService:
         )
         logger.info(f"Created new Stripe product: {product.name} ({product.id})")
         return product.id
+
+    @staticmethod
+    def _get_or_create_subscription_price(
+        product_name: str,
+        product_description: str,
+        product_metadata: dict,
+        unit_amount: int,
+        currency: str,
+        interval: str,
+    ) -> str:
+        """Get or create a recurring price for a subscription product."""
+        product_id = StripeProductsService._get_or_create_product(
+            name=product_name,
+            description=product_description,
+            metadata=product_metadata,
+        )
+        # Look for an existing recurring price on this product
+        prices = stripe.Price.list(product=product_id, active=True, limit=10)
+        for price in prices:
+            if (
+                price.recurring
+                and price.recurring.interval == interval
+                and price.unit_amount == unit_amount
+                and price.currency == currency
+            ):
+                logger.info(f"Found existing price {price.id} for {product_name}")
+                return price.id
+
+        # Create a new recurring price
+        price = stripe.Price.create(
+            product=product_id,
+            unit_amount=unit_amount,
+            currency=currency,
+            recurring={"interval": interval},
+        )
+        logger.info(f"Created new price {price.id} for {product_name}")
+        return price.id
 
     @staticmethod
     def get_product_id(product_type: str) -> str | None:

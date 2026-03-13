@@ -7,6 +7,13 @@ class User {
   final bool isProfileCompleted;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  final String plan;
+  final int? aiGenerationsRemaining;
+  final DateTime? planExpiresAt;
+
+  bool get isFree => plan == 'FREE';
+  bool get isPremium => plan == 'PREMIUM' || plan == 'ADMIN';
+  bool get isAdmin => plan == 'ADMIN';
 
   User({
     required this.id,
@@ -17,6 +24,9 @@ class User {
     this.isProfileCompleted = false,
     required this.createdAt,
     this.updatedAt,
+    this.plan = 'FREE',
+    this.aiGenerationsRemaining,
+    this.planExpiresAt,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -44,6 +54,16 @@ class User {
               : json['updated_at'] != null
               ? DateTime.parse(json['updated_at'] as String)
               : null,
+      plan: json['plan'] as String? ?? 'FREE',
+      aiGenerationsRemaining:
+          json['aiGenerationsRemaining'] as int? ??
+          json['ai_generations_remaining'] as int?,
+      planExpiresAt:
+          json['planExpiresAt'] != null
+              ? DateTime.parse(json['planExpiresAt'] as String)
+              : json['plan_expires_at'] != null
+              ? DateTime.parse(json['plan_expires_at'] as String)
+              : null,
     );
   }
 
@@ -57,6 +77,9 @@ class User {
       'isProfileCompleted': isProfileCompleted,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
+      'plan': plan,
+      'aiGenerationsRemaining': aiGenerationsRemaining,
+      'planExpiresAt': planExpiresAt?.toIso8601String(),
     };
   }
 }
