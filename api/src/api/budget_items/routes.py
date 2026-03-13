@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Path, status
 from sqlalchemy.orm import Session
 
-from src.api.auth.trip_access import TripAccess, get_trip_access, get_trip_owner_access
+from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access
 from src.api.budget_items.schemas import (
     BudgetItemCreateRequest,
     BudgetItemListResponse,
@@ -49,6 +49,8 @@ async def list_budget_items(
     db: Session = Depends(get_db),
 ):
     try:
+        if access.role == TripRole.VIEWER:
+            return BudgetItemListResponse(items=[])
         items = BudgetItemService.get_by_trip(db, access.trip.id)
         return BudgetItemListResponse(
             items=[BudgetItemResponse.model_validate(i) for i in items]
@@ -64,6 +66,19 @@ async def get_budget_summary(
 ):
     try:
         summary = BudgetItemService.get_budget_summary(db, access.trip)
+        if access.role == TripRole.VIEWER:
+            total_budget = summary["total_budget"]
+            total_spent = summary["total_spent"]
+            percent_consumed = (
+                (total_spent / total_budget * 100) if total_budget > 0 else 0
+            )
+            return BudgetSummaryResponse(
+                total_budget=total_budget,
+                total_spent=0,
+                remaining=0,
+                by_category={},
+                percent_consumed=percent_consumed,
+            )
         return BudgetSummaryResponse(**summary)
     except AppError as e:
         raise create_http_exception(e) from e
@@ -76,6 +91,8 @@ async def get_budget_item(
     db: Session = Depends(get_db),
 ):
     try:
+        if access.role == TripRole.VIEWER:
+            raise AppError("FORBIDDEN", 403, "Viewers cannot access budget item details")
         item = BudgetItemService.get_by_id(db, itemId, access.trip.id)
         return BudgetItemResponse.model_validate(item)
     except AppError as e:

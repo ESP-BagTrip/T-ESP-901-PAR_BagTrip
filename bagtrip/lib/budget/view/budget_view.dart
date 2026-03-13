@@ -9,8 +9,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class BudgetView extends StatelessWidget {
   final String tripId;
+  final String role;
 
-  const BudgetView({super.key, required this.tripId});
+  const BudgetView({super.key, required this.tripId, this.role = 'OWNER'});
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +48,8 @@ class BudgetView extends StatelessWidget {
             );
           }
           if (state is BudgetLoaded) {
-            if (state.items.isEmpty) {
+            final isViewer = role == 'VIEWER';
+            if (state.items.isEmpty && !isViewer) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -73,6 +75,14 @@ class BudgetView extends StatelessWidget {
                     ),
                   ],
                 ),
+              );
+            }
+            if (isViewer) {
+              return ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  BudgetSummaryHeader(summary: state.summary, isViewer: true),
+                ],
               );
             }
             return ListView(
@@ -118,10 +128,13 @@ class BudgetView extends StatelessWidget {
           return const SizedBox.shrink();
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showForm(context, tripId),
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton:
+          role != 'VIEWER'
+              ? FloatingActionButton(
+                onPressed: () => _showForm(context, tripId),
+                child: const Icon(Icons.add),
+              )
+              : null,
     );
   }
 

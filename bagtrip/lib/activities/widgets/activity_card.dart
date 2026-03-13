@@ -5,12 +5,14 @@ class ActivityCard extends StatelessWidget {
   final Activity activity;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final bool isViewer;
 
   const ActivityCard({
     super.key,
     required this.activity,
     required this.onEdit,
     required this.onDelete,
+    this.isViewer = false,
   });
 
   IconData _categoryIcon(ActivityCategory category) {
@@ -51,7 +53,7 @@ class ActivityCard extends StatelessWidget {
                 activity.location!,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
-            if (activity.estimatedCost != null)
+            if (activity.estimatedCost != null && !isViewer)
               Text(
                 '${activity.estimatedCost!.toStringAsFixed(2)} \u20ac',
                 style: Theme.of(
@@ -60,17 +62,20 @@ class ActivityCard extends StatelessWidget {
               ),
           ],
         ),
-        trailing: PopupMenuButton<String>(
-          onSelected: (value) {
-            if (value == 'edit') onEdit();
-            if (value == 'delete') onDelete();
-          },
-          itemBuilder:
-              (_) => const [
-                PopupMenuItem(value: 'edit', child: Text('Edit')),
-                PopupMenuItem(value: 'delete', child: Text('Delete')),
-              ],
-        ),
+        trailing:
+            isViewer
+                ? null
+                : PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'edit') onEdit();
+                    if (value == 'delete') onDelete();
+                  },
+                  itemBuilder:
+                      (_) => const [
+                        PopupMenuItem(value: 'edit', child: Text('Edit')),
+                        PopupMenuItem(value: 'delete', child: Text('Delete')),
+                      ],
+                ),
       ),
     );
   }

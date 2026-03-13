@@ -96,12 +96,14 @@ class BudgetSummary {
   final double totalSpent;
   final double remaining;
   final Map<String, double> byCategory;
+  final double? percentConsumed;
 
   BudgetSummary({
     required this.totalBudget,
     required this.totalSpent,
     required this.remaining,
     required this.byCategory,
+    this.percentConsumed,
   });
 
   factory BudgetSummary.fromJson(Map<String, dynamic> json) {
@@ -120,6 +122,9 @@ class BudgetSummary {
           (key, value) => MapEntry(key as String, (value as num).toDouble()),
         ),
       ),
+      percentConsumed:
+          (json['percentConsumed'] as num?)?.toDouble() ??
+          (json['percent_consumed'] as num?)?.toDouble(),
     );
   }
 }

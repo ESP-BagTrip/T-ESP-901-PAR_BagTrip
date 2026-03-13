@@ -5,14 +5,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ActivitiesPage extends StatelessWidget {
   final String tripId;
+  final String role;
 
-  const ActivitiesPage({super.key, required this.tripId});
+  const ActivitiesPage({super.key, required this.tripId, this.role = 'OWNER'});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => ActivityBloc()..add(LoadActivities(tripId: tripId)),
-      child: ActivitiesView(tripId: tripId),
+      child: ActivitiesView(tripId: tripId, role: role),
     );
   }
 }

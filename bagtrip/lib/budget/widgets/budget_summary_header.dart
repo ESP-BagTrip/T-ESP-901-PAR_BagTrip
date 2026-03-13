@@ -3,8 +3,13 @@ import 'package:flutter/material.dart';
 
 class BudgetSummaryHeader extends StatelessWidget {
   final BudgetSummary summary;
+  final bool isViewer;
 
-  const BudgetSummaryHeader({super.key, required this.summary});
+  const BudgetSummaryHeader({
+    super.key,
+    required this.summary,
+    this.isViewer = false,
+  });
 
   Color _progressColor(double ratio) {
     if (ratio > 1.0) return Colors.red;
@@ -14,8 +19,11 @@ class BudgetSummaryHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final percent = summary.percentConsumed;
     final ratio =
-        summary.totalBudget > 0
+        isViewer && percent != null
+            ? percent / 100
+            : summary.totalBudget > 0
             ? summary.totalSpent / summary.totalBudget
             : 0.0;
     final color = _progressColor(ratio);
@@ -34,26 +42,33 @@ class BudgetSummaryHeader extends StatelessWidget {
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _AmountLabel(
-                  label: 'Total Budget',
-                  amount: summary.totalBudget,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                _AmountLabel(
-                  label: 'Spent',
-                  amount: summary.totalSpent,
-                  color: color,
-                ),
-                _AmountLabel(
-                  label: 'Remaining',
-                  amount: summary.remaining,
-                  color: summary.remaining >= 0 ? Colors.green : Colors.red,
-                ),
-              ],
-            ),
+            if (isViewer)
+              _AmountLabel(
+                label: 'Total Budget',
+                amount: summary.totalBudget,
+                color: Theme.of(context).colorScheme.primary,
+              )
+            else
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _AmountLabel(
+                    label: 'Total Budget',
+                    amount: summary.totalBudget,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  _AmountLabel(
+                    label: 'Spent',
+                    amount: summary.totalSpent,
+                    color: color,
+                  ),
+                  _AmountLabel(
+                    label: 'Remaining',
+                    amount: summary.remaining,
+                    color: summary.remaining >= 0 ? Colors.green : Colors.red,
+                  ),
+                ],
+              ),
             const SizedBox(height: 12),
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
@@ -64,7 +79,18 @@ class BudgetSummaryHeader extends StatelessWidget {
                 valueColor: AlwaysStoppedAnimation<Color>(color),
               ),
             ),
-            if (ratio > 1.0)
+            if (isViewer)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  '${(ratio * 100).toStringAsFixed(0)}% consumed',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            else if (ratio > 1.0)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(

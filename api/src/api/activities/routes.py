@@ -9,7 +9,7 @@ from src.api.activities.schemas import (
     ActivityResponse,
     ActivityUpdateRequest,
 )
-from src.api.auth.trip_access import TripAccess, get_trip_access, get_trip_owner_access
+from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access
 from src.config.database import get_db
 from src.services.activity_service import ActivityService
 from src.utils.errors import AppError, create_http_exception
@@ -53,9 +53,11 @@ async def list_activities(
 ):
     try:
         activities = ActivityService.get_by_trip(db, access.trip.id)
-        return ActivityListResponse(
-            items=[ActivityResponse.model_validate(a) for a in activities]
-        )
+        items = [ActivityResponse.model_validate(a) for a in activities]
+        if access.role == TripRole.VIEWER:
+            for item in items:
+                item.estimatedCost = None
+        return ActivityListResponse(items=items)
     except AppError as e:
         raise create_http_exception(e) from e
 
@@ -68,7 +70,10 @@ async def get_activity(
 ):
     try:
         activity = ActivityService.get_by_id(db, activityId, access.trip.id)
-        return ActivityResponse.model_validate(activity)
+        resp = ActivityResponse.model_validate(activity)
+        if access.role == TripRole.VIEWER:
+            resp.estimatedCost = None
+        return resp
     except AppError as e:
         raise create_http_exception(e) from e
 

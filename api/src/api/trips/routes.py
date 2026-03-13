@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from src.api.auth.middleware import get_current_user
-from src.api.auth.trip_access import TripAccess, get_trip_access, get_trip_owner_access
+from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access
 from src.api.trips.schemas import (
     TripCreateRequest,
     TripDetailResponse,
@@ -163,6 +163,8 @@ async def get_trip_home(
         data = TripsService.get_trip_home(db, access.trip)
         trip_resp = TripResponse.model_validate(data["trip"])
         trip_resp.role = access.role.value
+        if access.role == TripRole.VIEWER:
+            data["stats"]["totalExpenses"] = 0
         return TripHomeResponse(
             trip=trip_resp,
             stats=data["stats"],

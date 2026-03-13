@@ -5,14 +5,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class TripSharesPage extends StatelessWidget {
   final String tripId;
+  final String role;
 
-  const TripSharesPage({super.key, required this.tripId});
+  const TripSharesPage({super.key, required this.tripId, this.role = 'OWNER'});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => TripShareBloc()..add(LoadShares(tripId: tripId)),
-      child: TripSharesView(tripId: tripId),
+      child: TripSharesView(tripId: tripId, role: role),
     );
   }
 }

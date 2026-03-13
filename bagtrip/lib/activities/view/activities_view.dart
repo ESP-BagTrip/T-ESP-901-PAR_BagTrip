@@ -9,8 +9,9 @@ import 'package:intl/intl.dart';
 
 class ActivitiesView extends StatelessWidget {
   final String tripId;
+  final String role;
 
-  const ActivitiesView({super.key, required this.tripId});
+  const ActivitiesView({super.key, required this.tripId, this.role = 'OWNER'});
 
   @override
   Widget build(BuildContext context) {
@@ -99,6 +100,7 @@ class ActivitiesView extends StatelessWidget {
                     ...dayActivities.map(
                       (activity) => ActivityCard(
                         activity: activity,
+                        isViewer: role == 'VIEWER',
                         onEdit:
                             () =>
                                 _showForm(context, tripId, activity: activity),
@@ -119,10 +121,13 @@ class ActivitiesView extends StatelessWidget {
           return const SizedBox.shrink();
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showForm(context, tripId),
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton:
+          role != 'VIEWER'
+              ? FloatingActionButton(
+                onPressed: () => _showForm(context, tripId),
+                child: const Icon(Icons.add),
+              )
+              : null,
     );
   }
 

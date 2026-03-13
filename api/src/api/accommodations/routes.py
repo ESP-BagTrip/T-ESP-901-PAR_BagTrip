@@ -11,7 +11,7 @@ from src.api.accommodations.schemas import (
     AccommodationResponse,
     AccommodationUpdateRequest,
 )
-from src.api.auth.trip_access import TripAccess, get_trip_access, get_trip_owner_access
+from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access
 from src.config.database import get_db
 from src.services.accommodations_service import AccommodationsService
 from src.utils.errors import AppError, create_http_exception
@@ -63,9 +63,13 @@ async def list_accommodations(
     """Lister les hébergements d'un trip."""
     try:
         accommodations = AccommodationsService.get_accommodations_by_trip(db, access.trip.id)
-        return AccommodationListResponse(
-            items=[AccommodationResponse.model_validate(a) for a in accommodations]
-        )
+        items = [AccommodationResponse.model_validate(a) for a in accommodations]
+        if access.role == TripRole.VIEWER:
+            for item in items:
+                item.price = None
+                item.currency = None
+                item.bookingReference = None
+        return AccommodationListResponse(items=items)
     except AppError as e:
         raise create_http_exception(e) from e
 

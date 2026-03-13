@@ -6,12 +6,14 @@ class BudgetItemCard extends StatelessWidget {
   final BudgetItem item;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final bool isViewer;
 
   const BudgetItemCard({
     super.key,
     required this.item,
     required this.onEdit,
     required this.onDelete,
+    this.isViewer = false,
   });
 
   IconData _categoryIcon(BudgetCategory category) {
@@ -41,12 +43,13 @@ class BudgetItemCard extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '${item.amount.toStringAsFixed(2)} \u20ac',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
+            if (!isViewer)
+              Text(
+                '${item.amount.toStringAsFixed(2)} \u20ac',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+              ),
             if (item.date != null)
               Text(
                 DateFormat('dd/MM/yyyy').format(item.date!),
@@ -71,17 +74,20 @@ class BudgetItemCard extends StatelessWidget {
             ),
           ],
         ),
-        trailing: PopupMenuButton<String>(
-          onSelected: (value) {
-            if (value == 'edit') onEdit();
-            if (value == 'delete') onDelete();
-          },
-          itemBuilder:
-              (_) => const [
-                PopupMenuItem(value: 'edit', child: Text('Edit')),
-                PopupMenuItem(value: 'delete', child: Text('Delete')),
-              ],
-        ),
+        trailing:
+            isViewer
+                ? null
+                : PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'edit') onEdit();
+                    if (value == 'delete') onDelete();
+                  },
+                  itemBuilder:
+                      (_) => const [
+                        PopupMenuItem(value: 'edit', child: Text('Edit')),
+                        PopupMenuItem(value: 'delete', child: Text('Delete')),
+                      ],
+                ),
       ),
     );
   }

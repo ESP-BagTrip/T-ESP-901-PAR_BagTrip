@@ -8,8 +8,9 @@ import 'package:flutter/material.dart';
 
 class BaggagePage extends StatefulWidget {
   final String tripId;
+  final String role;
 
-  const BaggagePage({super.key, required this.tripId});
+  const BaggagePage({super.key, required this.tripId, this.role = 'OWNER'});
 
   @override
   State<BaggagePage> createState() => _BaggagePageState();
@@ -170,6 +171,7 @@ class _BaggagePageState extends State<BaggagePage> {
   @override
   Widget build(BuildContext context) {
     final packedCount = _baggageItems.where((item) => item.isPacked).length;
+    final isViewer = widget.role == 'VIEWER';
 
     return Scaffold(
       appBar: AppBar(
@@ -238,7 +240,10 @@ class _BaggagePageState extends State<BaggagePage> {
                                       leading: Checkbox(
                                         value: item.isPacked,
                                         onChanged:
-                                            (_) => _handleTogglePacked(item),
+                                            isViewer
+                                                ? null
+                                                : (_) =>
+                                                    _handleTogglePacked(item),
                                       ),
                                       title: Text(
                                         item.name,
@@ -283,124 +288,129 @@ class _BaggagePageState extends State<BaggagePage> {
                                           ],
                                         ],
                                       ),
-                                      trailing: IconButton(
-                                        icon: const Icon(
-                                          Icons.delete_outline,
-                                          size: 20,
-                                        ),
-                                        onPressed:
-                                            () => _handleDeleteBaggageItem(
-                                              item.id,
-                                            ),
-                                      ),
+                                      trailing:
+                                          isViewer
+                                              ? null
+                                              : IconButton(
+                                                icon: const Icon(
+                                                  Icons.delete_outline,
+                                                  size: 20,
+                                                ),
+                                                onPressed:
+                                                    () =>
+                                                        _handleDeleteBaggageItem(
+                                                          item.id,
+                                                        ),
+                                              ),
                                     ),
                                   );
                                 },
                               ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: const BoxDecoration(
-                        color: AppColors.surfaceLight,
-                        border: Border(
-                          top: BorderSide(color: AppColors.border),
+                    if (!isViewer)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: const BoxDecoration(
+                          color: AppColors.surfaceLight,
+                          border: Border(
+                            top: BorderSide(color: AppColors.border),
+                          ),
                         ),
-                      ),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Ajouter un élément',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                Expanded(
-                                  flex: 3,
-                                  child: TextFormField(
-                                    controller: _nameController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Nom *',
-                                      border: OutlineInputBorder(),
-                                      hintText: 'ex: Passeport',
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Ajouter un élément',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    flex: 3,
+                                    child: TextFormField(
+                                      controller: _nameController,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Nom *',
+                                        border: OutlineInputBorder(),
+                                        hintText: 'ex: Passeport',
+                                      ),
+                                      validator: (value) {
+                                        if (value == null ||
+                                            value.trim().isEmpty) {
+                                          return 'Requis';
+                                        }
+                                        return null;
+                                      },
                                     ),
-                                    validator: (value) {
-                                      if (value == null ||
-                                          value.trim().isEmpty) {
-                                        return 'Requis';
-                                      }
-                                      return null;
-                                    },
                                   ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: _quantityController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Qté',
-                                      border: OutlineInputBorder(),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _quantityController,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Qté',
+                                        border: OutlineInputBorder(),
+                                      ),
+                                      keyboardType: TextInputType.number,
                                     ),
-                                    keyboardType: TextInputType.number,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              DropdownButtonFormField<String>(
+                                initialValue: _selectedCategory,
+                                decoration: const InputDecoration(
+                                  labelText: 'Catégorie (optionnel)',
+                                  border: OutlineInputBorder(),
+                                ),
+                                items:
+                                    _categories
+                                        .map(
+                                          (cat) => DropdownMenuItem(
+                                            value: cat,
+                                            child: Text(cat),
+                                          ),
+                                        )
+                                        .toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedCategory = value;
+                                  });
+                                },
+                              ),
+                              if (_errorMessage != null) ...[
+                                const SizedBox(height: 12),
+                                Text(
+                                  _errorMessage!,
+                                  style: const TextStyle(
+                                    color: ColorName.errorDark,
                                   ),
                                 ),
                               ],
-                            ),
-                            const SizedBox(height: 12),
-                            DropdownButtonFormField<String>(
-                              initialValue: _selectedCategory,
-                              decoration: const InputDecoration(
-                                labelText: 'Catégorie (optionnel)',
-                                border: OutlineInputBorder(),
-                              ),
-                              items:
-                                  _categories
-                                      .map(
-                                        (cat) => DropdownMenuItem(
-                                          value: cat,
-                                          child: Text(cat),
-                                        ),
-                                      )
-                                      .toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  _selectedCategory = value;
-                                });
-                              },
-                            ),
-                            if (_errorMessage != null) ...[
                               const SizedBox(height: 12),
-                              Text(
-                                _errorMessage!,
-                                style: const TextStyle(
-                                  color: ColorName.errorDark,
-                                ),
+                              ElevatedButton.icon(
+                                onPressed:
+                                    _isAdding ? null : _handleAddBaggageItem,
+                                icon:
+                                    _isAdding
+                                        ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                        : const Icon(Icons.add),
+                                label: const Text('Ajouter'),
                               ),
                             ],
-                            const SizedBox(height: 12),
-                            ElevatedButton.icon(
-                              onPressed:
-                                  _isAdding ? null : _handleAddBaggageItem,
-                              icon:
-                                  _isAdding
-                                      ? const SizedBox(
-                                        width: 16,
-                                        height: 16,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                      : const Icon(Icons.add),
-                              label: const Text('Ajouter'),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
       ),

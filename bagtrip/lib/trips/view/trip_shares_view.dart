@@ -6,8 +6,9 @@ import 'package:intl/intl.dart';
 
 class TripSharesView extends StatefulWidget {
   final String tripId;
+  final String role;
 
-  const TripSharesView({super.key, required this.tripId});
+  const TripSharesView({super.key, required this.tripId, this.role = 'OWNER'});
 
   @override
   State<TripSharesView> createState() => _TripSharesViewState();
@@ -135,57 +136,64 @@ class _TripSharesViewState extends State<TripSharesView> {
                                   ],
                                 ),
                                 isThreeLine: share.userFullName != null,
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.remove_circle_outline),
-                                  onPressed: () => _handleRevoke(share.id),
-                                ),
+                                trailing:
+                                    widget.role != 'VIEWER'
+                                        ? IconButton(
+                                          icon: const Icon(
+                                            Icons.remove_circle_outline,
+                                          ),
+                                          onPressed:
+                                              () => _handleRevoke(share.id),
+                                        )
+                                        : null,
                               ),
                             );
                           },
                         ),
               ),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  border: Border(
-                    top: BorderSide(color: Theme.of(context).dividerColor),
+              if (widget.role != 'VIEWER')
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    border: Border(
+                      top: BorderSide(color: Theme.of(context).dividerColor),
+                    ),
                   ),
-                ),
-                child: Form(
-                  key: _formKey,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _emailController,
-                          decoration: const InputDecoration(
-                            labelText: 'Email',
-                            border: OutlineInputBorder(),
-                            hintText: 'utilisateur@exemple.com',
+                  child: Form(
+                    key: _formKey,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _emailController,
+                            decoration: const InputDecoration(
+                              labelText: 'Email',
+                              border: OutlineInputBorder(),
+                              hintText: 'utilisateur@exemple.com',
+                            ),
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Requis';
+                              }
+                              if (!value.contains('@')) {
+                                return 'Email invalide';
+                              }
+                              return null;
+                            },
                           ),
-                          keyboardType: TextInputType.emailAddress,
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Requis';
-                            }
-                            if (!value.contains('@')) {
-                              return 'Email invalide';
-                            }
-                            return null;
-                          },
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton.icon(
-                        onPressed: isLoading ? null : _handleInvite,
-                        icon: const Icon(Icons.person_add),
-                        label: const Text('Inviter'),
-                      ),
-                    ],
+                        const SizedBox(width: 12),
+                        ElevatedButton.icon(
+                          onPressed: isLoading ? null : _handleInvite,
+                          icon: const Icon(Icons.person_add),
+                          label: const Text('Inviter'),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
             ],
           );
         },

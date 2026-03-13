@@ -55,6 +55,7 @@ class TripHomeView extends StatelessWidget {
             final tripHome = state.tripHome;
             final trip = tripHome.trip;
             final stats = tripHome.stats;
+            final isViewer = trip.role == 'VIEWER';
 
             return CustomScrollView(
               slivers: [
@@ -76,14 +77,19 @@ class TripHomeView extends StatelessWidget {
                           onPressed: () => context.pop(),
                         ),
                       ),
-                      Positioned(
-                        top: MediaQuery.of(context).padding.top + 8,
-                        right: 8,
-                        child: IconButton(
-                          icon: const Icon(Icons.share, color: Colors.white),
-                          onPressed: () => context.go('/trips/$tripId/shares'),
+                      if (!isViewer)
+                        Positioned(
+                          top: MediaQuery.of(context).padding.top + 8,
+                          right: 8,
+                          child: IconButton(
+                            icon: const Icon(Icons.share, color: Colors.white),
+                            onPressed:
+                                () => context.go(
+                                  '/trips/$tripId/shares',
+                                  extra: trip.role,
+                                ),
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -130,6 +136,7 @@ class TripHomeView extends StatelessWidget {
                                     feature.enabled
                                         ? () => context.go(
                                           '/trips/$tripId/${feature.route}',
+                                          extra: trip.role,
                                         )
                                         : null,
                               ),
@@ -137,7 +144,7 @@ class TripHomeView extends StatelessWidget {
                             .toList(),
                   ),
                 ),
-                if (trip.status == TripStatus.ongoing)
+                if (trip.status == TripStatus.ongoing && !isViewer)
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.all(24),
@@ -175,7 +182,7 @@ class TripHomeView extends StatelessWidget {
                       ),
                     ),
                   ),
-                if (trip.status == TripStatus.draft)
+                if (trip.status == TripStatus.draft && !isViewer)
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(

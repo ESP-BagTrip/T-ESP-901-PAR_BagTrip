@@ -47,6 +47,7 @@ class BudgetSummaryResponse(BaseModel):
     totalSpent: float = Field(alias="total_spent")
     remaining: float
     byCategory: dict[str, float] = Field(alias="by_category")
+    percentConsumed: float | None = Field(None, alias="percent_consumed")
 
     class Config:
         from_attributes = True

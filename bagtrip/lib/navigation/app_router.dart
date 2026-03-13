@@ -196,9 +196,10 @@ final GoRouter appRouter = GoRouter(
                       name: 'accommodations',
                       pageBuilder: (context, state) {
                         final tripId = state.pathParameters['tripId']!;
+                        final role = state.extra as String? ?? 'OWNER';
                         return buildSlideTransitionPage<void>(
                           state: state,
-                          child: AccommodationsPage(tripId: tripId),
+                          child: AccommodationsPage(tripId: tripId, role: role),
                         );
                       },
                     ),
@@ -207,9 +208,10 @@ final GoRouter appRouter = GoRouter(
                       name: 'baggage',
                       pageBuilder: (context, state) {
                         final tripId = state.pathParameters['tripId']!;
+                        final role = state.extra as String? ?? 'OWNER';
                         return buildSlideTransitionPage<void>(
                           state: state,
-                          child: BaggagePage(tripId: tripId),
+                          child: BaggagePage(tripId: tripId, role: role),
                         );
                       },
                     ),
@@ -218,9 +220,10 @@ final GoRouter appRouter = GoRouter(
                       name: 'tripActivities',
                       pageBuilder: (context, state) {
                         final tripId = state.pathParameters['tripId']!;
+                        final role = state.extra as String? ?? 'OWNER';
                         return buildSlideTransitionPage<void>(
                           state: state,
-                          child: ActivitiesPage(tripId: tripId),
+                          child: ActivitiesPage(tripId: tripId, role: role),
                         );
                       },
                     ),
@@ -229,9 +232,10 @@ final GoRouter appRouter = GoRouter(
                       name: 'tripBudget',
                       pageBuilder: (context, state) {
                         final tripId = state.pathParameters['tripId']!;
+                        final role = state.extra as String? ?? 'OWNER';
                         return buildSlideTransitionPage<void>(
                           state: state,
-                          child: BudgetPage(tripId: tripId),
+                          child: BudgetPage(tripId: tripId, role: role),
                         );
                       },
                     ),
@@ -240,9 +244,10 @@ final GoRouter appRouter = GoRouter(
                       name: 'shares',
                       pageBuilder: (context, state) {
                         final tripId = state.pathParameters['tripId']!;
+                        final role = state.extra as String? ?? 'OWNER';
                         return buildSlideTransitionPage<void>(
                           state: state,
-                          child: TripSharesPage(tripId: tripId),
+                          child: TripSharesPage(tripId: tripId, role: role),
                         );
                       },
                     ),

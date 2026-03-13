@@ -9,8 +9,13 @@ import 'package:intl/intl.dart';
 
 class AccommodationsPage extends StatefulWidget {
   final String tripId;
+  final String role;
 
-  const AccommodationsPage({super.key, required this.tripId});
+  const AccommodationsPage({
+    super.key,
+    required this.tripId,
+    this.role = 'OWNER',
+  });
 
   @override
   State<AccommodationsPage> createState() => _AccommodationsPageState();
@@ -185,6 +190,8 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isViewer = widget.role == 'VIEWER';
+
     return Scaffold(
       appBar: AppBar(title: const Text('Hébergements')),
       body: SafeArea(
@@ -248,7 +255,8 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
                                             Text(
                                               '${accommodation.checkIn != null ? DateFormat('dd/MM/yyyy').format(accommodation.checkIn!) : '?'} → ${accommodation.checkOut != null ? DateFormat('dd/MM/yyyy').format(accommodation.checkOut!) : '?'}',
                                             ),
-                                          if (accommodation.price != null)
+                                          if (accommodation.price != null &&
+                                              !isViewer)
                                             Text(
                                               '${accommodation.price!.toStringAsFixed(2)} ${accommodation.currency ?? 'EUR'}',
                                               style: const TextStyle(
@@ -258,145 +266,156 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
                                         ],
                                       ),
                                       isThreeLine: true,
-                                      trailing: IconButton(
-                                        icon: const Icon(Icons.delete_outline),
-                                        onPressed:
-                                            () => _handleDeleteAccommodation(
-                                              accommodation.id,
-                                            ),
-                                      ),
+                                      trailing:
+                                          isViewer
+                                              ? null
+                                              : IconButton(
+                                                icon: const Icon(
+                                                  Icons.delete_outline,
+                                                ),
+                                                onPressed:
+                                                    () =>
+                                                        _handleDeleteAccommodation(
+                                                          accommodation.id,
+                                                        ),
+                                              ),
                                     ),
                                   );
                                 },
                               ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: const BoxDecoration(
-                        color: AppColors.surfaceLight,
-                        border: Border(
-                          top: BorderSide(color: AppColors.border),
+                    if (!isViewer)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: const BoxDecoration(
+                          color: AppColors.surfaceLight,
+                          border: Border(
+                            top: BorderSide(color: AppColors.border),
+                          ),
                         ),
-                      ),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Ajouter un hébergement',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _nameController,
-                              decoration: const InputDecoration(
-                                labelText: 'Nom *',
-                                border: OutlineInputBorder(),
-                                hintText: 'ex: Hotel Marriott Paris',
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Ajouter un hébergement',
+                                style: Theme.of(context).textTheme.titleMedium,
                               ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Requis';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 12),
-                            TextFormField(
-                              controller: _addressController,
-                              decoration: const InputDecoration(
-                                labelText: 'Adresse (optionnel)',
-                                border: OutlineInputBorder(),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _nameController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Nom *',
+                                  border: OutlineInputBorder(),
+                                  hintText: 'ex: Hotel Marriott Paris',
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Requis';
+                                  }
+                                  return null;
+                                },
                               ),
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: InkWell(
-                                    onTap: () => _selectDate(context, true),
-                                    child: InputDecorator(
-                                      decoration: const InputDecoration(
-                                        labelText: 'Arrivée',
-                                        border: OutlineInputBorder(),
-                                        prefixIcon: Icon(Icons.calendar_today),
-                                      ),
-                                      child: Text(
-                                        _checkInDate != null
-                                            ? DateFormat(
-                                              'dd/MM/yyyy',
-                                            ).format(_checkInDate!)
-                                            : '',
+                              const SizedBox(height: 12),
+                              TextFormField(
+                                controller: _addressController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Adresse (optionnel)',
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: InkWell(
+                                      onTap: () => _selectDate(context, true),
+                                      child: InputDecorator(
+                                        decoration: const InputDecoration(
+                                          labelText: 'Arrivée',
+                                          border: OutlineInputBorder(),
+                                          prefixIcon: Icon(
+                                            Icons.calendar_today,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          _checkInDate != null
+                                              ? DateFormat(
+                                                'dd/MM/yyyy',
+                                              ).format(_checkInDate!)
+                                              : '',
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: InkWell(
-                                    onTap: () => _selectDate(context, false),
-                                    child: InputDecorator(
-                                      decoration: const InputDecoration(
-                                        labelText: 'Départ',
-                                        border: OutlineInputBorder(),
-                                        prefixIcon: Icon(Icons.calendar_today),
-                                      ),
-                                      child: Text(
-                                        _checkOutDate != null
-                                            ? DateFormat(
-                                              'dd/MM/yyyy',
-                                            ).format(_checkOutDate!)
-                                            : '',
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: InkWell(
+                                      onTap: () => _selectDate(context, false),
+                                      child: InputDecorator(
+                                        decoration: const InputDecoration(
+                                          labelText: 'Départ',
+                                          border: OutlineInputBorder(),
+                                          prefixIcon: Icon(
+                                            Icons.calendar_today,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          _checkOutDate != null
+                                              ? DateFormat(
+                                                'dd/MM/yyyy',
+                                              ).format(_checkOutDate!)
+                                              : '',
+                                        ),
                                       ),
                                     ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              TextFormField(
+                                controller: _priceController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Prix (optionnel)',
+                                  border: OutlineInputBorder(),
+                                  prefixIcon: Icon(Icons.euro),
+                                ),
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
+                              ),
+                              if (_errorMessage != null) ...[
+                                const SizedBox(height: 12),
+                                Text(
+                                  _errorMessage!,
+                                  style: const TextStyle(
+                                    color: ColorName.errorDark,
                                   ),
                                 ),
                               ],
-                            ),
-                            const SizedBox(height: 12),
-                            TextFormField(
-                              controller: _priceController,
-                              decoration: const InputDecoration(
-                                labelText: 'Prix (optionnel)',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.euro),
-                              ),
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
-                                  ),
-                            ),
-                            if (_errorMessage != null) ...[
                               const SizedBox(height: 12),
-                              Text(
-                                _errorMessage!,
-                                style: const TextStyle(
-                                  color: ColorName.errorDark,
-                                ),
+                              ElevatedButton.icon(
+                                onPressed:
+                                    _isAdding ? null : _handleAddAccommodation,
+                                icon:
+                                    _isAdding
+                                        ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                        : const Icon(Icons.add),
+                                label: const Text('Ajouter'),
                               ),
                             ],
-                            const SizedBox(height: 12),
-                            ElevatedButton.icon(
-                              onPressed:
-                                  _isAdding ? null : _handleAddAccommodation,
-                              icon:
-                                  _isAdding
-                                      ? const SizedBox(
-                                        width: 16,
-                                        height: 16,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                      : const Icon(Icons.add),
-                              label: const Text('Ajouter'),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
       ),

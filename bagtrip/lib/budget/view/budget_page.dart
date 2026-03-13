@@ -5,14 +5,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class BudgetPage extends StatelessWidget {
   final String tripId;
+  final String role;
 
-  const BudgetPage({super.key, required this.tripId});
+  const BudgetPage({super.key, required this.tripId, this.role = 'OWNER'});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => BudgetBloc()..add(LoadBudget(tripId: tripId)),
-      child: BudgetView(tripId: tripId),
+      child: BudgetView(tripId: tripId, role: role),
     );
   }
 }
