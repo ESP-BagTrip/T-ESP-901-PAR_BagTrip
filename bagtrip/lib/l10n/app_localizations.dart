@@ -2161,6 +2161,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This trip is completed. No modifications allowed.'**
   String get tripCompletedReadOnly;
+
+  /// No description provided for @budgetWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'{pct}% of your budget has been used'**
+  String budgetWarning(String pct);
+
+  /// No description provided for @budgetExceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget exceeded by {amount} €'**
+  String budgetExceeded(String amount);
 }
 
 class _AppLocalizationsDelegate

@@ -1,4 +1,5 @@
 import 'package:bagtrip/budget/bloc/budget_bloc.dart';
+import 'package:bagtrip/budget/widgets/budget_alert_banner.dart';
 import 'package:bagtrip/budget/widgets/budget_item_card.dart';
 import 'package:bagtrip/budget/widgets/budget_item_form.dart';
 import 'package:bagtrip/budget/widgets/budget_summary_header.dart';
@@ -95,6 +96,8 @@ class BudgetView extends StatelessWidget {
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                if (state.summary.alertLevel != null)
+                  BudgetAlertBanner(summary: state.summary),
                 BudgetSummaryHeader(summary: state.summary),
                 if (state.summary.byCategory.isNotEmpty) ...[
                   Text(

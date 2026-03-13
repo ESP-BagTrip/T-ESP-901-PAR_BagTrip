@@ -97,6 +97,8 @@ class BudgetSummary {
   final double remaining;
   final Map<String, double> byCategory;
   final double? percentConsumed;
+  final String? alertLevel;
+  final String? alertMessage;
 
   BudgetSummary({
     required this.totalBudget,
@@ -104,6 +106,8 @@ class BudgetSummary {
     required this.remaining,
     required this.byCategory,
     this.percentConsumed,
+    this.alertLevel,
+    this.alertMessage,
   });
 
   factory BudgetSummary.fromJson(Map<String, dynamic> json) {
@@ -125,6 +129,10 @@ class BudgetSummary {
       percentConsumed:
           (json['percentConsumed'] as num?)?.toDouble() ??
           (json['percent_consumed'] as num?)?.toDouble(),
+      alertLevel:
+          json['alertLevel'] as String? ?? json['alert_level'] as String?,
+      alertMessage:
+          json['alertMessage'] as String? ?? json['alert_message'] as String?,
     );
   }
 }

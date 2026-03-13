@@ -118,9 +118,25 @@ class BudgetItemService:
             by_category[cat] = by_category.get(cat, 0.0) + float(item.amount)
 
         budget_total = float(trip.budget_total) if trip.budget_total else 0.0
+
+        alert_level = None
+        alert_message = None
+        if budget_total > 0:
+            ratio = total_spent / budget_total
+            if ratio >= 1.0:
+                alert_level = "DANGER"
+                over = total_spent - budget_total
+                alert_message = f"Budget exceeded by {over:.2f} €"
+            elif ratio >= 0.8:
+                alert_level = "WARNING"
+                pct = ratio * 100
+                alert_message = f"{pct:.0f}% of your budget has been used"
+
         return {
             "total_budget": budget_total,
             "total_spent": total_spent,
             "remaining": budget_total - total_spent,
             "by_category": by_category,
+            "alert_level": alert_level,
+            "alert_message": alert_message,
         }

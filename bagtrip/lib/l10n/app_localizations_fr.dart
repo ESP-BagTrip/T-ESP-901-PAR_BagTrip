@@ -1122,4 +1122,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get tripCompletedReadOnly =>
       'Ce voyage est termine. Aucune modification possible.';
+
+  @override
+  String budgetWarning(String pct) {
+    return '$pct% de votre budget a été utilisé';
+  }
+
+  @override
+  String budgetExceeded(String amount) {
+    return 'Budget dépassé de $amount \u20ac';
+  }
 }

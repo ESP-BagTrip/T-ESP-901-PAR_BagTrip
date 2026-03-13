@@ -1110,4 +1110,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get tripCompletedReadOnly =>
       'This trip is completed. No modifications allowed.';
+
+  @override
+  String budgetWarning(String pct) {
+    return '$pct% of your budget has been used';
+  }
+
+  @override
+  String budgetExceeded(String amount) {
+    return 'Budget exceeded by $amount \u20ac';
+  }
 }

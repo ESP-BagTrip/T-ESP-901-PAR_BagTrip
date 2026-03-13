@@ -48,6 +48,8 @@ class BudgetSummaryResponse(BaseModel):
     remaining: float
     byCategory: dict[str, float] = Field(alias="by_category")
     percentConsumed: float | None = Field(None, alias="percent_consumed")
+    alertLevel: str | None = Field(None, alias="alert_level")
+    alertMessage: str | None = Field(None, alias="alert_message")
 
     class Config:
         from_attributes = True
