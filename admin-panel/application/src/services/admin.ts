@@ -9,6 +9,7 @@ import type {
   AdminFlightBooking,
   AdminFlightSearch,
   AdminListResponse,
+  AdminNotification,
   AdminTrip,
   AdminTraveler,
   AdminTravelerProfile,
@@ -109,6 +110,14 @@ export const adminService = {
   async getAllTripShares(params?: QueryParams): Promise<AdminListResponse<AdminTripShare>> {
     const response = await apiClient.get<AdminListResponse<AdminTripShare>>(
       API_ENDPOINTS.ADMIN.TRIP_SHARES,
+      { params }
+    )
+    return response.data
+  },
+
+  async getAllNotifications(params?: QueryParams): Promise<AdminListResponse<AdminNotification>> {
+    const response = await apiClient.get<AdminListResponse<AdminNotification>>(
+      API_ENDPOINTS.ADMIN.NOTIFICATIONS,
       { params }
     )
     return response.data

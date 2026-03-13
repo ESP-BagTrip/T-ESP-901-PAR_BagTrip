@@ -13,6 +13,7 @@ from src.api.budget_items.schemas import (
 )
 from src.config.database import get_db
 from src.services.budget_item_service import BudgetItemService
+from src.services.notification_service import NotificationService
 from src.utils.errors import AppError, create_http_exception
 
 router = APIRouter(prefix="/v1/trips", tags=["BudgetItems"])
@@ -38,6 +39,7 @@ async def create_budget_item(
             date=request.date,
             is_planned=request.isPlanned if request.isPlanned is not None else True,
         )
+        NotificationService.check_and_send_budget_alert(db, access.trip)
         return BudgetItemResponse.model_validate(item)
     except AppError as e:
         raise create_http_exception(e) from e
@@ -117,6 +119,7 @@ async def update_budget_item(
             date=request.date,
             is_planned=request.isPlanned,
         )
+        NotificationService.check_and_send_budget_alert(db, access.trip)
         return BudgetItemResponse.model_validate(item)
     except AppError as e:
         raise create_http_exception(e) from e
@@ -133,5 +136,6 @@ async def delete_budget_item(
 ):
     try:
         BudgetItemService.delete(db, access.trip, itemId)
+        NotificationService.check_and_send_budget_alert(db, access.trip)
     except AppError as e:
         raise create_http_exception(e) from e

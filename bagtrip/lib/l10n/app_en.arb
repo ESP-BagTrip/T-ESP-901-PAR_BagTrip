@@ -444,5 +444,23 @@
   "categoryFlight": "Flight",
   "categoryAccommodation": "Accommodation",
   "categoryFood": "Food",
-  "categoryActivity": "Activity"
+  "categoryActivity": "Activity",
+  "budgetExceeded": "Budget exceeded by {amount} €",
+  "@budgetExceeded": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetWarning": "You have used {percent}% of your budget",
+  "@budgetWarning": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "tripCompletedReadOnly": "This trip is completed. Data is read-only.",
+  "markAsReady": "Mark as ready"
 }

@@ -444,5 +444,23 @@
   "categoryFlight": "Vol",
   "categoryAccommodation": "H\u00e9bergement",
   "categoryFood": "Nourriture",
-  "categoryActivity": "Activit\u00e9"
+  "categoryActivity": "Activit\u00e9",
+  "budgetExceeded": "Budget d\u00e9pass\u00e9 de {amount} \u20ac",
+  "@budgetExceeded": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetWarning": "Vous avez utilis\u00e9 {percent}% de votre budget",
+  "@budgetWarning": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "tripCompletedReadOnly": "Ce voyage est termin\u00e9. Les donn\u00e9es sont en lecture seule.",
+  "markAsReady": "Marquer comme pr\u00eat"
 }

@@ -12,6 +12,7 @@ from src.models.budget_item import BudgetItem
 from src.models.feedback import Feedback
 from src.models.flight_order import FlightOrder
 from src.models.flight_search import FlightSearch
+from src.models.notification import Notification
 from src.models.traveler import TripTraveler
 from src.models.traveler_profile import TravelerProfile
 from src.models.trip import Trip
@@ -567,6 +568,46 @@ class AdminService:
             raise AppError("FEEDBACK_NOT_FOUND", 404, "Feedback not found")
         db.delete(feedback)
         db.commit()
+
+    @staticmethod
+    def get_all_notifications(
+        db: Session, page: int = 1, limit: int = 10
+    ) -> tuple[list[dict], int, int]:
+        """Récupérer toutes les notifications avec informations utilisateur et trip."""
+        offset = (page - 1) * limit
+
+        query = (
+            db.query(
+                Notification,
+                User.email.label("user_email"),
+                Trip.title.label("trip_title"),
+            )
+            .join(User, Notification.user_id == User.id)
+            .outerjoin(Trip, Notification.trip_id == Trip.id)
+            .order_by(Notification.created_at.desc())
+        )
+
+        total = query.count()
+        results = query.offset(offset).limit(limit).all()
+
+        items = []
+        for notif, user_email, trip_title in results:
+            items.append({
+                "id": notif.id,
+                "user_id": notif.user_id,
+                "user_email": user_email,
+                "trip_id": notif.trip_id,
+                "trip_title": trip_title,
+                "type": notif.type,
+                "title": notif.title,
+                "body": notif.body,
+                "is_read": notif.is_read,
+                "sent_at": notif.sent_at,
+                "created_at": notif.created_at,
+            })
+
+        total_pages = ceil(total / limit) if limit > 0 else 0
+        return items, total, total_pages
 
     @staticmethod
     def get_all_flight_searches(

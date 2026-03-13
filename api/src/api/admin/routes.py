@@ -10,11 +10,12 @@ from src.api.admin.schemas import (
     AdminActivityResponse,
     AdminBaggageItemResponse,
     AdminBookingIntentResponse,
-    AdminFeedbackResponse,
     AdminBudgetItemResponse,
+    AdminFeedbackResponse,
     AdminFlightBookingResponse,
     AdminFlightSearchResponse,
     AdminListResponse,
+    AdminNotificationResponse,
     AdminTravelerProfileResponse,
     AdminTravelerResponse,
     AdminTripResponse,
@@ -437,6 +438,36 @@ async def list_all_feedbacks(
     except Exception as e:
         raise create_http_exception(
             AppError("INTERNAL_ERROR", 500, f"Failed to fetch feedbacks: {str(e)}")
+        ) from e
+
+
+@router.get(
+    "/notifications",
+    response_model=AdminListResponse[AdminNotificationResponse],
+    summary="List all notifications (admin)",
+    description="Get all notifications with user and trip information (admin only)",
+)
+async def list_all_notifications(
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Lister toutes les notifications (admin)."""
+    try:
+        items, total, total_pages = AdminService.get_all_notifications(db, page=page, limit=limit)
+        return AdminListResponse[AdminNotificationResponse](
+            items=[AdminNotificationResponse(**item) for item in items],
+            total=total,
+            page=page,
+            limit=limit,
+            total_pages=total_pages,
+        )
+    except AppError as e:
+        raise create_http_exception(e) from e
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, f"Failed to fetch notifications: {str(e)}")
         ) from e
 
 

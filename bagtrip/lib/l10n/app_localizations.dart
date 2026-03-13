@@ -2150,29 +2150,29 @@ abstract class AppLocalizations {
   /// **'Activité'**
   String get categoryActivity;
 
-  /// No description provided for @markAsReady.
+  /// No description provided for @budgetExceeded.
   ///
-  /// In en, this message translates to:
-  /// **'Mark as ready'**
-  String get markAsReady;
-
-  /// No description provided for @tripCompletedReadOnly.
-  ///
-  /// In en, this message translates to:
-  /// **'This trip is completed. No modifications allowed.'**
-  String get tripCompletedReadOnly;
+  /// In fr, this message translates to:
+  /// **'Budget dépassé de {amount} €'**
+  String budgetExceeded(String amount);
 
   /// No description provided for @budgetWarning.
   ///
-  /// In en, this message translates to:
-  /// **'{pct}% of your budget has been used'**
-  String budgetWarning(String pct);
+  /// In fr, this message translates to:
+  /// **'Vous avez utilisé {percent}% de votre budget'**
+  String budgetWarning(String percent);
 
-  /// No description provided for @budgetExceeded.
+  /// No description provided for @tripCompletedReadOnly.
   ///
-  /// In en, this message translates to:
-  /// **'Budget exceeded by {amount} €'**
-  String budgetExceeded(String amount);
+  /// In fr, this message translates to:
+  /// **'Ce voyage est terminé. Les données sont en lecture seule.'**
+  String get tripCompletedReadOnly;
+
+  /// No description provided for @markAsReady.
+  ///
+  /// In fr, this message translates to:
+  /// **'Marquer comme prêt'**
+  String get markAsReady;
 }
 
 class _AppLocalizationsDelegate

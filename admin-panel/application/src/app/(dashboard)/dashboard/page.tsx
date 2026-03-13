@@ -10,6 +10,7 @@ import {
   feedbacksColumns,
   flightBookingsColumns,
   flightSearchesColumns,
+  notificationsColumns,
   profilesColumns,
   travelersColumns,
   tripSharesColumns,
@@ -28,6 +29,7 @@ import {
   useAdminTravelers,
   useAdminTrips,
   useAdminTripShares,
+  useAdminNotifications,
 } from '@/hooks/useAdminData'
 import { useFeedbacks } from '@/hooks/useFeedbacks'
 import { usersService } from '@/services'
@@ -87,6 +89,7 @@ type TabType =
   | 'budgetItems'
   | 'tripShares'
   | 'feedbacks'
+  | 'notifications'
 
 export default function DashboardPage() {
   const { user, logout } = useAuth()
@@ -104,6 +107,7 @@ export default function DashboardPage() {
   const [budgetItemsPage, setBudgetItemsPage] = useState(1)
   const [tripSharesPage, setTripSharesPage] = useState(1)
   const [feedbacksPage, setFeedbacksPage] = useState(1)
+  const [notificationsPage, setNotificationsPage] = useState(1)
 
   // Users query
   const { data: usersData, isLoading: usersLoading } = useQuery({
@@ -171,6 +175,11 @@ export default function DashboardPage() {
     limit: PAGINATION_DEFAULTS.LIMIT,
   })
 
+  const { data: notificationsData, isLoading: notificationsLoading } = useAdminNotifications({
+    page: notificationsPage,
+    limit: PAGINATION_DEFAULTS.LIMIT,
+  })
+
   const { data: feedbacksData, isLoading: feedbacksLoading } = useFeedbacks({
     page: feedbacksPage,
     limit: PAGINATION_DEFAULTS.LIMIT,
@@ -225,6 +234,11 @@ export default function DashboardPage() {
       id: 'feedbacks' as TabType,
       name: 'Feedbacks',
       count: feedbacksData?.total,
+    },
+    {
+      id: 'notifications' as TabType,
+      name: 'Notifications',
+      count: notificationsData?.total,
     },
   ]
 
@@ -559,6 +573,27 @@ export default function DashboardPage() {
                 }
                 onPaginationChange={(page) => {
                   setFeedbacksPage(page)
+                }}
+              />
+            )}
+
+            {activeTab === 'notifications' && (
+              <DataTable
+                data={notificationsData?.items || []}
+                columns={notificationsColumns}
+                isLoading={notificationsLoading}
+                pagination={
+                  notificationsData
+                    ? {
+                        page: notificationsData.page,
+                        limit: notificationsData.limit,
+                        total: notificationsData.total,
+                        total_pages: notificationsData.total_pages,
+                      }
+                    : undefined
+                }
+                onPaginationChange={(page) => {
+                  setNotificationsPage(page)
                 }}
               />
             )}

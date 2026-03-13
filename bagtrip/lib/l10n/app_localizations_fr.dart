@@ -1117,19 +1117,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get categoryActivity => 'Activité';
 
   @override
-  String get markAsReady => 'Marquer comme pret';
+  String budgetExceeded(String amount) {
+    return 'Budget dépassé de $amount €';
+  }
+
+  @override
+  String budgetWarning(String percent) {
+    return 'Vous avez utilisé $percent% de votre budget';
+  }
 
   @override
   String get tripCompletedReadOnly =>
-      'Ce voyage est termine. Aucune modification possible.';
+      'Ce voyage est terminé. Les données sont en lecture seule.';
 
   @override
-  String budgetWarning(String pct) {
-    return '$pct% de votre budget a été utilisé';
-  }
-
-  @override
-  String budgetExceeded(String amount) {
-    return 'Budget dépassé de $amount \u20ac';
-  }
+  String get markAsReady => 'Marquer comme prêt';
 }

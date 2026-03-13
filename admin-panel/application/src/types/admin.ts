@@ -156,6 +156,20 @@ export interface AdminTripShare {
   invited_at: string
 }
 
+export interface AdminNotification {
+  id: string
+  user_id: string
+  user_email: string
+  trip_id: string | null
+  trip_title: string | null
+  type: string
+  title: string
+  body: string
+  is_read: boolean
+  sent_at: string | null
+  created_at: string
+}
+
 export interface AdminListResponse<T> {
   items: T[]
   total: number

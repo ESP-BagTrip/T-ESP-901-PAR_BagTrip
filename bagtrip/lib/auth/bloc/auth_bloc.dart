@@ -1,8 +1,11 @@
 import 'dart:developer' as developer;
+import 'dart:io';
 
 import 'package:bagtrip/models/auth_response.dart';
 import 'package:bagtrip/service/auth_service.dart';
+import 'package:bagtrip/service/notification_service.dart';
 import 'package:bloc/bloc.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:meta/meta.dart';
 
 part 'auth_event.dart';
@@ -23,6 +26,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthModeChanged>(_onAuthModeChanged);
   }
 
+  Future<void> _registerDeviceToken() async {
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token != null) {
+        final platform = Platform.isIOS ? 'ios' : 'android';
+        await NotificationApiService().registerDeviceToken(
+          token,
+          platform: platform,
+        );
+      }
+    } catch (e) {
+      developer.log('FCM token registration failed: $e');
+    }
+  }
+
   Future<void> _onLoginRequested(
     LoginRequested event,
     Emitter<AuthState> emit,
@@ -34,6 +52,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         event.password,
       );
       emit(AuthSuccess(authResponse: authResponse));
+      _registerDeviceToken();
     } catch (e) {
       emit(AuthError(errorMessage: e.toString(), isLoginMode: _isLoginMode));
     }
@@ -51,6 +70,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         event.fullName ?? 'User',
       );
       emit(AuthSuccess(authResponse: authResponse));
+      _registerDeviceToken();
     } catch (e) {
       emit(AuthError(errorMessage: e.toString(), isLoginMode: _isLoginMode));
     }
@@ -64,6 +84,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final authResponse = await _authService.loginWithGoogle();
       emit(AuthSuccess(authResponse: authResponse));
+      _registerDeviceToken();
     } catch (e, stackTrace) {
       developer.log('Google Sign-In Error: ${e.toString()}');
       developer.log('Stack trace: $stackTrace');
@@ -87,6 +108,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final authResponse = await _authService.loginWithApple();
       emit(AuthSuccess(authResponse: authResponse));
+      _registerDeviceToken();
     } catch (e, stackTrace) {
       developer.log('Apple Sign-In Error: ${e.toString()}');
       developer.log('Stack trace: $stackTrace');

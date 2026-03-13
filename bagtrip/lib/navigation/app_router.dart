@@ -1,3 +1,4 @@
+import 'package:bagtrip/notifications/view/notifications_page.dart';
 import 'package:bagtrip/flightResultDetails/view/flight_result_details_page.dart';
 import 'package:bagtrip/flightSearchResult/models/flight.dart';
 import 'package:bagtrip/flightSearchResult/models/flight_search_arguments.dart';
@@ -296,6 +297,15 @@ final GoRouter appRouter = GoRouter(
           ],
         ),
       ],
+    ),
+    GoRoute(
+      path: '/notifications',
+      name: 'notifications',
+      pageBuilder:
+          (context, state) => buildSlideTransitionPage<void>(
+            state: state,
+            child: const NotificationsPage(),
+          ),
     ),
     GoRoute(
       path: '/flight-search-result',

@@ -253,6 +253,26 @@ class AdminFeedbackResponse(BaseModel):
         populate_by_name = True
 
 
+class AdminNotificationResponse(BaseModel):
+    """Réponse notification pour admin."""
+
+    id: UUID
+    userId: UUID = Field(alias="user_id")
+    userEmail: str = Field(alias="user_email")
+    tripId: UUID | None = Field(default=None, alias="trip_id")
+    tripTitle: str | None = Field(default=None, alias="trip_title")
+    type: str
+    title: str
+    body: str
+    isRead: bool = Field(alias="is_read")
+    sentAt: datetime | None = Field(default=None, alias="sent_at")
+    createdAt: datetime = Field(alias="created_at")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
 class AdminFlightBookingResponse(BaseModel):
     """Réponse flight booking pour admin avec informations trip et utilisateur."""
 

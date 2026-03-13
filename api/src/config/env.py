@@ -49,6 +49,9 @@ class Settings(BaseSettings):
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
+    # Firebase Admin (FCM push notifications)
+    FIREBASE_SERVICE_ACCOUNT_PATH: str | None = None
+
     # OAuth verification
     GOOGLE_FIREBASE_PROJECT_ID: str = "bagtrip-7d2d8"
     GOOGLE_OAUTH_CLIENT_ID: str | None = None

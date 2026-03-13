@@ -228,6 +228,7 @@ class TripsService:
         - PLANNED → ONGOING when start_date <= today
         - ONGOING → COMPLETED when end_date < today
         Returns (planned_to_ongoing, ongoing_to_completed) counts.
+        Also sends TRIP_ENDED notifications for newly completed trips.
         """
         today = datetime.now(UTC).date()
 
@@ -237,6 +238,13 @@ class TripsService:
             .values(status="ONGOING")
         ).rowcount
 
+        # Capture trips that will transition ONGOING→COMPLETED before updating
+        completing_trips = (
+            db.query(Trip)
+            .filter(Trip.status == "ONGOING", Trip.end_date.isnot(None), Trip.end_date < today)
+            .all()
+        )
+
         ongoing_to_completed = db.execute(
             update(Trip)
             .where(Trip.status == "ONGOING", Trip.end_date.isnot(None), Trip.end_date < today)
@@ -244,6 +252,26 @@ class TripsService:
         ).rowcount
 
         db.commit()
+
+        # Send TRIP_ENDED notifications for newly completed trips
+        if completing_trips:
+            from src.services.notification_service import NotificationService
+
+            for trip in completing_trips:
+                try:
+                    recipients = NotificationService._get_trip_recipients(db, trip)
+                    NotificationService.create_and_send_bulk(
+                        db=db,
+                        user_ids=recipients,
+                        trip_id=trip.id,
+                        notif_type="TRIP_ENDED",
+                        title="Voyage terminé !",
+                        body=f"Votre voyage « {trip.title or 'sans titre'} » est terminé. Partagez votre avis !",
+                        data={"screen": "feedback", "tripId": str(trip.id)},
+                    )
+                except Exception:
+                    pass
+
         return planned_to_ongoing, ongoing_to_completed
 
     @staticmethod

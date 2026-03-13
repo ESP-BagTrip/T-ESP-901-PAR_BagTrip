@@ -1,4 +1,5 @@
 import 'package:bagtrip/models/trip.dart';
+import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bagtrip/trips/widgets/trip_card.dart';
 import 'package:flutter/material.dart';
@@ -10,11 +11,37 @@ class TripsListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Load unread count for badge
+    context.read<NotificationBloc>().add(LoadUnreadCount());
+
     return DefaultTabController(
       length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Mes voyages'),
+          actions: [
+            BlocBuilder<NotificationBloc, NotificationState>(
+              builder: (context, state) {
+                int unreadCount = 0;
+                if (state is UnreadCountLoaded) {
+                  unreadCount = state.count;
+                } else if (state is NotificationsLoaded) {
+                  unreadCount = state.unreadCount;
+                }
+                return IconButton(
+                  onPressed: () => context.push('/notifications'),
+                  icon: Badge(
+                    isLabelVisible: unreadCount > 0,
+                    label: Text(
+                      unreadCount > 99 ? '99+' : '$unreadCount',
+                      style: const TextStyle(fontSize: 10),
+                    ),
+                    child: const Icon(Icons.notifications_outlined),
+                  ),
+                );
+              },
+            ),
+          ],
           bottom: const TabBar(
             tabs: [
               Tab(text: 'En cours'),

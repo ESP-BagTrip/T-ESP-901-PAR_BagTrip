@@ -1105,19 +1105,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get categoryActivity => 'Activity';
 
   @override
-  String get markAsReady => 'Mark as ready';
+  String budgetExceeded(String amount) {
+    return 'Budget exceeded by $amount €';
+  }
+
+  @override
+  String budgetWarning(String percent) {
+    return 'You have used $percent% of your budget';
+  }
 
   @override
   String get tripCompletedReadOnly =>
-      'This trip is completed. No modifications allowed.';
+      'This trip is completed. Data is read-only.';
 
   @override
-  String budgetWarning(String pct) {
-    return '$pct% of your budget has been used';
-  }
-
-  @override
-  String budgetExceeded(String amount) {
-    return 'Budget exceeded by $amount \u20ac';
-  }
+  String get markAsReady => 'Mark as ready';
 }

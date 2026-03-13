@@ -134,3 +134,15 @@ export function useAdminTripShares(params?: QueryParams) {
       }),
   })
 }
+
+export function useAdminNotifications(params?: QueryParams) {
+  return useQuery({
+    queryKey: ['admin', 'notifications', params],
+    queryFn: () =>
+      adminService.getAllNotifications({
+        page: params?.page || PAGINATION_DEFAULTS.PAGE,
+        limit: params?.limit || PAGINATION_DEFAULTS.LIMIT,
+        ...params,
+      }),
+  })
+}

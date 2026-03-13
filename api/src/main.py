@@ -14,15 +14,17 @@ from src.api.admin.routes import router as admin_router
 from src.api.auth.routes import router as auth_router
 from src.api.baggage.routes import router as baggage_router
 from src.api.booking.routes import router as booking_router
-from src.api.shares.routes import router as shares_router
 from src.api.booking_intents.book_routes import router as booking_intents_book_router
 from src.api.booking_intents.routes import router as booking_intents_router
 from src.api.budget_items.routes import router as budget_items_router
+from src.api.device_tokens.routes import router as device_tokens_router
 from src.api.feedback.routes import router as feedback_router
 from src.api.flights.offers.routes import router as flight_offers_router
 from src.api.flights.searches.routes import router as flight_searches_router
+from src.api.notifications.routes import router as notifications_router
 from src.api.payments.routes import router as payments_router
 from src.api.profile.routes import router as profile_router
+from src.api.shares.routes import router as shares_router
 from src.api.stripe.webhooks.routes import router as stripe_webhooks_router
 from src.api.travel.routes import router as travel_router
 from src.api.travelers.routes import router as travelers_router
@@ -65,12 +67,22 @@ async def lifespan(app: FastAPI):
 
     scheduler_task = asyncio.create_task(trip_status_scheduler())
 
+    # Lancer le job de notifications planifiées
+    from src.jobs.notification_job import notification_scheduler
+
+    notif_scheduler_task = asyncio.create_task(notification_scheduler())
+
     yield
 
-    # Arrêter le scheduler
+    # Arrêter les schedulers
     scheduler_task.cancel()
+    notif_scheduler_task.cancel()
     try:
         await scheduler_task
+    except asyncio.CancelledError:
+        pass
+    try:
+        await notif_scheduler_task
     except asyncio.CancelledError:
         pass
 
@@ -115,6 +127,8 @@ app.include_router(booking_intents_router)  # Déjà préfixé avec /v1/trips
 app.include_router(booking_intents_book_router)  # Déjà préfixé avec /v1/booking-intents
 app.include_router(payments_router)  # Déjà préfixé avec /v1/booking-intents
 app.include_router(stripe_webhooks_router)  # Déjà préfixé avec /v1/stripe
+app.include_router(device_tokens_router)  # Déjà préfixé avec /v1/device-tokens
+app.include_router(notifications_router)  # Déjà préfixé avec /v1/notifications
 
 # Routes utilitaires
 app.include_router(travel_router)  # Déjà préfixé avec /v1/travel (locations, inspirations)

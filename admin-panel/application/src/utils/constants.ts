@@ -43,6 +43,7 @@ export const API_ENDPOINTS = {
     BUDGET_ITEMS: '/admin/budget-items',
     TRIP_SHARES: '/admin/trip-shares',
     FEEDBACKS: '/admin/feedbacks',
+    NOTIFICATIONS: '/admin/notifications',
   },
   USERS: '/admin/users',
   FEEDBACKS: '/admin/feedbacks',
