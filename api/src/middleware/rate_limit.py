@@ -62,6 +62,9 @@ class RateLimiter:
 # Instance globale (pour POC, en production utiliser Redis)
 agent_chat_rate_limiter = RateLimiter(max_requests=10, window_seconds=60)
 
+# Rate limiter pour les endpoints IA (5 requêtes/minute)
+ai_rate_limiter = RateLimiter(max_requests=5, window_seconds=60)
+
 # Auth rate limiter: per-IP, 5 requests/minute, auto-expiring via TTLCache
 _AUTH_RATE_LIMIT_MAX = 5
 _AUTH_RATE_LIMIT_WINDOW = 60
@@ -107,8 +110,13 @@ async def auth_rate_limit_middleware(request: Request, call_next):
 
 async def rate_limit_middleware(request: Request, call_next):
     """Middleware pour appliquer le rate limiting."""
-    # Appliquer uniquement sur /agent/chat
-    if request.url.path.endswith("/agent/chat") and request.method == "POST":
+    # Déterminer si c'est un endpoint AI rate-limité
+    ai_rate_limited = (
+        request.url.path.endswith("/agent/chat")
+        or "/v1/ai/" in request.url.path
+        or "/suggest" in request.url.path
+    )
+    if ai_rate_limited and request.method == "POST":
         # Récupérer le token depuis les headers
         auth_header = request.headers.get("Authorization")
         user_id = None
@@ -118,10 +126,10 @@ async def rate_limit_middleware(request: Request, call_next):
             user_id = verify_jwt_token(token)
 
         if user_id:
-            is_allowed, remaining = agent_chat_rate_limiter.is_allowed(user_id)
+            is_allowed, remaining = ai_rate_limiter.is_allowed(user_id)
 
             if not is_allowed:
-                retry_after = agent_chat_rate_limiter.get_retry_after(user_id)
+                retry_after = ai_rate_limiter.get_retry_after(user_id)
                 return JSONResponse(
                     status_code=429,
                     content={
@@ -134,7 +142,7 @@ async def rate_limit_middleware(request: Request, call_next):
             # Ajouter header avec remaining requests
             response = await call_next(request)
             response.headers["X-RateLimit-Remaining"] = str(remaining)
-            response.headers["X-RateLimit-Limit"] = str(agent_chat_rate_limiter.max_requests)
+            response.headers["X-RateLimit-Limit"] = str(ai_rate_limiter.max_requests)
             return response
 
     return await call_next(request)
