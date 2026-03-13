@@ -38,14 +38,14 @@ class Settings(BaseSettings):
     # LangChain / LangSmith
     LANGCHAIN_TRACING_V2: bool = False
     LANGCHAIN_API_KEY: str | None = None
-    LANGCHAIN_PROJECT: str = "default"
+    LANGCHAIN_PROJECT: str = "BagTrip"
 
     # Stripe
     STRIPE_SECRET_KEY: str | None = Field(None, description="Stripe Secret Key")
     STRIPE_WEBHOOK_SECRET: str | None = Field(None, description="Stripe Webhook Secret")
 
     # Auth / JWT
-    JWT_SECRET: str  # Required — no fallback
+    JWT_SECRET: str = "dev-secret-key-change-in-production"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
@@ -54,7 +54,7 @@ class Settings(BaseSettings):
     GOOGLE_OAUTH_CLIENT_ID: str | None = None
     APPLE_BUNDLE_ID: str | None = None
 
-    @field_validator("AMADEUS_CLIENT_ID", "AMADEUS_CLIENT_SECRET", "LLM_API_KEY", "JWT_SECRET")
+    @field_validator("AMADEUS_CLIENT_ID", "AMADEUS_CLIENT_SECRET", "LLM_API_KEY")
     @classmethod
     def validate_required_strings(cls, v: str) -> str:
         """Validate that required API keys are not empty."""
