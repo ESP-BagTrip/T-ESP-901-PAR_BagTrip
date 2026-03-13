@@ -124,6 +124,11 @@ app.include_router(travel_router)  # Déjà préfixé avec /v1/travel (locations
 app.include_router(profile_router)  # Préfixé avec /v1/profile
 app.include_router(booking_router)  # DÉPRÉCIÉ - utiliser /v1/trips/{tripId}/booking-intents
 
+# Routes IA
+from src.api.ai.activity_suggest_routes import router as ai_activity_suggest_router
+
+app.include_router(ai_activity_suggest_router)
+
 
 # Gestion globale des erreurs
 @app.exception_handler(AppError)

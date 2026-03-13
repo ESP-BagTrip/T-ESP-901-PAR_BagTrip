@@ -18,3 +18,17 @@ class ActivityError extends ActivityState {
 
   ActivityError({required this.message});
 }
+
+class ActivitySuggestionsLoading extends ActivityState {}
+
+class ActivitySuggestionsLoaded extends ActivityState {
+  final List<Map<String, dynamic>> suggestions;
+  final List<Activity> activities;
+  final Map<String, List<Activity>> groupedByDay;
+
+  ActivitySuggestionsLoaded({
+    required this.suggestions,
+    required this.activities,
+    required this.groupedByDay,
+  });
+}

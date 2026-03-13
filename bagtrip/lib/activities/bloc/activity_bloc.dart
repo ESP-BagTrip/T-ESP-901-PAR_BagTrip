@@ -1,4 +1,5 @@
 import 'package:bagtrip/models/activity.dart';
+import 'package:bagtrip/service/activity_ai_service.dart';
 import 'package:bagtrip/service/activity_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:intl/intl.dart';
@@ -8,14 +9,18 @@ part 'activity_state.dart';
 
 class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
   final ActivityService _activityService;
+  final ActivityAiService _aiService;
 
-  ActivityBloc({ActivityService? activityService})
+  ActivityBloc({ActivityService? activityService, ActivityAiService? aiService})
     : _activityService = activityService ?? ActivityService(),
+      _aiService = aiService ?? ActivityAiService(),
       super(ActivityInitial()) {
     on<LoadActivities>(_onLoadActivities);
     on<CreateActivity>(_onCreateActivity);
     on<UpdateActivity>(_onUpdateActivity);
     on<DeleteActivity>(_onDeleteActivity);
+    on<SuggestActivities>(_onSuggestActivities);
+    on<AddSuggestedActivity>(_onAddSuggestedActivity);
   }
 
   Map<String, List<Activity>> _groupByDay(List<Activity> activities) {
@@ -24,7 +29,6 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
       final key = DateFormat('yyyy-MM-dd').format(activity.date);
       grouped.putIfAbsent(key, () => []).add(activity);
     }
-    // Sort activities within each day by startTime
     for (final list in grouped.values) {
       list.sort((a, b) {
         final aTime = a.startTime ?? '';
@@ -87,6 +91,45 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
   ) async {
     try {
       await _activityService.deleteActivity(event.tripId, event.activityId);
+      add(LoadActivities(tripId: event.tripId));
+    } catch (e) {
+      emit(ActivityError(message: e.toString()));
+    }
+  }
+
+  Future<void> _onSuggestActivities(
+    SuggestActivities event,
+    Emitter<ActivityState> emit,
+  ) async {
+    // Preserve current activities if available
+    List<Activity> currentActivities = [];
+    Map<String, List<Activity>> currentGrouped = {};
+    if (state is ActivitiesLoaded) {
+      currentActivities = (state as ActivitiesLoaded).activities;
+      currentGrouped = (state as ActivitiesLoaded).groupedByDay;
+    }
+
+    emit(ActivitySuggestionsLoading());
+    try {
+      final suggestions = await _aiService.suggestActivities(event.tripId);
+      emit(
+        ActivitySuggestionsLoaded(
+          suggestions: suggestions,
+          activities: currentActivities,
+          groupedByDay: currentGrouped,
+        ),
+      );
+    } catch (e) {
+      emit(ActivityError(message: e.toString()));
+    }
+  }
+
+  Future<void> _onAddSuggestedActivity(
+    AddSuggestedActivity event,
+    Emitter<ActivityState> emit,
+  ) async {
+    try {
+      await _activityService.createActivity(event.tripId, event.data);
       add(LoadActivities(tripId: event.tripId));
     } catch (e) {
       emit(ActivityError(message: e.toString()));

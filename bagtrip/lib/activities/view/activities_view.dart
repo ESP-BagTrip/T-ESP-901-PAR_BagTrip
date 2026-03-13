@@ -21,119 +21,269 @@ class ActivitiesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Activities')),
-      body: BlocBuilder<ActivityBloc, ActivityState>(
-        builder: (context, state) {
-          if (state is ActivityLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (state is ActivityError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 48,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(state.message),
-                  const SizedBox(height: 16),
-                  FilledButton.icon(
-                    onPressed:
-                        () => context.read<ActivityBloc>().add(
-                          LoadActivities(tripId: tripId),
-                        ),
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Retry'),
-                  ),
-                ],
+    return BlocListener<ActivityBloc, ActivityState>(
+      listener: (context, state) {
+        if (state is ActivitySuggestionsLoaded) {
+          _showSuggestionsSheet(context, state.suggestions);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Activities'),
+          actions: [
+            if (role != 'VIEWER' && !isCompleted)
+              IconButton(
+                icon: const Icon(Icons.auto_awesome),
+                tooltip: 'Suggestions IA',
+                onPressed: () {
+                  context.read<ActivityBloc>().add(
+                    SuggestActivities(tripId: tripId),
+                  );
+                },
               ),
-            );
-          }
-          if (state is ActivitiesLoaded) {
-            if (state.activities.isEmpty) {
+          ],
+        ),
+        body: BlocBuilder<ActivityBloc, ActivityState>(
+          builder: (context, state) {
+            if (state is ActivityLoading ||
+                state is ActivitySuggestionsLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (state is ActivityError) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
-                      Icons.event_outlined,
-                      size: 64,
-                      color: AppColors.hint,
+                    Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: Theme.of(context).colorScheme.error,
                     ),
                     const SizedBox(height: 16),
-                    Text(
-                      'No activities yet',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.titleMedium?.copyWith(color: AppColors.hint),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Add activities to plan your trip',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textMutedLight,
-                      ),
+                    Text(state.message),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed:
+                          () => context.read<ActivityBloc>().add(
+                            LoadActivities(tripId: tripId),
+                          ),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Retry'),
                     ),
                   ],
                 ),
               );
             }
-            final sortedKeys = state.groupedByDay.keys.toList()..sort();
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: sortedKeys.length,
-              itemBuilder: (context, index) {
-                final dateKey = sortedKeys[index];
-                final dayActivities = state.groupedByDay[dateKey]!;
-                final dateLabel = DateFormat(
-                  'EEEE d MMMM yyyy',
-                ).format(DateTime.parse(dateKey));
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            if (state is ActivitiesLoaded ||
+                state is ActivitySuggestionsLoaded) {
+              final activities =
+                  state is ActivitiesLoaded
+                      ? state.activities
+                      : (state as ActivitySuggestionsLoaded).activities;
+              final groupedByDay =
+                  state is ActivitiesLoaded
+                      ? state.groupedByDay
+                      : (state as ActivitySuggestionsLoaded).groupedByDay;
+
+              if (activities.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.event_outlined,
+                        size: 64,
+                        color: AppColors.hint,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No activities yet',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(color: AppColors.hint),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Add activities to plan your trip',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textMutedLight,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              final sortedKeys = groupedByDay.keys.toList()..sort();
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: sortedKeys.length,
+                itemBuilder: (context, index) {
+                  final dateKey = sortedKeys[index];
+                  final dayActivities = groupedByDay[dateKey]!;
+                  final dateLabel = DateFormat(
+                    'EEEE d MMMM yyyy',
+                  ).format(DateTime.parse(dateKey));
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          dateLabel,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      ...dayActivities.map(
+                        (activity) => ActivityCard(
+                          activity: activity,
+                          isViewer: role == 'VIEWER' || isCompleted,
+                          onEdit:
+                              () => _showForm(
+                                context,
+                                tripId,
+                                activity: activity,
+                              ),
+                          onDelete:
+                              () => context.read<ActivityBloc>().add(
+                                DeleteActivity(
+                                  tripId: tripId,
+                                  activityId: activity.id,
+                                ),
+                              ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            }
+            return const SizedBox.shrink();
+          },
+        ),
+        floatingActionButton:
+            role != 'VIEWER' && !isCompleted
+                ? FloatingActionButton(
+                  onPressed: () => _showForm(context, tripId),
+                  child: const Icon(Icons.add),
+                )
+                : null,
+      ),
+    );
+  }
+
+  void _showSuggestionsSheet(
+    BuildContext context,
+    List<Map<String, dynamic>> suggestions,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder:
+          (_) => DraggableScrollableSheet(
+            initialChildSize: 0.6,
+            maxChildSize: 0.9,
+            minChildSize: 0.3,
+            expand: false,
+            builder:
+                (sheetContext, scrollController) => Column(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Text(
-                        dateLabel,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Suggestions IA',
+                            style: Theme.of(sheetContext).textTheme.titleLarge,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.of(sheetContext).pop(),
+                          ),
+                        ],
                       ),
                     ),
-                    ...dayActivities.map(
-                      (activity) => ActivityCard(
-                        activity: activity,
-                        isViewer: role == 'VIEWER' || isCompleted,
-                        onEdit:
-                            () =>
-                                _showForm(context, tripId, activity: activity),
-                        onDelete:
-                            () => context.read<ActivityBloc>().add(
-                              DeleteActivity(
-                                tripId: tripId,
-                                activityId: activity.id,
+                    Expanded(
+                      child: ListView.builder(
+                        controller: scrollController,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: suggestions.length,
+                        itemBuilder: (_, index) {
+                          final s = suggestions[index];
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            child: ListTile(
+                              title: Text(s['title'] ?? ''),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (s['description'] != null)
+                                    Text(
+                                      s['description'],
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      if (s['category'] != null)
+                                        Chip(
+                                          label: Text(
+                                            s['category'],
+                                            style: const TextStyle(
+                                              fontSize: 10,
+                                            ),
+                                          ),
+                                          padding: EdgeInsets.zero,
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                      if (s['estimatedCost'] != null) ...[
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          '~${s['estimatedCost']}€',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(color: AppColors.hint),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              trailing: IconButton(
+                                icon: const Icon(
+                                  Icons.add_circle,
+                                  color: Colors.green,
+                                ),
+                                onPressed: () {
+                                  context.read<ActivityBloc>().add(
+                                    AddSuggestedActivity(
+                                      tripId: tripId,
+                                      data: {
+                                        'title': s['title'] ?? '',
+                                        'description': s['description'],
+                                        'category': s['category'] ?? 'OTHER',
+                                        'estimatedCost': s['estimatedCost'],
+                                        'location': s['location'],
+                                        'date':
+                                            DateTime.now()
+                                                .toIso8601String()
+                                                .split('T')[0],
+                                      },
+                                    ),
+                                  );
+                                  Navigator.of(sheetContext).pop();
+                                },
                               ),
                             ),
+                          );
+                        },
                       ),
                     ),
                   ],
-                );
-              },
-            );
-          }
-          return const SizedBox.shrink();
-        },
-      ),
-      floatingActionButton:
-          role != 'VIEWER' && !isCompleted
-              ? FloatingActionButton(
-                onPressed: () => _showForm(context, tripId),
-                child: const Icon(Icons.add),
-              )
-              : null,
+                ),
+          ),
     );
   }
 

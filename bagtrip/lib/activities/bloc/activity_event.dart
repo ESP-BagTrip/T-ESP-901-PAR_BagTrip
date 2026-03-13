@@ -33,3 +33,16 @@ class DeleteActivity extends ActivityEvent {
 
   DeleteActivity({required this.tripId, required this.activityId});
 }
+
+class SuggestActivities extends ActivityEvent {
+  final String tripId;
+
+  SuggestActivities({required this.tripId});
+}
+
+class AddSuggestedActivity extends ActivityEvent {
+  final String tripId;
+  final Map<String, dynamic> data;
+
+  AddSuggestedActivity({required this.tripId, required this.data});
+}
