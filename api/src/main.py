@@ -1,5 +1,6 @@
 """Point d'entrée FastAPI."""
 
+import asyncio
 import traceback
 from contextlib import asynccontextmanager
 
@@ -53,8 +54,20 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warn(f"Default admin seed failed: {e}")
 
+    # Lancer le job de transition automatique des statuts de trips
+    from src.jobs.trip_status_job import trip_status_scheduler
+
+    scheduler_task = asyncio.create_task(trip_status_scheduler())
+
     yield
-    # Nettoyage à l'arrêt (si nécessaire)
+
+    # Arrêter le scheduler
+    scheduler_task.cancel()
+    try:
+        await scheduler_task
+    except asyncio.CancelledError:
+        pass
+
     logger.info("Application shutting down")
 
 

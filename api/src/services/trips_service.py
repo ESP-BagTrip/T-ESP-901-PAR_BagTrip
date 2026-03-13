@@ -1,9 +1,9 @@
 """Service pour la gestion des trips."""
 
-from datetime import date
+from datetime import UTC, date, datetime
 from uuid import UUID
 
-from sqlalchemy import literal_column
+from sqlalchemy import literal_column, update
 from sqlalchemy.orm import Session
 
 from src.models.booking_intent import BookingIntent
@@ -198,6 +198,31 @@ class TripsService:
         ]
 
         return {"trip": trip, "stats": stats, "features": features}
+
+    @staticmethod
+    def auto_transition_statuses(db: Session) -> tuple[int, int]:
+        """Bulk-update trip statuses based on dates (daily job).
+
+        - PLANNED → ONGOING when start_date <= today
+        - ONGOING → COMPLETED when end_date < today
+        Returns (planned_to_ongoing, ongoing_to_completed) counts.
+        """
+        today = datetime.now(UTC).date()
+
+        planned_to_ongoing = db.execute(
+            update(Trip)
+            .where(Trip.status == "PLANNED", Trip.start_date.isnot(None), Trip.start_date <= today)
+            .values(status="ONGOING")
+        ).rowcount
+
+        ongoing_to_completed = db.execute(
+            update(Trip)
+            .where(Trip.status == "ONGOING", Trip.end_date.isnot(None), Trip.end_date < today)
+            .values(status="COMPLETED")
+        ).rowcount
+
+        db.commit()
+        return planned_to_ongoing, ongoing_to_completed
 
     @staticmethod
     def delete_trip(db: Session, trip: Trip) -> None:
