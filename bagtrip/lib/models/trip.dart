@@ -1,9 +1,9 @@
 enum TripStatus {
   draft,
   planning,
-  booked,
+  active,
   completed,
-  cancelled;
+  archived;
 
   static TripStatus fromString(String value) {
     return TripStatus.values.firstWhere(
@@ -22,6 +22,11 @@ class Trip {
   final DateTime? startDate;
   final DateTime? endDate;
   final TripStatus status;
+  final String? description;
+  final String? destinationName;
+  final int? nbTravelers;
+  final String? coverImageUrl;
+  final DateTime? archivedAt;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -34,6 +39,11 @@ class Trip {
     this.startDate,
     this.endDate,
     required this.status,
+    this.description,
+    this.destinationName,
+    this.nbTravelers,
+    this.coverImageUrl,
+    this.archivedAt,
     required this.createdAt,
     this.updatedAt,
   });
@@ -61,6 +71,20 @@ class Trip {
               ? DateTime.parse(json['end_date'] as String)
               : null,
       status: TripStatus.fromString(json['status'] as String? ?? 'draft'),
+      description: json['description'] as String?,
+      destinationName:
+          json['destinationName'] as String? ??
+          json['destination_name'] as String?,
+      nbTravelers: json['nbTravelers'] as int? ?? json['nb_travelers'] as int?,
+      coverImageUrl:
+          json['coverImageUrl'] as String? ??
+          json['cover_image_url'] as String?,
+      archivedAt:
+          json['archivedAt'] != null
+              ? DateTime.parse(json['archivedAt'] as String)
+              : json['archived_at'] != null
+              ? DateTime.parse(json['archived_at'] as String)
+              : null,
       createdAt:
           json['createdAt'] != null
               ? DateTime.parse(json['createdAt'] as String)
@@ -86,6 +110,11 @@ class Trip {
       'startDate': startDate?.toIso8601String(),
       'endDate': endDate?.toIso8601String(),
       'status': status.name,
+      'description': description,
+      'destinationName': destinationName,
+      'nbTravelers': nbTravelers,
+      'coverImageUrl': coverImageUrl,
+      'archivedAt': archivedAt?.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
     };

@@ -1,4 +1,6 @@
 import 'package:bagtrip/models/trip.dart';
+import 'package:bagtrip/models/trip_grouped.dart';
+import 'package:bagtrip/models/trip_home.dart';
 import 'package:bagtrip/service/api_client.dart';
 
 class TripService {
@@ -13,6 +15,10 @@ class TripService {
     String? destinationIata,
     DateTime? startDate,
     DateTime? endDate,
+    String? description,
+    String? destinationName,
+    int? nbTravelers,
+    String? coverImageUrl,
   }) async {
     try {
       final response = await _apiClient.post(
@@ -23,6 +29,10 @@ class TripService {
           if (destinationIata != null) 'destinationIata': destinationIata,
           if (startDate != null) 'startDate': startDate.toIso8601String(),
           if (endDate != null) 'endDate': endDate.toIso8601String(),
+          if (description != null) 'description': description,
+          if (destinationName != null) 'destinationName': destinationName,
+          if (nbTravelers != null) 'nbTravelers': nbTravelers,
+          if (coverImageUrl != null) 'coverImageUrl': coverImageUrl,
         },
       );
 
@@ -59,6 +69,56 @@ class TripService {
     }
   }
 
+  /// Get trips grouped by status.
+  Future<TripGrouped> getGroupedTrips() async {
+    try {
+      final response = await _apiClient.get('/trips/grouped');
+
+      if (response.statusCode == 200) {
+        return TripGrouped.fromJson(response.data as Map<String, dynamic>);
+      } else {
+        throw Exception(
+          'Failed to fetch grouped trips: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      throw Exception('Error fetching grouped trips: $e');
+    }
+  }
+
+  /// Get trip home page data.
+  Future<TripHome> getTripHome(String tripId) async {
+    try {
+      final response = await _apiClient.get('/trips/$tripId/home');
+
+      if (response.statusCode == 200) {
+        return TripHome.fromJson(response.data as Map<String, dynamic>);
+      } else {
+        throw Exception('Failed to fetch trip home: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching trip home: $e');
+    }
+  }
+
+  /// Update trip status.
+  Future<Trip> updateTripStatus(String tripId, String status) async {
+    try {
+      final response = await _apiClient.patch(
+        '/trips/$tripId/status',
+        data: {'status': status},
+      );
+
+      if (response.statusCode == 200) {
+        return Trip.fromJson(response.data);
+      } else {
+        throw Exception('Failed to update trip status: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error updating trip status: $e');
+    }
+  }
+
   /// Get a trip by ID.
   Future<Trip> getTripById(String tripId) async {
     try {
@@ -66,7 +126,6 @@ class TripService {
 
       if (response.statusCode == 200) {
         final data = response.data;
-        // Handle TripDetailResponse which has a 'trip' field
         if (data is Map && data['trip'] != null) {
           return Trip.fromJson(data['trip'] as Map<String, dynamic>);
         }

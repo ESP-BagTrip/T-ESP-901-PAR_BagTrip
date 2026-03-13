@@ -19,6 +19,8 @@ import 'package:bagtrip/pages/planifier_manual_transport_page.dart';
 import 'package:bagtrip/pages/planifier_page.dart';
 import 'package:bagtrip/pages/profile_page.dart';
 import 'package:bagtrip/pages/splash_page.dart';
+import 'package:bagtrip/pages/trip_home_page.dart';
+import 'package:bagtrip/pages/trips_list_page.dart';
 import 'package:bagtrip/service/auth_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -103,64 +105,88 @@ final GoRouter appRouter = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: '/planifier',
-              name: 'planifier',
+              path: '/trips',
+              name: 'trips',
               pageBuilder:
                   (context, state) =>
-                      const NoTransitionPage(child: PlanifierPage()),
+                      const NoTransitionPage(child: TripsListPage()),
               routes: [
                 GoRoute(
-                  path: 'manual',
-                  name: 'planifierManual',
+                  path: 'planifier',
+                  name: 'planifier',
                   pageBuilder:
                       (context, state) => buildSlideTransitionPage<void>(
                         state: state,
-                        child: const PlanifierManualPage(),
+                        child: const PlanifierPage(),
                       ),
                   routes: [
                     GoRoute(
-                      path: 'transport',
-                      name: 'planifierManualTransport',
+                      path: 'manual',
+                      name: 'planifierManual',
                       pageBuilder:
                           (context, state) => buildSlideTransitionPage<void>(
                             state: state,
-                            child: const PlanifierManualTransportPage(),
+                            child: const PlanifierManualPage(),
                           ),
                       routes: [
                         GoRoute(
-                          path: 'other',
-                          name: 'planifierManualOtherTransport',
+                          path: 'transport',
+                          name: 'planifierManualTransport',
                           pageBuilder:
-                              (
-                                context,
-                                state,
-                              ) => buildSlideTransitionPage<void>(
-                                state: state,
-                                child:
-                                    const PlanifierManualOtherTransportPage(),
-                              ),
+                              (context, state) =>
+                                  buildSlideTransitionPage<void>(
+                                    state: state,
+                                    child: const PlanifierManualTransportPage(),
+                                  ),
+                          routes: [
+                            GoRoute(
+                              path: 'other',
+                              name: 'planifierManualOtherTransport',
+                              pageBuilder:
+                                  (
+                                    context,
+                                    state,
+                                  ) => buildSlideTransitionPage<void>(
+                                    state: state,
+                                    child:
+                                        const PlanifierManualOtherTransportPage(),
+                                  ),
+                            ),
+                          ],
+                        ),
+                        GoRoute(
+                          path: 'flight-search',
+                          name: 'planifierManualFlightSearch',
+                          pageBuilder:
+                              (context, state) =>
+                                  buildSlideTransitionPage<void>(
+                                    state: state,
+                                    child: const PlanifierManualFlightPage(),
+                                  ),
                         ),
                       ],
                     ),
                     GoRoute(
-                      path: 'flight-search',
-                      name: 'planifierManualFlightSearch',
+                      path: 'create-trip-ai',
+                      name: 'createTripAi',
                       pageBuilder:
                           (context, state) => buildSlideTransitionPage<void>(
                             state: state,
-                            child: const PlanifierManualFlightPage(),
+                            child: const CreateTripAiFlowPage(),
                           ),
                     ),
                   ],
                 ),
                 GoRoute(
-                  path: 'create-trip-ai',
-                  name: 'createTripAi',
-                  pageBuilder:
-                      (context, state) => buildSlideTransitionPage<void>(
-                        state: state,
-                        child: const CreateTripAiFlowPage(),
-                      ),
+                  path: ':tripId',
+                  name: 'tripHome',
+                  pageBuilder: (context, state) {
+                    final tripId = state.pathParameters['tripId']!;
+                    return buildSlideTransitionPage<void>(
+                      state: state,
+                      child: TripHomePage(tripId: tripId),
+                    );
+                  },
                 ),
               ],
             ),
@@ -185,7 +211,7 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (context, state) {
         final args = state.extra as FlightSearchArguments?;
         if (args == null) {
-          return const NoTransitionPage(child: PlanifierPage());
+          return const NoTransitionPage(child: TripsListPage());
         }
         return buildSlideTransitionPage<void>(
           state: state,
@@ -199,7 +225,7 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (context, state) {
         final flight = state.extra as Flight?;
         if (flight == null) {
-          return const NoTransitionPage(child: PlanifierPage());
+          return const NoTransitionPage(child: TripsListPage());
         }
         return buildSlideTransitionPage<void>(
           state: state,
@@ -215,7 +241,7 @@ final GoRouter appRouter = GoRouter(
         final conversationId = state.uri.queryParameters['conversationId'];
 
         if (tripId == null || conversationId == null) {
-          return const NoTransitionPage(child: PlanifierPage());
+          return const NoTransitionPage(child: TripsListPage());
         }
 
         return NoTransitionPage(

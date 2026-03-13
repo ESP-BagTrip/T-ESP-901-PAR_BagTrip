@@ -7,13 +7,17 @@ from pydantic import BaseModel, Field
 
 
 class TripCreateRequest(BaseModel):
-    """Requête de création de trip selon PLAN.md."""
+    """Requête de création de trip."""
 
     title: str | None = None
     originIata: str | None = None
     destinationIata: str | None = None
     startDate: date | None = None
     endDate: date | None = None
+    description: str | None = None
+    destinationName: str | None = None
+    nbTravelers: int | None = None
+    coverImageUrl: str | None = None
 
 
 class TripUpdateRequest(BaseModel):
@@ -25,10 +29,14 @@ class TripUpdateRequest(BaseModel):
     startDate: date | None = None
     endDate: date | None = None
     status: str | None = None
+    description: str | None = None
+    destinationName: str | None = None
+    nbTravelers: int | None = None
+    coverImageUrl: str | None = None
 
 
 class TripResponse(BaseModel):
-    """Réponse trip selon PLAN.md."""
+    """Réponse trip."""
 
     id: UUID
     title: str | None = None
@@ -37,6 +45,11 @@ class TripResponse(BaseModel):
     startDate: date | None = Field(default=None, alias="start_date")
     endDate: date | None = Field(default=None, alias="end_date")
     status: str | None = None
+    description: str | None = None
+    destinationName: str | None = Field(default=None, alias="destination_name")
+    nbTravelers: int | None = Field(default=None, alias="nb_travelers")
+    coverImageUrl: str | None = Field(default=None, alias="cover_image_url")
+    archivedAt: datetime | None = Field(default=None, alias="archived_at")
     createdAt: datetime = Field(alias="created_at")
     updatedAt: datetime = Field(alias="updated_at")
 
@@ -52,8 +65,51 @@ class TripListResponse(BaseModel):
 
 
 class TripDetailResponse(BaseModel):
-    """Réponse détaillée d'un trip avec agrégations selon PLAN.md."""
+    """Réponse détaillée d'un trip avec agrégations."""
 
     trip: TripResponse
     flightOrder: dict | None = None
     hotelBooking: dict | None = None
+
+
+class TripStatusUpdateRequest(BaseModel):
+    """Requête de mise à jour du statut d'un trip."""
+
+    status: str
+
+
+class TripHomeStats(BaseModel):
+    """Statistiques pour la page d'accueil d'un trip."""
+
+    baggageCount: int = 0
+    totalExpenses: float = 0.0
+    nbTravelers: int = 1
+    daysUntilTrip: int | None = None
+    tripDuration: int | None = None
+
+
+class TripFeatureTile(BaseModel):
+    """Tuile de fonctionnalité pour la page d'accueil d'un trip."""
+
+    id: str
+    label: str
+    icon: str
+    route: str
+    enabled: bool = False
+
+
+class TripHomeResponse(BaseModel):
+    """Réponse pour la page d'accueil d'un trip."""
+
+    trip: TripResponse
+    stats: TripHomeStats
+    features: list[TripFeatureTile]
+
+
+class TripGroupedResponse(BaseModel):
+    """Réponse des trips groupés par statut."""
+
+    active: list[TripResponse] = []
+    planning: list[TripResponse] = []
+    completed: list[TripResponse] = []
+    archived: list[TripResponse] = []

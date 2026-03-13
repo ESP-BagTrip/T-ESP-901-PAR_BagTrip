@@ -4,6 +4,7 @@ import 'package:bagtrip/models/booking_response.dart';
 import 'package:bagtrip/models/user.dart';
 import 'package:bagtrip/service/auth_service.dart';
 import 'package:bagtrip/service/booking_service.dart';
+import 'package:bagtrip/service/profile_api_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:meta/meta.dart';
@@ -12,10 +13,14 @@ part 'profile_event.dart';
 part 'profile_state.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
-  ProfileBloc({AuthService? authService, BookingService? bookingService})
-    : _authService = authService ?? AuthService(),
-      _bookingService = bookingService ?? BookingService(),
-      super(ProfileInitial()) {
+  ProfileBloc({
+    AuthService? authService,
+    BookingService? bookingService,
+    ProfileApiService? profileApiService,
+  }) : _authService = authService ?? AuthService(),
+       _bookingService = bookingService ?? BookingService(),
+       _profileApiService = profileApiService ?? ProfileApiService(),
+       super(ProfileInitial()) {
     on<LoadProfile>(_onLoadProfile);
     on<ResetProfile>(_onResetProfile);
     on<UpdateTheme>(_onUpdateTheme);
@@ -25,6 +30,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
   final AuthService _authService;
   final BookingService _bookingService;
+  final ProfileApiService _profileApiService;
 
   static const String _defaultTheme = 'light';
   static const String _defaultLanguage = 'Français';
@@ -72,6 +78,20 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         // Keep empty list on booking list failure; profile still shows user
       }
 
+      List<String> travelTypes = [];
+      String? travelStyle;
+      String? budget;
+      String? companions;
+      try {
+        final travelerProfile = await _profileApiService.getProfile();
+        travelTypes = travelerProfile.travelTypes;
+        travelStyle = travelerProfile.travelStyle;
+        budget = travelerProfile.budget;
+        companions = travelerProfile.companions;
+      } catch (_) {
+        // Keep defaults on profile fetch failure; profile still shows user
+      }
+
       final memberSince = DateFormat.yMMM('fr').format(user.createdAt);
 
       emit(
@@ -88,6 +108,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           selectedTheme: previousTheme,
           selectedLanguage: previousLanguage,
           recentBookings: recentBookings,
+          travelTypes: travelTypes,
+          travelStyle: travelStyle,
+          budget: budget,
+          companions: companions,
         ),
       );
     } catch (e) {

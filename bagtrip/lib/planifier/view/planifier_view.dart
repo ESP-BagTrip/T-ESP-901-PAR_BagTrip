@@ -182,7 +182,7 @@ class PlanifierView extends StatelessWidget {
             child: _CreateTripCardManual(
               title: l10n.planifierManualTitle,
               description: l10n.planifierManualDescriptionCard,
-              onTap: () => context.push('/planifier/manual'),
+              onTap: () => context.push('/trips/planifier/manual'),
             ),
           ),
           const SizedBox(width: AppSpacing.space16),
@@ -201,7 +201,7 @@ class PlanifierView extends StatelessWidget {
                     );
                 if (!context.mounted) return;
                 if (hasSeen) {
-                  context.push('/planifier/create-trip-ai');
+                  context.push('/trips/planifier/create-trip-ai');
                 } else {
                   context.push('/personalization?from=createTripAi');
                 }
