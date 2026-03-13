@@ -25,6 +25,10 @@ final class ProfileLoaded extends ProfileState {
   final String selectedTheme; // 'light', 'dark', 'system'
   final String selectedLanguage;
   final List<RecentBooking> recentBookings;
+  final List<String> travelTypes;
+  final String? travelStyle;
+  final String? budget;
+  final String? companions;
 
   ProfileLoaded({
     required this.name,
@@ -36,6 +40,10 @@ final class ProfileLoaded extends ProfileState {
     required this.selectedTheme,
     required this.selectedLanguage,
     required this.recentBookings,
+    this.travelTypes = const [],
+    this.travelStyle,
+    this.budget,
+    this.companions,
   });
 
   ProfileLoaded copyWith({
@@ -48,6 +56,10 @@ final class ProfileLoaded extends ProfileState {
     String? selectedTheme,
     String? selectedLanguage,
     List<RecentBooking>? recentBookings,
+    List<String>? travelTypes,
+    String? travelStyle,
+    String? budget,
+    String? companions,
   }) {
     return ProfileLoaded(
       name: name ?? this.name,
@@ -59,6 +71,10 @@ final class ProfileLoaded extends ProfileState {
       selectedTheme: selectedTheme ?? this.selectedTheme,
       selectedLanguage: selectedLanguage ?? this.selectedLanguage,
       recentBookings: recentBookings ?? this.recentBookings,
+      travelTypes: travelTypes ?? this.travelTypes,
+      travelStyle: travelStyle ?? this.travelStyle,
+      budget: budget ?? this.budget,
+      companions: companions ?? this.companions,
     );
   }
 }

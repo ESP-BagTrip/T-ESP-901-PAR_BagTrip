@@ -79,7 +79,12 @@ class ProfileView extends StatelessWidget {
                   selectedLanguage: state.selectedLanguage,
                 ),
                 const SizedBox(height: AppSpacing.space16),
-                const ExperiencePersonalizationSection(),
+                ExperiencePersonalizationSection(
+                  travelTypes: state.travelTypes,
+                  travelStyle: state.travelStyle,
+                  budget: state.budget,
+                  companions: state.companions,
+                ),
                 const SizedBox(height: AppSpacing.space16),
                 RecentBookingsSection(recentBookings: state.recentBookings),
                 const SizedBox(height: AppSpacing.space24),

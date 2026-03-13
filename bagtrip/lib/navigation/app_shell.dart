@@ -4,11 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:bagtrip/navigation/bloc/navigation_bloc.dart';
 import 'package:bagtrip/components/bottom_tab_bar.dart';
 
-/// Tab order must match [StatefulShellRoute] branches: map, budget, planifier, profile.
+/// Tab order must match [StatefulShellRoute] branches: map, budget, trips, profile.
 const List<NavigationTab> _shellTabOrder = [
   NavigationTab.map,
   NavigationTab.budget,
-  NavigationTab.planifier,
+  NavigationTab.trips,
   NavigationTab.profile,
 ];
 

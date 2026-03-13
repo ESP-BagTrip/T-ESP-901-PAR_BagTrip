@@ -14,7 +14,7 @@ import 'package:go_router/go_router.dart';
 const Duration _kMinSplashDuration = Duration(milliseconds: 1500);
 
 /// Startup loading screen: waits for backend to be ready, validates token via API,
-/// then redirects to /planifier if logged in, else to /onboarding (if not seen) or /login.
+/// then redirects to /trips if logged in, else to /onboarding (if not seen) or /login.
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
 
@@ -59,7 +59,7 @@ class _SplashPageState extends State<SplashPage> {
         }
       }
       if (!mounted) return;
-      context.go('/planifier');
+      context.go('/trips');
     } else {
       await authService.logout();
       if (!mounted) return;

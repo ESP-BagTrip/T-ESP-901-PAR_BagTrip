@@ -856,7 +856,7 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text(l10n.summaryTripSaved)));
-            context.go('/planifier');
+            context.go('/trips');
           },
           borderRadius: AppRadius.large16,
           child: Container(

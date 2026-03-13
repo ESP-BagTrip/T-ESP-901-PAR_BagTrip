@@ -7,7 +7,24 @@ import 'package:go_router/go_router.dart';
 
 /// Profile section that navigates to the experience personalization flow.
 class ExperiencePersonalizationSection extends StatelessWidget {
-  const ExperiencePersonalizationSection({super.key});
+  const ExperiencePersonalizationSection({
+    super.key,
+    this.travelTypes = const [],
+    this.travelStyle,
+    this.budget,
+    this.companions,
+  });
+
+  final List<String> travelTypes;
+  final String? travelStyle;
+  final String? budget;
+  final String? companions;
+
+  bool get _hasPreferences =>
+      travelTypes.isNotEmpty ||
+      travelStyle != null ||
+      budget != null ||
+      companions != null;
 
   @override
   Widget build(BuildContext context) {
@@ -15,25 +32,100 @@ class ExperiencePersonalizationSection extends StatelessWidget {
 
     return ProfileSectionCard(
       onTap: () => context.push('/personalization'),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.auto_awesome, color: ColorName.secondary, size: 20),
-          const SizedBox(width: AppSpacing.space8),
-          Expanded(
-            child: Text(
-              l10n.personalizationProfileSectionTitle,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: ColorName.primaryTrueDark,
+          Row(
+            children: [
+              const Icon(
+                Icons.auto_awesome,
+                color: ColorName.secondary,
+                size: 20,
+              ),
+              const SizedBox(width: AppSpacing.space8),
+              Expanded(
+                child: Text(
+                  l10n.personalizationProfileSectionTitle,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: ColorName.primaryTrueDark,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: ColorName.primaryTrueDark.withValues(alpha: 0.4),
+                size: 20,
+              ),
+            ],
+          ),
+          if (!_hasPreferences) ...[
+            const SizedBox(height: AppSpacing.space8),
+            Text(
+              'Configurez vos préférences',
+              style: TextStyle(
+                fontSize: 13,
+                color: ColorName.primaryTrueDark.withValues(alpha: 0.5),
               ),
             ),
-          ),
-          Icon(
-            Icons.chevron_right,
-            color: ColorName.primaryTrueDark.withValues(alpha: 0.4),
-            size: 20,
-          ),
+          ],
+          if (_hasPreferences) ...[
+            const SizedBox(height: AppSpacing.space8),
+            if (travelTypes.isNotEmpty)
+              Wrap(
+                spacing: AppSpacing.space8,
+                runSpacing: 4,
+                children:
+                    travelTypes
+                        .map(
+                          (type) => Chip(
+                            label: Text(
+                              type,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.compact,
+                            backgroundColor: ColorName.secondary.withValues(
+                              alpha: 0.1,
+                            ),
+                            side: BorderSide.none,
+                          ),
+                        )
+                        .toList(),
+              ),
+            if (travelStyle != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Style : $travelStyle',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: ColorName.primaryTrueDark.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
+            if (budget != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Budget : $budget',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: ColorName.primaryTrueDark.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
+            if (companions != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Compagnons : $companions',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: ColorName.primaryTrueDark.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
+          ],
         ],
       ),
     );

@@ -17,14 +17,40 @@ class CreateTripPage extends StatefulWidget {
 class _CreateTripPageState extends State<CreateTripPage> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _destinationController = TextEditingController();
+  final _nbTravelersController = TextEditingController(text: '1');
   final _tripService = TripService();
   final _conversationService = ConversationService();
   bool _isLoading = false;
+  DateTimeRange? _dateRange;
 
   @override
   void dispose() {
     _titleController.dispose();
+    _descriptionController.dispose();
+    _destinationController.dispose();
+    _nbTravelersController.dispose();
     super.dispose();
+  }
+
+  Future<void> _selectDateRange() async {
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 730)),
+      initialDateRange: _dateRange,
+      locale: const Locale('fr'),
+    );
+    if (picked != null) {
+      setState(() {
+        _dateRange = picked;
+      });
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
   }
 
   Future<void> _handleSubmit() async {
@@ -37,8 +63,21 @@ class _CreateTripPageState extends State<CreateTripPage> {
     });
 
     try {
+      final nbTravelers = int.tryParse(_nbTravelersController.text.trim());
+
       final trip = await _tripService.createTrip(
         title: _titleController.text.trim(),
+        description:
+            _descriptionController.text.trim().isNotEmpty
+                ? _descriptionController.text.trim()
+                : null,
+        destinationName:
+            _destinationController.text.trim().isNotEmpty
+                ? _destinationController.text.trim()
+                : null,
+        nbTravelers: nbTravelers,
+        startDate: _dateRange?.start,
+        endDate: _dateRange?.end,
       );
 
       if (!mounted) return;
@@ -78,7 +117,7 @@ class _CreateTripPageState extends State<CreateTripPage> {
     return Scaffold(
       appBar: AppBar(title: Text(AppLocalizations.of(context)!.newTrip)),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Form(
             key: _formKey,
@@ -117,7 +156,68 @@ class _CreateTripPageState extends State<CreateTripPage> {
                     return null;
                   },
                 ),
-                const Spacer(),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _destinationController,
+                  decoration: const InputDecoration(
+                    labelText: 'Destination',
+                    hintText: 'Ex: Paris, Tokyo, New York...',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.location_on_outlined),
+                  ),
+                  textCapitalization: TextCapitalization.words,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration: const InputDecoration(
+                    labelText: 'Description',
+                    hintText: 'Décrivez votre voyage...',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.description_outlined),
+                  ),
+                  maxLines: 3,
+                  textCapitalization: TextCapitalization.sentences,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _nbTravelersController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nombre de voyageurs',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.people_outline),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value != null && value.isNotEmpty) {
+                      final n = int.tryParse(value);
+                      if (n == null || n < 1) {
+                        return 'Nombre invalide';
+                      }
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                InkWell(
+                  onTap: _selectDateRange,
+                  child: InputDecorator(
+                    decoration: const InputDecoration(
+                      labelText: 'Dates du voyage',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.date_range),
+                    ),
+                    child: Text(
+                      _dateRange != null
+                          ? '${_formatDate(_dateRange!.start)} - ${_formatDate(_dateRange!.end)}'
+                          : 'Sélectionner les dates',
+                      style: TextStyle(
+                        color: _dateRange != null ? null : AppColors.hint,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _handleSubmit,
                   style: ElevatedButton.styleFrom(

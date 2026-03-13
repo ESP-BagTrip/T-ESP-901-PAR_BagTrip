@@ -4,6 +4,7 @@ import 'package:bagtrip/firebase_options.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/app_router.dart';
 import 'package:bagtrip/profile/bloc/profile_bloc.dart';
+import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,6 +24,7 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (context) => ProfileBloc()),
         BlocProvider(create: (context) => AuthBloc()),
+        BlocProvider(create: (context) => TripManagementBloc()),
       ],
       child: BlocBuilder<ProfileBloc, ProfileState>(
         builder: (context, state) {

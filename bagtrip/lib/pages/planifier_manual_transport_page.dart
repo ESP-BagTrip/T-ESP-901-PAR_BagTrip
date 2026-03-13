@@ -51,7 +51,8 @@ class PlanifierManualTransportPage extends StatelessWidget {
               ),
               title: l10n.transportOptionFlightTitle,
               description: l10n.transportOptionFlightSubtitle,
-              onTap: () => context.push('/planifier/manual/flight-search'),
+              onTap:
+                  () => context.push('/trips/planifier/manual/flight-search'),
             ),
             const SizedBox(height: AppSpacing.space16),
             PlanifierCard(
@@ -65,7 +66,8 @@ class PlanifierManualTransportPage extends StatelessWidget {
               ),
               title: l10n.transportOptionOtherTitle,
               description: l10n.transportOptionOtherSubtitle,
-              onTap: () => context.push('/planifier/manual/transport/other'),
+              onTap:
+                  () => context.push('/trips/planifier/manual/transport/other'),
             ),
             const SizedBox(height: AppSpacing.space16),
             PlanifierCard(

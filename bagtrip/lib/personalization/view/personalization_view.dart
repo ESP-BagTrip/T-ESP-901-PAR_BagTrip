@@ -36,11 +36,11 @@ class PersonalizationView extends StatelessWidget {
               GoRouterState.of(context).uri.queryParameters['from'] ==
               'createTripAi';
           if (fromCreateTripAi) {
-            context.go('/planifier/create-trip-ai');
+            context.go('/trips/planifier/create-trip-ai');
           } else if (Navigator.of(context).canPop()) {
             context.pop();
           } else {
-            context.go('/planifier');
+            context.go('/trips');
           }
         }
       },
@@ -95,7 +95,13 @@ class PersonalizationView extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.chevron_left),
           color: PersonalizationColors.textPrimary,
-          onPressed: () => bloc.add(PersonalizationPreviousStep()),
+          onPressed: () {
+            if (state.step == 1 && Navigator.of(context).canPop()) {
+              context.pop();
+            } else {
+              bloc.add(PersonalizationPreviousStep());
+            }
+          },
         ),
         title: PremiumStepIndicator(current: state.step, total: _kContentSteps),
         centerTitle: true,

@@ -85,6 +85,14 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warn(f"Traveler profiles migration failed (may already be migrated): {e}")
 
+    # Migrer la table trips si nécessaire
+    try:
+        from src.migrations.migrate_trips_table import migrate_trips_table
+
+        migrate_trips_table(engine)
+    except Exception as e:
+        logger.warn(f"Trips table migration failed (may already be migrated): {e}")
+
     # Initialiser les produits Stripe
     try:
         from src.services.stripe_products_service import StripeProductsService
