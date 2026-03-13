@@ -15,6 +15,55 @@ class CreateTripAiResultsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<CreateTripAiBloc, CreateTripAiState>(
       builder: (context, state) {
+        if (state is CreateTripAiSearchLoading) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (state is CreateTripAiError) {
+          return Scaffold(
+            backgroundColor: PersonalizationColors.gradientStart,
+            appBar: AppBar(
+              title: const Text('Résultats IA'),
+              backgroundColor: PersonalizationColors.gradientStart,
+              foregroundColor: PersonalizationColors.textPrimary,
+              elevation: 0,
+            ),
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: Colors.red,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      state.message,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: PersonalizationColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        context.read<CreateTripAiBloc>().add(
+                          CreateTripAiLaunchSearch(),
+                        );
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Réessayer'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
         if (state is CreateTripAiResultsLoaded) {
           return _buildResults(context, state.proposals);
         }

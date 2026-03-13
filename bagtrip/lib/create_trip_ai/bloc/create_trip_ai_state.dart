@@ -52,3 +52,15 @@ final class CreateTripAiSummaryLoaded extends CreateTripAiState {
   CreateTripAiSummaryLoaded(this.summary);
   final TripSummary summary;
 }
+
+final class CreateTripAiSearchLoading extends CreateTripAiState {}
+
+final class CreateTripAiError extends CreateTripAiState {
+  CreateTripAiError(this.message);
+  final String message;
+}
+
+final class CreateTripAiTripCreated extends CreateTripAiState {
+  CreateTripAiTripCreated(this.tripData);
+  final Map<String, dynamic> tripData;
+}

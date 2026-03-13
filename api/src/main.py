@@ -137,6 +137,10 @@ from src.api.ai.post_trip_routes import router as ai_post_trip_router
 
 app.include_router(ai_post_trip_router)
 
+from src.api.ai.inspire_routes import router as ai_inspire_router
+
+app.include_router(ai_inspire_router)
+
 
 # Gestion globale des erreurs
 @app.exception_handler(AppError)

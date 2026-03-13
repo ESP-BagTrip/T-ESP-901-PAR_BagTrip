@@ -1,5 +1,6 @@
 import 'package:bagtrip/create_trip_ai/models/ai_trip_proposal.dart';
 import 'package:bagtrip/create_trip_ai/models/trip_summary.dart';
+import 'package:bagtrip/service/ai_service.dart';
 import 'package:bagtrip/service/auth_service.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:bloc/bloc.dart';
@@ -8,75 +9,14 @@ import 'package:meta/meta.dart';
 part 'create_trip_ai_event.dart';
 part 'create_trip_ai_state.dart';
 
-List<AiTripProposal> _mockProposals() => [
-  const AiTripProposal(
-    id: '1',
-    destination: 'Paris',
-    destinationCountry: 'France',
-    durationDays: 5,
-    priceEur: 1500,
-    description:
-        'Découverte de la capitale : culture, gastronomie et monuments.',
-  ),
-  const AiTripProposal(
-    id: '2',
-    destination: 'Lyon',
-    destinationCountry: 'France',
-    durationDays: 3,
-    priceEur: 800,
-    description: 'Gastronomie et vieux Lyon.',
-  ),
-  const AiTripProposal(
-    id: '3',
-    destination: 'Bordeaux',
-    destinationCountry: 'France',
-    durationDays: 4,
-    priceEur: 1100,
-    description: 'Vignobles et patrimoine.',
-  ),
-  const AiTripProposal(
-    id: '4',
-    destination: 'Nice',
-    destinationCountry: 'France',
-    durationDays: 5,
-    priceEur: 1200,
-    description: 'Côte d\'Azur, mer et montagne.',
-  ),
-];
-
-TripSummary _mockSummaryFor(AiTripProposal p) => TripSummary(
-  destination: p.destination,
-  destinationCountry: p.destinationCountry,
-  durationDays: p.durationDays,
-  budgetEur: p.priceEur,
-  highlights: const [
-    'Visite de la Tour Eiffel',
-    'Dégustation de cuisine française',
-    'Promenade au Louvre',
-    'Croisière sur la Seine',
-  ],
-  accommodation: 'Hôtel 4 étoiles dans le Marais',
-  dayByDayProgram: const [
-    'Arrivée et découverte du quartier',
-    'Musées et monuments',
-    'Gastronomie et shopping',
-    'Versailles',
-    'Dernières visites et départ',
-  ],
-  essentialItems: const [
-    'Crème solaire',
-    'Anti-moustique',
-    'Adaptateur de voyage',
-    'Trousse de premiers secours',
-  ],
-);
-
 class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
   CreateTripAiBloc({
     AuthService? authService,
     PersonalizationStorage? personalizationStorage,
+    AiService? aiService,
   }) : _authService = authService ?? AuthService(),
        _storage = personalizationStorage ?? PersonalizationStorage(),
+       _aiService = aiService ?? AiService(),
        super(CreateTripAiInitial()) {
     on<CreateTripAiLoadRecap>(_onLoadRecap);
     on<CreateTripAiSetDepartureDate>(_onSetDepartureDate);
@@ -84,10 +24,19 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
     on<CreateTripAiLaunchSearch>(_onLaunchSearch);
     on<CreateTripAiSelectProposal>(_onSelectProposal);
     on<CreateTripAiRegenerate>(_onRegenerate);
+    on<CreateTripAiAcceptSuggestion>(_onAcceptSuggestion);
   }
 
   final AuthService _authService;
   final PersonalizationStorage _storage;
+  final AiService _aiService;
+
+  // Store the last recap to use in search calls
+  String _lastTravelTypes = '';
+  String? _lastBudget;
+  String? _lastCompanions;
+  DateTime? _lastDepartureDate;
+  DateTime? _lastReturnDate;
 
   Future<void> _onLoadRecap(
     CreateTripAiLoadRecap event,
@@ -110,6 +59,9 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
         companions = await _storage.getCompanions(userId);
         companions = companions.isEmpty ? null : companions;
       }
+      _lastTravelTypes = travelTypes;
+      _lastBudget = budget;
+      _lastCompanions = companions;
       emit(
         CreateTripAiRecapLoaded(
           travelTypes: travelTypes.isEmpty ? 'Non renseigné' : travelTypes,
@@ -136,6 +88,7 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
   ) {
     final s = state;
     if (s is CreateTripAiRecapLoaded) {
+      _lastDepartureDate = event.date;
       emit(s.copyWith(departureDate: event.date));
     }
   }
@@ -146,28 +99,111 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
   ) {
     final s = state;
     if (s is CreateTripAiRecapLoaded) {
+      _lastReturnDate = event.date;
       emit(s.copyWith(returnDate: event.date));
     }
   }
 
-  void _onLaunchSearch(
+  Future<void> _onLaunchSearch(
     CreateTripAiLaunchSearch event,
     Emitter<CreateTripAiState> emit,
-  ) {
-    emit(CreateTripAiResultsLoaded(_mockProposals()));
+  ) async {
+    emit(CreateTripAiSearchLoading());
+    try {
+      int? durationDays;
+      if (_lastDepartureDate != null && _lastReturnDate != null) {
+        durationDays = _lastReturnDate!.difference(_lastDepartureDate!).inDays;
+      }
+      // Guess season from departure date
+      String? season;
+      if (_lastDepartureDate != null) {
+        final month = _lastDepartureDate!.month;
+        if (month >= 3 && month <= 5) {
+          season = 'printemps';
+        } else if (month >= 6 && month <= 8) {
+          season = 'été';
+        } else if (month >= 9 && month <= 11) {
+          season = 'automne';
+        } else {
+          season = 'hiver';
+        }
+      }
+
+      final results = await _aiService.getInspiration(
+        travelTypes: _lastTravelTypes.isNotEmpty ? _lastTravelTypes : null,
+        budgetRange: _lastBudget,
+        durationDays: durationDays,
+        companions: _lastCompanions,
+        season: season,
+      );
+
+      final proposals =
+          results.asMap().entries.map((entry) {
+            return AiTripProposal.fromJson(entry.value, id: '${entry.key}');
+          }).toList();
+
+      emit(CreateTripAiResultsLoaded(proposals));
+    } catch (e) {
+      emit(CreateTripAiError(e.toString()));
+    }
   }
 
   void _onSelectProposal(
     CreateTripAiSelectProposal event,
     Emitter<CreateTripAiState> emit,
   ) {
-    emit(CreateTripAiSummaryLoaded(_mockSummaryFor(event.proposal)));
+    final p = event.proposal;
+    // Map the proposal (with activities) to a TripSummary
+    final activities = p.activities;
+    emit(
+      CreateTripAiSummaryLoaded(
+        TripSummary(
+          destination: p.destination,
+          destinationCountry: p.destinationCountry,
+          durationDays: p.durationDays,
+          budgetEur: p.priceEur,
+          highlights:
+              activities
+                  .take(4)
+                  .map((a) => (a['title'] ?? '') as String)
+                  .toList(),
+          accommodation: 'À déterminer',
+          dayByDayProgram:
+              activities
+                  .take(p.durationDays)
+                  .map((a) => (a['title'] ?? '') as String)
+                  .toList(),
+          essentialItems: const [
+            'Passeport',
+            'Adaptateur de voyage',
+            'Crème solaire',
+            'Trousse de premiers secours',
+          ],
+        ),
+      ),
+    );
   }
 
-  void _onRegenerate(
+  Future<void> _onRegenerate(
     CreateTripAiRegenerate event,
     Emitter<CreateTripAiState> emit,
-  ) {
-    emit(CreateTripAiResultsLoaded(_mockProposals()));
+  ) async {
+    // Re-run the same search
+    add(CreateTripAiLaunchSearch());
+  }
+
+  Future<void> _onAcceptSuggestion(
+    CreateTripAiAcceptSuggestion event,
+    Emitter<CreateTripAiState> emit,
+  ) async {
+    emit(CreateTripAiSearchLoading());
+    try {
+      final tripData = await _aiService.acceptInspiration(
+        event.suggestion.toJson(),
+      );
+      emit(CreateTripAiTripCreated(tripData));
+    } catch (e) {
+      emit(CreateTripAiError(e.toString()));
+    }
   }
 }
