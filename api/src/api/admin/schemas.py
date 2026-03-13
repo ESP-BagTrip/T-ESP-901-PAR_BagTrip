@@ -154,6 +154,22 @@ class AdminBaggageItemResponse(BaseModel):
         populate_by_name = True
 
 
+class AdminTripShareResponse(BaseModel):
+    """Réponse trip share pour admin."""
+
+    id: UUID
+    tripId: UUID = Field(alias="trip_id")
+    tripTitle: str | None = Field(default=None, alias="trip_title")
+    userId: UUID = Field(alias="user_id")
+    userEmail: str = Field(alias="user_email")
+    role: str
+    invitedAt: datetime = Field(alias="invited_at")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
 class AdminFlightSearchResponse(BaseModel):
     """Réponse flight search pour admin avec informations trip."""
 
@@ -212,6 +228,25 @@ class AdminBudgetItemResponse(BaseModel):
     isPlanned: bool = Field(alias="is_planned")
     createdAt: datetime = Field(alias="created_at")
     updatedAt: datetime = Field(alias="updated_at")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
+class AdminFeedbackResponse(BaseModel):
+    """Réponse feedback pour admin."""
+
+    id: UUID
+    tripId: UUID = Field(alias="trip_id")
+    tripTitle: str | None = Field(default=None, alias="trip_title")
+    userId: UUID = Field(alias="user_id")
+    userEmail: str = Field(alias="user_email")
+    overallRating: int = Field(alias="overall_rating")
+    highlights: str | None = None
+    lowlights: str | None = None
+    wouldRecommend: bool = Field(alias="would_recommend")
+    createdAt: datetime = Field(alias="created_at")
 
     class Config:
         from_attributes = True

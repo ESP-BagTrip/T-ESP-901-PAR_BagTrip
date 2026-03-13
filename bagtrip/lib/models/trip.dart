@@ -36,6 +36,7 @@ class Trip {
   final String? coverImageUrl;
   final double? budgetTotal;
   final String? origin;
+  final String? role;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -54,6 +55,7 @@ class Trip {
     this.coverImageUrl,
     this.budgetTotal,
     this.origin,
+    this.role,
     required this.createdAt,
     this.updatedAt,
   });
@@ -93,6 +95,7 @@ class Trip {
           (json['budgetTotal'] as num?)?.toDouble() ??
           (json['budget_total'] as num?)?.toDouble(),
       origin: json['origin'] as String?,
+      role: json['role'] as String?,
       createdAt:
           json['createdAt'] != null
               ? DateTime.parse(json['createdAt'] as String)
@@ -124,6 +127,7 @@ class Trip {
       'coverImageUrl': coverImageUrl,
       'budgetTotal': budgetTotal,
       'origin': origin,
+      'role': role,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
     };

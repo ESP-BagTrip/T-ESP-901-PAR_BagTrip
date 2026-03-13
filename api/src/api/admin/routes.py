@@ -1,6 +1,8 @@
 """Routes pour les endpoints admin."""
 
-from fastapi import APIRouter, Depends, Query
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from src.api.admin.schemas import (
@@ -8,6 +10,7 @@ from src.api.admin.schemas import (
     AdminActivityResponse,
     AdminBaggageItemResponse,
     AdminBookingIntentResponse,
+    AdminFeedbackResponse,
     AdminBudgetItemResponse,
     AdminFlightBookingResponse,
     AdminFlightSearchResponse,
@@ -15,6 +18,7 @@ from src.api.admin.schemas import (
     AdminTravelerProfileResponse,
     AdminTravelerResponse,
     AdminTripResponse,
+    AdminTripShareResponse,
     AdminUserResponse,
 )
 from src.api.auth.middleware import get_current_user
@@ -373,4 +377,86 @@ async def list_all_baggage_items(
     except Exception as e:
         raise create_http_exception(
             AppError("INTERNAL_ERROR", 500, f"Failed to fetch baggage items: {str(e)}")
+        ) from e
+
+
+@router.get(
+    "/trip-shares",
+    response_model=AdminListResponse[AdminTripShareResponse],
+    summary="List all trip shares (admin)",
+    description="Get all trip shares with trip and user information (admin only)",
+)
+async def list_all_trip_shares(
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Lister tous les partages de trips (admin)."""
+    try:
+        items, total, total_pages = AdminService.get_all_trip_shares(db, page=page, limit=limit)
+        return AdminListResponse[AdminTripShareResponse](
+            items=[AdminTripShareResponse(**item) for item in items],
+            total=total,
+            page=page,
+            limit=limit,
+            total_pages=total_pages,
+        )
+    except AppError as e:
+        raise create_http_exception(e) from e
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, f"Failed to fetch trip shares: {str(e)}")
+        ) from e
+
+
+@router.get(
+    "/feedbacks",
+    response_model=AdminListResponse[AdminFeedbackResponse],
+    summary="List all feedbacks (admin)",
+    description="Get all feedbacks with trip and user information (admin only)",
+)
+async def list_all_feedbacks(
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Lister tous les feedbacks (admin)."""
+    try:
+        items, total, total_pages = AdminService.get_all_feedbacks(db, page=page, limit=limit)
+        return AdminListResponse[AdminFeedbackResponse](
+            items=[AdminFeedbackResponse(**item) for item in items],
+            total=total,
+            page=page,
+            limit=limit,
+            total_pages=total_pages,
+        )
+    except AppError as e:
+        raise create_http_exception(e) from e
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, f"Failed to fetch feedbacks: {str(e)}")
+        ) from e
+
+
+@router.delete(
+    "/feedbacks/{feedbackId}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete feedback (admin)",
+    description="Delete a feedback (admin only)",
+)
+async def delete_feedback(
+    feedbackId: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Supprimer un feedback (admin)."""
+    try:
+        AdminService.delete_feedback(db, feedbackId)
+    except AppError as e:
+        raise create_http_exception(e) from e
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, f"Failed to delete feedback: {str(e)}")
         ) from e

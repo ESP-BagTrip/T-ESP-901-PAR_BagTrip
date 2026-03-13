@@ -3,25 +3,33 @@
 import { DataTable } from '@/components/DataTable'
 import {
   accommodationsColumns,
+  activitiesColumns,
   baggageItemsColumns,
   bookingIntentsColumns,
+  budgetItemsColumns,
+  feedbacksColumns,
   flightBookingsColumns,
   flightSearchesColumns,
   profilesColumns,
   travelersColumns,
+  tripSharesColumns,
   tripsColumns,
 } from '@/components/tables'
 import { useAuth } from '@/hooks'
 import {
   useAdminAccommodations,
+  useAdminActivities,
   useAdminBaggageItems,
   useAdminBookingIntents,
+  useAdminBudgetItems,
   useAdminFlightBookings,
   useAdminFlightSearches,
   useAdminTravelerProfiles,
   useAdminTravelers,
   useAdminTrips,
+  useAdminTripShares,
 } from '@/hooks/useAdminData'
+import { useFeedbacks } from '@/hooks/useFeedbacks'
 import { usersService } from '@/services'
 import type { User } from '@/types'
 import { PAGINATION_DEFAULTS } from '@/utils/constants'
@@ -75,6 +83,10 @@ type TabType =
   | 'flightSearches'
   | 'accommodations'
   | 'baggageItems'
+  | 'activities'
+  | 'budgetItems'
+  | 'tripShares'
+  | 'feedbacks'
 
 export default function DashboardPage() {
   const { user, logout } = useAuth()
@@ -88,6 +100,10 @@ export default function DashboardPage() {
   const [flightSearchesPage, setFlightSearchesPage] = useState(1)
   const [accommodationsPage, setAccommodationsPage] = useState(1)
   const [baggageItemsPage, setBaggageItemsPage] = useState(1)
+  const [activitiesPage, setActivitiesPage] = useState(1)
+  const [budgetItemsPage, setBudgetItemsPage] = useState(1)
+  const [tripSharesPage, setTripSharesPage] = useState(1)
+  const [feedbacksPage, setFeedbacksPage] = useState(1)
 
   // Users query
   const { data: usersData, isLoading: usersLoading } = useQuery({
@@ -140,6 +156,26 @@ export default function DashboardPage() {
     limit: PAGINATION_DEFAULTS.LIMIT,
   })
 
+  const { data: activitiesData, isLoading: activitiesLoading } = useAdminActivities({
+    page: activitiesPage,
+    limit: PAGINATION_DEFAULTS.LIMIT,
+  })
+
+  const { data: budgetItemsData, isLoading: budgetItemsLoading } = useAdminBudgetItems({
+    page: budgetItemsPage,
+    limit: PAGINATION_DEFAULTS.LIMIT,
+  })
+
+  const { data: tripSharesData, isLoading: tripSharesLoading } = useAdminTripShares({
+    page: tripSharesPage,
+    limit: PAGINATION_DEFAULTS.LIMIT,
+  })
+
+  const { data: feedbacksData, isLoading: feedbacksLoading } = useFeedbacks({
+    page: feedbacksPage,
+    limit: PAGINATION_DEFAULTS.LIMIT,
+  })
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -169,6 +205,26 @@ export default function DashboardPage() {
       id: 'baggageItems' as TabType,
       name: 'Bagages',
       count: baggageItemsData?.total,
+    },
+    {
+      id: 'activities' as TabType,
+      name: 'Activités',
+      count: activitiesData?.total,
+    },
+    {
+      id: 'budgetItems' as TabType,
+      name: 'Budget Items',
+      count: budgetItemsData?.total,
+    },
+    {
+      id: 'tripShares' as TabType,
+      name: 'Partages',
+      count: tripSharesData?.total,
+    },
+    {
+      id: 'feedbacks' as TabType,
+      name: 'Feedbacks',
+      count: feedbacksData?.total,
     },
   ]
 
@@ -419,6 +475,90 @@ export default function DashboardPage() {
                 }
                 onPaginationChange={(page) => {
                   setBaggageItemsPage(page)
+                }}
+              />
+            )}
+
+            {activeTab === 'activities' && (
+              <DataTable
+                data={activitiesData?.items || []}
+                columns={activitiesColumns}
+                isLoading={activitiesLoading}
+                pagination={
+                  activitiesData
+                    ? {
+                        page: activitiesData.page,
+                        limit: activitiesData.limit,
+                        total: activitiesData.total,
+                        total_pages: activitiesData.total_pages,
+                      }
+                    : undefined
+                }
+                onPaginationChange={(page) => {
+                  setActivitiesPage(page)
+                }}
+              />
+            )}
+
+            {activeTab === 'budgetItems' && (
+              <DataTable
+                data={budgetItemsData?.items || []}
+                columns={budgetItemsColumns}
+                isLoading={budgetItemsLoading}
+                pagination={
+                  budgetItemsData
+                    ? {
+                        page: budgetItemsData.page,
+                        limit: budgetItemsData.limit,
+                        total: budgetItemsData.total,
+                        total_pages: budgetItemsData.total_pages,
+                      }
+                    : undefined
+                }
+                onPaginationChange={(page) => {
+                  setBudgetItemsPage(page)
+                }}
+              />
+            )}
+
+            {activeTab === 'tripShares' && (
+              <DataTable
+                data={tripSharesData?.items || []}
+                columns={tripSharesColumns}
+                isLoading={tripSharesLoading}
+                pagination={
+                  tripSharesData
+                    ? {
+                        page: tripSharesData.page,
+                        limit: tripSharesData.limit,
+                        total: tripSharesData.total,
+                        total_pages: tripSharesData.total_pages,
+                      }
+                    : undefined
+                }
+                onPaginationChange={(page) => {
+                  setTripSharesPage(page)
+                }}
+              />
+            )}
+
+            {activeTab === 'feedbacks' && (
+              <DataTable
+                data={feedbacksData?.items || []}
+                columns={feedbacksColumns}
+                isLoading={feedbacksLoading}
+                pagination={
+                  feedbacksData
+                    ? {
+                        page: feedbacksData.page,
+                        limit: feedbacksData.limit,
+                        total: feedbacksData.total,
+                        total_pages: feedbacksData.total_pages,
+                      }
+                    : undefined
+                }
+                onPaginationChange={(page) => {
+                  setFeedbacksPage(page)
                 }}
               />
             )}

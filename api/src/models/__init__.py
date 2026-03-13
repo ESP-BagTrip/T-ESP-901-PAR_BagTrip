@@ -7,6 +7,7 @@ from .baggage_item import BaggageItem
 from .booking import Booking  # Deprecated - replaced by booking_intents pattern
 from .booking_intent import BookingIntent
 from .budget_item import BudgetItem
+from .feedback import Feedback
 from .flight_offer import FlightOffer
 from .flight_order import FlightOrder
 from .flight_search import FlightSearch
@@ -26,6 +27,7 @@ __all__ = [
     "Accommodation",
     "BaggageItem",
     "BudgetItem",
+    "Feedback",
     "FlightSearch",
     "FlightOffer",
     "FlightOrder",

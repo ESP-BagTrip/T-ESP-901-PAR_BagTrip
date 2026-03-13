@@ -2,14 +2,17 @@ import { apiClient } from '@/lib/axios'
 import { API_ENDPOINTS } from '@/utils/constants'
 import type {
   AdminAccommodation,
+  AdminActivity,
   AdminBaggageItem,
   AdminBookingIntent,
+  AdminBudgetItem,
   AdminFlightBooking,
   AdminFlightSearch,
   AdminListResponse,
   AdminTrip,
   AdminTraveler,
   AdminTravelerProfile,
+  AdminTripShare,
   QueryParams,
 } from '@/types'
 
@@ -82,6 +85,30 @@ export const adminService = {
   ): Promise<AdminListResponse<AdminBaggageItem>> {
     const response = await apiClient.get<AdminListResponse<AdminBaggageItem>>(
       API_ENDPOINTS.ADMIN.BAGGAGE_ITEMS,
+      { params }
+    )
+    return response.data
+  },
+
+  async getAllActivities(params?: QueryParams): Promise<AdminListResponse<AdminActivity>> {
+    const response = await apiClient.get<AdminListResponse<AdminActivity>>(
+      API_ENDPOINTS.ADMIN.ACTIVITIES,
+      { params }
+    )
+    return response.data
+  },
+
+  async getAllBudgetItems(params?: QueryParams): Promise<AdminListResponse<AdminBudgetItem>> {
+    const response = await apiClient.get<AdminListResponse<AdminBudgetItem>>(
+      API_ENDPOINTS.ADMIN.BUDGET_ITEMS,
+      { params }
+    )
+    return response.data
+  },
+
+  async getAllTripShares(params?: QueryParams): Promise<AdminListResponse<AdminTripShare>> {
+    const response = await apiClient.get<AdminListResponse<AdminTripShare>>(
+      API_ENDPOINTS.ADMIN.TRIP_SHARES,
       { params }
     )
     return response.data

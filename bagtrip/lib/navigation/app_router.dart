@@ -5,7 +5,11 @@ import 'package:bagtrip/navigation/app_shell.dart';
 import 'package:bagtrip/navigation/page_transitions.dart';
 import 'package:bagtrip/pages/accommodations_page.dart';
 import 'package:bagtrip/pages/baggage_page.dart';
-import 'package:bagtrip/pages/budget_page.dart';
+import 'package:bagtrip/pages/budget_page.dart' as pages;
+import 'package:bagtrip/pages/feedback_page.dart';
+import 'package:bagtrip/pages/trip_shares_page.dart';
+import 'package:bagtrip/activities/view/activities_page.dart';
+import 'package:bagtrip/budget/view/budget_page.dart';
 import 'package:bagtrip/pages/flight_search_result_page.dart';
 import 'package:bagtrip/pages/login_page.dart';
 import 'package:bagtrip/pages/map_page.dart';
@@ -97,7 +101,7 @@ final GoRouter appRouter = GoRouter(
               name: 'budget',
               pageBuilder:
                   (context, state) =>
-                      const NoTransitionPage(child: BudgetPage()),
+                      const NoTransitionPage(child: pages.BudgetPage()),
             ),
           ],
         ),
@@ -206,6 +210,50 @@ final GoRouter appRouter = GoRouter(
                         return buildSlideTransitionPage<void>(
                           state: state,
                           child: BaggagePage(tripId: tripId),
+                        );
+                      },
+                    ),
+                    GoRoute(
+                      path: 'activities',
+                      name: 'tripActivities',
+                      pageBuilder: (context, state) {
+                        final tripId = state.pathParameters['tripId']!;
+                        return buildSlideTransitionPage<void>(
+                          state: state,
+                          child: ActivitiesPage(tripId: tripId),
+                        );
+                      },
+                    ),
+                    GoRoute(
+                      path: 'budget',
+                      name: 'tripBudget',
+                      pageBuilder: (context, state) {
+                        final tripId = state.pathParameters['tripId']!;
+                        return buildSlideTransitionPage<void>(
+                          state: state,
+                          child: BudgetPage(tripId: tripId),
+                        );
+                      },
+                    ),
+                    GoRoute(
+                      path: 'shares',
+                      name: 'shares',
+                      pageBuilder: (context, state) {
+                        final tripId = state.pathParameters['tripId']!;
+                        return buildSlideTransitionPage<void>(
+                          state: state,
+                          child: TripSharesPage(tripId: tripId),
+                        );
+                      },
+                    ),
+                    GoRoute(
+                      path: 'feedback',
+                      name: 'feedback',
+                      pageBuilder: (context, state) {
+                        final tripId = state.pathParameters['tripId']!;
+                        return buildSlideTransitionPage<void>(
+                          state: state,
+                          child: FeedbackPage(tripId: tripId),
                         );
                       },
                     ),

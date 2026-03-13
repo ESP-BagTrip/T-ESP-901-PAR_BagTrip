@@ -114,6 +114,48 @@ export interface AdminBaggageItem {
   updated_at: string
 }
 
+export interface AdminActivity {
+  id: string
+  trip_id: string
+  trip_title: string | null
+  user_email: string
+  title: string
+  description: string | null
+  date: string
+  start_time: string | null
+  end_time: string | null
+  location: string | null
+  category: string
+  estimated_cost: number | null
+  is_booked: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface AdminBudgetItem {
+  id: string
+  trip_id: string
+  trip_title: string | null
+  user_email: string
+  label: string
+  amount: number
+  category: string
+  date: string | null
+  is_planned: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface AdminTripShare {
+  id: string
+  trip_id: string
+  trip_title: string | null
+  user_id: string
+  user_email: string
+  role: string
+  invited_at: string
+}
+
 export interface AdminListResponse<T> {
   items: T[]
   total: number

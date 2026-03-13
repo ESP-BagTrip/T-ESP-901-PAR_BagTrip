@@ -26,3 +26,4 @@ class TripShare(Base):
 
     # Relationships
     trip = relationship("Trip", back_populates="shares")
+    user = relationship("User")

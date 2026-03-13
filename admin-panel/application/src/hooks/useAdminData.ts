@@ -98,3 +98,39 @@ export function useAdminBaggageItems(params?: QueryParams) {
       }),
   })
 }
+
+export function useAdminActivities(params?: QueryParams) {
+  return useQuery({
+    queryKey: ['admin', 'activities', params],
+    queryFn: () =>
+      adminService.getAllActivities({
+        page: params?.page || PAGINATION_DEFAULTS.PAGE,
+        limit: params?.limit || PAGINATION_DEFAULTS.LIMIT,
+        ...params,
+      }),
+  })
+}
+
+export function useAdminBudgetItems(params?: QueryParams) {
+  return useQuery({
+    queryKey: ['admin', 'budgetItems', params],
+    queryFn: () =>
+      adminService.getAllBudgetItems({
+        page: params?.page || PAGINATION_DEFAULTS.PAGE,
+        limit: params?.limit || PAGINATION_DEFAULTS.LIMIT,
+        ...params,
+      }),
+  })
+}
+
+export function useAdminTripShares(params?: QueryParams) {
+  return useQuery({
+    queryKey: ['admin', 'trip-shares', params],
+    queryFn: () =>
+      adminService.getAllTripShares({
+        page: params?.page || PAGINATION_DEFAULTS.PAGE,
+        limit: params?.limit || PAGINATION_DEFAULTS.LIMIT,
+        ...params,
+      }),
+  })
+}

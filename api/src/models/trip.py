@@ -55,3 +55,4 @@ class Trip(Base):
     shares = relationship("TripShare", back_populates="trip", cascade="all, delete-orphan")
     activities = relationship("Activity", back_populates="trip", cascade="all, delete-orphan")
     budget_items = relationship("BudgetItem", back_populates="trip", cascade="all, delete-orphan")
+    feedbacks = relationship("Feedback", back_populates="trip", cascade="all, delete-orphan")

@@ -4,16 +4,6 @@ export const USER_ROLES = {
   USER: 'user',
 } as const
 
-export const FEEDBACK_CATEGORIES = {
-  GENERAL: 'general',
-  BUG: 'bug',
-} as const
-
-export const FEEDBACK_STATUS = {
-  PENDING: 'pending',
-  RESOLVED: 'resolved',
-} as const
-
 export const API_ENDPOINTS = {
   AUTH: {
     REGISTER: '/v1/auth/register',
@@ -49,6 +39,10 @@ export const API_ENDPOINTS = {
     FLIGHT_SEARCHES: '/admin/flight-searches',
     ACCOMMODATIONS: '/admin/accommodations',
     BAGGAGE_ITEMS: '/admin/baggage-items',
+    ACTIVITIES: '/admin/activities',
+    BUDGET_ITEMS: '/admin/budget-items',
+    TRIP_SHARES: '/admin/trip-shares',
+    FEEDBACKS: '/admin/feedbacks',
   },
   USERS: '/admin/users',
   FEEDBACKS: '/admin/feedbacks',

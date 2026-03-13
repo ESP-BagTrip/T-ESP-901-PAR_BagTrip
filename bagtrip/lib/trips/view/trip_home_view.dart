@@ -76,6 +76,14 @@ class TripHomeView extends StatelessWidget {
                           onPressed: () => context.pop(),
                         ),
                       ),
+                      Positioned(
+                        top: MediaQuery.of(context).padding.top + 8,
+                        right: 8,
+                        child: IconButton(
+                          icon: const Icon(Icons.share, color: Colors.white),
+                          onPressed: () => context.go('/trips/$tripId/shares'),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -144,6 +152,23 @@ class TripHomeView extends StatelessWidget {
                         },
                         icon: const Icon(Icons.check_circle_outline),
                         label: const Text('Terminer le voyage'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
+                    ),
+                  ),
+                if (trip.status == TripStatus.completed)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 8,
+                      ),
+                      child: OutlinedButton.icon(
+                        onPressed: () => context.go('/trips/$tripId/feedback'),
+                        icon: const Icon(Icons.rate_review_outlined),
+                        label: const Text('Donner un avis'),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),

@@ -1,0 +1,91 @@
+"""Service pour la gestion des partages de trips."""
+
+from uuid import UUID
+
+from sqlalchemy.orm import Session
+
+from src.models.trip_share import TripShare
+from src.models.user import User
+from src.utils.errors import AppError
+
+
+class TripShareService:
+    """Service pour les opérations CRUD sur les partages de trips."""
+
+    @staticmethod
+    def create_share(db: Session, trip_id: UUID, owner_user_id: UUID, email: str) -> dict:
+        """Inviter un utilisateur par email à rejoindre un trip."""
+        # Resolve user by email
+        user = db.query(User).filter(User.email == email).first()
+        if not user:
+            raise AppError("USER_NOT_FOUND", 404, "User not found")
+
+        # No self-sharing
+        if user.id == owner_user_id:
+            raise AppError("SELF_SHARING", 400, "Cannot share a trip with yourself")
+
+        # Check not already shared
+        existing = (
+            db.query(TripShare)
+            .filter(TripShare.trip_id == trip_id, TripShare.user_id == user.id)
+            .first()
+        )
+        if existing:
+            raise AppError("ALREADY_SHARED", 409, "Trip already shared with this user")
+
+        # Check quota (max 2 for Free tier)
+        share_count = db.query(TripShare).filter(TripShare.trip_id == trip_id).count()
+        if share_count >= 2:
+            raise AppError("SHARE_QUOTA_EXCEEDED", 403, "Maximum number of shares reached")
+
+        # Create share
+        share = TripShare(trip_id=trip_id, user_id=user.id, role="VIEWER")
+        db.add(share)
+        db.commit()
+        db.refresh(share)
+
+        return {
+            "id": share.id,
+            "trip_id": share.trip_id,
+            "user_id": share.user_id,
+            "role": share.role,
+            "invited_at": share.invited_at,
+            "user_email": user.email,
+            "user_full_name": user.full_name,
+        }
+
+    @staticmethod
+    def get_shares_by_trip(db: Session, trip_id: UUID) -> list[dict]:
+        """Récupérer tous les partages d'un trip."""
+        shares = (
+            db.query(TripShare, User.email.label("user_email"), User.full_name.label("user_full_name"))
+            .join(User, TripShare.user_id == User.id)
+            .filter(TripShare.trip_id == trip_id)
+            .all()
+        )
+        return [
+            {
+                "id": share.id,
+                "trip_id": share.trip_id,
+                "user_id": share.user_id,
+                "role": share.role,
+                "invited_at": share.invited_at,
+                "user_email": user_email,
+                "user_full_name": user_full_name,
+            }
+            for share, user_email, user_full_name in shares
+        ]
+
+    @staticmethod
+    def delete_share(db: Session, share_id: UUID, trip_id: UUID) -> None:
+        """Révoquer un partage."""
+        share = (
+            db.query(TripShare)
+            .filter(TripShare.id == share_id, TripShare.trip_id == trip_id)
+            .first()
+        )
+        if not share:
+            raise AppError("SHARE_NOT_FOUND", 404, "Share not found")
+
+        db.delete(share)
+        db.commit()

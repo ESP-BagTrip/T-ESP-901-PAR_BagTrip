@@ -9,12 +9,15 @@ from src.models.activity import Activity
 from src.models.baggage_item import BaggageItem
 from src.models.booking_intent import BookingIntent
 from src.models.budget_item import BudgetItem
+from src.models.feedback import Feedback
 from src.models.flight_order import FlightOrder
 from src.models.flight_search import FlightSearch
 from src.models.traveler import TripTraveler
 from src.models.traveler_profile import TravelerProfile
 from src.models.trip import Trip
+from src.models.trip_share import TripShare
 from src.models.user import User
+from src.utils.errors import AppError
 
 
 class AdminService:
@@ -477,6 +480,93 @@ class AdminService:
 
         total_pages = ceil(total / limit) if limit > 0 else 0
         return items, total, total_pages
+
+    @staticmethod
+    def get_all_trip_shares(
+        db: Session, page: int = 1, limit: int = 10
+    ) -> tuple[list[dict], int, int]:
+        """Récupérer tous les partages de trips."""
+        offset = (page - 1) * limit
+
+        query = (
+            db.query(
+                TripShare,
+                Trip.title.label("trip_title"),
+                User.email.label("owner_email"),
+            )
+            .join(Trip, TripShare.trip_id == Trip.id)
+            .join(User, TripShare.user_id == User.id)
+            .order_by(TripShare.invited_at.desc())
+        )
+
+        total = query.count()
+        results = query.offset(offset).limit(limit).all()
+
+        items = []
+        for share, trip_title, user_email in results:
+            items.append(
+                {
+                    "id": share.id,
+                    "trip_id": share.trip_id,
+                    "trip_title": trip_title,
+                    "user_id": share.user_id,
+                    "user_email": user_email,
+                    "role": share.role,
+                    "invited_at": share.invited_at,
+                }
+            )
+
+        total_pages = ceil(total / limit) if limit > 0 else 0
+        return items, total, total_pages
+
+    @staticmethod
+    def get_all_feedbacks(
+        db: Session, page: int = 1, limit: int = 10
+    ) -> tuple[list[dict], int, int]:
+        """Récupérer tous les feedbacks."""
+        offset = (page - 1) * limit
+
+        query = (
+            db.query(
+                Feedback,
+                Trip.title.label("trip_title"),
+                User.email.label("user_email"),
+            )
+            .join(Trip, Feedback.trip_id == Trip.id)
+            .join(User, Feedback.user_id == User.id)
+            .order_by(Feedback.created_at.desc())
+        )
+
+        total = query.count()
+        results = query.offset(offset).limit(limit).all()
+
+        items = []
+        for feedback, trip_title, user_email in results:
+            items.append({
+                "id": feedback.id,
+                "trip_id": feedback.trip_id,
+                "trip_title": trip_title,
+                "user_id": feedback.user_id,
+                "user_email": user_email,
+                "overall_rating": feedback.overall_rating,
+                "highlights": feedback.highlights,
+                "lowlights": feedback.lowlights,
+                "would_recommend": feedback.would_recommend,
+                "created_at": feedback.created_at,
+            })
+
+        total_pages = ceil(total / limit) if limit > 0 else 0
+        return items, total, total_pages
+
+    @staticmethod
+    def delete_feedback(db: Session, feedback_id) -> None:
+        """Supprimer un feedback."""
+        from src.models.feedback import Feedback as FeedbackModel
+        feedback = db.query(FeedbackModel).filter(FeedbackModel.id == feedback_id).first()
+        if not feedback:
+            raise AppError("FEEDBACK_NOT_FOUND", 404, "Feedback not found")
+        db.delete(feedback)
+        db.commit()
 
     @staticmethod
     def get_all_flight_searches(
