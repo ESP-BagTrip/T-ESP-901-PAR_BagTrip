@@ -133,6 +133,10 @@ from src.api.ai.baggage_suggest_routes import router as ai_baggage_suggest_route
 
 app.include_router(ai_baggage_suggest_router)
 
+from src.api.ai.post_trip_routes import router as ai_post_trip_router
+
+app.include_router(ai_post_trip_router)
+
 
 # Gestion globale des erreurs
 @app.exception_handler(AppError)

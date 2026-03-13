@@ -17,3 +17,15 @@ class FeedbackError extends FeedbackState {
   final String message;
   FeedbackError({required this.message});
 }
+
+class PostTripSuggestionLoading extends FeedbackState {}
+
+class PostTripSuggestionLoaded extends FeedbackState {
+  final Map<String, dynamic> suggestion;
+  PostTripSuggestionLoaded({required this.suggestion});
+}
+
+class PostTripSuggestionError extends FeedbackState {
+  final String message;
+  PostTripSuggestionError({required this.message});
+}

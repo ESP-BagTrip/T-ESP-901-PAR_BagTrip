@@ -1,19 +1,25 @@
 import 'package:bagtrip/models/feedback.dart';
 import 'package:bagtrip/service/feedback_service.dart';
+import 'package:bagtrip/service/post_trip_ai_service.dart';
 import 'package:bloc/bloc.dart';
 
 part 'feedback_event.dart';
 part 'feedback_state.dart';
 
 class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
-  FeedbackBloc({FeedbackService? feedbackService})
-    : _feedbackService = feedbackService ?? FeedbackService(),
-      super(FeedbackInitial()) {
+  FeedbackBloc({
+    FeedbackService? feedbackService,
+    PostTripAiService? postTripAiService,
+  }) : _feedbackService = feedbackService ?? FeedbackService(),
+       _postTripAiService = postTripAiService ?? PostTripAiService(),
+       super(FeedbackInitial()) {
     on<LoadFeedbacks>(_onLoadFeedbacks);
     on<SubmitFeedback>(_onSubmitFeedback);
+    on<RequestPostTripSuggestion>(_onRequestPostTripSuggestion);
   }
 
   final FeedbackService _feedbackService;
+  final PostTripAiService _postTripAiService;
 
   Future<void> _onLoadFeedbacks(
     LoadFeedbacks event,
@@ -45,6 +51,19 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
       add(LoadFeedbacks(tripId: event.tripId));
     } catch (e) {
       emit(FeedbackError(message: e.toString()));
+    }
+  }
+
+  Future<void> _onRequestPostTripSuggestion(
+    RequestPostTripSuggestion event,
+    Emitter<FeedbackState> emit,
+  ) async {
+    emit(PostTripSuggestionLoading());
+    try {
+      final suggestion = await _postTripAiService.getPostTripSuggestion();
+      emit(PostTripSuggestionLoaded(suggestion: suggestion));
+    } catch (e) {
+      emit(PostTripSuggestionError(message: e.toString()));
     }
   }
 }

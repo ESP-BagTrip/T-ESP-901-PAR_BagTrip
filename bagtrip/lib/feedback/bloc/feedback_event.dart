@@ -19,6 +19,8 @@ class SubmitFeedback extends FeedbackEvent {
     required this.overallRating,
     this.highlights,
     this.lowlights,
-    required this.wouldRecommend,
+    this.wouldRecommend = true,
   });
 }
+
+class RequestPostTripSuggestion extends FeedbackEvent {}
