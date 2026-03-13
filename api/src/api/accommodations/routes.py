@@ -84,6 +84,7 @@ async def update_accommodation(
 ):
     """Mettre à jour un hébergement."""
     try:
+        price_explicitly_cleared = "price" in request.model_fields_set and request.price is None
         accommodation = AccommodationsService.update_accommodation(
             db=db,
             accommodation_id=accommodationId,
@@ -96,6 +97,7 @@ async def update_accommodation(
             currency=request.currency,
             booking_reference=request.bookingReference,
             notes=request.notes,
+            price_explicitly_cleared=price_explicitly_cleared,
         )
         return AccommodationResponse.model_validate(accommodation)
     except AppError as e:

@@ -35,6 +35,14 @@ class BudgetItemService:
         return item
 
     @staticmethod
+    def find_by_source(db: Session, source_type: str, source_id: UUID) -> BudgetItem | None:
+        return (
+            db.query(BudgetItem)
+            .filter(BudgetItem.source_type == source_type, BudgetItem.source_id == source_id)
+            .first()
+        )
+
+    @staticmethod
     def get_by_trip(db: Session, trip_id: UUID) -> list[BudgetItem]:
         return (
             db.query(BudgetItem)

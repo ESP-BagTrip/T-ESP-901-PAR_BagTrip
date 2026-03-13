@@ -28,6 +28,8 @@ class BudgetItemResponse(BaseModel):
     category: str
     date: date | None = None
     isPlanned: bool = Field(alias="is_planned")
+    sourceType: str | None = Field(None, alias="source_type")
+    sourceId: UUID | None = Field(None, alias="source_id")
     createdAt: str = Field(alias="created_at")
     updatedAt: str = Field(alias="updated_at")
 

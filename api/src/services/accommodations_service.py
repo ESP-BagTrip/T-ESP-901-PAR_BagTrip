@@ -7,6 +7,8 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from src.models.accommodation import Accommodation
+from src.models.budget_item import BudgetItem
+from src.services.budget_item_service import BudgetItemService
 from src.utils.errors import AppError
 
 
@@ -39,6 +41,19 @@ class AccommodationsService:
             notes=notes,
         )
         db.add(accommodation)
+
+        if accommodation.price is not None:
+            db.add(BudgetItem(
+                trip_id=trip_id,
+                label=f"Hébergement : {name}",
+                amount=accommodation.price,
+                category="ACCOMMODATION",
+                date=check_in,
+                is_planned=True,
+                source_type="accommodation",
+                source_id=accommodation.id,
+            ))
+
         db.commit()
         db.refresh(accommodation)
         return accommodation
@@ -72,6 +87,7 @@ class AccommodationsService:
         currency: str | None = None,
         booking_reference: str | None = None,
         notes: str | None = None,
+        price_explicitly_cleared: bool = False,
     ) -> Accommodation:
         """Mettre à jour un hébergement (accès vérifié par la dependency)."""
         accommodation = AccommodationsService.get_accommodation_by_id(db, accommodation_id, trip_id)
@@ -94,6 +110,29 @@ class AccommodationsService:
             accommodation.booking_reference = booking_reference
         if notes is not None:
             accommodation.notes = notes
+        if price_explicitly_cleared:
+            accommodation.price = None
+
+        # Sync linked budget item
+        linked = BudgetItemService.find_by_source(db, "accommodation", accommodation.id)
+        if accommodation.price is not None:
+            if linked:
+                linked.label = f"Hébergement : {accommodation.name}"
+                linked.amount = accommodation.price
+                linked.date = accommodation.check_in
+            else:
+                db.add(BudgetItem(
+                    trip_id=trip_id,
+                    label=f"Hébergement : {accommodation.name}",
+                    amount=accommodation.price,
+                    category="ACCOMMODATION",
+                    date=accommodation.check_in,
+                    is_planned=True,
+                    source_type="accommodation",
+                    source_id=accommodation.id,
+                ))
+        elif price_explicitly_cleared and linked:
+            db.delete(linked)
 
         db.commit()
         db.refresh(accommodation)
@@ -105,6 +144,10 @@ class AccommodationsService:
         accommodation = AccommodationsService.get_accommodation_by_id(db, accommodation_id, trip_id)
         if not accommodation:
             raise AppError("ACCOMMODATION_NOT_FOUND", 404, "Accommodation not found")
+
+        linked = BudgetItemService.find_by_source(db, "accommodation", accommodation.id)
+        if linked:
+            db.delete(linked)
 
         db.delete(accommodation)
         db.commit()

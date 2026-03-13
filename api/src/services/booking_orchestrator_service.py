@@ -1,5 +1,6 @@
 """Service pour l'orchestration des bookings Amadeus."""
 
+from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -7,6 +8,7 @@ from sqlalchemy.orm import Session
 from src.integrations.amadeus import amadeus_client
 from src.integrations.amadeus.types import FlightOffer, FlightOrderTraveler
 from src.models.booking_intent import BookingIntent
+from src.models.budget_item import BudgetItem
 from src.models.flight_offer import FlightOffer as FlightOfferModel
 from src.models.flight_order import FlightOrder
 from src.models.traveler import TripTraveler
@@ -162,6 +164,39 @@ class BookingOrchestratorService:
             else {},
         )
         db.add(flight_order)
+
+        # Auto-create budget item for the flight
+        origin_iata = ""
+        destination_iata = ""
+        departure_date = None
+        try:
+            offer_data = flight_offer.priced_offer_json or flight_offer.offer_json
+            if isinstance(offer_data, dict):
+                itineraries = offer_data.get("itineraries", [])
+                if itineraries:
+                    segments = itineraries[0].get("segments", [])
+                    if segments:
+                        origin_iata = segments[0].get("departure", {}).get("iataCode", "")
+                        destination_iata = segments[-1].get("arrival", {}).get("iataCode", "")
+                        dep_at = segments[0].get("departure", {}).get("at", "")
+                        if dep_at:
+                            departure_date = datetime.fromisoformat(dep_at).date()
+        except Exception:
+            pass
+
+        label = f"Vol : {origin_iata} → {destination_iata}" if origin_iata and destination_iata else "Vol"
+
+        budget_item = BudgetItem(
+            trip_id=booking_intent.trip_id,
+            label=label,
+            amount=booking_intent.amount,
+            category="FLIGHT",
+            date=departure_date,
+            is_planned=False,
+            source_type="flight_order",
+            source_id=flight_order.id,
+        )
+        db.add(budget_item)
 
         # Mettre à jour le booking intent
         booking_intent.amadeus_order_id = amadeus_order_id
