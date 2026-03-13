@@ -16,6 +16,7 @@ class TripManagementBloc
     on<CreateTrip>(_onCreateTrip);
     on<LoadTripHome>(_onLoadTripHome);
     on<UpdateTripStatus>(_onUpdateTripStatus);
+    on<DeleteTrip>(_onDeleteTrip);
   }
 
   final TripService _tripService;
@@ -72,6 +73,19 @@ class TripManagementBloc
   ) async {
     try {
       await _tripService.updateTripStatus(event.tripId, event.status);
+      add(LoadTrips());
+    } catch (e) {
+      emit(TripManagementError(message: e.toString()));
+    }
+  }
+
+  Future<void> _onDeleteTrip(
+    DeleteTrip event,
+    Emitter<TripManagementState> emit,
+  ) async {
+    try {
+      await _tripService.deleteTrip(event.tripId);
+      emit(TripDeleted());
       add(LoadTrips());
     } catch (e) {
       emit(TripManagementError(message: e.toString()));

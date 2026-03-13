@@ -31,3 +31,5 @@ class TripCreated extends TripManagementState {
 
   TripCreated({required this.trip});
 }
+
+class TripDeleted extends TripManagementState {}

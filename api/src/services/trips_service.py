@@ -6,6 +6,9 @@ from uuid import UUID
 from sqlalchemy import literal_column
 from sqlalchemy.orm import Session
 
+from src.models.booking_intent import BookingIntent
+from src.models.flight_order import FlightOrder
+from src.models.stripe_event import StripeEvent
 from src.models.trip import Trip
 from src.models.trip_share import TripShare
 from src.utils.errors import AppError
@@ -198,6 +201,38 @@ class TripsService:
 
     @staticmethod
     def delete_trip(db: Session, trip: Trip) -> None:
-        """Supprimer un trip (ownership déjà vérifiée)."""
+        """Supprimer un trip DRAFT (ownership déjà vérifiée)."""
+        if trip.status != "DRAFT":
+            raise AppError(
+                "TRIP_NOT_DRAFT",
+                409,
+                "Only trips in DRAFT status can be deleted.",
+            )
+
+        confirmed_flight = (
+            db.query(FlightOrder)
+            .filter(FlightOrder.trip_id == trip.id, FlightOrder.status == "CONFIRMED")
+            .first()
+        )
+        if confirmed_flight:
+            raise AppError(
+                "TRIP_HAS_CONFIRMED_FLIGHT",
+                409,
+                "Cannot delete a trip with a confirmed flight order.",
+            )
+
+        # Nullify StripeEvent.booking_intent_id for BookingIntents of this trip
+        booking_intent_ids = (
+            db.query(BookingIntent.id).filter(BookingIntent.trip_id == trip.id).subquery()
+        )
+        db.query(StripeEvent).filter(
+            StripeEvent.booking_intent_id.in_(booking_intent_ids)
+        ).update({StripeEvent.booking_intent_id: None}, synchronize_session="fetch")
+
+        # Delete FlightOrders of this trip (no cascade from Trip)
+        db.query(FlightOrder).filter(FlightOrder.trip_id == trip.id).delete(
+            synchronize_session="fetch"
+        )
+
         db.delete(trip)
         db.commit()

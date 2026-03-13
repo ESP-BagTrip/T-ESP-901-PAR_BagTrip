@@ -16,7 +16,7 @@ class TripHomeView extends StatelessWidget {
     return Scaffold(
       body: BlocConsumer<TripManagementBloc, TripManagementState>(
         listener: (context, state) {
-          if (state is TripManagementLoaded) {
+          if (state is TripManagementLoaded || state is TripDeleted) {
             context.go('/trips');
           }
         },
@@ -138,6 +138,59 @@ class TripHomeView extends StatelessWidget {
                         icon: const Icon(Icons.check_circle_outline),
                         label: const Text('Terminer le voyage'),
                         style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
+                    ),
+                  ),
+                if (trip.status == TripStatus.draft)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 8,
+                      ),
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          showDialog<void>(
+                            context: context,
+                            builder:
+                                (dialogContext) => AlertDialog(
+                                  title: const Text('Supprimer le voyage'),
+                                  content: const Text(
+                                    'Êtes-vous sûr de vouloir supprimer ce voyage ? Cette action est irréversible.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed:
+                                          () =>
+                                              Navigator.of(dialogContext).pop(),
+                                      child: const Text('Annuler'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(dialogContext).pop();
+                                        context.read<TripManagementBloc>().add(
+                                          DeleteTrip(tripId: tripId),
+                                        );
+                                      },
+                                      style: TextButton.styleFrom(
+                                        foregroundColor:
+                                            Theme.of(context).colorScheme.error,
+                                      ),
+                                      child: const Text('Supprimer'),
+                                    ),
+                                  ],
+                                ),
+                          );
+                        },
+                        icon: const Icon(Icons.delete_outline),
+                        label: const Text('Supprimer le voyage'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Theme.of(context).colorScheme.error,
+                          side: BorderSide(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
                       ),

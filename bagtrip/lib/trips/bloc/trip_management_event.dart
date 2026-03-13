@@ -34,3 +34,9 @@ class UpdateTripStatus extends TripManagementEvent {
 
   UpdateTripStatus({required this.tripId, required this.status});
 }
+
+class DeleteTrip extends TripManagementEvent {
+  final String tripId;
+
+  DeleteTrip({required this.tripId});
+}
