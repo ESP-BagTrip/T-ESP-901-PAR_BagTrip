@@ -30,8 +30,10 @@ class Settings(BaseSettings):
     AMADEUS_CLIENT_SECRET: str
     AMADEUS_BASE_URL: str = "https://test.api.amadeus.com"
 
-    # Google GenAI
-    GOOGLE_API_KEY: str
+    # LLM (OpenAI-compatible)
+    LLM_MODEL: str = "gpt-oss-120b"
+    LLM_API_BASE: str = "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1"
+    LLM_API_KEY: str
 
     # LangChain / LangSmith
     LANGCHAIN_TRACING_V2: bool = False
@@ -52,7 +54,7 @@ class Settings(BaseSettings):
     GOOGLE_OAUTH_CLIENT_ID: str | None = None
     APPLE_BUNDLE_ID: str | None = None
 
-    @field_validator("AMADEUS_CLIENT_ID", "AMADEUS_CLIENT_SECRET", "GOOGLE_API_KEY", "JWT_SECRET")
+    @field_validator("AMADEUS_CLIENT_ID", "AMADEUS_CLIENT_SECRET", "LLM_API_KEY", "JWT_SECRET")
     @classmethod
     def validate_required_strings(cls, v: str) -> str:
         """Validate that required API keys are not empty."""

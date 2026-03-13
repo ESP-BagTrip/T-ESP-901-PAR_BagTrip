@@ -1,6 +1,6 @@
 """Définition du graphe de l'agent."""
 
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 from langgraph.graph import START, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
 
@@ -16,10 +16,11 @@ from src.agent.tools.offers import book_offer_tool, select_offer_tool
 from src.config.env import settings
 
 # 1. Initialiser le modèle
-# Utilisation de gemini-1.5-flash pour un bon compromis vitesse/coût
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash-lite",
-    google_api_key=settings.GOOGLE_API_KEY,
+# OVH GPT-OSS via endpoint OpenAI-compatible
+llm = ChatOpenAI(
+    model=settings.LLM_MODEL,
+    base_url=settings.LLM_API_BASE,
+    api_key=settings.LLM_API_KEY,
     temperature=0,
 )
 
