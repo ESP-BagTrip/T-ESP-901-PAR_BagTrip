@@ -42,6 +42,8 @@ class AdminTripResponse(BaseModel):
     startDate: date | None = Field(default=None, alias="start_date")
     endDate: date | None = Field(default=None, alias="end_date")
     status: str | None = None
+    budgetTotal: float | None = Field(default=None, alias="budget_total")
+    origin: str | None = None
     createdAt: datetime = Field(alias="created_at")
     updatedAt: datetime = Field(alias="updated_at")
 

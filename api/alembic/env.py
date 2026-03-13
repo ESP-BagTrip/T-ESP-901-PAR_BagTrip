@@ -2,15 +2,13 @@
 
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import engine_from_config, pool
-
-from src.config.database import clean_database_url
-from src.config.env import settings
 
 # Import all models so Base.metadata is populated
 import src.models  # noqa: F401
-from src.config.database import Base
+from alembic import context
+from src.config.database import Base, clean_database_url
+from src.config.env import settings
 
 # Alembic Config object
 config = context.config

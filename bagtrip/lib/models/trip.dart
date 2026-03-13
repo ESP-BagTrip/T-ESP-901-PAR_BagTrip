@@ -1,15 +1,23 @@
 enum TripStatus {
   draft,
-  planning,
-  active,
-  completed,
-  archived;
+  planned,
+  ongoing,
+  completed;
 
   static TripStatus fromString(String value) {
-    return TripStatus.values.firstWhere(
-      (e) => e.name == value.toLowerCase(),
-      orElse: () => TripStatus.draft,
-    );
+    final lower = value.toLowerCase();
+    switch (lower) {
+      case 'draft':
+        return TripStatus.draft;
+      case 'planned' || 'planning':
+        return TripStatus.planned;
+      case 'ongoing' || 'active':
+        return TripStatus.ongoing;
+      case 'completed' || 'archived':
+        return TripStatus.completed;
+      default:
+        return TripStatus.draft;
+    }
   }
 }
 
@@ -26,7 +34,8 @@ class Trip {
   final String? destinationName;
   final int? nbTravelers;
   final String? coverImageUrl;
-  final DateTime? archivedAt;
+  final double? budgetTotal;
+  final String? origin;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -43,7 +52,8 @@ class Trip {
     this.destinationName,
     this.nbTravelers,
     this.coverImageUrl,
-    this.archivedAt,
+    this.budgetTotal,
+    this.origin,
     required this.createdAt,
     this.updatedAt,
   });
@@ -79,12 +89,10 @@ class Trip {
       coverImageUrl:
           json['coverImageUrl'] as String? ??
           json['cover_image_url'] as String?,
-      archivedAt:
-          json['archivedAt'] != null
-              ? DateTime.parse(json['archivedAt'] as String)
-              : json['archived_at'] != null
-              ? DateTime.parse(json['archived_at'] as String)
-              : null,
+      budgetTotal:
+          (json['budgetTotal'] as num?)?.toDouble() ??
+          (json['budget_total'] as num?)?.toDouble(),
+      origin: json['origin'] as String?,
       createdAt:
           json['createdAt'] != null
               ? DateTime.parse(json['createdAt'] as String)
@@ -114,7 +122,8 @@ class Trip {
       'destinationName': destinationName,
       'nbTravelers': nbTravelers,
       'coverImageUrl': coverImageUrl,
-      'archivedAt': archivedAt?.toIso8601String(),
+      'budgetTotal': budgetTotal,
+      'origin': origin,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
     };

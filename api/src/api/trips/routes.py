@@ -1,11 +1,10 @@
 """Routes pour les trips."""
 
-from uuid import UUID
-
-from fastapi import APIRouter, Depends, Path, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from src.api.auth.middleware import get_current_user
+from src.api.auth.trip_access import TripAccess, get_trip_access, get_trip_owner_access
 from src.api.trips.schemas import (
     TripCreateRequest,
     TripDetailResponse,
@@ -52,8 +51,12 @@ async def create_trip(
             destination_name=request.destinationName,
             nb_travelers=request.nbTravelers,
             cover_image_url=request.coverImageUrl,
+            budget_total=request.budgetTotal,
+            origin=request.origin,
         )
-        return TripResponse.model_validate(trip)
+        resp = TripResponse.model_validate(trip)
+        resp.role = "OWNER"
+        return resp
     except AppError as e:
         raise create_http_exception(e) from e
 
@@ -62,16 +65,21 @@ async def create_trip(
     "",
     response_model=TripListResponse,
     summary="List user trips",
-    description="Get all trips for the authenticated user",
+    description="Get all trips for the authenticated user (owned + shared)",
 )
 async def list_trips(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Lister les trips de l'utilisateur."""
+    """Lister les trips de l'utilisateur (owned + shared)."""
     try:
-        trips = TripsService.get_trips_by_user(db, current_user.id)
-        return TripListResponse(items=[TripResponse.model_validate(trip) for trip in trips])
+        rows = TripsService.get_trips_by_user(db, current_user.id)
+        items = []
+        for trip, role in rows:
+            resp = TripResponse.model_validate(trip)
+            resp.role = role
+            items.append(resp)
+        return TripListResponse(items=items)
     except AppError as e:
         raise create_http_exception(e) from e
 
@@ -80,7 +88,7 @@ async def list_trips(
     "/grouped",
     response_model=TripGroupedResponse,
     summary="Get trips grouped by status",
-    description="Get all trips grouped by status (active, planning, completed, archived)",
+    description="Get all trips grouped by status (ongoing, planned, completed)",
 )
 async def get_grouped_trips(
     current_user: User = Depends(get_current_user),
@@ -89,11 +97,18 @@ async def get_grouped_trips(
     """Récupérer les trips groupés par statut."""
     try:
         grouped = TripsService.get_grouped_trips(db, current_user.id)
+        result = {}
+        for key, rows in grouped.items():
+            items = []
+            for trip, role in rows:
+                resp = TripResponse.model_validate(trip)
+                resp.role = role
+                items.append(resp)
+            result[key] = items
         return TripGroupedResponse(
-            active=[TripResponse.model_validate(t) for t in grouped["active"]],
-            planning=[TripResponse.model_validate(t) for t in grouped["planning"]],
-            completed=[TripResponse.model_validate(t) for t in grouped["completed"]],
-            archived=[TripResponse.model_validate(t) for t in grouped["archived"]],
+            ongoing=result["ongoing"],
+            planned=result["planned"],
+            completed=result["completed"],
         )
     except AppError as e:
         raise create_http_exception(e) from e
@@ -106,18 +121,15 @@ async def get_grouped_trips(
     description="Get detailed information about a specific trip with aggregations",
 )
 async def get_trip(
-    tripId: UUID = Path(..., description="Trip ID"),
-    current_user: User = Depends(get_current_user),
+    access: TripAccess = Depends(get_trip_access),
     db: Session = Depends(get_db),
 ):
     """Récupérer un trip avec agrégations."""
     try:
-        trip = TripsService.get_trip_by_id(db, tripId, current_user.id)
-        if not trip:
-            raise AppError("TRIP_NOT_FOUND", 404, "Trip not found")
+        trip = access.trip
 
-        flight_order = db.query(FlightOrder).filter(FlightOrder.trip_id == tripId).first()
-        hotel_booking = db.query(HotelBooking).filter(HotelBooking.trip_id == tripId).first()
+        flight_order = db.query(FlightOrder).filter(FlightOrder.trip_id == trip.id).first()
+        hotel_booking = db.query(HotelBooking).filter(HotelBooking.trip_id == trip.id).first()
 
         flight_order_dict = None
         if flight_order:
@@ -135,8 +147,11 @@ async def get_trip(
                 "status": hotel_booking.status,
             }
 
+        trip_resp = TripResponse.model_validate(trip)
+        trip_resp.role = access.role.value
+
         return TripDetailResponse(
-            trip=TripResponse.model_validate(trip),
+            trip=trip_resp,
             flightOrder=flight_order_dict,
             hotelBooking=hotel_booking_dict,
         )
@@ -151,15 +166,16 @@ async def get_trip(
     description="Get trip details, stats, and feature tiles for the trip home page",
 )
 async def get_trip_home(
-    tripId: UUID = Path(..., description="Trip ID"),
-    current_user: User = Depends(get_current_user),
+    access: TripAccess = Depends(get_trip_access),
     db: Session = Depends(get_db),
 ):
     """Récupérer les données de la page d'accueil d'un trip."""
     try:
-        data = TripsService.get_trip_home(db, tripId, current_user.id)
+        data = TripsService.get_trip_home(db, access.trip)
+        trip_resp = TripResponse.model_validate(data["trip"])
+        trip_resp.role = access.role.value
         return TripHomeResponse(
-            trip=TripResponse.model_validate(data["trip"]),
+            trip=trip_resp,
             stats=data["stats"],
             features=data["features"],
         )
@@ -175,16 +191,14 @@ async def get_trip_home(
 )
 async def update_trip(
     request: TripUpdateRequest,
-    tripId: UUID = Path(..., description="Trip ID"),
-    current_user: User = Depends(get_current_user),
+    access: TripAccess = Depends(get_trip_owner_access),
     db: Session = Depends(get_db),
 ):
     """Mettre à jour un trip."""
     try:
         trip = TripsService.update_trip(
             db=db,
-            trip_id=tripId,
-            user_id=current_user.id,
+            trip=access.trip,
             title=request.title,
             origin_iata=request.originIata,
             destination_iata=request.destinationIata,
@@ -195,8 +209,11 @@ async def update_trip(
             destination_name=request.destinationName,
             nb_travelers=request.nbTravelers,
             cover_image_url=request.coverImageUrl,
+            budget_total=request.budgetTotal,
         )
-        return TripResponse.model_validate(trip)
+        resp = TripResponse.model_validate(trip)
+        resp.role = "OWNER"
+        return resp
     except AppError as e:
         raise create_http_exception(e) from e
 
@@ -209,19 +226,19 @@ async def update_trip(
 )
 async def update_trip_status(
     request: TripStatusUpdateRequest,
-    tripId: UUID = Path(..., description="Trip ID"),
-    current_user: User = Depends(get_current_user),
+    access: TripAccess = Depends(get_trip_owner_access),
     db: Session = Depends(get_db),
 ):
     """Mettre à jour le statut d'un trip."""
     try:
         trip = TripsService.update_trip_status(
             db=db,
-            trip_id=tripId,
-            user_id=current_user.id,
+            trip=access.trip,
             new_status=request.status,
         )
-        return TripResponse.model_validate(trip)
+        resp = TripResponse.model_validate(trip)
+        resp.role = "OWNER"
+        return resp
     except AppError as e:
         raise create_http_exception(e) from e
 
@@ -233,12 +250,11 @@ async def update_trip_status(
     description="Delete a trip",
 )
 async def delete_trip(
-    tripId: UUID = Path(..., description="Trip ID"),
-    current_user: User = Depends(get_current_user),
+    access: TripAccess = Depends(get_trip_owner_access),
     db: Session = Depends(get_db),
 ):
     """Supprimer un trip."""
     try:
-        TripsService.delete_trip(db, tripId, current_user.id)
+        TripsService.delete_trip(db, access.trip)
     except AppError as e:
         raise create_http_exception(e) from e

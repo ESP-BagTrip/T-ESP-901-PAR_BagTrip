@@ -94,6 +94,8 @@ class AdminService:
                     "start_date": trip.start_date,
                     "end_date": trip.end_date,
                     "status": trip.status,
+                    "budget_total": trip.budget_total,
+                    "origin": trip.origin,
                     "created_at": trip.created_at,
                     "updated_at": trip.updated_at,
                 }

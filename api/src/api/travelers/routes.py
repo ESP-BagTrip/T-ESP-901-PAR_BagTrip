@@ -5,7 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Path, status
 from sqlalchemy.orm import Session
 
-from src.api.auth.middleware import get_current_user
+from src.api.auth.trip_access import TripAccess, get_trip_access, get_trip_owner_access
 from src.api.travelers.schemas import (
     TravelerCreateRequest,
     TravelerListResponse,
@@ -13,7 +13,6 @@ from src.api.travelers.schemas import (
     TravelerUpdateRequest,
 )
 from src.config.database import get_db
-from src.models.user import User
 from src.services.travelers_service import TravelersService
 from src.utils.errors import AppError, create_http_exception
 
@@ -29,16 +28,14 @@ router = APIRouter(prefix="/v1/trips", tags=["Travelers"])
 )
 async def create_traveler(
     request: TravelerCreateRequest,
-    tripId: UUID = Path(..., description="Trip ID"),
-    current_user: User = Depends(get_current_user),
+    access: TripAccess = Depends(get_trip_owner_access),
     db: Session = Depends(get_db),
 ):
     """Créer un traveler selon PLAN.md."""
     try:
         traveler = TravelersService.create_traveler(
             db=db,
-            trip_id=tripId,
-            user_id=current_user.id,
+            trip_id=access.trip.id,
             amadeus_traveler_ref=request.amadeusTravelerRef,
             traveler_type=request.travelerType,
             first_name=request.firstName,
@@ -60,13 +57,12 @@ async def create_traveler(
     description="Get all travelers for a trip",
 )
 async def list_travelers(
-    tripId: UUID = Path(..., description="Trip ID"),
-    current_user: User = Depends(get_current_user),
+    access: TripAccess = Depends(get_trip_access),
     db: Session = Depends(get_db),
 ):
     """Lister les travelers d'un trip selon PLAN.md."""
     try:
-        travelers = TravelersService.get_travelers_by_trip(db, tripId, current_user.id)
+        travelers = TravelersService.get_travelers_by_trip(db, access.trip.id)
         return TravelerListResponse(items=[TravelerResponse.model_validate(t) for t in travelers])
     except AppError as e:
         raise create_http_exception(e) from e
@@ -80,9 +76,8 @@ async def list_travelers(
 )
 async def update_traveler(
     request: TravelerUpdateRequest,
-    tripId: UUID = Path(..., description="Trip ID"),
     travelerId: UUID = Path(..., description="Traveler ID"),
-    current_user: User = Depends(get_current_user),
+    access: TripAccess = Depends(get_trip_owner_access),
     db: Session = Depends(get_db),
 ):
     """Mettre à jour un traveler selon PLAN.md."""
@@ -90,8 +85,7 @@ async def update_traveler(
         traveler = TravelersService.update_traveler(
             db=db,
             traveler_id=travelerId,
-            trip_id=tripId,
-            user_id=current_user.id,
+            trip_id=access.trip.id,
             amadeus_traveler_ref=request.amadeusTravelerRef,
             traveler_type=request.travelerType,
             first_name=request.firstName,
@@ -113,13 +107,12 @@ async def update_traveler(
     description="Delete a traveler from a trip",
 )
 async def delete_traveler(
-    tripId: UUID = Path(..., description="Trip ID"),
     travelerId: UUID = Path(..., description="Traveler ID"),
-    current_user: User = Depends(get_current_user),
+    access: TripAccess = Depends(get_trip_owner_access),
     db: Session = Depends(get_db),
 ):
     """Supprimer un traveler selon PLAN.md."""
     try:
-        TravelersService.delete_traveler(db, travelerId, tripId, current_user.id)
+        TravelersService.delete_traveler(db, travelerId, access.trip.id)
     except AppError as e:
         raise create_http_exception(e) from e

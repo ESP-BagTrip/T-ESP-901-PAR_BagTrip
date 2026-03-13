@@ -8,6 +8,8 @@ export interface AdminTrip {
   start_date: string | null
   end_date: string | null
   status: string | null
+  budget_total: number | null
+  origin: string | null
   created_at: string
   updated_at: string
 }

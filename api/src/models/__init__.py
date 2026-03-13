@@ -17,6 +17,7 @@ from .stripe_event import StripeEvent
 from .traveler import TripTraveler
 from .traveler_profile import TravelerProfile
 from .trip import Trip
+from .trip_share import TripShare
 from .user import User
 
 __all__ = [
@@ -37,5 +38,6 @@ __all__ = [
     "StripeEvent",
     "AmadeusApiLog",
     "TravelerProfile",
+    "TripShare",
     "Booking",  # Deprecated
 ]

@@ -2,7 +2,7 @@
 
 import uuid
 
-from sqlalchemy import Column, Date, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Column, Date, DateTime, ForeignKey, Integer, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -22,8 +22,10 @@ class Trip(Base):
     destination_iata = Column(String(3), nullable=True)
     start_date = Column(Date, nullable=True)
     end_date = Column(Date, nullable=True)
-    status = Column(String, nullable=True)  # draft | planning | active | completed | archived
+    status = Column(String, nullable=True)  # DRAFT | PLANNED | ONGOING | COMPLETED
     description = Column(String, nullable=True)
+    budget_total = Column(Numeric(12, 2), nullable=True)
+    origin = Column(String, nullable=True, default="MANUAL")
     cover_image_url = Column(String, nullable=True)
     destination_name = Column(String, nullable=True)
     nb_travelers = Column(Integer, nullable=True, default=1)
@@ -50,3 +52,4 @@ class Trip(Base):
     conversations = relationship(
         "Conversation", back_populates="trip", cascade="all, delete-orphan"
     )
+    shares = relationship("TripShare", back_populates="trip", cascade="all, delete-orphan")

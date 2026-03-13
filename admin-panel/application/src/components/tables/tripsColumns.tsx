@@ -54,10 +54,10 @@ export const tripsColumns: ColumnDef<AdminTrip>[] = [
     cell: ({ row }) => {
       const status = row.getValue('status') as string | null
       const statusColors: Record<string, string> = {
-        draft: 'bg-gray-100 text-gray-800',
-        planned: 'bg-blue-100 text-blue-800',
-        booked: 'bg-green-100 text-green-800',
-        cancelled: 'bg-red-100 text-red-800',
+        DRAFT: 'bg-gray-100 text-gray-800',
+        PLANNED: 'bg-blue-100 text-blue-800',
+        ONGOING: 'bg-green-100 text-green-800',
+        COMPLETED: 'bg-purple-100 text-purple-800',
       }
       return (
         <span

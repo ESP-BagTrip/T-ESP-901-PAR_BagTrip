@@ -34,9 +34,3 @@ class UpdateTripStatus extends TripManagementEvent {
 
   UpdateTripStatus({required this.tripId, required this.status});
 }
-
-class ArchiveTrip extends TripManagementEvent {
-  final String tripId;
-
-  ArchiveTrip({required this.tripId});
-}

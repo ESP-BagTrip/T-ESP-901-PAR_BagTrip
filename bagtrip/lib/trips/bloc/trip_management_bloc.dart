@@ -16,7 +16,6 @@ class TripManagementBloc
     on<CreateTrip>(_onCreateTrip);
     on<LoadTripHome>(_onLoadTripHome);
     on<UpdateTripStatus>(_onUpdateTripStatus);
-    on<ArchiveTrip>(_onArchiveTrip);
   }
 
   final TripService _tripService;
@@ -73,18 +72,6 @@ class TripManagementBloc
   ) async {
     try {
       await _tripService.updateTripStatus(event.tripId, event.status);
-      add(LoadTrips());
-    } catch (e) {
-      emit(TripManagementError(message: e.toString()));
-    }
-  }
-
-  Future<void> _onArchiveTrip(
-    ArchiveTrip event,
-    Emitter<TripManagementState> emit,
-  ) async {
-    try {
-      await _tripService.updateTripStatus(event.tripId, 'archived');
       add(LoadTrips());
     } catch (e) {
       emit(TripManagementError(message: e.toString()));

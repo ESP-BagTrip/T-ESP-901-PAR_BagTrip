@@ -19,6 +19,8 @@ class TripService {
     String? destinationName,
     int? nbTravelers,
     String? coverImageUrl,
+    double? budgetTotal,
+    String? origin,
   }) async {
     try {
       final response = await _apiClient.post(
@@ -33,6 +35,8 @@ class TripService {
           if (destinationName != null) 'destinationName': destinationName,
           if (nbTravelers != null) 'nbTravelers': nbTravelers,
           if (coverImageUrl != null) 'coverImageUrl': coverImageUrl,
+          if (budgetTotal != null) 'budgetTotal': budgetTotal,
+          if (origin != null) 'origin': origin,
         },
       );
 

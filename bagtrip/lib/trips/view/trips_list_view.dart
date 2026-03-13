@@ -19,7 +19,7 @@ class TripsListView extends StatelessWidget {
             tabs: [
               Tab(text: 'En cours'),
               Tab(text: 'Planifiés'),
-              Tab(text: 'Archivés'),
+              Tab(text: 'Terminés'),
             ],
           ),
         ),
@@ -60,19 +60,19 @@ class TripsListView extends StatelessWidget {
               return TabBarView(
                 children: [
                   _TripListTab(
-                    trips: grouped.active,
+                    trips: grouped.ongoing,
                     emptyMessage: 'Aucun voyage en cours',
                     emptyIcon: Icons.flight_takeoff,
                   ),
                   _TripListTab(
-                    trips: grouped.planning,
+                    trips: grouped.planned,
                     emptyMessage: 'Aucun voyage planifié',
                     emptyIcon: Icons.calendar_today,
                   ),
                   _TripListTab(
-                    trips: [...grouped.completed, ...grouped.archived],
-                    emptyMessage: 'Aucun voyage archivé',
-                    emptyIcon: Icons.archive_outlined,
+                    trips: grouped.completed,
+                    emptyMessage: 'Aucun voyage terminé',
+                    emptyIcon: Icons.check_circle_outline,
                   ),
                 ],
               );

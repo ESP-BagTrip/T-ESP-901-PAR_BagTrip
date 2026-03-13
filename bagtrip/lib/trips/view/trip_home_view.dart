@@ -1,3 +1,4 @@
+import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bagtrip/trips/widgets/trip_feature_tile.dart';
 import 'package:bagtrip/trips/widgets/trip_header.dart';
@@ -121,7 +122,7 @@ class TripHomeView extends StatelessWidget {
                             .toList(),
                   ),
                 ),
-                if (trip.status.name == 'active')
+                if (trip.status == TripStatus.ongoing)
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.all(24),
@@ -130,7 +131,7 @@ class TripHomeView extends StatelessWidget {
                           context.read<TripManagementBloc>().add(
                             UpdateTripStatus(
                               tripId: tripId,
-                              status: 'completed',
+                              status: 'COMPLETED',
                             ),
                           );
                         },

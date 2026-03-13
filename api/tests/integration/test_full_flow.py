@@ -1,20 +1,16 @@
 """Tests d'intégration pour le flow complet."""
 
+import os
+from uuid import uuid4
+
+import jwt
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-from uuid import uuid4
 
+from src.config.database import SessionLocal
 from src.main import app
 from src.models.user import User
-from src.models.trip import Trip
-from src.models.traveler import TripTraveler
-from src.models.conversation import Conversation
-from src.models.message import Message
-from src.config.database import get_db, SessionLocal
-from src.api.auth.middleware import verify_jwt_token
-import os
-import jwt
 
 client = TestClient(app)
 

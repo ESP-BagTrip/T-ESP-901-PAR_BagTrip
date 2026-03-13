@@ -8,29 +8,25 @@ class TripStatusBadge extends StatelessWidget {
 
   Color _backgroundColor() {
     switch (status) {
-      case TripStatus.active:
+      case TripStatus.ongoing:
         return const Color(0xFF4CAF50);
-      case TripStatus.planning:
+      case TripStatus.planned:
       case TripStatus.draft:
         return const Color(0xFF2196F3);
       case TripStatus.completed:
         return const Color(0xFF9E9E9E);
-      case TripStatus.archived:
-        return const Color(0xFFBDBDBD);
     }
   }
 
   String _label() {
     switch (status) {
-      case TripStatus.active:
+      case TripStatus.ongoing:
         return 'En cours';
-      case TripStatus.planning:
+      case TripStatus.planned:
       case TripStatus.draft:
         return 'Planifié';
       case TripStatus.completed:
         return 'Terminé';
-      case TripStatus.archived:
-        return 'Archivé';
     }
   }
 

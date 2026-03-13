@@ -18,6 +18,8 @@ class TripCreateRequest(BaseModel):
     destinationName: str | None = None
     nbTravelers: int | None = None
     coverImageUrl: str | None = None
+    budgetTotal: float | None = None
+    origin: str | None = None
 
 
 class TripUpdateRequest(BaseModel):
@@ -33,6 +35,7 @@ class TripUpdateRequest(BaseModel):
     destinationName: str | None = None
     nbTravelers: int | None = None
     coverImageUrl: str | None = None
+    budgetTotal: float | None = None
 
 
 class TripResponse(BaseModel):
@@ -49,9 +52,12 @@ class TripResponse(BaseModel):
     destinationName: str | None = Field(default=None, alias="destination_name")
     nbTravelers: int | None = Field(default=None, alias="nb_travelers")
     coverImageUrl: str | None = Field(default=None, alias="cover_image_url")
+    budgetTotal: float | None = Field(default=None, alias="budget_total")
+    origin: str | None = None
     archivedAt: datetime | None = Field(default=None, alias="archived_at")
     createdAt: datetime = Field(alias="created_at")
     updatedAt: datetime = Field(alias="updated_at")
+    role: str | None = None
 
     class Config:
         from_attributes = True
@@ -109,7 +115,6 @@ class TripHomeResponse(BaseModel):
 class TripGroupedResponse(BaseModel):
     """Réponse des trips groupés par statut."""
 
-    active: list[TripResponse] = []
-    planning: list[TripResponse] = []
+    ongoing: list[TripResponse] = []
+    planned: list[TripResponse] = []
     completed: list[TripResponse] = []
-    archived: list[TripResponse] = []

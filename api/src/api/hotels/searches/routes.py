@@ -5,7 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Path, status
 from sqlalchemy.orm import Session
 
-from src.api.auth.middleware import get_current_user
+from src.api.auth.trip_access import TripAccess, get_trip_access, get_trip_owner_access
 from src.api.hotels.searches.schemas import (
     HotelOfferDetail,
     HotelOfferSummary,
@@ -14,7 +14,6 @@ from src.api.hotels.searches.schemas import (
     HotelSearchResponse,
 )
 from src.config.database import get_db
-from src.models.user import User
 from src.services.hotel_search_service import HotelSearchService
 from src.utils.errors import AppError, create_http_exception
 
@@ -30,16 +29,14 @@ router = APIRouter(prefix="/v1/trips", tags=["Hotel Searches"])
 )
 async def create_hotel_search(
     request: HotelSearchCreateRequest,
-    tripId: UUID = Path(..., description="Trip ID"),
-    current_user: User = Depends(get_current_user),
+    access: TripAccess = Depends(get_trip_owner_access),
     db: Session = Depends(get_db),
 ):
     """Créer une recherche d'hôtel selon PLAN.md."""
     try:
         search, offers = await HotelSearchService.create_search(
             db=db,
-            trip_id=tripId,
-            user_id=current_user.id,
+            trip_id=access.trip.id,
             city_code=request.cityCode,
             latitude=request.latitude,
             longitude=request.longitude,
@@ -74,18 +71,17 @@ async def create_hotel_search(
     description="Get detailed information about a hotel search with offers",
 )
 async def get_hotel_search(
-    tripId: UUID = Path(..., description="Trip ID"),
     searchId: UUID = Path(..., description="Search ID"),
-    current_user: User = Depends(get_current_user),
+    access: TripAccess = Depends(get_trip_access),
     db: Session = Depends(get_db),
 ):
     """Récupérer une recherche d'hôtel selon PLAN.md."""
     try:
-        search = HotelSearchService.get_search_by_id(db, searchId, tripId, current_user.id)
+        search = HotelSearchService.get_search_by_id(db, searchId, access.trip.id)
         if not search:
             raise AppError("SEARCH_NOT_FOUND", 404, "Hotel search not found")
 
-        offers = HotelSearchService.get_offers_by_search(db, searchId, tripId, current_user.id)
+        offers = HotelSearchService.get_offers_by_search(db, searchId, access.trip.id)
 
         return HotelSearchDetailResponse(
             search={

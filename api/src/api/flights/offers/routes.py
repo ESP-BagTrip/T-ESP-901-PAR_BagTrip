@@ -5,13 +5,11 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Path
 from sqlalchemy.orm import Session
 
-from src.api.auth.middleware import get_current_user
+from src.api.auth.trip_access import TripAccess, get_trip_access, get_trip_owner_access
 from src.api.flights.offers.schemas import FlightOfferPriceResponse, FlightOfferResponse
 from src.config.database import get_db
 from src.models.flight_offer import FlightOffer
-from src.models.user import User
 from src.services.flight_offer_pricing_service import FlightOfferPricingService
-from src.services.trips_service import TripsService
 from src.utils.errors import AppError, create_http_exception
 
 router = APIRouter(prefix="/v1/trips", tags=["Flight Offers"])
@@ -24,23 +22,17 @@ router = APIRouter(prefix="/v1/trips", tags=["Flight Offers"])
     description="Get detailed information about a specific flight offer",
 )
 async def get_flight_offer(
-    tripId: UUID = Path(..., description="Trip ID"),
     offerDbId: UUID = Path(..., description="Offer DB ID"),
-    current_user: User = Depends(get_current_user),
+    access: TripAccess = Depends(get_trip_access),
     db: Session = Depends(get_db),
 ):
     """Récupérer une offre de vol selon PLAN.md."""
     try:
-        # Vérifier que le trip existe et appartient à l'utilisateur
-        trip = TripsService.get_trip_by_id(db, tripId, current_user.id)
-        if not trip:
-            raise AppError("TRIP_NOT_FOUND", 404, "Trip not found")
-
         offer = (
             db.query(FlightOffer)
             .filter(
                 FlightOffer.id == offerDbId,
-                FlightOffer.trip_id == tripId,
+                FlightOffer.trip_id == access.trip.id,
             )
             .first()
         )
@@ -63,9 +55,8 @@ async def get_flight_offer(
     description="Confirm and update the price of a flight offer (recommended before booking)",
 )
 async def price_flight_offer(
-    tripId: UUID = Path(..., description="Trip ID"),
     offerDbId: UUID = Path(..., description="Offer DB ID"),
-    current_user: User = Depends(get_current_user),
+    access: TripAccess = Depends(get_trip_owner_access),
     db: Session = Depends(get_db),
 ):
     """Repricer une offre de vol selon PLAN.md."""
@@ -73,8 +64,7 @@ async def price_flight_offer(
         offer = await FlightOfferPricingService.price_offer(
             db=db,
             offer_id=offerDbId,
-            trip_id=tripId,
-            user_id=current_user.id,
+            trip_id=access.trip.id,
         )
 
         return FlightOfferPriceResponse(
