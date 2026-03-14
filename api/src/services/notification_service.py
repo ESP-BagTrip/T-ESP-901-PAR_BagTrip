@@ -252,6 +252,8 @@ class NotificationService:
         trip_id: UUID | None,
         notif_type: str,
         since: timedelta,
+        data_key: str | None = None,
+        data_value: str | None = None,
     ) -> bool:
         """Check deduplication — was this notification type already sent recently?"""
         cutoff = datetime.now(UTC) - since
@@ -262,4 +264,8 @@ class NotificationService:
         )
         if trip_id:
             query = query.filter(Notification.trip_id == trip_id)
+        if data_key and data_value:
+            query = query.filter(
+                Notification.data[data_key].astext == data_value
+            )
         return query.first() is not None

@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from src.config.database import SessionLocal
 from src.enums import FlightOrderStatus, NotificationType, TripStatus
 from src.models.activity import Activity
+from src.models.baggage_item import BaggageItem
 from src.models.flight_offer import FlightOffer
 from src.models.flight_order import FlightOrder
 from src.models.trip import Trip
@@ -28,6 +29,20 @@ def _check_departure_reminders(db: Session) -> int:
     )
     count = 0
     for trip in trips:
+        # Compute baggage checklist status
+        baggage_items = (
+            db.query(BaggageItem)
+            .filter(BaggageItem.trip_id == trip.id)
+            .all()
+        )
+        total = len(baggage_items)
+        packed = sum(1 for b in baggage_items if b.is_packed)
+
+        if total > 0:
+            baggage_status = f"Bagages : {packed}/{total} préparés."
+        else:
+            baggage_status = "Pensez à préparer vos bagages !"
+
         recipients = NotificationService._get_trip_recipients(db, trip)
         for uid in recipients:
             if NotificationService._already_sent(
@@ -40,7 +55,7 @@ def _check_departure_reminders(db: Session) -> int:
                 trip_id=trip.id,
                 notif_type=NotificationType.DEPARTURE_REMINDER,
                 title="Départ demain !",
-                body=f"Votre voyage « {trip.title or 'sans titre'} » commence demain. Bon voyage !",
+                body=f"Votre voyage « {trip.title or 'sans titre'} » commence demain. {baggage_status}",
                 data={"screen": "tripHome", "tripId": str(trip.id)},
             )
             count += 1
@@ -70,19 +85,41 @@ def _check_flight_alerts(db: Session, hours_before: float, notif_type: str, titl
         if not trip:
             continue
 
+        # Extract flight info for enriched notifications
+        flight_info = _extract_flight_info(db, order)
+
         recipients = NotificationService._get_trip_recipients(db, trip)
         for uid in recipients:
-            dedup_key = f"{notif_type}_{order.id}"
-            if NotificationService._already_sent(db, uid, trip.id, dedup_key, timedelta(hours=5)):
+            if NotificationService._already_sent(
+                db, uid, trip.id, notif_type, timedelta(hours=5),
+                data_key="orderId", data_value=str(order.id),
+            ):
                 continue
+
+            body = f"Votre vol pour « {trip.title or 'votre voyage'} » décolle bientôt !"
+            data = {
+                "screen": "tripHome",
+                "tripId": str(trip.id),
+                "orderId": str(order.id),
+            }
+
+            if notif_type == NotificationType.FLIGHT_H4 and flight_info.get("ticket_url"):
+                data["ticketUrl"] = flight_info["ticket_url"]
+                body += f" Billet : {flight_info['ticket_url']}"
+
+            if notif_type == NotificationType.FLIGHT_H1:
+                gate_info = flight_info.get("terminal_gate", "")
+                if gate_info:
+                    body += f" ({gate_info})"
+
             NotificationService.create_and_send(
                 db=db,
                 user_id=uid,
                 trip_id=trip.id,
                 notif_type=notif_type,
                 title=title,
-                body=f"Votre vol pour « {trip.title or 'votre voyage'} » décolle bientôt !",
-                data={"screen": "tripHome", "tripId": str(trip.id)},
+                body=body,
+                data=data,
             )
             count += 1
     return count
@@ -106,6 +143,32 @@ def _extract_departure_time(db: Session, order: FlightOrder) -> datetime | None:
     except Exception:
         pass
     return None
+
+
+def _extract_flight_info(db: Session, order: FlightOrder) -> dict:
+    """Extract flight details (ticket_url, terminal, gate) from order + offer data."""
+    info: dict = {}
+
+    # ticket_url directly on FlightOrder
+    if hasattr(order, "ticket_url") and order.ticket_url:
+        info["ticket_url"] = order.ticket_url
+
+    # Terminal and gate from offer_json
+    try:
+        offer = db.query(FlightOffer).filter(FlightOffer.id == order.flight_offer_id).first()
+        if offer and offer.offer_json:
+            itineraries = offer.offer_json.get("itineraries", [])
+            if itineraries:
+                segments = itineraries[0].get("segments", [])
+                if segments:
+                    departure = segments[0].get("departure", {})
+                    terminal = departure.get("terminal")
+                    if terminal:
+                        info["terminal_gate"] = f"Terminal {terminal}"
+    except Exception:
+        pass
+
+    return info
 
 
 def _check_morning_summary(db: Session) -> int:
@@ -176,17 +239,24 @@ def _check_activity_reminders(db: Session) -> int:
 
         recipients = NotificationService._get_trip_recipients(db, trip)
         for uid in recipients:
-            dedup_key = f"ACTIVITY_H1_{activity.id}"
-            if NotificationService._already_sent(db, uid, trip.id, dedup_key, timedelta(hours=2)):
+            if NotificationService._already_sent(
+                db, uid, trip.id, NotificationType.ACTIVITY_H1, timedelta(hours=2),
+                data_key="activityId", data_value=str(activity.id),
+            ):
                 continue
+            location_hint = f" à {activity.location}" if activity.location else ""
             NotificationService.create_and_send(
                 db=db,
                 user_id=uid,
                 trip_id=trip.id,
                 notif_type=NotificationType.ACTIVITY_H1,
                 title="Activité dans ~1h",
-                body=f"« {activity.title} » commence bientôt !",
-                data={"screen": "activities", "tripId": str(trip.id)},
+                body=f"« {activity.title} » commence bientôt !{location_hint}",
+                data={
+                    "screen": "activities",
+                    "tripId": str(trip.id),
+                    "activityId": str(activity.id),
+                },
             )
             count += 1
     return count

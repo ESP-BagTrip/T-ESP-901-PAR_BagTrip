@@ -16,8 +16,10 @@ from src.api.trips.schemas import (
     TripUpdateRequest,
 )
 from src.config.database import get_db
+from src.enums import NotificationType, TripStatus
 from src.models.flight_order import FlightOrder
 from src.models.user import User
+from src.services.notification_service import NotificationService
 from src.services.trips_service import TripsService
 from src.utils.errors import AppError, create_http_exception
 
@@ -221,11 +223,26 @@ async def update_trip_status(
 ):
     """Mettre à jour le statut d'un trip."""
     try:
+        old_status = access.trip.status
         trip = TripsService.update_trip_status(
             db=db,
             trip=access.trip,
             new_status=request.status,
         )
+
+        # Send TRIP_ENDED notification on manual ONGOING→COMPLETED closure
+        if old_status == TripStatus.ONGOING and request.status == TripStatus.COMPLETED:
+            recipients = NotificationService._get_trip_recipients(db, trip)
+            NotificationService.create_and_send_bulk(
+                db=db,
+                user_ids=recipients,
+                trip_id=trip.id,
+                notif_type=NotificationType.TRIP_ENDED,
+                title="Voyage terminé !",
+                body=f"Votre voyage « {trip.title or 'sans titre'} » est terminé. Partagez votre avis !",
+                data={"screen": "feedback", "tripId": str(trip.id)},
+            )
+
         resp = TripResponse.model_validate(trip)
         resp.role = "OWNER"
         return resp
