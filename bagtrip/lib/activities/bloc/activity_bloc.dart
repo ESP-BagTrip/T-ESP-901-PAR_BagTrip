@@ -46,6 +46,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
   ) async {
     emit(ActivityLoading());
     final result = await _activityRepository.getActivities(event.tripId);
+    if (isClosed) return;
     switch (result) {
       case Success(:final data):
         emit(
@@ -64,6 +65,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
       event.tripId,
       event.data,
     );
+    if (isClosed) return;
     switch (result) {
       case Success():
         add(LoadActivities(tripId: event.tripId));
@@ -81,6 +83,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
       event.activityId,
       event.data,
     );
+    if (isClosed) return;
     switch (result) {
       case Success():
         add(LoadActivities(tripId: event.tripId));
@@ -97,6 +100,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
       event.tripId,
       event.activityId,
     );
+    if (isClosed) return;
     switch (result) {
       case Success():
         add(LoadActivities(tripId: event.tripId));
@@ -119,6 +123,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
 
     emit(ActivitySuggestionsLoading());
     final result = await _activityRepository.suggestActivities(event.tripId);
+    if (isClosed) return;
     switch (result) {
       case Success(:final data):
         emit(
@@ -151,6 +156,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
       event.tripId,
       event.data,
     );
+    if (isClosed) return;
     switch (result) {
       case Success():
         add(LoadActivities(tripId: event.tripId));

@@ -2,6 +2,7 @@ import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bagtrip/trips/widgets/trip_card.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -52,11 +53,11 @@ class TripsListView extends StatelessWidget {
         ),
         body: BlocBuilder<TripManagementBloc, TripManagementState>(
           builder: (context, state) {
-            if (state is TripManagementLoading) {
+            if (state is TripsLoading) {
               return const Center(child: CircularProgressIndicator());
             }
 
-            if (state is TripManagementError) {
+            if (state is TripError) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -67,7 +68,7 @@ class TripsListView extends StatelessWidget {
                       color: Theme.of(context).colorScheme.error,
                     ),
                     const SizedBox(height: 16),
-                    Text(state.message),
+                    Text(toUserFriendlyMessage(state.error)),
                     const SizedBox(height: 16),
                     FilledButton.icon(
                       onPressed: () =>
@@ -80,7 +81,7 @@ class TripsListView extends StatelessWidget {
               );
             }
 
-            if (state is TripManagementLoaded) {
+            if (state is TripsLoaded) {
               final grouped = state.groupedTrips;
               return TabBarView(
                 children: [

@@ -29,6 +29,7 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
       _budgetRepository.getBudgetItems(event.tripId),
       _budgetRepository.getBudgetSummary(event.tripId),
     ]);
+    if (isClosed) return;
     final itemsResult = results[0] as Result<List<BudgetItem>>;
     final summaryResult = results[1] as Result<BudgetSummary>;
     if (itemsResult is Success<List<BudgetItem>> &&
@@ -50,6 +51,7 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
       event.tripId,
       event.data,
     );
+    if (isClosed) return;
     switch (result) {
       case Success():
         add(LoadBudget(tripId: event.tripId));
@@ -67,6 +69,7 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
       event.itemId,
       event.data,
     );
+    if (isClosed) return;
     switch (result) {
       case Success():
         add(LoadBudget(tripId: event.tripId));
@@ -83,6 +86,7 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
       event.tripId,
       event.itemId,
     );
+    if (isClosed) return;
     switch (result) {
       case Success():
         add(LoadBudget(tripId: event.tripId));

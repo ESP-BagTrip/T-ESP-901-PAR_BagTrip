@@ -51,6 +51,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     final result = await _authRepository.login(event.email, event.password);
+    if (isClosed) return;
     switch (result) {
       case Success(:final data):
         emit(AuthSuccess(authResponse: data));
@@ -75,6 +76,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       event.password,
       event.fullName ?? 'User',
     );
+    if (isClosed) return;
     switch (result) {
       case Success(:final data):
         emit(AuthSuccess(authResponse: data));
@@ -95,6 +97,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     final result = await _authRepository.loginWithGoogle();
+    if (isClosed) return;
     switch (result) {
       case Success(:final data):
         emit(AuthSuccess(authResponse: data));
@@ -119,6 +122,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     final result = await _authRepository.loginWithApple();
+    if (isClosed) return;
     switch (result) {
       case Success(:final data):
         emit(AuthSuccess(authResponse: data));
@@ -143,6 +147,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     await _authRepository.logout();
+    if (isClosed) return;
     emit(AuthInitial());
   }
 

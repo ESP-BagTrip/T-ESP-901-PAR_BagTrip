@@ -30,6 +30,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
   ) async {
     emit(FeedbackLoading());
     final result = await _feedbackRepository.getFeedbacks(event.tripId);
+    if (isClosed) return;
     switch (result) {
       case Success(:final data):
         emit(FeedbackLoaded(feedbacks: data));
@@ -50,6 +51,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
       lowlights: event.lowlights,
       wouldRecommend: event.wouldRecommend,
     );
+    if (isClosed) return;
     switch (result) {
       case Success():
         emit(FeedbackSubmitted());
@@ -65,6 +67,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
   ) async {
     emit(PostTripSuggestionLoading());
     final result = await _aiRepository.getPostTripSuggestion();
+    if (isClosed) return;
     switch (result) {
       case Success(:final data):
         emit(PostTripSuggestionLoaded(suggestion: data));

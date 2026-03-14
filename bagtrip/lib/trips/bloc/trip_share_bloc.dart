@@ -27,6 +27,7 @@ class TripShareBloc extends Bloc<TripShareEvent, TripShareState> {
   ) async {
     emit(TripShareLoading());
     final result = await _tripShareRepository.getSharesByTrip(event.tripId);
+    if (isClosed) return;
     switch (result) {
       case Success(:final data):
         emit(TripShareLoaded(shares: data));
@@ -44,6 +45,7 @@ class TripShareBloc extends Bloc<TripShareEvent, TripShareState> {
       event.tripId,
       email: event.email,
     );
+    if (isClosed) return;
     switch (result) {
       case Success():
         add(LoadShares(tripId: event.tripId));
@@ -65,6 +67,7 @@ class TripShareBloc extends Bloc<TripShareEvent, TripShareState> {
       event.tripId,
       event.shareId,
     );
+    if (isClosed) return;
     switch (result) {
       case Success():
         add(LoadShares(tripId: event.tripId));

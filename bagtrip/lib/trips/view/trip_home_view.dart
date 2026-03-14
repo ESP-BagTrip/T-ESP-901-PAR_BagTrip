@@ -3,6 +3,7 @@ import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bagtrip/trips/widgets/trip_feature_tile.dart';
 import 'package:bagtrip/trips/widgets/trip_header.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -17,13 +18,13 @@ class TripHomeView extends StatelessWidget {
     return Scaffold(
       body: BlocConsumer<TripManagementBloc, TripManagementState>(
         listener: (context, state) {
-          if (state is TripManagementLoaded || state is TripDeleted) {
+          if (state is TripsLoaded || state is TripDeleted) {
             context.go('/trips');
           }
-          if (state is TripManagementError) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
+          if (state is TripError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(toUserFriendlyMessage(state.error))),
+            );
             context.read<TripManagementBloc>().add(
               LoadTripHome(tripId: tripId),
             );
@@ -34,7 +35,7 @@ class TripHomeView extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (state is TripManagementError) {
+          if (state is TripError) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -45,7 +46,7 @@ class TripHomeView extends StatelessWidget {
                     color: Theme.of(context).colorScheme.error,
                   ),
                   const SizedBox(height: 16),
-                  Text(state.message),
+                  Text(toUserFriendlyMessage(state.error)),
                   const SizedBox(height: 16),
                   FilledButton.icon(
                     onPressed: () => context.read<TripManagementBloc>().add(

@@ -1,7 +1,9 @@
+import 'package:bagtrip/booking/bloc/booking_bloc.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/profile/bloc/profile_bloc.dart';
+import 'package:bagtrip/models/recent_booking.dart';
+import 'package:bagtrip/profile/bloc/user_profile_bloc.dart';
 import 'package:bagtrip/profile/widgets/experience_personalization_section.dart';
 import 'package:bagtrip/profile/widgets/logout_button.dart';
 import 'package:bagtrip/profile/widgets/personal_info_section.dart';
@@ -17,13 +19,13 @@ class ProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ProfileBloc, ProfileState>(
+    return BlocBuilder<UserProfileBloc, UserProfileState>(
       builder: (context, state) {
-        if (state is ProfileInitial || state is ProfileUnauthenticated) {
+        if (state is UserProfileInitial || state is UserProfileLoading) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (state is ProfileLoadFailure) {
+        if (state is UserProfileError) {
           return Center(
             child: Padding(
               padding: AppSpacing.allEdgeInsetSpace24,
@@ -37,8 +39,7 @@ class ProfileView extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.space16),
                   Text(
-                    state.message ??
-                        AppLocalizations.of(context)!.profileLoadFailureMessage,
+                    state.message,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: ColorName.primaryTrueDark.withValues(alpha: 0.8),
@@ -47,7 +48,7 @@ class ProfileView extends StatelessWidget {
                   const SizedBox(height: AppSpacing.space24),
                   FilledButton.icon(
                     onPressed: () =>
-                        context.read<ProfileBloc>().add(LoadProfile()),
+                        context.read<UserProfileBloc>().add(LoadUserProfile()),
                     icon: const Icon(Icons.refresh),
                     label: Text(AppLocalizations.of(context)!.retryButton),
                   ),
@@ -57,7 +58,7 @@ class ProfileView extends StatelessWidget {
           );
         }
 
-        if (state is ProfileLoaded) {
+        if (state is UserProfileLoaded) {
           return SingleChildScrollView(
             padding: AppSpacing.allEdgeInsetSpace24,
             child: Column(
@@ -74,10 +75,7 @@ class ProfileView extends StatelessWidget {
                   address: state.address.isEmpty ? '—' : state.address,
                 ),
                 const SizedBox(height: AppSpacing.space16),
-                PreferencesSection(
-                  selectedTheme: state.selectedTheme,
-                  selectedLanguage: state.selectedLanguage,
-                ),
+                const PreferencesSection(),
                 const SizedBox(height: AppSpacing.space16),
                 ExperiencePersonalizationSection(
                   travelTypes: state.travelTypes,
@@ -86,7 +84,15 @@ class ProfileView extends StatelessWidget {
                   companions: state.companions,
                 ),
                 const SizedBox(height: AppSpacing.space16),
-                RecentBookingsSection(recentBookings: state.recentBookings),
+                BlocBuilder<BookingBloc, BookingState>(
+                  builder: (context, bookingState) {
+                    final List<RecentBooking> bookings =
+                        bookingState is BookingLoaded
+                        ? bookingState.recentBookings
+                        : [];
+                    return RecentBookingsSection(recentBookings: bookings);
+                  },
+                ),
                 const SizedBox(height: AppSpacing.space24),
                 const LogoutButton(),
                 const SizedBox(height: AppSpacing.space24),

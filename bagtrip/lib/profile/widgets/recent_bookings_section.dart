@@ -2,7 +2,7 @@ import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/profile/bloc/profile_bloc.dart';
+import 'package:bagtrip/models/recent_booking.dart';
 import 'package:bagtrip/profile/widgets/profile_section_card.dart';
 import 'package:flutter/material.dart';
 

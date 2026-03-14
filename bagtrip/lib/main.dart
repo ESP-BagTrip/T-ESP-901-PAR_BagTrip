@@ -1,15 +1,18 @@
 import 'dart:io';
 
 import 'package:bagtrip/auth/bloc/auth_bloc.dart';
+import 'package:bagtrip/auth/widgets/auth_listener.dart';
+import 'package:bagtrip/booking/bloc/booking_bloc.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/design/app_theme.dart';
 import 'package:bagtrip/firebase_options.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/app_router.dart';
 import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
-import 'package:bagtrip/profile/bloc/profile_bloc.dart';
+import 'package:bagtrip/profile/bloc/user_profile_bloc.dart';
 import 'package:bagtrip/service/local_notification_service.dart';
 import 'package:bagtrip/repositories/notification_repository.dart';
+import 'package:bagtrip/settings/bloc/settings_bloc.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -78,43 +81,34 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (context) => ProfileBloc()),
+        BlocProvider(create: (context) => SettingsBloc()),
+        BlocProvider(create: (context) => UserProfileBloc()),
+        BlocProvider(create: (context) => BookingBloc()),
         BlocProvider(create: (context) => AuthBloc()),
         BlocProvider(create: (context) => TripManagementBloc()),
         BlocProvider(create: (context) => NotificationBloc()),
       ],
-      child: BlocBuilder<ProfileBloc, ProfileState>(
-        builder: (context, state) {
-          // Get theme from state or default to system (first launch)
-          String themeValue = 'system';
-          if (state is ProfileLoaded) {
-            themeValue = state.selectedTheme;
-          }
+      child: AuthListener(
+        router: appRouter,
+        child: BlocSelector<SettingsBloc, SettingsState, String>(
+          selector: (state) => state.selectedTheme,
+          builder: (context, selectedTheme) {
+            final ThemeMode themeMode = switch (selectedTheme) {
+              'dark' => ThemeMode.dark,
+              'light' => ThemeMode.light,
+              _ => ThemeMode.system,
+            };
 
-          // Convert theme string to ThemeMode
-          ThemeMode themeMode;
-          switch (themeValue) {
-            case 'dark':
-              themeMode = ThemeMode.dark;
-              break;
-            case 'light':
-              themeMode = ThemeMode.light;
-              break;
-            case 'system':
-            default:
-              themeMode = ThemeMode.system;
-              break;
-          }
-
-          return MaterialApp.router(
-            theme: AppTheme.light(),
-            darkTheme: AppTheme.dark(),
-            themeMode: themeMode,
-            routerConfig: appRouter,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-          );
-        },
+            return MaterialApp.router(
+              theme: AppTheme.light(),
+              darkTheme: AppTheme.dark(),
+              themeMode: themeMode,
+              routerConfig: appRouter,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+            );
+          },
+        ),
       ),
     );
   }

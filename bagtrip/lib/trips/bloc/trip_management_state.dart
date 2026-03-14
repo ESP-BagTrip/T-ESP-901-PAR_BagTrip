@@ -4,18 +4,22 @@ sealed class TripManagementState {}
 
 class TripManagementInitial extends TripManagementState {}
 
-class TripManagementLoading extends TripManagementState {}
+class TripsLoading extends TripManagementState {}
 
-class TripManagementLoaded extends TripManagementState {
+class TripCreating extends TripManagementState {}
+
+class TripDeleting extends TripManagementState {}
+
+class TripsLoaded extends TripManagementState {
   final TripGrouped groupedTrips;
 
-  TripManagementLoaded({required this.groupedTrips});
+  TripsLoaded({required this.groupedTrips});
 }
 
-class TripManagementError extends TripManagementState {
-  final String message;
+class TripError extends TripManagementState {
+  final AppError error;
 
-  TripManagementError({required this.message});
+  TripError({required this.error});
 }
 
 class TripHomeLoading extends TripManagementState {}

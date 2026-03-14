@@ -1,5 +1,6 @@
 import 'package:bagtrip/config/app_config.dart';
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/auth_event_bus.dart';
 import 'package:bagtrip/service/storage_service.dart';
 import 'package:dio/dio.dart';
 
@@ -50,6 +51,7 @@ class ApiClient {
               }
             } else {
               await _storageService.deleteToken();
+              AuthEventBus.fireUnauthenticated();
             }
           }
           final apiError = _handleError(error);

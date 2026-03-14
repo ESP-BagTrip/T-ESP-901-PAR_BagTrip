@@ -30,6 +30,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     final result = await _notificationRepository.getNotifications(
       page: event.page,
     );
+    if (isClosed) return;
     switch (result) {
       case Success(:final data):
         emit(
@@ -51,6 +52,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     Emitter<NotificationState> emit,
   ) async {
     final result = await _notificationRepository.getUnreadCount();
+    if (isClosed) return;
     switch (result) {
       case Success(:final data):
         emit(UnreadCountLoaded(count: data));
@@ -67,6 +69,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     final result = await _notificationRepository.markAsRead(
       event.notificationId,
     );
+    if (isClosed) return;
     switch (result) {
       case Success():
         add(LoadNotifications());
@@ -80,6 +83,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     Emitter<NotificationState> emit,
   ) async {
     final result = await _notificationRepository.markAllAsRead();
+    if (isClosed) return;
     switch (result) {
       case Success():
         add(LoadNotifications());

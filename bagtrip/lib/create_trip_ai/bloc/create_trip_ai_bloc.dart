@@ -53,6 +53,7 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
     emit(CreateTripAiRecapLoading());
     try {
       final userResult = await _authRepository.getCurrentUser();
+      if (isClosed) return;
       final userId = userResult.dataOrNull?.id ?? '';
       String travelTypes = '';
       String? travelStyle;
@@ -60,16 +61,21 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
       String? companions;
       if (userId.isNotEmpty) {
         travelTypes = await _storage.getTravelTypes(userId);
+        if (isClosed) return;
         travelStyle = await _storage.getTravelStyle(userId);
+        if (isClosed) return;
         final b = await _storage.getBudget(userId);
+        if (isClosed) return;
         travelStyle = travelStyle.isEmpty ? null : travelStyle;
         budget = b.isEmpty ? null : b;
         companions = await _storage.getCompanions(userId);
+        if (isClosed) return;
         companions = companions.isEmpty ? null : companions;
       }
       String? constraints;
       if (userId.isNotEmpty) {
         final c = await _storage.getConstraints(userId);
+        if (isClosed) return;
         constraints = c.isEmpty ? null : c;
       }
       _lastTravelTypes = travelTypes;
@@ -86,6 +92,7 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
         ),
       );
     } catch (_) {
+      if (isClosed) return;
       emit(
         CreateTripAiRecapLoaded(
           travelTypes: 'Non renseigné',
@@ -127,6 +134,7 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
 
     // Check AI quota
     final userResult = await _authRepository.getCurrentUser();
+    if (isClosed) return;
     final user = userResult.dataOrNull;
     if (user != null &&
         user.aiGenerationsRemaining != null &&
@@ -162,6 +170,7 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
       season: season,
       constraints: _lastConstraints,
     );
+    if (isClosed) return;
     switch (result) {
       case Success(:final data):
         final proposals = data.asMap().entries.map((entry) {
@@ -244,6 +253,7 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
       startDate: startDateStr,
       endDate: endDateStr,
     );
+    if (isClosed) return;
     switch (result) {
       case Success(:final data):
         emit(CreateTripAiTripCreated(data));

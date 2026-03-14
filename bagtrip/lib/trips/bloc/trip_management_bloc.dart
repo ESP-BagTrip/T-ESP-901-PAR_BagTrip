@@ -1,10 +1,10 @@
+import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/models/trip_grouped.dart';
 import 'package:bagtrip/models/trip_home.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/trip_repository.dart';
-import 'package:bagtrip/utils/error_display.dart';
 import 'package:bloc/bloc.dart';
 
 part 'trip_management_event.dart';
@@ -28,13 +28,14 @@ class TripManagementBloc
     LoadTrips event,
     Emitter<TripManagementState> emit,
   ) async {
-    emit(TripManagementLoading());
+    emit(TripsLoading());
     final result = await _tripRepository.getGroupedTrips();
+    if (isClosed) return;
     switch (result) {
       case Success(:final data):
-        emit(TripManagementLoaded(groupedTrips: data));
+        emit(TripsLoaded(groupedTrips: data));
       case Failure(:final error):
-        emit(TripManagementError(message: toUserFriendlyMessage(error)));
+        emit(TripError(error: error));
     }
   }
 
@@ -42,7 +43,7 @@ class TripManagementBloc
     CreateTrip event,
     Emitter<TripManagementState> emit,
   ) async {
-    emit(TripManagementLoading());
+    emit(TripCreating());
     final result = await _tripRepository.createTrip(
       title: event.title,
       description: event.description,
@@ -51,11 +52,12 @@ class TripManagementBloc
       startDate: event.startDate,
       endDate: event.endDate,
     );
+    if (isClosed) return;
     switch (result) {
       case Success(:final data):
         emit(TripCreated(trip: data));
       case Failure(:final error):
-        emit(TripManagementError(message: toUserFriendlyMessage(error)));
+        emit(TripError(error: error));
     }
   }
 
@@ -65,11 +67,12 @@ class TripManagementBloc
   ) async {
     emit(TripHomeLoading());
     final result = await _tripRepository.getTripHome(event.tripId);
+    if (isClosed) return;
     switch (result) {
       case Success(:final data):
         emit(TripHomeLoaded(tripHome: data));
       case Failure(:final error):
-        emit(TripManagementError(message: toUserFriendlyMessage(error)));
+        emit(TripError(error: error));
     }
   }
 
@@ -81,11 +84,12 @@ class TripManagementBloc
       event.tripId,
       event.status,
     );
+    if (isClosed) return;
     switch (result) {
       case Success():
         add(LoadTripHome(tripId: event.tripId));
       case Failure(:final error):
-        emit(TripManagementError(message: toUserFriendlyMessage(error)));
+        emit(TripError(error: error));
     }
   }
 
@@ -93,13 +97,15 @@ class TripManagementBloc
     DeleteTrip event,
     Emitter<TripManagementState> emit,
   ) async {
+    emit(TripDeleting());
     final result = await _tripRepository.deleteTrip(event.tripId);
+    if (isClosed) return;
     switch (result) {
       case Success():
         emit(TripDeleted());
         add(LoadTrips());
       case Failure(:final error):
-        emit(TripManagementError(message: toUserFriendlyMessage(error)));
+        emit(TripError(error: error));
     }
   }
 }
