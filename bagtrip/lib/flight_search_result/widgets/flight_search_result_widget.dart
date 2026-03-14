@@ -1,10 +1,10 @@
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/flightSearchResult/bloc/flight_search_result_bloc.dart';
-import 'package:bagtrip/flightSearchResult/widgets/date_selector.dart';
-import 'package:bagtrip/flightSearchResult/widgets/filter_button.dart';
-import 'package:bagtrip/flightSearchResult/widgets/flight_card.dart';
-import 'package:bagtrip/flightSearchResult/widgets/flight_search_result_shimmer.dart';
+import 'package:bagtrip/flight_search_result/bloc/flight_search_result_bloc.dart';
+import 'package:bagtrip/flight_search_result/widgets/date_selector.dart';
+import 'package:bagtrip/flight_search_result/widgets/filter_button.dart';
+import 'package:bagtrip/flight_search_result/widgets/flight_card.dart';
+import 'package:bagtrip/flight_search_result/widgets/flight_search_result_shimmer.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';

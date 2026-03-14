@@ -3,6 +3,7 @@ import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/assets.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/service/auth_service.dart';
 import 'package:bagtrip/service/backend_health.dart';
 import 'package:bagtrip/service/onboarding_storage.dart';
@@ -43,14 +44,14 @@ class _SplashPageState extends State<SplashPage> {
 
     if (!mounted) return;
 
-    final authService = AuthService();
+    final authService = getIt<AuthService>();
     final user = await authService.getCurrentUser();
 
     if (!mounted) return;
 
     if (user != null) {
       if (!user.isProfileCompleted) {
-        final hasSeen = await PersonalizationStorage()
+        final hasSeen = await getIt<PersonalizationStorage>()
             .hasSeenPersonalizationPrompt(user.id);
         if (!hasSeen) {
           if (!mounted) return;
@@ -63,7 +64,7 @@ class _SplashPageState extends State<SplashPage> {
     } else {
       await authService.logout();
       if (!mounted) return;
-      final hasSeen = await OnboardingStorage().hasSeenOnboarding();
+      final hasSeen = await getIt<OnboardingStorage>().hasSeenOnboarding();
       if (!mounted) return;
       if (hasSeen) {
         context.go('/login');

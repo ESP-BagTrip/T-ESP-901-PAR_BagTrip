@@ -1,3 +1,4 @@
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/service/auth_service.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:bagtrip/service/profile_api_service.dart';
@@ -16,9 +17,9 @@ class PersonalizationBloc
     AuthService? authService,
     PersonalizationStorage? personalizationStorage,
     ProfileApiService? profileApiService,
-  }) : _authService = authService ?? AuthService(),
-       _storage = personalizationStorage ?? PersonalizationStorage(),
-       _profileApi = profileApiService ?? ProfileApiService(),
+  }) : _authService = authService ?? getIt<AuthService>(),
+       _storage = personalizationStorage ?? getIt<PersonalizationStorage>(),
+       _profileApi = profileApiService ?? getIt<ProfileApiService>(),
        super(PersonalizationInitial()) {
     on<LoadPersonalization>(_onLoadPersonalization);
     on<SetTravelTypes>(_onSetTravelTypes);

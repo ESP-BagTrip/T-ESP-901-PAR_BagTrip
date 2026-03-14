@@ -1,6 +1,6 @@
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/flightSearchResult/models/baggage_info.dart';
+import 'package:bagtrip/flight_search_result/models/baggage_info.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';

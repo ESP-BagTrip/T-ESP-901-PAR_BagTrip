@@ -1,4 +1,4 @@
-import 'package:bagtrip/flightSearchResult/models/flight.dart';
+import 'package:bagtrip/flight_search_result/models/flight.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
 

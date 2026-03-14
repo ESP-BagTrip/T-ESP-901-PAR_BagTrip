@@ -9,6 +9,7 @@ import 'package:bagtrip/design/widgets/primary_button.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/service/auth_service.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:bagtrip/utils/error_display.dart';
@@ -170,13 +171,13 @@ class _LoginPageContentState extends State<_LoginPageContent> {
             if (state is AuthSuccess) {
               Future.delayed(const Duration(milliseconds: 100), () async {
                 if (!context.mounted) return;
-                final user = await AuthService().getCurrentUser();
+                final user = await getIt<AuthService>().getCurrentUser();
                 if (!context.mounted) return;
                 if (user == null || user.id.isEmpty) {
                   context.go('/trips');
                   return;
                 }
-                final hasSeen = await PersonalizationStorage()
+                final hasSeen = await getIt<PersonalizationStorage>()
                     .hasSeenPersonalizationPrompt(user.id);
                 if (!context.mounted) return;
                 if (hasSeen) {

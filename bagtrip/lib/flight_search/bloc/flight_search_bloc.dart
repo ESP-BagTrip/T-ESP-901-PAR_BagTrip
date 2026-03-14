@@ -1,10 +1,11 @@
 // ignore_for_file: depend_on_referenced_packages
 
 import 'package:bagtrip/flight_search/models/flight_segment.dart';
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 
-import '../../service/LocationService.dart';
+import '../../service/location_service.dart';
 
 part 'flight_search_event.dart';
 part 'flight_search_state.dart';
@@ -13,7 +14,7 @@ class FlightSearchBloc extends Bloc<FlightSearchEvent, FlightSearchState> {
   final LocationService _locationService;
 
   FlightSearchBloc({LocationService? locationService})
-    : _locationService = locationService ?? LocationService(),
+    : _locationService = locationService ?? getIt<LocationService>(),
       super(FlightSearchInitial()) {
     on<SearchDepartureAirport>(_onSearchDepartureAirport);
     on<SearchArrivalAirport>(_onSearchArrivalAirport);

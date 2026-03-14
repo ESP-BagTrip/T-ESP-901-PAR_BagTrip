@@ -1,5 +1,6 @@
 import 'package:bagtrip/create_trip_ai/models/ai_trip_proposal.dart';
 import 'package:bagtrip/create_trip_ai/models/trip_summary.dart';
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/service/ai_service.dart';
 import 'package:bagtrip/service/auth_service.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
@@ -16,9 +17,9 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
     AuthService? authService,
     PersonalizationStorage? personalizationStorage,
     AiService? aiService,
-  }) : _authService = authService ?? AuthService(),
-       _storage = personalizationStorage ?? PersonalizationStorage(),
-       _aiService = aiService ?? AiService(),
+  }) : _authService = authService ?? getIt<AuthService>(),
+       _storage = personalizationStorage ?? getIt<PersonalizationStorage>(),
+       _aiService = aiService ?? getIt<AiService>(),
        super(CreateTripAiInitial()) {
     on<CreateTripAiLoadRecap>(_onLoadRecap);
     on<CreateTripAiSetDepartureDate>(_onSetDepartureDate);

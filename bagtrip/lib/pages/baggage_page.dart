@@ -3,6 +3,7 @@ import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/models/baggage_item.dart';
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/service/auth_service.dart';
 import 'package:bagtrip/service/baggage_ai_service.dart';
 import 'package:bagtrip/service/baggage_item_service.dart';
@@ -181,7 +182,7 @@ class _BaggagePageState extends State<BaggagePage> {
   }
 
   Future<void> _handleSuggestBaggage() async {
-    final authService = AuthService();
+    final authService = getIt<AuthService>();
     final user = await authService.getCurrentUser();
     if (user != null &&
         user.isFree &&

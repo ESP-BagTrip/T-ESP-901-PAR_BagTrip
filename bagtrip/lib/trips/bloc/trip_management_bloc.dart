@@ -1,6 +1,7 @@
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/models/trip_grouped.dart';
 import 'package:bagtrip/models/trip_home.dart';
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/service/trip_service.dart';
 import 'package:bloc/bloc.dart';
 
@@ -10,7 +11,7 @@ part 'trip_management_state.dart';
 class TripManagementBloc
     extends Bloc<TripManagementEvent, TripManagementState> {
   TripManagementBloc({TripService? tripService})
-    : _tripService = tripService ?? TripService(),
+    : _tripService = tripService ?? getIt<TripService>(),
       super(TripManagementInitial()) {
     on<LoadTrips>(_onLoadTrips);
     on<CreateTrip>(_onCreateTrip);

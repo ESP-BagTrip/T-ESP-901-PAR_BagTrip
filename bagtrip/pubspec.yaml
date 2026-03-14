@@ -38,7 +38,6 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_bloc: ^9.1.1
   bloc: ^9.0.0
-  equatable: ^2.0.5
   meta: ^1.11.0
 
   # Router
@@ -48,7 +47,7 @@ dependencies:
   flutter_svg: ^2.0.10+1
   rive: ^0.14.1
   lottie: ^3.1.2
-  http: ^1.5.0
+  get_it: ^8.0.2
   dio: ^5.4.0
   flutter_secure_storage: ^10.0.0
   shimmer: ^3.0.0

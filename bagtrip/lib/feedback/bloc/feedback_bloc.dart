@@ -1,4 +1,5 @@
 import 'package:bagtrip/models/feedback.dart';
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/service/feedback_service.dart';
 import 'package:bagtrip/service/post_trip_ai_service.dart';
 import 'package:bagtrip/utils/error_display.dart';
@@ -12,8 +13,8 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
   FeedbackBloc({
     FeedbackService? feedbackService,
     PostTripAiService? postTripAiService,
-  }) : _feedbackService = feedbackService ?? FeedbackService(),
-       _postTripAiService = postTripAiService ?? PostTripAiService(),
+  }) : _feedbackService = feedbackService ?? getIt<FeedbackService>(),
+       _postTripAiService = postTripAiService ?? getIt<PostTripAiService>(),
        super(FeedbackInitial()) {
     on<LoadFeedbacks>(_onLoadFeedbacks);
     on<SubmitFeedback>(_onSubmitFeedback);

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:bagtrip/auth/bloc/auth_bloc.dart';
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/design/app_theme.dart';
 import 'package:bagtrip/firebase_options.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -23,6 +24,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  setupServiceLocator();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // FCM setup
@@ -65,7 +67,7 @@ class _MyAppState extends State<MyApp> {
     // Token refresh — re-register with backend
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
       final platform = Platform.isIOS ? 'ios' : 'android';
-      NotificationApiService().registerDeviceToken(
+      getIt<NotificationApiService>().registerDeviceToken(
         newToken,
         platform: platform,
       );

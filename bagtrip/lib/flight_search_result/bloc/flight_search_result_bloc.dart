@@ -1,8 +1,9 @@
 // ignore_for_file: depend_on_referenced_packages
 
-import 'package:bagtrip/flightSearchResult/models/flight.dart';
+import 'package:bagtrip/flight_search_result/models/flight.dart';
 import 'package:bagtrip/flight_search/models/flight_segment.dart';
-import 'package:bagtrip/service/LocationService.dart';
+import 'package:bagtrip/config/service_locator.dart';
+import 'package:bagtrip/service/location_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -15,7 +16,7 @@ class FlightSearchResultBloc
   final LocationService _locationService;
 
   FlightSearchResultBloc({LocationService? locationService})
-    : _locationService = locationService ?? LocationService(),
+    : _locationService = locationService ?? getIt<LocationService>(),
       super(FlightSearchResultInitial()) {
     on<LoadFlights>(_onLoadFlights);
     on<FilterFlightsByPrice>(_onFilterFlightsByPrice);

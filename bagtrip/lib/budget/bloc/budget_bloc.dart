@@ -1,4 +1,5 @@
 import 'package:bagtrip/models/budget_item.dart';
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/service/budget_service.dart';
 import 'package:bloc/bloc.dart';
 
@@ -9,7 +10,7 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
   final BudgetService _budgetService;
 
   BudgetBloc({BudgetService? budgetService})
-    : _budgetService = budgetService ?? BudgetService(),
+    : _budgetService = budgetService ?? getIt<BudgetService>(),
       super(BudgetInitial()) {
     on<LoadBudget>(_onLoadBudget);
     on<CreateBudgetItem>(_onCreateBudgetItem);

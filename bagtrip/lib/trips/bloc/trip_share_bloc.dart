@@ -1,4 +1,5 @@
 import 'package:bagtrip/models/trip_share.dart';
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/service/trip_share_service.dart';
 import 'package:bloc/bloc.dart';
 
@@ -7,7 +8,7 @@ part 'trip_share_state.dart';
 
 class TripShareBloc extends Bloc<TripShareEvent, TripShareState> {
   TripShareBloc({TripShareService? tripShareService})
-    : _tripShareService = tripShareService ?? TripShareService(),
+    : _tripShareService = tripShareService ?? getIt<TripShareService>(),
       super(TripShareInitial()) {
     on<LoadShares>(_onLoadShares);
     on<CreateShare>(_onCreateShare);

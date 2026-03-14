@@ -1,12 +1,11 @@
-// ignore_for_file: file_names
-
-import 'package:bagtrip/flightSearchResult/models/flight.dart';
+import 'package:bagtrip/config/app_config.dart';
+import 'package:bagtrip/flight_search_result/models/flight.dart';
 import 'package:bagtrip/flight_search/models/flight_segment.dart';
 import 'package:dio/dio.dart';
 
 class LocationService {
   final Dio _dio;
-  final String baseUrl = 'http://localhost:3000/v1';
+  final String baseUrl = AppConfig.apiBaseUrl;
 
   LocationService({Dio? dio}) : _dio = dio ?? Dio();
 

@@ -6,6 +6,7 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/user.dart';
 import 'package:bagtrip/planifier/bloc/planifier_bloc.dart';
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/service/auth_service.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +37,7 @@ class PlanifierView extends StatelessWidget {
               bottom: MediaQuery.paddingOf(context).bottom + AppSpacing.space24,
             ),
             child: FutureBuilder<User?>(
-              future: AuthService().getCurrentUser(),
+              future: getIt<AuthService>().getCurrentUser(),
               builder: (context, userSnapshot) {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,13 +193,12 @@ class PlanifierView extends StatelessWidget {
               description: l10n.planifierAIDescriptionCard,
               newBadge: l10n.planifierNewBadge,
               onTap: () async {
-                final user = await AuthService().getCurrentUser();
+                final user = await getIt<AuthService>().getCurrentUser();
                 final userId = user?.id ?? '';
                 final hasSeen =
                     userId.isEmpty ||
-                    await PersonalizationStorage().hasSeenPersonalizationPrompt(
-                      userId,
-                    );
+                    await getIt<PersonalizationStorage>()
+                        .hasSeenPersonalizationPrompt(userId);
                 if (!context.mounted) return;
                 if (hasSeen) {
                   context.push('/planifier/create-trip-ai');

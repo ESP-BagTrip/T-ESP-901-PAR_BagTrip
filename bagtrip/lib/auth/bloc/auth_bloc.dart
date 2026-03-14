@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:bagtrip/models/auth_response.dart';
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/service/auth_service.dart';
 import 'package:bagtrip/service/notification_service.dart';
 import 'package:bloc/bloc.dart';
@@ -16,7 +17,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   bool _isLoginMode = true;
 
   AuthBloc({AuthService? authService})
-    : _authService = authService ?? AuthService(),
+    : _authService = authService ?? getIt<AuthService>(),
       super(AuthInitial()) {
     on<LoginRequested>(_onLoginRequested);
     on<RegisterRequested>(_onRegisterRequested);
@@ -31,7 +32,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final token = await FirebaseMessaging.instance.getToken();
       if (token != null) {
         final platform = Platform.isIOS ? 'ios' : 'android';
-        await NotificationApiService().registerDeviceToken(
+        await getIt<NotificationApiService>().registerDeviceToken(
           token,
           platform: platform,
         );

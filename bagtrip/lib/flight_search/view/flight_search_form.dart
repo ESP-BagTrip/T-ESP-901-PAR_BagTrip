@@ -1,5 +1,5 @@
 import 'package:bagtrip/components/app_snackbar.dart';
-import 'package:bagtrip/flightSearchResult/models/flight_search_arguments.dart';
+import 'package:bagtrip/flight_search_result/models/flight_search_arguments.dart';
 import 'package:bagtrip/flight_search/bloc/flight_search_bloc.dart';
 import 'package:bagtrip/flight_search/widgets/manual_flight_airports_card.dart';
 import 'package:bagtrip/flight_search/widgets/manual_flight_cabin_selector.dart';

@@ -1,4 +1,5 @@
 import 'package:bagtrip/models/activity.dart';
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/service/activity_ai_service.dart';
 import 'package:bagtrip/service/activity_service.dart';
 import 'package:bloc/bloc.dart';
@@ -13,8 +14,8 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
   final ActivityAiService _aiService;
 
   ActivityBloc({ActivityService? activityService, ActivityAiService? aiService})
-    : _activityService = activityService ?? ActivityService(),
-      _aiService = aiService ?? ActivityAiService(),
+    : _activityService = activityService ?? getIt<ActivityService>(),
+      _aiService = aiService ?? getIt<ActivityAiService>(),
       super(ActivityInitial()) {
     on<LoadActivities>(_onLoadActivities);
     on<CreateActivity>(_onCreateActivity);

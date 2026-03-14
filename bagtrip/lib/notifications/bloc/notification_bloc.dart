@@ -1,4 +1,5 @@
 import 'package:bagtrip/models/notification.dart';
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/service/notification_service.dart';
 import 'package:bloc/bloc.dart';
 
@@ -9,7 +10,8 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   final NotificationApiService _notificationService;
 
   NotificationBloc({NotificationApiService? notificationService})
-    : _notificationService = notificationService ?? NotificationApiService(),
+    : _notificationService =
+          notificationService ?? getIt<NotificationApiService>(),
       super(NotificationInitial()) {
     on<LoadNotifications>(_onLoadNotifications);
     on<LoadUnreadCount>(_onLoadUnreadCount);

@@ -1,10 +1,7 @@
 part of 'navigation_bloc.dart';
 
-sealed class NavigationEvent extends Equatable {
+sealed class NavigationEvent {
   const NavigationEvent();
-
-  @override
-  List<Object?> get props => [];
 }
 
 class NavigationTabChanged extends NavigationEvent {
@@ -13,5 +10,12 @@ class NavigationTabChanged extends NavigationEvent {
   const NavigationTabChanged(this.tab);
 
   @override
-  List<Object?> get props => [tab];
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NavigationTabChanged &&
+          runtimeType == other.runtimeType &&
+          tab == other.tab;
+
+  @override
+  int get hashCode => tab.hashCode;
 }

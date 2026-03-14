@@ -1,7 +1,7 @@
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/flightSearchResult/bloc/flight_search_result_bloc.dart';
-import 'package:bagtrip/flightSearchResult/widgets/filter_dialog.dart';
+import 'package:bagtrip/flight_search_result/bloc/flight_search_result_bloc.dart';
+import 'package:bagtrip/flight_search_result/widgets/filter_dialog.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

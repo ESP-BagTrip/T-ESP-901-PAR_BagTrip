@@ -1,4 +1,4 @@
-import 'package:bagtrip/flightSearchResult/models/baggage_info.dart';
+import 'package:bagtrip/flight_search_result/models/baggage_info.dart';
 
 class Flight {
   final String id;

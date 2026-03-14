@@ -1,3 +1,4 @@
+import 'package:bagtrip/config/app_config.dart';
 import 'package:bagtrip/service/storage_service.dart';
 import 'package:dio/dio.dart';
 
@@ -8,7 +9,7 @@ class ApiClient {
   bool _isRefreshing = false;
 
   ApiClient({String? baseUrl, StorageService? storageService})
-    : baseUrl = baseUrl ?? 'http://localhost:3000/v1',
+    : baseUrl = baseUrl ?? AppConfig.apiBaseUrl,
       _storageService = storageService ?? StorageService() {
     _dio = Dio(
       BaseOptions(

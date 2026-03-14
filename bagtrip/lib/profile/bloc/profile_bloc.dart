@@ -2,6 +2,7 @@
 
 import 'package:bagtrip/models/booking_response.dart';
 import 'package:bagtrip/models/user.dart';
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/service/auth_service.dart';
 import 'package:bagtrip/service/booking_service.dart';
 import 'package:bagtrip/service/profile_api_service.dart';
@@ -17,9 +18,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     AuthService? authService,
     BookingService? bookingService,
     ProfileApiService? profileApiService,
-  }) : _authService = authService ?? AuthService(),
-       _bookingService = bookingService ?? BookingService(),
-       _profileApiService = profileApiService ?? ProfileApiService(),
+  }) : _authService = authService ?? getIt<AuthService>(),
+       _bookingService = bookingService ?? getIt<BookingService>(),
+       _profileApiService = profileApiService ?? getIt<ProfileApiService>(),
        super(ProfileInitial()) {
     on<LoadProfile>(_onLoadProfile);
     on<ResetProfile>(_onResetProfile);

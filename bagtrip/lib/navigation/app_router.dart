@@ -1,7 +1,7 @@
 import 'package:bagtrip/notifications/view/notifications_page.dart';
-import 'package:bagtrip/flightResultDetails/view/flight_result_details_page.dart';
-import 'package:bagtrip/flightSearchResult/models/flight.dart';
-import 'package:bagtrip/flightSearchResult/models/flight_search_arguments.dart';
+import 'package:bagtrip/flight_result_details/view/flight_result_details_page.dart';
+import 'package:bagtrip/flight_search_result/models/flight.dart';
+import 'package:bagtrip/flight_search_result/models/flight_search_arguments.dart';
 import 'package:bagtrip/navigation/app_shell.dart';
 import 'package:bagtrip/navigation/page_transitions.dart';
 import 'package:bagtrip/pages/accommodations_page.dart';
@@ -24,6 +24,7 @@ import 'package:bagtrip/pages/profile_page.dart';
 import 'package:bagtrip/pages/splash_page.dart';
 import 'package:bagtrip/pages/trip_home_page.dart';
 import 'package:bagtrip/pages/trips_list_page.dart';
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/service/auth_service.dart';
 import 'package:go_router/go_router.dart';
 
@@ -37,7 +38,7 @@ final GoRouter appRouter = GoRouter(
       return null;
     }
 
-    final authService = AuthService();
+    final authService = getIt<AuthService>();
     final isAuthenticated = await authService.isAuthenticated();
     final isLoginPage = path == '/login';
     final isOnboardingPage = path == '/onboarding';

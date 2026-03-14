@@ -2,7 +2,7 @@ part of 'navigation_bloc.dart';
 
 enum NavigationTab { planifier, trips, profile }
 
-class NavigationState extends Equatable {
+class NavigationState {
   final NavigationTab activeTab;
 
   const NavigationState({this.activeTab = NavigationTab.trips});
@@ -12,5 +12,12 @@ class NavigationState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [activeTab];
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NavigationState &&
+          runtimeType == other.runtimeType &&
+          activeTab == other.activeTab;
+
+  @override
+  int get hashCode => activeTab.hashCode;
 }

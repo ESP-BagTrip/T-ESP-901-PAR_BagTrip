@@ -1,7 +1,7 @@
 import 'package:bagtrip/design/personalization_colors.dart';
-import 'package:bagtrip/flightSearchResult/bloc/flight_search_result_bloc.dart';
-import 'package:bagtrip/flightSearchResult/models/flight_search_arguments.dart';
-import 'package:bagtrip/flightSearchResult/widgets/flight_search_result_widget.dart';
+import 'package:bagtrip/flight_search_result/bloc/flight_search_result_bloc.dart';
+import 'package:bagtrip/flight_search_result/models/flight_search_arguments.dart';
+import 'package:bagtrip/flight_search_result/widgets/flight_search_result_widget.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
