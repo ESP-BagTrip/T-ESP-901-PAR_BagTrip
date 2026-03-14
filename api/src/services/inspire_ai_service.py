@@ -44,6 +44,7 @@ Sois créatif et varié dans tes suggestions. Propose des destinations différen
         duration_days: int | None = None,
         companions: str | None = None,
         season: str | None = None,
+        constraints: str | None = None,
     ) -> dict:
         """Génère des suggestions de voyage via LLM."""
         parts = []
@@ -57,6 +58,8 @@ Sois créatif et varié dans tes suggestions. Propose des destinations différen
             parts.append(f"Compagnons : {companions}")
         if season:
             parts.append(f"Saison : {season}")
+        if constraints:
+            parts.append(f"Contraintes : {constraints}")
 
         if not parts:
             parts.append("Surprise-moi avec des destinations variées et originales !")

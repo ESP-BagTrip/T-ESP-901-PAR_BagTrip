@@ -5,7 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Path, status
 from sqlalchemy.orm import Session
 
-from src.api.auth.trip_access import TripAccess, get_trip_access, get_trip_owner_access
+from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access
 from src.api.flights.searches.schemas import (
     FlightOfferDetail,
     FlightOfferSummary,
@@ -95,6 +95,20 @@ async def get_flight_search(
 
         offers = FlightSearchService.get_offers_by_search(db, searchId, access.trip.id)
 
+        is_viewer = access.role == TripRole.VIEWER
+
+        offer_details = [
+            FlightOfferDetail(
+                id=offer.id,
+                amadeusOfferId=offer.amadeus_offer_id,
+                grandTotal=None if is_viewer else (float(offer.grand_total) if offer.grand_total else None),
+                baseTotal=None if is_viewer else (float(offer.base_total) if offer.base_total else None),
+                currency=offer.currency,
+                offer=offer.offer_json if offer.offer_json else {},
+            )
+            for offer in offers
+        ]
+
         return FlightSearchDetailResponse(
             search={
                 "id": str(search.id),
@@ -106,17 +120,7 @@ async def get_flight_search(
                 "returnDate": search.return_date.isoformat() if search.return_date else None,
                 "adults": search.adults,
             },
-            offers=[
-                FlightOfferDetail(
-                    id=offer.id,
-                    amadeusOfferId=offer.amadeus_offer_id,
-                    grandTotal=float(offer.grand_total) if offer.grand_total else None,
-                    baseTotal=float(offer.base_total) if offer.base_total else None,
-                    currency=offer.currency,
-                    offer=offer.offer_json if offer.offer_json else {},
-                )
-                for offer in offers
-            ],
+            offers=offer_details,
         )
     except AppError as e:
         raise create_http_exception(e) from e

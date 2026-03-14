@@ -35,6 +35,7 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
   String _lastTravelTypes = '';
   String? _lastBudget;
   String? _lastCompanions;
+  String? _lastConstraints;
   DateTime? _lastDepartureDate;
   DateTime? _lastReturnDate;
 
@@ -59,15 +60,22 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
         companions = await _storage.getCompanions(userId);
         companions = companions.isEmpty ? null : companions;
       }
+      String? constraints;
+      if (userId.isNotEmpty) {
+        final c = await _storage.getConstraints(userId);
+        constraints = c.isEmpty ? null : c;
+      }
       _lastTravelTypes = travelTypes;
       _lastBudget = budget;
       _lastCompanions = companions;
+      _lastConstraints = constraints;
       emit(
         CreateTripAiRecapLoaded(
           travelTypes: travelTypes.isEmpty ? 'Non renseigné' : travelTypes,
           travelStyle: travelStyle,
           budget: budget,
           companions: companions,
+          constraints: constraints,
         ),
       );
     } catch (_) {
@@ -144,6 +152,7 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
         durationDays: durationDays,
         companions: _lastCompanions,
         season: season,
+        constraints: _lastConstraints,
       );
 
       final proposals =

@@ -7,8 +7,8 @@ import 'package:meta/meta.dart';
 part 'personalization_event.dart';
 part 'personalization_state.dart';
 
-/// Welcome = 0, then 4 content steps: companions, budget, interests, frequency.
-const int _kTotalSteps = 5;
+/// Welcome = 0, then 5 content steps: companions, budget, interests, frequency, constraints.
+const int _kTotalSteps = 6;
 
 class PersonalizationBloc
     extends Bloc<PersonalizationEvent, PersonalizationState> {
@@ -26,6 +26,7 @@ class PersonalizationBloc
     on<SetBudget>(_onSetBudget);
     on<SetCompanions>(_onSetCompanions);
     on<SetTravelFrequency>(_onSetTravelFrequency);
+    on<SetConstraints>(_onSetConstraints);
     on<PersonalizationNextStep>(_onNextStep);
     on<PersonalizationPreviousStep>(_onPreviousStep);
     on<SkipPersonalization>(_onSkipPersonalization);
@@ -75,6 +76,8 @@ class PersonalizationBloc
       }
       final freq = await _storage.getTravelFrequency(user.id);
       travelFrequency = freq.isEmpty ? null : freq;
+      final constr = await _storage.getConstraints(user.id);
+      final String? constraints = constr.isEmpty ? null : constr;
 
       final welcomeSeen = await _storage.hasSeenPersonalizationWelcome(user.id);
       final hasExistingPreferences =
@@ -93,6 +96,7 @@ class PersonalizationBloc
           budget: budget,
           companions: companions,
           travelFrequency: travelFrequency,
+          constraints: constraints,
         ),
       );
     } catch (_) {
@@ -140,6 +144,15 @@ class PersonalizationBloc
     final current = state;
     if (current is! PersonalizationLoaded) return;
     emit(current.copyWith(travelFrequency: event.value));
+  }
+
+  void _onSetConstraints(
+    SetConstraints event,
+    Emitter<PersonalizationState> emit,
+  ) {
+    final current = state;
+    if (current is! PersonalizationLoaded) return;
+    emit(current.copyWith(constraints: event.value));
   }
 
   Future<void> _onNextStep(
@@ -210,6 +223,9 @@ class PersonalizationBloc
     }
     if (current.travelFrequency != null) {
       await _storage.setTravelFrequency(userId, current.travelFrequency!);
+    }
+    if (current.constraints != null) {
+      await _storage.setConstraints(userId, current.constraints!);
     }
     await _storage.setPersonalizationPromptSeen(userId);
     await _storage.setPersonalizationWelcomeSeen(userId);

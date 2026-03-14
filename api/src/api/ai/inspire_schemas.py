@@ -9,6 +9,7 @@ class InspireRequest(BaseModel):
     durationDays: int | None = None
     companions: str | None = None
     season: str | None = None
+    constraints: str | None = None
 
 
 class SuggestedActivity(BaseModel):

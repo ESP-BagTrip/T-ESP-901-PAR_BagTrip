@@ -147,6 +147,15 @@ class BookingOrchestratorService:
         if not amadeus_order_id:
             raise AppError("AMADEUS_ERROR", 500, "No order ID received from Amadeus")
 
+        # Extract ticket_url from Amadeus response if available
+        ticket_url = None
+        if isinstance(order_data, dict):
+            associated_records = order_data.get("associatedRecords", [])
+            for record in associated_records:
+                if record.get("originSystemCode") == "GDS":
+                    ticket_url = f"amadeus://order/{amadeus_order_id}"
+                    break
+
         # Créer le flight order
         flight_order = FlightOrder(
             trip_id=booking_intent.trip_id,
@@ -154,6 +163,8 @@ class BookingOrchestratorService:
             booking_intent_id=booking_intent.id,
             amadeus_flight_order_id=amadeus_order_id,
             status=FlightOrderStatus.CONFIRMED,
+            payment_id=booking_intent.stripe_payment_intent_id,
+            ticket_url=ticket_url,
             amadeus_create_order_request={
                 "flightOffer": flight_offer_data,
                 "travelers": [t.model_dump() if hasattr(t, "model_dump") else t for t in travelers],

@@ -13,6 +13,7 @@ final class CreateTripAiRecapLoaded extends CreateTripAiState {
     required this.travelStyle,
     required this.budget,
     required this.companions,
+    this.constraints,
     this.departureDate,
     this.returnDate,
   });
@@ -21,6 +22,7 @@ final class CreateTripAiRecapLoaded extends CreateTripAiState {
   final String? travelStyle;
   final String? budget;
   final String? companions;
+  final String? constraints;
   final DateTime? departureDate;
   final DateTime? returnDate;
 
@@ -29,6 +31,7 @@ final class CreateTripAiRecapLoaded extends CreateTripAiState {
     String? travelStyle,
     String? budget,
     String? companions,
+    String? constraints,
     DateTime? departureDate,
     DateTime? returnDate,
   }) {
@@ -37,6 +40,7 @@ final class CreateTripAiRecapLoaded extends CreateTripAiState {
       travelStyle: travelStyle ?? this.travelStyle,
       budget: budget ?? this.budget,
       companions: companions ?? this.companions,
+      constraints: constraints ?? this.constraints,
       departureDate: departureDate ?? this.departureDate,
       returnDate: returnDate ?? this.returnDate,
     );

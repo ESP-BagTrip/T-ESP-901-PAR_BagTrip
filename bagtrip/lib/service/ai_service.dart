@@ -12,6 +12,7 @@ class AiService {
     int? durationDays,
     String? companions,
     String? season,
+    String? constraints,
   }) async {
     try {
       final response = await _apiClient.post(
@@ -22,6 +23,7 @@ class AiService {
           if (durationDays != null) 'durationDays': durationDays,
           if (companions != null) 'companions': companions,
           if (season != null) 'season': season,
+          if (constraints != null) 'constraints': constraints,
         },
       );
 

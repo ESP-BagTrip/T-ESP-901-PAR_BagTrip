@@ -5,7 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Path
 from sqlalchemy.orm import Session
 
-from src.api.auth.trip_access import TripAccess, get_trip_access, get_trip_owner_access
+from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access
 from src.api.flights.offers.schemas import FlightOfferPriceResponse, FlightOfferResponse
 from src.config.database import get_db
 from src.models.flight_offer import FlightOffer
@@ -40,9 +40,17 @@ async def get_flight_offer(
         if not offer:
             raise AppError("OFFER_NOT_FOUND", 404, "Flight offer not found")
 
+        offer_data = offer.offer_json if offer.offer_json else {}
+
+        # Mask price details for viewers
+        if access.role == TripRole.VIEWER and isinstance(offer_data, dict):
+            offer_data = {**offer_data}
+            if "price" in offer_data:
+                offer_data["price"] = {"currency": offer_data["price"].get("currency")}
+
         return FlightOfferResponse(
             id=offer.id,
-            offer=offer.offer_json if offer.offer_json else {},
+            offer=offer_data,
         )
     except AppError as e:
         raise create_http_exception(e) from e

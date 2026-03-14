@@ -10,9 +10,11 @@ from src.api.ai.inspire_schemas import (
     TripSuggestion,
 )
 from src.api.auth.middleware import get_current_user
+from src.api.auth.plan_guard import require_ai_quota
 from src.config.database import get_db
 from src.models.user import User
 from src.services.inspire_ai_service import InspireAIService
+from src.services.plan_service import PlanService
 from src.utils.errors import AppError, create_http_exception
 
 router = APIRouter(prefix="/v1/ai", tags=["AI Inspiration"])
@@ -21,7 +23,7 @@ router = APIRouter(prefix="/v1/ai", tags=["AI Inspiration"])
 @router.post("/inspire", response_model=InspireResponse)
 async def inspire(
     request: InspireRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_ai_quota),
     db: Session = Depends(get_db),
 ):
     """Génère des suggestions de voyages inspirantes via IA."""
@@ -32,11 +34,13 @@ async def inspire(
             duration_days=request.durationDays,
             companions=request.companions,
             season=request.season,
+            constraints=request.constraints,
         )
         suggestions = [
             TripSuggestion(**s)
             for s in result.get("suggestions", [])
         ]
+        PlanService.increment_ai_generation(db, current_user)
         return InspireResponse(suggestions=suggestions)
     except AppError as e:
         raise create_http_exception(e) from e

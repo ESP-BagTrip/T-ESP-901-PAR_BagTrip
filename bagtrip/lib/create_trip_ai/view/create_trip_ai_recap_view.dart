@@ -15,6 +15,7 @@ const Color _kRecapTravelTypesTint = Color(0xFFE8F5E9);
 const Color _kRecapStyleTint = Color(0xFFE3F2FD);
 const Color _kRecapBudgetTint = Color(0xFFFFF3E0);
 const Color _kRecapCompanionsTint = Color(0xFFF3E5F5);
+const Color _kRecapConstraintsTint = Color(0xFFFFEBEE);
 
 class CreateTripAiRecapView extends StatelessWidget {
   const CreateTripAiRecapView({super.key});
@@ -208,6 +209,19 @@ class CreateTripAiRecapView extends StatelessWidget {
                   value: s.companions,
                 ),
               ),
+              if (s.constraints != null && s.constraints!.isNotEmpty) ...[
+                const Divider(height: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: _preferenceRow(
+                    context,
+                    iconBg: _kRecapConstraintsTint,
+                    iconData: Icons.block_outlined,
+                    label: 'CONTRAINTES',
+                    value: s.constraints,
+                  ),
+                ),
+              ],
             ],
           ),
         ),

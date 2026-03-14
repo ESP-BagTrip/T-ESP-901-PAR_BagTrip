@@ -4,9 +4,12 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from src.api.ai.activity_suggest_schemas import ActivitySuggestionsResponse, SuggestedActivityItem
+from src.api.auth.plan_guard import require_ai_quota
 from src.api.auth.trip_access import TripAccess, get_trip_owner_access
 from src.config.database import get_db
+from src.models.user import User
 from src.services.activity_ai_service import ActivityAIService
+from src.services.plan_service import PlanService
 from src.utils.errors import AppError, create_http_exception
 
 router = APIRouter(prefix="/v1/trips", tags=["AI Activity Suggestions"])
@@ -15,6 +18,7 @@ router = APIRouter(prefix="/v1/trips", tags=["AI Activity Suggestions"])
 @router.post("/{tripId}/activities/suggest", response_model=ActivitySuggestionsResponse)
 async def suggest_activities(
     access: TripAccess = Depends(get_trip_owner_access),
+    current_user: User = Depends(require_ai_quota),
     db: Session = Depends(get_db),
 ):
     """Suggère des activités pour un trip via IA."""
@@ -35,6 +39,7 @@ async def suggest_activities(
             SuggestedActivityItem(**a)
             for a in result.get("activities", [])
         ]
+        PlanService.increment_ai_generation(db, current_user)
         return ActivitySuggestionsResponse(activities=activities)
     except AppError as e:
         raise create_http_exception(e) from e
