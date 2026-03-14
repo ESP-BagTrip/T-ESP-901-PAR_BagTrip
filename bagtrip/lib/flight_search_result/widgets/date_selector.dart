@@ -40,51 +40,48 @@ class DateSelector extends StatelessWidget {
     );
 
     // For small screens, format dates with line breaks manually
-    final formattedDates =
-        dates.map((date) {
-          if (isSmallScreen) {
-            final dayOfWeek = DateFormat(
-              'EEE',
-              Localizations.localeOf(context).toString(),
-            ).format(date);
-            final day = date.day.toString();
-            final month = DateFormat(
-              'MMM',
-              Localizations.localeOf(context).toString(),
-            ).format(date);
-            return '$dayOfWeek\n$day\n$month';
-          } else {
-            return dateFormatter.format(date);
-          }
-        }).toList();
+    final formattedDates = dates.map((date) {
+      if (isSmallScreen) {
+        final dayOfWeek = DateFormat(
+          'EEE',
+          Localizations.localeOf(context).toString(),
+        ).format(date);
+        final day = date.day.toString();
+        final month = DateFormat(
+          'MMM',
+          Localizations.localeOf(context).toString(),
+        ).format(date);
+        return '$dayOfWeek\n$day\n$month';
+      } else {
+        return dateFormatter.format(date);
+      }
+    }).toList();
 
     // Calculate minimum price for each date
-    final prices =
-        dates.map((date) {
-          // Filter flights by date (compare year, month, day)
-          final flightsForDate =
-              flights.where((flight) {
-                if (flight.departureDateTime == null) return false;
-                final flightDate = flight.departureDateTime!;
-                return flightDate.year == date.year &&
-                    flightDate.month == date.month &&
-                    flightDate.day == date.day;
-              }).toList();
+    final prices = dates.map((date) {
+      // Filter flights by date (compare year, month, day)
+      final flightsForDate = flights.where((flight) {
+        if (flight.departureDateTime == null) return false;
+        final flightDate = flight.departureDateTime!;
+        return flightDate.year == date.year &&
+            flightDate.month == date.month &&
+            flightDate.day == date.day;
+      }).toList();
 
-          if (flightsForDate.isEmpty) {
-            // If no flights for this date, use minimum price from all flights as approximation
-            if (flights.isEmpty) return '';
-            final minPrice = flights
-                .map((f) => f.price)
-                .reduce((a, b) => a < b ? a : b);
-            return '${minPrice.toStringAsFixed(0)} €';
-          }
+      if (flightsForDate.isEmpty) {
+        // If no flights for this date, use minimum price from all flights as approximation
+        if (flights.isEmpty) return '';
+        final minPrice = flights
+            .map((f) => f.price)
+            .reduce((a, b) => a < b ? a : b);
+        return '${minPrice.toStringAsFixed(0)} €';
+      }
 
-          final minPrice = flightsForDate
-              .map((f) => f.price)
-              .reduce((a, b) => a < b ? a : b);
-          return '${minPrice.toStringAsFixed(0)} €';
-        }).toList();
+      final minPrice = flightsForDate
+          .map((f) => f.price)
+          .reduce((a, b) => a < b ? a : b);
+      return '${minPrice.toStringAsFixed(0)} €';
+    }).toList();
 
     final iconSize = isSmallScreen ? 40.0 : 50.0;
 

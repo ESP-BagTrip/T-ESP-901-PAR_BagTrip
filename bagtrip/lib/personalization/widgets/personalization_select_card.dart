@@ -33,8 +33,9 @@ class PersonalizationSelectCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: AppRadius.large16,
             border: Border.all(
-              color:
-                  selected ? AppColors.secondary : ColorName.primarySoftLight,
+              color: selected
+                  ? AppColors.secondary
+                  : ColorName.primarySoftLight,
               width: selected ? 2 : 1,
             ),
             boxShadow: [

@@ -66,10 +66,9 @@ class ActivitiesView extends StatelessWidget {
                     Text(state.message),
                     const SizedBox(height: 16),
                     FilledButton.icon(
-                      onPressed:
-                          () => context.read<ActivityBloc>().add(
-                            LoadActivities(tripId: tripId),
-                          ),
+                      onPressed: () => context.read<ActivityBloc>().add(
+                        LoadActivities(tripId: tripId),
+                      ),
                       icon: const Icon(Icons.refresh),
                       label: const Text('Retry'),
                     ),
@@ -79,14 +78,12 @@ class ActivitiesView extends StatelessWidget {
             }
             if (state is ActivitiesLoaded ||
                 state is ActivitySuggestionsLoaded) {
-              final activities =
-                  state is ActivitiesLoaded
-                      ? state.activities
-                      : (state as ActivitySuggestionsLoaded).activities;
-              final groupedByDay =
-                  state is ActivitiesLoaded
-                      ? state.groupedByDay
-                      : (state as ActivitySuggestionsLoaded).groupedByDay;
+              final activities = state is ActivitiesLoaded
+                  ? state.activities
+                  : (state as ActivitySuggestionsLoaded).activities;
+              final groupedByDay = state is ActivitiesLoaded
+                  ? state.groupedByDay
+                  : (state as ActivitySuggestionsLoaded).groupedByDay;
 
               if (activities.isEmpty) {
                 return Center(
@@ -140,19 +137,14 @@ class ActivitiesView extends StatelessWidget {
                         (activity) => ActivityCard(
                           activity: activity,
                           isViewer: role == 'VIEWER' || isCompleted,
-                          onEdit:
-                              () => _showForm(
-                                context,
-                                tripId,
-                                activity: activity,
-                              ),
-                          onDelete:
-                              () => context.read<ActivityBloc>().add(
-                                DeleteActivity(
-                                  tripId: tripId,
-                                  activityId: activity.id,
-                                ),
-                              ),
+                          onEdit: () =>
+                              _showForm(context, tripId, activity: activity),
+                          onDelete: () => context.read<ActivityBloc>().add(
+                            DeleteActivity(
+                              tripId: tripId,
+                              activityId: activity.id,
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -163,13 +155,12 @@ class ActivitiesView extends StatelessWidget {
             return const SizedBox.shrink();
           },
         ),
-        floatingActionButton:
-            role != 'VIEWER' && !isCompleted
-                ? FloatingActionButton(
-                  onPressed: () => _showForm(context, tripId),
-                  child: const Icon(Icons.add),
-                )
-                : null,
+        floatingActionButton: role != 'VIEWER' && !isCompleted
+            ? FloatingActionButton(
+                onPressed: () => _showForm(context, tripId),
+                child: const Icon(Icons.add),
+              )
+            : null,
       ),
     );
   }
@@ -181,112 +172,102 @@ class ActivitiesView extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder:
-          (_) => DraggableScrollableSheet(
-            initialChildSize: 0.6,
-            maxChildSize: 0.9,
-            minChildSize: 0.3,
-            expand: false,
-            builder:
-                (sheetContext, scrollController) => Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        maxChildSize: 0.9,
+        minChildSize: 0.3,
+        expand: false,
+        builder: (sheetContext, scrollController) => Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Suggestions IA',
+                    style: Theme.of(sheetContext).textTheme.titleLarge,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(sheetContext).pop(),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                controller: scrollController,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: suggestions.length,
+                itemBuilder: (_, index) {
+                  final s = suggestions[index];
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: ListTile(
+                      title: Text(s['title'] ?? ''),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Suggestions IA',
-                            style: Theme.of(sheetContext).textTheme.titleLarge,
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.close),
-                            onPressed: () => Navigator.of(sheetContext).pop(),
+                          if (s['description'] != null)
+                            Text(
+                              s['description'],
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              if (s['category'] != null)
+                                Chip(
+                                  label: Text(
+                                    s['category'],
+                                    style: const TextStyle(fontSize: 10),
+                                  ),
+                                  padding: EdgeInsets.zero,
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              if (s['estimatedCost'] != null) ...[
+                                const SizedBox(width: 8),
+                                Text(
+                                  '~${s['estimatedCost']}€',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(color: AppColors.hint),
+                                ),
+                              ],
+                            ],
                           ),
                         ],
                       ),
-                    ),
-                    Expanded(
-                      child: ListView.builder(
-                        controller: scrollController,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: suggestions.length,
-                        itemBuilder: (_, index) {
-                          final s = suggestions[index];
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            child: ListTile(
-                              title: Text(s['title'] ?? ''),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  if (s['description'] != null)
-                                    Text(
-                                      s['description'],
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      if (s['category'] != null)
-                                        Chip(
-                                          label: Text(
-                                            s['category'],
-                                            style: const TextStyle(
-                                              fontSize: 10,
-                                            ),
-                                          ),
-                                          padding: EdgeInsets.zero,
-                                          visualDensity: VisualDensity.compact,
-                                        ),
-                                      if (s['estimatedCost'] != null) ...[
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          '~${s['estimatedCost']}€',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
-                                              ?.copyWith(color: AppColors.hint),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              trailing: IconButton(
-                                icon: const Icon(
-                                  Icons.add_circle,
-                                  color: Colors.green,
-                                ),
-                                onPressed: () {
-                                  context.read<ActivityBloc>().add(
-                                    AddSuggestedActivity(
-                                      tripId: tripId,
-                                      data: {
-                                        'title': s['title'] ?? '',
-                                        'description': s['description'],
-                                        'category': s['category'] ?? 'OTHER',
-                                        'estimatedCost': s['estimatedCost'],
-                                        'location': s['location'],
-                                        'date':
-                                            DateTime.now()
-                                                .toIso8601String()
-                                                .split('T')[0],
-                                      },
-                                    ),
-                                  );
-                                  Navigator.of(sheetContext).pop();
-                                },
-                              ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.add_circle, color: Colors.green),
+                        onPressed: () {
+                          context.read<ActivityBloc>().add(
+                            AddSuggestedActivity(
+                              tripId: tripId,
+                              data: {
+                                'title': s['title'] ?? '',
+                                'description': s['description'],
+                                'category': s['category'] ?? 'OTHER',
+                                'estimatedCost': s['estimatedCost'],
+                                'location': s['location'],
+                                'date': DateTime.now().toIso8601String().split(
+                                  'T',
+                                )[0],
+                              },
                             ),
                           );
+                          Navigator.of(sheetContext).pop();
                         },
                       ),
                     ),
-                  ],
-                ),
-          ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -295,25 +276,24 @@ class ActivitiesView extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder:
-          (_) => ActivityForm(
-            tripId: tripId,
-            activity: activity,
-            onSave: (data) {
-              if (activity != null) {
-                bloc.add(
-                  UpdateActivity(
-                    tripId: tripId,
-                    activityId: activity.id,
-                    data: data,
-                  ),
-                );
-              } else {
-                bloc.add(CreateActivity(tripId: tripId, data: data));
-              }
-              Navigator.of(context).pop();
-            },
-          ),
+      builder: (_) => ActivityForm(
+        tripId: tripId,
+        activity: activity,
+        onSave: (data) {
+          if (activity != null) {
+            bloc.add(
+              UpdateActivity(
+                tripId: tripId,
+                activityId: activity.id,
+                data: data,
+              ),
+            );
+          } else {
+            bloc.add(CreateActivity(tripId: tripId, data: data));
+          }
+          Navigator.of(context).pop();
+        },
+      ),
     );
   }
 }

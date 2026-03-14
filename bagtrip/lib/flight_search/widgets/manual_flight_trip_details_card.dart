@@ -62,8 +62,8 @@ class ManualFlightTripDetailsCard extends StatelessWidget {
                 value: (state.maxPrice ?? 500).clamp(_budgetMin, _budgetMax),
                 budgetMin: _budgetMin,
                 budgetMax: _budgetMax,
-                onChanged:
-                    (v) => context.read<FlightSearchBloc>().add(SetMaxPrice(v)),
+                onChanged: (v) =>
+                    context.read<FlightSearchBloc>().add(SetMaxPrice(v)),
               ),
             ],
           ),
@@ -106,87 +106,78 @@ class ManualFlightTripDetailsCard extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder:
-          (sheetContext) => BlocProvider.value(
-            value: bloc,
-            child: BlocBuilder<FlightSearchBloc, FlightSearchState>(
-              builder: (context, sheetState) {
-                final s = sheetState is FlightSearchLoaded ? sheetState : state;
-                return Container(
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).padding.bottom,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).scaffoldBackgroundColor,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(20),
-                    ),
-                  ),
-                  child: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            l10n.passengersTitle,
-                            style: const TextStyle(
-                              fontFamily: FontFamily.b612,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: ColorName.primaryTrueDark,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          _PassengerSheetRow(
-                            label: l10n.passengersAdults,
-                            description: l10n.passengersAdultsDesc,
-                            value: s.adults,
-                            onAdd:
-                                () => context.read<FlightSearchBloc>().add(
-                                  SetAdults(s.adults + 1),
-                                ),
-                            onRemove:
-                                () => context.read<FlightSearchBloc>().add(
-                                  SetAdults(s.adults > 1 ? s.adults - 1 : 1),
-                                ),
-                          ),
-                          _PassengerSheetRow(
-                            label: l10n.passengersChildren,
-                            description: l10n.passengersChildrenDesc,
-                            value: s.children,
-                            onAdd:
-                                () => context.read<FlightSearchBloc>().add(
-                                  SetChildren(s.children + 1),
-                                ),
-                            onRemove:
-                                () => context.read<FlightSearchBloc>().add(
-                                  SetChildren(
-                                    s.children > 0 ? s.children - 1 : 0,
-                                  ),
-                                ),
-                          ),
-                          _PassengerSheetRow(
-                            label: l10n.passengersInfants,
-                            description: l10n.passengersInfantsDesc,
-                            value: s.infants,
-                            onAdd:
-                                () => context.read<FlightSearchBloc>().add(
-                                  SetInfants(s.infants + 1),
-                                ),
-                            onRemove:
-                                () => context.read<FlightSearchBloc>().add(
-                                  SetInfants(s.infants > 0 ? s.infants - 1 : 0),
-                                ),
-                          ),
-                        ],
+      builder: (sheetContext) => BlocProvider.value(
+        value: bloc,
+        child: BlocBuilder<FlightSearchBloc, FlightSearchState>(
+          builder: (context, sheetState) {
+            final s = sheetState is FlightSearchLoaded ? sheetState : state;
+            return Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).padding.bottom,
+              ),
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(20),
+                ),
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        l10n.passengersTitle,
+                        style: const TextStyle(
+                          fontFamily: FontFamily.b612,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: ColorName.primaryTrueDark,
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 24),
+                      _PassengerSheetRow(
+                        label: l10n.passengersAdults,
+                        description: l10n.passengersAdultsDesc,
+                        value: s.adults,
+                        onAdd: () => context.read<FlightSearchBloc>().add(
+                          SetAdults(s.adults + 1),
+                        ),
+                        onRemove: () => context.read<FlightSearchBloc>().add(
+                          SetAdults(s.adults > 1 ? s.adults - 1 : 1),
+                        ),
+                      ),
+                      _PassengerSheetRow(
+                        label: l10n.passengersChildren,
+                        description: l10n.passengersChildrenDesc,
+                        value: s.children,
+                        onAdd: () => context.read<FlightSearchBloc>().add(
+                          SetChildren(s.children + 1),
+                        ),
+                        onRemove: () => context.read<FlightSearchBloc>().add(
+                          SetChildren(s.children > 0 ? s.children - 1 : 0),
+                        ),
+                      ),
+                      _PassengerSheetRow(
+                        label: l10n.passengersInfants,
+                        description: l10n.passengersInfantsDesc,
+                        value: s.infants,
+                        onAdd: () => context.read<FlightSearchBloc>().add(
+                          SetInfants(s.infants + 1),
+                        ),
+                        onRemove: () => context.read<FlightSearchBloc>().add(
+                          SetInfants(s.infants > 0 ? s.infants - 1 : 0),
+                        ),
+                      ),
+                    ],
                   ),
-                );
-              },
-            ),
-          ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 }
@@ -342,8 +333,9 @@ class _ExpandableBudgetSectionState extends State<_ExpandableBudgetSection> {
               budgetMax: widget.budgetMax,
             ),
           ),
-          crossFadeState:
-              _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          crossFadeState: _expanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
           duration: const Duration(milliseconds: 200),
         ),
       ],
@@ -525,10 +517,9 @@ class _CircleButton extends StatelessWidget {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color:
-              filled
-                  ? ColorName.primary
-                  : ColorName.primaryLight.withValues(alpha: 0.7),
+          color: filled
+              ? ColorName.primary
+              : ColorName.primaryLight.withValues(alpha: 0.7),
           shape: BoxShape.circle,
         ),
         child: Icon(

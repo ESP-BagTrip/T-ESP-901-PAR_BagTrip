@@ -19,10 +19,9 @@ class Price {
     currency: json["currency"],
     total: json["total"],
     base: json["base"],
-    fees:
-        json["fees"] == null
-            ? null
-            : List<Fee>.from(json["fees"].map((x) => Fee.fromJson(x))),
+    fees: json["fees"] == null
+        ? null
+        : List<Fee>.from(json["fees"].map((x) => Fee.fromJson(x))),
     grandTotal: json["grandTotal"],
   );
 
@@ -30,8 +29,9 @@ class Price {
     "currency": currency,
     "total": total,
     "base": base,
-    "fees":
-        fees == null ? null : List<dynamic>.from(fees!.map((x) => x.toJson())),
+    "fees": fees == null
+        ? null
+        : List<dynamic>.from(fees!.map((x) => x.toJson())),
     "grandTotal": grandTotal,
   };
 }

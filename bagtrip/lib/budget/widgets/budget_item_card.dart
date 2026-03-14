@@ -59,10 +59,9 @@ class BudgetItemCard extends StatelessWidget {
               margin: const EdgeInsets.only(top: 4),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color:
-                    item.isPlanned
-                        ? Colors.blue.withValues(alpha: 0.1)
-                        : Colors.green.withValues(alpha: 0.1),
+                color: item.isPlanned
+                    ? Colors.blue.withValues(alpha: 0.1)
+                    : Colors.green.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -74,20 +73,18 @@ class BudgetItemCard extends StatelessWidget {
             ),
           ],
         ),
-        trailing:
-            isViewer || (onEdit == null && onDelete == null)
-                ? null
-                : PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'edit') onEdit?.call();
-                    if (value == 'delete') onDelete?.call();
-                  },
-                  itemBuilder:
-                      (_) => const [
-                        PopupMenuItem(value: 'edit', child: Text('Edit')),
-                        PopupMenuItem(value: 'delete', child: Text('Delete')),
-                      ],
-                ),
+        trailing: isViewer || (onEdit == null && onDelete == null)
+            ? null
+            : PopupMenuButton<String>(
+                onSelected: (value) {
+                  if (value == 'edit') onEdit?.call();
+                  if (value == 'delete') onDelete?.call();
+                },
+                itemBuilder: (_) => const [
+                  PopupMenuItem(value: 'edit', child: Text('Edit')),
+                  PopupMenuItem(value: 'delete', child: Text('Delete')),
+                ],
+              ),
       ),
     );
   }

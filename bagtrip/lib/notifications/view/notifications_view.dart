@@ -48,10 +48,9 @@ class NotificationsView extends StatelessWidget {
                   Text(state.message),
                   const SizedBox(height: 16),
                   FilledButton.icon(
-                    onPressed:
-                        () => context.read<NotificationBloc>().add(
-                          LoadNotifications(),
-                        ),
+                    onPressed: () => context.read<NotificationBloc>().add(
+                      LoadNotifications(),
+                    ),
                     icon: const Icon(Icons.refresh),
                     label: const Text('Réessayer'),
                   ),
@@ -106,7 +105,7 @@ class NotificationsView extends StatelessWidget {
     // Group by date
     final Map<String, List<AppNotification>> grouped = {};
     for (final notif in notifications) {
-      final dateKey = _formatDateKey(notif.createdAt);
+      final dateKey = _formatDateKey(notif.createdAt ?? DateTime.now());
       grouped.putIfAbsent(dateKey, () => []).add(notif);
     }
 

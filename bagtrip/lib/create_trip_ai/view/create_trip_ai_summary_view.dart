@@ -792,14 +792,11 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
                   vertical: 14,
                 ),
                 decoration: BoxDecoration(
-                  border:
-                      i < essentialItems.length - 1
-                          ? const Border(
-                            bottom: BorderSide(
-                              color: ColorName.primarySoftLight,
-                            ),
-                          )
-                          : null,
+                  border: i < essentialItems.length - 1
+                      ? const Border(
+                          bottom: BorderSide(color: ColorName.primarySoftLight),
+                        )
+                      : null,
                 ),
                 child: Row(
                   children: [
@@ -815,14 +812,13 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
                         ),
                       ),
                       alignment: Alignment.center,
-                      child:
-                          checked
-                              ? const Icon(
-                                Icons.check,
-                                size: 16,
-                                color: ColorName.surface,
-                              )
-                              : null,
+                      child: checked
+                          ? const Icon(
+                              Icons.check,
+                              size: 16,
+                              color: ColorName.surface,
+                            )
+                          : null,
                     ),
                     const SizedBox(width: AppSpacing.space8),
                     Expanded(

@@ -23,10 +23,9 @@ class BudgetAlertBanner extends StatelessWidget {
       final over = summary.totalSpent - summary.totalBudget;
       message = l10n.budgetExceeded(over.toStringAsFixed(2));
     } else {
-      final pct =
-          summary.totalBudget > 0
-              ? (summary.totalSpent / summary.totalBudget * 100).round()
-              : 0;
+      final pct = summary.totalBudget > 0
+          ? (summary.totalSpent / summary.totalBudget * 100).round()
+          : 0;
       message = l10n.budgetWarning(pct.toString());
     }
 

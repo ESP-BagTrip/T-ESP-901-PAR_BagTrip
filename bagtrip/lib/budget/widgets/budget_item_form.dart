@@ -87,9 +87,8 @@ class _BudgetItemFormState extends State<BudgetItemForm> {
                   labelText: 'Label *',
                   border: OutlineInputBorder(),
                 ),
-                validator:
-                    (v) =>
-                        (v == null || v.isEmpty) ? 'Label is required' : null,
+                validator: (v) =>
+                    (v == null || v.isEmpty) ? 'Label is required' : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -115,18 +114,16 @@ class _BudgetItemFormState extends State<BudgetItemForm> {
                   labelText: 'Category',
                   border: OutlineInputBorder(),
                 ),
-                items:
-                    BudgetCategory.values
-                        .map(
-                          (c) => DropdownMenuItem(
-                            value: c,
-                            child: Text(c.name.toUpperCase()),
-                          ),
-                        )
-                        .toList(),
-                onChanged:
-                    (v) =>
-                        setState(() => _category = v ?? BudgetCategory.other),
+                items: BudgetCategory.values
+                    .map(
+                      (c) => DropdownMenuItem(
+                        value: c,
+                        child: Text(c.name.toUpperCase()),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (v) =>
+                    setState(() => _category = v ?? BudgetCategory.other),
               ),
               const SizedBox(height: 12),
               ListTile(

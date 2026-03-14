@@ -1,72 +1,46 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'package:bagtrip/models/trip.dart';
 
-class TripHomeStats {
-  final int baggageCount;
-  final double totalExpenses;
-  final int nbTravelers;
-  final int? daysUntilTrip;
-  final int? tripDuration;
+part 'trip_home.freezed.dart';
+part 'trip_home.g.dart';
 
-  TripHomeStats({
-    required this.baggageCount,
-    required this.totalExpenses,
-    required this.nbTravelers,
-    this.daysUntilTrip,
-    this.tripDuration,
-  });
+@freezed
+abstract class TripHomeStats with _$TripHomeStats {
+  const factory TripHomeStats({
+    @Default(0) int baggageCount,
+    @Default(0.0) double totalExpenses,
+    @Default(1) int nbTravelers,
+    int? daysUntilTrip,
+    int? tripDuration,
+  }) = _TripHomeStats;
 
-  factory TripHomeStats.fromJson(Map<String, dynamic> json) {
-    return TripHomeStats(
-      baggageCount: json['baggageCount'] as int? ?? 0,
-      totalExpenses: (json['totalExpenses'] as num?)?.toDouble() ?? 0.0,
-      nbTravelers: json['nbTravelers'] as int? ?? 1,
-      daysUntilTrip: json['daysUntilTrip'] as int?,
-      tripDuration: json['tripDuration'] as int?,
-    );
-  }
+  factory TripHomeStats.fromJson(Map<String, dynamic> json) =>
+      _$TripHomeStatsFromJson(json);
 }
 
-class TripFeatureTile {
-  final String id;
-  final String label;
-  final String icon;
-  final String route;
-  final bool enabled;
+@freezed
+abstract class TripFeatureTile with _$TripFeatureTile {
+  const factory TripFeatureTile({
+    required String id,
+    required String label,
+    required String icon,
+    required String route,
+    @Default(false) bool enabled,
+  }) = _TripFeatureTile;
 
-  TripFeatureTile({
-    required this.id,
-    required this.label,
-    required this.icon,
-    required this.route,
-    required this.enabled,
-  });
-
-  factory TripFeatureTile.fromJson(Map<String, dynamic> json) {
-    return TripFeatureTile(
-      id: json['id'] as String,
-      label: json['label'] as String,
-      icon: json['icon'] as String,
-      route: json['route'] as String,
-      enabled: json['enabled'] as bool? ?? false,
-    );
-  }
+  factory TripFeatureTile.fromJson(Map<String, dynamic> json) =>
+      _$TripFeatureTileFromJson(json);
 }
 
-class TripHome {
-  final Trip trip;
-  final TripHomeStats stats;
-  final List<TripFeatureTile> features;
+@freezed
+abstract class TripHome with _$TripHome {
+  const factory TripHome({
+    required Trip trip,
+    required TripHomeStats stats,
+    required List<TripFeatureTile> features,
+  }) = _TripHome;
 
-  TripHome({required this.trip, required this.stats, required this.features});
-
-  factory TripHome.fromJson(Map<String, dynamic> json) {
-    return TripHome(
-      trip: Trip.fromJson(json['trip'] as Map<String, dynamic>),
-      stats: TripHomeStats.fromJson(json['stats'] as Map<String, dynamic>),
-      features:
-          (json['features'] as List<dynamic>)
-              .map((e) => TripFeatureTile.fromJson(e as Map<String, dynamic>))
-              .toList(),
-    );
-  }
+  factory TripHome.fromJson(Map<String, dynamic> json) =>
+      _$TripHomeFromJson(json);
 }

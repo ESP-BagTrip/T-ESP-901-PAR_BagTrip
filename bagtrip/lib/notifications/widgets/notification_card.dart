@@ -19,10 +19,9 @@ class NotificationCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color:
-              isUnread
-                  ? theme.colorScheme.primaryContainer.withValues(alpha: 0.15)
-                  : null,
+          color: isUnread
+              ? theme.colorScheme.primaryContainer.withValues(alpha: 0.15)
+              : null,
           border: Border(
             bottom: BorderSide(
               color: theme.dividerColor.withValues(alpha: 0.3),
@@ -65,7 +64,7 @@ class NotificationCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _relativeTime(notification.createdAt),
+                    _relativeTime(notification.createdAt ?? DateTime.now()),
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.outline,
                     ),

@@ -58,8 +58,8 @@ class FlightSearchResultView extends StatelessWidget {
                       state.flights.isEmpty
                           ? AppLocalizations.of(context)!.noFlightsFoundMessage
                           : AppLocalizations.of(
-                            context,
-                          )!.noFlightsFoundPriceFilterMessage,
+                              context,
+                            )!.noFlightsFoundPriceFilterMessage,
                       style: const TextStyle(
                         fontSize: 16,
                         fontFamily: FontFamily.b612,

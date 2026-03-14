@@ -45,10 +45,9 @@ String _messageForStatusCode(int statusCode, [dynamic data]) {
       if (data is Map && data['error'] == 'stale_context') {
         short = 'Le contexte a été mis à jour. Veuillez rafraîchir.';
       } else {
-        short =
-            _isShortUserFriendly(detailStr)
-                ? detailStr
-                : 'Conflit (ex. compte déjà existant)';
+        short = _isShortUserFriendly(detailStr)
+            ? detailStr
+            : 'Conflit (ex. compte déjà existant)';
       }
       break;
     case 402:
@@ -61,10 +60,9 @@ String _messageForStatusCode(int statusCode, [dynamic data]) {
       short = 'Erreur serveur. Veuillez réessayer plus tard.';
       break;
     default:
-      short =
-          _isShortUserFriendly(detailStr)
-              ? detailStr
-              : 'Une erreur est survenue';
+      short = _isShortUserFriendly(detailStr)
+          ? detailStr
+          : 'Une erreur est survenue';
   }
   return 'Code $statusCode — $short';
 }

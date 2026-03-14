@@ -64,13 +64,12 @@ class LocationService {
           }
         }
 
-        var flights =
-            rawFlights
-                .map(
-                  (json) =>
-                      Flight.fromAmadeusJson(json, dictionaries: dictionaries),
-                )
-                .toList();
+        var flights = rawFlights
+            .map(
+              (json) =>
+                  Flight.fromAmadeusJson(json, dictionaries: dictionaries),
+            )
+            .toList();
 
         return flights;
       }

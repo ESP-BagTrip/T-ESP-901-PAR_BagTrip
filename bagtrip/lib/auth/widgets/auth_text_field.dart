@@ -61,15 +61,14 @@ class AuthTextField extends StatelessWidget {
           decoration: BoxDecoration(
             color: backgroundColor ?? ColorName.primaryLight,
             borderRadius: AppRadius.large16,
-            border:
-                hasError
-                    ? Border.all(
-                      color: errorBorderColor ?? ColorName.error,
-                      width: 1.5,
-                    )
-                    : (borderColor != null
-                        ? Border.all(color: borderColor!, width: borderWidth)
-                        : null),
+            border: hasError
+                ? Border.all(
+                    color: errorBorderColor ?? ColorName.error,
+                    width: 1.5,
+                  )
+                : (borderColor != null
+                      ? Border.all(color: borderColor!, width: borderWidth)
+                      : null),
           ),
           child: TextFormField(
             key: formFieldKey,
@@ -93,13 +92,12 @@ class AuthTextField extends StatelessWidget {
               ),
               border: InputBorder.none,
               contentPadding: AppSpacing.allEdgeInsetSpace16,
-              prefixIcon:
-                  prefixIcon != null
-                      ? IconTheme.merge(
-                        data: IconThemeData(color: hintColor ?? AppColors.hint),
-                        child: prefixIcon!,
-                      )
-                      : null,
+              prefixIcon: prefixIcon != null
+                  ? IconTheme.merge(
+                      data: IconThemeData(color: hintColor ?? AppColors.hint),
+                      child: prefixIcon!,
+                    )
+                  : null,
               suffixIcon: suffixIcon,
             ),
           ),

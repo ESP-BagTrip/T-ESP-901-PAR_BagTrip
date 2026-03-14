@@ -200,8 +200,9 @@ class _DateInputCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayText =
-        date != null ? DateFormat('dd/MM/yyyy').format(date!) : dateFormatHint;
+    final displayText = date != null
+        ? DateFormat('dd/MM/yyyy').format(date!)
+        : dateFormatHint;
 
     return Material(
       color: Colors.transparent,
@@ -257,10 +258,9 @@ class _DateInputCard extends StatelessWidget {
                         fontFamily: FontFamily.b612,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color:
-                            date != null
-                                ? ColorName.primaryTrueDark
-                                : ColorName.hint,
+                        color: date != null
+                            ? ColorName.primaryTrueDark
+                            : ColorName.hint,
                       ),
                     ),
                   ),
@@ -369,10 +369,9 @@ class _TravelerChip extends StatelessWidget {
             color: selected ? ColorName.primary : ColorName.surfaceLight,
             borderRadius: AppRadius.pill,
             border: Border.all(
-              color:
-                  selected
-                      ? ColorName.primary
-                      : ColorName.primarySoftLight.withValues(alpha: 0.6),
+              color: selected
+                  ? ColorName.primary
+                  : ColorName.primarySoftLight.withValues(alpha: 0.6),
             ),
           ),
           alignment: Alignment.center,

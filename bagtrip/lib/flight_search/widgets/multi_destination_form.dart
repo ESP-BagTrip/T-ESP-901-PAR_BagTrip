@@ -109,8 +109,9 @@ class MultiDestinationForm extends StatelessWidget {
 
                     final pickedDate = await showCustomCalendarPicker(
                       context: context,
-                      initialDate:
-                          initialDate.isBefore(minDate) ? minDate : initialDate,
+                      initialDate: initialDate.isBefore(minDate)
+                          ? minDate
+                          : initialDate,
                       firstDate: minDate,
                       lastDate: DateTime(2101),
                     );

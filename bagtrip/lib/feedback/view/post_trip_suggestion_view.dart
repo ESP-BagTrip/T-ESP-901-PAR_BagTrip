@@ -54,22 +54,18 @@ class PostTripSuggestionView extends StatelessWidget {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children:
-                    highlights
-                        .map(
-                          (h) => Chip(
-                            avatar: const Icon(
-                              Icons.check_circle,
-                              size: 16,
-                              color: Colors.green,
-                            ),
-                            label: Text(
-                              h,
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ),
-                        )
-                        .toList(),
+                children: highlights
+                    .map(
+                      (h) => Chip(
+                        avatar: const Icon(
+                          Icons.check_circle,
+                          size: 16,
+                          color: Colors.green,
+                        ),
+                        label: Text(h, style: const TextStyle(fontSize: 12)),
+                      ),
+                    )
+                    .toList(),
               ),
             ],
             if (activities.isNotEmpty) ...[
@@ -88,10 +84,9 @@ class PostTripSuggestionView extends StatelessWidget {
                   child: ListTile(
                     title: Text(activity['title'] ?? ''),
                     subtitle: Text(activity['description'] ?? ''),
-                    trailing:
-                        activity['estimatedCost'] != null
-                            ? Text('~${activity['estimatedCost']}\u20ac')
-                            : null,
+                    trailing: activity['estimatedCost'] != null
+                        ? Text('~${activity['estimatedCost']}\u20ac')
+                        : null,
                   ),
                 );
               }),

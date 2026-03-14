@@ -1,23 +1,12 @@
-class FlightSegment {
-  final Map<String, dynamic>? departureAirport;
-  final Map<String, dynamic>? arrivalAirport;
-  final DateTime? departureDate;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  FlightSegment({
-    this.departureAirport,
-    this.arrivalAirport,
-    this.departureDate,
-  });
+part 'flight_segment.freezed.dart';
 
-  FlightSegment copyWith({
+@freezed
+abstract class FlightSegment with _$FlightSegment {
+  const factory FlightSegment({
     Map<String, dynamic>? departureAirport,
     Map<String, dynamic>? arrivalAirport,
     DateTime? departureDate,
-  }) {
-    return FlightSegment(
-      departureAirport: departureAirport ?? this.departureAirport,
-      arrivalAirport: arrivalAirport ?? this.arrivalAirport,
-      departureDate: departureDate ?? this.departureDate,
-    );
-  }
+  }) = _FlightSegment;
 }

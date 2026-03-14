@@ -44,10 +44,9 @@ class ManualFlightCabinSelector extends StatelessWidget {
                   right: index < labels.length - 1 ? 8 : 0,
                 ),
                 child: GestureDetector(
-                  onTap:
-                      () => context.read<FlightSearchBloc>().add(
-                        SetTravelClass(index),
-                      ),
+                  onTap: () => context.read<FlightSearchBloc>().add(
+                    SetTravelClass(index),
+                  ),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     curve: Curves.easeInOut,
@@ -55,18 +54,15 @@ class ManualFlightCabinSelector extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: selected ? ColorName.primary : ColorName.surface,
                       borderRadius: AppRadius.pill,
-                      boxShadow:
-                          selected
-                              ? [
-                                BoxShadow(
-                                  color: ColorName.primary.withValues(
-                                    alpha: 0.2,
-                                  ),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ]
-                              : [],
+                      boxShadow: selected
+                          ? [
+                              BoxShadow(
+                                color: ColorName.primary.withValues(alpha: 0.2),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ]
+                          : [],
                     ),
                     alignment: Alignment.center,
                     child: Text(
@@ -76,12 +72,12 @@ class ManualFlightCabinSelector extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: FontFamily.b612,
                         fontSize: 13,
-                        fontWeight:
-                            selected ? FontWeight.w600 : FontWeight.w500,
-                        color:
-                            selected
-                                ? ColorName.surface
-                                : ColorName.primaryTrueDark,
+                        fontWeight: selected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                        color: selected
+                            ? ColorName.surface
+                            : ColorName.primaryTrueDark,
                       ),
                     ),
                   ),

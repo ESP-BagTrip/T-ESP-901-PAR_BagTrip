@@ -44,10 +44,9 @@ class BudgetView extends StatelessWidget {
                   Text(state.message),
                   const SizedBox(height: 16),
                   FilledButton.icon(
-                    onPressed:
-                        () => context.read<BudgetBloc>().add(
-                          LoadBudget(tripId: tripId),
-                        ),
+                    onPressed: () => context.read<BudgetBloc>().add(
+                      LoadBudget(tripId: tripId),
+                    ),
                     icon: const Icon(Icons.refresh),
                     label: Text(AppLocalizations.of(context)!.retryButton),
                   ),
@@ -111,31 +110,28 @@ class BudgetView extends StatelessWidget {
                   Wrap(
                     spacing: 8,
                     runSpacing: 4,
-                    children:
-                        state.summary.byCategory.entries.map((entry) {
-                          return Chip(
-                            label: Text(
-                              '${entry.key}: ${entry.value.toStringAsFixed(2)} \u20ac',
-                            ),
-                            backgroundColor: _categoryColor(entry.key),
-                          );
-                        }).toList(),
+                    children: state.summary.byCategory.entries.map((entry) {
+                      return Chip(
+                        label: Text(
+                          '${entry.key}: ${entry.value.toStringAsFixed(2)} \u20ac',
+                        ),
+                        backgroundColor: _categoryColor(entry.key),
+                      );
+                    }).toList(),
                   ),
                   const SizedBox(height: 16),
                 ],
                 ...state.items.map(
                   (item) => BudgetItemCard(
                     item: item,
-                    onEdit:
-                        isReadOnly
-                            ? null
-                            : () => _showForm(context, tripId, item: item),
-                    onDelete:
-                        isReadOnly
-                            ? null
-                            : () => context.read<BudgetBloc>().add(
-                              DeleteBudgetItem(tripId: tripId, itemId: item.id),
-                            ),
+                    onEdit: isReadOnly
+                        ? null
+                        : () => _showForm(context, tripId, item: item),
+                    onDelete: isReadOnly
+                        ? null
+                        : () => context.read<BudgetBloc>().add(
+                            DeleteBudgetItem(tripId: tripId, itemId: item.id),
+                          ),
                   ),
                 ),
               ],
@@ -144,13 +140,12 @@ class BudgetView extends StatelessWidget {
           return const SizedBox.shrink();
         },
       ),
-      floatingActionButton:
-          role != 'VIEWER' && !isCompleted
-              ? FloatingActionButton(
-                onPressed: () => _showForm(context, tripId),
-                child: const Icon(Icons.add),
-              )
-              : null,
+      floatingActionButton: role != 'VIEWER' && !isCompleted
+          ? FloatingActionButton(
+              onPressed: () => _showForm(context, tripId),
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 
@@ -176,21 +171,20 @@ class BudgetView extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder:
-          (_) => BudgetItemForm(
-            tripId: tripId,
-            item: item,
-            onSave: (data) {
-              if (item != null) {
-                bloc.add(
-                  UpdateBudgetItem(tripId: tripId, itemId: item.id, data: data),
-                );
-              } else {
-                bloc.add(CreateBudgetItem(tripId: tripId, data: data));
-              }
-              Navigator.of(context).pop();
-            },
-          ),
+      builder: (_) => BudgetItemForm(
+        tripId: tripId,
+        item: item,
+        onSave: (data) {
+          if (item != null) {
+            bloc.add(
+              UpdateBudgetItem(tripId: tripId, itemId: item.id, data: data),
+            );
+          } else {
+            bloc.add(CreateBudgetItem(tripId: tripId, data: data));
+          }
+          Navigator.of(context).pop();
+        },
+      ),
     );
   }
 }

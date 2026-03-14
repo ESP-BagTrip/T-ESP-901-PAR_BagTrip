@@ -19,7 +19,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.7.0
+  sdk: ^3.8.0
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -62,6 +62,8 @@ dependencies:
   flutter_local_notifications: ^18.0.0
   shared_preferences: ^2.3.3
   url_launcher: ^6.3.2
+  freezed_annotation: ^3.0.0
+  json_annotation: ^4.9.0
 
 dev_dependencies:
   flutter_test:
@@ -75,6 +77,8 @@ dev_dependencies:
   flutter_lints: ^6.0.0
 
   build_runner: ^2.6.0
+  freezed: ^3.0.0
+  json_serializable: ^6.8.0
   flutter_gen_runner: ^5.11.0
   mockito: ^5.4.4
   http_mock_adapter: ^0.6.1
@@ -92,6 +96,9 @@ flutter_gen:
   colors:
     inputs:
       - assets/color/colors.xml
+
+dependency_overrides:
+  analyzer: ^10.0.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

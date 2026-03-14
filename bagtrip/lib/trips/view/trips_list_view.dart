@@ -70,10 +70,8 @@ class TripsListView extends StatelessWidget {
                     Text(state.message),
                     const SizedBox(height: 16),
                     FilledButton.icon(
-                      onPressed:
-                          () => context.read<TripManagementBloc>().add(
-                            LoadTrips(),
-                          ),
+                      onPressed: () =>
+                          context.read<TripManagementBloc>().add(LoadTrips()),
                       icon: const Icon(Icons.refresh),
                       label: const Text('Réessayer'),
                     ),

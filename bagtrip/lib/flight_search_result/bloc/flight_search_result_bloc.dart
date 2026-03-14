@@ -52,10 +52,9 @@ class FlightSearchResultBloc
     try {
       final dateFormatter = DateFormat('yyyy-MM-dd');
       final departureDateStr = dateFormatter.format(event.departureDate);
-      final returnDateStr =
-          event.returnDate != null
-              ? dateFormatter.format(event.returnDate!)
-              : null;
+      final returnDateStr = event.returnDate != null
+          ? dateFormatter.format(event.returnDate!)
+          : null;
 
       final flights = await _locationService.searchFlights(
         departureCode: event.departureCode,
@@ -71,10 +70,9 @@ class FlightSearchResultBloc
 
       var filteredFlights = List<Flight>.from(flights);
       if (event.maxPrice != null) {
-        filteredFlights =
-            filteredFlights
-                .where((flight) => flight.price <= event.maxPrice!)
-                .toList();
+        filteredFlights = filteredFlights
+            .where((flight) => flight.price <= event.maxPrice!)
+            .toList();
       }
 
       emit(
@@ -106,10 +104,9 @@ class FlightSearchResultBloc
     List<Flight> filtered;
 
     if (event.maxPrice != null) {
-      filtered =
-          current.flights
-              .where((flight) => flight.price <= event.maxPrice!)
-              .toList();
+      filtered = current.flights
+          .where((flight) => flight.price <= event.maxPrice!)
+          .toList();
     } else {
       filtered = List.from(current.flights);
     }
@@ -175,8 +172,9 @@ class FlightSearchResultBloc
     try {
       final dateFormatter = DateFormat('yyyy-MM-dd');
       final departureDateStr = dateFormatter.format(newDepartureDate);
-      final returnDateStr =
-          newReturnDate != null ? dateFormatter.format(newReturnDate) : null;
+      final returnDateStr = newReturnDate != null
+          ? dateFormatter.format(newReturnDate)
+          : null;
 
       final flights = await _locationService.searchFlights(
         departureCode: current.departureCode,
@@ -194,63 +192,56 @@ class FlightSearchResultBloc
 
       // Reapply all existing filters
       if (current.maxPrice != null) {
-        filteredFlights =
-            filteredFlights
-                .where((flight) => flight.price <= current.maxPrice!)
-                .toList();
+        filteredFlights = filteredFlights
+            .where((flight) => flight.price <= current.maxPrice!)
+            .toList();
       }
 
       if (current.selectedAirline != null &&
           current.selectedAirline!.isNotEmpty) {
-        filteredFlights =
-            filteredFlights
-                .where((flight) => flight.airline == current.selectedAirline)
-                .toList();
+        filteredFlights = filteredFlights
+            .where((flight) => flight.airline == current.selectedAirline)
+            .toList();
       }
 
       if (current.cabinBagIncluded == true) {
-        filteredFlights =
-            filteredFlights
-                .where((flight) => flight.cabinBags != null)
-                .toList();
+        filteredFlights = filteredFlights
+            .where((flight) => flight.cabinBags != null)
+            .toList();
       }
 
       if (current.checkedBagIncluded == true) {
-        filteredFlights =
-            filteredFlights
-                .where((flight) => flight.checkedBags != null)
-                .toList();
+        filteredFlights = filteredFlights
+            .where((flight) => flight.checkedBags != null)
+            .toList();
       }
 
       if (current.departureTimeBefore != null ||
           current.departureTimeAfter != null) {
-        filteredFlights =
-            filteredFlights.where((flight) {
-              if (flight.departureDateTime == null) return false;
-              final flightTime = TimeOfDay.fromDateTime(
-                flight.departureDateTime!,
-              );
+        filteredFlights = filteredFlights.where((flight) {
+          if (flight.departureDateTime == null) return false;
+          final flightTime = TimeOfDay.fromDateTime(flight.departureDateTime!);
 
-              if (current.departureTimeBefore != null) {
-                final before = current.departureTimeBefore!;
-                final flightMinutes = flightTime.hour * 60 + flightTime.minute;
-                final beforeMinutes = before.hour * 60 + before.minute;
-                if (flightMinutes >= beforeMinutes) {
-                  return false;
-                }
-              }
+          if (current.departureTimeBefore != null) {
+            final before = current.departureTimeBefore!;
+            final flightMinutes = flightTime.hour * 60 + flightTime.minute;
+            final beforeMinutes = before.hour * 60 + before.minute;
+            if (flightMinutes >= beforeMinutes) {
+              return false;
+            }
+          }
 
-              if (current.departureTimeAfter != null) {
-                final after = current.departureTimeAfter!;
-                final flightMinutes = flightTime.hour * 60 + flightTime.minute;
-                final afterMinutes = after.hour * 60 + after.minute;
-                if (flightMinutes <= afterMinutes) {
-                  return false;
-                }
-              }
+          if (current.departureTimeAfter != null) {
+            final after = current.departureTimeAfter!;
+            final flightMinutes = flightTime.hour * 60 + flightTime.minute;
+            final afterMinutes = after.hour * 60 + after.minute;
+            if (flightMinutes <= afterMinutes) {
+              return false;
+            }
+          }
 
-              return true;
-            }).toList();
+          return true;
+        }).toList();
       }
 
       // Apply price sort if set
@@ -301,18 +292,16 @@ class FlightSearchResultBloc
 
     // Apply price filter (max price)
     if (current.maxPrice != null) {
-      filtered =
-          filtered
-              .where((flight) => flight.price <= current.maxPrice!)
-              .toList();
+      filtered = filtered
+          .where((flight) => flight.price <= current.maxPrice!)
+          .toList();
     }
 
     // Apply airline filter
     if (event.selectedAirline != null && event.selectedAirline!.isNotEmpty) {
-      filtered =
-          filtered
-              .where((flight) => flight.airline == event.selectedAirline)
-              .toList();
+      filtered = filtered
+          .where((flight) => flight.airline == event.selectedAirline)
+          .toList();
     }
 
     // Apply cabin bag filter
@@ -322,41 +311,39 @@ class FlightSearchResultBloc
 
     // Apply checked bag filter
     if (event.checkedBagIncluded == true) {
-      filtered =
-          filtered.where((flight) => flight.checkedBags != null).toList();
+      filtered = filtered
+          .where((flight) => flight.checkedBags != null)
+          .toList();
     }
 
     // Apply departure time filters
     if (event.departureTimeBefore != null || event.departureTimeAfter != null) {
-      filtered =
-          filtered.where((flight) {
-            if (flight.departureDateTime == null) return false;
-            final flightTime = TimeOfDay.fromDateTime(
-              flight.departureDateTime!,
-            );
+      filtered = filtered.where((flight) {
+        if (flight.departureDateTime == null) return false;
+        final flightTime = TimeOfDay.fromDateTime(flight.departureDateTime!);
 
-            // Before: flight must depart before the specified time
-            if (event.departureTimeBefore != null) {
-              final before = event.departureTimeBefore!;
-              final flightMinutes = flightTime.hour * 60 + flightTime.minute;
-              final beforeMinutes = before.hour * 60 + before.minute;
-              if (flightMinutes >= beforeMinutes) {
-                return false;
-              }
-            }
+        // Before: flight must depart before the specified time
+        if (event.departureTimeBefore != null) {
+          final before = event.departureTimeBefore!;
+          final flightMinutes = flightTime.hour * 60 + flightTime.minute;
+          final beforeMinutes = before.hour * 60 + before.minute;
+          if (flightMinutes >= beforeMinutes) {
+            return false;
+          }
+        }
 
-            // After: flight must depart after the specified time
-            if (event.departureTimeAfter != null) {
-              final after = event.departureTimeAfter!;
-              final flightMinutes = flightTime.hour * 60 + flightTime.minute;
-              final afterMinutes = after.hour * 60 + after.minute;
-              if (flightMinutes <= afterMinutes) {
-                return false;
-              }
-            }
+        // After: flight must depart after the specified time
+        if (event.departureTimeAfter != null) {
+          final after = event.departureTimeAfter!;
+          final flightMinutes = flightTime.hour * 60 + flightTime.minute;
+          final afterMinutes = after.hour * 60 + after.minute;
+          if (flightMinutes <= afterMinutes) {
+            return false;
+          }
+        }
 
-            return true;
-          }).toList();
+        return true;
+      }).toList();
     }
 
     // Apply price sort (lowest or highest)

@@ -48,10 +48,9 @@ class TripHomeView extends StatelessWidget {
                   Text(state.message),
                   const SizedBox(height: 16),
                   FilledButton.icon(
-                    onPressed:
-                        () => context.read<TripManagementBloc>().add(
-                          LoadTripHome(tripId: tripId),
-                        ),
+                    onPressed: () => context.read<TripManagementBloc>().add(
+                      LoadTripHome(tripId: tripId),
+                    ),
                     icon: const Icon(Icons.refresh),
                     label: const Text('Réessayer'),
                   ),
@@ -93,11 +92,10 @@ class TripHomeView extends StatelessWidget {
                           right: 8,
                           child: IconButton(
                             icon: const Icon(Icons.share, color: Colors.white),
-                            onPressed:
-                                () => context.go(
-                                  '/trips/$tripId/shares',
-                                  extra: trip.role,
-                                ),
+                            onPressed: () => context.go(
+                              '/trips/$tripId/shares',
+                              extra: trip.role,
+                            ),
                           ),
                         ),
                     ],
@@ -164,24 +162,22 @@ class TripHomeView extends StatelessWidget {
                     mainAxisSpacing: 8,
                     crossAxisSpacing: 8,
                     childAspectRatio: 1.3,
-                    children:
-                        tripHome.features
-                            .map(
-                              (feature) => TripFeatureTileWidget(
-                                feature: feature,
-                                onTap:
-                                    feature.enabled
-                                        ? () => context.go(
-                                          '/trips/$tripId/${feature.route}',
-                                          extra: {
-                                            'role': trip.role,
-                                            'isCompleted': isCompleted,
-                                          },
-                                        )
-                                        : null,
-                              ),
-                            )
-                            .toList(),
+                    children: tripHome.features
+                        .map(
+                          (feature) => TripFeatureTileWidget(
+                            feature: feature,
+                            onTap: feature.enabled
+                                ? () => context.go(
+                                    '/trips/$tripId/${feature.route}',
+                                    extra: {
+                                      'role': trip.role,
+                                      'isCompleted': isCompleted,
+                                    },
+                                  )
+                                : null,
+                          ),
+                        )
+                        .toList(),
                   ),
                 ),
                 if (trip.status == TripStatus.draft && !isViewer)
@@ -254,34 +250,33 @@ class TripHomeView extends StatelessWidget {
                         onPressed: () {
                           showDialog<void>(
                             context: context,
-                            builder:
-                                (dialogContext) => AlertDialog(
-                                  title: const Text('Supprimer le voyage'),
-                                  content: const Text(
-                                    'Êtes-vous sûr de vouloir supprimer ce voyage ? Cette action est irréversible.',
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed:
-                                          () =>
-                                              Navigator.of(dialogContext).pop(),
-                                      child: const Text('Annuler'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(dialogContext).pop();
-                                        context.read<TripManagementBloc>().add(
-                                          DeleteTrip(tripId: tripId),
-                                        );
-                                      },
-                                      style: TextButton.styleFrom(
-                                        foregroundColor:
-                                            Theme.of(context).colorScheme.error,
-                                      ),
-                                      child: const Text('Supprimer'),
-                                    ),
-                                  ],
+                            builder: (dialogContext) => AlertDialog(
+                              title: const Text('Supprimer le voyage'),
+                              content: const Text(
+                                'Êtes-vous sûr de vouloir supprimer ce voyage ? Cette action est irréversible.',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(dialogContext).pop(),
+                                  child: const Text('Annuler'),
                                 ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(dialogContext).pop();
+                                    context.read<TripManagementBloc>().add(
+                                      DeleteTrip(tripId: tripId),
+                                    );
+                                  },
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Theme.of(
+                                      context,
+                                    ).colorScheme.error,
+                                  ),
+                                  child: const Text('Supprimer'),
+                                ),
+                              ],
+                            ),
                           );
                         },
                         icon: const Icon(Icons.delete_outline),

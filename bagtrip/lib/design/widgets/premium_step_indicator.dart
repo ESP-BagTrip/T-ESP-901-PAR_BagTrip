@@ -28,14 +28,13 @@ class PremiumStepIndicator extends StatelessWidget {
         ...List.generate(total, (i) {
           final isActive = i < current;
           final isCurrent = i == current - 1;
-          final color =
-              currentStepColor != null
-                  ? (isCurrent
-                      ? currentStepColor!
-                      : PersonalizationColors.cardBorderUnselected)
-                  : isActive
-                  ? PersonalizationColors.accentBlue
-                  : PersonalizationColors.cardBorderUnselected;
+          final color = currentStepColor != null
+              ? (isCurrent
+                    ? currentStepColor!
+                    : PersonalizationColors.cardBorderUnselected)
+              : isActive
+              ? PersonalizationColors.accentBlue
+              : PersonalizationColors.cardBorderUnselected;
           return Padding(
             padding: EdgeInsets.only(
               right: i < total - 1 ? AppSpacing.space8 : 0,

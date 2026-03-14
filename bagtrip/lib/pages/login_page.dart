@@ -144,22 +144,22 @@ class _LoginPageContentState extends State<_LoginPageContent> {
     final l10n = AppLocalizations.of(context)!;
     const horizontalPadding = 24.0;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final scaffoldBackground =
-        isDark
-            ? ColorName.primaryTrueDark
-            : PersonalizationColors.gradientStart;
+    final scaffoldBackground = isDark
+        ? ColorName.primaryTrueDark
+        : PersonalizationColors.gradientStart;
     final titleColor = isDark ? AppColors.surface : AppColors.primaryTrueDark;
     final subtitleColor = isDark ? AppColors.hint : AppColors.textMutedLight;
     final surfaceColor = isDark ? AppColors.surfaceDark : AppColors.surface;
-    final textOnSurface =
-        isDark ? AppColors.surface : AppColors.primaryTrueDark;
+    final textOnSurface = isDark
+        ? AppColors.surface
+        : AppColors.primaryTrueDark;
     final hintOnSurface = isDark ? AppColors.hint : AppColors.textMutedLight;
-    final borderColor =
-        isDark
-            ? AppColors.surface.withValues(alpha: 0.15)
-            : ColorName.primarySoftLight;
-    final inputBackgroundColor =
-        isDark ? AppColors.inputBackgroundDark : AppColors.primaryLight;
+    final borderColor = isDark
+        ? AppColors.surface.withValues(alpha: 0.15)
+        : ColorName.primarySoftLight;
+    final inputBackgroundColor = isDark
+        ? AppColors.inputBackgroundDark
+        : AppColors.primaryLight;
     final inputBorderColor = borderColor;
     const errorBorderColor = ColorName.errorDark;
 
@@ -197,14 +197,13 @@ class _LoginPageContentState extends State<_LoginPageContent> {
           child: BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
               final isLoading = state is AuthLoading;
-              final isLoginMode =
-                  state is AuthModeChangedState
-                      ? state.isLoginMode
-                      : state is AuthError
-                      ? state.isLoginMode
-                      : state is AuthInitial
-                      ? state.isLoginMode
-                      : true;
+              final isLoginMode = state is AuthModeChangedState
+                  ? state.isLoginMode
+                  : state is AuthError
+                  ? state.isLoginMode
+                  : state is AuthInitial
+                  ? state.isLoginMode
+                  : true;
 
               return SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
@@ -240,8 +239,9 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                       const SizedBox(height: AppSpacing.space24),
                       _LoginSignUpToggle(
                         isLogin: isLoginMode,
-                        onToggle:
-                            isLoading ? null : () => _toggleMode(isLoginMode),
+                        onToggle: isLoading
+                            ? null
+                            : () => _toggleMode(isLoginMode),
                         l10n: l10n,
                         surfaceColor: surfaceColor,
                         textColor: textOnSurface,
@@ -275,8 +275,9 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                                 Expanded(
                                   child: SocialLoginButton(
                                     provider: SocialProvider.google,
-                                    onPressed:
-                                        isLoading ? null : _handleGoogleSignIn,
+                                    onPressed: isLoading
+                                        ? null
+                                        : _handleGoogleSignIn,
                                     isLoading: isLoading,
                                     useDarkStyle: isDark,
                                     label: l10n.loginContinueWithGoogle,
@@ -286,8 +287,9 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                                 Expanded(
                                   child: SocialLoginButton(
                                     provider: SocialProvider.apple,
-                                    onPressed:
-                                        isLoading ? null : _handleAppleSignIn,
+                                    onPressed: isLoading
+                                        ? null
+                                        : _handleAppleSignIn,
                                     isLoading: isLoading,
                                     useDarkStyle: isDark,
                                     label: l10n.loginContinueWithApple,
@@ -390,14 +392,12 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                             ],
                             const SizedBox(height: AppSpacing.space24),
                             PrimaryButton(
-                              label:
-                                  isLoginMode
-                                      ? l10n.loginButton
-                                      : l10n.loginRegisterButton,
-                              onPressed:
-                                  isLoading
-                                      ? null
-                                      : () => _handleSubmit(isLoginMode),
+                              label: isLoginMode
+                                  ? l10n.loginButton
+                                  : l10n.loginRegisterButton,
+                              onPressed: isLoading
+                                  ? null
+                                  : () => _handleSubmit(isLoginMode),
                               isLoading: isLoading,
                             ),
                             const SizedBox(height: AppSpacing.space32),
@@ -529,14 +529,13 @@ class _LoginSignUpToggle extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isLogin ? surfaceColor : Colors.transparent,
                 borderRadius: isLogin ? _selectedTopRadius : null,
-                border:
-                    isLogin
-                        ? Border(
-                          top: BorderSide(color: borderColor),
-                          left: BorderSide(color: borderColor),
-                          right: BorderSide(color: borderColor),
-                        )
-                        : null,
+                border: isLogin
+                    ? Border(
+                        top: BorderSide(color: borderColor),
+                        left: BorderSide(color: borderColor),
+                        right: BorderSide(color: borderColor),
+                      )
+                    : null,
               ),
               alignment: Alignment.center,
               child: Text(
@@ -560,14 +559,13 @@ class _LoginSignUpToggle extends StatelessWidget {
               decoration: BoxDecoration(
                 color: !isLogin ? surfaceColor : Colors.transparent,
                 borderRadius: !isLogin ? _selectedTopRadius : null,
-                border:
-                    !isLogin
-                        ? Border(
-                          top: BorderSide(color: borderColor),
-                          left: BorderSide(color: borderColor),
-                          right: BorderSide(color: borderColor),
-                        )
-                        : null,
+                border: !isLogin
+                    ? Border(
+                        top: BorderSide(color: borderColor),
+                        left: BorderSide(color: borderColor),
+                        right: BorderSide(color: borderColor),
+                      )
+                    : null,
               ),
               alignment: Alignment.center,
               child: Text(

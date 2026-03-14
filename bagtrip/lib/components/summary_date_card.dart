@@ -22,8 +22,9 @@ class SummaryDateCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final dayDate = date != null ? DateFormat('EEE d').format(date!) : null;
-    final monthYear =
-        date != null ? DateFormat('MMMM yyyy').format(date!) : null;
+    final monthYear = date != null
+        ? DateFormat('MMMM yyyy').format(date!)
+        : null;
 
     const dateCardRadius = BorderRadius.all(Radius.circular(48));
     return Material(

@@ -34,18 +34,17 @@ class TravelStyleStepContent extends StatelessWidget {
       ),
     ];
     return Column(
-      children:
-          options.map((opt) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.space16),
-              child: PersonalizationSingleSelectCard(
-                icon: opt.$3,
-                label: opt.$2,
-                selected: selectedId == opt.$1,
-                onTap: () => onSelect(opt.$1),
-              ),
-            );
-          }).toList(),
+      children: options.map((opt) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.space16),
+          child: PersonalizationSingleSelectCard(
+            icon: opt.$3,
+            label: opt.$2,
+            selected: selectedId == opt.$1,
+            onTap: () => onSelect(opt.$1),
+          ),
+        );
+      }).toList(),
     );
   }
 }

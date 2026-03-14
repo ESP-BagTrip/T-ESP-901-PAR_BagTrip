@@ -39,14 +39,13 @@ class TravelTypesStepContent extends StatelessWidget {
     return Wrap(
       spacing: AppSpacing.space16,
       runSpacing: AppSpacing.space16,
-      children:
-          _interestIds.map((id) {
-            return PremiumInterestChip(
-              label: labels[id] ?? id,
-              selected: selectedIds.contains(id),
-              onTap: () => onToggle(id),
-            );
-          }).toList(),
+      children: _interestIds.map((id) {
+        return PremiumInterestChip(
+          label: labels[id] ?? id,
+          selected: selectedIds.contains(id),
+          onTap: () => onToggle(id),
+        );
+      }).toList(),
     );
   }
 }

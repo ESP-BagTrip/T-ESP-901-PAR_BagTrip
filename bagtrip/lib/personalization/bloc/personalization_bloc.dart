@@ -69,8 +69,9 @@ class PersonalizationBloc
         final localStyle = await _storage.getTravelStyle(user.id);
         final localBudget = await _storage.getBudget(user.id);
         final localCompanions = await _storage.getCompanions(user.id);
-        selectedTypes =
-            typesStr.isNotEmpty ? typesStr.split(',').toSet() : <String>{};
+        selectedTypes = typesStr.isNotEmpty
+            ? typesStr.split(',').toSet()
+            : <String>{};
         style = localStyle.isEmpty ? null : localStyle;
         budget = localBudget.isEmpty ? null : localBudget;
         companions = localCompanions.isEmpty ? null : localCompanions;

@@ -1,27 +1,20 @@
 import 'package:bagtrip/flight_search/models/flight_segment.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class FlightSearchArguments {
-  final String departureCode;
-  final String arrivalCode;
-  final DateTime departureDate;
-  final DateTime? returnDate;
-  final int adults;
-  final int children;
-  final int infants;
-  final String travelClass;
-  final List<FlightSegment>? multiDestSegments;
-  final double? maxPrice;
+part 'flight_search_arguments.freezed.dart';
 
-  FlightSearchArguments({
-    required this.departureCode,
-    required this.arrivalCode,
-    required this.departureDate,
-    this.returnDate,
-    required this.adults,
-    required this.children,
-    required this.infants,
-    required this.travelClass,
-    this.multiDestSegments,
-    this.maxPrice,
-  });
+@freezed
+abstract class FlightSearchArguments with _$FlightSearchArguments {
+  const factory FlightSearchArguments({
+    required String departureCode,
+    required String arrivalCode,
+    required DateTime departureDate,
+    DateTime? returnDate,
+    required int adults,
+    required int children,
+    required int infants,
+    required String travelClass,
+    List<FlightSegment>? multiDestSegments,
+    double? maxPrice,
+  }) = _FlightSearchArguments;
 }

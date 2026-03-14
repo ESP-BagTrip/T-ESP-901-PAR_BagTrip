@@ -44,16 +44,14 @@ class _PremiumSelectCardState extends State<PremiumSelectCard> {
           duration: const Duration(milliseconds: 200),
           padding: AppSpacing.allEdgeInsetSpace24,
           decoration: BoxDecoration(
-            color:
-                widget.selected
-                    ? PersonalizationColors.cardSelectedTint
-                    : PersonalizationColors.cardUnselected,
+            color: widget.selected
+                ? PersonalizationColors.cardSelectedTint
+                : PersonalizationColors.cardUnselected,
             borderRadius: AppRadius.large20,
             border: Border.all(
-              color:
-                  widget.selected
-                      ? PersonalizationColors.cardBorderSelected
-                      : PersonalizationColors.cardBorderUnselected,
+              color: widget.selected
+                  ? PersonalizationColors.cardBorderSelected
+                  : PersonalizationColors.cardBorderUnselected,
               width: widget.selected ? 2 : 1,
             ),
             boxShadow: [
@@ -72,10 +70,9 @@ class _PremiumSelectCardState extends State<PremiumSelectCard> {
                 Icon(
                   widget.icon,
                   size: widget.iconSize,
-                  color:
-                      widget.selected
-                          ? PersonalizationColors.accentBlue
-                          : PersonalizationColors.textSecondary,
+                  color: widget.selected
+                      ? PersonalizationColors.accentBlue
+                      : PersonalizationColors.textSecondary,
                 ),
               if (widget.emoji != null || widget.icon != null)
                 const SizedBox(width: AppSpacing.space16),

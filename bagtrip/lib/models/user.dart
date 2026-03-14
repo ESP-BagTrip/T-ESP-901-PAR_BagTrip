@@ -1,85 +1,29 @@
-class User {
-  final String id;
-  final String email;
-  final String? fullName;
-  final String? phone;
-  final String? stripeCustomerId;
-  final bool isProfileCompleted;
-  final DateTime createdAt;
-  final DateTime? updatedAt;
-  final String plan;
-  final int? aiGenerationsRemaining;
-  final DateTime? planExpiresAt;
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'user.freezed.dart';
+part 'user.g.dart';
+
+@freezed
+abstract class User with _$User {
+  const User._();
+
+  const factory User({
+    required String id,
+    required String email,
+    String? fullName,
+    String? phone,
+    String? stripeCustomerId,
+    @Default(false) bool isProfileCompleted,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    @Default('FREE') String plan,
+    int? aiGenerationsRemaining,
+    DateTime? planExpiresAt,
+  }) = _User;
+
+  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
   bool get isFree => plan == 'FREE';
   bool get isPremium => plan == 'PREMIUM' || plan == 'ADMIN';
   bool get isAdmin => plan == 'ADMIN';
-
-  User({
-    required this.id,
-    required this.email,
-    this.fullName,
-    this.phone,
-    this.stripeCustomerId,
-    this.isProfileCompleted = false,
-    required this.createdAt,
-    this.updatedAt,
-    this.plan = 'FREE',
-    this.aiGenerationsRemaining,
-    this.planExpiresAt,
-  });
-
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      id: json['id']?.toString() ?? '',
-      email: json['email']?.toString() ?? '',
-      fullName: json['fullName'] as String? ?? json['full_name'] as String?,
-      phone: json['phone'] as String?,
-      stripeCustomerId:
-          json['stripeCustomerId'] as String? ??
-          json['stripe_customer_id'] as String?,
-      isProfileCompleted:
-          json['isProfileCompleted'] as bool? ??
-          json['is_profile_completed'] as bool? ??
-          false,
-      createdAt:
-          json['createdAt'] != null
-              ? DateTime.parse(json['createdAt'] as String)
-              : json['created_at'] != null
-              ? DateTime.parse(json['created_at'] as String)
-              : DateTime.now(),
-      updatedAt:
-          json['updatedAt'] != null
-              ? DateTime.parse(json['updatedAt'] as String)
-              : json['updated_at'] != null
-              ? DateTime.parse(json['updated_at'] as String)
-              : null,
-      plan: json['plan'] as String? ?? 'FREE',
-      aiGenerationsRemaining:
-          json['aiGenerationsRemaining'] as int? ??
-          json['ai_generations_remaining'] as int?,
-      planExpiresAt:
-          json['planExpiresAt'] != null
-              ? DateTime.parse(json['planExpiresAt'] as String)
-              : json['plan_expires_at'] != null
-              ? DateTime.parse(json['plan_expires_at'] as String)
-              : null,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'email': email,
-      'fullName': fullName,
-      'phone': phone,
-      'stripeCustomerId': stripeCustomerId,
-      'isProfileCompleted': isProfileCompleted,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt?.toIso8601String(),
-      'plan': plan,
-      'aiGenerationsRemaining': aiGenerationsRemaining,
-      'planExpiresAt': planExpiresAt?.toIso8601String(),
-    };
-  }
 }

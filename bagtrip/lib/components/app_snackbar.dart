@@ -16,16 +16,15 @@ class AppSnackBar {
     late OverlayEntry overlayEntry;
 
     overlayEntry = OverlayEntry(
-      builder:
-          (context) => _SnackBarWidget(
-            message: message,
-            onDismiss: () {
-              if (_currentEntry == overlayEntry) {
-                _currentEntry = null;
-              }
-              overlayEntry.remove();
-            },
-          ),
+      builder: (context) => _SnackBarWidget(
+        message: message,
+        onDismiss: () {
+          if (_currentEntry == overlayEntry) {
+            _currentEntry = null;
+          }
+          overlayEntry.remove();
+        },
+      ),
     );
 
     _currentEntry = overlayEntry;

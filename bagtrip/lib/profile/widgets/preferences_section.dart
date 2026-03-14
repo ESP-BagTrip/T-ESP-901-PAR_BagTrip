@@ -133,8 +133,9 @@ class PreferencesSection extends StatelessWidget {
         const SizedBox(height: 12),
         BlocBuilder<ProfileBloc, ProfileState>(
           builder: (context, state) {
-            final currentTheme =
-                state is ProfileLoaded ? state.selectedTheme : selectedTheme;
+            final currentTheme = state is ProfileLoaded
+                ? state.selectedTheme
+                : selectedTheme;
 
             return Row(
               children: [
@@ -193,14 +194,14 @@ class PreferencesSection extends StatelessWidget {
           horizontal: AppSpacing.space8,
         ),
         decoration: BoxDecoration(
-          color:
-              isSelected
-                  ? ColorName.secondary.withValues(alpha: 0.1)
-                  : ColorName.primaryLight,
+          color: isSelected
+              ? ColorName.secondary.withValues(alpha: 0.1)
+              : ColorName.primaryLight,
           borderRadius: AppRadius.medium8,
           border: Border.all(
-            color:
-                isSelected ? ColorName.secondary : ColorName.primarySoftLight,
+            color: isSelected
+                ? ColorName.secondary
+                : ColorName.primarySoftLight,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -212,10 +213,9 @@ class PreferencesSection extends StatelessWidget {
               children: [
                 Icon(
                   icon,
-                  color:
-                      isSelected
-                          ? ColorName.secondary
-                          : ColorName.primaryTrueDark.withValues(alpha: 0.6),
+                  color: isSelected
+                      ? ColorName.secondary
+                      : ColorName.primaryTrueDark.withValues(alpha: 0.6),
                   size: 20,
                 ),
                 const SizedBox(height: AppSpacing.space4),
@@ -225,10 +225,9 @@ class PreferencesSection extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color:
-                        isSelected
-                            ? ColorName.secondary
-                            : ColorName.primaryTrueDark.withValues(alpha: 0.7),
+                    color: isSelected
+                        ? ColorName.secondary
+                        : ColorName.primaryTrueDark.withValues(alpha: 0.7),
                   ),
                 ),
               ],

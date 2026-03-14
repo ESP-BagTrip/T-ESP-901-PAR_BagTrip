@@ -1,46 +1,30 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'ai_trip_proposal.freezed.dart';
+part 'ai_trip_proposal.g.dart';
+
 /// Model for an AI-generated trip proposal (card on results page).
-class AiTripProposal {
-  const AiTripProposal({
-    required this.id,
-    required this.destination,
-    required this.destinationCountry,
-    required this.durationDays,
-    required this.priceEur,
-    required this.description,
-    this.activities = const [],
-  });
+@freezed
+abstract class AiTripProposal with _$AiTripProposal {
+  const factory AiTripProposal({
+    @Default('') String id,
+    @Default('') String destination,
+    @Default('') String destinationCountry,
+    @Default(0) int durationDays,
+    @JsonKey(name: 'budgetEur') @Default(0) int priceEur,
+    @Default('') String description,
+    @Default([]) List<Map<String, dynamic>> activities,
+  }) = _AiTripProposal;
 
-  factory AiTripProposal.fromJson(Map<String, dynamic> json, {String? id}) {
-    return AiTripProposal(
-      id: id ?? '',
-      destination: json['destination'] ?? '',
-      destinationCountry: json['destinationCountry'] ?? '',
-      durationDays: json['durationDays'] ?? 0,
-      priceEur: json['budgetEur'] ?? 0,
-      description: json['description'] ?? '',
-      activities:
-          (json['activities'] as List?)
-              ?.map((a) => Map<String, dynamic>.from(a))
-              .toList() ??
-          [],
-    );
+  factory AiTripProposal.fromJson(Map<String, dynamic> json) =>
+      _$AiTripProposalFromJson(json);
+
+  /// Parse from JSON with an external id parameter.
+  static AiTripProposal fromJsonWithId(
+    Map<String, dynamic> json, {
+    String? id,
+  }) {
+    final proposal = AiTripProposal.fromJson(json);
+    return proposal.copyWith(id: id ?? '');
   }
-
-  final String id;
-  final String destination;
-  final String destinationCountry;
-  final int durationDays;
-  final int priceEur;
-  final String description;
-  final List<Map<String, dynamic>> activities;
-
-  /// Convert back to JSON for API calls.
-  Map<String, dynamic> toJson() => {
-    'destination': destination,
-    'destinationCountry': destinationCountry,
-    'durationDays': durationDays,
-    'budgetEur': priceEur,
-    'description': description,
-    'activities': activities,
-  };
 }

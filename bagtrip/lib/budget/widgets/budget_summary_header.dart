@@ -20,12 +20,11 @@ class BudgetSummaryHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final percent = summary.percentConsumed;
-    final ratio =
-        isViewer && percent != null
-            ? percent / 100
-            : summary.totalBudget > 0
-            ? summary.totalSpent / summary.totalBudget
-            : 0.0;
+    final ratio = isViewer && percent != null
+        ? percent / 100
+        : summary.totalBudget > 0
+        ? summary.totalSpent / summary.totalBudget
+        : 0.0;
     final color = _progressColor(ratio);
 
     return Card(

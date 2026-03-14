@@ -1,96 +1,25 @@
-class Accommodation {
-  final String id;
-  final String tripId;
-  final String name;
-  final String? address;
-  final DateTime? checkIn;
-  final DateTime? checkOut;
-  final double? pricePerNight;
-  final String? currency;
-  final String? bookingReference;
-  final String? notes;
-  final DateTime createdAt;
-  final DateTime? updatedAt;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  Accommodation({
-    required this.id,
-    required this.tripId,
-    required this.name,
-    this.address,
-    this.checkIn,
-    this.checkOut,
-    this.pricePerNight,
-    this.currency,
-    this.bookingReference,
-    this.notes,
-    required this.createdAt,
-    this.updatedAt,
-  });
+part 'accommodation.freezed.dart';
+part 'accommodation.g.dart';
 
-  factory Accommodation.fromJson(Map<String, dynamic> json) {
-    // Parse pricePerNight with backward compat for 'price'
-    double? parsedPrice;
-    final rawPrice =
-        json['pricePerNight'] ?? json['price_per_night'] ?? json['price'];
-    if (rawPrice != null) {
-      parsedPrice =
-          rawPrice is String
-              ? double.tryParse(rawPrice)
-              : (rawPrice as num).toDouble();
-    }
+@freezed
+abstract class Accommodation with _$Accommodation {
+  const factory Accommodation({
+    required String id,
+    required String tripId,
+    required String name,
+    String? address,
+    DateTime? checkIn,
+    DateTime? checkOut,
+    double? pricePerNight,
+    String? currency,
+    String? bookingReference,
+    String? notes,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) = _Accommodation;
 
-    return Accommodation(
-      id: json['id'] as String,
-      tripId: json['tripId'] as String? ?? json['trip_id'] as String? ?? '',
-      name: json['name'] as String? ?? '',
-      address: json['address'] as String?,
-      checkIn:
-          json['checkIn'] != null
-              ? DateTime.parse(json['checkIn'] as String)
-              : json['check_in'] != null
-              ? DateTime.parse(json['check_in'] as String)
-              : null,
-      checkOut:
-          json['checkOut'] != null
-              ? DateTime.parse(json['checkOut'] as String)
-              : json['check_out'] != null
-              ? DateTime.parse(json['check_out'] as String)
-              : null,
-      pricePerNight: parsedPrice,
-      currency: json['currency'] as String?,
-      bookingReference:
-          json['bookingReference'] as String? ??
-          json['booking_reference'] as String?,
-      notes: json['notes'] as String?,
-      createdAt:
-          json['createdAt'] != null
-              ? DateTime.parse(json['createdAt'] as String)
-              : json['created_at'] != null
-              ? DateTime.parse(json['created_at'] as String)
-              : DateTime.now(),
-      updatedAt:
-          json['updatedAt'] != null
-              ? DateTime.parse(json['updatedAt'] as String)
-              : json['updated_at'] != null
-              ? DateTime.parse(json['updated_at'] as String)
-              : null,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'tripId': tripId,
-      'name': name,
-      'address': address,
-      'checkIn': checkIn?.toIso8601String().split('T').first,
-      'checkOut': checkOut?.toIso8601String().split('T').first,
-      'pricePerNight': pricePerNight,
-      'currency': currency,
-      'bookingReference': bookingReference,
-      'notes': notes,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt?.toIso8601String(),
-    };
-  }
+  factory Accommodation.fromJson(Map<String, dynamic> json) =>
+      _$AccommodationFromJson(json);
 }

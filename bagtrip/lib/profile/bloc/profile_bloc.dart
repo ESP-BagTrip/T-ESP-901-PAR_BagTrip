@@ -58,10 +58,12 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     Emitter<ProfileState> emit,
   ) async {
     final current = state;
-    final previousTheme =
-        current is ProfileLoaded ? current.selectedTheme : _defaultTheme;
-    final previousLanguage =
-        current is ProfileLoaded ? current.selectedLanguage : _defaultLanguage;
+    final previousTheme = current is ProfileLoaded
+        ? current.selectedTheme
+        : _defaultTheme;
+    final previousLanguage = current is ProfileLoaded
+        ? current.selectedLanguage
+        : _defaultLanguage;
 
     try {
       final User? user = await _authService.getCurrentUser();
@@ -93,14 +95,15 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         // Keep defaults on profile fetch failure; profile still shows user
       }
 
-      final memberSince = DateFormat.yMMM('fr').format(user.createdAt);
+      final memberSince = DateFormat.yMMM(
+        'fr',
+      ).format(user.createdAt ?? DateTime.now());
 
       emit(
         ProfileLoaded(
-          name:
-              user.fullName?.trim().isNotEmpty == true
-                  ? user.fullName!
-                  : user.email,
+          name: user.fullName?.trim().isNotEmpty == true
+              ? user.fullName!
+              : user.email,
           email: user.email,
           phone: user.phone?.trim().isNotEmpty == true ? user.phone! : '—',
           address: '—',
@@ -138,7 +141,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       id: b.id,
       route: 'Réservation',
       details: b.status,
-      date: DateFormat('d MMM yyyy', 'fr').format(b.createdAt),
+      date: DateFormat(
+        'd MMM yyyy',
+        'fr',
+      ).format(b.createdAt ?? DateTime.now()),
       price:
           '${NumberFormat.decimalPattern('fr').format(b.priceTotal)} ${b.currency}',
       status: b.status,
@@ -166,15 +172,14 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     Emitter<ProfileState> emit,
   ) async {
     final current = _currentState();
-    final updatedCards =
-        current.paymentCards.map((card) {
-          return PaymentCard(
-            id: card.id,
-            lastFourDigits: card.lastFourDigits,
-            expiryDate: card.expiryDate,
-            isDefault: card.id == event.cardId,
-          );
-        }).toList();
+    final updatedCards = current.paymentCards.map((card) {
+      return PaymentCard(
+        id: card.id,
+        lastFourDigits: card.lastFourDigits,
+        expiryDate: card.expiryDate,
+        isDefault: card.id == event.cardId,
+      );
+    }).toList();
     emit(current.copyWith(paymentCards: updatedCards));
   }
 }

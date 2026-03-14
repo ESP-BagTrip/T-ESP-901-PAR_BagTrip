@@ -26,29 +26,26 @@ class PersonalizationLayoutGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final rows = PersonalizationLayoutGrid._chunked(children, crossAxisCount);
     return Column(
-      children:
-          rows.asMap().entries.map((entry) {
-            final isLast = entry.key == rows.length - 1;
-            return Padding(
-              padding: EdgeInsets.only(bottom: isLast ? 0 : mainAxisSpacing),
-              child: Row(
-                children:
-                    entry.value.asMap().entries.map((e) {
-                      return Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            right:
-                                e.key < entry.value.length - 1
-                                    ? crossAxisSpacing
-                                    : 0,
-                          ),
-                          child: e.value,
-                        ),
-                      );
-                    }).toList(),
-              ),
-            );
-          }).toList(),
+      children: rows.asMap().entries.map((entry) {
+        final isLast = entry.key == rows.length - 1;
+        return Padding(
+          padding: EdgeInsets.only(bottom: isLast ? 0 : mainAxisSpacing),
+          child: Row(
+            children: entry.value.asMap().entries.map((e) {
+              return Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    right: e.key < entry.value.length - 1
+                        ? crossAxisSpacing
+                        : 0,
+                  ),
+                  child: e.value,
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      }).toList(),
     );
   }
 }

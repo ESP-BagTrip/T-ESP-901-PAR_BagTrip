@@ -32,12 +32,11 @@ class TripFeatureTileWidget extends StatelessWidget {
 
     return Card(
       elevation: isEnabled ? 1 : 0,
-      color:
-          isEnabled
-              ? null
-              : Theme.of(
-                context,
-              ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+      color: isEnabled
+          ? null
+          : Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: isEnabled ? onTap : null,
@@ -50,23 +49,21 @@ class TripFeatureTileWidget extends StatelessWidget {
               Icon(
                 _iconFromString(feature.icon),
                 size: 32,
-                color:
-                    isEnabled
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(
-                          context,
-                        ).colorScheme.outline.withValues(alpha: 0.5),
+                color: isEnabled
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(
+                        context,
+                      ).colorScheme.outline.withValues(alpha: 0.5),
               ),
               const SizedBox(height: 8),
               Text(
                 feature.label,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color:
-                      isEnabled
-                          ? null
-                          : Theme.of(
-                            context,
-                          ).colorScheme.outline.withValues(alpha: 0.5),
+                  color: isEnabled
+                      ? null
+                      : Theme.of(
+                          context,
+                        ).colorScheme.outline.withValues(alpha: 0.5),
                   fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,

@@ -252,10 +252,12 @@ class _FilterDialogState extends State<FilterDialog> {
                         ApplyFilters(
                           priceSort: _selectedPriceSort,
                           selectedAirline: _selectedAirline,
-                          cabinBagIncluded:
-                              _cabinBagIncluded == true ? true : null,
-                          checkedBagIncluded:
-                              _checkedBagIncluded == true ? true : null,
+                          cabinBagIncluded: _cabinBagIncluded == true
+                              ? true
+                              : null,
+                          checkedBagIncluded: _checkedBagIncluded == true
+                              ? true
+                              : null,
                           departureTimeBefore: _departureTimeBefore,
                           departureTimeAfter: _departureTimeAfter,
                         ),
@@ -297,8 +299,9 @@ class _FilterDialogState extends State<FilterDialog> {
           color: isSelected ? ColorName.secondary : AppColors.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color:
-                isSelected ? ColorName.secondary : ColorName.primarySoftLight,
+            color: isSelected
+                ? ColorName.secondary
+                : ColorName.primarySoftLight,
           ),
         ),
         child: Center(
@@ -320,13 +323,12 @@ class _FilterDialogState extends State<FilterDialog> {
     Function(TimeOfDay?) onTimeSelected,
   ) {
     return GestureDetector(
-      onLongPress:
-          selectedTime != null
-              ? () {
-                // Long press to clear
-                onTimeSelected(null);
-              }
-              : null,
+      onLongPress: selectedTime != null
+          ? () {
+              // Long press to clear
+              onTimeSelected(null);
+            }
+          : null,
       child: OutlinedButton(
         onPressed: () async {
           final time = await showTimePicker(

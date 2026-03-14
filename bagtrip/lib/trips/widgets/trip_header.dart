@@ -48,12 +48,11 @@ class TripHeader extends StatelessWidget {
                   Expanded(
                     child: Text(
                       trip.title ?? 'Mon voyage',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                   ),
                   TripStatusBadge(status: trip.status),

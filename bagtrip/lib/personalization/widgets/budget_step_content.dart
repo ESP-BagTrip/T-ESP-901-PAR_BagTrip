@@ -43,19 +43,18 @@ class BudgetStepContent extends StatelessWidget {
       ),
     ];
     return Column(
-      children:
-          options.map((opt) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.space24),
-              child: PremiumSelectCard(
-                icon: opt.$4,
-                label: opt.$2,
-                description: opt.$3,
-                selected: selectedId == opt.$1,
-                onTap: () => onSelect(opt.$1),
-              ),
-            );
-          }).toList(),
+      children: options.map((opt) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.space24),
+          child: PremiumSelectCard(
+            icon: opt.$4,
+            label: opt.$2,
+            description: opt.$3,
+            selected: selectedId == opt.$1,
+            onTap: () => onSelect(opt.$1),
+          ),
+        );
+      }).toList(),
     );
   }
 }

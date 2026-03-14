@@ -76,24 +76,19 @@ class ExperiencePersonalizationSection extends StatelessWidget {
               Wrap(
                 spacing: AppSpacing.space8,
                 runSpacing: 4,
-                children:
-                    travelTypes
-                        .map(
-                          (type) => Chip(
-                            label: Text(
-                              type,
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                            visualDensity: VisualDensity.compact,
-                            backgroundColor: ColorName.secondary.withValues(
-                              alpha: 0.1,
-                            ),
-                            side: BorderSide.none,
-                          ),
-                        )
-                        .toList(),
+                children: travelTypes
+                    .map(
+                      (type) => Chip(
+                        label: Text(type, style: const TextStyle(fontSize: 12)),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.compact,
+                        backgroundColor: ColorName.secondary.withValues(
+                          alpha: 0.1,
+                        ),
+                        side: BorderSide.none,
+                      ),
+                    )
+                    .toList(),
               ),
             if (travelStyle != null) ...[
               const SizedBox(height: 4),

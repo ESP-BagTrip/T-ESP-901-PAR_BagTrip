@@ -1,81 +1,58 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'package:bagtrip/flight_search_result/models/baggage_info.dart';
 
-class Flight {
-  final String id;
-  final String departureTime;
-  final String arrivalTime;
-  final String departureAirport;
-  final String departureCode;
-  final String arrivalAirport;
-  final String arrivalCode;
-  final String duration;
-  final String? airline;
-  final String? aircraftType;
-  final double price;
-  final List<String> amenities;
-  final DateTime? departureDateTime;
-  final DateTime? arrivalDateTime;
-  final int outboundStops;
+part 'flight.freezed.dart';
+part 'flight.g.dart';
 
-  // Return flight details (nullable)
-  final String? returnDepartureTime;
-  final String? returnArrivalTime;
-  final String? returnDepartureCode;
-  final String? returnArrivalCode;
-  final String? returnDuration;
-  final String? returnAirline;
-  final String? returnAircraftType;
-  final DateTime? returnDepartureDateTime;
-  final DateTime? returnArrivalDateTime;
-  final int? returnStops;
+@freezed
+abstract class Flight with _$Flight {
+  const Flight._();
 
-  // New fields for details
-  final int numberOfBookableSeats;
-  final String lastTicketingDate;
-  final double basePrice;
-  final String cabinClass;
-  final String bookingClass;
-  final String fareBasis;
-  final BaggageInfo? checkedBags;
-  final BaggageInfo? cabinBags;
+  const factory Flight({
+    required String id,
+    required String departureTime,
+    required String arrivalTime,
+    required String departureAirport,
+    required String departureCode,
+    required String arrivalAirport,
+    required String arrivalCode,
+    required String duration,
+    String? airline,
+    String? aircraftType,
+    required double price,
+    @Default([]) List<String> amenities,
+    DateTime? departureDateTime,
+    DateTime? arrivalDateTime,
+    @Default(0) int outboundStops,
 
-  Flight({
-    required this.id,
-    required this.departureTime,
-    required this.arrivalTime,
-    required this.departureAirport,
-    required this.departureCode,
-    required this.arrivalAirport,
-    required this.arrivalCode,
-    required this.duration,
-    this.airline,
-    this.aircraftType,
-    required this.price,
-    required this.amenities,
-    this.departureDateTime,
-    this.arrivalDateTime,
-    this.outboundStops = 0,
-    this.returnDepartureTime,
-    this.returnArrivalTime,
-    this.returnDepartureCode,
-    this.returnArrivalCode,
-    this.returnDuration,
-    this.returnAirline,
-    this.returnAircraftType,
-    this.returnDepartureDateTime,
-    this.returnArrivalDateTime,
-    this.returnStops,
-    required this.numberOfBookableSeats,
-    required this.lastTicketingDate,
-    required this.basePrice,
-    required this.cabinClass,
-    required this.bookingClass,
-    required this.fareBasis,
-    this.checkedBags,
-    this.cabinBags,
-  });
+    // Return flight details (nullable)
+    String? returnDepartureTime,
+    String? returnArrivalTime,
+    String? returnDepartureCode,
+    String? returnArrivalCode,
+    String? returnDuration,
+    String? returnAirline,
+    String? returnAircraftType,
+    DateTime? returnDepartureDateTime,
+    DateTime? returnArrivalDateTime,
+    int? returnStops,
 
-  factory Flight.fromAmadeusJson(
+    // Extra details
+    @Default(0) int numberOfBookableSeats,
+    @Default('') String lastTicketingDate,
+    @Default(0) double basePrice,
+    @Default('Unknown') String cabinClass,
+    @Default('Unknown') String bookingClass,
+    @Default('Unknown') String fareBasis,
+    BaggageInfo? checkedBags,
+    BaggageInfo? cabinBags,
+  }) = _Flight;
+
+  factory Flight.fromJson(Map<String, dynamic> json) => _$FlightFromJson(json);
+
+  /// Parse depuis la réponse Amadeus (logique custom préservée)
+  static Flight fromAmadeusJson(
     Map<String, dynamic> json, {
     Map<String, dynamic>? dictionaries,
   }) {
@@ -124,18 +101,13 @@ class Flight {
 
     // Helper to extract validating airline
     final validatingAirlineCodes = json['validatingAirlineCodes'] as List?;
-    final mainAirlineCode =
-        validatingAirlineCodes?.isNotEmpty == true
-            ? validatingAirlineCodes![0]
-            : null;
+    final mainAirlineCode = validatingAirlineCodes?.isNotEmpty == true
+        ? validatingAirlineCodes![0]
+        : null;
 
-    final mainAirlineName =
-        mainAirlineCode != null
-            ? lookupDictionary('carriers', mainAirlineCode)
-            : null;
-
-    // Parse itineraries
-    // (Already checked above)
+    final mainAirlineName = mainAirlineCode != null
+        ? lookupDictionary('carriers', mainAirlineCode)
+        : null;
 
     // --- Outbound Parsing ---
     final outboundItinerary = itineraries[0];
@@ -148,10 +120,9 @@ class Flight {
     final outboundStops = outboundSegments.length - 1;
 
     final outboundAircraftCode = outboundFirst['aircraft']?['code'];
-    final outboundAircraftName =
-        outboundAircraftCode != null
-            ? lookupDictionary('aircraft', outboundAircraftCode)
-            : null;
+    final outboundAircraftName = outboundAircraftCode != null
+        ? lookupDictionary('aircraft', outboundAircraftCode)
+        : null;
 
     // --- Return Parsing (if exists) ---
     String? retDepTime,
@@ -181,13 +152,12 @@ class Flight {
             '${returnLast['arrival']?['iataCode'] ?? ''} ${returnLast['arrival']?['terminal'] != null ? 'T${returnLast['arrival']?['terminal']}' : ''}'
                 .trim();
         retDur = formatDuration(returnItinerary['duration']);
-        retAir = mainAirlineName; // Usually same airline for return
+        retAir = mainAirlineName;
 
         final returnAircraftCode = returnFirst['aircraft']?['code'];
-        retAircraft =
-            returnAircraftCode != null
-                ? lookupDictionary('aircraft', returnAircraftCode)
-                : null;
+        retAircraft = returnAircraftCode != null
+            ? lookupDictionary('aircraft', returnAircraftCode)
+            : null;
 
         retDepDate = parseDateTime(returnFirst['departure']?['at']);
         retArrDate = parseDateTime(returnLast['arrival']?['at']);
@@ -199,10 +169,8 @@ class Flight {
       if (value == null) return null;
       if (value is num) return value.toInt();
       if (value is String) {
-        // Try direct parse
         final parsed = int.tryParse(value);
         if (parsed != null) return parsed;
-        // Try extracting digits
         final digits = value.replaceAll(RegExp(r'[^0-9]'), '');
         return int.tryParse(digits);
       }
@@ -221,7 +189,7 @@ class Flight {
         int.tryParse(json['numberOfBookableSeats']?.toString() ?? '0') ?? 0;
     final lastTicketingDate = json['lastTicketingDate']?.toString() ?? '';
 
-    // Extract Traveler Pricing (first traveler, first segment usually)
+    // Extract Traveler Pricing
     String cabinClass = 'Unknown';
     String bookingClass = 'Unknown';
     String fareBasis = 'Unknown';
@@ -238,7 +206,6 @@ class Flight {
         bookingClass = firstSegmentDetails['class'] ?? 'Unknown';
         fareBasis = firstSegmentDetails['fareBasis'] ?? 'Unknown';
 
-        // Baggage
         final checked = firstSegmentDetails['includedCheckedBags'];
         if (checked != null) {
           final q = parseIntSafe(checked['quantity']);
@@ -303,87 +270,4 @@ class Flight {
       cabinBags: cabinBags,
     );
   }
-
-  Flight copyWith({
-    String? id,
-    String? departureTime,
-    String? arrivalTime,
-    String? departureAirport,
-    String? departureCode,
-    String? arrivalAirport,
-    String? arrivalCode,
-    String? duration,
-    String? airline,
-    String? aircraftType,
-    double? price,
-    List<String>? amenities,
-    DateTime? departureDateTime,
-    DateTime? arrivalDateTime,
-    int? outboundStops,
-    String? returnDepartureTime,
-    String? returnArrivalTime,
-    String? returnDepartureCode,
-    String? returnArrivalCode,
-    String? returnDuration,
-    String? returnAirline,
-    String? returnAircraftType,
-    DateTime? returnDepartureDateTime,
-    DateTime? returnArrivalDateTime,
-    int? returnStops,
-    int? numberOfBookableSeats,
-    String? lastTicketingDate,
-    double? basePrice,
-    String? cabinClass,
-    String? bookingClass,
-    String? fareBasis,
-    BaggageInfo? checkedBags,
-    BaggageInfo? cabinBags,
-  }) {
-    return Flight(
-      id: id ?? this.id,
-      departureTime: departureTime ?? this.departureTime,
-      arrivalTime: arrivalTime ?? this.arrivalTime,
-      departureAirport: departureAirport ?? this.departureAirport,
-      departureCode: departureCode ?? this.departureCode,
-      arrivalAirport: arrivalAirport ?? this.arrivalAirport,
-      arrivalCode: arrivalCode ?? this.arrivalCode,
-      duration: duration ?? this.duration,
-      airline: airline ?? this.airline,
-      aircraftType: aircraftType ?? this.aircraftType,
-      price: price ?? this.price,
-      amenities: amenities ?? this.amenities,
-      departureDateTime: departureDateTime ?? this.departureDateTime,
-      arrivalDateTime: arrivalDateTime ?? this.arrivalDateTime,
-      outboundStops: outboundStops ?? this.outboundStops,
-      returnDepartureTime: returnDepartureTime ?? this.returnDepartureTime,
-      returnArrivalTime: returnArrivalTime ?? this.returnArrivalTime,
-      returnDepartureCode: returnDepartureCode ?? this.returnDepartureCode,
-      returnArrivalCode: returnArrivalCode ?? this.returnArrivalCode,
-      returnDuration: returnDuration ?? this.returnDuration,
-      returnAirline: returnAirline ?? this.returnAirline,
-      returnAircraftType: returnAircraftType ?? this.returnAircraftType,
-      returnDepartureDateTime:
-          returnDepartureDateTime ?? this.returnDepartureDateTime,
-      returnArrivalDateTime:
-          returnArrivalDateTime ?? this.returnArrivalDateTime,
-      returnStops: returnStops ?? this.returnStops,
-      numberOfBookableSeats:
-          numberOfBookableSeats ?? this.numberOfBookableSeats,
-      lastTicketingDate: lastTicketingDate ?? this.lastTicketingDate,
-      basePrice: basePrice ?? this.basePrice,
-      cabinClass: cabinClass ?? this.cabinClass,
-      bookingClass: bookingClass ?? this.bookingClass,
-      fareBasis: fareBasis ?? this.fareBasis,
-      checkedBags: checkedBags ?? this.checkedBags,
-      cabinBags: cabinBags ?? this.cabinBags,
-    );
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Flight && runtimeType == other.runtimeType && id == other.id;
-
-  @override
-  int get hashCode => id.hashCode;
 }

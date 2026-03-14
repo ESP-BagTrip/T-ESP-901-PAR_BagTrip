@@ -18,13 +18,11 @@ class NotificationApiService {
       );
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
-        final items =
-            (data['items'] as List)
-                .map(
-                  (json) =>
-                      AppNotification.fromJson(json as Map<String, dynamic>),
-                )
-                .toList();
+        final items = (data['items'] as List)
+            .map(
+              (json) => AppNotification.fromJson(json as Map<String, dynamic>),
+            )
+            .toList();
         return {
           'items': items,
           'total': data['total'] ?? 0,

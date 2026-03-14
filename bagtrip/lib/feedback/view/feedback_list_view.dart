@@ -51,7 +51,9 @@ class FeedbackListView extends StatelessWidget {
                     }),
                     const Spacer(),
                     Text(
-                      DateFormat('dd/MM/yyyy').format(feedback.createdAt),
+                      DateFormat(
+                        'dd/MM/yyyy',
+                      ).format(feedback.createdAt ?? DateTime.now()),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
@@ -78,8 +80,9 @@ class FeedbackListView extends StatelessWidget {
                           ? Icons.thumb_up
                           : Icons.thumb_down,
                       size: 16,
-                      color:
-                          feedback.wouldRecommend ? Colors.green : Colors.red,
+                      color: feedback.wouldRecommend
+                          ? Colors.green
+                          : Colors.red,
                     ),
                     const SizedBox(width: 4),
                     Text(

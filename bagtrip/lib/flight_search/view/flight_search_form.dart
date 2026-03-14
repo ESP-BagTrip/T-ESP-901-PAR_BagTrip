@@ -35,8 +35,9 @@ class FlightSearchForm extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        final loadedState =
-            state is FlightSearchLoaded ? state : FlightSearchLoaded();
+        final loadedState = state is FlightSearchLoaded
+            ? state
+            : FlightSearchLoaded();
 
         return ListView(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),

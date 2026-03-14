@@ -55,7 +55,10 @@ class _FeedbackPageContentState extends State<_FeedbackPageContent> {
         appBar: AppBar(
           title: const Text('Avis'),
           bottom: const TabBar(
-            tabs: [Tab(text: 'Donner un avis'), Tab(text: 'Tous les avis')],
+            tabs: [
+              Tab(text: 'Donner un avis'),
+              Tab(text: 'Tous les avis'),
+            ],
           ),
         ),
         body: BlocConsumer<FeedbackBloc, FeedbackState>(
@@ -82,10 +85,10 @@ class _FeedbackPageContentState extends State<_FeedbackPageContent> {
                 isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : FeedbackFormView(
-                      tripId: widget.tripId,
-                      currentUserId: _currentUserId,
-                      feedbacks: feedbacks.cast(),
-                    ),
+                        tripId: widget.tripId,
+                        currentUserId: _currentUserId,
+                        feedbacks: feedbacks.cast(),
+                      ),
                 isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : FeedbackListView(feedbacks: feedbacks.cast()),

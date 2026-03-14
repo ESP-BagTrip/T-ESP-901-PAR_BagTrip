@@ -35,10 +35,9 @@ class AuthService {
         throw Exception('Login failed: ${response.statusCode}');
       }
     } on DioException catch (e) {
-      final message =
-          e.error is String
-              ? e.error as String
-              : 'Erreur de connexion. Veuillez réessayer.';
+      final message = e.error is String
+          ? e.error as String
+          : 'Erreur de connexion. Veuillez réessayer.';
       throw Exception(message);
     } catch (e) {
       throw Exception('Une erreur est survenue. Veuillez réessayer.');
@@ -70,10 +69,9 @@ class AuthService {
         throw Exception('Registration failed: ${response.statusCode}');
       }
     } on DioException catch (e) {
-      final message =
-          e.error is String
-              ? e.error as String
-              : 'Erreur de connexion. Veuillez réessayer.';
+      final message = e.error is String
+          ? e.error as String
+          : 'Erreur de connexion. Veuillez réessayer.';
       throw Exception(message);
     } catch (e) {
       throw Exception('Une erreur est survenue. Veuillez réessayer.');
@@ -156,19 +154,17 @@ class AuthService {
           );
         }
       } else {
-        final errorMessage =
-            response.data is Map
-                ? response.data['detail'] ?? 'Google login failed'
-                : 'Google login failed: ${response.statusCode}';
+        final errorMessage = response.data is Map
+            ? response.data['detail'] ?? 'Google login failed'
+            : 'Google login failed: ${response.statusCode}';
         throw Exception(errorMessage);
       }
     } on DioException catch (e) {
-      final errorMessage =
-          e.response?.data is Map
-              ? e.response!.data['detail'] ??
-                  e.error?.toString() ??
-                  'Connection error'
-              : e.error?.toString() ?? 'Google sign-in error';
+      final errorMessage = e.response?.data is Map
+          ? e.response!.data['detail'] ??
+                e.error?.toString() ??
+                'Connection error'
+          : e.error?.toString() ?? 'Google sign-in error';
       throw Exception(errorMessage);
     } catch (e) {
       if (e.toString().contains('cancelled') ||
@@ -236,19 +232,17 @@ class AuthService {
           );
         }
       } else {
-        final errorMessage =
-            response.data is Map
-                ? response.data['detail'] ?? 'Apple login failed'
-                : 'Apple login failed: ${response.statusCode}';
+        final errorMessage = response.data is Map
+            ? response.data['detail'] ?? 'Apple login failed'
+            : 'Apple login failed: ${response.statusCode}';
         throw Exception(errorMessage);
       }
     } on DioException catch (e) {
-      final errorMessage =
-          e.response?.data is Map
-              ? e.response!.data['detail'] ??
-                  e.error?.toString() ??
-                  'Connection error'
-              : e.error?.toString() ?? 'Apple sign-in error';
+      final errorMessage = e.response?.data is Map
+          ? e.response!.data['detail'] ??
+                e.error?.toString() ??
+                'Connection error'
+          : e.error?.toString() ?? 'Apple sign-in error';
       throw Exception(errorMessage);
     } catch (e) {
       if (e.toString().contains('cancelled') ||

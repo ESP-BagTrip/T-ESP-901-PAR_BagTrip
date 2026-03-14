@@ -14,9 +14,8 @@ class FlightResultDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create:
-          (context) =>
-              FlightResultDetailsBloc()..add(LoadFlightDetails(flight)),
+      create: (context) =>
+          FlightResultDetailsBloc()..add(LoadFlightDetails(flight)),
       child: const FlightResultDetailsView(),
     );
   }

@@ -125,13 +125,12 @@ class PersonalizationView extends StatelessWidget {
                     const SizedBox(height: AppSpacing.space16),
                     Text(
                       _stepTitle(l10n, state.step),
-                      style: Theme.of(
-                        context,
-                      ).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: PersonalizationColors.textPrimary,
-                        letterSpacing: -0.3,
-                      ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: PersonalizationColors.textPrimary,
+                            letterSpacing: -0.3,
+                          ),
                     ),
                     const SizedBox(height: AppSpacing.space8),
                     Text(
@@ -158,10 +157,9 @@ class PersonalizationView extends StatelessWidget {
               child: Column(
                 children: [
                   PremiumCtaButton(
-                    label:
-                        isLastStep
-                            ? l10n.personalizationFinish
-                            : l10n.personalizationContinue,
+                    label: isLastStep
+                        ? l10n.personalizationFinish
+                        : l10n.personalizationContinue,
                     onPressed: () {
                       if (isLastStep) {
                         bloc.add(SaveAndFinishPersonalization());

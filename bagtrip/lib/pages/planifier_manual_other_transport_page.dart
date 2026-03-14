@@ -190,10 +190,9 @@ class _TransportTypeCard extends StatelessWidget {
             color: selected ? ColorName.primary : ColorName.surfaceLight,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color:
-                  selected
-                      ? ColorName.primary
-                      : ColorName.primarySoftLight.withValues(alpha: 0.6),
+              color: selected
+                  ? ColorName.primary
+                  : ColorName.primarySoftLight.withValues(alpha: 0.6),
             ),
             boxShadow: [
               BoxShadow(
@@ -221,8 +220,9 @@ class _TransportTypeCard extends StatelessWidget {
                   fontFamily: FontFamily.b612,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color:
-                      selected ? ColorName.surface : ColorName.primaryTrueDark,
+                  color: selected
+                      ? ColorName.surface
+                      : ColorName.primaryTrueDark,
                 ),
               ),
             ],

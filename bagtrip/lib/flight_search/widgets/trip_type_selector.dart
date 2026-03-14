@@ -59,18 +59,15 @@ class TripTypeSelector extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: selected ? ColorName.primary : Colors.transparent,
                       borderRadius: AppRadius.pill,
-                      boxShadow:
-                          selected
-                              ? [
-                                BoxShadow(
-                                  color: ColorName.primary.withValues(
-                                    alpha: 0.2,
-                                  ),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ]
-                              : [],
+                      boxShadow: selected
+                          ? [
+                              BoxShadow(
+                                color: ColorName.primary.withValues(alpha: 0.2),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ]
+                          : [],
                     ),
                     alignment: Alignment.center,
                     child: Text(
@@ -80,12 +77,12 @@ class TripTypeSelector extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: FontFamily.b612,
                         fontSize: 13,
-                        fontWeight:
-                            selected ? FontWeight.w600 : FontWeight.w500,
-                        color:
-                            selected
-                                ? ColorName.surface
-                                : ColorName.primaryTrueDark,
+                        fontWeight: selected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                        color: selected
+                            ? ColorName.surface
+                            : ColorName.primaryTrueDark,
                       ),
                     ),
                   ),

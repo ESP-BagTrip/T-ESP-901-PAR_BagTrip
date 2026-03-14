@@ -1,19 +1,13 @@
-class BaggageInfo {
-  final int? quantity;
-  final int? weight;
-  final String? weightUnit;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  const BaggageInfo({this.quantity, this.weight, this.weightUnit});
+part 'baggage_info.freezed.dart';
+part 'baggage_info.g.dart';
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is BaggageInfo &&
-          runtimeType == other.runtimeType &&
-          quantity == other.quantity &&
-          weight == other.weight &&
-          weightUnit == other.weightUnit;
+@freezed
+abstract class BaggageInfo with _$BaggageInfo {
+  const factory BaggageInfo({int? quantity, int? weight, String? weightUnit}) =
+      _BaggageInfo;
 
-  @override
-  int get hashCode => quantity.hashCode ^ weight.hashCode ^ weightUnit.hashCode;
+  factory BaggageInfo.fromJson(Map<String, dynamic> json) =>
+      _$BaggageInfoFromJson(json);
 }

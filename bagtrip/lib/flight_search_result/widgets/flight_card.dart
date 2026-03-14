@@ -251,13 +251,12 @@ class FlightCard extends StatelessWidget {
     if (amenities.isEmpty) return const SizedBox.shrink();
 
     return Row(
-      children:
-          amenities
-              .expand(
-                (widget) => [widget, const SizedBox(width: AppSpacing.space8)],
-              )
-              .take(amenities.length * 2 - 1)
-              .toList(),
+      children: amenities
+          .expand(
+            (widget) => [widget, const SizedBox(width: AppSpacing.space8)],
+          )
+          .take(amenities.length * 2 - 1)
+          .toList(),
     );
   }
 

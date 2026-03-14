@@ -20,8 +20,9 @@ class PlanifierView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<PlanifierBloc, PlanifierState>(
       builder: (context, state) {
-        final inProgressCount =
-            state is PlanifierLoaded ? state.inProgressCount : 0;
+        final inProgressCount = state is PlanifierLoaded
+            ? state.inProgressCount
+            : 0;
         final l10n = AppLocalizations.of(context)!;
 
         final horizontalPadding = EdgeInsets.only(

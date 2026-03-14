@@ -38,8 +38,9 @@ class _ActivityFormState extends State<ActivityForm> {
     _descriptionController = TextEditingController(text: a?.description ?? '');
     _locationController = TextEditingController(text: a?.location ?? '');
     _costController = TextEditingController(
-      text:
-          a?.estimatedCost != null ? a!.estimatedCost!.toStringAsFixed(2) : '',
+      text: a?.estimatedCost != null
+          ? a!.estimatedCost!.toStringAsFixed(2)
+          : '',
     );
     _date = a?.date ?? DateTime.now();
     _startTime = a?.startTime != null ? _parseTime(a!.startTime!) : null;
@@ -115,9 +116,8 @@ class _ActivityFormState extends State<ActivityForm> {
                   labelText: 'Title *',
                   border: OutlineInputBorder(),
                 ),
-                validator:
-                    (v) =>
-                        (v == null || v.isEmpty) ? 'Title is required' : null,
+                validator: (v) =>
+                    (v == null || v.isEmpty) ? 'Title is required' : null,
               ),
               const SizedBox(height: 12),
               ListTile(
@@ -199,18 +199,16 @@ class _ActivityFormState extends State<ActivityForm> {
                   labelText: 'Category',
                   border: OutlineInputBorder(),
                 ),
-                items:
-                    ActivityCategory.values
-                        .map(
-                          (c) => DropdownMenuItem(
-                            value: c,
-                            child: Text(c.name.toUpperCase()),
-                          ),
-                        )
-                        .toList(),
-                onChanged:
-                    (v) =>
-                        setState(() => _category = v ?? ActivityCategory.other),
+                items: ActivityCategory.values
+                    .map(
+                      (c) => DropdownMenuItem(
+                        value: c,
+                        child: Text(c.name.toUpperCase()),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (v) =>
+                    setState(() => _category = v ?? ActivityCategory.other),
               ),
               const SizedBox(height: 12),
               TextFormField(

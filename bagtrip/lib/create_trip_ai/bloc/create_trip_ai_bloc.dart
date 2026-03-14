@@ -161,10 +161,9 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
         constraints: _lastConstraints,
       );
 
-      final proposals =
-          results.asMap().entries.map((entry) {
-            return AiTripProposal.fromJson(entry.value, id: '${entry.key}');
-          }).toList();
+      final proposals = results.asMap().entries.map((entry) {
+        return AiTripProposal.fromJsonWithId(entry.value, id: '${entry.key}');
+      }).toList();
 
       emit(CreateTripAiResultsLoaded(proposals));
     } on DioException catch (e) {
@@ -193,17 +192,15 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
           destinationCountry: p.destinationCountry,
           durationDays: p.durationDays,
           budgetEur: p.priceEur,
-          highlights:
-              activities
-                  .take(4)
-                  .map((a) => (a['title'] ?? '') as String)
-                  .toList(),
+          highlights: activities
+              .take(4)
+              .map((a) => (a['title'] ?? '') as String)
+              .toList(),
           accommodation: 'À déterminer',
-          dayByDayProgram:
-              activities
-                  .take(p.durationDays)
-                  .map((a) => (a['title'] ?? '') as String)
-                  .toList(),
+          dayByDayProgram: activities
+              .take(p.durationDays)
+              .map((a) => (a['title'] ?? '') as String)
+              .toList(),
           essentialItems: const [
             'Passeport',
             'Adaptateur de voyage',

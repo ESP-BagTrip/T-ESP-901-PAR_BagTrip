@@ -46,8 +46,8 @@ class ProfileView extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.space24),
                   FilledButton.icon(
-                    onPressed:
-                        () => context.read<ProfileBloc>().add(LoadProfile()),
+                    onPressed: () =>
+                        context.read<ProfileBloc>().add(LoadProfile()),
                     icon: const Icon(Icons.refresh),
                     label: Text(AppLocalizations.of(context)!.retryButton),
                   ),

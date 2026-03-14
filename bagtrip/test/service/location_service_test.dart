@@ -420,7 +420,7 @@ void main() {
           departureDate: '2024-04-01',
           adults: 1,
           multiDestSegments: [
-            FlightSegment(
+            const FlightSegment(
               departureAirport: {'code': 'CDG'},
               arrivalAirport: {'code': 'JFK'},
             ),

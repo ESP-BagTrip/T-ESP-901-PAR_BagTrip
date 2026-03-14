@@ -11,8 +11,8 @@ class TripHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
-      value:
-          context.read<TripManagementBloc>()..add(LoadTripHome(tripId: tripId)),
+      value: context.read<TripManagementBloc>()
+        ..add(LoadTripHome(tripId: tripId)),
       child: TripHomeView(tripId: tripId),
     );
   }

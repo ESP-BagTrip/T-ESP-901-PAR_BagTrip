@@ -172,10 +172,9 @@ class RecentBookingsSection extends StatelessWidget {
             vertical: AppSpacing.space4,
           ),
           decoration: BoxDecoration(
-            color:
-                isCompleted
-                    ? ColorName.primaryLight
-                    : ColorName.secondary.withValues(alpha: 0.2),
+            color: isCompleted
+                ? ColorName.primaryLight
+                : ColorName.secondary.withValues(alpha: 0.2),
             borderRadius: AppRadius.small4,
           ),
           child: Text(
@@ -183,10 +182,9 @@ class RecentBookingsSection extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color:
-                  isCompleted
-                      ? ColorName.primaryTrueDark.withValues(alpha: 0.7)
-                      : ColorName.secondary,
+              color: isCompleted
+                  ? ColorName.primaryTrueDark.withValues(alpha: 0.7)
+                  : ColorName.secondary,
             ),
           ),
         ),

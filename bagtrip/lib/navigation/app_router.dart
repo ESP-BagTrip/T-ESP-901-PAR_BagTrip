@@ -57,27 +57,26 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/',
       name: 'splash',
-      pageBuilder:
-          (context, state) => const NoTransitionPage(child: SplashPage()),
+      pageBuilder: (context, state) =>
+          const NoTransitionPage(child: SplashPage()),
     ),
     GoRoute(
       path: '/login',
       name: 'login',
-      pageBuilder:
-          (context, state) => const NoTransitionPage(child: LoginPage()),
+      pageBuilder: (context, state) =>
+          const NoTransitionPage(child: LoginPage()),
     ),
     GoRoute(
       path: '/onboarding',
       name: 'onboarding',
-      pageBuilder:
-          (context, state) => const NoTransitionPage(child: OnboardingPage()),
+      pageBuilder: (context, state) =>
+          const NoTransitionPage(child: OnboardingPage()),
     ),
     GoRoute(
       path: '/personalization',
       name: 'personalization',
-      pageBuilder:
-          (context, state) =>
-              const NoTransitionPage(child: PersonalizationPage()),
+      pageBuilder: (context, state) =>
+          const NoTransitionPage(child: PersonalizationPage()),
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
@@ -90,15 +89,14 @@ final GoRouter appRouter = GoRouter(
             GoRoute(
               path: '/planifier',
               name: 'planifier',
-              pageBuilder:
-                  (context, state) =>
-                      const NoTransitionPage(child: PlanifierPage()),
+              pageBuilder: (context, state) =>
+                  const NoTransitionPage(child: PlanifierPage()),
               routes: [
                 GoRoute(
                   path: 'manual',
                   name: 'planifierManual',
-                  pageBuilder:
-                      (context, state) => buildSlideTransitionPage<void>(
+                  pageBuilder: (context, state) =>
+                      buildSlideTransitionPage<void>(
                         state: state,
                         child: const PlanifierManualPage(),
                       ),
@@ -106,8 +104,8 @@ final GoRouter appRouter = GoRouter(
                     GoRoute(
                       path: 'transport',
                       name: 'planifierManualTransport',
-                      pageBuilder:
-                          (context, state) => buildSlideTransitionPage<void>(
+                      pageBuilder: (context, state) =>
+                          buildSlideTransitionPage<void>(
                             state: state,
                             child: const PlanifierManualTransportPage(),
                           ),
@@ -115,11 +113,8 @@ final GoRouter appRouter = GoRouter(
                         GoRoute(
                           path: 'other',
                           name: 'planifierManualOtherTransport',
-                          pageBuilder:
-                              (
-                                context,
-                                state,
-                              ) => buildSlideTransitionPage<void>(
+                          pageBuilder: (context, state) =>
+                              buildSlideTransitionPage<void>(
                                 state: state,
                                 child:
                                     const PlanifierManualOtherTransportPage(),
@@ -130,8 +125,8 @@ final GoRouter appRouter = GoRouter(
                     GoRoute(
                       path: 'flight-search',
                       name: 'planifierManualFlightSearch',
-                      pageBuilder:
-                          (context, state) => buildSlideTransitionPage<void>(
+                      pageBuilder: (context, state) =>
+                          buildSlideTransitionPage<void>(
                             state: state,
                             child: const PlanifierManualFlightPage(),
                           ),
@@ -141,8 +136,8 @@ final GoRouter appRouter = GoRouter(
                 GoRoute(
                   path: 'create-trip-ai',
                   name: 'createTripAi',
-                  pageBuilder:
-                      (context, state) => buildSlideTransitionPage<void>(
+                  pageBuilder: (context, state) =>
+                      buildSlideTransitionPage<void>(
                         state: state,
                         child: const CreateTripAiFlowPage(),
                       ),
@@ -157,9 +152,8 @@ final GoRouter appRouter = GoRouter(
             GoRoute(
               path: '/trips',
               name: 'trips',
-              pageBuilder:
-                  (context, state) =>
-                      const NoTransitionPage(child: TripsListPage()),
+              pageBuilder: (context, state) =>
+                  const NoTransitionPage(child: TripsListPage()),
               routes: [
                 GoRoute(
                   path: ':tripId',
@@ -271,9 +265,8 @@ final GoRouter appRouter = GoRouter(
             GoRoute(
               path: '/profile',
               name: 'profile',
-              pageBuilder:
-                  (context, state) =>
-                      const NoTransitionPage(child: ProfilePage()),
+              pageBuilder: (context, state) =>
+                  const NoTransitionPage(child: ProfilePage()),
             ),
           ],
         ),
@@ -282,11 +275,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/notifications',
       name: 'notifications',
-      pageBuilder:
-          (context, state) => buildSlideTransitionPage<void>(
-            state: state,
-            child: const NotificationsPage(),
-          ),
+      pageBuilder: (context, state) => buildSlideTransitionPage<void>(
+        state: state,
+        child: const NotificationsPage(),
+      ),
     ),
     GoRoute(
       path: '/flight-search-result',

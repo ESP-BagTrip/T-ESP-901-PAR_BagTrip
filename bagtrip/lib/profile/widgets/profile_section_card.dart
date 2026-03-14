@@ -36,14 +36,9 @@ class ProfileSectionCard extends StatelessWidget {
     return Container(
       decoration: _decoration,
       padding: AppSpacing.allEdgeInsetSpace24,
-      child:
-          onTap != null
-              ? InkWell(
-                onTap: onTap,
-                borderRadius: AppRadius.large16,
-                child: child,
-              )
-              : child,
+      child: onTap != null
+          ? InkWell(onTap: onTap, borderRadius: AppRadius.large16, child: child)
+          : child,
     );
   }
 }

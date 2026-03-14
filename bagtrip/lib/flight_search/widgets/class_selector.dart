@@ -30,8 +30,9 @@ class ClassSelector extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size.fromHeight(AppSize.height42),
                 padding: AppSpacing.allEdgeInsetSpace8,
-                backgroundColor:
-                    selected ? ColorName.secondary : ColorName.primaryLight,
+                backgroundColor: selected
+                    ? ColorName.secondary
+                    : ColorName.primaryLight,
                 shape: const RoundedRectangleBorder(
                   borderRadius: AppRadius.large16,
                 ),

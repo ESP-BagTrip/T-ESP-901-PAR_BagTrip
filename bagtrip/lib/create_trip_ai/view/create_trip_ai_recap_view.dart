@@ -137,8 +137,8 @@ class CreateTripAiRecapView extends StatelessWidget {
               ),
             ),
             TextButton.icon(
-              onPressed:
-                  () => context.push('/personalization?from=createTripAi'),
+              onPressed: () =>
+                  context.push('/personalization?from=createTripAi'),
               icon: const Icon(
                 Icons.edit_outlined,
                 size: 18,
@@ -283,12 +283,11 @@ class CreateTripAiRecapView extends StatelessWidget {
   }
 
   Widget _buildTravelTypesChips(String travelTypes) {
-    final list =
-        travelTypes
-            .split(',')
-            .map((e) => e.trim())
-            .where((e) => e.isNotEmpty)
-            .toList();
+    final list = travelTypes
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
     if (list.isEmpty) {
       return const Text(
         '—',
@@ -302,31 +301,30 @@ class CreateTripAiRecapView extends StatelessWidget {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children:
-          list
-              .map(
-                (label) => Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.space16,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _kRecapTravelTypesTint.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: _kRecapTravelTypesTint),
-                  ),
-                  child: Text(
-                    label,
-                    style: const TextStyle(
-                      fontFamily: FontFamily.b612,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: ColorName.primaryTrueDark,
-                    ),
-                  ),
+      children: list
+          .map(
+            (label) => Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.space16,
+                vertical: 10,
+              ),
+              decoration: BoxDecoration(
+                color: _kRecapTravelTypesTint.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: _kRecapTravelTypesTint),
+              ),
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontFamily: FontFamily.b612,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: ColorName.primaryTrueDark,
                 ),
-              )
-              .toList(),
+              ),
+            ),
+          )
+          .toList(),
     );
   }
 
@@ -354,23 +352,22 @@ class CreateTripAiRecapView extends StatelessWidget {
               child: SummaryDateCard(
                 label: l10n.departLabel.toUpperCase(),
                 date: s.departureDate,
-                onTap:
-                    () => _pickDate(
-                      context,
-                      s.departureDate ?? DateTime.now(),
-                      s.returnDate,
-                      true,
-                      (start, end) {
-                        context.read<CreateTripAiBloc>().add(
-                          CreateTripAiSetDepartureDate(start),
-                        );
-                        if (end != null) {
-                          context.read<CreateTripAiBloc>().add(
-                            CreateTripAiSetReturnDate(end),
-                          );
-                        }
-                      },
-                    ),
+                onTap: () => _pickDate(
+                  context,
+                  s.departureDate ?? DateTime.now(),
+                  s.returnDate,
+                  true,
+                  (start, end) {
+                    context.read<CreateTripAiBloc>().add(
+                      CreateTripAiSetDepartureDate(start),
+                    );
+                    if (end != null) {
+                      context.read<CreateTripAiBloc>().add(
+                        CreateTripAiSetReturnDate(end),
+                      );
+                    }
+                  },
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -378,23 +375,22 @@ class CreateTripAiRecapView extends StatelessWidget {
               child: SummaryDateCard(
                 label: l10n.returnLabel.toUpperCase(),
                 date: s.returnDate,
-                onTap:
-                    () => _pickDate(
-                      context,
-                      s.departureDate ?? DateTime.now(),
-                      s.returnDate,
-                      true,
-                      (start, end) {
-                        if (end != null) {
-                          context.read<CreateTripAiBloc>().add(
-                            CreateTripAiSetReturnDate(end),
-                          );
-                        }
-                        context.read<CreateTripAiBloc>().add(
-                          CreateTripAiSetDepartureDate(start),
-                        );
-                      },
-                    ),
+                onTap: () => _pickDate(
+                  context,
+                  s.departureDate ?? DateTime.now(),
+                  s.returnDate,
+                  true,
+                  (start, end) {
+                    if (end != null) {
+                      context.read<CreateTripAiBloc>().add(
+                        CreateTripAiSetReturnDate(end),
+                      );
+                    }
+                    context.read<CreateTripAiBloc>().add(
+                      CreateTripAiSetDepartureDate(start),
+                    );
+                  },
+                ),
               ),
             ),
           ],
@@ -412,14 +408,13 @@ class CreateTripAiRecapView extends StatelessWidget {
       height: 48,
       width: double.infinity,
       child: ElevatedButton(
-        onPressed:
-            canLaunch
-                ? () {
-                  context.read<CreateTripAiBloc>().add(
-                    CreateTripAiLaunchSearch(),
-                  );
-                }
-                : null,
+        onPressed: canLaunch
+            ? () {
+                context.read<CreateTripAiBloc>().add(
+                  CreateTripAiLaunchSearch(),
+                );
+              }
+            : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: ColorName.primary,
           foregroundColor: Colors.white,

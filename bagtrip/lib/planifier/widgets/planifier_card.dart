@@ -62,12 +62,11 @@ class PlanifierCard extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primaryTrueDark,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryTrueDark,
+                            ),
                       ),
                       const SizedBox(height: AppSpacing.space4),
                       Text(

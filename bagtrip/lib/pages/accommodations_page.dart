@@ -109,17 +109,15 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
       await _accommodationService.createAccommodation(
         widget.tripId,
         name: _nameController.text.trim(),
-        address:
-            _addressController.text.trim().isNotEmpty
-                ? _addressController.text.trim()
-                : null,
+        address: _addressController.text.trim().isNotEmpty
+            ? _addressController.text.trim()
+            : null,
         checkIn: _checkInDate,
         checkOut: _checkOutDate,
         pricePerNight: priceText.isNotEmpty ? double.tryParse(priceText) : null,
-        notes:
-            _notesController.text.trim().isNotEmpty
-                ? _notesController.text.trim()
-                : null,
+        notes: _notesController.text.trim().isNotEmpty
+            ? _notesController.text.trim()
+            : null,
       );
 
       _nameController.clear();
@@ -150,24 +148,23 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
   Future<void> _handleDeleteAccommodation(String accommodationId) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Supprimer l\'hébergement'),
-            content: const Text(
-              'Êtes-vous sûr de vouloir supprimer cet hébergement ?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Annuler'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                style: TextButton.styleFrom(foregroundColor: ColorName.error),
-                child: const Text('Supprimer'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text('Supprimer l\'hébergement'),
+        content: const Text(
+          'Êtes-vous sûr de vouloir supprimer cet hébergement ?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Annuler'),
           ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: ColorName.error),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
     );
 
     if (confirmed == true) {
@@ -198,230 +195,218 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('Hébergements')),
       body: SafeArea(
-        child:
-            _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : Column(
-                  children: [
-                    Expanded(
-                      child:
-                          _accommodations.isEmpty
-                              ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(
-                                      Icons.hotel_outlined,
-                                      size: 64,
-                                      color: AppColors.hint,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      'Aucun hébergement',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
-                                          ?.copyWith(color: AppColors.hint),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Ajoutez vos hôtels et logements',
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall?.copyWith(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Column(
+                children: [
+                  Expanded(
+                    child: _accommodations.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.hotel_outlined,
+                                  size: 64,
+                                  color: AppColors.hint,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Aucun hébergement',
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(color: AppColors.hint),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Ajoutez vos hôtels et logements',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
                                         color: AppColors.textMutedLight,
                                       ),
-                                    ),
-                                  ],
                                 ),
-                              )
-                              : ListView.builder(
-                                padding: const EdgeInsets.all(16),
-                                itemCount: _accommodations.length,
-                                itemBuilder: (context, index) {
-                                  final accommodation = _accommodations[index];
-                                  return Card(
-                                    margin: const EdgeInsets.only(bottom: 12),
-                                    child: ListTile(
-                                      leading: const CircleAvatar(
-                                        child: Icon(Icons.hotel),
-                                      ),
-                                      title: Text(accommodation.name),
-                                      subtitle: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          if (accommodation.address != null)
-                                            Text(accommodation.address!),
-                                          if (accommodation.checkIn != null ||
-                                              accommodation.checkOut != null)
-                                            Text(
-                                              '${accommodation.checkIn != null ? DateFormat('dd/MM/yyyy').format(accommodation.checkIn!) : '?'} → ${accommodation.checkOut != null ? DateFormat('dd/MM/yyyy').format(accommodation.checkOut!) : '?'}',
-                                            ),
-                                          if (accommodation.pricePerNight !=
-                                                  null &&
-                                              !isViewer)
-                                            Text(
-                                              '${accommodation.pricePerNight!.toStringAsFixed(2)} ${accommodation.currency ?? 'EUR'}',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                      isThreeLine: true,
-                                      trailing:
-                                          isReadOnly
-                                              ? null
-                                              : IconButton(
-                                                icon: const Icon(
-                                                  Icons.delete_outline,
-                                                ),
-                                                onPressed:
-                                                    () =>
-                                                        _handleDeleteAccommodation(
-                                                          accommodation.id,
-                                                        ),
-                                              ),
-                                    ),
-                                  );
-                                },
-                              ),
-                    ),
-                    if (!isReadOnly)
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: const BoxDecoration(
-                          color: AppColors.surfaceLight,
-                          border: Border(
-                            top: BorderSide(color: AppColors.border),
-                          ),
-                        ),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Ajouter un hébergement',
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: 16),
-                              TextFormField(
-                                controller: _nameController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Nom *',
-                                  border: OutlineInputBorder(),
-                                  hintText: 'ex: Hotel Marriott Paris',
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.trim().isEmpty) {
-                                    return 'Requis';
-                                  }
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(height: 12),
-                              TextFormField(
-                                controller: _addressController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Adresse (optionnel)',
-                                  border: OutlineInputBorder(),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: InkWell(
-                                      onTap: () => _selectDate(context, true),
-                                      child: InputDecorator(
-                                        decoration: const InputDecoration(
-                                          labelText: 'Arrivée',
-                                          border: OutlineInputBorder(),
-                                          prefixIcon: Icon(
-                                            Icons.calendar_today,
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: _accommodations.length,
+                            itemBuilder: (context, index) {
+                              final accommodation = _accommodations[index];
+                              return Card(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                child: ListTile(
+                                  leading: const CircleAvatar(
+                                    child: Icon(Icons.hotel),
+                                  ),
+                                  title: Text(accommodation.name),
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      if (accommodation.address != null)
+                                        Text(accommodation.address!),
+                                      if (accommodation.checkIn != null ||
+                                          accommodation.checkOut != null)
+                                        Text(
+                                          '${accommodation.checkIn != null ? DateFormat('dd/MM/yyyy').format(accommodation.checkIn!) : '?'} → ${accommodation.checkOut != null ? DateFormat('dd/MM/yyyy').format(accommodation.checkOut!) : '?'}',
+                                        ),
+                                      if (accommodation.pricePerNight != null &&
+                                          !isViewer)
+                                        Text(
+                                          '${accommodation.pricePerNight!.toStringAsFixed(2)} ${accommodation.currency ?? 'EUR'}',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
                                           ),
                                         ),
-                                        child: Text(
-                                          _checkInDate != null
-                                              ? DateFormat(
+                                    ],
+                                  ),
+                                  isThreeLine: true,
+                                  trailing: isReadOnly
+                                      ? null
+                                      : IconButton(
+                                          icon: const Icon(
+                                            Icons.delete_outline,
+                                          ),
+                                          onPressed: () =>
+                                              _handleDeleteAccommodation(
+                                                accommodation.id,
+                                              ),
+                                        ),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                  if (!isReadOnly)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: const BoxDecoration(
+                        color: AppColors.surfaceLight,
+                        border: Border(
+                          top: BorderSide(color: AppColors.border),
+                        ),
+                      ),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Ajouter un hébergement',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _nameController,
+                              decoration: const InputDecoration(
+                                labelText: 'Nom *',
+                                border: OutlineInputBorder(),
+                                hintText: 'ex: Hotel Marriott Paris',
+                              ),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Requis';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _addressController,
+                              decoration: const InputDecoration(
+                                labelText: 'Adresse (optionnel)',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: InkWell(
+                                    onTap: () => _selectDate(context, true),
+                                    child: InputDecorator(
+                                      decoration: const InputDecoration(
+                                        labelText: 'Arrivée',
+                                        border: OutlineInputBorder(),
+                                        prefixIcon: Icon(Icons.calendar_today),
+                                      ),
+                                      child: Text(
+                                        _checkInDate != null
+                                            ? DateFormat(
                                                 'dd/MM/yyyy',
                                               ).format(_checkInDate!)
-                                              : '',
-                                        ),
+                                            : '',
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: InkWell(
-                                      onTap: () => _selectDate(context, false),
-                                      child: InputDecorator(
-                                        decoration: const InputDecoration(
-                                          labelText: 'Départ',
-                                          border: OutlineInputBorder(),
-                                          prefixIcon: Icon(
-                                            Icons.calendar_today,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          _checkOutDate != null
-                                              ? DateFormat(
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: InkWell(
+                                    onTap: () => _selectDate(context, false),
+                                    child: InputDecorator(
+                                      decoration: const InputDecoration(
+                                        labelText: 'Départ',
+                                        border: OutlineInputBorder(),
+                                        prefixIcon: Icon(Icons.calendar_today),
+                                      ),
+                                      child: Text(
+                                        _checkOutDate != null
+                                            ? DateFormat(
                                                 'dd/MM/yyyy',
                                               ).format(_checkOutDate!)
-                                              : '',
-                                        ),
+                                            : '',
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              TextFormField(
-                                controller: _priceController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Prix / nuit (optionnel)',
-                                  border: OutlineInputBorder(),
-                                  prefixIcon: Icon(Icons.euro),
-                                ),
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                      decimal: true,
-                                    ),
-                              ),
-                              if (_errorMessage != null) ...[
-                                const SizedBox(height: 12),
-                                Text(
-                                  _errorMessage!,
-                                  style: const TextStyle(
-                                    color: ColorName.errorDark,
                                   ),
                                 ),
                               ],
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _priceController,
+                              decoration: const InputDecoration(
+                                labelText: 'Prix / nuit (optionnel)',
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.euro),
+                              ),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                            ),
+                            if (_errorMessage != null) ...[
                               const SizedBox(height: 12),
-                              ElevatedButton.icon(
-                                onPressed:
-                                    _isAdding ? null : _handleAddAccommodation,
-                                icon:
-                                    _isAdding
-                                        ? const SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                        : const Icon(Icons.add),
-                                label: const Text('Ajouter'),
+                              Text(
+                                _errorMessage!,
+                                style: const TextStyle(
+                                  color: ColorName.errorDark,
+                                ),
                               ),
                             ],
-                          ),
+                            const SizedBox(height: 12),
+                            ElevatedButton.icon(
+                              onPressed: _isAdding
+                                  ? null
+                                  : _handleAddAccommodation,
+                              icon: _isAdding
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(Icons.add),
+                              label: const Text('Ajouter'),
+                            ),
+                          ],
                         ),
                       ),
-                  ],
-                ),
+                    ),
+                ],
+              ),
       ),
     );
   }

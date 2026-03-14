@@ -103,8 +103,9 @@ class _DateCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dayDate = date != null ? DateFormat('EEE d').format(date!) : null;
-    final monthYear =
-        date != null ? DateFormat('MMMM yyyy').format(date!) : null;
+    final monthYear = date != null
+        ? DateFormat('MMMM yyyy').format(date!)
+        : null;
 
     const dateCardRadius = BorderRadius.all(Radius.circular(48));
     return Material(
@@ -155,10 +156,9 @@ class _DateCard extends StatelessWidget {
                   fontFamily: FontFamily.b612,
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
-                  color:
-                      dayDate != null
-                          ? ColorName.primaryTrueDark
-                          : ColorName.hint,
+                  color: dayDate != null
+                      ? ColorName.primaryTrueDark
+                      : ColorName.hint,
                 ),
               ),
               if (monthYear != null) ...[

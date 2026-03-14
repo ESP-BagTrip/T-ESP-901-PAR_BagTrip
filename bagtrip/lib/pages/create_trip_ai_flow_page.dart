@@ -66,10 +66,9 @@ class CreateTripAiFlowPage extends StatelessWidget {
                         Text(state.message, textAlign: TextAlign.center),
                         const SizedBox(height: 16),
                         FilledButton.icon(
-                          onPressed:
-                              () => context.read<CreateTripAiBloc>().add(
-                                CreateTripAiLoadRecap(),
-                              ),
+                          onPressed: () => context.read<CreateTripAiBloc>().add(
+                            CreateTripAiLoadRecap(),
+                          ),
                           icon: const Icon(Icons.arrow_back),
                           label: const Text('Retour'),
                         ),

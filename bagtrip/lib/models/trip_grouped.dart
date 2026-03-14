@@ -1,33 +1,18 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'package:bagtrip/models/trip.dart';
 
-class TripGrouped {
-  final List<Trip> ongoing;
-  final List<Trip> planned;
-  final List<Trip> completed;
+part 'trip_grouped.freezed.dart';
+part 'trip_grouped.g.dart';
 
-  TripGrouped({
-    required this.ongoing,
-    required this.planned,
-    required this.completed,
-  });
+@freezed
+abstract class TripGrouped with _$TripGrouped {
+  const factory TripGrouped({
+    @Default([]) List<Trip> ongoing,
+    @Default([]) List<Trip> planned,
+    @Default([]) List<Trip> completed,
+  }) = _TripGrouped;
 
-  factory TripGrouped.fromJson(Map<String, dynamic> json) {
-    return TripGrouped(
-      ongoing:
-          (json['ongoing'] as List<dynamic>?)
-              ?.map((e) => Trip.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-      planned:
-          (json['planned'] as List<dynamic>?)
-              ?.map((e) => Trip.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-      completed:
-          (json['completed'] as List<dynamic>?)
-              ?.map((e) => Trip.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-    );
-  }
+  factory TripGrouped.fromJson(Map<String, dynamic> json) =>
+      _$TripGroupedFromJson(json);
 }

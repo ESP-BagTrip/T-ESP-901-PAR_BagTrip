@@ -22,10 +22,9 @@ class PersonalizationSingleSelectCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color:
-          selected
-              ? AppColors.secondaryLight.withValues(alpha: 0.3)
-              : AppColors.surface,
+      color: selected
+          ? AppColors.secondaryLight.withValues(alpha: 0.3)
+          : AppColors.surface,
       borderRadius: AppRadius.large16,
       child: InkWell(
         onTap: onTap,
@@ -35,8 +34,9 @@ class PersonalizationSingleSelectCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: AppRadius.large16,
             border: Border.all(
-              color:
-                  selected ? AppColors.secondary : ColorName.primarySoftLight,
+              color: selected
+                  ? AppColors.secondary
+                  : ColorName.primarySoftLight,
               width: selected ? 2 : 1,
             ),
             boxShadow: [
@@ -52,8 +52,9 @@ class PersonalizationSingleSelectCard extends StatelessWidget {
               Icon(
                 icon,
                 size: 28,
-                color:
-                    selected ? AppColors.secondary : AppColors.textMutedLight,
+                color: selected
+                    ? AppColors.secondary
+                    : AppColors.textMutedLight,
               ),
               const SizedBox(width: AppSpacing.space16),
               Expanded(

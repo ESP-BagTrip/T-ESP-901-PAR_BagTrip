@@ -37,12 +37,11 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
 
   @override
   Widget build(BuildContext context) {
-    final existingFeedback =
-        widget.currentUserId != null
-            ? widget.feedbacks
-                .where((f) => f.userId == widget.currentUserId)
-                .firstOrNull
-            : null;
+    final existingFeedback = widget.currentUserId != null
+        ? widget.feedbacks
+              .where((f) => f.userId == widget.currentUserId)
+              .firstOrNull
+        : null;
 
     if (existingFeedback != null) {
       return _ReadOnlyFeedbackView(
@@ -133,14 +132,12 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
                       SubmitFeedback(
                         tripId: widget.tripId,
                         overallRating: _rating,
-                        highlights:
-                            _highlightsController.text.isNotEmpty
-                                ? _highlightsController.text
-                                : null,
-                        lowlights:
-                            _lowlightsController.text.isNotEmpty
-                                ? _lowlightsController.text
-                                : null,
+                        highlights: _highlightsController.text.isNotEmpty
+                            ? _highlightsController.text
+                            : null,
+                        lowlights: _lowlightsController.text.isNotEmpty
+                            ? _lowlightsController.text
+                            : null,
                         wouldRecommend: _wouldRecommend,
                       ),
                     );
@@ -406,19 +403,15 @@ class _PostTripSuggestionCard extends StatelessWidget {
               Wrap(
                 spacing: 4,
                 runSpacing: 4,
-                children:
-                    highlights
-                        .map(
-                          (h) => Chip(
-                            label: Text(
-                              h,
-                              style: const TextStyle(fontSize: 11),
-                            ),
-                            padding: EdgeInsets.zero,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                        )
-                        .toList(),
+                children: highlights
+                    .map(
+                      (h) => Chip(
+                        label: Text(h, style: const TextStyle(fontSize: 11)),
+                        padding: EdgeInsets.zero,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    )
+                    .toList(),
               ),
             ],
           ],

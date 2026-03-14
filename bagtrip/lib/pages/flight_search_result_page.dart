@@ -27,22 +27,21 @@ class FlightSearchResultPage extends StatelessWidget {
         ),
       ),
       body: BlocProvider(
-        create:
-            (context) =>
-                FlightSearchResultBloc()..add(
-                  LoadFlights(
-                    departureCode: arguments.departureCode,
-                    arrivalCode: arguments.arrivalCode,
-                    departureDate: arguments.departureDate,
-                    returnDate: arguments.returnDate,
-                    adults: arguments.adults,
-                    children: arguments.children,
-                    infants: arguments.infants,
-                    travelClass: arguments.travelClass,
-                    multiDestSegments: arguments.multiDestSegments,
-                    maxPrice: arguments.maxPrice,
-                  ),
-                ),
+        create: (context) => FlightSearchResultBloc()
+          ..add(
+            LoadFlights(
+              departureCode: arguments.departureCode,
+              arrivalCode: arguments.arrivalCode,
+              departureDate: arguments.departureDate,
+              returnDate: arguments.returnDate,
+              adults: arguments.adults,
+              children: arguments.children,
+              infants: arguments.infants,
+              travelClass: arguments.travelClass,
+              multiDestSegments: arguments.multiDestSegments,
+              maxPrice: arguments.maxPrice,
+            ),
+          ),
         child: const SafeArea(
           child: SingleChildScrollView(
             child: Padding(
