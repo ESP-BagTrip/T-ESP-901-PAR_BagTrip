@@ -1,6 +1,6 @@
 """Schémas Pydantic pour les endpoints admin."""
 
-from datetime import date, datetime
+import datetime as dt
 from typing import Any
 from uuid import UUID
 
@@ -23,8 +23,8 @@ class AdminUserResponse(BaseModel):
     id: UUID
     email: str
     plan: str = Field("FREE")
-    createdAt: datetime = Field(alias="created_at")
-    updatedAt: datetime | None = Field(None, alias="updated_at")
+    createdAt: dt.datetime = Field(alias="created_at")
+    updatedAt: dt.datetime | None = Field(None, alias="updated_at")
 
     class Config:
         from_attributes = True
@@ -85,13 +85,13 @@ class AdminTripResponse(BaseModel):
     title: str | None = None
     originIata: str | None = Field(default=None, alias="origin_iata")
     destinationIata: str | None = Field(default=None, alias="destination_iata")
-    startDate: date | None = Field(default=None, alias="start_date")
-    endDate: date | None = Field(default=None, alias="end_date")
+    startDate: dt.date | None = Field(default=None, alias="start_date")
+    endDate: dt.date | None = Field(default=None, alias="end_date")
     status: str | None = None
     budgetTotal: float | None = Field(default=None, alias="budget_total")
     origin: str | None = None
-    createdAt: datetime = Field(alias="created_at")
-    updatedAt: datetime = Field(alias="updated_at")
+    createdAt: dt.datetime = Field(alias="created_at")
+    updatedAt: dt.datetime = Field(alias="updated_at")
 
     class Config:
         from_attributes = True
@@ -109,10 +109,10 @@ class AdminTravelerResponse(BaseModel):
     travelerType: str = Field(..., alias="traveler_type")
     firstName: str = Field(..., alias="first_name")
     lastName: str = Field(..., alias="last_name")
-    dateOfBirth: date | None = Field(None, alias="date_of_birth")
+    dateOfBirth: dt.date | None = Field(None, alias="date_of_birth")
     gender: str | None = None
-    createdAt: datetime = Field(..., alias="created_at")
-    updatedAt: datetime = Field(..., alias="updated_at")
+    createdAt: dt.datetime = Field(..., alias="created_at")
+    updatedAt: dt.datetime = Field(..., alias="updated_at")
 
     class Config:
         from_attributes = True
@@ -130,8 +130,8 @@ class AdminTravelerProfileResponse(BaseModel):
     budget: str | None = None
     companions: str | None = None
     isCompleted: bool = Field(alias="is_completed")
-    createdAt: datetime = Field(alias="created_at")
-    updatedAt: datetime = Field(alias="updated_at")
+    createdAt: dt.datetime = Field(alias="created_at")
+    updatedAt: dt.datetime = Field(alias="updated_at")
 
     class Config:
         from_attributes = True
@@ -151,8 +151,8 @@ class AdminBookingIntentResponse(BaseModel):
     amount: float
     currency: str
     stripePaymentIntentId: str | None = Field(default=None, alias="stripe_payment_intent_id")
-    createdAt: datetime = Field(alias="created_at")
-    updatedAt: datetime = Field(alias="updated_at")
+    createdAt: dt.datetime = Field(alias="created_at")
+    updatedAt: dt.datetime = Field(alias="updated_at")
 
     class Config:
         from_attributes = True
@@ -168,13 +168,13 @@ class AdminAccommodationResponse(BaseModel):
     userEmail: str = Field(alias="user_email")
     name: str
     address: str | None = None
-    checkIn: date | None = Field(default=None, alias="check_in")
-    checkOut: date | None = Field(default=None, alias="check_out")
+    checkIn: dt.date | None = Field(default=None, alias="check_in")
+    checkOut: dt.date | None = Field(default=None, alias="check_out")
     pricePerNight: float | None = Field(default=None, alias="price_per_night")
     currency: str | None = None
     bookingReference: str | None = Field(default=None, alias="booking_reference")
-    createdAt: datetime = Field(alias="created_at")
-    updatedAt: datetime = Field(alias="updated_at")
+    createdAt: dt.datetime = Field(alias="created_at")
+    updatedAt: dt.datetime = Field(alias="updated_at")
 
     class Config:
         from_attributes = True
@@ -192,8 +192,8 @@ class AdminBaggageItemResponse(BaseModel):
     category: str | None = None
     quantity: int | None = None
     isPacked: bool | None = Field(default=None, alias="is_packed")
-    createdAt: datetime = Field(alias="created_at")
-    updatedAt: datetime = Field(alias="updated_at")
+    createdAt: dt.datetime = Field(alias="created_at")
+    updatedAt: dt.datetime = Field(alias="updated_at")
 
     class Config:
         from_attributes = True
@@ -209,7 +209,7 @@ class AdminTripShareResponse(BaseModel):
     userId: UUID = Field(alias="user_id")
     userEmail: str = Field(alias="user_email")
     role: str
-    invitedAt: datetime = Field(alias="invited_at")
+    invitedAt: dt.datetime = Field(alias="invited_at")
 
     class Config:
         from_attributes = True
@@ -224,12 +224,12 @@ class AdminFlightSearchResponse(BaseModel):
     tripTitle: str | None = Field(default=None, alias="trip_title")
     originIata: str = Field(alias="origin_iata")
     destinationIata: str = Field(alias="destination_iata")
-    departureDate: date = Field(alias="departure_date")
-    returnDate: date | None = Field(default=None, alias="return_date")
+    departureDate: dt.date = Field(alias="departure_date")
+    returnDate: dt.date | None = Field(default=None, alias="return_date")
     adults: int
     children: int | None = None
     travelClass: str | None = Field(default=None, alias="travel_class")
-    createdAt: datetime = Field(alias="created_at")
+    createdAt: dt.datetime = Field(alias="created_at")
 
     class Config:
         from_attributes = True
@@ -245,15 +245,15 @@ class AdminActivityResponse(BaseModel):
     userEmail: str = Field(alias="user_email")
     title: str
     description: str | None = None
-    date: date
+    date: dt.date
     startTime: Any | None = Field(default=None, alias="start_time")
     endTime: Any | None = Field(default=None, alias="end_time")
     location: str | None = None
     category: str
     estimatedCost: float | None = Field(default=None, alias="estimated_cost")
     isBooked: bool = Field(alias="is_booked")
-    createdAt: datetime = Field(alias="created_at")
-    updatedAt: datetime = Field(alias="updated_at")
+    createdAt: dt.datetime = Field(alias="created_at")
+    updatedAt: dt.datetime = Field(alias="updated_at")
 
     class Config:
         from_attributes = True
@@ -270,10 +270,10 @@ class AdminBudgetItemResponse(BaseModel):
     label: str
     amount: float
     category: str
-    date: date | None = None
+    date: dt.date | None = None
     isPlanned: bool = Field(alias="is_planned")
-    createdAt: datetime = Field(alias="created_at")
-    updatedAt: datetime = Field(alias="updated_at")
+    createdAt: dt.datetime = Field(alias="created_at")
+    updatedAt: dt.datetime = Field(alias="updated_at")
 
     class Config:
         from_attributes = True
@@ -292,7 +292,7 @@ class AdminFeedbackResponse(BaseModel):
     highlights: str | None = None
     lowlights: str | None = None
     wouldRecommend: bool = Field(alias="would_recommend")
-    createdAt: datetime = Field(alias="created_at")
+    createdAt: dt.datetime = Field(alias="created_at")
 
     class Config:
         from_attributes = True
@@ -311,8 +311,8 @@ class AdminNotificationResponse(BaseModel):
     title: str
     body: str
     isRead: bool = Field(alias="is_read")
-    sentAt: datetime | None = Field(default=None, alias="sent_at")
-    createdAt: datetime = Field(alias="created_at")
+    sentAt: dt.datetime | None = Field(default=None, alias="sent_at")
+    createdAt: dt.datetime = Field(alias="created_at")
 
     class Config:
         from_attributes = True
@@ -331,8 +331,8 @@ class AdminFlightBookingResponse(BaseModel):
     amadeusFlightOrderId: str | None = Field(default=None, alias="amadeus_flight_order_id")
     status: str | None = None
     bookingReference: str | None = Field(default=None, alias="booking_reference")
-    createdAt: datetime = Field(alias="created_at")
-    updatedAt: datetime = Field(alias="updated_at")
+    createdAt: dt.datetime = Field(alias="created_at")
+    updatedAt: dt.datetime = Field(alias="updated_at")
 
     class Config:
         from_attributes = True

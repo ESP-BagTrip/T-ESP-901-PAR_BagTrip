@@ -1,4 +1,4 @@
-from datetime import date
+import datetime as dt
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -10,7 +10,7 @@ class BudgetItemCreateRequest(BaseModel):
     label: str
     amount: float
     category: BudgetCategory | None = None
-    date: date | None = None
+    date: dt.date | None = None
     isPlanned: bool | None = None
 
 
@@ -18,7 +18,7 @@ class BudgetItemUpdateRequest(BaseModel):
     label: str | None = None
     amount: float | None = None
     category: BudgetCategory | None = None
-    date: date | None = None
+    date: dt.date | None = None
     isPlanned: bool | None = None
 
 
@@ -28,7 +28,7 @@ class BudgetItemResponse(BaseModel):
     label: str
     amount: float
     category: str
-    date: date | None = None
+    date: dt.date | None = None
     isPlanned: bool = Field(alias="is_planned")
     sourceType: str | None = Field(None, alias="source_type")
     sourceId: UUID | None = Field(None, alias="source_id")

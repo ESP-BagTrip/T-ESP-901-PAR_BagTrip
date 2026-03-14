@@ -1,4 +1,4 @@
-from datetime import date, time
+import datetime as dt
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -8,10 +8,10 @@ from src.enums import ActivityCategory
 
 class ActivityCreateRequest(BaseModel):
     title: str
-    date: date
+    date: dt.date
     description: str | None = None
-    startTime: time | None = None
-    endTime: time | None = None
+    startTime: dt.time | None = None
+    endTime: dt.time | None = None
     location: str | None = None
     category: ActivityCategory | None = None
     estimatedCost: float | None = None
@@ -20,10 +20,10 @@ class ActivityCreateRequest(BaseModel):
 
 class ActivityUpdateRequest(BaseModel):
     title: str | None = None
-    date: date | None = None
+    date: dt.date | None = None
     description: str | None = None
-    startTime: time | None = None
-    endTime: time | None = None
+    startTime: dt.time | None = None
+    endTime: dt.time | None = None
     location: str | None = None
     category: ActivityCategory | None = None
     estimatedCost: float | None = None
@@ -35,9 +35,9 @@ class ActivityResponse(BaseModel):
     tripId: UUID = Field(alias="trip_id")
     title: str
     description: str | None = None
-    date: date
-    startTime: time | None = Field(default=None, alias="start_time")
-    endTime: time | None = Field(default=None, alias="end_time")
+    date: dt.date
+    startTime: dt.time | None = Field(default=None, alias="start_time")
+    endTime: dt.time | None = Field(default=None, alias="end_time")
     location: str | None = None
     category: str
     estimatedCost: float | None = Field(default=None, alias="estimated_cost")
