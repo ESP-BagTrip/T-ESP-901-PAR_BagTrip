@@ -6,6 +6,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from src.enums import BookingIntentStatus, BookingIntentType
 from src.integrations.stripe.client import StripeClient
 from src.models.booking_intent import BookingIntent
 from src.models.flight_offer import FlightOffer
@@ -39,7 +40,7 @@ class StripePaymentsService:
         if not booking_intent:
             raise AppError("BOOKING_INTENT_NOT_FOUND", 404, "Booking intent not found")
 
-        if booking_intent.status != "INIT":
+        if booking_intent.status != BookingIntentStatus.INIT:
             raise AppError(
                 "INVALID_STATUS", 400, f"Booking intent must be INIT, got {booking_intent.status}"
             )
@@ -126,7 +127,7 @@ class StripePaymentsService:
 
         # POC: Allow capture from AUTHORIZED status (skip booking step)
         # In production, this should require BOOKED status
-        if booking_intent.status not in ["BOOKED", "AUTHORIZED"]:
+        if booking_intent.status not in [BookingIntentStatus.BOOKED, BookingIntentStatus.AUTHORIZED]:
             raise AppError(
                 "INVALID_STATUS",
                 400,
@@ -142,7 +143,7 @@ class StripePaymentsService:
         )
 
         # Mettre à jour le booking intent
-        booking_intent.status = "CAPTURED"
+        booking_intent.status = BookingIntentStatus.CAPTURED
         booking_intent.stripe_charge_id = payment_intent.latest_charge
         db.commit()
         db.refresh(booking_intent)
@@ -171,7 +172,7 @@ class StripePaymentsService:
         if not booking_intent:
             raise AppError("BOOKING_INTENT_NOT_FOUND", 404, "Booking intent not found")
 
-        if booking_intent.status == "CAPTURED":
+        if booking_intent.status == BookingIntentStatus.CAPTURED:
             raise AppError("INVALID_STATUS", 400, "Cannot cancel a captured payment")
 
         if booking_intent.stripe_payment_intent_id:
@@ -180,7 +181,7 @@ class StripePaymentsService:
                 StripeClient.cancel_payment_intent(booking_intent.stripe_payment_intent_id)
 
         # Mettre à jour le booking intent
-        booking_intent.status = "CANCELLED"
+        booking_intent.status = BookingIntentStatus.CANCELLED
         db.commit()
         db.refresh(booking_intent)
 
@@ -229,7 +230,7 @@ class StripePaymentsService:
 
         # Mettre à jour le booking intent si le paiement est autorisé
         if payment_intent.status == "requires_capture":
-            booking_intent.status = "AUTHORIZED"
+            booking_intent.status = BookingIntentStatus.AUTHORIZED
             db.commit()
             db.refresh(booking_intent)
 
@@ -257,7 +258,7 @@ class StripePaymentsService:
 
         try:
             if (
-                booking_intent.type == "flight"
+                booking_intent.type == BookingIntentType.FLIGHT
                 and booking_intent.selected_offer_type == "flight_offer"
             ):
                 flight_offer = (

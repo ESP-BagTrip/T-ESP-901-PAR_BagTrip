@@ -5,6 +5,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from src.enums import BookingIntentStatus, BookingIntentType
 from src.models.booking_intent import BookingIntent
 from src.models.flight_offer import FlightOffer
 from src.utils.errors import AppError
@@ -31,7 +32,7 @@ class BookingIntentsService:
         selected_offer_type = None
         selected_offer_id = None
 
-        if type == "flight":
+        if type == BookingIntentType.FLIGHT:
             if not flight_offer_id:
                 raise AppError("INVALID_REQUEST", 400, "flightOfferId is required for flight type")
 
@@ -78,7 +79,7 @@ class BookingIntentsService:
             user_id=user_id,
             trip_id=trip_id,
             type=type,
-            status="INIT",
+            status=BookingIntentStatus.INIT,
             amount=amount,
             currency=currency,
             selected_offer_type=selected_offer_type,

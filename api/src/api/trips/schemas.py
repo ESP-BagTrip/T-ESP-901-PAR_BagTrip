@@ -5,6 +5,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from src.enums import TripOrigin, TripStatus
+
 
 class TripCreateRequest(BaseModel):
     """Requête de création de trip."""
@@ -19,7 +21,7 @@ class TripCreateRequest(BaseModel):
     nbTravelers: int | None = None
     coverImageUrl: str | None = None
     budgetTotal: float | None = None
-    origin: str | None = None
+    origin: TripOrigin | None = None
 
 
 class TripUpdateRequest(BaseModel):
@@ -79,7 +81,7 @@ class TripDetailResponse(BaseModel):
 class TripStatusUpdateRequest(BaseModel):
     """Requête de mise à jour du statut d'un trip."""
 
-    status: str
+    status: TripStatus
 
 
 class TripHomeStats(BaseModel):

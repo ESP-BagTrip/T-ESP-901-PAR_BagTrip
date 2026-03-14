@@ -14,7 +14,7 @@ class AccommodationService {
     String? address,
     DateTime? checkIn,
     DateTime? checkOut,
-    double? price,
+    double? pricePerNight,
     String? currency,
     String? bookingReference,
     String? notes,
@@ -29,7 +29,7 @@ class AccommodationService {
             'checkIn': checkIn.toIso8601String().split('T').first,
           if (checkOut != null)
             'checkOut': checkOut.toIso8601String().split('T').first,
-          if (price != null) 'price': price,
+          if (pricePerNight != null) 'pricePerNight': pricePerNight,
           if (currency != null) 'currency': currency,
           if (bookingReference != null) 'bookingReference': bookingReference,
           if (notes != null) 'notes': notes,

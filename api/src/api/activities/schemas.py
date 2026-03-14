@@ -3,6 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from src.enums import ActivityCategory
+
 
 class ActivityCreateRequest(BaseModel):
     title: str
@@ -11,7 +13,7 @@ class ActivityCreateRequest(BaseModel):
     startTime: time | None = None
     endTime: time | None = None
     location: str | None = None
-    category: str | None = None
+    category: ActivityCategory | None = None
     estimatedCost: float | None = None
     isBooked: bool | None = None
 
@@ -23,7 +25,7 @@ class ActivityUpdateRequest(BaseModel):
     startTime: time | None = None
     endTime: time | None = None
     location: str | None = None
-    category: str | None = None
+    category: ActivityCategory | None = None
     estimatedCost: float | None = None
     isBooked: bool | None = None
 

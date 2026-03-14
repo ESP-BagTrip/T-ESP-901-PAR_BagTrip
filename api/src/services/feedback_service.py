@@ -5,6 +5,7 @@ from uuid import UUID
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from src.enums import TripStatus
 from src.models.feedback import Feedback
 from src.models.trip import Trip
 from src.utils.errors import AppError
@@ -26,7 +27,7 @@ class FeedbackService:
         """Créer un feedback pour un trip terminé."""
         # Check trip is COMPLETED
         trip = db.query(Trip).filter(Trip.id == trip_id).first()
-        if not trip or trip.status != "COMPLETED":
+        if not trip or trip.status != TripStatus.COMPLETED:
             raise AppError(
                 "TRIP_NOT_COMPLETED", 400, "Feedback can only be submitted for completed trips"
             )

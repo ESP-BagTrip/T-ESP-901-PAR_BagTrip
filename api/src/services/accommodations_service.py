@@ -6,6 +6,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from src.enums import BudgetCategory, TripStatus
 from src.models.accommodation import Accommodation
 from src.models.budget_item import BudgetItem
 from src.models.trip import Trip
@@ -18,12 +19,19 @@ class AccommodationsService:
 
     @staticmethod
     def _check_trip_not_completed(trip: Trip) -> None:
-        if trip.status == "COMPLETED":
+        if trip.status == TripStatus.COMPLETED:
             raise AppError(
                 "TRIP_COMPLETED",
                 403,
                 "Cannot modify accommodations on a completed trip.",
             )
+
+    @staticmethod
+    def _calc_nights(check_in: date | None, check_out: date | None) -> int:
+        """Calculate number of nights between check_in and check_out."""
+        if check_in and check_out and check_out > check_in:
+            return (check_out - check_in).days
+        return 1
 
     @staticmethod
     def create_accommodation(
@@ -33,7 +41,7 @@ class AccommodationsService:
         address: str | None = None,
         check_in: date | None = None,
         check_out: date | None = None,
-        price: Decimal | None = None,
+        price_per_night: Decimal | None = None,
         currency: str | None = None,
         booking_reference: str | None = None,
         notes: str | None = None,
@@ -46,19 +54,21 @@ class AccommodationsService:
             address=address,
             check_in=check_in,
             check_out=check_out,
-            price=price,
+            price_per_night=price_per_night,
             currency=currency,
             booking_reference=booking_reference,
             notes=notes,
         )
         db.add(accommodation)
 
-        if accommodation.price is not None:
+        if accommodation.price_per_night is not None:
+            nights = AccommodationsService._calc_nights(check_in, check_out)
+            amount = accommodation.price_per_night * nights
             db.add(BudgetItem(
                 trip_id=trip.id,
                 label=f"Hébergement : {name}",
-                amount=accommodation.price,
-                category="ACCOMMODATION",
+                amount=amount,
+                category=BudgetCategory.ACCOMMODATION,
                 date=check_in,
                 is_planned=True,
                 source_type="accommodation",
@@ -94,7 +104,7 @@ class AccommodationsService:
         address: str | None = None,
         check_in: date | None = None,
         check_out: date | None = None,
-        price: Decimal | None = None,
+        price_per_night: Decimal | None = None,
         currency: str | None = None,
         booking_reference: str | None = None,
         notes: str | None = None,
@@ -114,8 +124,8 @@ class AccommodationsService:
             accommodation.check_in = check_in
         if check_out is not None:
             accommodation.check_out = check_out
-        if price is not None:
-            accommodation.price = price
+        if price_per_night is not None:
+            accommodation.price_per_night = price_per_night
         if currency is not None:
             accommodation.currency = currency
         if booking_reference is not None:
@@ -123,21 +133,23 @@ class AccommodationsService:
         if notes is not None:
             accommodation.notes = notes
         if price_explicitly_cleared:
-            accommodation.price = None
+            accommodation.price_per_night = None
 
         # Sync linked budget item
         linked = BudgetItemService.find_by_source(db, "accommodation", accommodation.id)
-        if accommodation.price is not None:
+        if accommodation.price_per_night is not None:
+            nights = AccommodationsService._calc_nights(accommodation.check_in, accommodation.check_out)
+            amount = accommodation.price_per_night * nights
             if linked:
                 linked.label = f"Hébergement : {accommodation.name}"
-                linked.amount = accommodation.price
+                linked.amount = amount
                 linked.date = accommodation.check_in
             else:
                 db.add(BudgetItem(
                     trip_id=trip.id,
                     label=f"Hébergement : {accommodation.name}",
-                    amount=accommodation.price,
-                    category="ACCOMMODATION",
+                    amount=amount,
+                    category=BudgetCategory.ACCOMMODATION,
                     date=accommodation.check_in,
                     is_planned=True,
                     source_type="accommodation",

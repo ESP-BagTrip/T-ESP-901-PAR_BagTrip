@@ -6,6 +6,7 @@ from uuid import UUID
 from sqlalchemy import literal_column, update
 from sqlalchemy.orm import Session
 
+from src.enums import FlightOrderStatus, NotificationType, TripOrigin, TripStatus
 from src.models.booking_intent import BookingIntent
 from src.models.flight_order import FlightOrder
 from src.models.stripe_event import StripeEvent
@@ -18,9 +19,9 @@ class TripsService:
     """Service pour les opérations CRUD sur les trips."""
 
     VALID_TRANSITIONS: dict[str, list[str]] = {
-        "DRAFT": ["PLANNED"],
-        "PLANNED": ["ONGOING"],
-        "ONGOING": ["COMPLETED"],
+        TripStatus.DRAFT: [TripStatus.PLANNED],
+        TripStatus.PLANNED: [TripStatus.ONGOING],
+        TripStatus.ONGOING: [TripStatus.COMPLETED],
     }
 
     @staticmethod
@@ -47,13 +48,13 @@ class TripsService:
             destination_iata=destination_iata,
             start_date=start_date,
             end_date=end_date,
-            status="DRAFT",
+            status=TripStatus.DRAFT,
             description=description,
             destination_name=destination_name,
             nb_travelers=nb_travelers or 1,
             cover_image_url=cover_image_url,
             budget_total=budget_total,
-            origin=origin or "MANUAL",
+            origin=origin or TripOrigin.MANUAL,
         )
         db.add(trip)
         db.commit()
@@ -94,7 +95,7 @@ class TripsService:
         budget_total: float | None = None,
     ) -> Trip:
         """Mettre à jour un trip (ownership déjà vérifiée par la dependency)."""
-        if trip.status == "COMPLETED":
+        if trip.status == TripStatus.COMPLETED:
             raise AppError("TRIP_COMPLETED", 403, "Cannot modify a completed trip.")
 
         if title is not None:
@@ -134,12 +135,12 @@ class TripsService:
         }
 
         for trip, role in rows:
-            trip_status = trip.status or "DRAFT"
-            if trip_status in ("DRAFT", "PLANNED", "draft", "planning", "planned"):
+            trip_status = trip.status or TripStatus.DRAFT
+            if trip_status in (TripStatus.DRAFT, TripStatus.PLANNED, "draft", "planning", "planned"):
                 grouped["planned"].append((trip, role))
-            elif trip_status in ("ONGOING", "active"):
+            elif trip_status in (TripStatus.ONGOING, "active"):
                 grouped["ongoing"].append((trip, role))
-            elif trip_status in ("COMPLETED", "completed", "archived"):
+            elif trip_status in (TripStatus.COMPLETED, "completed", "archived"):
                 grouped["completed"].append((trip, role))
             else:
                 grouped["planned"].append((trip, role))
@@ -149,7 +150,7 @@ class TripsService:
     @staticmethod
     def update_trip_status(db: Session, trip: Trip, new_status: str) -> Trip:
         """Mettre à jour le statut d'un trip (ownership déjà vérifiée)."""
-        current_status = trip.status or "DRAFT"
+        current_status = trip.status or TripStatus.DRAFT
         allowed = TripsService.VALID_TRANSITIONS.get(current_status, [])
 
         if new_status not in allowed:
@@ -161,7 +162,7 @@ class TripsService:
             )
 
         # S11: validate required fields before DRAFT→PLANNED
-        if current_status == "DRAFT" and new_status == "PLANNED":
+        if current_status == TripStatus.DRAFT and new_status == TripStatus.PLANNED:
             missing = []
             if not trip.destination_iata and not trip.destination_name:
                 missing.append("destination")
@@ -234,21 +235,21 @@ class TripsService:
 
         planned_to_ongoing = db.execute(
             update(Trip)
-            .where(Trip.status == "PLANNED", Trip.start_date.isnot(None), Trip.start_date <= today)
-            .values(status="ONGOING")
+            .where(Trip.status == TripStatus.PLANNED, Trip.start_date.isnot(None), Trip.start_date <= today)
+            .values(status=TripStatus.ONGOING)
         ).rowcount
 
         # Capture trips that will transition ONGOING→COMPLETED before updating
         completing_trips = (
             db.query(Trip)
-            .filter(Trip.status == "ONGOING", Trip.end_date.isnot(None), Trip.end_date < today)
+            .filter(Trip.status == TripStatus.ONGOING, Trip.end_date.isnot(None), Trip.end_date < today)
             .all()
         )
 
         ongoing_to_completed = db.execute(
             update(Trip)
-            .where(Trip.status == "ONGOING", Trip.end_date.isnot(None), Trip.end_date < today)
-            .values(status="COMPLETED")
+            .where(Trip.status == TripStatus.ONGOING, Trip.end_date.isnot(None), Trip.end_date < today)
+            .values(status=TripStatus.COMPLETED)
         ).rowcount
 
         db.commit()
@@ -264,7 +265,7 @@ class TripsService:
                         db=db,
                         user_ids=recipients,
                         trip_id=trip.id,
-                        notif_type="TRIP_ENDED",
+                        notif_type=NotificationType.TRIP_ENDED,
                         title="Voyage terminé !",
                         body=f"Votre voyage « {trip.title or 'sans titre'} » est terminé. Partagez votre avis !",
                         data={"screen": "feedback", "tripId": str(trip.id)},
@@ -277,7 +278,7 @@ class TripsService:
     @staticmethod
     def delete_trip(db: Session, trip: Trip) -> None:
         """Supprimer un trip DRAFT (ownership déjà vérifiée)."""
-        if trip.status != "DRAFT":
+        if trip.status != TripStatus.DRAFT:
             raise AppError(
                 "TRIP_NOT_DRAFT",
                 409,
@@ -286,7 +287,7 @@ class TripsService:
 
         confirmed_flight = (
             db.query(FlightOrder)
-            .filter(FlightOrder.trip_id == trip.id, FlightOrder.status == "CONFIRMED")
+            .filter(FlightOrder.trip_id == trip.id, FlightOrder.status == FlightOrderStatus.CONFIRMED)
             .first()
         )
         if confirmed_flight:

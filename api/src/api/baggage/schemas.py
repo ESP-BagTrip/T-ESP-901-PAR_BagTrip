@@ -5,6 +5,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from src.enums import BaggageCategory
+
 
 class BaggageItemCreateRequest(BaseModel):
     """Requête de création d'élément de bagage."""
@@ -12,7 +14,7 @@ class BaggageItemCreateRequest(BaseModel):
     name: str
     quantity: int | None = None
     isPacked: bool | None = None
-    category: str | None = None
+    category: BaggageCategory | None = None
     notes: str | None = None
 
 
@@ -22,7 +24,7 @@ class BaggageItemUpdateRequest(BaseModel):
     name: str | None = None
     quantity: int | None = None
     isPacked: bool | None = None
-    category: str | None = None
+    category: BaggageCategory | None = None
     notes: str | None = None
 
 
@@ -32,9 +34,9 @@ class BaggageItemResponse(BaseModel):
     id: UUID
     tripId: UUID = Field(..., alias="trip_id")
     name: str
-    quantity: int | None = None
-    isPacked: bool | None = Field(None, alias="is_packed")
-    category: str | None = None
+    quantity: int
+    isPacked: bool = Field(alias="is_packed")
+    category: str
     notes: str | None = None
     createdAt: datetime = Field(..., alias="created_at")
     updatedAt: datetime = Field(..., alias="updated_at")

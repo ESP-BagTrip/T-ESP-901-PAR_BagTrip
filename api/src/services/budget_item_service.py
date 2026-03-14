@@ -3,6 +3,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from src.enums import BudgetCategory, TripStatus
 from src.models.budget_item import BudgetItem
 from src.models.trip import Trip
 from src.utils.errors import AppError
@@ -13,7 +14,7 @@ class BudgetItemService:
 
     @staticmethod
     def _check_trip_not_completed(trip: Trip) -> None:
-        if trip.status == "COMPLETED":
+        if trip.status == TripStatus.COMPLETED:
             raise AppError(
                 "TRIP_COMPLETED",
                 403,
@@ -114,7 +115,7 @@ class BudgetItemService:
         total_spent = sum(float(i.amount) for i in items)
         by_category: dict[str, float] = {}
         for item in items:
-            cat = item.category or "OTHER"
+            cat = item.category or BudgetCategory.OTHER
             by_category[cat] = by_category.get(cat, 0.0) + float(item.amount)
 
         budget_total = float(trip.budget_total) if trip.budget_total else 0.0

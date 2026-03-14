@@ -334,7 +334,7 @@ class AdminService:
                     "address": accommodation.address,
                     "check_in": accommodation.check_in,
                     "check_out": accommodation.check_out,
-                    "price": float(accommodation.price) if accommodation.price else None,
+                    "price_per_night": float(accommodation.price_per_night) if accommodation.price_per_night else None,
                     "currency": accommodation.currency,
                     "booking_reference": accommodation.booking_reference,
                     "created_at": accommodation.created_at,

@@ -4,6 +4,7 @@ from uuid import UUID
 from sqlalchemy import asc
 from sqlalchemy.orm import Session
 
+from src.enums import TripStatus
 from src.models.activity import Activity
 from src.models.trip import Trip
 from src.utils.errors import AppError
@@ -14,7 +15,7 @@ class ActivityService:
 
     @staticmethod
     def _check_trip_not_completed(trip: Trip) -> None:
-        if trip.status == "COMPLETED":
+        if trip.status == TripStatus.COMPLETED:
             raise AppError(
                 "TRIP_COMPLETED",
                 403,

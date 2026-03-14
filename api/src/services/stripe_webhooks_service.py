@@ -7,6 +7,7 @@ from uuid import UUID
 import stripe
 from sqlalchemy.orm import Session
 
+from src.enums import BookingIntentStatus
 from src.models.booking_intent import BookingIntent
 from src.models.stripe_event import StripeEvent
 from src.models.user import User
@@ -91,8 +92,8 @@ class StripeWebhooksService:
                     .first()
                 )
 
-                if booking_intent and booking_intent.status == "INIT":
-                    booking_intent.status = "AUTHORIZED"
+                if booking_intent and booking_intent.status == BookingIntentStatus.INIT:
+                    booking_intent.status = BookingIntentStatus.AUTHORIZED
                     db.commit()
 
         elif event.type == "payment_intent.canceled":
@@ -104,8 +105,8 @@ class StripeWebhooksService:
                     .first()
                 )
 
-                if booking_intent and booking_intent.status != "CAPTURED":
-                    booking_intent.status = "CANCELLED"
+                if booking_intent and booking_intent.status != BookingIntentStatus.CAPTURED:
+                    booking_intent.status = BookingIntentStatus.CANCELLED
                     db.commit()
 
         elif (
@@ -118,7 +119,7 @@ class StripeWebhooksService:
             )
         ):
             # Échec de paiement
-            booking_intent.status = "FAILED"
+            booking_intent.status = BookingIntentStatus.FAILED
             booking_intent.last_error = {"type": "payment_failed", "event_id": event.id}
             db.commit()
 

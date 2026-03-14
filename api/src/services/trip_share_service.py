@@ -4,6 +4,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from src.enums import ShareRole, TripStatus
 from src.models.trip import Trip
 from src.models.trip_share import TripShare
 from src.models.user import User
@@ -16,7 +17,7 @@ class TripShareService:
     @staticmethod
     def _check_trip_not_completed(db: Session, trip_id: UUID) -> None:
         trip = db.query(Trip).filter(Trip.id == trip_id).first()
-        if trip and trip.status == "COMPLETED":
+        if trip and trip.status == TripStatus.COMPLETED:
             raise AppError(
                 "TRIP_COMPLETED",
                 403,
@@ -59,7 +60,7 @@ class TripShareService:
             )
 
         # Create share
-        share = TripShare(trip_id=trip_id, user_id=user.id, role="VIEWER")
+        share = TripShare(trip_id=trip_id, user_id=user.id, role=ShareRole.VIEWER)
         db.add(share)
         db.commit()
         db.refresh(share)

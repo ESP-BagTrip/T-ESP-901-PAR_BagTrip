@@ -44,10 +44,10 @@ export const accommodationsColumns: ColumnDef<AdminAccommodation>[] = [
     },
   },
   {
-    accessorKey: 'price',
-    header: 'Prix',
+    accessorKey: 'price_per_night',
+    header: 'Prix/nuit',
     cell: ({ row }) => {
-      const price = row.getValue('price') as number | null
+      const price = row.getValue('price_per_night') as number | null
       return <span className="text-gray-900">{price != null ? `${price.toFixed(2)} €` : '—'}</span>
     },
   },

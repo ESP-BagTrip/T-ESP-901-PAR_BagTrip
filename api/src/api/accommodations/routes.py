@@ -40,7 +40,7 @@ async def create_accommodation(
             address=request.address,
             check_in=request.checkIn,
             check_out=request.checkOut,
-            price=request.price,
+            price_per_night=request.pricePerNight,
             currency=request.currency,
             booking_reference=request.bookingReference,
             notes=request.notes,
@@ -66,7 +66,7 @@ async def list_accommodations(
         items = [AccommodationResponse.model_validate(a) for a in accommodations]
         if access.role == TripRole.VIEWER:
             for item in items:
-                item.price = None
+                item.pricePerNight = None
                 item.currency = None
                 item.bookingReference = None
         return AccommodationListResponse(items=items)
@@ -88,7 +88,7 @@ async def update_accommodation(
 ):
     """Mettre à jour un hébergement."""
     try:
-        price_explicitly_cleared = "price" in request.model_fields_set and request.price is None
+        price_explicitly_cleared = "pricePerNight" in request.model_fields_set and request.pricePerNight is None
         accommodation = AccommodationsService.update_accommodation(
             db=db,
             accommodation_id=accommodationId,
@@ -97,7 +97,7 @@ async def update_accommodation(
             address=request.address,
             check_in=request.checkIn,
             check_out=request.checkOut,
-            price=request.price,
+            price_per_night=request.pricePerNight,
             currency=request.currency,
             booking_reference=request.bookingReference,
             notes=request.notes,

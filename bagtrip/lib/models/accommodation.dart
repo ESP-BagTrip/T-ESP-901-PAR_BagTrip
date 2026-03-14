@@ -5,7 +5,7 @@ class Accommodation {
   final String? address;
   final DateTime? checkIn;
   final DateTime? checkOut;
-  final double? price;
+  final double? pricePerNight;
   final String? currency;
   final String? bookingReference;
   final String? notes;
@@ -19,7 +19,7 @@ class Accommodation {
     this.address,
     this.checkIn,
     this.checkOut,
-    this.price,
+    this.pricePerNight,
     this.currency,
     this.bookingReference,
     this.notes,
@@ -28,6 +28,17 @@ class Accommodation {
   });
 
   factory Accommodation.fromJson(Map<String, dynamic> json) {
+    // Parse pricePerNight with backward compat for 'price'
+    double? parsedPrice;
+    final rawPrice =
+        json['pricePerNight'] ?? json['price_per_night'] ?? json['price'];
+    if (rawPrice != null) {
+      parsedPrice =
+          rawPrice is String
+              ? double.tryParse(rawPrice)
+              : (rawPrice as num).toDouble();
+    }
+
     return Accommodation(
       id: json['id'] as String,
       tripId: json['tripId'] as String? ?? json['trip_id'] as String? ?? '',
@@ -45,12 +56,7 @@ class Accommodation {
               : json['check_out'] != null
               ? DateTime.parse(json['check_out'] as String)
               : null,
-      price:
-          json['price'] != null
-              ? (json['price'] is String
-                  ? double.tryParse(json['price'] as String)
-                  : (json['price'] as num).toDouble())
-              : null,
+      pricePerNight: parsedPrice,
       currency: json['currency'] as String?,
       bookingReference:
           json['bookingReference'] as String? ??
@@ -79,7 +85,7 @@ class Accommodation {
       'address': address,
       'checkIn': checkIn?.toIso8601String().split('T').first,
       'checkOut': checkOut?.toIso8601String().split('T').first,
-      'price': price,
+      'pricePerNight': pricePerNight,
       'currency': currency,
       'bookingReference': bookingReference,
       'notes': notes,

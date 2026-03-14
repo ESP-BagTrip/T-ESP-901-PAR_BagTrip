@@ -4,11 +4,13 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from src.enums import BookingIntentType
+
 
 class BookingIntentCreateRequest(BaseModel):
     """Requête de création de booking intent selon PLAN.md."""
 
-    type: str  # flight
+    type: BookingIntentType
     flightOfferId: UUID | None = None
 
 

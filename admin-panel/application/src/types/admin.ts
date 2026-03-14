@@ -94,7 +94,7 @@ export interface AdminAccommodation {
   address: string | null
   check_in: string | null
   check_out: string | null
-  price: number | null
+  price_per_night: number | null
   currency: string | null
   booking_reference: string | null
   created_at: string

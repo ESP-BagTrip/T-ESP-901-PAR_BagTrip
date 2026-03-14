@@ -8,6 +8,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from src.config.database import Base
+from src.enums import TripStatus
 
 
 class Trip(Base):
@@ -22,7 +23,7 @@ class Trip(Base):
     destination_iata = Column(String(3), nullable=True)
     start_date = Column(Date, nullable=True)
     end_date = Column(Date, nullable=True)
-    status = Column(String, nullable=True)  # DRAFT | PLANNED | ONGOING | COMPLETED
+    status = Column(String, nullable=False, server_default="DRAFT", default=TripStatus.DRAFT)
     description = Column(String, nullable=True)
     budget_total = Column(Numeric(12, 2), nullable=True)
     origin = Column(String, nullable=True, default="MANUAL")

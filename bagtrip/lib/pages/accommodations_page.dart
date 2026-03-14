@@ -115,7 +115,7 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
                 : null,
         checkIn: _checkInDate,
         checkOut: _checkOutDate,
-        price: priceText.isNotEmpty ? double.tryParse(priceText) : null,
+        pricePerNight: priceText.isNotEmpty ? double.tryParse(priceText) : null,
         notes:
             _notesController.text.trim().isNotEmpty
                 ? _notesController.text.trim()
@@ -258,10 +258,11 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
                                             Text(
                                               '${accommodation.checkIn != null ? DateFormat('dd/MM/yyyy').format(accommodation.checkIn!) : '?'} → ${accommodation.checkOut != null ? DateFormat('dd/MM/yyyy').format(accommodation.checkOut!) : '?'}',
                                             ),
-                                          if (accommodation.price != null &&
+                                          if (accommodation.pricePerNight !=
+                                                  null &&
                                               !isViewer)
                                             Text(
-                                              '${accommodation.price!.toStringAsFixed(2)} ${accommodation.currency ?? 'EUR'}',
+                                              '${accommodation.pricePerNight!.toStringAsFixed(2)} ${accommodation.currency ?? 'EUR'}',
                                               style: const TextStyle(
                                                 fontWeight: FontWeight.w600,
                                               ),
@@ -381,7 +382,7 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
                               TextFormField(
                                 controller: _priceController,
                                 decoration: const InputDecoration(
-                                  labelText: 'Prix (optionnel)',
+                                  labelText: 'Prix / nuit (optionnel)',
                                   border: OutlineInputBorder(),
                                   prefixIcon: Icon(Icons.euro),
                                 ),

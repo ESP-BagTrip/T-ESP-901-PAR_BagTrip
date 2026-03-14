@@ -5,6 +5,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from src.enums import BookingIntentStatus, BookingIntentType, BudgetCategory, FlightOrderStatus
 from src.integrations.amadeus import amadeus_client
 from src.integrations.amadeus.types import FlightOffer, FlightOrderTraveler
 from src.models.booking_intent import BookingIntent
@@ -43,7 +44,7 @@ class BookingOrchestratorService:
         if not booking_intent:
             raise AppError("BOOKING_INTENT_NOT_FOUND", 404, "Booking intent not found")
 
-        if booking_intent.status != "AUTHORIZED":
+        if booking_intent.status != BookingIntentStatus.AUTHORIZED:
             raise AppError(
                 "INVALID_STATUS",
                 400,
@@ -51,11 +52,11 @@ class BookingOrchestratorService:
             )
 
         # Passer en BOOKING_PENDING
-        booking_intent.status = "BOOKING_PENDING"
+        booking_intent.status = BookingIntentStatus.BOOKING_PENDING
         db.commit()
 
         try:
-            if booking_intent.type == "flight":
+            if booking_intent.type == BookingIntentType.FLIGHT:
                 await BookingOrchestratorService._book_flight(
                     db, booking_intent, traveler_ids, contacts
                 )
@@ -63,7 +64,7 @@ class BookingOrchestratorService:
                 raise AppError("INVALID_TYPE", 400, f"Invalid booking type: {booking_intent.type}")
 
             # Succès
-            booking_intent.status = "BOOKED"
+            booking_intent.status = BookingIntentStatus.BOOKED
             db.commit()
             db.refresh(booking_intent)
 
@@ -72,7 +73,7 @@ class BookingOrchestratorService:
         except Exception as e:
             # Échec - rollback avant de mettre à jour le statut
             db.rollback()
-            booking_intent.status = "FAILED"
+            booking_intent.status = BookingIntentStatus.FAILED
             booking_intent.last_error = {
                 "error": str(e),
                 "type": type(e).__name__,
@@ -152,7 +153,7 @@ class BookingOrchestratorService:
             flight_offer_id=flight_offer.id,
             booking_intent_id=booking_intent.id,
             amadeus_flight_order_id=amadeus_order_id,
-            status="CONFIRMED",
+            status=FlightOrderStatus.CONFIRMED,
             amadeus_create_order_request={
                 "flightOffer": flight_offer_data,
                 "travelers": [t.model_dump() if hasattr(t, "model_dump") else t for t in travelers],
@@ -190,7 +191,7 @@ class BookingOrchestratorService:
             trip_id=booking_intent.trip_id,
             label=label,
             amount=booking_intent.amount,
-            category="FLIGHT",
+            category=BudgetCategory.FLIGHT,
             date=departure_date,
             is_planned=False,
             source_type="flight_order",

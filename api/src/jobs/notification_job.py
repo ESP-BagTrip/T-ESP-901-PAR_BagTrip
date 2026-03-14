@@ -6,6 +6,7 @@ from datetime import UTC, date, datetime, timedelta
 from sqlalchemy.orm import Session
 
 from src.config.database import SessionLocal
+from src.enums import FlightOrderStatus, NotificationType, TripStatus
 from src.models.activity import Activity
 from src.models.flight_offer import FlightOffer
 from src.models.flight_order import FlightOrder
@@ -22,7 +23,7 @@ def _check_departure_reminders(db: Session) -> int:
     tomorrow = date.today() + timedelta(days=1)
     trips = (
         db.query(Trip)
-        .filter(Trip.status == "PLANNED", Trip.start_date == tomorrow)
+        .filter(Trip.status == TripStatus.PLANNED, Trip.start_date == tomorrow)
         .all()
     )
     count = 0
@@ -30,14 +31,14 @@ def _check_departure_reminders(db: Session) -> int:
         recipients = NotificationService._get_trip_recipients(db, trip)
         for uid in recipients:
             if NotificationService._already_sent(
-                db, uid, trip.id, "DEPARTURE_REMINDER", timedelta(hours=20)
+                db, uid, trip.id, NotificationType.DEPARTURE_REMINDER, timedelta(hours=20)
             ):
                 continue
             NotificationService.create_and_send(
                 db=db,
                 user_id=uid,
                 trip_id=trip.id,
-                notif_type="DEPARTURE_REMINDER",
+                notif_type=NotificationType.DEPARTURE_REMINDER,
                 title="Départ demain !",
                 body=f"Votre voyage « {trip.title or 'sans titre'} » commence demain. Bon voyage !",
                 data={"screen": "tripHome", "tripId": str(trip.id)},
@@ -54,7 +55,7 @@ def _check_flight_alerts(db: Session, hours_before: float, notif_type: str, titl
 
     orders = (
         db.query(FlightOrder)
-        .filter(FlightOrder.status == "CONFIRMED")
+        .filter(FlightOrder.status == FlightOrderStatus.CONFIRMED)
         .all()
     )
     count = 0
@@ -115,7 +116,7 @@ def _check_morning_summary(db: Session) -> int:
         return 0
 
     today = date.today()
-    trips = db.query(Trip).filter(Trip.status == "ONGOING").all()
+    trips = db.query(Trip).filter(Trip.status == TripStatus.ONGOING).all()
     count = 0
     for trip in trips:
         activities = (
@@ -129,7 +130,7 @@ def _check_morning_summary(db: Session) -> int:
         recipients = NotificationService._get_trip_recipients(db, trip)
         for uid in recipients:
             if NotificationService._already_sent(
-                db, uid, trip.id, "MORNING_SUMMARY", timedelta(hours=20)
+                db, uid, trip.id, NotificationType.MORNING_SUMMARY, timedelta(hours=20)
             ):
                 continue
 
@@ -141,7 +142,7 @@ def _check_morning_summary(db: Session) -> int:
                 db=db,
                 user_id=uid,
                 trip_id=trip.id,
-                notif_type="MORNING_SUMMARY",
+                notif_type=NotificationType.MORNING_SUMMARY,
                 title=f"Programme du jour — {trip.title or 'Voyage'}",
                 body=f"{len(activities)} activité(s) prévue(s) : {activity_names}",
                 data={"screen": "activities", "tripId": str(trip.id)},
@@ -182,7 +183,7 @@ def _check_activity_reminders(db: Session) -> int:
                 db=db,
                 user_id=uid,
                 trip_id=trip.id,
-                notif_type="ACTIVITY_H1",
+                notif_type=NotificationType.ACTIVITY_H1,
                 title="Activité dans ~1h",
                 body=f"« {activity.title} » commence bientôt !",
                 data={"screen": "activities", "tripId": str(trip.id)},
@@ -197,8 +198,8 @@ def run_notification_checks() -> dict[str, int]:
     try:
         results = {
             "departure_reminders": _check_departure_reminders(db),
-            "flight_h4": _check_flight_alerts(db, 4, "FLIGHT_H4", "Vol dans ~4h"),
-            "flight_h1": _check_flight_alerts(db, 1, "FLIGHT_H1", "Vol dans ~1h"),
+            "flight_h4": _check_flight_alerts(db, 4, NotificationType.FLIGHT_H4, "Vol dans ~4h"),
+            "flight_h1": _check_flight_alerts(db, 1, NotificationType.FLIGHT_H1, "Vol dans ~1h"),
             "morning_summary": _check_morning_summary(db),
             "activity_h1": _check_activity_reminders(db),
         }

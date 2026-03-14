@@ -14,7 +14,7 @@ class AccommodationCreateRequest(BaseModel):
     address: str | None = None
     checkIn: date | None = None
     checkOut: date | None = None
-    price: Decimal | None = None
+    pricePerNight: Decimal | None = None
     currency: str | None = None
     bookingReference: str | None = None
     notes: str | None = None
@@ -27,7 +27,7 @@ class AccommodationUpdateRequest(BaseModel):
     address: str | None = None
     checkIn: date | None = None
     checkOut: date | None = None
-    price: Decimal | None = None
+    pricePerNight: Decimal | None = None
     currency: str | None = None
     bookingReference: str | None = None
     notes: str | None = None
@@ -42,7 +42,7 @@ class AccommodationResponse(BaseModel):
     address: str | None = None
     checkIn: date | None = Field(None, alias="check_in")
     checkOut: date | None = Field(None, alias="check_out")
-    price: Decimal | None = None
+    pricePerNight: Decimal | None = Field(None, alias="price_per_night")
     currency: str | None = None
     bookingReference: str | None = Field(None, alias="booking_reference")
     notes: str | None = None

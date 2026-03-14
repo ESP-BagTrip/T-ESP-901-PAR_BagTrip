@@ -6,6 +6,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from src.enums import NotificationType
 from src.models.notification import Notification
 from src.models.trip import Trip
 from src.models.trip_share import TripShare
@@ -174,7 +175,7 @@ class NotificationService:
                 db=db,
                 user_id=trip.user_id,
                 trip_id=trip.id,
-                notif_type="BUDGET_ALERT",
+                notif_type=NotificationType.BUDGET_ALERT,
                 title=title,
                 body=body,
                 data={"screen": "budget", "tripId": str(trip.id), "alertLevel": alert_level},

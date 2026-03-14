@@ -131,7 +131,7 @@ class AdminAccommodationResponse(BaseModel):
     address: str | None = None
     checkIn: date | None = Field(default=None, alias="check_in")
     checkOut: date | None = Field(default=None, alias="check_out")
-    price: float | None = None
+    pricePerNight: float | None = Field(default=None, alias="price_per_night")
     currency: str | None = None
     bookingReference: str | None = Field(default=None, alias="booking_reference")
     createdAt: datetime = Field(alias="created_at")

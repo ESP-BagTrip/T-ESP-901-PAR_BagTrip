@@ -8,6 +8,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from src.config.database import Base
+from src.enums import BaggageCategory
 
 
 class BaggageItem(Base):
@@ -18,9 +19,9 @@ class BaggageItem(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     trip_id = Column(UUID(as_uuid=True), ForeignKey("trips.id"), nullable=False, index=True)
     name = Column(String, nullable=False)
-    quantity = Column(Integer, nullable=True, default=1)
-    is_packed = Column(Boolean, nullable=True, default=False)
-    category = Column(String, nullable=True)
+    quantity = Column(Integer, nullable=False, server_default="1", default=1)
+    is_packed = Column(Boolean, nullable=False, server_default="false", default=False)
+    category = Column(String, nullable=False, server_default="OTHER", default=BaggageCategory.OTHER)
     notes = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(

@@ -3,11 +3,13 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from src.enums import BudgetCategory
+
 
 class BudgetItemCreateRequest(BaseModel):
     label: str
     amount: float
-    category: str | None = None
+    category: BudgetCategory | None = None
     date: date | None = None
     isPlanned: bool | None = None
 
@@ -15,7 +17,7 @@ class BudgetItemCreateRequest(BaseModel):
 class BudgetItemUpdateRequest(BaseModel):
     label: str | None = None
     amount: float | None = None
-    category: str | None = None
+    category: BudgetCategory | None = None
     date: date | None = None
     isPlanned: bool | None = None
 
