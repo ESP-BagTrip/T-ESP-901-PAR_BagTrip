@@ -1,4 +1,5 @@
 import 'package:bagtrip/service/api_client.dart';
+import 'package:dio/dio.dart';
 
 class ActivityAiService {
   final ApiClient _apiClient;
@@ -24,6 +25,8 @@ class ActivityAiService {
       } else {
         throw Exception('Failed to get AI suggestions: ${response.statusCode}');
       }
+    } on DioException {
+      rethrow;
     } catch (e) {
       throw Exception('Error getting AI activity suggestions: $e');
     }

@@ -21,6 +21,8 @@ class ActivityError extends ActivityState {
 
 class ActivitySuggestionsLoading extends ActivityState {}
 
+class ActivityQuotaExceeded extends ActivityState {}
+
 class ActivitySuggestionsLoaded extends ActivityState {
   final List<Map<String, dynamic>> suggestions;
   final List<Activity> activities;

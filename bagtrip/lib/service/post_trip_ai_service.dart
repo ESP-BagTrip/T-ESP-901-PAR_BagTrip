@@ -1,4 +1,5 @@
 import 'package:bagtrip/service/api_client.dart';
+import 'package:dio/dio.dart';
 
 class PostTripAiService {
   final ApiClient _apiClient;
@@ -22,6 +23,8 @@ class PostTripAiService {
           'Failed to get post-trip suggestion: ${response.statusCode}',
         );
       }
+    } on DioException {
+      rethrow;
     } catch (e) {
       throw Exception('Error getting post-trip suggestion: $e');
     }

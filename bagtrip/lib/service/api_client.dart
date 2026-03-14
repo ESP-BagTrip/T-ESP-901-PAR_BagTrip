@@ -145,6 +145,13 @@ class ApiClient {
             message = data['detail'] ?? 'Conflit de version';
           }
           break;
+        case 402:
+          if (data is Map && data['detail'] is Map) {
+            message = data['detail']['error'] ?? 'Upgrade requis';
+          } else {
+            message = 'Upgrade requis pour cette fonctionnalité.';
+          }
+          break;
         case 429:
           message = 'Trop de requêtes. Veuillez patienter.';
           break;

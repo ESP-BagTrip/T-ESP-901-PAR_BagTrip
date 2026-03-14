@@ -1,4 +1,5 @@
 import 'package:bagtrip/service/api_client.dart';
+import 'package:dio/dio.dart';
 
 class AiService {
   final ApiClient _apiClient;
@@ -38,6 +39,8 @@ class AiService {
       } else {
         throw Exception('Failed to get AI inspiration: ${response.statusCode}');
       }
+    } on DioException {
+      rethrow;
     } catch (e) {
       throw Exception('Error getting AI inspiration: $e');
     }
@@ -58,6 +61,8 @@ class AiService {
       } else {
         throw Exception('Failed to accept inspiration: ${response.statusCode}');
       }
+    } on DioException {
+      rethrow;
     } catch (e) {
       throw Exception('Error accepting inspiration: $e');
     }

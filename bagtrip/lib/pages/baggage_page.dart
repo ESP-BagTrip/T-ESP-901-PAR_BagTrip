@@ -183,7 +183,10 @@ class _BaggagePageState extends State<BaggagePage> {
   Future<void> _handleSuggestBaggage() async {
     final authService = AuthService();
     final user = await authService.getCurrentUser();
-    if (user != null && user.isFree) {
+    if (user != null &&
+        user.isFree &&
+        user.aiGenerationsRemaining != null &&
+        user.aiGenerationsRemaining! <= 0) {
       if (mounted) {
         PremiumPaywall.show(context);
       }
@@ -204,9 +207,7 @@ class _BaggagePageState extends State<BaggagePage> {
         _isSuggestLoading = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        AppSnackBar.showError(context, message: toUserFriendlyMessage(e));
       }
     }
   }

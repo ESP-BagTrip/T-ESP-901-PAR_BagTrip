@@ -1,4 +1,5 @@
 import 'package:bagtrip/service/api_client.dart';
+import 'package:dio/dio.dart';
 
 class BaggageAiService {
   final ApiClient _apiClient;
@@ -24,6 +25,8 @@ class BaggageAiService {
           'Failed to get AI baggage suggestions: ${response.statusCode}',
         );
       }
+    } on DioException {
+      rethrow;
     } catch (e) {
       throw Exception('Error getting AI baggage suggestions: $e');
     }

@@ -322,7 +322,21 @@ class _PostTripSuggestionSection extends StatelessWidget {
             color: const Color(0xFFFFF0F0),
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Text(state.message),
+              child: Column(
+                children: [
+                  Text(state.message),
+                  const SizedBox(height: 12),
+                  TextButton.icon(
+                    onPressed: () {
+                      context.read<FeedbackBloc>().add(
+                        RequestPostTripSuggestion(),
+                      );
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Réessayer'),
+                  ),
+                ],
+              ),
             ),
           );
         }

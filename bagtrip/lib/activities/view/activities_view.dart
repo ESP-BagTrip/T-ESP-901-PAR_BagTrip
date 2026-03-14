@@ -2,6 +2,7 @@ import 'package:bagtrip/activities/bloc/activity_bloc.dart';
 import 'package:bagtrip/activities/widgets/activity_card.dart';
 import 'package:bagtrip/activities/widgets/activity_form.dart';
 import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/widgets/premium_paywall.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,7 +24,9 @@ class ActivitiesView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<ActivityBloc, ActivityState>(
       listener: (context, state) {
-        if (state is ActivitySuggestionsLoaded) {
+        if (state is ActivityQuotaExceeded) {
+          PremiumPaywall.show(context);
+        } else if (state is ActivitySuggestionsLoaded) {
           _showSuggestionsSheet(context, state.suggestions);
         }
       },

@@ -1,7 +1,9 @@
 import 'package:bagtrip/models/feedback.dart';
 import 'package:bagtrip/service/feedback_service.dart';
 import 'package:bagtrip/service/post_trip_ai_service.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:bloc/bloc.dart';
+import 'package:dio/dio.dart';
 
 part 'feedback_event.dart';
 part 'feedback_state.dart';
@@ -62,8 +64,10 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     try {
       final suggestion = await _postTripAiService.getPostTripSuggestion();
       emit(PostTripSuggestionLoaded(suggestion: suggestion));
+    } on DioException catch (e) {
+      emit(PostTripSuggestionError(message: toUserFriendlyMessage(e)));
     } catch (e) {
-      emit(PostTripSuggestionError(message: e.toString()));
+      emit(PostTripSuggestionError(message: toUserFriendlyMessage(e)));
     }
   }
 }

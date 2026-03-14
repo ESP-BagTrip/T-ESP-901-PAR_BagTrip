@@ -2,6 +2,7 @@ import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/service/activity_ai_service.dart';
 import 'package:bagtrip/service/activity_service.dart';
 import 'package:bloc/bloc.dart';
+import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
 
 part 'activity_event.dart';
@@ -119,6 +120,18 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
           groupedByDay: currentGrouped,
         ),
       );
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 402) {
+        emit(
+          ActivitiesLoaded(
+            activities: currentActivities,
+            groupedByDay: currentGrouped,
+          ),
+        );
+        emit(ActivityQuotaExceeded());
+      } else {
+        emit(ActivityError(message: e.toString()));
+      }
     } catch (e) {
       emit(ActivityError(message: e.toString()));
     }

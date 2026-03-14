@@ -51,6 +51,9 @@ String _messageForStatusCode(int statusCode, [dynamic data]) {
                 : 'Conflit (ex. compte déjà existant)';
       }
       break;
+    case 402:
+      short = 'Limite atteinte. Passez à Premium pour continuer.';
+      break;
     case 429:
       short = 'Trop de requêtes. Veuillez patienter.';
       break;

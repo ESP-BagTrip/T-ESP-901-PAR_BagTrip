@@ -3,7 +3,9 @@ import 'package:bagtrip/create_trip_ai/models/trip_summary.dart';
 import 'package:bagtrip/service/ai_service.dart';
 import 'package:bagtrip/service/auth_service.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:bloc/bloc.dart';
+import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
 
 part 'create_trip_ai_event.dart';
@@ -161,8 +163,14 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
           }).toList();
 
       emit(CreateTripAiResultsLoaded(proposals));
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 402) {
+        emit(CreateTripAiQuotaExceeded());
+      } else {
+        emit(CreateTripAiError(toUserFriendlyMessage(e)));
+      }
     } catch (e) {
-      emit(CreateTripAiError(e.toString()));
+      emit(CreateTripAiError(toUserFriendlyMessage(e)));
     }
   }
 
@@ -220,8 +228,14 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
         event.suggestion.toJson(),
       );
       emit(CreateTripAiTripCreated(tripData));
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 402) {
+        emit(CreateTripAiQuotaExceeded());
+      } else {
+        emit(CreateTripAiError(toUserFriendlyMessage(e)));
+      }
     } catch (e) {
-      emit(CreateTripAiError(e.toString()));
+      emit(CreateTripAiError(toUserFriendlyMessage(e)));
     }
   }
 }
