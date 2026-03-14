@@ -3,8 +3,9 @@ import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/assets.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/config/service_locator.dart';
-import 'package:bagtrip/service/auth_service.dart';
+import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/service/backend_health.dart';
 import 'package:bagtrip/service/onboarding_storage.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
@@ -44,8 +45,9 @@ class _SplashPageState extends State<SplashPage> {
 
     if (!mounted) return;
 
-    final authService = getIt<AuthService>();
-    final user = await authService.getCurrentUser();
+    final authRepository = getIt<AuthRepository>();
+    final userResult = await authRepository.getCurrentUser();
+    final user = userResult.dataOrNull;
 
     if (!mounted) return;
 
@@ -62,7 +64,7 @@ class _SplashPageState extends State<SplashPage> {
       if (!mounted) return;
       context.go('/trips');
     } else {
-      await authService.logout();
+      await authRepository.logout();
       if (!mounted) return;
       final hasSeen = await getIt<OnboardingStorage>().hasSeenOnboarding();
       if (!mounted) return;

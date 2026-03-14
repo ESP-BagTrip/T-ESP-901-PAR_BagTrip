@@ -1,37 +1,45 @@
+import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/activity.dart';
+import 'package:bagtrip/repositories/activity_repository.dart';
 import 'package:bagtrip/service/api_client.dart';
+import 'package:dio/dio.dart';
 
-class ActivityService {
+class ActivityRepositoryImpl implements ActivityRepository {
   final ApiClient _apiClient;
 
-  ActivityService({ApiClient? apiClient})
+  ActivityRepositoryImpl({ApiClient? apiClient})
     : _apiClient = apiClient ?? ApiClient();
 
-  /// Get all activities for a trip.
-  Future<List<Activity>> getActivities(String tripId) async {
+  @override
+  Future<Result<List<Activity>>> getActivities(String tripId) async {
     try {
       final response = await _apiClient.get('/trips/$tripId/activities');
-
       if (response.statusCode == 200) {
         final data = response.data;
         if (data is List) {
-          return data.map((json) => Activity.fromJson(json)).toList();
+          return Success(data.map((json) => Activity.fromJson(json)).toList());
         } else if (data is Map && data['items'] is List) {
-          return (data['items'] as List)
-              .map((json) => Activity.fromJson(json))
-              .toList();
+          return Success(
+            (data['items'] as List)
+                .map((json) => Activity.fromJson(json))
+                .toList(),
+          );
         }
-        return [];
-      } else {
-        throw Exception('Failed to fetch activities: ${response.statusCode}');
+        return const Success([]);
       }
+      return Failure(
+        UnknownError('fetch activities failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error fetching activities: $e');
+      return Failure(UnknownError(e.toString(), originalError: e));
     }
   }
 
-  /// Create an activity for a trip.
-  Future<Activity> createActivity(
+  @override
+  Future<Result<Activity>> createActivity(
     String tripId,
     Map<String, dynamic> data,
   ) async {
@@ -40,19 +48,21 @@ class ActivityService {
         '/trips/$tripId/activities',
         data: data,
       );
-
       if (response.statusCode == 201 || response.statusCode == 200) {
-        return Activity.fromJson(response.data);
-      } else {
-        throw Exception('Failed to create activity: ${response.statusCode}');
+        return Success(Activity.fromJson(response.data));
       }
+      return Failure(
+        UnknownError('create activity failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error creating activity: $e');
+      return Failure(UnknownError(e.toString(), originalError: e));
     }
   }
 
-  /// Update an activity.
-  Future<Activity> updateActivity(
+  @override
+  Future<Result<Activity>> updateActivity(
     String tripId,
     String activityId,
     Map<String, dynamic> updates,
@@ -62,29 +72,64 @@ class ActivityService {
         '/trips/$tripId/activities/$activityId',
         data: updates,
       );
-
       if (response.statusCode == 200) {
-        return Activity.fromJson(response.data);
-      } else {
-        throw Exception('Failed to update activity: ${response.statusCode}');
+        return Success(Activity.fromJson(response.data));
       }
+      return Failure(
+        UnknownError('update activity failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error updating activity: $e');
+      return Failure(UnknownError(e.toString(), originalError: e));
     }
   }
 
-  /// Delete an activity.
-  Future<void> deleteActivity(String tripId, String activityId) async {
+  @override
+  Future<Result<void>> deleteActivity(String tripId, String activityId) async {
     try {
       final response = await _apiClient.delete(
         '/trips/$tripId/activities/$activityId',
       );
-
-      if (response.statusCode != 200 && response.statusCode != 204) {
-        throw Exception('Failed to delete activity: ${response.statusCode}');
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return const Success(null);
       }
+      return Failure(
+        UnknownError('delete activity failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error deleting activity: $e');
+      return Failure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<List<Map<String, dynamic>>>> suggestActivities(
+    String tripId,
+  ) async {
+    try {
+      final response = await _apiClient.post(
+        '/trips/$tripId/activities/suggest',
+      );
+      if (response.statusCode == 200) {
+        final data = response.data;
+        if (data is Map && data['activities'] is List) {
+          return Success(
+            (data['activities'] as List)
+                .map((a) => Map<String, dynamic>.from(a))
+                .toList(),
+          );
+        }
+        return const Success([]);
+      }
+      return Failure(
+        UnknownError('suggest activities failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return Failure(UnknownError(e.toString(), originalError: e));
     }
   }
 }

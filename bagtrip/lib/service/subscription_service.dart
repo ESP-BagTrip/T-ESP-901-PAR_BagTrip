@@ -1,23 +1,48 @@
+import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/result.dart';
+import 'package:bagtrip/repositories/subscription_repository.dart';
 import 'package:bagtrip/service/api_client.dart';
+import 'package:dio/dio.dart';
 
-class SubscriptionService {
+class SubscriptionRepositoryImpl implements SubscriptionRepository {
   final ApiClient _apiClient;
 
-  SubscriptionService({ApiClient? apiClient})
+  SubscriptionRepositoryImpl({ApiClient? apiClient})
     : _apiClient = apiClient ?? ApiClient();
 
-  Future<String> getCheckoutUrl() async {
-    final response = await _apiClient.post('/subscription/checkout');
-    return response.data['url'] as String;
+  @override
+  Future<Result<String>> getCheckoutUrl() async {
+    try {
+      final response = await _apiClient.post('/subscription/checkout');
+      return Success(response.data['url'] as String);
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return Failure(UnknownError(e.toString(), originalError: e));
+    }
   }
 
-  Future<String> getPortalUrl() async {
-    final response = await _apiClient.post('/subscription/portal');
-    return response.data['url'] as String;
+  @override
+  Future<Result<String>> getPortalUrl() async {
+    try {
+      final response = await _apiClient.post('/subscription/portal');
+      return Success(response.data['url'] as String);
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return Failure(UnknownError(e.toString(), originalError: e));
+    }
   }
 
-  Future<Map<String, dynamic>> getStatus() async {
-    final response = await _apiClient.get('/subscription/status');
-    return response.data as Map<String, dynamic>;
+  @override
+  Future<Result<Map<String, dynamic>>> getStatus() async {
+    try {
+      final response = await _apiClient.get('/subscription/status');
+      return Success(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return Failure(UnknownError(e.toString(), originalError: e));
+    }
   }
 }

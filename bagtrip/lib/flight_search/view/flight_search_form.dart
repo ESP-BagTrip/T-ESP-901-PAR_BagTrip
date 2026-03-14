@@ -11,7 +11,6 @@ import 'package:bagtrip/flight_search/widgets/trip_type_selector.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -29,7 +28,7 @@ class FlightSearchForm extends StatelessWidget {
           if (state.searchResults == null || state.searchResults!.isEmpty) {
             AppSnackBar.showError(
               context,
-              message: toUserFriendlyMessage(state.errorMessage),
+              message: state.errorMessage ?? 'Une erreur est survenue.',
             );
           }
         }

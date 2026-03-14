@@ -8,22 +8,21 @@ import 'package:bagtrip/service/notification_service.dart';
 import 'package:bagtrip/service/profile_api_service.dart';
 import 'package:bagtrip/service/booking_service.dart';
 import 'package:bagtrip/service/activity_service.dart';
-import 'package:bagtrip/service/activity_ai_service.dart';
 import 'package:bagtrip/service/budget_service.dart';
 import 'package:bagtrip/service/trip_service.dart';
 import 'package:bagtrip/service/trip_share_service.dart';
 import 'package:bagtrip/service/accommodation_service.dart';
 import 'package:bagtrip/service/baggage_item_service.dart';
-import 'package:bagtrip/service/baggage_ai_service.dart';
 import 'package:bagtrip/service/traveler_service.dart';
 import 'package:bagtrip/service/agent_service.dart';
 import 'package:bagtrip/service/feedback_service.dart';
 import 'package:bagtrip/service/subscription_service.dart';
 import 'package:bagtrip/service/ai_service.dart';
-import 'package:bagtrip/service/post_trip_ai_service.dart';
 import 'package:bagtrip/service/location_service.dart';
 import 'package:bagtrip/service/onboarding_storage.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
+
+import 'package:bagtrip/repositories/repositories.dart';
 
 final getIt = GetIt.instance;
 
@@ -43,65 +42,56 @@ void setupServiceLocator() {
     ),
   );
 
-  // 3. AuthService (depends on ApiClient + StorageService)
-  getIt.registerLazySingleton<AuthService>(
-    () => AuthService(
+  // 3. AuthRepository (depends on ApiClient + StorageService)
+  getIt.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(
       apiClient: getIt<ApiClient>(),
       storageService: getIt<StorageService>(),
     ),
   );
 
-  // 4. API services (depend on ApiClient)
-  getIt.registerLazySingleton<NotificationApiService>(
-    () => NotificationApiService(apiClient: getIt<ApiClient>()),
+  // 4. Domain repositories (depend on ApiClient)
+  getIt.registerLazySingleton<NotificationRepository>(
+    () => NotificationRepositoryImpl(apiClient: getIt<ApiClient>()),
   );
-  getIt.registerLazySingleton<ProfileApiService>(
-    () => ProfileApiService(apiClient: getIt<ApiClient>()),
+  getIt.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(apiClient: getIt<ApiClient>()),
   );
-  getIt.registerLazySingleton<BookingService>(
-    () => BookingService(apiClient: getIt<ApiClient>()),
+  getIt.registerLazySingleton<BookingRepository>(
+    () => BookingRepositoryImpl(apiClient: getIt<ApiClient>()),
   );
-  getIt.registerLazySingleton<ActivityService>(
-    () => ActivityService(apiClient: getIt<ApiClient>()),
+  getIt.registerLazySingleton<ActivityRepository>(
+    () => ActivityRepositoryImpl(apiClient: getIt<ApiClient>()),
   );
-  getIt.registerLazySingleton<ActivityAiService>(
-    () => ActivityAiService(apiClient: getIt<ApiClient>()),
+  getIt.registerLazySingleton<BudgetRepository>(
+    () => BudgetRepositoryImpl(apiClient: getIt<ApiClient>()),
   );
-  getIt.registerLazySingleton<BudgetService>(
-    () => BudgetService(apiClient: getIt<ApiClient>()),
+  getIt.registerLazySingleton<TripRepository>(
+    () => TripRepositoryImpl(apiClient: getIt<ApiClient>()),
   );
-  getIt.registerLazySingleton<TripService>(
-    () => TripService(apiClient: getIt<ApiClient>()),
+  getIt.registerLazySingleton<TripShareRepository>(
+    () => TripShareRepositoryImpl(apiClient: getIt<ApiClient>()),
   );
-  getIt.registerLazySingleton<TripShareService>(
-    () => TripShareService(apiClient: getIt<ApiClient>()),
+  getIt.registerLazySingleton<AccommodationRepository>(
+    () => AccommodationRepositoryImpl(apiClient: getIt<ApiClient>()),
   );
-  getIt.registerLazySingleton<AccommodationService>(
-    () => AccommodationService(apiClient: getIt<ApiClient>()),
+  getIt.registerLazySingleton<BaggageRepository>(
+    () => BaggageRepositoryImpl(apiClient: getIt<ApiClient>()),
   );
-  getIt.registerLazySingleton<BaggageItemService>(
-    () => BaggageItemService(apiClient: getIt<ApiClient>()),
-  );
-  getIt.registerLazySingleton<BaggageAiService>(
-    () => BaggageAiService(apiClient: getIt<ApiClient>()),
-  );
-  getIt.registerLazySingleton<TravelerService>(
-    () => TravelerService(apiClient: getIt<ApiClient>()),
+  getIt.registerLazySingleton<TravelerRepository>(
+    () => TravelerRepositoryImpl(apiClient: getIt<ApiClient>()),
   );
   getIt.registerLazySingleton<AgentService>(
     () => AgentService(apiClient: getIt<ApiClient>()),
   );
-  getIt.registerLazySingleton<FeedbackService>(
-    () => FeedbackService(apiClient: getIt<ApiClient>()),
+  getIt.registerLazySingleton<FeedbackRepository>(
+    () => FeedbackRepositoryImpl(apiClient: getIt<ApiClient>()),
   );
-  getIt.registerLazySingleton<SubscriptionService>(
-    () => SubscriptionService(apiClient: getIt<ApiClient>()),
+  getIt.registerLazySingleton<SubscriptionRepository>(
+    () => SubscriptionRepositoryImpl(apiClient: getIt<ApiClient>()),
   );
-  getIt.registerLazySingleton<AiService>(
-    () => AiService(apiClient: getIt<ApiClient>()),
-  );
-  getIt.registerLazySingleton<PostTripAiService>(
-    () => PostTripAiService(apiClient: getIt<ApiClient>()),
+  getIt.registerLazySingleton<AiRepository>(
+    () => AiRepositoryImpl(apiClient: getIt<ApiClient>()),
   );
 
   // 5. LocationService (uses Dio directly, not ApiClient)

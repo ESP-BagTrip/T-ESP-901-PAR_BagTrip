@@ -1,21 +1,20 @@
+import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/config/service_locator.dart';
-import 'package:bagtrip/service/activity_ai_service.dart';
-import 'package:bagtrip/service/activity_service.dart';
+import 'package:bagtrip/repositories/activity_repository.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:bloc/bloc.dart';
-import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
 
 part 'activity_event.dart';
 part 'activity_state.dart';
 
 class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
-  final ActivityService _activityService;
-  final ActivityAiService _aiService;
+  final ActivityRepository _activityRepository;
 
-  ActivityBloc({ActivityService? activityService, ActivityAiService? aiService})
-    : _activityService = activityService ?? getIt<ActivityService>(),
-      _aiService = aiService ?? getIt<ActivityAiService>(),
+  ActivityBloc({ActivityRepository? activityRepository})
+    : _activityRepository = activityRepository ?? getIt<ActivityRepository>(),
       super(ActivityInitial()) {
     on<LoadActivities>(_onLoadActivities);
     on<CreateActivity>(_onCreateActivity);
@@ -46,16 +45,14 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
     Emitter<ActivityState> emit,
   ) async {
     emit(ActivityLoading());
-    try {
-      final activities = await _activityService.getActivities(event.tripId);
-      emit(
-        ActivitiesLoaded(
-          activities: activities,
-          groupedByDay: _groupByDay(activities),
-        ),
-      );
-    } catch (e) {
-      emit(ActivityError(message: e.toString()));
+    final result = await _activityRepository.getActivities(event.tripId);
+    switch (result) {
+      case Success(:final data):
+        emit(
+          ActivitiesLoaded(activities: data, groupedByDay: _groupByDay(data)),
+        );
+      case Failure(:final error):
+        emit(ActivityError(message: toUserFriendlyMessage(error)));
     }
   }
 
@@ -63,11 +60,15 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
     CreateActivity event,
     Emitter<ActivityState> emit,
   ) async {
-    try {
-      await _activityService.createActivity(event.tripId, event.data);
-      add(LoadActivities(tripId: event.tripId));
-    } catch (e) {
-      emit(ActivityError(message: e.toString()));
+    final result = await _activityRepository.createActivity(
+      event.tripId,
+      event.data,
+    );
+    switch (result) {
+      case Success():
+        add(LoadActivities(tripId: event.tripId));
+      case Failure(:final error):
+        emit(ActivityError(message: toUserFriendlyMessage(error)));
     }
   }
 
@@ -75,15 +76,16 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
     UpdateActivity event,
     Emitter<ActivityState> emit,
   ) async {
-    try {
-      await _activityService.updateActivity(
-        event.tripId,
-        event.activityId,
-        event.data,
-      );
-      add(LoadActivities(tripId: event.tripId));
-    } catch (e) {
-      emit(ActivityError(message: e.toString()));
+    final result = await _activityRepository.updateActivity(
+      event.tripId,
+      event.activityId,
+      event.data,
+    );
+    switch (result) {
+      case Success():
+        add(LoadActivities(tripId: event.tripId));
+      case Failure(:final error):
+        emit(ActivityError(message: toUserFriendlyMessage(error)));
     }
   }
 
@@ -91,11 +93,15 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
     DeleteActivity event,
     Emitter<ActivityState> emit,
   ) async {
-    try {
-      await _activityService.deleteActivity(event.tripId, event.activityId);
-      add(LoadActivities(tripId: event.tripId));
-    } catch (e) {
-      emit(ActivityError(message: e.toString()));
+    final result = await _activityRepository.deleteActivity(
+      event.tripId,
+      event.activityId,
+    );
+    switch (result) {
+      case Success():
+        add(LoadActivities(tripId: event.tripId));
+      case Failure(:final error):
+        emit(ActivityError(message: toUserFriendlyMessage(error)));
     }
   }
 
@@ -112,29 +118,28 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
     }
 
     emit(ActivitySuggestionsLoading());
-    try {
-      final suggestions = await _aiService.suggestActivities(event.tripId);
-      emit(
-        ActivitySuggestionsLoaded(
-          suggestions: suggestions,
-          activities: currentActivities,
-          groupedByDay: currentGrouped,
-        ),
-      );
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 402) {
+    final result = await _activityRepository.suggestActivities(event.tripId);
+    switch (result) {
+      case Success(:final data):
         emit(
-          ActivitiesLoaded(
+          ActivitySuggestionsLoaded(
+            suggestions: data,
             activities: currentActivities,
             groupedByDay: currentGrouped,
           ),
         );
-        emit(ActivityQuotaExceeded());
-      } else {
-        emit(ActivityError(message: e.toString()));
-      }
-    } catch (e) {
-      emit(ActivityError(message: e.toString()));
+      case Failure(:final error):
+        if (error is QuotaExceededError) {
+          emit(
+            ActivitiesLoaded(
+              activities: currentActivities,
+              groupedByDay: currentGrouped,
+            ),
+          );
+          emit(ActivityQuotaExceeded());
+        } else {
+          emit(ActivityError(message: toUserFriendlyMessage(error)));
+        }
     }
   }
 
@@ -142,11 +147,15 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
     AddSuggestedActivity event,
     Emitter<ActivityState> emit,
   ) async {
-    try {
-      await _activityService.createActivity(event.tripId, event.data);
-      add(LoadActivities(tripId: event.tripId));
-    } catch (e) {
-      emit(ActivityError(message: e.toString()));
+    final result = await _activityRepository.createActivity(
+      event.tripId,
+      event.data,
+    );
+    switch (result) {
+      case Success():
+        add(LoadActivities(tripId: event.tripId));
+      case Failure(:final error):
+        emit(ActivityError(message: toUserFriendlyMessage(error)));
     }
   }
 }

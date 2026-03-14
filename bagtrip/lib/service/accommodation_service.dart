@@ -1,14 +1,18 @@
+import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/accommodation.dart';
+import 'package:bagtrip/repositories/accommodation_repository.dart';
 import 'package:bagtrip/service/api_client.dart';
+import 'package:dio/dio.dart';
 
-class AccommodationService {
+class AccommodationRepositoryImpl implements AccommodationRepository {
   final ApiClient _apiClient;
 
-  AccommodationService({ApiClient? apiClient})
+  AccommodationRepositoryImpl({ApiClient? apiClient})
     : _apiClient = apiClient ?? ApiClient();
 
-  /// Create an accommodation for a trip.
-  Future<Accommodation> createAccommodation(
+  @override
+  Future<Result<Accommodation>> createAccommodation(
     String tripId, {
     required String name,
     String? address,
@@ -35,46 +39,50 @@ class AccommodationService {
           if (notes != null) 'notes': notes,
         },
       );
-
       if (response.statusCode == 201 || response.statusCode == 200) {
-        return Accommodation.fromJson(response.data);
-      } else {
-        throw Exception(
-          'Failed to create accommodation: ${response.statusCode}',
-        );
+        return Success(Accommodation.fromJson(response.data));
       }
+      return Failure(
+        UnknownError('create accommodation failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error creating accommodation: $e');
+      return Failure(UnknownError(e.toString(), originalError: e));
     }
   }
 
-  /// Get all accommodations for a trip.
-  Future<List<Accommodation>> getByTrip(String tripId) async {
+  @override
+  Future<Result<List<Accommodation>>> getByTrip(String tripId) async {
     try {
       final response = await _apiClient.get('/trips/$tripId/accommodations');
-
       if (response.statusCode == 200) {
         final data = response.data;
         if (data is List) {
-          return data.map((json) => Accommodation.fromJson(json)).toList();
+          return Success(
+            data.map((json) => Accommodation.fromJson(json)).toList(),
+          );
         } else if (data is Map && data['items'] is List) {
-          return (data['items'] as List)
-              .map((json) => Accommodation.fromJson(json))
-              .toList();
+          return Success(
+            (data['items'] as List)
+                .map((json) => Accommodation.fromJson(json))
+                .toList(),
+          );
         }
-        return [];
-      } else {
-        throw Exception(
-          'Failed to fetch accommodations: ${response.statusCode}',
-        );
+        return const Success([]);
       }
+      return Failure(
+        UnknownError('fetch accommodations failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error fetching accommodations: $e');
+      return Failure(UnknownError(e.toString(), originalError: e));
     }
   }
 
-  /// Update an accommodation.
-  Future<Accommodation> updateAccommodation(
+  @override
+  Future<Result<Accommodation>> updateAccommodation(
     String tripId,
     String accommodationId,
     Map<String, dynamic> updates,
@@ -84,21 +92,21 @@ class AccommodationService {
         '/trips/$tripId/accommodations/$accommodationId',
         data: updates,
       );
-
       if (response.statusCode == 200) {
-        return Accommodation.fromJson(response.data);
-      } else {
-        throw Exception(
-          'Failed to update accommodation: ${response.statusCode}',
-        );
+        return Success(Accommodation.fromJson(response.data));
       }
+      return Failure(
+        UnknownError('update accommodation failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error updating accommodation: $e');
+      return Failure(UnknownError(e.toString(), originalError: e));
     }
   }
 
-  /// Delete an accommodation.
-  Future<void> deleteAccommodation(
+  @override
+  Future<Result<void>> deleteAccommodation(
     String tripId,
     String accommodationId,
   ) async {
@@ -106,14 +114,16 @@ class AccommodationService {
       final response = await _apiClient.delete(
         '/trips/$tripId/accommodations/$accommodationId',
       );
-
-      if (response.statusCode != 200 && response.statusCode != 204) {
-        throw Exception(
-          'Failed to delete accommodation: ${response.statusCode}',
-        );
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return const Success(null);
       }
+      return Failure(
+        UnknownError('delete accommodation failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error deleting accommodation: $e');
+      return Failure(UnknownError(e.toString(), originalError: e));
     }
   }
 }

@@ -1,14 +1,18 @@
+import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/feedback.dart';
+import 'package:bagtrip/repositories/feedback_repository.dart';
 import 'package:bagtrip/service/api_client.dart';
+import 'package:dio/dio.dart';
 
-class FeedbackService {
+class FeedbackRepositoryImpl implements FeedbackRepository {
   final ApiClient _apiClient;
 
-  FeedbackService({ApiClient? apiClient})
+  FeedbackRepositoryImpl({ApiClient? apiClient})
     : _apiClient = apiClient ?? ApiClient();
 
-  /// Submit feedback for a completed trip.
-  Future<TripFeedback> submitFeedback(
+  @override
+  Future<Result<TripFeedback>> submitFeedback(
     String tripId, {
     required int overallRating,
     String? highlights,
@@ -25,38 +29,46 @@ class FeedbackService {
           'wouldRecommend': wouldRecommend,
         },
       );
-
       if (response.statusCode == 201 || response.statusCode == 200) {
-        return TripFeedback.fromJson(response.data);
-      } else {
-        throw Exception('Failed to submit feedback: ${response.statusCode}');
+        return Success(TripFeedback.fromJson(response.data));
       }
+      return Failure(
+        UnknownError('submit feedback failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error submitting feedback: $e');
+      return Failure(UnknownError(e.toString(), originalError: e));
     }
   }
 
-  /// Get all feedbacks for a trip.
-  Future<List<TripFeedback>> getFeedbacks(String tripId) async {
+  @override
+  Future<Result<List<TripFeedback>>> getFeedbacks(String tripId) async {
     try {
       final response = await _apiClient.get('/trips/$tripId/feedback');
-
       if (response.statusCode == 200) {
         final data = response.data;
         if (data is Map && data['items'] is List) {
-          return (data['items'] as List)
-              .map((json) => TripFeedback.fromJson(json))
-              .toList();
+          return Success(
+            (data['items'] as List)
+                .map((json) => TripFeedback.fromJson(json))
+                .toList(),
+          );
         }
         if (data is List) {
-          return data.map((json) => TripFeedback.fromJson(json)).toList();
+          return Success(
+            data.map((json) => TripFeedback.fromJson(json)).toList(),
+          );
         }
-        return [];
-      } else {
-        throw Exception('Failed to fetch feedbacks: ${response.statusCode}');
+        return const Success([]);
       }
+      return Failure(
+        UnknownError('fetch feedbacks failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error fetching feedbacks: $e');
+      return Failure(UnknownError(e.toString(), originalError: e));
     }
   }
 }

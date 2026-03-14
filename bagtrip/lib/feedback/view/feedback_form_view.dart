@@ -1,8 +1,9 @@
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
 import 'package:bagtrip/feedback/bloc/feedback_bloc.dart';
 import 'package:bagtrip/models/feedback.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/config/service_locator.dart';
-import 'package:bagtrip/service/auth_service.dart';
+import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -282,8 +283,9 @@ class _PostTripSuggestionSection extends StatelessWidget {
                   const SizedBox(height: 12),
                   ElevatedButton.icon(
                     onPressed: () async {
-                      final authService = getIt<AuthService>();
-                      final user = await authService.getCurrentUser();
+                      final authRepository = getIt<AuthRepository>();
+                      final userResult = await authRepository.getCurrentUser();
+                      final user = userResult.dataOrNull;
                       if (user != null && user.isFree) {
                         if (context.mounted) {
                           PremiumPaywall.show(context);

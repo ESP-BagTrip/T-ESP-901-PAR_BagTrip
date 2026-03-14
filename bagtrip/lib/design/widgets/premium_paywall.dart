@@ -1,5 +1,7 @@
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/design/widgets/premium_cta_button.dart';
-import 'package:bagtrip/service/subscription_service.dart';
+import 'package:bagtrip/config/service_locator.dart';
+import 'package:bagtrip/repositories/subscription_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -23,24 +25,27 @@ class PremiumPaywall extends StatefulWidget {
 
 class _PremiumPaywallState extends State<PremiumPaywall> {
   bool _isLoading = false;
-  final _subscriptionService = SubscriptionService();
+  final _subscriptionRepository = getIt<SubscriptionRepository>();
 
   Future<void> _handleUpgrade() async {
     setState(() => _isLoading = true);
-    try {
-      final url = await _subscriptionService.getCheckoutUrl();
-      if (url.isNotEmpty) {
-        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+    final result = await _subscriptionRepository.getCheckoutUrl();
+    switch (result) {
+      case Success(:final data):
+        if (data.isNotEmpty) {
+          await launchUrl(
+            Uri.parse(data),
+            mode: LaunchMode.externalApplication,
+          );
+        }
+      case Failure(:final error):
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Erreur: ${error.message}')));
+        }
     }
+    if (mounted) setState(() => _isLoading = false);
   }
 
   @override

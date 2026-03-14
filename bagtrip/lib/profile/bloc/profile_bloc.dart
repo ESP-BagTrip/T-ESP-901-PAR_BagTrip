@@ -1,11 +1,13 @@
 // ignore_for_file: depend_on_referenced_packages
 
+import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/booking_response.dart';
-import 'package:bagtrip/models/user.dart';
 import 'package:bagtrip/config/service_locator.dart';
-import 'package:bagtrip/service/auth_service.dart';
-import 'package:bagtrip/service/booking_service.dart';
-import 'package:bagtrip/service/profile_api_service.dart';
+import 'package:bagtrip/repositories/auth_repository.dart';
+import 'package:bagtrip/repositories/booking_repository.dart';
+import 'package:bagtrip/repositories/profile_repository.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:bloc/bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:meta/meta.dart';
@@ -15,12 +17,12 @@ part 'profile_state.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ProfileBloc({
-    AuthService? authService,
-    BookingService? bookingService,
-    ProfileApiService? profileApiService,
-  }) : _authService = authService ?? getIt<AuthService>(),
-       _bookingService = bookingService ?? getIt<BookingService>(),
-       _profileApiService = profileApiService ?? getIt<ProfileApiService>(),
+    AuthRepository? authRepository,
+    BookingRepository? bookingRepository,
+    ProfileRepository? profileRepository,
+  }) : _authRepository = authRepository ?? getIt<AuthRepository>(),
+       _bookingRepository = bookingRepository ?? getIt<BookingRepository>(),
+       _profileRepository = profileRepository ?? getIt<ProfileRepository>(),
        super(ProfileInitial()) {
     on<LoadProfile>(_onLoadProfile);
     on<ResetProfile>(_onResetProfile);
@@ -29,9 +31,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<SetDefaultPaymentMethod>(_onSetDefaultPaymentMethod);
   }
 
-  final AuthService _authService;
-  final BookingService _bookingService;
-  final ProfileApiService _profileApiService;
+  final AuthRepository _authRepository;
+  final BookingRepository _bookingRepository;
+  final ProfileRepository _profileRepository;
 
   static const String _defaultTheme = 'light';
   static const String _defaultLanguage = 'Français';
@@ -65,70 +67,67 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         ? current.selectedLanguage
         : _defaultLanguage;
 
-    try {
-      final User? user = await _authService.getCurrentUser();
-      if (user == null) {
-        await _authService.logout();
-        emit(ProfileUnauthenticated());
-        return;
-      }
+    final userResult = await _authRepository.getCurrentUser();
+    switch (userResult) {
+      case Success(:final data):
+        final user = data;
+        if (user == null) {
+          await _authRepository.logout();
+          emit(ProfileUnauthenticated());
+          return;
+        }
 
-      List<RecentBooking> recentBookings = [];
-      try {
-        final bookings = await _bookingService.listBookings();
-        recentBookings = bookings.map(_mapBookingToRecentBooking).toList();
-      } catch (_) {
-        // Keep empty list on booking list failure; profile still shows user
-      }
+        List<RecentBooking> recentBookings = [];
+        final bookingsResult = await _bookingRepository.listBookings();
+        if (bookingsResult is Success<List<BookingResponse>>) {
+          recentBookings = bookingsResult.data
+              .map(_mapBookingToRecentBooking)
+              .toList();
+        }
 
-      List<String> travelTypes = [];
-      String? travelStyle;
-      String? budget;
-      String? companions;
-      try {
-        final travelerProfile = await _profileApiService.getProfile();
-        travelTypes = travelerProfile.travelTypes;
-        travelStyle = travelerProfile.travelStyle;
-        budget = travelerProfile.budget;
-        companions = travelerProfile.companions;
-      } catch (_) {
-        // Keep defaults on profile fetch failure; profile still shows user
-      }
+        List<String> travelTypes = [];
+        String? travelStyle;
+        String? budget;
+        String? companions;
+        final profileResult = await _profileRepository.getProfile();
+        if (profileResult is Success) {
+          final travelerProfile = (profileResult as Success).data;
+          travelTypes = travelerProfile.travelTypes;
+          travelStyle = travelerProfile.travelStyle;
+          budget = travelerProfile.budget;
+          companions = travelerProfile.companions;
+        }
 
-      final memberSince = DateFormat.yMMM(
-        'fr',
-      ).format(user.createdAt ?? DateTime.now());
+        final memberSince = DateFormat.yMMM(
+          'fr',
+        ).format(user.createdAt ?? DateTime.now());
 
-      emit(
-        ProfileLoaded(
-          name: user.fullName?.trim().isNotEmpty == true
-              ? user.fullName!
-              : user.email,
-          email: user.email,
-          phone: user.phone?.trim().isNotEmpty == true ? user.phone! : '—',
-          address: '—',
-          memberSince: memberSince,
-          paymentCards: [],
-          selectedTheme: previousTheme,
-          selectedLanguage: previousLanguage,
-          recentBookings: recentBookings,
-          travelTypes: travelTypes,
-          travelStyle: travelStyle,
-          budget: budget,
-          companions: companions,
-        ),
-      );
-    } catch (e) {
-      final msg = e.toString();
-      if (msg.contains('401') ||
-          msg.contains('Non authentifié') ||
-          msg.contains('Invalid') ||
-          msg.contains('Unauthorized')) {
-        await _authService.logout();
-        emit(ProfileUnauthenticated());
-      } else {
-        emit(ProfileLoadFailure(message: msg));
-      }
+        emit(
+          ProfileLoaded(
+            name: user.fullName?.trim().isNotEmpty == true
+                ? user.fullName!
+                : user.email,
+            email: user.email,
+            phone: user.phone?.trim().isNotEmpty == true ? user.phone! : '—',
+            address: '—',
+            memberSince: memberSince,
+            paymentCards: [],
+            selectedTheme: previousTheme,
+            selectedLanguage: previousLanguage,
+            recentBookings: recentBookings,
+            travelTypes: travelTypes,
+            travelStyle: travelStyle,
+            budget: budget,
+            companions: companions,
+          ),
+        );
+      case Failure(:final error):
+        if (error is AuthenticationError) {
+          await _authRepository.logout();
+          emit(ProfileUnauthenticated());
+        } else {
+          emit(ProfileLoadFailure(message: toUserFriendlyMessage(error)));
+        }
     }
   }
 

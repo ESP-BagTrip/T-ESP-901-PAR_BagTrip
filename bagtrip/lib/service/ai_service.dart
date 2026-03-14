@@ -1,13 +1,17 @@
+import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/result.dart';
+import 'package:bagtrip/repositories/ai_repository.dart';
 import 'package:bagtrip/service/api_client.dart';
 import 'package:dio/dio.dart';
 
-class AiService {
+class AiRepositoryImpl implements AiRepository {
   final ApiClient _apiClient;
 
-  AiService({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
+  AiRepositoryImpl({ApiClient? apiClient})
+    : _apiClient = apiClient ?? ApiClient();
 
-  /// Get AI trip inspiration.
-  Future<List<Map<String, dynamic>>> getInspiration({
+  @override
+  Future<Result<List<Map<String, dynamic>>>> getInspiration({
     String? travelTypes,
     String? budgetRange,
     int? durationDays,
@@ -27,27 +31,29 @@ class AiService {
           if (constraints != null) 'constraints': constraints,
         },
       );
-
       if (response.statusCode == 200) {
         final data = response.data;
         if (data is Map && data['suggestions'] is List) {
-          return (data['suggestions'] as List)
-              .map((s) => Map<String, dynamic>.from(s))
-              .toList();
+          return Success(
+            (data['suggestions'] as List)
+                .map((s) => Map<String, dynamic>.from(s))
+                .toList(),
+          );
         }
-        return [];
-      } else {
-        throw Exception('Failed to get AI inspiration: ${response.statusCode}');
+        return const Success([]);
       }
-    } on DioException {
-      rethrow;
+      return Failure(
+        UnknownError('get inspiration failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error getting AI inspiration: $e');
+      return Failure(UnknownError(e.toString(), originalError: e));
     }
   }
 
-  /// Accept an AI suggestion and create a DRAFT trip.
-  Future<Map<String, dynamic>> acceptInspiration(
+  @override
+  Future<Result<Map<String, dynamic>>> acceptInspiration(
     Map<String, dynamic> suggestion, {
     String? startDate,
     String? endDate,
@@ -61,16 +67,37 @@ class AiService {
           if (endDate != null) 'endDate': endDate,
         },
       );
-
       if (response.statusCode == 200) {
-        return Map<String, dynamic>.from(response.data);
-      } else {
-        throw Exception('Failed to accept inspiration: ${response.statusCode}');
+        return Success(Map<String, dynamic>.from(response.data));
       }
-    } on DioException {
-      rethrow;
+      return Failure(
+        UnknownError('accept inspiration failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error accepting inspiration: $e');
+      return Failure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<Map<String, dynamic>>> getPostTripSuggestion() async {
+    try {
+      final response = await _apiClient.post('/ai/post-trip-suggestion');
+      if (response.statusCode == 200) {
+        final data = response.data;
+        if (data is Map && data['suggestion'] != null) {
+          return Success(Map<String, dynamic>.from(data['suggestion']));
+        }
+        return Success(Map<String, dynamic>.from(data));
+      }
+      return Failure(
+        UnknownError('get post-trip suggestion failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return Failure(UnknownError(e.toString(), originalError: e));
     }
   }
 }

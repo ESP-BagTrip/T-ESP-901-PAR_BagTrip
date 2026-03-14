@@ -1,66 +1,83 @@
+import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/trip_share.dart';
+import 'package:bagtrip/repositories/trip_share_repository.dart';
 import 'package:bagtrip/service/api_client.dart';
+import 'package:dio/dio.dart';
 
-class TripShareService {
+class TripShareRepositoryImpl implements TripShareRepository {
   final ApiClient _apiClient;
 
-  TripShareService({ApiClient? apiClient})
+  TripShareRepositoryImpl({ApiClient? apiClient})
     : _apiClient = apiClient ?? ApiClient();
 
-  /// Invite a user by email to share a trip.
-  Future<TripShare> createShare(String tripId, {required String email}) async {
+  @override
+  Future<Result<TripShare>> createShare(
+    String tripId, {
+    required String email,
+  }) async {
     try {
       final response = await _apiClient.post(
         '/trips/$tripId/shares',
         data: {'email': email},
       );
-
       if (response.statusCode == 201 || response.statusCode == 200) {
-        return TripShare.fromJson(response.data);
-      } else {
-        throw Exception('Failed to create share: ${response.statusCode}');
+        return Success(TripShare.fromJson(response.data));
       }
+      return Failure(
+        UnknownError('create share failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error creating share: $e');
+      return Failure(UnknownError(e.toString(), originalError: e));
     }
   }
 
-  /// Get all shares for a trip.
-  Future<List<TripShare>> getSharesByTrip(String tripId) async {
+  @override
+  Future<Result<List<TripShare>>> getSharesByTrip(String tripId) async {
     try {
       final response = await _apiClient.get('/trips/$tripId/shares');
-
       if (response.statusCode == 200) {
         final data = response.data;
         if (data is Map && data['items'] is List) {
-          return (data['items'] as List)
-              .map((json) => TripShare.fromJson(json))
-              .toList();
+          return Success(
+            (data['items'] as List)
+                .map((json) => TripShare.fromJson(json))
+                .toList(),
+          );
         }
         if (data is List) {
-          return data.map((json) => TripShare.fromJson(json)).toList();
+          return Success(data.map((json) => TripShare.fromJson(json)).toList());
         }
-        return [];
-      } else {
-        throw Exception('Failed to fetch shares: ${response.statusCode}');
+        return const Success([]);
       }
+      return Failure(
+        UnknownError('fetch shares failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error fetching shares: $e');
+      return Failure(UnknownError(e.toString(), originalError: e));
     }
   }
 
-  /// Revoke a share.
-  Future<void> deleteShare(String tripId, String shareId) async {
+  @override
+  Future<Result<void>> deleteShare(String tripId, String shareId) async {
     try {
       final response = await _apiClient.delete(
         '/trips/$tripId/shares/$shareId',
       );
-
-      if (response.statusCode != 200 && response.statusCode != 204) {
-        throw Exception('Failed to delete share: ${response.statusCode}');
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return const Success(null);
       }
+      return Failure(
+        UnknownError('delete share failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error deleting share: $e');
+      return Failure(UnknownError(e.toString(), originalError: e));
     }
   }
 }

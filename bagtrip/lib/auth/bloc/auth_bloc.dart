@@ -1,10 +1,13 @@
 import 'dart:developer' as developer;
 import 'dart:io';
 
+import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/auth_response.dart';
 import 'package:bagtrip/config/service_locator.dart';
-import 'package:bagtrip/service/auth_service.dart';
-import 'package:bagtrip/service/notification_service.dart';
+import 'package:bagtrip/repositories/auth_repository.dart';
+import 'package:bagtrip/repositories/notification_repository.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:bloc/bloc.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:meta/meta.dart';
@@ -13,11 +16,11 @@ part 'auth_event.dart';
 part 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final AuthService _authService;
+  final AuthRepository _authRepository;
   bool _isLoginMode = true;
 
-  AuthBloc({AuthService? authService})
-    : _authService = authService ?? getIt<AuthService>(),
+  AuthBloc({AuthRepository? authRepository})
+    : _authRepository = authRepository ?? getIt<AuthRepository>(),
       super(AuthInitial()) {
     on<LoginRequested>(_onLoginRequested);
     on<RegisterRequested>(_onRegisterRequested);
@@ -32,7 +35,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final token = await FirebaseMessaging.instance.getToken();
       if (token != null) {
         final platform = Platform.isIOS ? 'ios' : 'android';
-        await getIt<NotificationApiService>().registerDeviceToken(
+        await getIt<NotificationRepository>().registerDeviceToken(
           token,
           platform: platform,
         );
@@ -47,15 +50,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
-    try {
-      final authResponse = await _authService.login(
-        event.email,
-        event.password,
-      );
-      emit(AuthSuccess(authResponse: authResponse));
-      _registerDeviceToken();
-    } catch (e) {
-      emit(AuthError(errorMessage: e.toString(), isLoginMode: _isLoginMode));
+    final result = await _authRepository.login(event.email, event.password);
+    switch (result) {
+      case Success(:final data):
+        emit(AuthSuccess(authResponse: data));
+        _registerDeviceToken();
+      case Failure(:final error):
+        emit(
+          AuthError(
+            errorMessage: toUserFriendlyMessage(error),
+            isLoginMode: _isLoginMode,
+          ),
+        );
     }
   }
 
@@ -64,16 +70,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
-    try {
-      final authResponse = await _authService.register(
-        event.email,
-        event.password,
-        event.fullName ?? 'User',
-      );
-      emit(AuthSuccess(authResponse: authResponse));
-      _registerDeviceToken();
-    } catch (e) {
-      emit(AuthError(errorMessage: e.toString(), isLoginMode: _isLoginMode));
+    final result = await _authRepository.register(
+      event.email,
+      event.password,
+      event.fullName ?? 'User',
+    );
+    switch (result) {
+      case Success(:final data):
+        emit(AuthSuccess(authResponse: data));
+        _registerDeviceToken();
+      case Failure(:final error):
+        emit(
+          AuthError(
+            errorMessage: toUserFriendlyMessage(error),
+            isLoginMode: _isLoginMode,
+          ),
+        );
     }
   }
 
@@ -82,22 +94,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
-    try {
-      final authResponse = await _authService.loginWithGoogle();
-      emit(AuthSuccess(authResponse: authResponse));
-      _registerDeviceToken();
-    } catch (e, stackTrace) {
-      developer.log('Google Sign-In Error: ${e.toString()}');
-      developer.log('Stack trace: $stackTrace');
-
-      String errorMessage = 'Google sign-in error';
-      if (e is Exception) {
-        errorMessage = e.toString().replaceFirst('Exception: ', '');
-      } else {
-        errorMessage = e.toString();
-      }
-
-      emit(AuthError(errorMessage: errorMessage, isLoginMode: _isLoginMode));
+    final result = await _authRepository.loginWithGoogle();
+    switch (result) {
+      case Success(:final data):
+        emit(AuthSuccess(authResponse: data));
+        _registerDeviceToken();
+      case Failure(:final error):
+        if (error is CancelledError) {
+          emit(AuthInitial(isLoginMode: _isLoginMode));
+        } else {
+          emit(
+            AuthError(
+              errorMessage: toUserFriendlyMessage(error),
+              isLoginMode: _isLoginMode,
+            ),
+          );
+        }
     }
   }
 
@@ -106,22 +118,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
-    try {
-      final authResponse = await _authService.loginWithApple();
-      emit(AuthSuccess(authResponse: authResponse));
-      _registerDeviceToken();
-    } catch (e, stackTrace) {
-      developer.log('Apple Sign-In Error: ${e.toString()}');
-      developer.log('Stack trace: $stackTrace');
-
-      String errorMessage = 'Apple sign-in error';
-      if (e is Exception) {
-        errorMessage = e.toString().replaceFirst('Exception: ', '');
-      } else {
-        errorMessage = e.toString();
-      }
-
-      emit(AuthError(errorMessage: errorMessage, isLoginMode: _isLoginMode));
+    final result = await _authRepository.loginWithApple();
+    switch (result) {
+      case Success(:final data):
+        emit(AuthSuccess(authResponse: data));
+        _registerDeviceToken();
+      case Failure(:final error):
+        if (error is CancelledError) {
+          emit(AuthInitial(isLoginMode: _isLoginMode));
+        } else {
+          emit(
+            AuthError(
+              errorMessage: toUserFriendlyMessage(error),
+              isLoginMode: _isLoginMode,
+            ),
+          );
+        }
     }
   }
 
@@ -130,7 +142,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
-    await _authService.logout();
+    await _authRepository.logout();
     emit(AuthInitial());
   }
 

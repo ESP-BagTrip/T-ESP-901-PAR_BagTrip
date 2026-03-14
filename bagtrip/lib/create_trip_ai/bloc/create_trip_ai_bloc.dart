@@ -1,12 +1,13 @@
+import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/create_trip_ai/models/ai_trip_proposal.dart';
 import 'package:bagtrip/create_trip_ai/models/trip_summary.dart';
 import 'package:bagtrip/config/service_locator.dart';
-import 'package:bagtrip/service/ai_service.dart';
-import 'package:bagtrip/service/auth_service.dart';
+import 'package:bagtrip/repositories/ai_repository.dart';
+import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:bloc/bloc.dart';
-import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
 
 part 'create_trip_ai_event.dart';
@@ -14,12 +15,12 @@ part 'create_trip_ai_state.dart';
 
 class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
   CreateTripAiBloc({
-    AuthService? authService,
+    AuthRepository? authRepository,
     PersonalizationStorage? personalizationStorage,
-    AiService? aiService,
-  }) : _authService = authService ?? getIt<AuthService>(),
+    AiRepository? aiRepository,
+  }) : _authRepository = authRepository ?? getIt<AuthRepository>(),
        _storage = personalizationStorage ?? getIt<PersonalizationStorage>(),
-       _aiService = aiService ?? getIt<AiService>(),
+       _aiRepository = aiRepository ?? getIt<AiRepository>(),
        super(CreateTripAiInitial()) {
     on<CreateTripAiLoadRecap>(_onLoadRecap);
     on<CreateTripAiSetDepartureDate>(_onSetDepartureDate);
@@ -30,9 +31,9 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
     on<CreateTripAiAcceptSuggestion>(_onAcceptSuggestion);
   }
 
-  final AuthService _authService;
+  final AuthRepository _authRepository;
   final PersonalizationStorage _storage;
-  final AiService _aiService;
+  final AiRepository _aiRepository;
 
   // Store the last recap to use in search calls
   String _lastTravelTypes = '';
@@ -51,8 +52,8 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
   ) async {
     emit(CreateTripAiRecapLoading());
     try {
-      final user = await _authService.getCurrentUser();
-      final userId = user?.id ?? '';
+      final userResult = await _authRepository.getCurrentUser();
+      final userId = userResult.dataOrNull?.id ?? '';
       String travelTypes = '';
       String? travelStyle;
       String? budget;
@@ -123,57 +124,56 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
     Emitter<CreateTripAiState> emit,
   ) async {
     emit(CreateTripAiSearchLoading());
-    try {
-      // Check AI quota
-      final user = await _authService.getCurrentUser();
-      if (user != null &&
-          user.aiGenerationsRemaining != null &&
-          user.aiGenerationsRemaining! <= 0) {
-        emit(CreateTripAiQuotaExceeded());
-        return;
-      }
 
-      int? durationDays;
-      if (_lastDepartureDate != null && _lastReturnDate != null) {
-        durationDays = _lastReturnDate!.difference(_lastDepartureDate!).inDays;
-      }
-      // Guess season from departure date
-      String? season;
-      if (_lastDepartureDate != null) {
-        final month = _lastDepartureDate!.month;
-        if (month >= 3 && month <= 5) {
-          season = 'printemps';
-        } else if (month >= 6 && month <= 8) {
-          season = 'été';
-        } else if (month >= 9 && month <= 11) {
-          season = 'automne';
-        } else {
-          season = 'hiver';
-        }
-      }
+    // Check AI quota
+    final userResult = await _authRepository.getCurrentUser();
+    final user = userResult.dataOrNull;
+    if (user != null &&
+        user.aiGenerationsRemaining != null &&
+        user.aiGenerationsRemaining! <= 0) {
+      emit(CreateTripAiQuotaExceeded());
+      return;
+    }
 
-      final results = await _aiService.getInspiration(
-        travelTypes: _lastTravelTypes.isNotEmpty ? _lastTravelTypes : null,
-        budgetRange: _lastBudget,
-        durationDays: durationDays,
-        companions: _lastCompanions,
-        season: season,
-        constraints: _lastConstraints,
-      );
-
-      final proposals = results.asMap().entries.map((entry) {
-        return AiTripProposal.fromJsonWithId(entry.value, id: '${entry.key}');
-      }).toList();
-
-      emit(CreateTripAiResultsLoaded(proposals));
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 402) {
-        emit(CreateTripAiQuotaExceeded());
+    int? durationDays;
+    if (_lastDepartureDate != null && _lastReturnDate != null) {
+      durationDays = _lastReturnDate!.difference(_lastDepartureDate!).inDays;
+    }
+    // Guess season from departure date
+    String? season;
+    if (_lastDepartureDate != null) {
+      final month = _lastDepartureDate!.month;
+      if (month >= 3 && month <= 5) {
+        season = 'printemps';
+      } else if (month >= 6 && month <= 8) {
+        season = 'été';
+      } else if (month >= 9 && month <= 11) {
+        season = 'automne';
       } else {
-        emit(CreateTripAiError(toUserFriendlyMessage(e)));
+        season = 'hiver';
       }
-    } catch (e) {
-      emit(CreateTripAiError(toUserFriendlyMessage(e)));
+    }
+
+    final result = await _aiRepository.getInspiration(
+      travelTypes: _lastTravelTypes.isNotEmpty ? _lastTravelTypes : null,
+      budgetRange: _lastBudget,
+      durationDays: durationDays,
+      companions: _lastCompanions,
+      season: season,
+      constraints: _lastConstraints,
+    );
+    switch (result) {
+      case Success(:final data):
+        final proposals = data.asMap().entries.map((entry) {
+          return AiTripProposal.fromJsonWithId(entry.value, id: '${entry.key}');
+        }).toList();
+        emit(CreateTripAiResultsLoaded(proposals));
+      case Failure(:final error):
+        if (error is QuotaExceededError) {
+          emit(CreateTripAiQuotaExceeded());
+        } else {
+          emit(CreateTripAiError(toUserFriendlyMessage(error)));
+        }
     }
   }
 
@@ -229,29 +229,30 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
       return;
     }
     emit(CreateTripAiSearchLoading());
-    try {
-      String? startDateStr;
-      String? endDateStr;
-      if (_lastDepartureDate != null) {
-        startDateStr = _lastDepartureDate!.toIso8601String().split('T')[0];
-      }
-      if (_lastReturnDate != null) {
-        endDateStr = _lastReturnDate!.toIso8601String().split('T')[0];
-      }
-      final tripData = await _aiService.acceptInspiration(
-        _selectedProposal!.toJson(),
-        startDate: startDateStr,
-        endDate: endDateStr,
-      );
-      emit(CreateTripAiTripCreated(tripData));
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 402) {
-        emit(CreateTripAiQuotaExceeded());
-      } else {
-        emit(CreateTripAiError(toUserFriendlyMessage(e)));
-      }
-    } catch (e) {
-      emit(CreateTripAiError(toUserFriendlyMessage(e)));
+
+    String? startDateStr;
+    String? endDateStr;
+    if (_lastDepartureDate != null) {
+      startDateStr = _lastDepartureDate!.toIso8601String().split('T')[0];
+    }
+    if (_lastReturnDate != null) {
+      endDateStr = _lastReturnDate!.toIso8601String().split('T')[0];
+    }
+
+    final result = await _aiRepository.acceptInspiration(
+      _selectedProposal!.toJson(),
+      startDate: startDateStr,
+      endDate: endDateStr,
+    );
+    switch (result) {
+      case Success(:final data):
+        emit(CreateTripAiTripCreated(data));
+      case Failure(:final error):
+        if (error is QuotaExceededError) {
+          emit(CreateTripAiQuotaExceeded());
+        } else {
+          emit(CreateTripAiError(toUserFriendlyMessage(error)));
+        }
     }
   }
 }

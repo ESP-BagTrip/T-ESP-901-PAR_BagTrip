@@ -6,8 +6,9 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/user.dart';
 import 'package:bagtrip/planifier/bloc/planifier_bloc.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/config/service_locator.dart';
-import 'package:bagtrip/service/auth_service.dart';
+import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -38,7 +39,9 @@ class PlanifierView extends StatelessWidget {
               bottom: MediaQuery.paddingOf(context).bottom + AppSpacing.space24,
             ),
             child: FutureBuilder<User?>(
-              future: getIt<AuthService>().getCurrentUser(),
+              future: getIt<AuthRepository>().getCurrentUser().then(
+                (r) => r.dataOrNull,
+              ),
               builder: (context, userSnapshot) {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,7 +197,9 @@ class PlanifierView extends StatelessWidget {
               description: l10n.planifierAIDescriptionCard,
               newBadge: l10n.planifierNewBadge,
               onTap: () async {
-                final user = await getIt<AuthService>().getCurrentUser();
+                final userResult = await getIt<AuthRepository>()
+                    .getCurrentUser();
+                final user = userResult.dataOrNull;
                 final userId = user?.id ?? '';
                 final hasSeen =
                     userId.isEmpty ||

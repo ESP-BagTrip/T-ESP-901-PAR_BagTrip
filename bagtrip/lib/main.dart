@@ -9,7 +9,7 @@ import 'package:bagtrip/navigation/app_router.dart';
 import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
 import 'package:bagtrip/profile/bloc/profile_bloc.dart';
 import 'package:bagtrip/service/local_notification_service.dart';
-import 'package:bagtrip/service/notification_service.dart';
+import 'package:bagtrip/repositories/notification_repository.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -67,7 +67,7 @@ class _MyAppState extends State<MyApp> {
     // Token refresh — re-register with backend
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
       final platform = Platform.isIOS ? 'ios' : 'android';
-      getIt<NotificationApiService>().registerDeviceToken(
+      getIt<NotificationRepository>().registerDeviceToken(
         newToken,
         platform: platform,
       );

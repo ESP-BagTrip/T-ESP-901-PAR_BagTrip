@@ -1,16 +1,18 @@
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/budget_item.dart';
 import 'package:bagtrip/config/service_locator.dart';
-import 'package:bagtrip/service/budget_service.dart';
+import 'package:bagtrip/repositories/budget_repository.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:bloc/bloc.dart';
 
 part 'budget_event.dart';
 part 'budget_state.dart';
 
 class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
-  final BudgetService _budgetService;
+  final BudgetRepository _budgetRepository;
 
-  BudgetBloc({BudgetService? budgetService})
-    : _budgetService = budgetService ?? getIt<BudgetService>(),
+  BudgetBloc({BudgetRepository? budgetRepository})
+    : _budgetRepository = budgetRepository ?? getIt<BudgetRepository>(),
       super(BudgetInitial()) {
     on<LoadBudget>(_onLoadBudget);
     on<CreateBudgetItem>(_onCreateBudgetItem);
@@ -23,19 +25,20 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
     Emitter<BudgetState> emit,
   ) async {
     emit(BudgetLoading());
-    try {
-      final results = await Future.wait([
-        _budgetService.getBudgetItems(event.tripId),
-        _budgetService.getBudgetSummary(event.tripId),
-      ]);
-      emit(
-        BudgetLoaded(
-          items: results[0] as List<BudgetItem>,
-          summary: results[1] as BudgetSummary,
-        ),
-      );
-    } catch (e) {
-      emit(BudgetError(message: e.toString()));
+    final results = await Future.wait([
+      _budgetRepository.getBudgetItems(event.tripId),
+      _budgetRepository.getBudgetSummary(event.tripId),
+    ]);
+    final itemsResult = results[0] as Result<List<BudgetItem>>;
+    final summaryResult = results[1] as Result<BudgetSummary>;
+    if (itemsResult is Success<List<BudgetItem>> &&
+        summaryResult is Success<BudgetSummary>) {
+      emit(BudgetLoaded(items: itemsResult.data, summary: summaryResult.data));
+    } else {
+      final error = itemsResult is Failure<List<BudgetItem>>
+          ? itemsResult.error
+          : (summaryResult as Failure<BudgetSummary>).error;
+      emit(BudgetError(message: toUserFriendlyMessage(error)));
     }
   }
 
@@ -43,11 +46,15 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
     CreateBudgetItem event,
     Emitter<BudgetState> emit,
   ) async {
-    try {
-      await _budgetService.createBudgetItem(event.tripId, event.data);
-      add(LoadBudget(tripId: event.tripId));
-    } catch (e) {
-      emit(BudgetError(message: e.toString()));
+    final result = await _budgetRepository.createBudgetItem(
+      event.tripId,
+      event.data,
+    );
+    switch (result) {
+      case Success():
+        add(LoadBudget(tripId: event.tripId));
+      case Failure(:final error):
+        emit(BudgetError(message: toUserFriendlyMessage(error)));
     }
   }
 
@@ -55,15 +62,16 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
     UpdateBudgetItem event,
     Emitter<BudgetState> emit,
   ) async {
-    try {
-      await _budgetService.updateBudgetItem(
-        event.tripId,
-        event.itemId,
-        event.data,
-      );
-      add(LoadBudget(tripId: event.tripId));
-    } catch (e) {
-      emit(BudgetError(message: e.toString()));
+    final result = await _budgetRepository.updateBudgetItem(
+      event.tripId,
+      event.itemId,
+      event.data,
+    );
+    switch (result) {
+      case Success():
+        add(LoadBudget(tripId: event.tripId));
+      case Failure(:final error):
+        emit(BudgetError(message: toUserFriendlyMessage(error)));
     }
   }
 
@@ -71,11 +79,15 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
     DeleteBudgetItem event,
     Emitter<BudgetState> emit,
   ) async {
-    try {
-      await _budgetService.deleteBudgetItem(event.tripId, event.itemId);
-      add(LoadBudget(tripId: event.tripId));
-    } catch (e) {
-      emit(BudgetError(message: e.toString()));
+    final result = await _budgetRepository.deleteBudgetItem(
+      event.tripId,
+      event.itemId,
+    );
+    switch (result) {
+      case Success():
+        add(LoadBudget(tripId: event.tripId));
+      case Failure(:final error):
+        emit(BudgetError(message: toUserFriendlyMessage(error)));
     }
   }
 }

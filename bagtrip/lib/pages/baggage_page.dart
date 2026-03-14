@@ -3,10 +3,10 @@ import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/models/baggage_item.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/config/service_locator.dart';
-import 'package:bagtrip/service/auth_service.dart';
-import 'package:bagtrip/service/baggage_ai_service.dart';
-import 'package:bagtrip/service/baggage_item_service.dart';
+import 'package:bagtrip/repositories/auth_repository.dart';
+import 'package:bagtrip/repositories/baggage_repository.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 
@@ -27,8 +27,7 @@ class BaggagePage extends StatefulWidget {
 }
 
 class _BaggagePageState extends State<BaggagePage> {
-  final _baggageItemService = BaggageItemService();
-  final _baggageAiService = BaggageAiService();
+  final _baggageRepository = getIt<BaggageRepository>();
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _quantityController = TextEditingController(text: '1');
@@ -70,30 +69,34 @@ class _BaggagePageState extends State<BaggagePage> {
       _errorMessage = null;
     });
 
-    try {
-      final items = await _baggageItemService.getByTrip(widget.tripId);
-      setState(() {
-        _baggageItems = items;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
+    final result = await _baggageRepository.getByTrip(widget.tripId);
+    switch (result) {
+      case Success(:final data):
+        setState(() {
+          _baggageItems = data;
+          _isLoading = false;
+        });
+      case Failure(:final error):
+        setState(() {
+          _errorMessage = toUserFriendlyMessage(error);
+          _isLoading = false;
+        });
     }
   }
 
   Future<void> _handleTogglePacked(BaggageItem item) async {
-    try {
-      await _baggageItemService.updateBaggageItem(widget.tripId, item.id, {
-        'isPacked': !item.isPacked,
-      });
-      await _loadBaggageItems();
-    } catch (e) {
-      if (mounted) {
-        AppSnackBar.showError(context, message: toUserFriendlyMessage(e));
-      }
+    final result = await _baggageRepository.updateBaggageItem(
+      widget.tripId,
+      item.id,
+      {'isPacked': !item.isPacked},
+    );
+    switch (result) {
+      case Success():
+        await _loadBaggageItems();
+      case Failure(:final error):
+        if (mounted) {
+          AppSnackBar.showError(context, message: toUserFriendlyMessage(error));
+        }
     }
   }
 
@@ -107,35 +110,32 @@ class _BaggagePageState extends State<BaggagePage> {
       _errorMessage = null;
     });
 
-    try {
-      final quantityText = _quantityController.text.trim();
-      await _baggageItemService.createBaggageItem(
-        widget.tripId,
-        name: _nameController.text.trim(),
-        quantity: quantityText.isNotEmpty ? int.tryParse(quantityText) ?? 1 : 1,
-        category: _selectedCategory,
-      );
-
-      _nameController.clear();
-      _quantityController.text = '1';
-      _selectedCategory = null;
-
-      await _loadBaggageItems();
-
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Élément ajouté')));
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-      });
-    } finally {
-      setState(() {
-        _isAdding = false;
-      });
+    final quantityText = _quantityController.text.trim();
+    final result = await _baggageRepository.createBaggageItem(
+      widget.tripId,
+      name: _nameController.text.trim(),
+      quantity: quantityText.isNotEmpty ? int.tryParse(quantityText) ?? 1 : 1,
+      category: _selectedCategory,
+    );
+    switch (result) {
+      case Success():
+        _nameController.clear();
+        _quantityController.text = '1';
+        _selectedCategory = null;
+        await _loadBaggageItems();
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Élément ajouté')));
+        }
+      case Failure(:final error):
+        setState(() {
+          _errorMessage = toUserFriendlyMessage(error);
+        });
     }
+    setState(() {
+      _isAdding = false;
+    });
   }
 
   Future<void> _handleDeleteBaggageItem(String baggageItemId) async {
@@ -159,28 +159,32 @@ class _BaggagePageState extends State<BaggagePage> {
     );
 
     if (confirmed == true) {
-      try {
-        await _baggageItemService.deleteBaggageItem(
-          widget.tripId,
-          baggageItemId,
-        );
-        await _loadBaggageItems();
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Élément supprimé')));
-        }
-      } catch (e) {
-        if (mounted) {
-          AppSnackBar.showError(context, message: toUserFriendlyMessage(e));
-        }
+      final result = await _baggageRepository.deleteBaggageItem(
+        widget.tripId,
+        baggageItemId,
+      );
+      switch (result) {
+        case Success():
+          await _loadBaggageItems();
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Élément supprimé')));
+          }
+        case Failure(:final error):
+          if (mounted) {
+            AppSnackBar.showError(
+              context,
+              message: toUserFriendlyMessage(error),
+            );
+          }
       }
     }
   }
 
   Future<void> _handleSuggestBaggage() async {
-    final authService = getIt<AuthService>();
-    final user = await authService.getCurrentUser();
+    final userResult = await getIt<AuthRepository>().getCurrentUser();
+    final user = userResult.dataOrNull;
     if (user != null &&
         user.isFree &&
         user.aiGenerationsRemaining != null &&
@@ -194,43 +198,45 @@ class _BaggagePageState extends State<BaggagePage> {
     setState(() {
       _isSuggestLoading = true;
     });
-    try {
-      final suggestions = await _baggageAiService.suggestBaggage(widget.tripId);
-      setState(() {
-        _suggestions = suggestions;
-        _isSuggestLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isSuggestLoading = false;
-      });
-      if (mounted) {
-        AppSnackBar.showError(context, message: toUserFriendlyMessage(e));
-      }
+    final result = await _baggageRepository.suggestBaggage(widget.tripId);
+    switch (result) {
+      case Success(:final data):
+        setState(() {
+          _suggestions = data;
+          _isSuggestLoading = false;
+        });
+      case Failure(:final error):
+        setState(() {
+          _isSuggestLoading = false;
+        });
+        if (mounted) {
+          AppSnackBar.showError(context, message: toUserFriendlyMessage(error));
+        }
     }
   }
 
   Future<void> _handleAddSuggestion(Map<String, dynamic> suggestion) async {
-    try {
-      await _baggageItemService.createBaggageItem(
-        widget.tripId,
-        name: suggestion['name'] ?? '',
-        quantity: suggestion['quantity'] ?? 1,
-        category: suggestion['category'],
-      );
-      setState(() {
-        _suggestions.remove(suggestion);
-      });
-      await _loadBaggageItems();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Élément ajouté depuis suggestion')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        AppSnackBar.showError(context, message: toUserFriendlyMessage(e));
-      }
+    final result = await _baggageRepository.createBaggageItem(
+      widget.tripId,
+      name: suggestion['name'] ?? '',
+      quantity: suggestion['quantity'] ?? 1,
+      category: suggestion['category'],
+    );
+    switch (result) {
+      case Success():
+        setState(() {
+          _suggestions.remove(suggestion);
+        });
+        await _loadBaggageItems();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Élément ajouté depuis suggestion')),
+          );
+        }
+      case Failure(:final error):
+        if (mounted) {
+          AppSnackBar.showError(context, message: toUserFriendlyMessage(error));
+        }
     }
   }
 

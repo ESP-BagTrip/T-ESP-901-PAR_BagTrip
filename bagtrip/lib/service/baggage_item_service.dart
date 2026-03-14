@@ -1,14 +1,18 @@
+import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/baggage_item.dart';
+import 'package:bagtrip/repositories/baggage_repository.dart';
 import 'package:bagtrip/service/api_client.dart';
+import 'package:dio/dio.dart';
 
-class BaggageItemService {
+class BaggageRepositoryImpl implements BaggageRepository {
   final ApiClient _apiClient;
 
-  BaggageItemService({ApiClient? apiClient})
+  BaggageRepositoryImpl({ApiClient? apiClient})
     : _apiClient = apiClient ?? ApiClient();
 
-  /// Create a baggage item for a trip.
-  Future<BaggageItem> createBaggageItem(
+  @override
+  Future<Result<BaggageItem>> createBaggageItem(
     String tripId, {
     required String name,
     int? quantity,
@@ -27,46 +31,50 @@ class BaggageItemService {
           if (notes != null) 'notes': notes,
         },
       );
-
       if (response.statusCode == 201 || response.statusCode == 200) {
-        return BaggageItem.fromJson(response.data);
-      } else {
-        throw Exception(
-          'Failed to create baggage item: ${response.statusCode}',
-        );
+        return Success(BaggageItem.fromJson(response.data));
       }
+      return Failure(
+        UnknownError('create baggage item failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error creating baggage item: $e');
+      return Failure(UnknownError(e.toString(), originalError: e));
     }
   }
 
-  /// Get all baggage items for a trip.
-  Future<List<BaggageItem>> getByTrip(String tripId) async {
+  @override
+  Future<Result<List<BaggageItem>>> getByTrip(String tripId) async {
     try {
       final response = await _apiClient.get('/trips/$tripId/baggage');
-
       if (response.statusCode == 200) {
         final data = response.data;
         if (data is List) {
-          return data.map((json) => BaggageItem.fromJson(json)).toList();
+          return Success(
+            data.map((json) => BaggageItem.fromJson(json)).toList(),
+          );
         } else if (data is Map && data['items'] is List) {
-          return (data['items'] as List)
-              .map((json) => BaggageItem.fromJson(json))
-              .toList();
+          return Success(
+            (data['items'] as List)
+                .map((json) => BaggageItem.fromJson(json))
+                .toList(),
+          );
         }
-        return [];
-      } else {
-        throw Exception(
-          'Failed to fetch baggage items: ${response.statusCode}',
-        );
+        return const Success([]);
       }
+      return Failure(
+        UnknownError('fetch baggage items failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error fetching baggage items: $e');
+      return Failure(UnknownError(e.toString(), originalError: e));
     }
   }
 
-  /// Update a baggage item.
-  Future<BaggageItem> updateBaggageItem(
+  @override
+  Future<Result<BaggageItem>> updateBaggageItem(
     String tripId,
     String baggageItemId,
     Map<String, dynamic> updates,
@@ -76,33 +84,65 @@ class BaggageItemService {
         '/trips/$tripId/baggage/$baggageItemId',
         data: updates,
       );
-
       if (response.statusCode == 200) {
-        return BaggageItem.fromJson(response.data);
-      } else {
-        throw Exception(
-          'Failed to update baggage item: ${response.statusCode}',
-        );
+        return Success(BaggageItem.fromJson(response.data));
       }
+      return Failure(
+        UnknownError('update baggage item failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error updating baggage item: $e');
+      return Failure(UnknownError(e.toString(), originalError: e));
     }
   }
 
-  /// Delete a baggage item.
-  Future<void> deleteBaggageItem(String tripId, String baggageItemId) async {
+  @override
+  Future<Result<void>> deleteBaggageItem(
+    String tripId,
+    String baggageItemId,
+  ) async {
     try {
       final response = await _apiClient.delete(
         '/trips/$tripId/baggage/$baggageItemId',
       );
-
-      if (response.statusCode != 200 && response.statusCode != 204) {
-        throw Exception(
-          'Failed to delete baggage item: ${response.statusCode}',
-        );
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return const Success(null);
       }
+      return Failure(
+        UnknownError('delete baggage item failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error deleting baggage item: $e');
+      return Failure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<List<Map<String, dynamic>>>> suggestBaggage(
+    String tripId,
+  ) async {
+    try {
+      final response = await _apiClient.post('/trips/$tripId/baggage/suggest');
+      if (response.statusCode == 200) {
+        final data = response.data;
+        if (data is Map && data['items'] is List) {
+          return Success(
+            (data['items'] as List)
+                .map((item) => Map<String, dynamic>.from(item))
+                .toList(),
+          );
+        }
+        return const Success([]);
+      }
+      return Failure(
+        UnknownError('suggest baggage failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return Failure(UnknownError(e.toString(), originalError: e));
     }
   }
 }

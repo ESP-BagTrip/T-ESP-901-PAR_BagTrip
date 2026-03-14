@@ -1,17 +1,19 @@
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/notification.dart';
 import 'package:bagtrip/config/service_locator.dart';
-import 'package:bagtrip/service/notification_service.dart';
+import 'package:bagtrip/repositories/notification_repository.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:bloc/bloc.dart';
 
 part 'notification_event.dart';
 part 'notification_state.dart';
 
 class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
-  final NotificationApiService _notificationService;
+  final NotificationRepository _notificationRepository;
 
-  NotificationBloc({NotificationApiService? notificationService})
-    : _notificationService =
-          notificationService ?? getIt<NotificationApiService>(),
+  NotificationBloc({NotificationRepository? notificationRepository})
+    : _notificationRepository =
+          notificationRepository ?? getIt<NotificationRepository>(),
       super(NotificationInitial()) {
     on<LoadNotifications>(_onLoadNotifications);
     on<LoadUnreadCount>(_onLoadUnreadCount);
@@ -25,21 +27,22 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     Emitter<NotificationState> emit,
   ) async {
     emit(NotificationLoading());
-    try {
-      final result = await _notificationService.getNotifications(
-        page: event.page,
-      );
-      emit(
-        NotificationsLoaded(
-          notifications: result['items'] as List<AppNotification>,
-          unreadCount: result['unreadCount'] as int,
-          totalPages: result['totalPages'] as int,
-          currentPage: result['page'] as int,
-          total: result['total'] as int,
-        ),
-      );
-    } catch (e) {
-      emit(NotificationError(message: e.toString()));
+    final result = await _notificationRepository.getNotifications(
+      page: event.page,
+    );
+    switch (result) {
+      case Success(:final data):
+        emit(
+          NotificationsLoaded(
+            notifications: data['items'] as List<AppNotification>,
+            unreadCount: data['unreadCount'] as int,
+            totalPages: data['totalPages'] as int,
+            currentPage: data['page'] as int,
+            total: data['total'] as int,
+          ),
+        );
+      case Failure(:final error):
+        emit(NotificationError(message: toUserFriendlyMessage(error)));
     }
   }
 
@@ -47,11 +50,13 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     LoadUnreadCount event,
     Emitter<NotificationState> emit,
   ) async {
-    try {
-      final count = await _notificationService.getUnreadCount();
-      emit(UnreadCountLoaded(count: count));
-    } catch (e) {
-      // Silently fail for badge count
+    final result = await _notificationRepository.getUnreadCount();
+    switch (result) {
+      case Success(:final data):
+        emit(UnreadCountLoaded(count: data));
+      case Failure():
+        // Silently fail for badge count
+        break;
     }
   }
 
@@ -59,12 +64,14 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     MarkNotificationRead event,
     Emitter<NotificationState> emit,
   ) async {
-    try {
-      await _notificationService.markAsRead(event.notificationId);
-      // Reload the list
-      add(LoadNotifications());
-    } catch (e) {
-      emit(NotificationError(message: e.toString()));
+    final result = await _notificationRepository.markAsRead(
+      event.notificationId,
+    );
+    switch (result) {
+      case Success():
+        add(LoadNotifications());
+      case Failure(:final error):
+        emit(NotificationError(message: toUserFriendlyMessage(error)));
     }
   }
 
@@ -72,11 +79,12 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     MarkAllRead event,
     Emitter<NotificationState> emit,
   ) async {
-    try {
-      await _notificationService.markAllAsRead();
-      add(LoadNotifications());
-    } catch (e) {
-      emit(NotificationError(message: e.toString()));
+    final result = await _notificationRepository.markAllAsRead();
+    switch (result) {
+      case Success():
+        add(LoadNotifications());
+      case Failure(:final error):
+        emit(NotificationError(message: toUserFriendlyMessage(error)));
     }
   }
 

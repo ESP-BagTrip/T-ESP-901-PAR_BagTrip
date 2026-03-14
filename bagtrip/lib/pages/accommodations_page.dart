@@ -2,7 +2,9 @@ import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/models/accommodation.dart';
-import 'package:bagtrip/service/accommodation_service.dart';
+import 'package:bagtrip/core/result.dart';
+import 'package:bagtrip/config/service_locator.dart';
+import 'package:bagtrip/repositories/accommodation_repository.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -24,7 +26,7 @@ class AccommodationsPage extends StatefulWidget {
 }
 
 class _AccommodationsPageState extends State<AccommodationsPage> {
-  final _accommodationService = AccommodationService();
+  final _accommodationRepository = getIt<AccommodationRepository>();
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _addressController = TextEditingController();
@@ -59,19 +61,18 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
       _errorMessage = null;
     });
 
-    try {
-      final accommodations = await _accommodationService.getByTrip(
-        widget.tripId,
-      );
-      setState(() {
-        _accommodations = accommodations;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
+    final result = await _accommodationRepository.getByTrip(widget.tripId);
+    switch (result) {
+      case Success(:final data):
+        setState(() {
+          _accommodations = data;
+          _isLoading = false;
+        });
+      case Failure(:final error):
+        setState(() {
+          _errorMessage = toUserFriendlyMessage(error);
+          _isLoading = false;
+        });
     }
   }
 
@@ -104,45 +105,42 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
       _errorMessage = null;
     });
 
-    try {
-      final priceText = _priceController.text.trim();
-      await _accommodationService.createAccommodation(
-        widget.tripId,
-        name: _nameController.text.trim(),
-        address: _addressController.text.trim().isNotEmpty
-            ? _addressController.text.trim()
-            : null,
-        checkIn: _checkInDate,
-        checkOut: _checkOutDate,
-        pricePerNight: priceText.isNotEmpty ? double.tryParse(priceText) : null,
-        notes: _notesController.text.trim().isNotEmpty
-            ? _notesController.text.trim()
-            : null,
-      );
-
-      _nameController.clear();
-      _addressController.clear();
-      _priceController.clear();
-      _notesController.clear();
-      _checkInDate = null;
-      _checkOutDate = null;
-
-      await _loadAccommodations();
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Hébergement ajouté avec succès')),
-        );
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-      });
-    } finally {
-      setState(() {
-        _isAdding = false;
-      });
+    final priceText = _priceController.text.trim();
+    final result = await _accommodationRepository.createAccommodation(
+      widget.tripId,
+      name: _nameController.text.trim(),
+      address: _addressController.text.trim().isNotEmpty
+          ? _addressController.text.trim()
+          : null,
+      checkIn: _checkInDate,
+      checkOut: _checkOutDate,
+      pricePerNight: priceText.isNotEmpty ? double.tryParse(priceText) : null,
+      notes: _notesController.text.trim().isNotEmpty
+          ? _notesController.text.trim()
+          : null,
+    );
+    switch (result) {
+      case Success():
+        _nameController.clear();
+        _addressController.clear();
+        _priceController.clear();
+        _notesController.clear();
+        _checkInDate = null;
+        _checkOutDate = null;
+        await _loadAccommodations();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Hébergement ajouté avec succès')),
+          );
+        }
+      case Failure(:final error):
+        setState(() {
+          _errorMessage = toUserFriendlyMessage(error);
+        });
     }
+    setState(() {
+      _isAdding = false;
+    });
   }
 
   Future<void> _handleDeleteAccommodation(String accommodationId) async {
@@ -168,21 +166,25 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
     );
 
     if (confirmed == true) {
-      try {
-        await _accommodationService.deleteAccommodation(
-          widget.tripId,
-          accommodationId,
-        );
-        await _loadAccommodations();
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Hébergement supprimé')));
-        }
-      } catch (e) {
-        if (mounted) {
-          AppSnackBar.showError(context, message: toUserFriendlyMessage(e));
-        }
+      final result = await _accommodationRepository.deleteAccommodation(
+        widget.tripId,
+        accommodationId,
+      );
+      switch (result) {
+        case Success():
+          await _loadAccommodations();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Hébergement supprimé')),
+            );
+          }
+        case Failure(:final error):
+          if (mounted) {
+            AppSnackBar.showError(
+              context,
+              message: toUserFriendlyMessage(error),
+            );
+          }
       }
     }
   }

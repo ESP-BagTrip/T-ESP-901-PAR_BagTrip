@@ -9,10 +9,10 @@ import 'package:bagtrip/design/widgets/primary_button.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/config/service_locator.dart';
-import 'package:bagtrip/service/auth_service.dart';
+import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
-import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -171,7 +171,9 @@ class _LoginPageContentState extends State<_LoginPageContent> {
             if (state is AuthSuccess) {
               Future.delayed(const Duration(milliseconds: 100), () async {
                 if (!context.mounted) return;
-                final user = await getIt<AuthService>().getCurrentUser();
+                final userResult = await getIt<AuthRepository>()
+                    .getCurrentUser();
+                final user = userResult.dataOrNull;
                 if (!context.mounted) return;
                 if (user == null || user.id.isEmpty) {
                   context.go('/trips');
@@ -188,10 +190,7 @@ class _LoginPageContentState extends State<_LoginPageContent> {
               });
             }
             if (state is AuthError && context.mounted) {
-              AppSnackBar.showError(
-                context,
-                message: toUserFriendlyMessage(state.errorMessage),
-              );
+              AppSnackBar.showError(context, message: state.errorMessage);
             }
           },
           child: BlocBuilder<AuthBloc, AuthState>(

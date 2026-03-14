@@ -1,7 +1,8 @@
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/config/service_locator.dart';
-import 'package:bagtrip/service/auth_service.dart';
+import 'package:bagtrip/repositories/auth_repository.dart';
+import 'package:bagtrip/repositories/profile_repository.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
-import 'package:bagtrip/service/profile_api_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 
@@ -14,12 +15,12 @@ const int _kTotalSteps = 6;
 class PersonalizationBloc
     extends Bloc<PersonalizationEvent, PersonalizationState> {
   PersonalizationBloc({
-    AuthService? authService,
+    AuthRepository? authRepository,
     PersonalizationStorage? personalizationStorage,
-    ProfileApiService? profileApiService,
-  }) : _authService = authService ?? getIt<AuthService>(),
+    ProfileRepository? profileRepository,
+  }) : _authRepository = authRepository ?? getIt<AuthRepository>(),
        _storage = personalizationStorage ?? getIt<PersonalizationStorage>(),
-       _profileApi = profileApiService ?? getIt<ProfileApiService>(),
+       _profileRepository = profileRepository ?? getIt<ProfileRepository>(),
        super(PersonalizationInitial()) {
     on<LoadPersonalization>(_onLoadPersonalization);
     on<SetTravelTypes>(_onSetTravelTypes);
@@ -34,9 +35,9 @@ class PersonalizationBloc
     on<SaveAndFinishPersonalization>(_onSaveAndFinish);
   }
 
-  final AuthService _authService;
+  final AuthRepository _authRepository;
   final PersonalizationStorage _storage;
-  final ProfileApiService _profileApi;
+  final ProfileRepository _profileRepository;
 
   Future<void> _onLoadPersonalization(
     LoadPersonalization event,
@@ -44,7 +45,8 @@ class PersonalizationBloc
   ) async {
     emit(PersonalizationLoading());
     try {
-      final user = await _authService.getCurrentUser();
+      final userResult = await _authRepository.getCurrentUser();
+      final user = userResult.dataOrNull;
       if (user == null || user.id.isEmpty) {
         emit(PersonalizationInitial());
         return;
@@ -57,13 +59,14 @@ class PersonalizationBloc
       String? companions;
       String? travelFrequency;
 
-      try {
-        final profile = await _profileApi.getProfile();
+      final profileResult = await _profileRepository.getProfile();
+      if (profileResult is Success) {
+        final profile = (profileResult as Success).data;
         selectedTypes = profile.travelTypes.toSet();
         style = profile.travelStyle;
         budget = profile.budget;
         companions = profile.companions;
-      } catch (_) {
+      } else {
         // Fallback to local storage
         final typesStr = await _storage.getTravelTypes(user.id);
         final localStyle = await _storage.getTravelStyle(user.id);
@@ -232,17 +235,13 @@ class PersonalizationBloc
     await _storage.setPersonalizationPromptSeen(userId);
     await _storage.setPersonalizationWelcomeSeen(userId);
 
-    // Persist to backend (best effort). Default travelStyle so backend can mark profile complete.
-    try {
-      await _profileApi.updateProfile(
-        travelTypes: current.selectedTravelTypes.toList(),
-        travelStyle: current.travelStyle ?? 'flexible',
-        budget: current.budget,
-        companions: current.companions,
-      );
-    } catch (_) {
-      // Best effort — local storage is the fallback
-    }
+    // Persist to backend (best effort)
+    await _profileRepository.updateProfile(
+      travelTypes: current.selectedTravelTypes.toList(),
+      travelStyle: current.travelStyle ?? 'flexible',
+      budget: current.budget,
+      companions: current.companions,
+    );
 
     emit(PersonalizationCompleted());
   }

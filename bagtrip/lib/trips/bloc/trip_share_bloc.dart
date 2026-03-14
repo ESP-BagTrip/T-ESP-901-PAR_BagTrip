@@ -1,32 +1,37 @@
+import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/trip_share.dart';
 import 'package:bagtrip/config/service_locator.dart';
-import 'package:bagtrip/service/trip_share_service.dart';
+import 'package:bagtrip/repositories/trip_share_repository.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:bloc/bloc.dart';
 
 part 'trip_share_event.dart';
 part 'trip_share_state.dart';
 
 class TripShareBloc extends Bloc<TripShareEvent, TripShareState> {
-  TripShareBloc({TripShareService? tripShareService})
-    : _tripShareService = tripShareService ?? getIt<TripShareService>(),
+  TripShareBloc({TripShareRepository? tripShareRepository})
+    : _tripShareRepository =
+          tripShareRepository ?? getIt<TripShareRepository>(),
       super(TripShareInitial()) {
     on<LoadShares>(_onLoadShares);
     on<CreateShare>(_onCreateShare);
     on<DeleteShare>(_onDeleteShare);
   }
 
-  final TripShareService _tripShareService;
+  final TripShareRepository _tripShareRepository;
 
   Future<void> _onLoadShares(
     LoadShares event,
     Emitter<TripShareState> emit,
   ) async {
     emit(TripShareLoading());
-    try {
-      final shares = await _tripShareService.getSharesByTrip(event.tripId);
-      emit(TripShareLoaded(shares: shares));
-    } catch (e) {
-      emit(TripShareError(message: e.toString()));
+    final result = await _tripShareRepository.getSharesByTrip(event.tripId);
+    switch (result) {
+      case Success(:final data):
+        emit(TripShareLoaded(shares: data));
+      case Failure(:final error):
+        emit(TripShareError(message: toUserFriendlyMessage(error)));
     }
   }
 
@@ -35,15 +40,19 @@ class TripShareBloc extends Bloc<TripShareEvent, TripShareState> {
     Emitter<TripShareState> emit,
   ) async {
     emit(TripShareLoading());
-    try {
-      await _tripShareService.createShare(event.tripId, email: event.email);
-      add(LoadShares(tripId: event.tripId));
-    } catch (e) {
-      if (e.toString().contains('SHARE_QUOTA_EXCEEDED')) {
-        emit(TripShareQuotaExceeded());
-      } else {
-        emit(TripShareError(message: e.toString()));
-      }
+    final result = await _tripShareRepository.createShare(
+      event.tripId,
+      email: event.email,
+    );
+    switch (result) {
+      case Success():
+        add(LoadShares(tripId: event.tripId));
+      case Failure(:final error):
+        if (error is QuotaExceededError) {
+          emit(TripShareQuotaExceeded());
+        } else {
+          emit(TripShareError(message: toUserFriendlyMessage(error)));
+        }
     }
   }
 
@@ -52,11 +61,15 @@ class TripShareBloc extends Bloc<TripShareEvent, TripShareState> {
     Emitter<TripShareState> emit,
   ) async {
     emit(TripShareLoading());
-    try {
-      await _tripShareService.deleteShare(event.tripId, event.shareId);
-      add(LoadShares(tripId: event.tripId));
-    } catch (e) {
-      emit(TripShareError(message: e.toString()));
+    final result = await _tripShareRepository.deleteShare(
+      event.tripId,
+      event.shareId,
+    );
+    switch (result) {
+      case Success():
+        add(LoadShares(tripId: event.tripId));
+      case Failure(:final error):
+        emit(TripShareError(message: toUserFriendlyMessage(error)));
     }
   }
 }

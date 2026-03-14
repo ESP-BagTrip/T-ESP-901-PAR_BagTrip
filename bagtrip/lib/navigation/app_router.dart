@@ -24,8 +24,9 @@ import 'package:bagtrip/pages/profile_page.dart';
 import 'package:bagtrip/pages/splash_page.dart';
 import 'package:bagtrip/pages/trip_home_page.dart';
 import 'package:bagtrip/pages/trips_list_page.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/config/service_locator.dart';
-import 'package:bagtrip/service/auth_service.dart';
+import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:go_router/go_router.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -38,8 +39,9 @@ final GoRouter appRouter = GoRouter(
       return null;
     }
 
-    final authService = getIt<AuthService>();
-    final isAuthenticated = await authService.isAuthenticated();
+    final authRepository = getIt<AuthRepository>();
+    final authResult = await authRepository.isAuthenticated();
+    final isAuthenticated = authResult.dataOrNull ?? false;
     final isLoginPage = path == '/login';
     final isOnboardingPage = path == '/onboarding';
 

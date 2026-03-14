@@ -1,8 +1,9 @@
 import 'package:bagtrip/feedback/bloc/feedback_bloc.dart';
 import 'package:bagtrip/feedback/view/feedback_form_view.dart';
 import 'package:bagtrip/feedback/view/feedback_list_view.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/config/service_locator.dart';
-import 'package:bagtrip/service/auth_service.dart';
+import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -39,7 +40,8 @@ class _FeedbackPageContentState extends State<_FeedbackPageContent> {
   }
 
   Future<void> _loadCurrentUser() async {
-    final user = await getIt<AuthService>().getCurrentUser();
+    final userResult = await getIt<AuthRepository>().getCurrentUser();
+    final user = userResult.dataOrNull;
     if (mounted && user != null) {
       setState(() {
         _currentUserId = user.id;
