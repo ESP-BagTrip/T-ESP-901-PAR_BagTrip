@@ -126,4 +126,15 @@ export const adminService = {
   async updateUserPlan(userId: string, plan: string): Promise<void> {
     await apiClient.patch(`${API_ENDPOINTS.USERS}/${userId}/plan`, { plan })
   },
+
+  async sendNotification(payload: {
+    user_ids: string[]
+    title: string
+    body: string
+    type?: string
+    trip_id?: string | null
+  }): Promise<{ message: string; count: number }> {
+    const response = await apiClient.post(API_ENDPOINTS.ADMIN.NOTIFICATIONS_SEND, payload)
+    return response.data
+  },
 }

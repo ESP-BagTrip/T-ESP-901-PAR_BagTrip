@@ -3,6 +3,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from src.api.admin.schemas import (
@@ -16,6 +17,7 @@ from src.api.admin.schemas import (
     AdminFlightSearchResponse,
     AdminListResponse,
     AdminNotificationResponse,
+    AdminSendNotificationRequest,
     AdminTravelerProfileResponse,
     AdminTravelerResponse,
     AdminTripResponse,
@@ -27,6 +29,7 @@ from src.api.auth.admin_guard import require_admin
 from src.config.database import get_db
 from src.models.user import User
 from src.services.admin_service import AdminService
+from src.services.notification_service import NotificationService
 from src.utils.errors import AppError, create_http_exception
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
@@ -514,4 +517,135 @@ async def update_user_plan(
     except Exception as e:
         raise create_http_exception(
             AppError("INTERNAL_ERROR", 500, f"Failed to update user plan: {str(e)}")
+        ) from e
+
+
+@router.get(
+    "/users/export",
+    summary="Export users as CSV (admin)",
+    description="Export all users as a CSV file (admin only)",
+)
+async def export_users_csv(
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Exporter tous les utilisateurs en CSV."""
+    try:
+        csv_content = AdminService.export_users_csv(db)
+        return StreamingResponse(
+            iter([csv_content]),
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=users.csv"},
+        )
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, f"Failed to export users: {str(e)}")
+        ) from e
+
+
+@router.get(
+    "/dashboard/metrics",
+    summary="Get dashboard metrics (admin)",
+    description="Get KPI metrics for the admin dashboard",
+)
+async def get_dashboard_metrics(
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Récupérer les métriques du tableau de bord."""
+    try:
+        metrics = AdminService.get_dashboard_metrics(db)
+        return {"data": metrics}
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, f"Failed to fetch metrics: {str(e)}")
+        ) from e
+
+
+@router.get(
+    "/dashboard/metrics/users-chart",
+    summary="Get user registrations chart (admin)",
+    description="Get user registrations grouped by period",
+)
+async def get_users_chart(
+    period: str = Query("month", pattern="^(week|month|year)$"),
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Récupérer le graphique d'inscriptions utilisateurs."""
+    try:
+        data = AdminService.get_users_chart(db, period)
+        return {"data": data}
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, f"Failed to fetch users chart: {str(e)}")
+        ) from e
+
+
+@router.get(
+    "/dashboard/metrics/revenue-chart",
+    summary="Get revenue chart (admin)",
+    description="Get revenue grouped by period",
+)
+async def get_revenue_chart(
+    period: str = Query("month", pattern="^(week|month|year)$"),
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Récupérer le graphique de revenus."""
+    try:
+        data = AdminService.get_revenue_chart(db, period)
+        return {"data": data}
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, f"Failed to fetch revenue chart: {str(e)}")
+        ) from e
+
+
+@router.get(
+    "/dashboard/metrics/feedbacks-chart",
+    summary="Get feedbacks chart (admin)",
+    description="Get feedbacks distribution by rating",
+)
+async def get_feedbacks_chart(
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Récupérer le graphique de distribution des feedbacks."""
+    try:
+        data = AdminService.get_feedbacks_chart(db)
+        return {"data": data}
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, f"Failed to fetch feedbacks chart: {str(e)}")
+        ) from e
+
+
+@router.post(
+    "/notifications/send",
+    summary="Send notification to users (admin)",
+    description="Send a push notification to one or more users (admin only)",
+)
+async def send_notification(
+    body: AdminSendNotificationRequest,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Envoyer une notification aux utilisateurs sélectionnés."""
+    try:
+        notifications = NotificationService.create_and_send_bulk(
+            db=db,
+            user_ids=body.user_ids,
+            trip_id=body.trip_id,
+            notif_type=body.type,
+            title=body.title,
+            body=body.body,
+        )
+        return {
+            "message": f"{len(notifications)} notification(s) sent",
+            "count": len(notifications),
+        }
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, f"Failed to send notifications: {str(e)}")
         ) from e

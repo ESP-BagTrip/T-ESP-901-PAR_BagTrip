@@ -4,7 +4,7 @@ from datetime import date, datetime
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class AdminListResponse[T](BaseModel):
@@ -35,6 +35,45 @@ class UpdatePlanRequest(BaseModel):
     """Requête de mise à jour du plan utilisateur."""
 
     plan: str = Field(..., pattern="^(FREE|PREMIUM|ADMIN)$")
+
+
+class DashboardMetricsResponse(BaseModel):
+    """Dashboard KPI metrics."""
+
+    totalUsers: int
+    activeUsers: int
+    inactiveUsers: int
+    totalTrips: int
+    totalRevenue: float
+    totalFeedbacks: int
+    pendingFeedbacks: int
+    averageRating: float
+
+
+class ChartDataResponse(BaseModel):
+    """Single chart data point."""
+
+    name: str
+    value: float
+    date: str | None = None
+
+
+class AdminSendNotificationRequest(BaseModel):
+    """Request to send notification from admin."""
+
+    user_ids: list[UUID]
+    title: str = Field(..., min_length=1, max_length=200)
+    body: str = Field(..., min_length=1, max_length=1000)
+    type: str = Field(default="ADMIN")
+    trip_id: UUID | None = None
+
+    @field_validator("user_ids")
+    @classmethod
+    def validate_user_ids(cls, v: list[UUID]) -> list[UUID]:
+        if not v:
+            msg = "At least one user_id is required"
+            raise ValueError(msg)
+        return v
 
 
 class AdminTripResponse(BaseModel):

@@ -6,6 +6,6 @@ interface DashboardState {
 }
 
 export const useDashboardStore = create<DashboardState>(set => ({
-  activeTab: 'users',
+  activeTab: 'dashboard',
   setActiveTab: (tab: string) => set({ activeTab: tab }),
 }))

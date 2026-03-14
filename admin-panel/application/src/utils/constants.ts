@@ -45,6 +45,7 @@ export const API_ENDPOINTS = {
     TRIP_SHARES: '/admin/trip-shares',
     FEEDBACKS: '/admin/feedbacks',
     NOTIFICATIONS: '/admin/notifications',
+    NOTIFICATIONS_SEND: '/admin/notifications/send',
   },
   USERS: '/admin/users',
   FEEDBACKS: '/admin/feedbacks',

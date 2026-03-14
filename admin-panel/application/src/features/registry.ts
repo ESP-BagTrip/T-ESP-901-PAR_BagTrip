@@ -8,6 +8,11 @@ export interface TabConfig {
 
 export const TAB_REGISTRY: TabConfig[] = [
   {
+    id: 'dashboard',
+    name: 'Dashboard',
+    component: lazy(() => import('./dashboard/components/DashboardTab')),
+  },
+  {
     id: 'users',
     name: 'Utilisateurs',
     component: lazy(() => import('./users/components/UsersTab')),

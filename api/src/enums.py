@@ -73,3 +73,4 @@ class NotificationType(StrEnum):
     TRIP_ENDED = "TRIP_ENDED"
     BUDGET_ALERT = "BUDGET_ALERT"
     TRIP_SHARED = "TRIP_SHARED"
+    ADMIN = "ADMIN"

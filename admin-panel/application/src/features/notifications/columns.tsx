@@ -35,6 +35,8 @@ export const notificationsColumns: ColumnDef<AdminNotification>[] = [
         ACTIVITY_H1: 'bg-green-100 text-green-800',
         BUDGET_ALERT: 'bg-orange-100 text-orange-800',
         TRIP_ENDED: 'bg-gray-100 text-gray-800',
+        TRIP_SHARED: 'bg-teal-100 text-teal-800',
+        ADMIN: 'bg-red-100 text-red-800',
       }
       return (
         <span
