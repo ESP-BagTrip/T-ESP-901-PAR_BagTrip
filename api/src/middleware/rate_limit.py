@@ -117,13 +117,17 @@ async def rate_limit_middleware(request: Request, call_next):
         or "/suggest" in request.url.path
     )
     if ai_rate_limited and request.method == "POST":
-        # Récupérer le token depuis les headers
+        # Récupérer le token depuis les headers ou les cookies
         auth_header = request.headers.get("Authorization")
         user_id = None
 
         if auth_header and auth_header.startswith("Bearer "):
             token = auth_header.split(" ")[1]
             user_id = verify_jwt_token(token)
+        else:
+            cookie_token = request.cookies.get("access_token")
+            if cookie_token:
+                user_id = verify_jwt_token(cookie_token)
 
         if user_id:
             is_allowed, remaining = ai_rate_limiter.is_allowed(user_id)

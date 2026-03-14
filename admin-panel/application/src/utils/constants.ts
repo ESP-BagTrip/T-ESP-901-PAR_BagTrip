@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
     REGISTER: '/v1/auth/register',
     LOGIN: '/v1/auth/login',
     ME: '/v1/auth/me',
+    LOGOUT: '/v1/auth/logout',
   },
   TRIPS: {
     BASE: '/v1/trips',

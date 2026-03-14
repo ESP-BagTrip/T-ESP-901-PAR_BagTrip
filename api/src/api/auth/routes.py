@@ -5,7 +5,7 @@ import secrets
 from datetime import UTC, datetime, timedelta
 
 import bcrypt
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from jose import jwt
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -29,6 +29,7 @@ from src.integrations.stripe.client import StripeClient
 from src.models.refresh_token import RefreshToken
 from src.models.user import User
 from src.services.plan_service import PlanService
+from src.utils.cookies import clear_auth_cookies, set_auth_cookies
 from src.utils.logger import logger
 
 router = APIRouter(prefix="/v1/auth", tags=["Auth"])
@@ -82,7 +83,7 @@ def create_refresh_token(user_id: str, db: Session) -> str:
         400: {"description": "Bad request - User already exists or validation error"},
     },
 )
-async def register(request: SignupRequest, db: Session = Depends(get_db)):
+async def register(request: SignupRequest, response: Response, db: Session = Depends(get_db)):
     """
     Register - Créer un nouvel utilisateur selon PLAN.md.
 
@@ -144,6 +145,8 @@ async def register(request: SignupRequest, db: Session = Depends(get_db)):
     refresh_token = create_refresh_token(str(user.id), db)
     db.commit()
 
+    set_auth_cookies(response, access_token, refresh_token, expires_in)
+
     plan_info = PlanService.get_plan_info(db, user)
     return AuthResponse(
         access_token=access_token,
@@ -186,7 +189,7 @@ async def register(request: SignupRequest, db: Session = Depends(get_db)):
         401: {"description": "Unauthorized - Invalid credentials"},
     },
 )
-async def login(request: LoginRequest, db: Session = Depends(get_db)):
+async def login(request: LoginRequest, response: Response, db: Session = Depends(get_db)):
     """
     Login - Authentifier un utilisateur.
 
@@ -220,6 +223,8 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
     access_token, expires_in = create_access_token(str(user.id))
     refresh_token = create_refresh_token(str(user.id), db)
     db.commit()
+
+    set_auth_cookies(response, access_token, refresh_token, expires_in)
 
     plan_info = PlanService.get_plan_info(db, user)
     return AuthResponse(
@@ -312,7 +317,7 @@ async def me(
     },
 )
 async def google_sign_in(
-    request: GoogleSignInRequest, db: Session = Depends(get_db)
+    request: GoogleSignInRequest, response: Response, db: Session = Depends(get_db)
 ):
     """
     Google Sign In - Authentifier un utilisateur avec Google.
@@ -389,6 +394,8 @@ async def google_sign_in(
         refresh_token = create_refresh_token(str(user.id), db)
         db.commit()
 
+        set_auth_cookies(response, access_token, refresh_token, expires_in)
+
         plan_info = PlanService.get_plan_info(db, user)
         return AuthResponse(
             access_token=access_token,
@@ -442,7 +449,9 @@ async def google_sign_in(
         401: {"description": "Unauthorized - Invalid Apple token"},
     },
 )
-async def apple_sign_in(request: AppleSignInRequest, db: Session = Depends(get_db)):
+async def apple_sign_in(
+    request: AppleSignInRequest, response: Response, db: Session = Depends(get_db)
+):
     """
     Apple Sign In - Authentifier un utilisateur avec Apple.
 
@@ -524,6 +533,8 @@ async def apple_sign_in(request: AppleSignInRequest, db: Session = Depends(get_d
         refresh_token = create_refresh_token(str(user.id), db)
         db.commit()
 
+        set_auth_cookies(response, access_token, refresh_token, expires_in)
+
         plan_info = PlanService.get_plan_info(db, user)
         return AuthResponse(
             access_token=access_token,
@@ -558,7 +569,9 @@ async def apple_sign_in(request: AppleSignInRequest, db: Session = Depends(get_d
     summary="Refresh access token",
     description="Exchange a valid refresh token for a new access + refresh token pair",
 )
-async def refresh(request: RefreshTokenRequest, db: Session = Depends(get_db)):
+async def refresh(
+    request: RefreshTokenRequest, response: Response, db: Session = Depends(get_db)
+):
     """Refresh — rotate tokens."""
     stored = (
         db.query(RefreshToken)
@@ -589,6 +602,8 @@ async def refresh(request: RefreshTokenRequest, db: Session = Depends(get_db)):
     new_refresh = create_refresh_token(str(user.id), db)
     db.commit()
 
+    set_auth_cookies(response, access_token, new_refresh, expires_in)
+
     plan_info = PlanService.get_plan_info(db, user)
     return AuthResponse(
         access_token=access_token,
@@ -612,23 +627,34 @@ async def refresh(request: RefreshTokenRequest, db: Session = Depends(get_db)):
     summary="Logout — revoke a refresh token",
 )
 async def logout(
-    request: LogoutRequest,
+    http_request: Request,
+    response: Response,
+    request: LogoutRequest | None = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Logout — revoke the given refresh token."""
-    stored = (
-        db.query(RefreshToken)
-        .filter(
-            RefreshToken.token == request.refresh_token,
-            RefreshToken.user_id == current_user.id,
-            RefreshToken.revoked.is_(False),
+    """Logout — revoke the given refresh token (from body or cookie)."""
+    token_value = None
+    if request and request.refresh_token:
+        token_value = request.refresh_token
+    else:
+        token_value = http_request.cookies.get("refresh_token")
+
+    if token_value:
+        stored = (
+            db.query(RefreshToken)
+            .filter(
+                RefreshToken.token == token_value,
+                RefreshToken.user_id == current_user.id,
+                RefreshToken.revoked.is_(False),
+            )
+            .first()
         )
-        .first()
-    )
-    if stored:
-        stored.revoked = True
-        db.commit()
+        if stored:
+            stored.revoked = True
+            db.commit()
+
+    clear_auth_cookies(response)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -638,6 +664,7 @@ async def logout(
     summary="Logout all — revoke all refresh tokens for the user",
 )
 async def logout_all(
+    response: Response,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -647,4 +674,6 @@ async def logout_all(
         RefreshToken.revoked.is_(False),
     ).update({"revoked": True})
     db.commit()
+
+    clear_auth_cookies(response)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

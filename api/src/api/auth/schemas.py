@@ -70,4 +70,4 @@ class RefreshTokenRequest(BaseModel):
 class LogoutRequest(BaseModel):
     """Requête de déconnexion."""
 
-    refresh_token: str
+    refresh_token: str | None = None

@@ -1,5 +1,7 @@
 """Seed: création d'un admin par défaut au démarrage."""
 
+import os
+
 import bcrypt
 from sqlalchemy.orm import Session
 
@@ -7,13 +9,17 @@ from src.config.database import SessionLocal
 from src.models.user import User
 from src.utils.logger import logger
 
-ADMIN_EMAIL = "admin@bagtrip.com"
-ADMIN_PASSWORD = "admin123456"
-ADMIN_FULL_NAME = "Admin BagTrip"
+ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "admin@bagtrip.com")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
+ADMIN_FULL_NAME = os.environ.get("ADMIN_FULL_NAME", "Admin BagTrip")
 
 
 def create_default_admin() -> None:
     """Crée un utilisateur admin par défaut s'il n'existe pas encore."""
+    if not ADMIN_PASSWORD:
+        logger.info("ADMIN_PASSWORD not set, skipping admin seed")
+        return
+
     db: Session = SessionLocal()
     try:
         existing = db.query(User).filter(User.email == ADMIN_EMAIL).first()

@@ -1,6 +1,14 @@
-import { QueryClient } from '@tanstack/react-query'
+import { QueryClient, MutationCache } from '@tanstack/react-query'
+import { toast } from 'sonner'
 
 export const queryClient = new QueryClient({
+  mutationCache: new MutationCache({
+    onError: (error: unknown) => {
+      const axiosError = error as { response?: { data?: { detail?: string } } }
+      const message = axiosError?.response?.data?.detail || 'Une erreur est survenue'
+      toast.error(message)
+    },
+  }),
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5,

@@ -52,6 +52,11 @@ class Settings(BaseSettings):
     # Firebase Admin (FCM push notifications)
     FIREBASE_SERVICE_ACCOUNT_PATH: str | None = None
 
+    # Cookie / CORS
+    ALLOWED_ORIGINS: str = "http://localhost:8000"
+    COOKIE_DOMAIN: str | None = None
+    COOKIE_SECURE: bool = False
+
     # OAuth verification
     GOOGLE_FIREBASE_PROJECT_ID: str = "bagtrip-7d2d8"
     GOOGLE_OAUTH_CLIENT_ID: str | None = None
