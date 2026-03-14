@@ -20,7 +20,7 @@ class PlanifierManualTransportPage extends StatelessWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         title: Text(
           l10n.transportTitle,
@@ -51,8 +51,7 @@ class PlanifierManualTransportPage extends StatelessWidget {
               ),
               title: l10n.transportOptionFlightTitle,
               description: l10n.transportOptionFlightSubtitle,
-              onTap:
-                  () => context.push('/trips/planifier/manual/flight-search'),
+              onTap: () => context.push('/planifier/manual/flight-search'),
             ),
             const SizedBox(height: AppSpacing.space16),
             PlanifierCard(
@@ -66,8 +65,7 @@ class PlanifierManualTransportPage extends StatelessWidget {
               ),
               title: l10n.transportOptionOtherTitle,
               description: l10n.transportOptionOtherSubtitle,
-              onTap:
-                  () => context.push('/trips/planifier/manual/transport/other'),
+              onTap: () => context.push('/planifier/manual/transport/other'),
             ),
             const SizedBox(height: AppSpacing.space16),
             PlanifierCard(
@@ -81,7 +79,7 @@ class PlanifierManualTransportPage extends StatelessWidget {
               ),
               title: l10n.transportOptionSkipTitle,
               description: l10n.transportOptionSkipSubtitle,
-              onTap: () => Navigator.of(context).pop(),
+              onTap: () => context.pop(),
             ),
           ],
         ),

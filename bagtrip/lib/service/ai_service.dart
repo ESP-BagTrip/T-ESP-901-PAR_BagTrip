@@ -48,12 +48,18 @@ class AiService {
 
   /// Accept an AI suggestion and create a DRAFT trip.
   Future<Map<String, dynamic>> acceptInspiration(
-    Map<String, dynamic> suggestion,
-  ) async {
+    Map<String, dynamic> suggestion, {
+    String? startDate,
+    String? endDate,
+  }) async {
     try {
       final response = await _apiClient.post(
         '/ai/inspire/accept',
-        data: {'suggestion': suggestion},
+        data: {
+          'suggestion': suggestion,
+          if (startDate != null) 'startDate': startDate,
+          if (endDate != null) 'endDate': endDate,
+        },
       );
 
       if (response.statusCode == 200) {

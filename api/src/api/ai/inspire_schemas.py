@@ -34,3 +34,5 @@ class InspireResponse(BaseModel):
 
 class AcceptInspirationRequest(BaseModel):
     suggestion: TripSuggestion
+    startDate: str | None = None
+    endDate: str | None = None

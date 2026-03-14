@@ -73,15 +73,9 @@ class BottomTabBar extends StatelessWidget {
             children: [
               _buildTabItem(
                 context,
-                NavigationTab.map,
-                'Carte',
-                Icons.map_outlined,
-              ),
-              _buildTabItem(
-                context,
-                NavigationTab.budget,
-                'Budget',
-                Icons.wallet_outlined,
+                NavigationTab.planifier,
+                'Nouveau',
+                Icons.add_circle_outline,
               ),
               _buildTabItem(
                 context,

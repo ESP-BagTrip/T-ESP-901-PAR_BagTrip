@@ -5,6 +5,7 @@ import 'package:bagtrip/create_trip_ai/view/create_trip_ai_summary_view.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 /// Single entry for the Create Trip AI flow. Provides the bloc and shows
 /// Recap, Results, or Summary based on state (no route push between steps).
@@ -20,6 +21,12 @@ class CreateTripAiFlowPage extends StatelessWidget {
           if (state is CreateTripAiQuotaExceeded) {
             PremiumPaywall.show(context);
             context.read<CreateTripAiBloc>().add(CreateTripAiLoadRecap());
+          }
+          if (state is CreateTripAiTripCreated) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Voyage créé !')));
+            context.go('/trips');
           }
         },
         child: BlocBuilder<CreateTripAiBloc, CreateTripAiState>(
@@ -37,7 +44,8 @@ class CreateTripAiFlowPage extends StatelessWidget {
             if (state is CreateTripAiResultsLoaded) {
               return const CreateTripAiResultsView();
             }
-            if (state is CreateTripAiSummaryLoaded) {
+            if (state is CreateTripAiSummaryLoaded ||
+                state is CreateTripAiTripCreated) {
               return const CreateTripAiSummaryView();
             }
             if (state is CreateTripAiError) {

@@ -116,36 +116,55 @@ class _TripSharesViewState extends State<TripSharesView> {
                             final share = shares[index];
                             return Card(
                               margin: const EdgeInsets.only(bottom: 12),
-                              child: ListTile(
-                                leading: const CircleAvatar(
-                                  child: Icon(Icons.person),
-                                ),
-                                title: Text(
-                                  share.userFullName ?? share.userEmail,
-                                ),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Row(
                                   children: [
-                                    if (share.userFullName != null)
-                                      Text(share.userEmail),
-                                    Text(
-                                      'Invit\u00e9 le ${DateFormat('dd/MM/yyyy').format(share.invitedAt)}',
-                                      style:
-                                          Theme.of(context).textTheme.bodySmall,
+                                    const CircleAvatar(
+                                      child: Icon(Icons.person),
                                     ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            share.userFullName ??
+                                                share.userEmail,
+                                            style:
+                                                Theme.of(
+                                                  context,
+                                                ).textTheme.bodyLarge,
+                                          ),
+                                          if (share.userFullName != null)
+                                            Text(
+                                              share.userEmail,
+                                              style:
+                                                  Theme.of(
+                                                    context,
+                                                  ).textTheme.bodyMedium,
+                                            ),
+                                          Text(
+                                            'Invit\u00e9 le ${DateFormat('dd/MM/yyyy').format(share.invitedAt)}',
+                                            style:
+                                                Theme.of(
+                                                  context,
+                                                ).textTheme.bodySmall,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (widget.role != 'VIEWER')
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.remove_circle_outline,
+                                        ),
+                                        onPressed:
+                                            () => _handleRevoke(share.id),
+                                      ),
                                   ],
                                 ),
-                                isThreeLine: share.userFullName != null,
-                                trailing:
-                                    widget.role != 'VIEWER'
-                                        ? IconButton(
-                                          icon: const Icon(
-                                            Icons.remove_circle_outline,
-                                          ),
-                                          onPressed:
-                                              () => _handleRevoke(share.id),
-                                        )
-                                        : null,
                               ),
                             );
                           },

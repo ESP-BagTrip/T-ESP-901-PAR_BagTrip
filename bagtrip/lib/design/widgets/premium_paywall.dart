@@ -66,19 +66,19 @@ class _PremiumPaywallState extends State<PremiumPaywall> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Passez a Premium',
+            'Passez \u00e0 Premium',
             style: Theme.of(
               context,
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          _buildFeature('Generations IA illimitees'),
-          _buildFeature('Jusqu\'a 10 viewers par trip'),
+          _buildFeature('G\u00e9n\u00e9rations IA illimit\u00e9es'),
+          _buildFeature('Jusqu\'\u00e0 10 viewers par trip'),
           _buildFeature('Notifications hors-ligne'),
           _buildFeature('Suggestions post-voyage IA'),
           const SizedBox(height: 24),
           PremiumCtaButton(
-            label: 'Passer a Premium - 9,99\u20AC/mois',
+            label: 'Passer \u00e0 Premium - 9,99\u20AC/mois',
             onPressed: _handleUpgrade,
             isLoading: _isLoading,
           ),

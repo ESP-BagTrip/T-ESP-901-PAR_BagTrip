@@ -55,7 +55,7 @@ class _PlanifierManualDestinationViewState
   }
 
   void _onNext() {
-    context.push('/trips/planifier/manual/transport');
+    context.push('/planifier/manual/transport');
   }
 
   @override

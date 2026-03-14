@@ -24,7 +24,4 @@ final class CreateTripAiSelectProposal extends CreateTripAiEvent {
 
 final class CreateTripAiRegenerate extends CreateTripAiEvent {}
 
-final class CreateTripAiAcceptSuggestion extends CreateTripAiEvent {
-  CreateTripAiAcceptSuggestion(this.suggestion);
-  final AiTripProposal suggestion;
-}
+final class CreateTripAiAcceptSuggestion extends CreateTripAiEvent {}

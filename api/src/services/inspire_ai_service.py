@@ -1,9 +1,12 @@
 """Service IA pour inspiration de voyages."""
 
+from datetime import date, timedelta
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from src.models.activity import Activity
+from src.models.baggage_item import BaggageItem
 from src.services.llm_service import LLMService
 from src.services.trips_service import TripsService
 
@@ -68,14 +71,26 @@ Sois créatif et varié dans tes suggestions. Propose des destinations différen
         llm = LLMService()
         return llm.call_llm(InspireAIService.SYSTEM_PROMPT, user_prompt)
 
+    # Default baggage items for AI-generated trips
+    DEFAULT_BAGGAGE = [
+        {"name": "Passeport", "category": "DOCUMENTS"},
+        {"name": "Adaptateur de voyage", "category": "ELECTRONICS"},
+        {"name": "Crème solaire", "category": "TOILETRIES"},
+        {"name": "Trousse de premiers secours", "category": "HEALTH"},
+        {"name": "Chargeur de téléphone", "category": "ELECTRONICS"},
+        {"name": "Vêtements de rechange", "category": "CLOTHING"},
+    ]
+
     @staticmethod
     def create_trip_from_suggestion(
         db: Session,
         user_id: UUID,
         suggestion: dict,
+        start_date: str | None = None,
+        end_date: str | None = None,
     ):
-        """Crée un Trip DRAFT à partir d'une suggestion IA."""
-        return TripsService.create_trip(
+        """Crée un Trip DRAFT à partir d'une suggestion IA, avec activités et bagages."""
+        trip = TripsService.create_trip(
             db=db,
             user_id=user_id,
             title=f"Voyage à {suggestion.get('destination', 'Inconnu')}",
@@ -84,5 +99,51 @@ Sois créatif et varié dans tes suggestions. Propose des destinations différen
             destination_name=suggestion.get("destination"),
             description=suggestion.get("description"),
             budget_total=suggestion.get("budgetEur"),
+            start_date=start_date,
+            end_date=end_date,
             origin="AI",
         )
+
+        # Create activities from suggestion
+        activities_data = suggestion.get("activities", [])
+        if activities_data:
+            trip_start = None
+            if start_date:
+                try:
+                    trip_start = date.fromisoformat(start_date)
+                except ValueError:
+                    pass
+
+            duration_days = suggestion.get("durationDays", len(activities_data)) or len(activities_data)
+
+            for i, act in enumerate(activities_data):
+                # Distribute activities across trip days (cycling)
+                day_offset = i % max(duration_days, 1)
+                activity_date = (
+                    trip_start + timedelta(days=day_offset)
+                    if trip_start
+                    else date.today() + timedelta(days=day_offset)
+                )
+
+                activity = Activity(
+                    trip_id=trip.id,
+                    title=act.get("title", f"Activité {i + 1}"),
+                    description=act.get("description", ""),
+                    date=activity_date,
+                    category=act.get("category", "OTHER"),
+                    estimated_cost=act.get("estimatedCost"),
+                )
+                db.add(activity)
+
+        # Create default baggage items
+        for bag in InspireAIService.DEFAULT_BAGGAGE:
+            item = BaggageItem(
+                trip_id=trip.id,
+                name=bag["name"],
+                category=bag["category"],
+            )
+            db.add(item)
+
+        db.commit()
+        db.refresh(trip)
+        return trip

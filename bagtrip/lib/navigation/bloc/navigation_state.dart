@@ -1,6 +1,6 @@
 part of 'navigation_bloc.dart';
 
-enum NavigationTab { map, budget, trips, profile }
+enum NavigationTab { planifier, trips, profile }
 
 class NavigationState extends Equatable {
   final NavigationTab activeTab;

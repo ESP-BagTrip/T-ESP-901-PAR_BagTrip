@@ -109,7 +109,7 @@ class TripsListView extends StatelessWidget {
           },
         ),
         floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => context.push('/trips/planifier'),
+          onPressed: () => context.go('/planifier'),
           icon: const Icon(Icons.add),
           label: const Text('Nouveau voyage'),
         ),

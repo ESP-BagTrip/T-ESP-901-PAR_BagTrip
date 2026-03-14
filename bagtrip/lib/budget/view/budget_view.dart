@@ -4,6 +4,7 @@ import 'package:bagtrip/budget/widgets/budget_item_card.dart';
 import 'package:bagtrip/budget/widgets/budget_item_form.dart';
 import 'package:bagtrip/budget/widgets/budget_summary_header.dart';
 import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/budget_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -48,7 +49,7 @@ class BudgetView extends StatelessWidget {
                           LoadBudget(tripId: tripId),
                         ),
                     icon: const Icon(Icons.refresh),
-                    label: const Text('Retry'),
+                    label: Text(AppLocalizations.of(context)!.retryButton),
                   ),
                 ],
               ),
@@ -69,14 +70,14 @@ class BudgetView extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'No budget items yet',
+                      AppLocalizations.of(context)!.noExpenses,
                       style: Theme.of(
                         context,
                       ).textTheme.titleMedium?.copyWith(color: AppColors.hint),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Add expenses to track your trip budget',
+                      AppLocalizations.of(context)!.trackExpensesAndPlan,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.textMutedLight,
                       ),
@@ -101,7 +102,7 @@ class BudgetView extends StatelessWidget {
                 BudgetSummaryHeader(summary: state.summary),
                 if (state.summary.byCategory.isNotEmpty) ...[
                   Text(
-                    'By Category',
+                    AppLocalizations.of(context)!.expenseCategory,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),

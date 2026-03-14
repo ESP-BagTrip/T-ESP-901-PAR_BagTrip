@@ -6,14 +6,12 @@ import 'package:bagtrip/navigation/app_shell.dart';
 import 'package:bagtrip/navigation/page_transitions.dart';
 import 'package:bagtrip/pages/accommodations_page.dart';
 import 'package:bagtrip/pages/baggage_page.dart';
-import 'package:bagtrip/pages/budget_page.dart' as pages;
 import 'package:bagtrip/pages/feedback_page.dart';
 import 'package:bagtrip/pages/trip_shares_page.dart';
 import 'package:bagtrip/activities/view/activities_page.dart';
 import 'package:bagtrip/budget/view/budget_page.dart';
 import 'package:bagtrip/pages/flight_search_result_page.dart';
 import 'package:bagtrip/pages/login_page.dart';
-import 'package:bagtrip/pages/map_page.dart';
 import 'package:bagtrip/pages/onboarding_page.dart';
 import 'package:bagtrip/pages/personalization_page.dart';
 import 'package:bagtrip/pages/create_trip_ai_flow_page.dart';
@@ -85,27 +83,74 @@ final GoRouter appRouter = GoRouter(
         return AppShell(navigationShell: navigationShell);
       },
       branches: [
+        // Branch 0: Planifier (Nouveau voyage)
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: '/map',
-              name: 'map',
-              pageBuilder:
-                  (context, state) => const NoTransitionPage(child: MapPage()),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/budget',
-              name: 'budget',
+              path: '/planifier',
+              name: 'planifier',
               pageBuilder:
                   (context, state) =>
-                      const NoTransitionPage(child: pages.BudgetPage()),
+                      const NoTransitionPage(child: PlanifierPage()),
+              routes: [
+                GoRoute(
+                  path: 'manual',
+                  name: 'planifierManual',
+                  pageBuilder:
+                      (context, state) => buildSlideTransitionPage<void>(
+                        state: state,
+                        child: const PlanifierManualPage(),
+                      ),
+                  routes: [
+                    GoRoute(
+                      path: 'transport',
+                      name: 'planifierManualTransport',
+                      pageBuilder:
+                          (context, state) => buildSlideTransitionPage<void>(
+                            state: state,
+                            child: const PlanifierManualTransportPage(),
+                          ),
+                      routes: [
+                        GoRoute(
+                          path: 'other',
+                          name: 'planifierManualOtherTransport',
+                          pageBuilder:
+                              (
+                                context,
+                                state,
+                              ) => buildSlideTransitionPage<void>(
+                                state: state,
+                                child:
+                                    const PlanifierManualOtherTransportPage(),
+                              ),
+                        ),
+                      ],
+                    ),
+                    GoRoute(
+                      path: 'flight-search',
+                      name: 'planifierManualFlightSearch',
+                      pageBuilder:
+                          (context, state) => buildSlideTransitionPage<void>(
+                            state: state,
+                            child: const PlanifierManualFlightPage(),
+                          ),
+                    ),
+                  ],
+                ),
+                GoRoute(
+                  path: 'create-trip-ai',
+                  name: 'createTripAi',
+                  pageBuilder:
+                      (context, state) => buildSlideTransitionPage<void>(
+                        state: state,
+                        child: const CreateTripAiFlowPage(),
+                      ),
+                ),
+              ],
             ),
           ],
         ),
+        // Branch 1: Trips (Voyages)
         StatefulShellBranch(
           routes: [
             GoRoute(
@@ -115,72 +160,6 @@ final GoRouter appRouter = GoRouter(
                   (context, state) =>
                       const NoTransitionPage(child: TripsListPage()),
               routes: [
-                GoRoute(
-                  path: 'planifier',
-                  name: 'planifier',
-                  pageBuilder:
-                      (context, state) => buildSlideTransitionPage<void>(
-                        state: state,
-                        child: const PlanifierPage(),
-                      ),
-                  routes: [
-                    GoRoute(
-                      path: 'manual',
-                      name: 'planifierManual',
-                      pageBuilder:
-                          (context, state) => buildSlideTransitionPage<void>(
-                            state: state,
-                            child: const PlanifierManualPage(),
-                          ),
-                      routes: [
-                        GoRoute(
-                          path: 'transport',
-                          name: 'planifierManualTransport',
-                          pageBuilder:
-                              (context, state) =>
-                                  buildSlideTransitionPage<void>(
-                                    state: state,
-                                    child: const PlanifierManualTransportPage(),
-                                  ),
-                          routes: [
-                            GoRoute(
-                              path: 'other',
-                              name: 'planifierManualOtherTransport',
-                              pageBuilder:
-                                  (
-                                    context,
-                                    state,
-                                  ) => buildSlideTransitionPage<void>(
-                                    state: state,
-                                    child:
-                                        const PlanifierManualOtherTransportPage(),
-                                  ),
-                            ),
-                          ],
-                        ),
-                        GoRoute(
-                          path: 'flight-search',
-                          name: 'planifierManualFlightSearch',
-                          pageBuilder:
-                              (context, state) =>
-                                  buildSlideTransitionPage<void>(
-                                    state: state,
-                                    child: const PlanifierManualFlightPage(),
-                                  ),
-                        ),
-                      ],
-                    ),
-                    GoRoute(
-                      path: 'create-trip-ai',
-                      name: 'createTripAi',
-                      pageBuilder:
-                          (context, state) => buildSlideTransitionPage<void>(
-                            state: state,
-                            child: const CreateTripAiFlowPage(),
-                          ),
-                    ),
-                  ],
-                ),
                 GoRoute(
                   path: ':tripId',
                   name: 'tripHome',
@@ -285,6 +264,7 @@ final GoRouter appRouter = GoRouter(
             ),
           ],
         ),
+        // Branch 2: Profile
         StatefulShellBranch(
           routes: [
             GoRoute(

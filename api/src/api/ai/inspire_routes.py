@@ -58,6 +58,8 @@ async def accept_inspiration(
             db=db,
             user_id=current_user.id,
             suggestion=request.suggestion.model_dump(),
+            start_date=request.startDate,
+            end_date=request.endDate,
         )
         return {
             "id": str(trip.id),
@@ -67,6 +69,8 @@ async def accept_inspiration(
             "description": trip.description,
             "budgetTotal": trip.budget_total,
             "origin": trip.origin,
+            "startDate": str(trip.start_date) if trip.start_date else None,
+            "endDate": str(trip.end_date) if trip.end_date else None,
         }
     except AppError as e:
         raise create_http_exception(e) from e

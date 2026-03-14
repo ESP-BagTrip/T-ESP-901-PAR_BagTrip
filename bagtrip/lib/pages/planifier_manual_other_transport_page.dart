@@ -4,6 +4,7 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
 /// Other transport form: type (car/train/bus/flight booked), details, budget.
 /// Shown when user selects "Non, autre transport" on Transport page. UI only.
@@ -38,7 +39,7 @@ class _PlanifierManualOtherTransportPageState
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         title: Text(
           l10n.otherTransportTitle,
@@ -127,11 +128,21 @@ class _PlanifierManualOtherTransportPageState
               hint: l10n.transportBudgetHint,
             ),
             const SizedBox(height: 32),
-            _ContinueButton(onPressed: () {}),
+            _ContinueButton(
+              onPressed: () {
+                final types = ['car', 'train', 'bus', 'flight_booked'];
+                final result = {
+                  'type': types[_selectedTypeIndex],
+                  'details': _detailsController.text.trim(),
+                  'budget': _budgetController.text.trim(),
+                };
+                context.pop(result);
+              },
+            ),
             const SizedBox(height: 16),
             Center(
               child: GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
+                onTap: () => context.pop(),
                 child: Text(
                   l10n.skipThisStepLabel,
                   style: const TextStyle(

@@ -1,5 +1,4 @@
 import 'package:bagtrip/create_trip_ai/bloc/create_trip_ai_bloc.dart';
-import 'package:bagtrip/create_trip_ai/models/ai_trip_proposal.dart';
 import 'package:bagtrip/create_trip_ai/models/trip_summary.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/assets.gen.dart';
@@ -119,35 +118,18 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<CreateTripAiBloc, CreateTripAiState>(
-      listener: (context, state) {
-        if (state is CreateTripAiTripCreated) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Voyage créé !')));
-          context.go('/trips');
-        }
-        if (state is CreateTripAiError) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(state.message)));
-        }
-      },
-      child: BlocBuilder<CreateTripAiBloc, CreateTripAiState>(
-        builder: (context, state) {
-          if (state is CreateTripAiSearchLoading) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
-          if (state is CreateTripAiSummaryLoaded) {
-            return _buildSummary(context, state.summary);
-          }
+    return BlocBuilder<CreateTripAiBloc, CreateTripAiState>(
+      builder: (context, state) {
+        if (state is CreateTripAiSearchLoading) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
-        },
-      ),
+        }
+        if (state is CreateTripAiSummaryLoaded) {
+          return _buildSummary(context, state.summary);
+        }
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      },
     );
   }
 
@@ -876,22 +858,9 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            final s = context.read<CreateTripAiBloc>().state;
-            if (s is CreateTripAiSummaryLoaded) {
-              final summary = s.summary;
-              context.read<CreateTripAiBloc>().add(
-                CreateTripAiAcceptSuggestion(
-                  AiTripProposal(
-                    id: '',
-                    destination: summary.destination,
-                    destinationCountry: summary.destinationCountry,
-                    durationDays: summary.durationDays,
-                    priceEur: summary.budgetEur,
-                    description: '',
-                  ),
-                ),
-              );
-            }
+            context.read<CreateTripAiBloc>().add(
+              CreateTripAiAcceptSuggestion(),
+            );
           },
           borderRadius: AppRadius.large16,
           child: Container(

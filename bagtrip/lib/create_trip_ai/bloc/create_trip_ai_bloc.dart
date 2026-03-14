@@ -41,6 +41,9 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
   DateTime? _lastDepartureDate;
   DateTime? _lastReturnDate;
 
+  // Store the selected proposal (with activities) for save
+  AiTripProposal? _selectedProposal;
+
   Future<void> _onLoadRecap(
     CreateTripAiLoadRecap event,
     Emitter<CreateTripAiState> emit,
@@ -179,6 +182,7 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
     Emitter<CreateTripAiState> emit,
   ) {
     final p = event.proposal;
+    _selectedProposal = p;
     // Map the proposal (with activities) to a TripSummary
     final activities = p.activities;
     emit(
@@ -222,10 +226,24 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
     CreateTripAiAcceptSuggestion event,
     Emitter<CreateTripAiState> emit,
   ) async {
+    if (_selectedProposal == null) {
+      emit(CreateTripAiError('Aucune proposition sélectionnée.'));
+      return;
+    }
     emit(CreateTripAiSearchLoading());
     try {
+      String? startDateStr;
+      String? endDateStr;
+      if (_lastDepartureDate != null) {
+        startDateStr = _lastDepartureDate!.toIso8601String().split('T')[0];
+      }
+      if (_lastReturnDate != null) {
+        endDateStr = _lastReturnDate!.toIso8601String().split('T')[0];
+      }
       final tripData = await _aiService.acceptInspiration(
-        event.suggestion.toJson(),
+        _selectedProposal!.toJson(),
+        startDate: startDateStr,
+        endDate: endDateStr,
       );
       emit(CreateTripAiTripCreated(tripData));
     } on DioException catch (e) {
