@@ -1,6 +1,7 @@
 import 'package:bagtrip/feedback/bloc/feedback_bloc.dart';
 import 'package:bagtrip/feedback/view/feedback_form_view.dart';
 import 'package:bagtrip/feedback/view/feedback_list_view.dart';
+import 'package:bagtrip/service/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -18,10 +19,32 @@ class FeedbackPage extends StatelessWidget {
   }
 }
 
-class _FeedbackPageContent extends StatelessWidget {
+class _FeedbackPageContent extends StatefulWidget {
   final String tripId;
 
   const _FeedbackPageContent({required this.tripId});
+
+  @override
+  State<_FeedbackPageContent> createState() => _FeedbackPageContentState();
+}
+
+class _FeedbackPageContentState extends State<_FeedbackPageContent> {
+  String? _currentUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentUser();
+  }
+
+  Future<void> _loadCurrentUser() async {
+    final user = await AuthService().getCurrentUser();
+    if (mounted && user != null) {
+      setState(() {
+        _currentUserId = user.id;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +80,11 @@ class _FeedbackPageContent extends StatelessWidget {
               children: [
                 isLoading
                     ? const Center(child: CircularProgressIndicator())
-                    : FeedbackFormView(tripId: tripId),
+                    : FeedbackFormView(
+                      tripId: widget.tripId,
+                      currentUserId: _currentUserId,
+                      feedbacks: feedbacks.cast(),
+                    ),
                 isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : FeedbackListView(feedbacks: feedbacks.cast()),

@@ -1,11 +1,21 @@
+import 'package:bagtrip/design/widgets/premium_paywall.dart';
 import 'package:bagtrip/feedback/bloc/feedback_bloc.dart';
+import 'package:bagtrip/models/feedback.dart';
+import 'package:bagtrip/service/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class FeedbackFormView extends StatefulWidget {
   final String tripId;
+  final String? currentUserId;
+  final List<TripFeedback> feedbacks;
 
-  const FeedbackFormView({super.key, required this.tripId});
+  const FeedbackFormView({
+    super.key,
+    required this.tripId,
+    this.currentUserId,
+    this.feedbacks = const [],
+  });
 
   @override
   State<FeedbackFormView> createState() => _FeedbackFormViewState();
@@ -26,6 +36,20 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
 
   @override
   Widget build(BuildContext context) {
+    final existingFeedback =
+        widget.currentUserId != null
+            ? widget.feedbacks
+                .where((f) => f.userId == widget.currentUserId)
+                .firstOrNull
+            : null;
+
+    if (existingFeedback != null) {
+      return _ReadOnlyFeedbackView(
+        feedback: existingFeedback,
+        tripId: widget.tripId,
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Donner votre avis')),
       body: SingleChildScrollView(
@@ -129,68 +153,181 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
               },
             ),
             const SizedBox(height: 24),
-            BlocBuilder<FeedbackBloc, FeedbackState>(
-              builder: (context, state) {
-                if (state is FeedbackSubmitted) {
-                  return Card(
-                    color: const Color(0xFFF0F7FF),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const Text(
-                            'Merci pour votre avis !',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Decouvrez votre prochain voyage ideal base sur vos experiences.',
-                          ),
-                          const SizedBox(height: 12),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              context.read<FeedbackBloc>().add(
-                                RequestPostTripSuggestion(),
-                              );
-                            },
-                            icon: const Icon(Icons.auto_awesome),
-                            label: const Text('Decouvrir mon prochain voyage'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-                if (state is PostTripSuggestionLoading) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
-                if (state is PostTripSuggestionLoaded) {
-                  return _PostTripSuggestionCard(suggestion: state.suggestion);
-                }
-                if (state is PostTripSuggestionError) {
-                  return Card(
-                    color: const Color(0xFFFFF0F0),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text(state.message),
-                    ),
-                  );
-                }
-                return const SizedBox.shrink();
-              },
+            _PostTripSuggestionSection(
+              tripId: widget.tripId,
+              hasSubmitted: false,
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ReadOnlyFeedbackView extends StatelessWidget {
+  final TripFeedback feedback;
+  final String tripId;
+
+  const _ReadOnlyFeedbackView({required this.feedback, required this.tripId});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Card(
+            color: const Color(0xFFF0F7FF),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.check_circle, color: Colors.green),
+                      SizedBox(width: 8),
+                      Text(
+                        'Votre avis a ete envoye',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Note globale',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: List.generate(5, (index) {
+                      return Icon(
+                        index < feedback.overallRating
+                            ? Icons.star
+                            : Icons.star_border,
+                        color: Colors.amber,
+                        size: 28,
+                      );
+                    }),
+                  ),
+                  if (feedback.highlights != null &&
+                      feedback.highlights!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Points forts',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(feedback.highlights!),
+                  ],
+                  if (feedback.lowlights != null &&
+                      feedback.lowlights!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Points faibles',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(feedback.lowlights!),
+                  ],
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      const Text(
+                        'Recommande : ',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(feedback.wouldRecommend ? 'Oui' : 'Non'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          _PostTripSuggestionSection(tripId: tripId, hasSubmitted: true),
+        ],
+      ),
+    );
+  }
+}
+
+class _PostTripSuggestionSection extends StatelessWidget {
+  final String tripId;
+  final bool hasSubmitted;
+
+  const _PostTripSuggestionSection({
+    required this.tripId,
+    required this.hasSubmitted,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<FeedbackBloc, FeedbackState>(
+      builder: (context, state) {
+        final showButton = hasSubmitted || state is FeedbackSubmitted;
+        if (showButton) {
+          return Card(
+            color: const Color(0xFFF0F7FF),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Decouvrez votre prochain voyage ideal base sur vos experiences.',
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      final authService = AuthService();
+                      final user = await authService.getCurrentUser();
+                      if (user != null && user.isFree) {
+                        if (context.mounted) {
+                          PremiumPaywall.show(context);
+                        }
+                        return;
+                      }
+                      if (context.mounted) {
+                        context.read<FeedbackBloc>().add(
+                          RequestPostTripSuggestion(),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.auto_awesome),
+                    label: const Text('Decouvrir mon prochain voyage'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        if (state is PostTripSuggestionLoading) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+        if (state is PostTripSuggestionLoaded) {
+          return _PostTripSuggestionCard(suggestion: state.suggestion);
+        }
+        if (state is PostTripSuggestionError) {
+          return Card(
+            color: const Color(0xFFFFF0F0),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(state.message),
+            ),
+          );
+        }
+        return const SizedBox.shrink();
+      },
     );
   }
 }

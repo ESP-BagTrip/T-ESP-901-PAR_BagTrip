@@ -31,6 +31,30 @@ export const feedbacksColumns: ColumnDef<Feedback>[] = [
     },
   },
   {
+    accessorKey: 'highlights',
+    header: 'Points forts',
+    cell: ({ row }) => {
+      const text = row.getValue('highlights') as string | null
+      return (
+        <span className="text-gray-700 text-xs max-w-[200px] truncate block">
+          {text || '—'}
+        </span>
+      )
+    },
+  },
+  {
+    accessorKey: 'lowlights',
+    header: 'Points faibles',
+    cell: ({ row }) => {
+      const text = row.getValue('lowlights') as string | null
+      return (
+        <span className="text-gray-700 text-xs max-w-[200px] truncate block">
+          {text || '—'}
+        </span>
+      )
+    },
+  },
+  {
     accessorKey: 'would_recommend',
     header: 'Recommande',
     cell: ({ row }) => {
