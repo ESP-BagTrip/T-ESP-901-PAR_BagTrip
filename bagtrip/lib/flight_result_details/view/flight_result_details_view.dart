@@ -29,7 +29,13 @@ class FlightResultDetailsView extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: ColorName.secondary),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              const TripsRoute().go(context);
+            }
+          },
         ),
         title: Text(
           AppLocalizations.of(context)!.selectYourRate,

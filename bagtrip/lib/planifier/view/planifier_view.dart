@@ -163,7 +163,7 @@ class PlanifierView extends StatelessWidget {
             child: _CreateTripCardManual(
               title: l10n.planifierManualTitle,
               description: l10n.planifierManualDescriptionCard,
-              onTap: () => const PlanifierManualRoute().push(context),
+              onTap: () => const PlanifierManualRoute().go(context),
             ),
           ),
           const SizedBox(width: AppSpacing.space16),
@@ -183,7 +183,7 @@ class PlanifierView extends StatelessWidget {
                         .hasSeenPersonalizationPrompt(userId);
                 if (!context.mounted) return;
                 if (hasSeen) {
-                  const CreateTripAiRoute().push(context);
+                  const CreateTripAiRoute().go(context);
                 } else {
                   const PersonalizationRoute(from: 'createTripAi').go(context);
                 }
@@ -230,7 +230,7 @@ class PlanifierView extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => TripHomeRoute(tripId: nextTrip.id).push(context),
+        onTap: () => TripHomeRoute(tripId: nextTrip.id).go(context),
         borderRadius: AppRadius.large16,
         child: Container(
           width: double.infinity,
@@ -328,7 +328,7 @@ class PlanifierView extends StatelessWidget {
               colors: [Color(0xFF2D6A6A), Color(0xFF1B4D4D)],
             ),
             icon: Icons.eco_rounded,
-            onTap: () => const CreateTripAiRoute().push(context),
+            onTap: () => const CreateTripAiRoute().go(context),
           ),
           const SizedBox(width: AppSpacing.space8),
           _DestinationCard(
@@ -340,7 +340,7 @@ class PlanifierView extends StatelessWidget {
               colors: [ColorName.primary, ColorName.primaryDark],
             ),
             icon: Icons.account_balance_rounded,
-            onTap: () => const CreateTripAiRoute().push(context),
+            onTap: () => const CreateTripAiRoute().go(context),
           ),
           const SizedBox(width: AppSpacing.space8),
           _DestinationCard(
@@ -352,7 +352,7 @@ class PlanifierView extends StatelessWidget {
               colors: [Color(0xFFC45C26), Color(0xFF8B4513)],
             ),
             icon: Icons.landscape_rounded,
-            onTap: () => const CreateTripAiRoute().push(context),
+            onTap: () => const CreateTripAiRoute().go(context),
           ),
         ],
       ),

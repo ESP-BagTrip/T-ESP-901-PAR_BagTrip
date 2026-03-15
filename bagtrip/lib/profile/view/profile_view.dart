@@ -57,7 +57,7 @@ class ProfileView extends StatelessWidget {
                     ? CupertinoIcons.person
                     : Icons.person_outline,
                 title: l10n.personalInfoPageTitle,
-                onTap: () => const PersonalInfoRoute().push(context),
+                onTap: () => const PersonalInfoRoute().go(context),
               ),
               const SizedBox(height: AppSpacing.space8),
               _buildNavigationRow(
@@ -76,7 +76,7 @@ class ProfileView extends StatelessWidget {
                     ? CupertinoIcons.gear
                     : Icons.settings_outlined,
                 title: l10n.settingsTitle,
-                onTap: () => const SettingsRoute().push(context),
+                onTap: () => const SettingsRoute().go(context),
               ),
               const SizedBox(height: AppSpacing.space24),
               const LogoutButton(),

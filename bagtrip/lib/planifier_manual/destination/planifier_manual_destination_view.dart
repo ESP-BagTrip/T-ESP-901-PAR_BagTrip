@@ -23,6 +23,13 @@ class _PlanifierManualDestinationViewState
   DateTime? _departureDate;
   DateTime? _returnDate;
   int _travelersCount = 2;
+  bool _hasAttemptedNext = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _destinationController.addListener(() => setState(() {}));
+  }
 
   @override
   void dispose() {
@@ -54,8 +61,16 @@ class _PlanifierManualDestinationViewState
     }
   }
 
+  bool get _isFormValid =>
+      _destinationController.text.trim().isNotEmpty &&
+      _departureDate != null &&
+      _returnDate != null &&
+      !_returnDate!.isBefore(_departureDate!);
+
   void _onNext() {
-    const PlanifierManualTransportRoute().push(context);
+    setState(() => _hasAttemptedNext = true);
+    if (!_isFormValid) return;
+    const PlanifierManualTransportRoute().go(context);
   }
 
   @override
@@ -70,6 +85,8 @@ class _PlanifierManualDestinationViewState
           controller: _destinationController,
           label: l10n.destinationLabel,
           placeholder: l10n.destinationPlaceholder,
+          hasError:
+              _hasAttemptedNext && _destinationController.text.trim().isEmpty,
         ),
         const SizedBox(height: sectionSpacing),
         Row(
@@ -80,6 +97,7 @@ class _PlanifierManualDestinationViewState
                 date: _departureDate,
                 dateFormatHint: l10n.dateFormatHint,
                 onTap: _pickDepartureDate,
+                hasError: _hasAttemptedNext && _departureDate == null,
               ),
             ),
             const SizedBox(width: 12),
@@ -89,6 +107,11 @@ class _PlanifierManualDestinationViewState
                 date: _returnDate,
                 dateFormatHint: l10n.dateFormatHint,
                 onTap: _pickReturnDate,
+                hasError:
+                    _hasAttemptedNext &&
+                    (_returnDate == null ||
+                        (_departureDate != null &&
+                            _returnDate!.isBefore(_departureDate!))),
               ),
             ),
           ],
@@ -101,7 +124,7 @@ class _PlanifierManualDestinationViewState
           travelerCount5Plus: l10n.travelerCount5Plus,
         ),
         const SizedBox(height: 32),
-        _NextButton(onPressed: _onNext),
+        _NextButton(onPressed: _onNext, enabled: _isFormValid),
       ],
     );
   }
@@ -112,11 +135,13 @@ class _DestinationField extends StatelessWidget {
     required this.controller,
     required this.label,
     required this.placeholder,
+    this.hasError = false,
   });
 
   final TextEditingController controller;
   final String label;
   final String placeholder;
+  final bool hasError;
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +173,11 @@ class _DestinationField extends StatelessWidget {
           decoration: BoxDecoration(
             color: ColorName.surface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: ColorName.primarySoftLight),
+            border: Border.all(
+              color: hasError
+                  ? Colors.red.shade400
+                  : ColorName.primarySoftLight,
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
@@ -191,12 +220,14 @@ class _DateInputCard extends StatelessWidget {
     required this.date,
     required this.dateFormatHint,
     required this.onTap,
+    this.hasError = false,
   });
 
   final String label;
   final DateTime? date;
   final String dateFormatHint;
   final VoidCallback onTap;
+  final bool hasError;
 
   @override
   Widget build(BuildContext context) {
@@ -215,7 +246,9 @@ class _DateInputCard extends StatelessWidget {
             color: ColorName.surfaceLight,
             borderRadius: AppRadius.large16,
             border: Border.all(
-              color: ColorName.primarySoftLight.withValues(alpha: 0.6),
+              color: hasError
+                  ? Colors.red.shade400
+                  : ColorName.primarySoftLight.withValues(alpha: 0.6),
             ),
             boxShadow: [
               BoxShadow(
@@ -391,43 +424,47 @@ class _TravelerChip extends StatelessWidget {
 }
 
 class _NextButton extends StatelessWidget {
-  const _NextButton({required this.onPressed});
+  const _NextButton({required this.onPressed, this.enabled = true});
 
   final VoidCallback onPressed;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Container(
-      height: 56,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [ColorName.primary, ColorName.secondary],
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: ColorName.primary.withValues(alpha: 0.3),
-            offset: const Offset(0, 6),
-            blurRadius: 16,
+    return Opacity(
+      opacity: enabled ? 1.0 : 0.5,
+      child: Container(
+        height: 56,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [ColorName.primary, ColorName.secondary],
           ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
           borderRadius: BorderRadius.circular(24),
-          child: Center(
-            child: Text(
-              l10n.nextButton,
-              style: const TextStyle(
-                fontSize: 16,
-                fontFamily: FontFamily.b612,
-                fontWeight: FontWeight.w600,
-                color: ColorName.surface,
+          boxShadow: [
+            BoxShadow(
+              color: ColorName.primary.withValues(alpha: 0.3),
+              offset: const Offset(0, 6),
+              blurRadius: 16,
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onPressed,
+            borderRadius: BorderRadius.circular(24),
+            child: Center(
+              child: Text(
+                l10n.nextButton,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontFamily: FontFamily.b612,
+                  fontWeight: FontWeight.w600,
+                  color: ColorName.surface,
+                ),
               ),
             ),
           ),

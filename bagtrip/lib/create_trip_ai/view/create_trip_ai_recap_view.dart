@@ -54,7 +54,7 @@ class CreateTripAiRecapView extends StatelessWidget {
             if (context.canPop()) {
               context.pop();
             } else {
-              const TripsRoute().go(context);
+              const PlanifierRoute().go(context);
             }
           },
         ),

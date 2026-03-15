@@ -84,7 +84,13 @@ class TripHomeView extends StatelessWidget {
                                 : Icons.arrow_back,
                             color: Colors.white,
                           ),
-                          onPressed: () => context.pop(),
+                          onPressed: () {
+                            if (context.canPop()) {
+                              context.pop();
+                            } else {
+                              const TripsRoute().go(context);
+                            }
+                          },
                         ),
                       ),
                       if (!isViewer)

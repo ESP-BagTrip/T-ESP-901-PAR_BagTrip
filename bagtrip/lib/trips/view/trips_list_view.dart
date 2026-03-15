@@ -171,7 +171,7 @@ class _TripListTab extends StatelessWidget {
       emptyWidget: EmptyState(icon: emptyIcon, title: emptyMessage),
       itemBuilder: (context, trip, _) => TripCard(
         trip: trip,
-        onTap: () => TripHomeRoute(tripId: trip.id).push(context),
+        onTap: () => TripHomeRoute(tripId: trip.id).go(context),
       ),
     );
   }
@@ -206,7 +206,7 @@ class _LegacyTripListTab extends StatelessWidget {
           final trip = trips[index];
           return TripCard(
             trip: trip,
-            onTap: () => TripHomeRoute(tripId: trip.id).push(context),
+            onTap: () => TripHomeRoute(tripId: trip.id).go(context),
           );
         },
       ),

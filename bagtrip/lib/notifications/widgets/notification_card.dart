@@ -149,19 +149,19 @@ class NotificationCard extends StatelessWidget {
 
     switch (screen) {
       case 'tripHome':
-        TripHomeRoute(tripId: tripId).push(context);
+        TripHomeRoute(tripId: tripId).go(context);
         break;
       case 'activities':
-        ActivitiesRoute(tripId: tripId).push(context);
+        ActivitiesRoute(tripId: tripId).go(context);
         break;
       case 'budget':
-        BudgetRoute(tripId: tripId).push(context);
+        BudgetRoute(tripId: tripId).go(context);
         break;
       case 'feedback':
-        FeedbackRoute(tripId: tripId).push(context);
+        FeedbackRoute(tripId: tripId).go(context);
         break;
       default:
-        TripHomeRoute(tripId: tripId).push(context);
+        TripHomeRoute(tripId: tripId).go(context);
     }
   }
 

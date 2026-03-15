@@ -21,7 +21,13 @@ class PlanifierManualTransportPage extends StatelessWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              const PlanifierManualRoute().go(context);
+            }
+          },
         ),
         title: Text(
           l10n.transportTitle,
@@ -52,8 +58,7 @@ class PlanifierManualTransportPage extends StatelessWidget {
               ),
               title: l10n.transportOptionFlightTitle,
               description: l10n.transportOptionFlightSubtitle,
-              onTap: () =>
-                  const PlanifierManualFlightSearchRoute().push(context),
+              onTap: () => const PlanifierManualFlightSearchRoute().go(context),
             ),
             const SizedBox(height: AppSpacing.space16),
             PlanifierCard(
@@ -68,7 +73,7 @@ class PlanifierManualTransportPage extends StatelessWidget {
               title: l10n.transportOptionOtherTitle,
               description: l10n.transportOptionOtherSubtitle,
               onTap: () =>
-                  const PlanifierManualOtherTransportRoute().push(context),
+                  const PlanifierManualOtherTransportRoute().go(context),
             ),
             const SizedBox(height: AppSpacing.space16),
             PlanifierCard(
@@ -82,7 +87,13 @@ class PlanifierManualTransportPage extends StatelessWidget {
               ),
               title: l10n.transportOptionSkipTitle,
               description: l10n.transportOptionSkipSubtitle,
-              onTap: () => context.pop(),
+              onTap: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  const PlanifierManualRoute().go(context);
+                }
+              },
             ),
           ],
         ),
