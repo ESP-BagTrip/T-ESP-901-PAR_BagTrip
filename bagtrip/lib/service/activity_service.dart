@@ -61,7 +61,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
             items: items,
             total: data['total'] as int,
             page: data['page'] as int,
-            totalPages: data['totalPages'] as int,
+            totalPages: (data['totalPages'] ?? data['total_pages']) as int,
           ),
         );
       }

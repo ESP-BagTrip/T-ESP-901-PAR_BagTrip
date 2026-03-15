@@ -8,49 +8,53 @@ part of 'activity.dart';
 
 _Activity _$ActivityFromJson(Map<String, dynamic> json) => _Activity(
   id: json['id'] as String,
-  tripId: json['tripId'] as String,
+  tripId: json['trip_id'] as String,
   title: json['title'] as String,
   description: json['description'] as String?,
   date: DateTime.parse(json['date'] as String),
-  startTime: json['startTime'] as String?,
-  endTime: json['endTime'] as String?,
+  startTime: json['start_time'] as String?,
+  endTime: json['end_time'] as String?,
   location: json['location'] as String?,
   category:
-      $enumDecodeNullable(_$ActivityCategoryEnumMap, json['category']) ??
+      $enumDecodeNullable(
+        _$ActivityCategoryEnumMap,
+        json['category'],
+        unknownValue: ActivityCategory.other,
+      ) ??
       ActivityCategory.other,
-  estimatedCost: (json['estimatedCost'] as num?)?.toDouble(),
-  isBooked: json['isBooked'] as bool? ?? false,
+  estimatedCost: (json['estimated_cost'] as num?)?.toDouble(),
+  isBooked: json['is_booked'] as bool? ?? false,
   validationStatus:
       $enumDecodeNullable(
         _$ValidationStatusEnumMap,
-        json['validationStatus'],
+        json['validation_status'],
       ) ??
       ValidationStatus.manual,
   suggestedDay: (json['suggestedDay'] as num?)?.toInt(),
-  createdAt: json['createdAt'] == null
+  createdAt: json['created_at'] == null
       ? null
-      : DateTime.parse(json['createdAt'] as String),
-  updatedAt: json['updatedAt'] == null
+      : DateTime.parse(json['created_at'] as String),
+  updatedAt: json['updated_at'] == null
       ? null
-      : DateTime.parse(json['updatedAt'] as String),
+      : DateTime.parse(json['updated_at'] as String),
 );
 
 Map<String, dynamic> _$ActivityToJson(_Activity instance) => <String, dynamic>{
   'id': instance.id,
-  'tripId': instance.tripId,
+  'trip_id': instance.tripId,
   'title': instance.title,
   'description': instance.description,
   'date': instance.date.toIso8601String(),
-  'startTime': instance.startTime,
-  'endTime': instance.endTime,
+  'start_time': instance.startTime,
+  'end_time': instance.endTime,
   'location': instance.location,
   'category': _$ActivityCategoryEnumMap[instance.category]!,
-  'estimatedCost': instance.estimatedCost,
-  'isBooked': instance.isBooked,
-  'validationStatus': _$ValidationStatusEnumMap[instance.validationStatus]!,
+  'estimated_cost': instance.estimatedCost,
+  'is_booked': instance.isBooked,
+  'validation_status': _$ValidationStatusEnumMap[instance.validationStatus]!,
   'suggestedDay': instance.suggestedDay,
-  'createdAt': instance.createdAt?.toIso8601String(),
-  'updatedAt': instance.updatedAt?.toIso8601String(),
+  'created_at': instance.createdAt?.toIso8601String(),
+  'updated_at': instance.updatedAt?.toIso8601String(),
 };
 
 const _$ActivityCategoryEnumMap = {
@@ -58,6 +62,8 @@ const _$ActivityCategoryEnumMap = {
   ActivityCategory.restaurant: 'RESTAURANT',
   ActivityCategory.transport: 'TRANSPORT',
   ActivityCategory.leisure: 'LEISURE',
+  ActivityCategory.culture: 'CULTURE',
+  ActivityCategory.nature: 'NATURE',
   ActivityCategory.other: 'OTHER',
 };
 

@@ -32,6 +32,10 @@ class ActivityCard extends StatelessWidget {
         return Icons.directions_car;
       case ActivityCategory.leisure:
         return Icons.sports_tennis;
+      case ActivityCategory.culture:
+        return Icons.theater_comedy;
+      case ActivityCategory.nature:
+        return Icons.park;
       case ActivityCategory.other:
         return Icons.event;
     }

@@ -46,8 +46,8 @@ class ActivityResponse(BaseModel):
     estimatedCost: float | None = Field(default=None, alias="estimated_cost")
     isBooked: bool = Field(alias="is_booked")
     validationStatus: str = Field(default="MANUAL", alias="validation_status")
-    createdAt: str = Field(alias="created_at")
-    updatedAt: str = Field(alias="updated_at")
+    createdAt: dt.datetime = Field(alias="created_at")
+    updatedAt: dt.datetime = Field(alias="updated_at")
 
     class Config:
         from_attributes = True
