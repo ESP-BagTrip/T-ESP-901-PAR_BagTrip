@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:bagtrip/auth/bloc/auth_bloc.dart';
 import 'package:bagtrip/auth/widgets/auth_listener.dart';
 import 'package:bagtrip/booking/bloc/booking_bloc.dart';
+import 'package:bagtrip/components/snack_bar_scope.dart';
 import 'package:bagtrip/config/app_config.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/design/app_theme.dart';
@@ -126,6 +127,8 @@ class _MyAppState extends State<MyApp> {
             };
 
             return MaterialApp.router(
+              builder: (context, child) =>
+                  SnackBarScope(child: child ?? const SizedBox.shrink()),
               theme: AppTheme.light().copyWith(
                 cupertinoOverrideTheme: AppTheme.cupertinoLight(),
               ),

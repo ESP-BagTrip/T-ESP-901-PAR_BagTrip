@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
 import 'package:bagtrip/feedback/bloc/feedback_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -118,22 +119,16 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
             BlocConsumer<FeedbackBloc, FeedbackState>(
               listener: (context, state) {
                 if (state is FeedbackSubmitted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        AppLocalizations.of(context)!.feedbackThanks,
-                      ),
-                    ),
+                  AppSnackBar.showSuccess(
+                    context,
+                    message: AppLocalizations.of(context)!.feedbackThanks,
                   );
                 } else if (state is FeedbackError) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        toUserFriendlyMessage(
-                          state.error,
-                          AppLocalizations.of(context)!,
-                        ),
-                      ),
+                  AppSnackBar.showError(
+                    context,
+                    message: toUserFriendlyMessage(
+                      state.error,
+                      AppLocalizations.of(context)!,
                     ),
                   );
                 }

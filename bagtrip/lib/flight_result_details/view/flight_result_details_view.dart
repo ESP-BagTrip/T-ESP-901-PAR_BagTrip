@@ -1,4 +1,5 @@
 import 'package:bagtrip/booking/bloc/booking_bloc.dart';
+import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/flight_result_details/bloc/flight_result_details_bloc.dart';
@@ -53,17 +54,12 @@ class FlightResultDetailsView extends StatelessWidget {
             case PaymentSuccess():
               const PaymentSuccessRoute().go(context);
             case PaymentCancelled():
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    AppLocalizations.of(context)!.paymentCancelledTitle,
-                  ),
-                ),
+              AppSnackBar.showInfo(
+                context,
+                message: AppLocalizations.of(context)!.paymentCancelledTitle,
               );
             case PaymentFailed(:final error):
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(error.message)));
+              AppSnackBar.showError(context, message: error.message);
             default:
               break;
           }

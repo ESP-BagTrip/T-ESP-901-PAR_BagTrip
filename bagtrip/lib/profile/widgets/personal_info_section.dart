@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -102,8 +103,9 @@ class PersonalInfoSection extends StatelessWidget {
         ),
         TextButton(
           onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(AppLocalizations.of(context)!.comingSoon)),
+            AppSnackBar.showInfo(
+              context,
+              message: AppLocalizations.of(context)!.comingSoon,
             );
           },
           style: TextButton.styleFrom(

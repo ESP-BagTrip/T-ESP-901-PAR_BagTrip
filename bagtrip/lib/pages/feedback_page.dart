@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/feedback/bloc/feedback_bloc.dart';
 import 'package:bagtrip/feedback/view/feedback_form_view.dart';
 import 'package:bagtrip/feedback/view/feedback_list_view.dart';
@@ -68,21 +69,17 @@ class _FeedbackPageContentState extends State<_FeedbackPageContent> {
         body: BlocConsumer<FeedbackBloc, FeedbackState>(
           listener: (context, state) {
             if (state is FeedbackSubmitted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(AppLocalizations.of(context)!.feedbackSent),
-                ),
+              AppSnackBar.showSuccess(
+                context,
+                message: AppLocalizations.of(context)!.feedbackSent,
               );
             }
             if (state is FeedbackError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    toUserFriendlyMessage(
-                      state.error,
-                      AppLocalizations.of(context)!,
-                    ),
-                  ),
+              AppSnackBar.showError(
+                context,
+                message: toUserFriendlyMessage(
+                  state.error,
+                  AppLocalizations.of(context)!,
                 ),
               );
             }

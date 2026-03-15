@@ -136,10 +136,9 @@ class _BaggagePageState extends State<BaggagePage> {
         _selectedCategory = null;
         await _loadBaggageItems();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(AppLocalizations.of(context)!.baggageItemAdded),
-            ),
+          AppSnackBar.showSuccess(
+            context,
+            message: AppLocalizations.of(context)!.baggageItemAdded,
           );
         }
       case Failure(:final error):
@@ -172,12 +171,9 @@ class _BaggagePageState extends State<BaggagePage> {
           case Success():
             await _loadBaggageItems();
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    AppLocalizations.of(context)!.baggageItemDeleted,
-                  ),
-                ),
+              AppSnackBar.showSuccess(
+                context,
+                message: AppLocalizations.of(context)!.baggageItemDeleted,
               );
             }
           case Failure(:final error):
@@ -248,12 +244,11 @@ class _BaggagePageState extends State<BaggagePage> {
         });
         await _loadBaggageItems();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context)!.baggageItemAddedFromSuggestion,
-              ),
-            ),
+          AppSnackBar.showSuccess(
+            context,
+            message: AppLocalizations.of(
+              context,
+            )!.baggageItemAddedFromSuggestion,
           );
         }
       case Failure(:final error):

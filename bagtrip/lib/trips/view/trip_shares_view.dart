@@ -1,4 +1,5 @@
 import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
+import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip_share.dart';
 import 'package:bagtrip/trips/bloc/trip_share_bloc.dart';
@@ -58,14 +59,11 @@ class _TripSharesViewState extends State<TripSharesView> {
       body: BlocConsumer<TripShareBloc, TripShareState>(
         listener: (context, state) {
           if (state is TripShareError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  toUserFriendlyMessage(
-                    state.error,
-                    AppLocalizations.of(context)!,
-                  ),
-                ),
+            AppSnackBar.showError(
+              context,
+              message: toUserFriendlyMessage(
+                state.error,
+                AppLocalizations.of(context)!,
               ),
             );
           }

@@ -138,10 +138,9 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
         _checkOutDate = null;
         await _loadAccommodations();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(AppLocalizations.of(context)!.accommodationAdded),
-            ),
+          AppSnackBar.showSuccess(
+            context,
+            message: AppLocalizations.of(context)!.accommodationAdded,
           );
         }
       case Failure(:final error):
@@ -174,12 +173,9 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
           case Success():
             await _loadAccommodations();
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    AppLocalizations.of(context)!.accommodationDeleted,
-                  ),
-                ),
+              AppSnackBar.showSuccess(
+                context,
+                message: AppLocalizations.of(context)!.accommodationDeleted,
               );
             }
           case Failure(:final error):

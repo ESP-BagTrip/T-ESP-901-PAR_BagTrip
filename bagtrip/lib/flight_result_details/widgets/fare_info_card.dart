@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -140,10 +141,9 @@ class FareInfoCard extends StatelessWidget {
           // Button
           ElevatedButton(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(AppLocalizations.of(context)!.comingSoon),
-                ),
+              AppSnackBar.showInfo(
+                context,
+                message: AppLocalizations.of(context)!.comingSoon,
               );
             },
             style: ElevatedButton.styleFrom(

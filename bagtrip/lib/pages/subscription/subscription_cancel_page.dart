@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
@@ -24,8 +25,9 @@ class SubscriptionCancelPage extends StatelessWidget {
         final uri = Uri.parse(data);
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       case Failure():
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.errorUnknown)),
+        AppSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context)!.errorUnknown,
         );
     }
   }

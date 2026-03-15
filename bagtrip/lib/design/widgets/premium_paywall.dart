@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/design/widgets/premium_cta_button.dart';
 import 'package:bagtrip/config/service_locator.dart';
@@ -41,9 +42,7 @@ class _PremiumPaywallState extends State<PremiumPaywall> {
         }
       case Failure(:final error):
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Erreur: ${error.message}')));
+          AppSnackBar.showError(context, message: 'Erreur: ${error.message}');
         }
     }
     if (mounted) setState(() => _isLoading = false);

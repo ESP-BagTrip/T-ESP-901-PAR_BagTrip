@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/create_trip_ai/bloc/create_trip_ai_bloc.dart';
 import 'package:bagtrip/create_trip_ai/view/create_trip_ai_recap_view.dart';
 import 'package:bagtrip/create_trip_ai/view/create_trip_ai_results_view.dart';
@@ -25,10 +26,9 @@ class CreateTripAiFlowPage extends StatelessWidget {
             context.read<CreateTripAiBloc>().add(CreateTripAiLoadRecap());
           }
           if (state is CreateTripAiTripCreated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(AppLocalizations.of(context)!.tripCreated),
-              ),
+            AppSnackBar.showSuccess(
+              context,
+              message: AppLocalizations.of(context)!.tripCreated,
             );
             const TripsRoute().go(context);
           }

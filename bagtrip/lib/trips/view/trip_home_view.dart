@@ -1,4 +1,5 @@
 import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
+import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/components/adaptive/adaptive_indicator.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -27,14 +28,11 @@ class TripHomeView extends StatelessWidget {
             const TripsRoute().go(context);
           }
           if (state is TripError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  toUserFriendlyMessage(
-                    state.error,
-                    AppLocalizations.of(context)!,
-                  ),
-                ),
+            AppSnackBar.showError(
+              context,
+              message: toUserFriendlyMessage(
+                state.error,
+                AppLocalizations.of(context)!,
               ),
             );
             context.read<TripManagementBloc>().add(
