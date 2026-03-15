@@ -11,4 +11,5 @@ export 'profile_repository.dart';
 export 'subscription_repository.dart';
 export 'traveler_repository.dart';
 export 'trip_repository.dart';
+export 'transport_repository.dart';
 export 'trip_share_repository.dart';

@@ -125,8 +125,12 @@ app.include_router(flight_searches_router)  # Déjà préfixé avec /v1/trips
 app.include_router(flight_offers_router)  # Déjà préfixé avec /v1/trips
 
 from src.api.flights.orders.routes import router as flight_orders_router
+from src.api.flights.manual.routes import router as manual_flights_router
+from src.api.flights.info.routes import router as flight_info_router
 
 app.include_router(flight_orders_router)  # Déjà préfixé avec /v1/trips
+app.include_router(manual_flights_router)  # Déjà préfixé avec /v1/trips
+app.include_router(flight_info_router)  # Déjà préfixé avec /v1/travel/flights
 app.include_router(booking_intents_router)  # Déjà préfixé avec /v1/trips
 app.include_router(booking_intents_book_router)  # Déjà préfixé avec /v1/booking-intents
 app.include_router(payments_router)  # Déjà préfixé avec /v1/booking-intents

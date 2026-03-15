@@ -64,6 +64,9 @@ class Settings(BaseSettings):
     GOOGLE_OAUTH_CLIENT_ID: str | None = None
     APPLE_BUNDLE_ID: str | None = None
 
+    # AirLabs (flight info)
+    AIRLABS_API_KEY: str | None = None
+
     @field_validator("AMADEUS_CLIENT_ID", "AMADEUS_CLIENT_SECRET", "LLM_API_KEY")
     @classmethod
     def validate_required_strings(cls, v: str) -> str:

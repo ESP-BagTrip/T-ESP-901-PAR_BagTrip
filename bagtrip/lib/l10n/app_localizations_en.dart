@@ -1664,4 +1664,82 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get budgetTitle => 'Budget';
+
+  @override
+  String get transportsTitle => 'Transports';
+
+  @override
+  String get addFirstTransport => 'Add your flight';
+
+  @override
+  String get addFlight => 'Add a flight';
+
+  @override
+  String get addFlightSubtitle => 'Enter your flight number to get live info';
+
+  @override
+  String get searchFlightOption => 'Search a flight';
+
+  @override
+  String get searchFlightOptionSubtitle => 'Find and compare flights';
+
+  @override
+  String get addManuallyOption => 'Add manually';
+
+  @override
+  String get addManuallyOptionSubtitle => 'Enter flight details yourself';
+
+  @override
+  String get mainFlightsSection => 'Main flights';
+
+  @override
+  String get internalFlightsSection => 'Internal flights';
+
+  @override
+  String get flightNumberLabel => 'Flight number';
+
+  @override
+  String get flightNumberRequired => 'Flight number is required';
+
+  @override
+  String get airlineLabel => 'Airline';
+
+  @override
+  String get departureAirportLabel => 'Departure';
+
+  @override
+  String get arrivalAirportLabel => 'Arrival';
+
+  @override
+  String get departureDateLabel => 'Departure date';
+
+  @override
+  String get arrivalDateLabel => 'Arrival date';
+
+  @override
+  String get priceLabel => 'Price';
+
+  @override
+  String get notesLabel => 'Notes';
+
+  @override
+  String get mainFlightType => 'Main';
+
+  @override
+  String get internalFlightType => 'Internal';
+
+  @override
+  String get flightStatusOnTime => 'On time';
+
+  @override
+  String get flightStatusDelayed => 'Delayed';
+
+  @override
+  String get flightStatusCancelled => 'Cancelled';
+
+  @override
+  String get flightStatusLanded => 'Landed';
+
+  @override
+  String get flightStatusScheduled => 'Scheduled';
 }

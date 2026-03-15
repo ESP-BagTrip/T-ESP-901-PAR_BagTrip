@@ -204,6 +204,19 @@ class TripHomeView extends StatelessWidget {
                     delegate: SliverChildListDelegate([
                       const SizedBox(height: 8),
                       TripSectionCard(
+                        icon: Icons.flight_rounded,
+                        title: l10n.transportsTitle,
+                        itemCount: _sectionCount(tripHome, 'transports'),
+                        previewItems: _sectionPreviews(tripHome, 'transports'),
+                        emptyLabel: l10n.addFirstTransport,
+                        onTap: () => TransportsRoute(
+                          tripId: tripId,
+                          role: trip.role ?? 'OWNER',
+                          isCompleted: isCompleted,
+                        ).go(context),
+                      ),
+                      const SizedBox(height: 12),
+                      TripSectionCard(
                         icon: Icons.hotel_rounded,
                         title: l10n.accommodationsTitle,
                         itemCount: _sectionCount(tripHome, 'accommodations'),

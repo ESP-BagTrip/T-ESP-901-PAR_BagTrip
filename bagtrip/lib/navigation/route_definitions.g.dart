@@ -150,6 +150,10 @@ RouteBase get $homeRoute => GoRouteData.$route(
           factory: $ActivitiesRoute._fromState,
         ),
         GoRouteData.$route(path: 'budget', factory: $BudgetRoute._fromState),
+        GoRouteData.$route(
+          path: 'transports',
+          factory: $TransportsRoute._fromState,
+        ),
         GoRouteData.$route(path: 'shares', factory: $SharesRoute._fromState),
         GoRouteData.$route(
           path: 'feedback',
@@ -382,6 +386,45 @@ mixin $BudgetRoute on GoRouteData {
   @override
   String get location => GoRouteData.$location(
     '/home/${Uri.encodeComponent(_self.tripId)}/budget',
+    queryParams: {
+      if (_self.role != 'OWNER') 'role': _self.role,
+      if (_self.isCompleted != false)
+        'is-completed': _self.isCompleted.toString(),
+    },
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $TransportsRoute on GoRouteData {
+  static TransportsRoute _fromState(GoRouterState state) => TransportsRoute(
+    tripId: state.pathParameters['tripId']!,
+    role: state.uri.queryParameters['role'] ?? 'OWNER',
+    isCompleted:
+        _$convertMapValue(
+          'is-completed',
+          state.uri.queryParameters,
+          _$boolConverter,
+        ) ??
+        false,
+  );
+
+  TransportsRoute get _self => this as TransportsRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/home/${Uri.encodeComponent(_self.tripId)}/transports',
     queryParams: {
       if (_self.role != 'OWNER') 'role': _self.role,
       if (_self.isCompleted != false)

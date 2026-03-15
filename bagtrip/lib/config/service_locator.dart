@@ -19,6 +19,7 @@ import 'package:bagtrip/service/feedback_service.dart';
 import 'package:bagtrip/service/subscription_service.dart';
 import 'package:bagtrip/service/ai_service.dart';
 import 'package:bagtrip/service/location_service.dart';
+import 'package:bagtrip/service/transport_service.dart';
 import 'package:bagtrip/service/onboarding_storage.dart';
 import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
@@ -103,6 +104,9 @@ void setupServiceLocator() {
   );
   getIt.registerLazySingleton<AiRepository>(
     () => AiRepositoryImpl(apiClient: getIt<ApiClient>()),
+  );
+  getIt.registerLazySingleton<TransportRepository>(
+    () => TransportRepositoryImpl(apiClient: getIt<ApiClient>()),
   );
 
   // 5. LocationService (uses Dio directly, not ApiClient)

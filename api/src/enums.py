@@ -74,3 +74,8 @@ class NotificationType(StrEnum):
     BUDGET_ALERT = "BUDGET_ALERT"
     TRIP_SHARED = "TRIP_SHARED"
     ADMIN = "ADMIN"
+
+
+class FlightType(StrEnum):
+    MAIN = "MAIN"
+    INTERNAL = "INTERNAL"

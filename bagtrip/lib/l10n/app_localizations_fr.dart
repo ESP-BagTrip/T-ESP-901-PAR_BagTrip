@@ -1681,4 +1681,83 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get budgetTitle => 'Budget';
+
+  @override
+  String get transportsTitle => 'Transports';
+
+  @override
+  String get addFirstTransport => 'Ajoutez votre vol';
+
+  @override
+  String get addFlight => 'Ajouter un vol';
+
+  @override
+  String get addFlightSubtitle =>
+      'Entrez votre numéro de vol pour obtenir les infos en direct';
+
+  @override
+  String get searchFlightOption => 'Rechercher un vol';
+
+  @override
+  String get searchFlightOptionSubtitle => 'Trouvez et comparez des vols';
+
+  @override
+  String get addManuallyOption => 'Ajouter manuellement';
+
+  @override
+  String get addManuallyOptionSubtitle => 'Saisissez les détails du vol';
+
+  @override
+  String get mainFlightsSection => 'Vols principaux';
+
+  @override
+  String get internalFlightsSection => 'Vols internes';
+
+  @override
+  String get flightNumberLabel => 'Numéro de vol';
+
+  @override
+  String get flightNumberRequired => 'Le numéro de vol est requis';
+
+  @override
+  String get airlineLabel => 'Compagnie aérienne';
+
+  @override
+  String get departureAirportLabel => 'Départ';
+
+  @override
+  String get arrivalAirportLabel => 'Arrivée';
+
+  @override
+  String get departureDateLabel => 'Date de départ';
+
+  @override
+  String get arrivalDateLabel => 'Date d\'arrivée';
+
+  @override
+  String get priceLabel => 'Prix';
+
+  @override
+  String get notesLabel => 'Notes';
+
+  @override
+  String get mainFlightType => 'Principal';
+
+  @override
+  String get internalFlightType => 'Interne';
+
+  @override
+  String get flightStatusOnTime => 'À l\'heure';
+
+  @override
+  String get flightStatusDelayed => 'Retardé';
+
+  @override
+  String get flightStatusCancelled => 'Annulé';
+
+  @override
+  String get flightStatusLanded => 'Atterri';
+
+  @override
+  String get flightStatusScheduled => 'Programmé';
 }

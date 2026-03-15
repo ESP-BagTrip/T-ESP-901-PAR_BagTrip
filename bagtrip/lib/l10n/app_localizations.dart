@@ -3217,6 +3217,162 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Budget'**
   String get budgetTitle;
+
+  /// No description provided for @transportsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transports'**
+  String get transportsTitle;
+
+  /// No description provided for @addFirstTransport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez votre vol'**
+  String get addFirstTransport;
+
+  /// No description provided for @addFlight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un vol'**
+  String get addFlight;
+
+  /// No description provided for @addFlightSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrez votre numéro de vol pour obtenir les infos en direct'**
+  String get addFlightSubtitle;
+
+  /// No description provided for @searchFlightOption.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher un vol'**
+  String get searchFlightOption;
+
+  /// No description provided for @searchFlightOptionSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trouvez et comparez des vols'**
+  String get searchFlightOptionSubtitle;
+
+  /// No description provided for @addManuallyOption.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter manuellement'**
+  String get addManuallyOption;
+
+  /// No description provided for @addManuallyOptionSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisissez les détails du vol'**
+  String get addManuallyOptionSubtitle;
+
+  /// No description provided for @mainFlightsSection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vols principaux'**
+  String get mainFlightsSection;
+
+  /// No description provided for @internalFlightsSection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vols internes'**
+  String get internalFlightsSection;
+
+  /// No description provided for @flightNumberLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Numéro de vol'**
+  String get flightNumberLabel;
+
+  /// No description provided for @flightNumberRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le numéro de vol est requis'**
+  String get flightNumberRequired;
+
+  /// No description provided for @airlineLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compagnie aérienne'**
+  String get airlineLabel;
+
+  /// No description provided for @departureAirportLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Départ'**
+  String get departureAirportLabel;
+
+  /// No description provided for @arrivalAirportLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Arrivée'**
+  String get arrivalAirportLabel;
+
+  /// No description provided for @departureDateLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date de départ'**
+  String get departureDateLabel;
+
+  /// No description provided for @arrivalDateLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date d\'arrivée'**
+  String get arrivalDateLabel;
+
+  /// No description provided for @priceLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prix'**
+  String get priceLabel;
+
+  /// No description provided for @notesLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notes'**
+  String get notesLabel;
+
+  /// No description provided for @mainFlightType.
+  ///
+  /// In fr, this message translates to:
+  /// **'Principal'**
+  String get mainFlightType;
+
+  /// No description provided for @internalFlightType.
+  ///
+  /// In fr, this message translates to:
+  /// **'Interne'**
+  String get internalFlightType;
+
+  /// No description provided for @flightStatusOnTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'À l\'heure'**
+  String get flightStatusOnTime;
+
+  /// No description provided for @flightStatusDelayed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retardé'**
+  String get flightStatusDelayed;
+
+  /// No description provided for @flightStatusCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annulé'**
+  String get flightStatusCancelled;
+
+  /// No description provided for @flightStatusLanded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Atterri'**
+  String get flightStatusLanded;
+
+  /// No description provided for @flightStatusScheduled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Programmé'**
+  String get flightStatusScheduled;
 }
 
 class _AppLocalizationsDelegate

@@ -57,3 +57,6 @@ class Trip(Base):
     activities = relationship("Activity", back_populates="trip", cascade="all, delete-orphan")
     budget_items = relationship("BudgetItem", back_populates="trip", cascade="all, delete-orphan")
     feedbacks = relationship("Feedback", back_populates="trip", cascade="all, delete-orphan")
+    manual_flights = relationship(
+        "ManualFlight", back_populates="trip", cascade="all, delete-orphan"
+    )

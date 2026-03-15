@@ -1,4 +1,5 @@
 import 'package:bagtrip/activities/view/activities_page.dart';
+import 'package:bagtrip/transports/view/transports_page.dart';
 import 'package:bagtrip/budget/view/budget_page.dart';
 import 'package:bagtrip/flight_result_details/view/flight_result_details_page.dart';
 import 'package:bagtrip/flight_search_result/models/flight.dart';
@@ -98,6 +99,7 @@ class PersonalizationRoute extends GoRouteData with $PersonalizationRoute {
         TypedGoRoute<BaggageRoute>(path: 'baggage'),
         TypedGoRoute<ActivitiesRoute>(path: 'activities'),
         TypedGoRoute<BudgetRoute>(path: 'budget'),
+        TypedGoRoute<TransportsRoute>(path: 'transports'),
         TypedGoRoute<SharesRoute>(path: 'shares'),
         TypedGoRoute<FeedbackRoute>(path: 'feedback'),
       ],
@@ -232,6 +234,29 @@ class BudgetRoute extends GoRouteData with $BudgetRoute {
       buildSlideTransitionPage<void>(
         state: state,
         child: BudgetPage(tripId: tripId, role: role, isCompleted: isCompleted),
+      );
+}
+
+class TransportsRoute extends GoRouteData with $TransportsRoute {
+  const TransportsRoute({
+    required this.tripId,
+    this.role = 'OWNER',
+    this.isCompleted = false,
+  });
+
+  final String tripId;
+  final String role;
+  final bool isCompleted;
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      buildSlideTransitionPage<void>(
+        state: state,
+        child: TransportsPage(
+          tripId: tripId,
+          role: role,
+          isCompleted: isCompleted,
+        ),
       );
 }
 
@@ -466,6 +491,11 @@ GoRouteData tripFeatureRoute({
       isCompleted: isCompleted,
     ),
     'budget' => BudgetRoute(
+      tripId: tripId,
+      role: role,
+      isCompleted: isCompleted,
+    ),
+    'transports' => TransportsRoute(
       tripId: tripId,
       role: role,
       isCompleted: isCompleted,

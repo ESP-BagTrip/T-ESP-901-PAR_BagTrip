@@ -12,6 +12,7 @@ from .feedback import Feedback
 from .flight_offer import FlightOffer
 from .flight_order import FlightOrder
 from .flight_search import FlightSearch
+from .manual_flight import ManualFlight
 from .notification import Notification
 from .refresh_token import RefreshToken
 from .stripe_event import StripeEvent
@@ -39,6 +40,7 @@ __all__ = [
     "RefreshToken",
     "StripeEvent",
     "AmadeusApiLog",
+    "ManualFlight",
     "TravelerProfile",
     "TripShare",
     "Booking",  # Deprecated

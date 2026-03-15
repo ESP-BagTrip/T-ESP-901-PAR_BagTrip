@@ -14,6 +14,7 @@ from src.models.baggage_item import BaggageItem
 from src.models.booking_intent import BookingIntent
 from src.models.budget_item import BudgetItem
 from src.models.flight_order import FlightOrder
+from src.models.manual_flight import ManualFlight
 from src.models.stripe_event import StripeEvent
 from src.models.trip import Trip
 from src.models.trip_share import TripShare
@@ -253,7 +254,7 @@ class TripsService:
             {"id": "budget", "label": "Budget", "icon": "wallet", "route": "budget", "enabled": False},
             {"id": "accommodation", "label": "Hébergement", "icon": "hotel", "route": "accommodations", "enabled": True},
             {"id": "activities", "label": "Activités", "icon": "hiking", "route": "activities", "enabled": False},
-            {"id": "transport", "label": "Transport", "icon": "directions_car", "route": "transport", "enabled": False},
+            {"id": "transport", "label": "Transport", "icon": "directions_car", "route": "transport", "enabled": True},
             {"id": "map", "label": "Carte", "icon": "map", "route": "map", "enabled": False},
         ]
 
@@ -262,8 +263,14 @@ class TripsService:
         activities_list = db.query(Activity).filter(Activity.trip_id == trip.id).all()
         baggage_items = db.query(BaggageItem).filter(BaggageItem.trip_id == trip.id).all()
         budget_items = db.query(BudgetItem).filter(BudgetItem.trip_id == trip.id).all()
+        manual_flights = db.query(ManualFlight).filter(ManualFlight.trip_id == trip.id).all()
 
         sections = [
+            {
+                "sectionId": "transports",
+                "count": len(manual_flights),
+                "previewItems": [f.flight_number for f in manual_flights[:3]],
+            },
             {
                 "sectionId": "accommodations",
                 "count": len(accommodations),
