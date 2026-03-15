@@ -52,5 +52,10 @@ final GoRouter appRouter = GoRouter(
     $notificationsRoute,
     $flightSearchResultRoute,
     $flightResultDetailsRoute,
+    $subscriptionSuccessRoute,
+    $subscriptionCancelRoute,
+    $paymentSuccessRoute,
+    $paymentCancelRoute,
+    $paymentResultRoute,
   ],
 );

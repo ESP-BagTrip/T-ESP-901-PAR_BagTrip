@@ -614,5 +614,20 @@
   "offlineMode": "Vous êtes hors ligne. Données en cache affichées.",
   "offlineWriteError": "Cette action nécessite une connexion internet.",
   "loadingMore": "Chargement...",
-  "noMoreItems": "Plus d'éléments"
+  "noMoreItems": "Plus d'éléments",
+  "subscriptionVerifying": "Vérification de votre abonnement...",
+  "subscriptionWelcomePremium": "Bienvenue en Premium !",
+  "subscriptionPending": "Abonnement en attente",
+  "subscriptionSuccessMessage": "Vous avez désormais accès à toutes les fonctionnalités premium. Profitez des générations IA illimitées et plus encore !",
+  "subscriptionPendingMessage": "Votre paiement est en cours de traitement. L'activation peut prendre un instant.",
+  "subscriptionCancelTitle": "Paiement non complété",
+  "subscriptionCancelMessage": "Votre paiement d'abonnement n'a pas été finalisé. Vous pouvez réessayer ou retourner à votre profil.",
+  "subscriptionBackToProfile": "Retour au profil",
+  "paymentSuccessTitle": "Paiement confirmé !",
+  "paymentSuccessMessage": "Votre réservation de vol a été confirmée. Vous pouvez la consulter dans vos voyages.",
+  "paymentBackToTrips": "Retour à mes voyages",
+  "paymentCancelledTitle": "Paiement annulé",
+  "paymentCancelledMessage": "Votre paiement a été annulé. Aucun montant n'a été débité.",
+  "payment3dsReturnTitle": "Paiement en cours",
+  "payment3dsReturnMessage": "Votre paiement est en cours de traitement. Vous recevrez une confirmation sous peu."
 }

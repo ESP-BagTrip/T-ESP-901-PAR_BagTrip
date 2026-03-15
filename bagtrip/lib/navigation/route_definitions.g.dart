@@ -17,6 +17,11 @@ List<RouteBase> get $appRoutes => [
   $notificationsRoute,
   $flightSearchResultRoute,
   $flightResultDetailsRoute,
+  $subscriptionSuccessRoute,
+  $subscriptionCancelRoute,
+  $paymentSuccessRoute,
+  $paymentCancelRoute,
+  $paymentResultRoute,
 ];
 
 RouteBase get $splashRoute =>
@@ -690,4 +695,141 @@ mixin $FlightResultDetailsRoute on GoRouteData {
   @override
   void replace(BuildContext context) =>
       context.replace(location, extra: _self.$extra);
+}
+
+RouteBase get $subscriptionSuccessRoute => GoRouteData.$route(
+  path: '/subscription/success',
+  factory: $SubscriptionSuccessRoute._fromState,
+);
+
+mixin $SubscriptionSuccessRoute on GoRouteData {
+  static SubscriptionSuccessRoute _fromState(GoRouterState state) =>
+      SubscriptionSuccessRoute(
+        sessionId: state.uri.queryParameters['session-id'],
+      );
+
+  SubscriptionSuccessRoute get _self => this as SubscriptionSuccessRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/subscription/success',
+    queryParams: {if (_self.sessionId != null) 'session-id': _self.sessionId},
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $subscriptionCancelRoute => GoRouteData.$route(
+  path: '/subscription/cancel',
+  factory: $SubscriptionCancelRoute._fromState,
+);
+
+mixin $SubscriptionCancelRoute on GoRouteData {
+  static SubscriptionCancelRoute _fromState(GoRouterState state) =>
+      const SubscriptionCancelRoute();
+
+  @override
+  String get location => GoRouteData.$location('/subscription/cancel');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $paymentSuccessRoute => GoRouteData.$route(
+  path: '/payment/success',
+  factory: $PaymentSuccessRoute._fromState,
+);
+
+mixin $PaymentSuccessRoute on GoRouteData {
+  static PaymentSuccessRoute _fromState(GoRouterState state) =>
+      const PaymentSuccessRoute();
+
+  @override
+  String get location => GoRouteData.$location('/payment/success');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $paymentCancelRoute => GoRouteData.$route(
+  path: '/payment/cancel',
+  factory: $PaymentCancelRoute._fromState,
+);
+
+mixin $PaymentCancelRoute on GoRouteData {
+  static PaymentCancelRoute _fromState(GoRouterState state) =>
+      const PaymentCancelRoute();
+
+  @override
+  String get location => GoRouteData.$location('/payment/cancel');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $paymentResultRoute => GoRouteData.$route(
+  path: '/payment/result',
+  factory: $PaymentResultRoute._fromState,
+);
+
+mixin $PaymentResultRoute on GoRouteData {
+  static PaymentResultRoute _fromState(GoRouterState state) =>
+      const PaymentResultRoute();
+
+  @override
+  String get location => GoRouteData.$location('/payment/result');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
 }

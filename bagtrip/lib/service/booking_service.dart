@@ -1,6 +1,7 @@
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/booking_response.dart';
+import 'package:bagtrip/models/payment_authorize_response.dart';
 import 'package:bagtrip/repositories/booking_repository.dart';
 import 'package:bagtrip/service/api_client.dart';
 import 'package:dio/dio.dart';
@@ -25,6 +26,63 @@ class BookingRepositoryImpl implements BookingRepository {
       }
       return Failure(
         UnknownError('list bookings failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return Failure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<PaymentAuthorizeResponse>> authorizePayment(
+    String intentId,
+  ) async {
+    try {
+      final response = await _apiClient.post('/booking/$intentId/authorize');
+      if (response.statusCode == 200) {
+        return Success(
+          PaymentAuthorizeResponse.fromJson(
+            response.data as Map<String, dynamic>,
+          ),
+        );
+      }
+      return Failure(
+        UnknownError('authorize payment failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return Failure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<void>> capturePayment(String intentId) async {
+    try {
+      final response = await _apiClient.post('/booking/$intentId/capture');
+      if (response.statusCode == 200) {
+        return const Success(null);
+      }
+      return Failure(
+        UnknownError('capture payment failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return Failure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<void>> cancelPayment(String intentId) async {
+    try {
+      final response = await _apiClient.post('/booking/$intentId/cancel');
+      if (response.statusCode == 200) {
+        return const Success(null);
+      }
+      return Failure(
+        UnknownError('cancel payment failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
       return Failure(ApiClient.mapDioError(e));

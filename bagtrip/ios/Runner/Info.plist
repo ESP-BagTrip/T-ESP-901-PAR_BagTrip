@@ -16,6 +16,14 @@
 				<string>com.googleusercontent.apps.1073046051180-5fsoi8768piur2kl8njknsio4jqmifrs</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>bagtrip</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleDisplayName</key>
 	<string>Bagtrip</string>

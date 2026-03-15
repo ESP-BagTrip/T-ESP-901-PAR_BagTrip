@@ -1531,4 +1531,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noMoreItems => 'No more items';
+
+  @override
+  String get subscriptionVerifying => 'Verifying your subscription...';
+
+  @override
+  String get subscriptionWelcomePremium => 'Welcome to Premium!';
+
+  @override
+  String get subscriptionPending => 'Subscription pending';
+
+  @override
+  String get subscriptionSuccessMessage =>
+      'You now have access to all premium features. Enjoy unlimited AI generations and more!';
+
+  @override
+  String get subscriptionPendingMessage =>
+      'Your payment is being processed. It may take a moment to activate.';
+
+  @override
+  String get subscriptionCancelTitle => 'Payment not completed';
+
+  @override
+  String get subscriptionCancelMessage =>
+      'Your subscription payment was not completed. You can try again or return to your profile.';
+
+  @override
+  String get subscriptionBackToProfile => 'Back to profile';
+
+  @override
+  String get paymentSuccessTitle => 'Payment confirmed!';
+
+  @override
+  String get paymentSuccessMessage =>
+      'Your flight booking has been confirmed. You can view it in your trips.';
+
+  @override
+  String get paymentBackToTrips => 'Back to my trips';
+
+  @override
+  String get paymentCancelledTitle => 'Payment cancelled';
+
+  @override
+  String get paymentCancelledMessage =>
+      'Your payment was cancelled. No charges were made.';
+
+  @override
+  String get payment3dsReturnTitle => 'Payment processing';
+
+  @override
+  String get payment3dsReturnMessage =>
+      'Your payment is being processed. You will receive a confirmation shortly.';
 }

@@ -41,8 +41,8 @@ class SubscriptionService:
                 customer=user.stripe_customer_id,
                 mode="subscription",
                 line_items=[{"price": SubscriptionService._get_premium_price_id(), "quantity": 1}],
-                success_url=f"{settings.STRIPE_SUCCESS_URL if hasattr(settings, 'STRIPE_SUCCESS_URL') else 'bagtrip://subscription/success'}",
-                cancel_url=f"{settings.STRIPE_CANCEL_URL if hasattr(settings, 'STRIPE_CANCEL_URL') else 'bagtrip://subscription/cancel'}",
+                success_url=settings.STRIPE_SUCCESS_URL,
+                cancel_url=settings.STRIPE_CANCEL_URL,
                 metadata={"user_id": str(user.id)},
             )
             return {"url": session.url}

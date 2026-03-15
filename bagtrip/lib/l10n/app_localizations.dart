@@ -2965,6 +2965,96 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Plus d\'éléments'**
   String get noMoreItems;
+
+  /// No description provided for @subscriptionVerifying.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérification de votre abonnement...'**
+  String get subscriptionVerifying;
+
+  /// No description provided for @subscriptionWelcomePremium.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bienvenue en Premium !'**
+  String get subscriptionWelcomePremium;
+
+  /// No description provided for @subscriptionPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'Abonnement en attente'**
+  String get subscriptionPending;
+
+  /// No description provided for @subscriptionSuccessMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous avez désormais accès à toutes les fonctionnalités premium. Profitez des générations IA illimitées et plus encore !'**
+  String get subscriptionSuccessMessage;
+
+  /// No description provided for @subscriptionPendingMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre paiement est en cours de traitement. L\'activation peut prendre un instant.'**
+  String get subscriptionPendingMessage;
+
+  /// No description provided for @subscriptionCancelTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement non complété'**
+  String get subscriptionCancelTitle;
+
+  /// No description provided for @subscriptionCancelMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre paiement d\'abonnement n\'a pas été finalisé. Vous pouvez réessayer ou retourner à votre profil.'**
+  String get subscriptionCancelMessage;
+
+  /// No description provided for @subscriptionBackToProfile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour au profil'**
+  String get subscriptionBackToProfile;
+
+  /// No description provided for @paymentSuccessTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement confirmé !'**
+  String get paymentSuccessTitle;
+
+  /// No description provided for @paymentSuccessMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre réservation de vol a été confirmée. Vous pouvez la consulter dans vos voyages.'**
+  String get paymentSuccessMessage;
+
+  /// No description provided for @paymentBackToTrips.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour à mes voyages'**
+  String get paymentBackToTrips;
+
+  /// No description provided for @paymentCancelledTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement annulé'**
+  String get paymentCancelledTitle;
+
+  /// No description provided for @paymentCancelledMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre paiement a été annulé. Aucun montant n\'a été débité.'**
+  String get paymentCancelledMessage;
+
+  /// No description provided for @payment3dsReturnTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement en cours'**
+  String get payment3dsReturnTitle;
+
+  /// No description provided for @payment3dsReturnMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre paiement est en cours de traitement. Vous recevrez une confirmation sous peu.'**
+  String get payment3dsReturnMessage;
 }
 
 class _AppLocalizationsDelegate

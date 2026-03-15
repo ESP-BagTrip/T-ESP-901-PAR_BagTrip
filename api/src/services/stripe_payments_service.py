@@ -225,7 +225,7 @@ class StripePaymentsService:
         payment_intent = stripe.PaymentIntent.confirm(
             booking_intent.stripe_payment_intent_id,
             payment_method=test_payment_method_id,
-            return_url="https://example.com/return",  # URL de retour pour POC
+            return_url="bagtrip://payment/result",
         )
 
         # Mettre à jour le booking intent si le paiement est autorisé

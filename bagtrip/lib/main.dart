@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:bagtrip/auth/bloc/auth_bloc.dart';
 import 'package:bagtrip/auth/widgets/auth_listener.dart';
 import 'package:bagtrip/booking/bloc/booking_bloc.dart';
+import 'package:bagtrip/config/app_config.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/design/app_theme.dart';
 import 'package:bagtrip/firebase_options.dart';
@@ -23,6 +24,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 
 /// Top-level background message handler (required to be a top-level function).
 @pragma('vm:entry-point')
@@ -34,6 +36,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   setupServiceLocator();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Stripe
+  Stripe.publishableKey = AppConfig.stripePublishableKey;
+  Stripe.urlScheme = 'bagtrip';
+  await Stripe.instance.applySettings();
 
   // Crashlytics
   final crashlyticsService = getIt<CrashlyticsService>();

@@ -12,6 +12,9 @@ import 'package:bagtrip/pages/feedback_page.dart';
 import 'package:bagtrip/pages/flight_search_result_page.dart';
 import 'package:bagtrip/pages/login_page.dart';
 import 'package:bagtrip/pages/onboarding_page.dart';
+import 'package:bagtrip/pages/payment/payment_cancel_page.dart';
+import 'package:bagtrip/pages/payment/payment_result_page.dart';
+import 'package:bagtrip/pages/payment/payment_success_page.dart';
 import 'package:bagtrip/pages/personalization_page.dart';
 import 'package:bagtrip/pages/planifier_manual_flight_page.dart';
 import 'package:bagtrip/pages/planifier_manual_other_transport_page.dart';
@@ -20,6 +23,8 @@ import 'package:bagtrip/pages/planifier_manual_transport_page.dart';
 import 'package:bagtrip/pages/planifier_page.dart';
 import 'package:bagtrip/pages/profile_page.dart';
 import 'package:bagtrip/pages/splash_page.dart';
+import 'package:bagtrip/pages/subscription/subscription_cancel_page.dart';
+import 'package:bagtrip/pages/subscription/subscription_success_page.dart';
 import 'package:bagtrip/pages/trip_home_page.dart';
 import 'package:bagtrip/pages/trip_shares_page.dart';
 import 'package:bagtrip/pages/trips_list_page.dart';
@@ -379,6 +384,78 @@ class FlightResultDetailsRoute extends GoRouteData
       child: FlightResultDetailsPage(flight: $extra!),
     );
   }
+}
+
+// ---------------------------------------------------------------------------
+// Subscription routes (outside shell)
+// ---------------------------------------------------------------------------
+
+@TypedGoRoute<SubscriptionSuccessRoute>(path: '/subscription/success')
+class SubscriptionSuccessRoute extends GoRouteData
+    with $SubscriptionSuccessRoute {
+  const SubscriptionSuccessRoute({this.sessionId});
+
+  final String? sessionId;
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      buildSlideTransitionPage<void>(
+        state: state,
+        child: SubscriptionSuccessPage(sessionId: sessionId),
+      );
+}
+
+@TypedGoRoute<SubscriptionCancelRoute>(path: '/subscription/cancel')
+class SubscriptionCancelRoute extends GoRouteData
+    with $SubscriptionCancelRoute {
+  const SubscriptionCancelRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      buildSlideTransitionPage<void>(
+        state: state,
+        child: const SubscriptionCancelPage(),
+      );
+}
+
+// ---------------------------------------------------------------------------
+// Payment routes (outside shell)
+// ---------------------------------------------------------------------------
+
+@TypedGoRoute<PaymentSuccessRoute>(path: '/payment/success')
+class PaymentSuccessRoute extends GoRouteData with $PaymentSuccessRoute {
+  const PaymentSuccessRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      buildSlideTransitionPage<void>(
+        state: state,
+        child: const PaymentSuccessPage(),
+      );
+}
+
+@TypedGoRoute<PaymentCancelRoute>(path: '/payment/cancel')
+class PaymentCancelRoute extends GoRouteData with $PaymentCancelRoute {
+  const PaymentCancelRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      buildSlideTransitionPage<void>(
+        state: state,
+        child: const PaymentCancelPage(),
+      );
+}
+
+@TypedGoRoute<PaymentResultRoute>(path: '/payment/result')
+class PaymentResultRoute extends GoRouteData with $PaymentResultRoute {
+  const PaymentResultRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      buildSlideTransitionPage<void>(
+        state: state,
+        child: const PaymentResultPage(),
+      );
 }
 
 // ---------------------------------------------------------------------------

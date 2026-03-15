@@ -17,3 +17,26 @@ class BookingError extends BookingState {
 
   BookingError({required this.error});
 }
+
+class PaymentAuthorizing extends BookingState {}
+
+class PaymentSheetReady extends BookingState {
+  final String clientSecret;
+  final String intentId;
+
+  PaymentSheetReady({required this.clientSecret, required this.intentId});
+}
+
+class PaymentSuccess extends BookingState {
+  final String intentId;
+
+  PaymentSuccess({required this.intentId});
+}
+
+class PaymentCancelled extends BookingState {}
+
+class PaymentFailed extends BookingState {
+  final AppError error;
+
+  PaymentFailed({required this.error});
+}

@@ -614,5 +614,20 @@
   "offlineMode": "You are offline. Showing cached data.",
   "offlineWriteError": "This action requires an internet connection.",
   "loadingMore": "Loading more...",
-  "noMoreItems": "No more items"
+  "noMoreItems": "No more items",
+  "subscriptionVerifying": "Verifying your subscription...",
+  "subscriptionWelcomePremium": "Welcome to Premium!",
+  "subscriptionPending": "Subscription pending",
+  "subscriptionSuccessMessage": "You now have access to all premium features. Enjoy unlimited AI generations and more!",
+  "subscriptionPendingMessage": "Your payment is being processed. It may take a moment to activate.",
+  "subscriptionCancelTitle": "Payment not completed",
+  "subscriptionCancelMessage": "Your subscription payment was not completed. You can try again or return to your profile.",
+  "subscriptionBackToProfile": "Back to profile",
+  "paymentSuccessTitle": "Payment confirmed!",
+  "paymentSuccessMessage": "Your flight booking has been confirmed. You can view it in your trips.",
+  "paymentBackToTrips": "Back to my trips",
+  "paymentCancelledTitle": "Payment cancelled",
+  "paymentCancelledMessage": "Your payment was cancelled. No charges were made.",
+  "payment3dsReturnTitle": "Payment processing",
+  "payment3dsReturnMessage": "Your payment is being processed. You will receive a confirmation shortly."
 }

@@ -1548,4 +1548,55 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get noMoreItems => 'Plus d\'éléments';
+
+  @override
+  String get subscriptionVerifying => 'Vérification de votre abonnement...';
+
+  @override
+  String get subscriptionWelcomePremium => 'Bienvenue en Premium !';
+
+  @override
+  String get subscriptionPending => 'Abonnement en attente';
+
+  @override
+  String get subscriptionSuccessMessage =>
+      'Vous avez désormais accès à toutes les fonctionnalités premium. Profitez des générations IA illimitées et plus encore !';
+
+  @override
+  String get subscriptionPendingMessage =>
+      'Votre paiement est en cours de traitement. L\'activation peut prendre un instant.';
+
+  @override
+  String get subscriptionCancelTitle => 'Paiement non complété';
+
+  @override
+  String get subscriptionCancelMessage =>
+      'Votre paiement d\'abonnement n\'a pas été finalisé. Vous pouvez réessayer ou retourner à votre profil.';
+
+  @override
+  String get subscriptionBackToProfile => 'Retour au profil';
+
+  @override
+  String get paymentSuccessTitle => 'Paiement confirmé !';
+
+  @override
+  String get paymentSuccessMessage =>
+      'Votre réservation de vol a été confirmée. Vous pouvez la consulter dans vos voyages.';
+
+  @override
+  String get paymentBackToTrips => 'Retour à mes voyages';
+
+  @override
+  String get paymentCancelledTitle => 'Paiement annulé';
+
+  @override
+  String get paymentCancelledMessage =>
+      'Votre paiement a été annulé. Aucun montant n\'a été débité.';
+
+  @override
+  String get payment3dsReturnTitle => 'Paiement en cours';
+
+  @override
+  String get payment3dsReturnMessage =>
+      'Votre paiement est en cours de traitement. Vous recevrez une confirmation sous peu.';
 }

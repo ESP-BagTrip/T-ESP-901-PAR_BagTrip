@@ -43,6 +43,8 @@ class Settings(BaseSettings):
     # Stripe
     STRIPE_SECRET_KEY: str | None = Field(None, description="Stripe Secret Key")
     STRIPE_WEBHOOK_SECRET: str | None = Field(None, description="Stripe Webhook Secret")
+    STRIPE_SUCCESS_URL: str = "bagtrip://subscription/success?session-id={CHECKOUT_SESSION_ID}"
+    STRIPE_CANCEL_URL: str = "bagtrip://subscription/cancel"
 
     # Auth / JWT
     JWT_SECRET: str = "dev-secret-key-change-in-production"
