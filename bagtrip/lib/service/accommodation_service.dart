@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/logged_failure.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/accommodation.dart';
 import 'package:bagtrip/repositories/accommodation_repository.dart';
@@ -42,13 +43,13 @@ class AccommodationRepositoryImpl implements AccommodationRepository {
       if (response.statusCode == 201 || response.statusCode == 200) {
         return Success(Accommodation.fromJson(response.data));
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('create accommodation failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -71,13 +72,13 @@ class AccommodationRepositoryImpl implements AccommodationRepository {
         }
         return const Success([]);
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('fetch accommodations failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -95,13 +96,13 @@ class AccommodationRepositoryImpl implements AccommodationRepository {
       if (response.statusCode == 200) {
         return Success(Accommodation.fromJson(response.data));
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('update accommodation failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -117,13 +118,13 @@ class AccommodationRepositoryImpl implements AccommodationRepository {
       if (response.statusCode == 200 || response.statusCode == 204) {
         return const Success(null);
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('delete accommodation failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 }

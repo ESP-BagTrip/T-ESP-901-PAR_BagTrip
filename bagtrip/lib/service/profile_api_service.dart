@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/logged_failure.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/traveler_profile.dart';
 import 'package:bagtrip/repositories/profile_repository.dart';
@@ -19,9 +20,9 @@ class ProfileRepositoryImpl implements ProfileRepository {
         TravelerProfile.fromJson(response.data as Map<String, dynamic>),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -46,9 +47,9 @@ class ProfileRepositoryImpl implements ProfileRepository {
         TravelerProfile.fromJson(response.data as Map<String, dynamic>),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -60,9 +61,9 @@ class ProfileRepositoryImpl implements ProfileRepository {
         ProfileCompletion.fromJson(response.data as Map<String, dynamic>),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 }

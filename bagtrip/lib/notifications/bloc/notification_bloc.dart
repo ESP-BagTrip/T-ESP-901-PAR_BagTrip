@@ -3,6 +3,7 @@ import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/notification.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/notification_repository.dart';
+import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bloc/bloc.dart';
 
 part 'notification_event.dart';
@@ -85,7 +86,8 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
             total: data['total'] as int,
           ),
         );
-      case Failure():
+      case Failure(:final error):
+        getIt<CrashlyticsService>().recordAppError(error);
         emit(
           NotificationsLoaded(
             notifications: current.notifications,
@@ -107,8 +109,8 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     switch (result) {
       case Success(:final data):
         emit(UnreadCountLoaded(count: data));
-      case Failure():
-        // Silently fail for badge count
+      case Failure(:final error):
+        getIt<CrashlyticsService>().recordAppError(error);
         break;
     }
   }

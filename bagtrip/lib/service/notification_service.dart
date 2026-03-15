@@ -1,9 +1,11 @@
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/logged_failure.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/notification.dart';
 import 'package:bagtrip/repositories/notification_repository.dart';
 import 'package:bagtrip/service/api_client.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 class NotificationRepositoryImpl implements NotificationRepository {
   final ApiClient _apiClient;
@@ -37,13 +39,13 @@ class NotificationRepositoryImpl implements NotificationRepository {
           'unreadCount': data['unreadCount'] ?? data['unread_count'] ?? 0,
         });
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('fetch notifications failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -57,7 +59,8 @@ class NotificationRepositoryImpl implements NotificationRepository {
         );
       }
       return const Success(0);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[BestEffort] getUnreadCount failed: $e');
       return const Success(0);
     }
   }
@@ -73,13 +76,13 @@ class NotificationRepositoryImpl implements NotificationRepository {
           AppNotification.fromJson(response.data as Map<String, dynamic>),
         );
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('mark as read failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -94,9 +97,9 @@ class NotificationRepositoryImpl implements NotificationRepository {
       }
       return const Success(0);
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -113,8 +116,8 @@ class NotificationRepositoryImpl implements NotificationRepository {
           if (platform != null) 'platform': platform,
         },
       );
-    } catch (_) {
-      // Silently fail — token registration is best-effort
+    } catch (e) {
+      debugPrint('[BestEffort] registerDeviceToken failed: $e');
     }
     return const Success(null);
   }
@@ -123,8 +126,8 @@ class NotificationRepositoryImpl implements NotificationRepository {
   Future<Result<void>> unregisterDeviceToken(String fcmToken) async {
     try {
       await _apiClient.delete('/device-tokens/$fcmToken');
-    } catch (_) {
-      // Silently fail
+    } catch (e) {
+      debugPrint('[BestEffort] unregisterDeviceToken failed: $e');
     }
     return const Success(null);
   }

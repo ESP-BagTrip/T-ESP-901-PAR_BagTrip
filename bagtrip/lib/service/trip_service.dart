@@ -1,5 +1,6 @@
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/paginated_response.dart';
+import 'package:bagtrip/core/logged_failure.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/models/trip_grouped.dart';
@@ -49,13 +50,13 @@ class TripRepositoryImpl implements TripRepository {
       if (response.statusCode == 201 || response.statusCode == 200) {
         return Success(Trip.fromJson(response.data));
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('create trip failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -74,13 +75,13 @@ class TripRepositoryImpl implements TripRepository {
         }
         return const Success([]);
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('fetch trips failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -107,17 +108,17 @@ class TripRepositoryImpl implements TripRepository {
             items: items,
             total: data['total'] as int,
             page: data['page'] as int,
-            totalPages: data['totalPages'] as int,
+            totalPages: (data['total_pages'] ?? data['totalPages'] ?? 0) as int,
           ),
         );
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('fetch trips paginated failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -130,13 +131,13 @@ class TripRepositoryImpl implements TripRepository {
           TripGrouped.fromJson(response.data as Map<String, dynamic>),
         );
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('fetch grouped trips failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -149,13 +150,13 @@ class TripRepositoryImpl implements TripRepository {
           TripHome.fromJson(response.data as Map<String, dynamic>),
         );
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('fetch trip home failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -170,11 +171,13 @@ class TripRepositoryImpl implements TripRepository {
         }
         return Success(Trip.fromJson(data));
       }
-      return Failure(UnknownError('fetch trip failed: ${response.statusCode}'));
+      return loggedFailure(
+        UnknownError('fetch trip failed: ${response.statusCode}'),
+      );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -188,13 +191,13 @@ class TripRepositoryImpl implements TripRepository {
       if (response.statusCode == 200) {
         return Success(Trip.fromJson(response.data));
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('update trip status failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -208,13 +211,13 @@ class TripRepositoryImpl implements TripRepository {
       if (response.statusCode == 200) {
         return Success(Trip.fromJson(response.data));
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('update trip failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -225,13 +228,13 @@ class TripRepositoryImpl implements TripRepository {
       if (response.statusCode == 200 || response.statusCode == 204) {
         return const Success(null);
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('delete trip failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 }

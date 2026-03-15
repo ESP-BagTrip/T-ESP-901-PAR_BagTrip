@@ -1,6 +1,8 @@
 import 'package:bagtrip/profile/bloc/user_profile_bloc.dart';
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
+import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -20,6 +22,26 @@ void main() {
   setUp(() {
     mockAuthRepo = MockAuthRepository();
     mockProfileRepo = MockProfileRepository();
+
+    if (getIt.isRegistered<CrashlyticsService>()) {
+      getIt.unregister<CrashlyticsService>();
+    }
+    final mockCrashlytics = MockCrashlyticsService();
+    getIt.registerLazySingleton<CrashlyticsService>(() => mockCrashlytics);
+    registerFallbackValue(const UnknownError(''));
+    registerFallbackValue(StackTrace.current);
+    when(
+      () => mockCrashlytics.recordAppError(
+        any(),
+        stackTrace: any(named: 'stackTrace'),
+      ),
+    ).thenAnswer((_) async {});
+  });
+
+  tearDown(() {
+    if (getIt.isRegistered<CrashlyticsService>()) {
+      getIt.unregister<CrashlyticsService>();
+    }
   });
 
   group('UserProfileBloc', () {

@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/logged_failure.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/trip_share.dart';
 import 'package:bagtrip/repositories/trip_share_repository.dart';
@@ -24,13 +25,13 @@ class TripShareRepositoryImpl implements TripShareRepository {
       if (response.statusCode == 201 || response.statusCode == 200) {
         return Success(TripShare.fromJson(response.data));
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('create share failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -52,13 +53,13 @@ class TripShareRepositoryImpl implements TripShareRepository {
         }
         return const Success([]);
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('fetch shares failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -71,13 +72,13 @@ class TripShareRepositoryImpl implements TripShareRepository {
       if (response.statusCode == 200 || response.statusCode == 204) {
         return const Success(null);
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('delete share failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 }

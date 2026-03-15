@@ -1,8 +1,6 @@
 import 'package:bagtrip/config/app_config.dart';
-import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/auth_event_bus.dart';
-import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bagtrip/service/performance_interceptor.dart';
 import 'package:bagtrip/service/storage_service.dart';
 import 'package:dio/dio.dart';
@@ -71,10 +69,6 @@ class ApiClient {
             }
           }
           final apiError = _handleError(error);
-          getIt<CrashlyticsService>().recordAppError(
-            mapDioError(error),
-            stackTrace: error.stackTrace,
-          );
           return handler.reject(apiError);
         },
       ),
@@ -104,7 +98,8 @@ class ApiClient {
         }
       }
       return false;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[BestEffort] token refresh failed: $e');
       return false;
     } finally {
       _isRefreshing = false;

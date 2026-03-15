@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/logged_failure.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/auth_response.dart';
 import 'package:bagtrip/models/user.dart';
@@ -6,6 +7,7 @@ import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/service/api_client.dart';
 import 'package:bagtrip/service/storage_service.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
@@ -33,11 +35,13 @@ class AuthRepositoryImpl implements AuthRepository {
         );
         return Success(authResponse);
       }
-      return Failure(UnknownError('login failed: ${response.statusCode}'));
+      return loggedFailure(
+        UnknownError('login failed: ${response.statusCode}'),
+      );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -61,13 +65,13 @@ class AuthRepositoryImpl implements AuthRepository {
         );
         return Success(authResponse);
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('registration failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -81,7 +85,7 @@ class AuthRepositoryImpl implements AuthRepository {
       return const Success(null);
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
-        return Failure(
+        return loggedFailure(
           AuthenticationError(
             'not authenticated',
             statusCode: 401,
@@ -90,7 +94,8 @@ class AuthRepositoryImpl implements AuthRepository {
         );
       }
       return const Success(null);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[BestEffort] getCurrentUser failed: $e');
       return const Success(null);
     }
   }
@@ -109,14 +114,14 @@ class AuthRepositoryImpl implements AuthRepository {
       );
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
-        return const Failure(CancelledError('Google sign-in cancelled'));
+        return loggedFailure(const CancelledError('Google sign-in cancelled'));
       }
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
       if (googleAuth.idToken == null || googleAuth.idToken!.isEmpty) {
-        return const Failure(
-          AuthenticationError('Google identity token missing'),
+        return loggedFailure(
+          const AuthenticationError('Google identity token missing'),
         );
       }
 
@@ -130,8 +135,8 @@ class AuthRepositoryImpl implements AuthRepository {
           response.data as Map<String, dynamic>,
         );
         if (authResponse.accessToken.isEmpty) {
-          return const Failure(
-            AuthenticationError('token missing in response'),
+          return loggedFailure(
+            const AuthenticationError('token missing in response'),
           );
         }
         await _storageService.saveTokens(
@@ -140,17 +145,17 @@ class AuthRepositoryImpl implements AuthRepository {
         );
         return Success(authResponse);
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('Google login failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
       final msg = e.toString();
       if (msg.contains('cancelled') || msg.contains('canceled')) {
-        return const Failure(CancelledError('Google sign-in cancelled'));
+        return loggedFailure(const CancelledError('Google sign-in cancelled'));
       }
-      return Failure(UnknownError(msg, originalError: e));
+      return loggedFailure(UnknownError(msg, originalError: e));
     }
   }
 
@@ -166,8 +171,8 @@ class AuthRepositoryImpl implements AuthRepository {
 
       if (credential.identityToken == null ||
           credential.identityToken!.isEmpty) {
-        return const Failure(
-          AuthenticationError('Apple identity token missing'),
+        return loggedFailure(
+          const AuthenticationError('Apple identity token missing'),
         );
       }
 
@@ -181,8 +186,8 @@ class AuthRepositoryImpl implements AuthRepository {
           response.data as Map<String, dynamic>,
         );
         if (authResponse.accessToken.isEmpty) {
-          return const Failure(
-            AuthenticationError('token missing in response'),
+          return loggedFailure(
+            const AuthenticationError('token missing in response'),
           );
         }
         await _storageService.saveTokens(
@@ -191,17 +196,17 @@ class AuthRepositoryImpl implements AuthRepository {
         );
         return Success(authResponse);
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('Apple login failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
       final msg = e.toString();
       if (msg.contains('cancelled') || msg.contains('canceled')) {
-        return const Failure(CancelledError('Apple sign-in cancelled'));
+        return loggedFailure(const CancelledError('Apple sign-in cancelled'));
       }
-      return Failure(UnknownError(msg, originalError: e));
+      return loggedFailure(UnknownError(msg, originalError: e));
     }
   }
 
@@ -217,11 +222,13 @@ class AuthRepositoryImpl implements AuthRepository {
       if (response.statusCode == 200) {
         return Success(User.fromJson(response.data as Map<String, dynamic>));
       }
-      return Failure(UnknownError('update failed: ${response.statusCode}'));
+      return loggedFailure(
+        UnknownError('update failed: ${response.statusCode}'),
+      );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -235,8 +242,8 @@ class AuthRepositoryImpl implements AuthRepository {
           data: {'refresh_token': refreshToken},
         );
       }
-    } catch (_) {
-      // Best effort — clear tokens even if server call fails
+    } catch (e) {
+      debugPrint('[BestEffort] logout server call failed: $e');
     }
     await _storageService.clearAll();
     return const Success(null);

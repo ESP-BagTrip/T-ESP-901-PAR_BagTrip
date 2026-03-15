@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/logged_failure.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/feedback.dart';
 import 'package:bagtrip/repositories/feedback_repository.dart';
@@ -32,13 +33,13 @@ class FeedbackRepositoryImpl implements FeedbackRepository {
       if (response.statusCode == 201 || response.statusCode == 200) {
         return Success(TripFeedback.fromJson(response.data));
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('submit feedback failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -62,13 +63,13 @@ class FeedbackRepositoryImpl implements FeedbackRepository {
         }
         return const Success([]);
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('fetch feedbacks failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 }

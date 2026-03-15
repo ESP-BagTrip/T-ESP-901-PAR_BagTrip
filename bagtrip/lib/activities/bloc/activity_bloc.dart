@@ -3,6 +3,7 @@ import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/activity_repository.dart';
+import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:intl/intl.dart';
 
@@ -100,7 +101,8 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
             totalPages: data.totalPages,
           ),
         );
-      case Failure():
+      case Failure(:final error):
+        getIt<CrashlyticsService>().recordAppError(error);
         emit(
           ActivitiesLoaded(
             activities: current.activities,

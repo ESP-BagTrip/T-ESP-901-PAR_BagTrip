@@ -1,5 +1,6 @@
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/paginated_response.dart';
+import 'package:bagtrip/core/logged_failure.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/repositories/activity_repository.dart';
@@ -29,13 +30,13 @@ class ActivityRepositoryImpl implements ActivityRepository {
         }
         return const Success([]);
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('fetch activities failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -64,15 +65,15 @@ class ActivityRepositoryImpl implements ActivityRepository {
           ),
         );
       }
-      return Failure(
+      return loggedFailure(
         UnknownError(
           'fetch activities paginated failed: ${response.statusCode}',
         ),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -89,13 +90,13 @@ class ActivityRepositoryImpl implements ActivityRepository {
       if (response.statusCode == 201 || response.statusCode == 200) {
         return Success(Activity.fromJson(response.data));
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('create activity failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -113,13 +114,13 @@ class ActivityRepositoryImpl implements ActivityRepository {
       if (response.statusCode == 200) {
         return Success(Activity.fromJson(response.data));
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('update activity failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -132,13 +133,13 @@ class ActivityRepositoryImpl implements ActivityRepository {
       if (response.statusCode == 200 || response.statusCode == 204) {
         return const Success(null);
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('delete activity failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -161,13 +162,13 @@ class ActivityRepositoryImpl implements ActivityRepository {
         }
         return const Success([]);
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('suggest activities failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 }

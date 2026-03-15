@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/logged_failure.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/repositories/ai_repository.dart';
 import 'package:bagtrip/service/api_client.dart';
@@ -42,13 +43,13 @@ class AiRepositoryImpl implements AiRepository {
         }
         return const Success([]);
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('get inspiration failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -70,13 +71,13 @@ class AiRepositoryImpl implements AiRepository {
       if (response.statusCode == 200) {
         return Success(Map<String, dynamic>.from(response.data));
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('accept inspiration failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -91,13 +92,13 @@ class AiRepositoryImpl implements AiRepository {
         }
         return Success(Map<String, dynamic>.from(data));
       }
-      return Failure(
+      return loggedFailure(
         UnknownError('get post-trip suggestion failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 }

@@ -3,6 +3,7 @@ import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/repositories/profile_repository.dart';
+import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 
@@ -112,7 +113,8 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
             ? data.fullName!
             : data.email;
         emit(current.copyWith(name: name, isUpdating: false));
-      case Failure():
+      case Failure(:final error):
+        getIt<CrashlyticsService>().recordAppError(error);
         emit(current.copyWith(isUpdating: false));
     }
   }
@@ -133,7 +135,8 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
       case Success(:final data):
         final phone = data.phone?.trim().isNotEmpty == true ? data.phone! : '—';
         emit(current.copyWith(phone: phone, isUpdating: false));
-      case Failure():
+      case Failure(:final error):
+        getIt<CrashlyticsService>().recordAppError(error);
         emit(current.copyWith(isUpdating: false));
     }
   }

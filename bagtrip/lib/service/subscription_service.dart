@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/logged_failure.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/repositories/subscription_repository.dart';
 import 'package:bagtrip/service/api_client.dart';
@@ -16,9 +17,9 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
       final response = await _apiClient.post('/subscription/checkout');
       return Success(response.data['url'] as String);
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -28,9 +29,9 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
       final response = await _apiClient.post('/subscription/portal');
       return Success(response.data['url'] as String);
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
@@ -40,9 +41,9 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
       final response = await _apiClient.get('/subscription/status');
       return Success(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      return Failure(ApiClient.mapDioError(e));
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      return Failure(UnknownError(e.toString(), originalError: e));
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 }

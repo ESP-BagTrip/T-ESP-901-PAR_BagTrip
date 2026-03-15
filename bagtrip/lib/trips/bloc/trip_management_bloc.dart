@@ -5,6 +5,7 @@ import 'package:bagtrip/models/trip_grouped.dart';
 import 'package:bagtrip/models/trip_home.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/trip_repository.dart';
+import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bloc/bloc.dart';
 
 part 'trip_management_event.dart';
@@ -106,7 +107,8 @@ class TripManagementBloc
           totalPages: data.totalPages,
         );
         emit(TripsTabLoaded(tabs: latestTabs));
-      case Failure():
+      case Failure(:final error):
+        getIt<CrashlyticsService>().recordAppError(error);
         latestTabs[event.status] = tabData.copyWith(isLoadingMore: false);
         emit(TripsTabLoaded(tabs: latestTabs));
     }
