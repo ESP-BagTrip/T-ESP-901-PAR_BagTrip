@@ -125,7 +125,7 @@ class _PaginatedListState<T> extends State<PaginatedList<T>> {
   Widget _buildLoadingIndicator() {
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: 16),
-      child: Center(child: CircularProgressIndicator()),
+      child: Center(child: CircularProgressIndicator.adaptive()),
     );
   }
 }

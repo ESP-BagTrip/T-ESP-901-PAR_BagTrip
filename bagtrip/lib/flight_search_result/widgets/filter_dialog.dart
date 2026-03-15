@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/adaptive/adaptive_time_picker.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/flight_search_result/bloc/flight_search_result_bloc.dart';
@@ -163,7 +164,7 @@ class _FilterDialogState extends State<FilterDialog> {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.space8),
-                    CheckboxListTile(
+                    CheckboxListTile.adaptive(
                       title: Text(
                         AppLocalizations.of(context)!.filterCabinBagIncluded,
                       ),
@@ -175,7 +176,7 @@ class _FilterDialogState extends State<FilterDialog> {
                       },
                       contentPadding: EdgeInsets.zero,
                     ),
-                    CheckboxListTile(
+                    CheckboxListTile.adaptive(
                       title: Text(
                         AppLocalizations.of(context)!.filterCheckedBagIncluded,
                       ),
@@ -336,7 +337,7 @@ class _FilterDialogState extends State<FilterDialog> {
           : null,
       child: OutlinedButton(
         onPressed: () async {
-          final time = await showTimePicker(
+          final time = await showAdaptiveTimePicker(
             context: context,
             initialTime: selectedTime ?? const TimeOfDay(hour: 12, minute: 0),
           );

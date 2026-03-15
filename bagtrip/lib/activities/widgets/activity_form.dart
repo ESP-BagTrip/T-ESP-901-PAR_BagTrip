@@ -1,3 +1,5 @@
+import 'package:bagtrip/components/adaptive/adaptive_date_picker.dart';
+import 'package:bagtrip/components/adaptive/adaptive_time_picker.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:flutter/material.dart';
@@ -129,7 +131,7 @@ class _ActivityFormState extends State<ActivityForm> {
                 title: Text('Date: ${DateFormat('dd/MM/yyyy').format(_date)}'),
                 trailing: const Icon(Icons.calendar_today),
                 onTap: () async {
-                  final picked = await showDatePicker(
+                  final picked = await showAdaptiveDatePicker(
                     context: context,
                     initialDate: _date,
                     firstDate: DateTime(2020),
@@ -158,7 +160,7 @@ class _ActivityFormState extends State<ActivityForm> {
                             : AppLocalizations.of(context)!.activityStartTime,
                       ),
                       onTap: () async {
-                        final picked = await showTimePicker(
+                        final picked = await showAdaptiveTimePicker(
                           context: context,
                           initialTime: _startTime ?? TimeOfDay.now(),
                         );
@@ -177,7 +179,7 @@ class _ActivityFormState extends State<ActivityForm> {
                             : AppLocalizations.of(context)!.activityEndTime,
                       ),
                       onTap: () async {
-                        final picked = await showTimePicker(
+                        final picked = await showAdaptiveTimePicker(
                           context: context,
                           initialTime: _endTime ?? TimeOfDay.now(),
                         );
@@ -228,7 +230,7 @@ class _ActivityFormState extends State<ActivityForm> {
                 ),
               ),
               const SizedBox(height: 12),
-              CheckboxListTile(
+              CheckboxListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
                 title: Text(AppLocalizations.of(context)!.activityFormBooked),
                 value: _isBooked,

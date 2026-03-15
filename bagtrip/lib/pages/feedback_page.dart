@@ -94,14 +94,14 @@ class _FeedbackPageContentState extends State<_FeedbackPageContent> {
             return TabBarView(
               children: [
                 isLoading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const Center(child: CircularProgressIndicator.adaptive())
                     : FeedbackFormView(
                         tripId: widget.tripId,
                         currentUserId: _currentUserId,
                         feedbacks: feedbacks.cast(),
                       ),
                 isLoading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const Center(child: CircularProgressIndicator.adaptive())
                     : FeedbackListView(feedbacks: feedbacks.cast()),
               ],
             );

@@ -27,7 +27,7 @@ class CreateTripAiRecapView extends StatelessWidget {
       builder: (context, state) {
         if (state is CreateTripAiRecapLoading) {
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+            body: Center(child: CircularProgressIndicator.adaptive()),
           );
         }
         if (state is! CreateTripAiRecapLoaded) {

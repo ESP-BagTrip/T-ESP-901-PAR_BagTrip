@@ -49,7 +49,7 @@ class FlightResultDetailsView extends StatelessWidget {
         child: BlocBuilder<FlightResultDetailsBloc, FlightResultDetailsState>(
           builder: (context, state) {
             if (state is! FlightResultDetailsLoaded) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator.adaptive());
             }
 
             final flight = state.flight;

@@ -1,8 +1,8 @@
-import 'package:bagtrip/design/app_colors.dart';
-import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/bloc/navigation_bloc.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class BottomTabBar extends StatelessWidget {
@@ -15,83 +15,55 @@ class BottomTabBar extends StatelessWidget {
     required this.onTabChanged,
   });
 
-  Color _getTabColor(NavigationTab tab, bool isActive) {
-    return isActive ? ColorName.secondary : AppColors.hint;
-  }
-
-  Widget _buildTabItem(
-    BuildContext context,
-    NavigationTab tab,
-    String label,
-    IconData icon,
-  ) {
-    final isActive = activeTab == tab;
-    final color = _getTabColor(tab, isActive);
-
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => onTabChanged(tab),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: color, size: AppSize.iconSizeHeight24),
-            const SizedBox(height: AppSpacing.space4),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: color,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  static const _tabs = [
+    NavigationTab.planifier,
+    NavigationTab.trips,
+    NavigationTab.profile,
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryTrueDark.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
+    final l10n = AppLocalizations.of(context)!;
+    final labels = [l10n.tabNew, l10n.tabTrips, l10n.tabProfile];
+    const icons = [
+      Icons.add_circle_outline,
+      Icons.luggage_outlined,
+      Icons.person_outlined,
+    ];
+    const cupertinoIcons = [
+      CupertinoIcons.add_circled,
+      CupertinoIcons.bag,
+      CupertinoIcons.person,
+    ];
+
+    if (AdaptivePlatform.isIOS) {
+      return CupertinoTabBar(
+        currentIndex: _tabs.indexOf(activeTab),
+        onTap: (index) => onTabChanged(_tabs[index]),
+        activeColor: ColorName.secondary,
+        inactiveColor: CupertinoColors.systemGrey,
+        backgroundColor: CupertinoTheme.of(
+          context,
+        ).barBackgroundColor.withValues(alpha: 0.92),
+        items: List.generate(
+          _tabs.length,
+          (i) => BottomNavigationBarItem(
+            icon: Icon(cupertinoIcons[i]),
+            label: labels[i],
           ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Container(
-          height: 70,
-          padding: AppSpacing.horizontalSpace8,
-          child: Row(
-            children: [
-              _buildTabItem(
-                context,
-                NavigationTab.planifier,
-                AppLocalizations.of(context)!.tabNew,
-                Icons.add_circle_outline,
-              ),
-              _buildTabItem(
-                context,
-                NavigationTab.trips,
-                AppLocalizations.of(context)!.tabTrips,
-                Icons.luggage_outlined,
-              ),
-              _buildTabItem(
-                context,
-                NavigationTab.profile,
-                AppLocalizations.of(context)!.tabProfile,
-                Icons.person_outlined,
-              ),
-            ],
-          ),
+        ),
+      );
+    }
+
+    return NavigationBar(
+      selectedIndex: _tabs.indexOf(activeTab),
+      onDestinationSelected: (index) => onTabChanged(_tabs[index]),
+      destinations: List.generate(
+        _tabs.length,
+        (i) => NavigationDestination(
+          icon: Icon(icons[i]),
+          selectedIcon: Icon(icons[i], color: ColorName.secondary),
+          label: labels[i],
         ),
       ),
     );

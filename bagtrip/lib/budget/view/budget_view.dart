@@ -3,10 +3,13 @@ import 'package:bagtrip/budget/widgets/budget_alert_banner.dart';
 import 'package:bagtrip/budget/widgets/budget_item_card.dart';
 import 'package:bagtrip/budget/widgets/budget_item_form.dart';
 import 'package:bagtrip/budget/widgets/budget_summary_header.dart';
+import 'package:bagtrip/components/adaptive/adaptive_indicator.dart';
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/budget_item.dart';
 import 'package:bagtrip/utils/error_display.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -24,12 +27,23 @@ class BudgetView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final canEdit = role != 'VIEWER' && !isCompleted;
+
     return Scaffold(
-      appBar: AppBar(title: Text(AppLocalizations.of(context)!.budgetItems)),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.budgetItems),
+        actions: [
+          if (canEdit && AdaptivePlatform.isIOS)
+            IconButton(
+              icon: const Icon(CupertinoIcons.add),
+              onPressed: () => _showForm(context, tripId),
+            ),
+        ],
+      ),
       body: BlocBuilder<BudgetBloc, BudgetState>(
         builder: (context, state) {
           if (state is BudgetLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: AdaptiveIndicator());
           }
           if (state is BudgetError) {
             return Center(
@@ -146,7 +160,7 @@ class BudgetView extends StatelessWidget {
           return const SizedBox.shrink();
         },
       ),
-      floatingActionButton: role != 'VIEWER' && !isCompleted
+      floatingActionButton: canEdit && !AdaptivePlatform.isIOS
           ? FloatingActionButton(
               onPressed: () => _showForm(context, tripId),
               child: const Icon(Icons.add),

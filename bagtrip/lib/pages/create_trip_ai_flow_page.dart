@@ -42,7 +42,7 @@ class CreateTripAiFlowPage extends StatelessWidget {
             }
             if (state is CreateTripAiSearchLoading) {
               return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
+                body: Center(child: CircularProgressIndicator.adaptive()),
               );
             }
             if (state is CreateTripAiResultsLoaded) {
@@ -91,7 +91,7 @@ class CreateTripAiFlowPage extends StatelessWidget {
               );
             }
             return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
+              body: Center(child: CircularProgressIndicator.adaptive()),
             );
           },
         ),

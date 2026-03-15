@@ -1,3 +1,5 @@
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -22,6 +24,28 @@ class AppShell extends StatelessWidget {
     final currentIndex = navigationShell.currentIndex;
     final activeTab = _shellTabOrder[currentIndex];
 
+    final tabBar = BottomTabBar(
+      activeTab: activeTab,
+      onTabChanged: (tab) {
+        final index = _shellTabOrder.indexOf(tab);
+        if (index >= 0 && index != currentIndex) {
+          navigationShell.goBranch(index);
+        }
+      },
+    );
+
+    if (AdaptivePlatform.isIOS) {
+      return CupertinoPageScaffold(
+        child: Column(
+          children: [
+            const OfflineBanner(),
+            Expanded(child: navigationShell),
+            tabBar,
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       body: Column(
         children: [
@@ -29,15 +53,7 @@ class AppShell extends StatelessWidget {
           Expanded(child: navigationShell),
         ],
       ),
-      bottomNavigationBar: BottomTabBar(
-        activeTab: activeTab,
-        onTabChanged: (tab) {
-          final index = _shellTabOrder.indexOf(tab);
-          if (index >= 0 && index != currentIndex) {
-            navigationShell.goBranch(index);
-          }
-        },
-      ),
+      bottomNavigationBar: tabBar,
     );
   }
 }

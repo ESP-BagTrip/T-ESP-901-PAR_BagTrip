@@ -368,7 +368,7 @@ class _BudgetSlider extends StatelessWidget {
             thumbColor: ColorName.surface,
             overlayColor: ColorName.secondary.withValues(alpha: 0.2),
           ),
-          child: Slider(
+          child: Slider.adaptive(
             value: value,
             min: budgetMin,
             max: budgetMax,

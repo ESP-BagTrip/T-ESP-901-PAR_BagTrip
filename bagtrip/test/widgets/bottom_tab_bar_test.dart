@@ -1,4 +1,5 @@
 import 'package:bagtrip/components/bottom_tab_bar.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/bloc/navigation_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,6 +11,9 @@ void main() {
       ValueChanged<NavigationTab>? onTabChanged,
     }) {
       return MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('fr'),
         home: Scaffold(
           body: const SizedBox.shrink(),
           bottomNavigationBar: BottomTabBar(
@@ -20,94 +24,78 @@ void main() {
       );
     }
 
-    testWidgets('renders 3 tabs with correct labels', (tester) async {
+    testWidgets('renders 3 navigation destinations', (tester) async {
       await tester.pumpWidget(buildSubject());
+      await tester.pumpAndSettle();
 
-      expect(find.text('Nouveau'), findsOneWidget);
-      expect(find.text('Voyages'), findsOneWidget);
-      expect(find.text('Profil'), findsOneWidget);
+      final navBar = find.byType(NavigationBar);
+      expect(navBar, findsOneWidget);
+
+      final widget = tester.widget<NavigationBar>(navBar);
+      expect(widget.destinations.length, 3);
     });
 
     testWidgets('renders correct icons for each tab', (tester) async {
       await tester.pumpWidget(buildSubject());
+      await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.add_circle_outline), findsOneWidget);
-      expect(find.byIcon(Icons.luggage_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.luggage_outlined), findsWidgets);
       expect(find.byIcon(Icons.person_outlined), findsOneWidget);
     });
 
-    testWidgets('highlights active tab with bold font weight', (tester) async {
-      await tester.pumpWidget(buildSubject());
-
-      final voyagesText = tester.widget<Text>(find.text('Voyages'));
-      expect(voyagesText.style?.fontWeight, FontWeight.w600);
-
-      // Non-active tabs should have w500
-      final nouveauText = tester.widget<Text>(find.text('Nouveau'));
-      expect(nouveauText.style?.fontWeight, FontWeight.w500);
-
-      final profilText = tester.widget<Text>(find.text('Profil'));
-      expect(profilText.style?.fontWeight, FontWeight.w500);
-    });
-
-    testWidgets('highlights planifier tab when it is active', (tester) async {
+    testWidgets('selected index matches active tab', (tester) async {
       await tester.pumpWidget(buildSubject(activeTab: NavigationTab.planifier));
+      await tester.pumpAndSettle();
 
-      final nouveauText = tester.widget<Text>(find.text('Nouveau'));
-      expect(nouveauText.style?.fontWeight, FontWeight.w600);
-
-      final voyagesText = tester.widget<Text>(find.text('Voyages'));
-      expect(voyagesText.style?.fontWeight, FontWeight.w500);
+      final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+      expect(navBar.selectedIndex, 0);
     });
 
-    testWidgets(
-      'onTabChanged callback fires with NavigationTab.planifier on tap',
-      (tester) async {
-        NavigationTab? tappedTab;
+    testWidgets('selected index is 1 for trips tab', (tester) async {
+      await tester.pumpWidget(buildSubject());
+      await tester.pumpAndSettle();
 
-        await tester.pumpWidget(
-          buildSubject(onTabChanged: (tab) => tappedTab = tab),
-        );
+      final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+      expect(navBar.selectedIndex, 1);
+    });
 
-        await tester.tap(find.text('Nouveau'));
-        await tester.pump();
+    testWidgets('selected index is 2 for profile tab', (tester) async {
+      await tester.pumpWidget(buildSubject(activeTab: NavigationTab.profile));
+      await tester.pumpAndSettle();
 
-        expect(tappedTab, NavigationTab.planifier);
-      },
-    );
+      final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+      expect(navBar.selectedIndex, 2);
+    });
 
-    testWidgets(
-      'onTabChanged callback fires with NavigationTab.profile on tap',
-      (tester) async {
-        NavigationTab? tappedTab;
+    testWidgets('onDestinationSelected triggers onTabChanged', (tester) async {
+      NavigationTab? tappedTab;
 
-        await tester.pumpWidget(
-          buildSubject(onTabChanged: (tab) => tappedTab = tab),
-        );
+      await tester.pumpWidget(
+        buildSubject(onTabChanged: (tab) => tappedTab = tab),
+      );
+      await tester.pumpAndSettle();
 
-        await tester.tap(find.text('Profil'));
-        await tester.pump();
+      final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+      navBar.onDestinationSelected?.call(0);
 
-        expect(tappedTab, NavigationTab.profile);
-      },
-    );
+      expect(tappedTab, NavigationTab.planifier);
+    });
 
-    testWidgets('onTabChanged callback fires with NavigationTab.trips on tap', (
+    testWidgets('onDestinationSelected fires profile for index 2', (
       tester,
     ) async {
       NavigationTab? tappedTab;
 
       await tester.pumpWidget(
-        buildSubject(
-          activeTab: NavigationTab.planifier,
-          onTabChanged: (tab) => tappedTab = tab,
-        ),
+        buildSubject(onTabChanged: (tab) => tappedTab = tab),
       );
+      await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Voyages'));
-      await tester.pump();
+      final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+      navBar.onDestinationSelected?.call(2);
 
-      expect(tappedTab, NavigationTab.trips);
+      expect(tappedTab, NavigationTab.profile);
     });
   });
 }

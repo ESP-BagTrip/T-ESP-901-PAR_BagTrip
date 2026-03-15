@@ -19,7 +19,7 @@ class CreateTripAiResultsView extends StatelessWidget {
       builder: (context, state) {
         if (state is CreateTripAiSearchLoading) {
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+            body: Center(child: CircularProgressIndicator.adaptive()),
           );
         }
         if (state is CreateTripAiError) {
@@ -72,7 +72,9 @@ class CreateTripAiResultsView extends StatelessWidget {
         if (state is CreateTripAiResultsLoaded) {
           return _buildResults(context, state.proposals);
         }
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        return const Scaffold(
+          body: Center(child: CircularProgressIndicator.adaptive()),
+        );
       },
     );
   }

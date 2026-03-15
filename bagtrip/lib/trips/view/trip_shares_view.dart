@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip_share.dart';
 import 'package:bagtrip/trips/bloc/trip_share_bloc.dart';
@@ -35,30 +36,18 @@ class _TripSharesViewState extends State<TripSharesView> {
   }
 
   void _handleRevoke(String shareId) {
-    showDialog<void>(
+    showAdaptiveAlertDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.sharesRevokeTitle),
-        content: Text(AppLocalizations.of(context)!.sharesRevokeConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(AppLocalizations.of(context)!.cancelButton),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              context.read<TripShareBloc>().add(
-                DeleteShare(tripId: widget.tripId, shareId: shareId),
-              );
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: Text(AppLocalizations.of(context)!.sharesRevokeButton),
-          ),
-        ],
-      ),
+      title: AppLocalizations.of(context)!.sharesRevokeTitle,
+      content: AppLocalizations.of(context)!.sharesRevokeConfirm,
+      confirmLabel: AppLocalizations.of(context)!.sharesRevokeButton,
+      cancelLabel: AppLocalizations.of(context)!.cancelButton,
+      isDestructive: true,
+      onConfirm: () {
+        context.read<TripShareBloc>().add(
+          DeleteShare(tripId: widget.tripId, shareId: shareId),
+        );
+      },
     );
   }
 
@@ -91,7 +80,7 @@ class _TripSharesViewState extends State<TripSharesView> {
             children: [
               Expanded(
                 child: isLoading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const Center(child: CircularProgressIndicator.adaptive())
                     : shares.isEmpty
                     ? Center(
                         child: Column(

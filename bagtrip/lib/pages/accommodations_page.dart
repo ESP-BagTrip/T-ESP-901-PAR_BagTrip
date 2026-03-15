@@ -1,3 +1,6 @@
+import 'package:bagtrip/components/adaptive/adaptive_date_picker.dart';
+import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
+import 'package:bagtrip/components/adaptive/adaptive_indicator.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -81,7 +84,7 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
   }
 
   Future<void> _selectDate(BuildContext context, bool isCheckIn) async {
-    final DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showAdaptiveDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(2020),
@@ -155,54 +158,43 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
   }
 
   Future<void> _handleDeleteAccommodation(String accommodationId) async {
-    final confirmed = await showDialog<bool>(
+    showAdaptiveAlertDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.accommodationDeleteTitle),
-        content: Text(AppLocalizations.of(context)!.accommodationDeleteConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(AppLocalizations.of(context)!.cancelButton),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: ColorName.error),
-            child: Text(AppLocalizations.of(context)!.deleteButton),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      final result = await _accommodationRepository.deleteAccommodation(
-        widget.tripId,
-        accommodationId,
-      );
-      switch (result) {
-        case Success():
-          await _loadAccommodations();
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  AppLocalizations.of(context)!.accommodationDeleted,
+      title: AppLocalizations.of(context)!.accommodationDeleteTitle,
+      content: AppLocalizations.of(context)!.accommodationDeleteConfirm,
+      confirmLabel: AppLocalizations.of(context)!.deleteButton,
+      cancelLabel: AppLocalizations.of(context)!.cancelButton,
+      isDestructive: true,
+      onConfirm: () async {
+        final result = await _accommodationRepository.deleteAccommodation(
+          widget.tripId,
+          accommodationId,
+        );
+        switch (result) {
+          case Success():
+            await _loadAccommodations();
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    AppLocalizations.of(context)!.accommodationDeleted,
+                  ),
                 ),
-              ),
-            );
-          }
-        case Failure(:final error):
-          if (mounted) {
-            AppSnackBar.showError(
-              context,
-              message: toUserFriendlyMessage(
-                error,
-                AppLocalizations.of(context)!,
-              ),
-            );
-          }
-      }
-    }
+              );
+            }
+          case Failure(:final error):
+            if (mounted) {
+              AppSnackBar.showError(
+                context,
+                message: toUserFriendlyMessage(
+                  error,
+                  AppLocalizations.of(context)!,
+                ),
+              );
+            }
+        }
+      },
+    );
   }
 
   @override
@@ -215,7 +207,7 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
       appBar: AppBar(title: Text(l10n.accommodationsTitle)),
       body: SafeArea(
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(child: AdaptiveIndicator())
             : Column(
                 children: [
                   Expanded(
@@ -419,7 +411,7 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
                                   ? const SizedBox(
                                       width: 16,
                                       height: 16,
-                                      child: CircularProgressIndicator(
+                                      child: CircularProgressIndicator.adaptive(
                                         strokeWidth: 2,
                                       ),
                                     )

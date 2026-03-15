@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/adaptive/adaptive_date_picker.dart';
 import 'package:bagtrip/models/budget_item.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -135,7 +136,7 @@ class _BudgetItemFormState extends State<BudgetItemForm> {
                 ),
                 trailing: const Icon(Icons.calendar_today),
                 onTap: () async {
-                  final picked = await showDatePicker(
+                  final picked = await showAdaptiveDatePicker(
                     context: context,
                     initialDate: _date ?? DateTime.now(),
                     firstDate: DateTime(2020),
@@ -144,7 +145,7 @@ class _BudgetItemFormState extends State<BudgetItemForm> {
                   if (picked != null) setState(() => _date = picked);
                 },
               ),
-              CheckboxListTile(
+              CheckboxListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Planned'),
                 value: _isPlanned,

@@ -1,3 +1,4 @@
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
@@ -9,6 +10,7 @@ import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/service/backend_health.dart';
 import 'package:bagtrip/service/onboarding_storage.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 
@@ -127,13 +129,17 @@ class _SplashPageState extends State<SplashPage> {
                 ),
               ),
               const SizedBox(height: AppSpacing.space24),
-              const SizedBox(
+              SizedBox(
                 width: 32,
                 height: 32,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                ),
+                child: AdaptivePlatform.isIOS
+                    ? const CupertinoActivityIndicator(radius: 14)
+                    : const CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.primary,
+                        ),
+                      ),
               ),
             ],
           ),

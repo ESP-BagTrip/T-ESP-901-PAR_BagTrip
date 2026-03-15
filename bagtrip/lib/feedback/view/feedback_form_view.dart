@@ -105,7 +105,7 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
               maxLines: 3,
             ),
             const SizedBox(height: 16),
-            SwitchListTile(
+            SwitchListTile.adaptive(
               title: Text(AppLocalizations.of(context)!.feedbackWouldRecommend),
               value: _wouldRecommend,
               onChanged: (value) {
@@ -140,7 +140,9 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
               },
               builder: (context, state) {
                 if (state is FeedbackLoading) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: CircularProgressIndicator.adaptive(),
+                  );
                 }
                 return ElevatedButton.icon(
                   onPressed: () {
@@ -331,7 +333,7 @@ class _PostTripSuggestionSection extends StatelessWidget {
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(24),
-              child: CircularProgressIndicator(),
+              child: CircularProgressIndicator.adaptive(),
             ),
           );
         }

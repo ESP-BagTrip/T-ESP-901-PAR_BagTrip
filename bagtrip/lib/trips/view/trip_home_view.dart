@@ -1,9 +1,13 @@
+import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
+import 'package:bagtrip/components/adaptive/adaptive_indicator.dart';
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bagtrip/trips/widgets/trip_feature_tile.dart';
 import 'package:bagtrip/trips/widgets/trip_header.dart';
 import 'package:bagtrip/utils/error_display.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
@@ -40,7 +44,7 @@ class TripHomeView extends StatelessWidget {
         },
         builder: (context, state) {
           if (state is TripHomeLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: AdaptiveIndicator());
           }
 
           if (state is TripError) {
@@ -93,8 +97,10 @@ class TripHomeView extends StatelessWidget {
                         top: MediaQuery.of(context).padding.top + 8,
                         left: 8,
                         child: IconButton(
-                          icon: const Icon(
-                            Icons.arrow_back,
+                          icon: Icon(
+                            AdaptivePlatform.isIOS
+                                ? CupertinoIcons.back
+                                : Icons.arrow_back,
                             color: Colors.white,
                           ),
                           onPressed: () => context.pop(),
@@ -105,7 +111,12 @@ class TripHomeView extends StatelessWidget {
                           top: MediaQuery.of(context).padding.top + 8,
                           right: 8,
                           child: IconButton(
-                            icon: const Icon(Icons.share, color: Colors.white),
+                            icon: Icon(
+                              AdaptivePlatform.isIOS
+                                  ? CupertinoIcons.share
+                                  : Icons.share,
+                              color: Colors.white,
+                            ),
                             onPressed: () => SharesRoute(
                               tripId: tripId,
                               role: trip.role ?? 'OWNER',
@@ -266,41 +277,26 @@ class TripHomeView extends StatelessWidget {
                       ),
                       child: OutlinedButton.icon(
                         onPressed: () {
-                          showDialog<void>(
+                          showAdaptiveAlertDialog(
                             context: context,
-                            builder: (dialogContext) => AlertDialog(
-                              title: Text(
-                                AppLocalizations.of(context)!.tripDeleteTitle,
-                              ),
-                              content: Text(
-                                AppLocalizations.of(context)!.tripDeleteConfirm,
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.of(dialogContext).pop(),
-                                  child: Text(
-                                    AppLocalizations.of(context)!.cancelButton,
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(dialogContext).pop();
-                                    context.read<TripManagementBloc>().add(
-                                      DeleteTrip(tripId: tripId),
-                                    );
-                                  },
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: Theme.of(
-                                      context,
-                                    ).colorScheme.error,
-                                  ),
-                                  child: Text(
-                                    AppLocalizations.of(context)!.deleteButton,
-                                  ),
-                                ),
-                              ],
-                            ),
+                            title: AppLocalizations.of(
+                              context,
+                            )!.tripDeleteTitle,
+                            content: AppLocalizations.of(
+                              context,
+                            )!.tripDeleteConfirm,
+                            confirmLabel: AppLocalizations.of(
+                              context,
+                            )!.deleteButton,
+                            cancelLabel: AppLocalizations.of(
+                              context,
+                            )!.cancelButton,
+                            isDestructive: true,
+                            onConfirm: () {
+                              context.read<TripManagementBloc>().add(
+                                DeleteTrip(tripId: tripId),
+                              );
+                            },
                           );
                         },
                         icon: const Icon(Icons.delete_outline),

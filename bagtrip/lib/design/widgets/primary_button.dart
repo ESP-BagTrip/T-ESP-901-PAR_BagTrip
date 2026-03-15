@@ -1,5 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 class PrimaryButton extends StatelessWidget {
   final String label;
@@ -17,6 +19,29 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (AdaptivePlatform.isIOS) {
+      return SizedBox(
+        width: double.infinity,
+        child: CupertinoButton.filled(
+          onPressed: isLoading ? null : onPressed,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          child: isLoading
+              ? const CupertinoActivityIndicator(color: CupertinoColors.white)
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (icon != null) ...[
+                      icon!,
+                      const SizedBox(width: AppSpacing.space8),
+                    ],
+                    Text(label),
+                  ],
+                ),
+        ),
+      );
+    }
+
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(

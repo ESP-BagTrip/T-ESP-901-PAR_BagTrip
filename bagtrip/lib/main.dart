@@ -119,10 +119,15 @@ class _MyAppState extends State<MyApp> {
             };
 
             return MaterialApp.router(
-              theme: AppTheme.light(),
-              darkTheme: AppTheme.dark(),
+              theme: AppTheme.light().copyWith(
+                cupertinoOverrideTheme: AppTheme.cupertinoLight(),
+              ),
+              darkTheme: AppTheme.dark().copyWith(
+                cupertinoOverrideTheme: AppTheme.cupertinoDark(),
+              ),
               themeMode: themeMode,
               routerConfig: appRouter,
+              scrollBehavior: const _AdaptiveScrollBehavior(),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
             );
@@ -130,5 +135,27 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
     );
+  }
+}
+
+/// Adaptive scroll behavior: bouncing on iOS, glow on Android.
+class _AdaptiveScrollBehavior extends ScrollBehavior {
+  const _AdaptiveScrollBehavior();
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return Platform.isIOS
+        ? const BouncingScrollPhysics()
+        : const ClampingScrollPhysics();
+  }
+
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    if (Platform.isIOS) return child;
+    return super.buildOverscrollIndicator(context, child, details);
   }
 }

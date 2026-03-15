@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:flutter/material.dart';
@@ -87,6 +90,8 @@ class _SnackBarWidgetState extends State<_SnackBarWidget>
 
   @override
   Widget build(BuildContext context) {
+    final isIOS = AdaptivePlatform.isIOS;
+
     return Positioned(
       top: 0,
       left: 0,
@@ -100,36 +105,59 @@ class _SnackBarWidgetState extends State<_SnackBarWidget>
               opacity: _opacity,
               child: Material(
                 color: Colors.transparent,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.errorDark,
-                    borderRadius: AppRadius.large16,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primaryTrueDark.withValues(
-                          alpha: 0.15,
-                        ),
-                        blurRadius: 8,
-                        offset: const Offset(0, -4),
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    widget.message,
-                    style: const TextStyle(
-                      color: AppColors.surface,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
+                child: isIOS ? _buildIOSToast() : _buildMaterialToast(),
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIOSToast() {
+    return ClipRRect(
+      borderRadius: AppRadius.large16,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: AppColors.errorDark.withValues(alpha: 0.85),
+            borderRadius: AppRadius.large16,
+          ),
+          child: Text(
+            widget.message,
+            style: const TextStyle(
+              color: AppColors.surface,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMaterialToast() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.errorDark,
+        borderRadius: AppRadius.large16,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryTrueDark.withValues(alpha: 0.15),
+            blurRadius: 8,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Text(
+        widget.message,
+        style: const TextStyle(
+          color: AppColors.surface,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );

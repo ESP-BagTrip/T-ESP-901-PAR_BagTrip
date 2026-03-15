@@ -1,13 +1,34 @@
-import 'package:flutter/material.dart';
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 
-/// Builds a page with a smooth slide-from-right + fade transition for push-style navigations.
+/// Builds a page with a platform-appropriate transition.
+///
+/// Android: smooth slide-from-right + fade (Material).
+/// iOS: native [CupertinoPageRoute] slide-from-right with swipe-back.
 CustomTransitionPage<T> buildSlideTransitionPage<T>({
   required GoRouterState state,
   required Widget child,
   Duration duration = const Duration(milliseconds: 350),
   Curve curve = Curves.easeOutCubic,
 }) {
+  if (AdaptivePlatform.isIOS) {
+    return CustomTransitionPage<T>(
+      key: state.pageKey,
+      child: child,
+      transitionDuration: const Duration(milliseconds: 400),
+      reverseTransitionDuration: const Duration(milliseconds: 400),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return CupertinoPageTransition(
+          primaryRouteAnimation: animation,
+          secondaryRouteAnimation: secondaryAnimation,
+          linearTransition: false,
+          child: child,
+        );
+      },
+    );
+  }
+
   return CustomTransitionPage<T>(
     key: state.pageKey,
     child: child,

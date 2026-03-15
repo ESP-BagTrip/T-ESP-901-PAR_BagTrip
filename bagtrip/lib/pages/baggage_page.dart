@@ -1,3 +1,5 @@
+import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
+import 'package:bagtrip/components/adaptive/adaptive_indicator.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
@@ -154,52 +156,43 @@ class _BaggagePageState extends State<BaggagePage> {
   }
 
   Future<void> _handleDeleteBaggageItem(String baggageItemId) async {
-    final confirmed = await showDialog<bool>(
+    showAdaptiveAlertDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.baggageDeleteTitle),
-        content: Text(AppLocalizations.of(context)!.baggageDeleteConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(AppLocalizations.of(context)!.cancelButton),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: ColorName.error),
-            child: Text(AppLocalizations.of(context)!.deleteButton),
-          ),
-        ],
-      ),
+      title: AppLocalizations.of(context)!.baggageDeleteTitle,
+      content: AppLocalizations.of(context)!.baggageDeleteConfirm,
+      confirmLabel: AppLocalizations.of(context)!.deleteButton,
+      cancelLabel: AppLocalizations.of(context)!.cancelButton,
+      isDestructive: true,
+      onConfirm: () async {
+        final result = await _baggageRepository.deleteBaggageItem(
+          widget.tripId,
+          baggageItemId,
+        );
+        switch (result) {
+          case Success():
+            await _loadBaggageItems();
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    AppLocalizations.of(context)!.baggageItemDeleted,
+                  ),
+                ),
+              );
+            }
+          case Failure(:final error):
+            if (mounted) {
+              AppSnackBar.showError(
+                context,
+                message: toUserFriendlyMessage(
+                  error,
+                  AppLocalizations.of(context)!,
+                ),
+              );
+            }
+        }
+      },
     );
-
-    if (confirmed == true) {
-      final result = await _baggageRepository.deleteBaggageItem(
-        widget.tripId,
-        baggageItemId,
-      );
-      switch (result) {
-        case Success():
-          await _loadBaggageItems();
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(AppLocalizations.of(context)!.baggageItemDeleted),
-              ),
-            );
-          }
-        case Failure(:final error):
-          if (mounted) {
-            AppSnackBar.showError(
-              context,
-              message: toUserFriendlyMessage(
-                error,
-                AppLocalizations.of(context)!,
-              ),
-            );
-          }
-      }
-    }
   }
 
   Future<void> _handleSuggestBaggage() async {
@@ -315,7 +308,7 @@ class _BaggagePageState extends State<BaggagePage> {
       ),
       body: SafeArea(
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(child: AdaptiveIndicator())
             : Column(
                 children: [
                   Expanded(
@@ -354,7 +347,7 @@ class _BaggagePageState extends State<BaggagePage> {
                               return Card(
                                 margin: const EdgeInsets.only(bottom: 8),
                                 child: ListTile(
-                                  leading: Checkbox(
+                                  leading: Checkbox.adaptive(
                                     value: item.isPacked,
                                     onChanged: isReadOnly
                                         ? null
@@ -569,7 +562,7 @@ class _BaggagePageState extends State<BaggagePage> {
                                   ? const SizedBox(
                                       width: 16,
                                       height: 16,
-                                      child: CircularProgressIndicator(
+                                      child: CircularProgressIndicator.adaptive(
                                         strokeWidth: 2,
                                       ),
                                     )

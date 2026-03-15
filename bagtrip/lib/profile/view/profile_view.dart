@@ -1,4 +1,6 @@
 import 'package:bagtrip/booking/bloc/booking_bloc.dart';
+import 'package:bagtrip/components/adaptive/adaptive_indicator.dart';
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:intl/intl.dart';
 import 'package:bagtrip/design/tokens.dart';
@@ -13,6 +15,7 @@ import 'package:bagtrip/profile/widgets/preferences_section.dart';
 import 'package:bagtrip/profile/widgets/profile_footer.dart';
 import 'package:bagtrip/profile/widgets/profile_header_card.dart';
 import 'package:bagtrip/profile/widgets/recent_bookings_section.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -24,7 +27,7 @@ class ProfileView extends StatelessWidget {
     return BlocBuilder<UserProfileBloc, UserProfileState>(
       builder: (context, state) {
         if (state is UserProfileInitial || state is UserProfileLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: AdaptiveIndicator());
         }
 
         if (state is UserProfileError) {
@@ -64,48 +67,59 @@ class ProfileView extends StatelessWidget {
         }
 
         if (state is UserProfileLoaded) {
+          final content = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ProfileHeaderCard(
+                name: state.name.isNotEmpty ? state.name : state.email,
+                memberSince: DateFormat.yMMM(
+                  Localizations.localeOf(context).languageCode,
+                ).format(state.memberSince),
+              ),
+              const SizedBox(height: AppSpacing.space16),
+              PersonalInfoSection(
+                email: state.email,
+                phone: state.phone,
+                address: state.address.isEmpty ? '—' : state.address,
+              ),
+              const SizedBox(height: AppSpacing.space16),
+              const PreferencesSection(),
+              const SizedBox(height: AppSpacing.space16),
+              ExperiencePersonalizationSection(
+                travelTypes: state.travelTypes,
+                travelStyle: state.travelStyle,
+                budget: state.budget,
+                companions: state.companions,
+              ),
+              const SizedBox(height: AppSpacing.space16),
+              BlocBuilder<BookingBloc, BookingState>(
+                builder: (context, bookingState) {
+                  final List<RecentBooking> bookings =
+                      bookingState is BookingLoaded
+                      ? bookingState.recentBookings
+                      : [];
+                  return RecentBookingsSection(recentBookings: bookings);
+                },
+              ),
+              const SizedBox(height: AppSpacing.space24),
+              const LogoutButton(),
+              const SizedBox(height: AppSpacing.space24),
+              const ProfileFooter(),
+            ],
+          );
+
+          if (AdaptivePlatform.isIOS) {
+            return CupertinoScrollbar(
+              child: SingleChildScrollView(
+                padding: AppSpacing.allEdgeInsetSpace24,
+                child: content,
+              ),
+            );
+          }
+
           return SingleChildScrollView(
             padding: AppSpacing.allEdgeInsetSpace24,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ProfileHeaderCard(
-                  name: state.name.isNotEmpty ? state.name : state.email,
-                  memberSince: DateFormat.yMMM(
-                    Localizations.localeOf(context).languageCode,
-                  ).format(state.memberSince),
-                ),
-                const SizedBox(height: AppSpacing.space16),
-                PersonalInfoSection(
-                  email: state.email,
-                  phone: state.phone,
-                  address: state.address.isEmpty ? '—' : state.address,
-                ),
-                const SizedBox(height: AppSpacing.space16),
-                const PreferencesSection(),
-                const SizedBox(height: AppSpacing.space16),
-                ExperiencePersonalizationSection(
-                  travelTypes: state.travelTypes,
-                  travelStyle: state.travelStyle,
-                  budget: state.budget,
-                  companions: state.companions,
-                ),
-                const SizedBox(height: AppSpacing.space16),
-                BlocBuilder<BookingBloc, BookingState>(
-                  builder: (context, bookingState) {
-                    final List<RecentBooking> bookings =
-                        bookingState is BookingLoaded
-                        ? bookingState.recentBookings
-                        : [];
-                    return RecentBookingsSection(recentBookings: bookings);
-                  },
-                ),
-                const SizedBox(height: AppSpacing.space24),
-                const LogoutButton(),
-                const SizedBox(height: AppSpacing.space24),
-                const ProfileFooter(),
-              ],
-            ),
+            child: content,
           );
         }
 
