@@ -7,6 +7,7 @@ import 'package:bagtrip/design/widgets/premium_paywall.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/baggage_item.dart';
+import 'package:bagtrip/models/suggested_baggage_item.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
@@ -37,7 +38,7 @@ class _BaggagePageState extends State<BaggagePage> {
   final _quantityController = TextEditingController(text: '1');
 
   List<BaggageItem> _baggageItems = [];
-  List<Map<String, dynamic>> _suggestions = [];
+  List<SuggestedBaggageItem> _suggestions = [];
   bool _isLoading = true;
   bool _isAdding = false;
   bool _isSuggestLoading = false;
@@ -231,12 +232,12 @@ class _BaggagePageState extends State<BaggagePage> {
     }
   }
 
-  Future<void> _handleAddSuggestion(Map<String, dynamic> suggestion) async {
+  Future<void> _handleAddSuggestion(SuggestedBaggageItem suggestion) async {
     final result = await _baggageRepository.createBaggageItem(
       widget.tripId,
-      name: suggestion['name'] ?? '',
-      quantity: suggestion['quantity'] ?? 1,
-      category: suggestion['category'],
+      name: suggestion.name,
+      quantity: suggestion.quantity,
+      category: suggestion.category,
     );
     switch (result) {
       case Success():
@@ -425,9 +426,9 @@ class _BaggagePageState extends State<BaggagePage> {
                                 return ListTile(
                                   dense: true,
                                   contentPadding: EdgeInsets.zero,
-                                  title: Text(s['name'] ?? ''),
+                                  title: Text(s.name),
                                   subtitle: Text(
-                                    '${s['category'] ?? 'Autre'} · x${s['quantity'] ?? 1}',
+                                    '${s.category} · x${s.quantity}',
                                     style: const TextStyle(fontSize: 12),
                                   ),
                                   trailing: IconButton(

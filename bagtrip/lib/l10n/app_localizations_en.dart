@@ -1209,6 +1209,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get baggageAddItemTitle => 'Add an item';
 
   @override
+  String baggagePackedCount(int packed, int total) {
+    return '$packed of $total packed';
+  }
+
+  @override
+  String get baggageSuggestionsTitle => 'Suggestions for you';
+
+  @override
+  String get baggageToPack => 'To pack';
+
+  @override
+  String get baggagePacked => 'Packed';
+
+  @override
+  String get baggageSwipeToPack => 'Swipe to pack';
+
+  @override
+  String get baggageUnpack => 'Unpack';
+
+  @override
+  String get baggageItemName => 'Item name';
+
+  @override
+  String get fieldRequired => 'This field is required';
+
+  @override
   String get accommodationsTitle => 'Accommodations';
 
   @override
@@ -1830,4 +1856,39 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get accommodationAiDisclaimer =>
       'AI suggestions — verify availability and prices';
+
+  @override
+  String get budgetConfirmed => 'Confirmed';
+
+  @override
+  String get budgetForecasted => 'Forecasted';
+
+  @override
+  String get budgetEstimateButton => 'Estimate my budget';
+
+  @override
+  String get budgetEstimateTitle => 'Budget estimation';
+
+  @override
+  String get budgetEstimateAccept => 'Accept';
+
+  @override
+  String get budgetEstimateModify => 'Modify';
+
+  @override
+  String get budgetAccommodationPerNight => 'Accommodation / night';
+
+  @override
+  String get budgetMealsPerDay => 'Meals / day / person';
+
+  @override
+  String get budgetLocalTransport => 'Local transport / day';
+
+  @override
+  String get budgetActivitiesTotal => 'Activities total';
+
+  @override
+  String budgetTotalRange(String min, String max, String currency) {
+    return '$min – $max $currency';
+  }
 }

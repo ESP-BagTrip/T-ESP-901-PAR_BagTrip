@@ -1,3 +1,6 @@
+import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/budget_item.dart';
 import 'package:flutter/material.dart';
 
@@ -11,132 +14,197 @@ class BudgetSummaryHeader extends StatelessWidget {
     this.isViewer = false,
   });
 
-  Color _progressColor(double ratio) {
-    if (ratio > 1.0) return Colors.red;
-    if (ratio >= 0.8) return Colors.orange;
-    return Colors.green;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final percent = summary.percentConsumed;
-    final ratio = isViewer && percent != null
-        ? percent / 100
-        : summary.totalBudget > 0
-        ? summary.totalSpent / summary.totalBudget
+    final l10n = AppLocalizations.of(context)!;
+    final confirmedRatio = summary.totalBudget > 0
+        ? summary.confirmedTotal / summary.totalBudget
         : 0.0;
-    final color = _progressColor(ratio);
+    final forecastedRatio = summary.totalBudget > 0
+        ? (summary.confirmedTotal + summary.forecastedTotal) /
+              summary.totalBudget
+        : 0.0;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Budget Overview',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            if (isViewer)
-              _AmountLabel(
-                label: 'Total Budget',
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.space16),
+      padding: AppSpacing.allEdgeInsetSpace16,
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppRadius.large16,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _AmountColumn(
+                label: l10n.budgetTotal,
                 amount: summary.totalBudget,
-                color: Theme.of(context).colorScheme.primary,
-              )
-            else
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                color: AppColors.primary,
+                isLarge: true,
+              ),
+              _AmountColumn(
+                label: l10n.budgetConfirmed,
+                amount: summary.confirmedTotal,
+                color: AppColors.primary,
+                indicator: _IndicatorStyle.solid,
+              ),
+              _AmountColumn(
+                label: l10n.budgetForecasted,
+                amount: summary.forecastedTotal,
+                color: AppColors.primary,
+                indicator: _IndicatorStyle.dashed,
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.space16),
+          // Stacked progress bars
+          SizedBox(
+            height: 8,
+            child: ClipRRect(
+              borderRadius: AppRadius.small4,
+              child: Stack(
                 children: [
-                  _AmountLabel(
-                    label: 'Total Budget',
-                    amount: summary.totalBudget,
-                    color: Theme.of(context).colorScheme.primary,
+                  // Background
+                  Container(
+                    decoration: const BoxDecoration(
+                      color: AppColors.border,
+                      borderRadius: AppRadius.small4,
+                    ),
                   ),
-                  _AmountLabel(
-                    label: 'Spent',
-                    amount: summary.totalSpent,
-                    color: color,
+                  // Forecasted bar (behind, lighter)
+                  FractionallySizedBox(
+                    widthFactor: forecastedRatio.clamp(0.0, 1.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.3),
+                        borderRadius: AppRadius.small4,
+                      ),
+                    ),
                   ),
-                  _AmountLabel(
-                    label: 'Remaining',
-                    amount: summary.remaining,
-                    color: summary.remaining >= 0 ? Colors.green : Colors.red,
+                  // Confirmed bar (front, solid)
+                  FractionallySizedBox(
+                    widthFactor: confirmedRatio.clamp(0.0, 1.0),
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: AppRadius.small4,
+                      ),
+                    ),
                   ),
                 ],
               ),
-            const SizedBox(height: 12),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: ratio.clamp(0.0, 1.0),
-                minHeight: 8,
-                backgroundColor: Colors.grey.shade200,
-                valueColor: AlwaysStoppedAnimation<Color>(color),
+            ),
+          ),
+          if (isViewer && summary.percentConsumed != null)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.space4),
+              child: Text(
+                '${summary.percentConsumed!.toStringAsFixed(0)}% consumed',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.hint,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            if (isViewer)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  '${(ratio * 100).toStringAsFixed(0)}% consumed',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              )
-            else if (ratio > 1.0)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  'Over budget by ${(summary.totalSpent - summary.totalBudget).toStringAsFixed(2)} \u20ac',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.red,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-          ],
-        ),
+        ],
       ),
     );
   }
 }
 
-class _AmountLabel extends StatelessWidget {
+enum _IndicatorStyle { solid, dashed }
+
+class _AmountColumn extends StatelessWidget {
   final String label;
   final double amount;
   final Color color;
+  final bool isLarge;
+  final _IndicatorStyle? indicator;
 
-  const _AmountLabel({
+  const _AmountColumn({
     required this.label,
     required this.amount,
     required this.color,
+    this.isLarge = false,
+    this.indicator,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
+        if (indicator != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.space4),
+            child: _buildIndicator(),
+          ),
         Text(
           label,
           style: Theme.of(
             context,
-          ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+          ).textTheme.bodySmall?.copyWith(color: AppColors.hint),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppSpacing.space4),
         Text(
           '${amount.toStringAsFixed(2)} \u20ac',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            color: color,
-            fontWeight: FontWeight.bold,
-          ),
+          style: isLarge
+              ? Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                )
+              : Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                ),
         ),
       ],
     );
   }
+
+  Widget _buildIndicator() {
+    if (indicator == _IndicatorStyle.dashed) {
+      return SizedBox(
+        width: 24,
+        height: 4,
+        child: CustomPaint(painter: _DashedLinePainter(color: color)),
+      );
+    }
+    return Container(
+      width: 24,
+      height: 4,
+      decoration: BoxDecoration(color: color, borderRadius: AppRadius.small4),
+    );
+  }
+}
+
+class _DashedLinePainter extends CustomPainter {
+  final Color color;
+
+  _DashedLinePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = size.height
+      ..strokeCap = StrokeCap.round;
+
+    const dashWidth = 4.0;
+    const dashSpace = 3.0;
+    double startX = 0;
+    while (startX < size.width) {
+      canvas.drawLine(
+        Offset(startX, size.height / 2),
+        Offset((startX + dashWidth).clamp(0, size.width), size.height / 2),
+        paint,
+      );
+      startX += dashWidth + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedLinePainter oldDelegate) =>
+      color != oldDelegate.color;
 }

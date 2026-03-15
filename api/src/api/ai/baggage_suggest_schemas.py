@@ -7,6 +7,7 @@ class SuggestedBaggageItem(BaseModel):
     name: str
     quantity: int = 1
     category: str = "Autre"
+    reason: str | None = None
 
 
 class BaggageSuggestionsResponse(BaseModel):

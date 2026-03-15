@@ -13,6 +13,22 @@ class BudgetLoaded extends BudgetState {
   BudgetLoaded({required this.items, required this.summary});
 }
 
+class BudgetEstimating extends BudgetState {}
+
+class BudgetEstimated extends BudgetState {
+  final BudgetEstimation estimation;
+  final List<BudgetItem> items;
+  final BudgetSummary summary;
+
+  BudgetEstimated({
+    required this.estimation,
+    required this.items,
+    required this.summary,
+  });
+}
+
+class BudgetQuotaExceeded extends BudgetState {}
+
 class BudgetError extends BudgetState {
   final AppError error;
 

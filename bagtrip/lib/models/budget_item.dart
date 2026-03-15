@@ -29,6 +29,8 @@ abstract class BudgetItem with _$BudgetItem {
     @Default(BudgetCategory.other) BudgetCategory category,
     DateTime? date,
     @Default(true) bool isPlanned,
+    String? sourceType,
+    String? sourceId,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _BudgetItem;
@@ -44,6 +46,8 @@ abstract class BudgetSummary with _$BudgetSummary {
     @Default(0) double totalSpent,
     @Default(0) double remaining,
     @Default({}) Map<String, double> byCategory,
+    @Default(0) double confirmedTotal,
+    @Default(0) double forecastedTotal,
     double? percentConsumed,
     String? alertLevel,
     String? alertMessage,

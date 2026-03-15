@@ -1223,6 +1223,32 @@ class AppLocalizationsFr extends AppLocalizations {
   String get baggageAddItemTitle => 'Ajouter un élément';
 
   @override
+  String baggagePackedCount(int packed, int total) {
+    return '$packed sur $total emballés';
+  }
+
+  @override
+  String get baggageSuggestionsTitle => 'Suggestions pour vous';
+
+  @override
+  String get baggageToPack => 'À emballer';
+
+  @override
+  String get baggagePacked => 'Emballés';
+
+  @override
+  String get baggageSwipeToPack => 'Glisser pour emballer';
+
+  @override
+  String get baggageUnpack => 'Déballer';
+
+  @override
+  String get baggageItemName => 'Nom de l\'élément';
+
+  @override
+  String get fieldRequired => 'Ce champ est requis';
+
+  @override
   String get accommodationsTitle => 'Hébergements';
 
   @override
@@ -1849,4 +1875,39 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get accommodationAiDisclaimer =>
       'Suggestions IA — vérifiez disponibilité et tarifs';
+
+  @override
+  String get budgetConfirmed => 'Confirmé';
+
+  @override
+  String get budgetForecasted => 'Prévisionnel';
+
+  @override
+  String get budgetEstimateButton => 'Estimer mon budget';
+
+  @override
+  String get budgetEstimateTitle => 'Estimation du budget';
+
+  @override
+  String get budgetEstimateAccept => 'Accepter';
+
+  @override
+  String get budgetEstimateModify => 'Modifier';
+
+  @override
+  String get budgetAccommodationPerNight => 'Hébergement / nuit';
+
+  @override
+  String get budgetMealsPerDay => 'Repas / jour / personne';
+
+  @override
+  String get budgetLocalTransport => 'Transport local / jour';
+
+  @override
+  String get budgetActivitiesTotal => 'Total activités';
+
+  @override
+  String budgetTotalRange(String min, String max, String currency) {
+    return '$min – $max $currency';
+  }
 }

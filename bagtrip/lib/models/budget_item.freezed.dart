@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BudgetItem {
 
- String get id; String get tripId; String get label; double get amount; BudgetCategory get category; DateTime? get date; bool get isPlanned; DateTime? get createdAt; DateTime? get updatedAt;
+ String get id; String get tripId; String get label; double get amount; BudgetCategory get category; DateTime? get date; bool get isPlanned; String? get sourceType; String? get sourceId; DateTime? get createdAt; DateTime? get updatedAt;
 /// Create a copy of BudgetItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $BudgetItemCopyWith<BudgetItem> get copyWith => _$BudgetItemCopyWithImpl<BudgetI
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BudgetItem&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.label, label) || other.label == label)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.category, category) || other.category == category)&&(identical(other.date, date) || other.date == date)&&(identical(other.isPlanned, isPlanned) || other.isPlanned == isPlanned)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BudgetItem&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.label, label) || other.label == label)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.category, category) || other.category == category)&&(identical(other.date, date) || other.date == date)&&(identical(other.isPlanned, isPlanned) || other.isPlanned == isPlanned)&&(identical(other.sourceType, sourceType) || other.sourceType == sourceType)&&(identical(other.sourceId, sourceId) || other.sourceId == sourceId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,tripId,label,amount,category,date,isPlanned,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,tripId,label,amount,category,date,isPlanned,sourceType,sourceId,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'BudgetItem(id: $id, tripId: $tripId, label: $label, amount: $amount, category: $category, date: $date, isPlanned: $isPlanned, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'BudgetItem(id: $id, tripId: $tripId, label: $label, amount: $amount, category: $category, date: $date, isPlanned: $isPlanned, sourceType: $sourceType, sourceId: $sourceId, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $BudgetItemCopyWith<$Res>  {
   factory $BudgetItemCopyWith(BudgetItem value, $Res Function(BudgetItem) _then) = _$BudgetItemCopyWithImpl;
 @useResult
 $Res call({
- String id, String tripId, String label, double amount, BudgetCategory category, DateTime? date, bool isPlanned, DateTime? createdAt, DateTime? updatedAt
+ String id, String tripId, String label, double amount, BudgetCategory category, DateTime? date, bool isPlanned, String? sourceType, String? sourceId, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -65,7 +65,7 @@ class _$BudgetItemCopyWithImpl<$Res>
 
 /// Create a copy of BudgetItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? tripId = null,Object? label = null,Object? amount = null,Object? category = null,Object? date = freezed,Object? isPlanned = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? tripId = null,Object? label = null,Object? amount = null,Object? category = null,Object? date = freezed,Object? isPlanned = null,Object? sourceType = freezed,Object? sourceId = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,tripId: null == tripId ? _self.tripId : tripId // ignore: cast_nullable_to_non_nullable
@@ -74,7 +74,9 @@ as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullabl
 as double,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
 as BudgetCategory,date: freezed == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime?,isPlanned: null == isPlanned ? _self.isPlanned : isPlanned // ignore: cast_nullable_to_non_nullable
-as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as bool,sourceType: freezed == sourceType ? _self.sourceType : sourceType // ignore: cast_nullable_to_non_nullable
+as String?,sourceId: freezed == sourceId ? _self.sourceId : sourceId // ignore: cast_nullable_to_non_nullable
+as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
@@ -161,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String tripId,  String label,  double amount,  BudgetCategory category,  DateTime? date,  bool isPlanned,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String tripId,  String label,  double amount,  BudgetCategory category,  DateTime? date,  bool isPlanned,  String? sourceType,  String? sourceId,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BudgetItem() when $default != null:
-return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_that.date,_that.isPlanned,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_that.date,_that.isPlanned,_that.sourceType,_that.sourceId,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -182,10 +184,10 @@ return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String tripId,  String label,  double amount,  BudgetCategory category,  DateTime? date,  bool isPlanned,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String tripId,  String label,  double amount,  BudgetCategory category,  DateTime? date,  bool isPlanned,  String? sourceType,  String? sourceId,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _BudgetItem():
-return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_that.date,_that.isPlanned,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_that.date,_that.isPlanned,_that.sourceType,_that.sourceId,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +204,10 @@ return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String tripId,  String label,  double amount,  BudgetCategory category,  DateTime? date,  bool isPlanned,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String tripId,  String label,  double amount,  BudgetCategory category,  DateTime? date,  bool isPlanned,  String? sourceType,  String? sourceId,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _BudgetItem() when $default != null:
-return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_that.date,_that.isPlanned,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_that.date,_that.isPlanned,_that.sourceType,_that.sourceId,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -217,7 +219,7 @@ return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_t
 @JsonSerializable()
 
 class _BudgetItem implements BudgetItem {
-  const _BudgetItem({required this.id, required this.tripId, required this.label, required this.amount, this.category = BudgetCategory.other, this.date, this.isPlanned = true, this.createdAt, this.updatedAt});
+  const _BudgetItem({required this.id, required this.tripId, required this.label, required this.amount, this.category = BudgetCategory.other, this.date, this.isPlanned = true, this.sourceType, this.sourceId, this.createdAt, this.updatedAt});
   factory _BudgetItem.fromJson(Map<String, dynamic> json) => _$BudgetItemFromJson(json);
 
 @override final  String id;
@@ -227,6 +229,8 @@ class _BudgetItem implements BudgetItem {
 @override@JsonKey() final  BudgetCategory category;
 @override final  DateTime? date;
 @override@JsonKey() final  bool isPlanned;
+@override final  String? sourceType;
+@override final  String? sourceId;
 @override final  DateTime? createdAt;
 @override final  DateTime? updatedAt;
 
@@ -243,16 +247,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BudgetItem&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.label, label) || other.label == label)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.category, category) || other.category == category)&&(identical(other.date, date) || other.date == date)&&(identical(other.isPlanned, isPlanned) || other.isPlanned == isPlanned)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BudgetItem&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.label, label) || other.label == label)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.category, category) || other.category == category)&&(identical(other.date, date) || other.date == date)&&(identical(other.isPlanned, isPlanned) || other.isPlanned == isPlanned)&&(identical(other.sourceType, sourceType) || other.sourceType == sourceType)&&(identical(other.sourceId, sourceId) || other.sourceId == sourceId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,tripId,label,amount,category,date,isPlanned,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,tripId,label,amount,category,date,isPlanned,sourceType,sourceId,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'BudgetItem(id: $id, tripId: $tripId, label: $label, amount: $amount, category: $category, date: $date, isPlanned: $isPlanned, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'BudgetItem(id: $id, tripId: $tripId, label: $label, amount: $amount, category: $category, date: $date, isPlanned: $isPlanned, sourceType: $sourceType, sourceId: $sourceId, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -263,7 +267,7 @@ abstract mixin class _$BudgetItemCopyWith<$Res> implements $BudgetItemCopyWith<$
   factory _$BudgetItemCopyWith(_BudgetItem value, $Res Function(_BudgetItem) _then) = __$BudgetItemCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String tripId, String label, double amount, BudgetCategory category, DateTime? date, bool isPlanned, DateTime? createdAt, DateTime? updatedAt
+ String id, String tripId, String label, double amount, BudgetCategory category, DateTime? date, bool isPlanned, String? sourceType, String? sourceId, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -280,7 +284,7 @@ class __$BudgetItemCopyWithImpl<$Res>
 
 /// Create a copy of BudgetItem
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? tripId = null,Object? label = null,Object? amount = null,Object? category = null,Object? date = freezed,Object? isPlanned = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? tripId = null,Object? label = null,Object? amount = null,Object? category = null,Object? date = freezed,Object? isPlanned = null,Object? sourceType = freezed,Object? sourceId = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_BudgetItem(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,tripId: null == tripId ? _self.tripId : tripId // ignore: cast_nullable_to_non_nullable
@@ -289,7 +293,9 @@ as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullabl
 as double,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
 as BudgetCategory,date: freezed == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime?,isPlanned: null == isPlanned ? _self.isPlanned : isPlanned // ignore: cast_nullable_to_non_nullable
-as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as bool,sourceType: freezed == sourceType ? _self.sourceType : sourceType // ignore: cast_nullable_to_non_nullable
+as String?,sourceId: freezed == sourceId ? _self.sourceId : sourceId // ignore: cast_nullable_to_non_nullable
+as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
@@ -302,7 +308,7 @@ as DateTime?,
 /// @nodoc
 mixin _$BudgetSummary {
 
- double get totalBudget; double get totalSpent; double get remaining; Map<String, double> get byCategory; double? get percentConsumed; String? get alertLevel; String? get alertMessage;
+ double get totalBudget; double get totalSpent; double get remaining; Map<String, double> get byCategory; double get confirmedTotal; double get forecastedTotal; double? get percentConsumed; String? get alertLevel; String? get alertMessage;
 /// Create a copy of BudgetSummary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -315,16 +321,16 @@ $BudgetSummaryCopyWith<BudgetSummary> get copyWith => _$BudgetSummaryCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BudgetSummary&&(identical(other.totalBudget, totalBudget) || other.totalBudget == totalBudget)&&(identical(other.totalSpent, totalSpent) || other.totalSpent == totalSpent)&&(identical(other.remaining, remaining) || other.remaining == remaining)&&const DeepCollectionEquality().equals(other.byCategory, byCategory)&&(identical(other.percentConsumed, percentConsumed) || other.percentConsumed == percentConsumed)&&(identical(other.alertLevel, alertLevel) || other.alertLevel == alertLevel)&&(identical(other.alertMessage, alertMessage) || other.alertMessage == alertMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BudgetSummary&&(identical(other.totalBudget, totalBudget) || other.totalBudget == totalBudget)&&(identical(other.totalSpent, totalSpent) || other.totalSpent == totalSpent)&&(identical(other.remaining, remaining) || other.remaining == remaining)&&const DeepCollectionEquality().equals(other.byCategory, byCategory)&&(identical(other.confirmedTotal, confirmedTotal) || other.confirmedTotal == confirmedTotal)&&(identical(other.forecastedTotal, forecastedTotal) || other.forecastedTotal == forecastedTotal)&&(identical(other.percentConsumed, percentConsumed) || other.percentConsumed == percentConsumed)&&(identical(other.alertLevel, alertLevel) || other.alertLevel == alertLevel)&&(identical(other.alertMessage, alertMessage) || other.alertMessage == alertMessage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,totalBudget,totalSpent,remaining,const DeepCollectionEquality().hash(byCategory),percentConsumed,alertLevel,alertMessage);
+int get hashCode => Object.hash(runtimeType,totalBudget,totalSpent,remaining,const DeepCollectionEquality().hash(byCategory),confirmedTotal,forecastedTotal,percentConsumed,alertLevel,alertMessage);
 
 @override
 String toString() {
-  return 'BudgetSummary(totalBudget: $totalBudget, totalSpent: $totalSpent, remaining: $remaining, byCategory: $byCategory, percentConsumed: $percentConsumed, alertLevel: $alertLevel, alertMessage: $alertMessage)';
+  return 'BudgetSummary(totalBudget: $totalBudget, totalSpent: $totalSpent, remaining: $remaining, byCategory: $byCategory, confirmedTotal: $confirmedTotal, forecastedTotal: $forecastedTotal, percentConsumed: $percentConsumed, alertLevel: $alertLevel, alertMessage: $alertMessage)';
 }
 
 
@@ -335,7 +341,7 @@ abstract mixin class $BudgetSummaryCopyWith<$Res>  {
   factory $BudgetSummaryCopyWith(BudgetSummary value, $Res Function(BudgetSummary) _then) = _$BudgetSummaryCopyWithImpl;
 @useResult
 $Res call({
- double totalBudget, double totalSpent, double remaining, Map<String, double> byCategory, double? percentConsumed, String? alertLevel, String? alertMessage
+ double totalBudget, double totalSpent, double remaining, Map<String, double> byCategory, double confirmedTotal, double forecastedTotal, double? percentConsumed, String? alertLevel, String? alertMessage
 });
 
 
@@ -352,13 +358,15 @@ class _$BudgetSummaryCopyWithImpl<$Res>
 
 /// Create a copy of BudgetSummary
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? totalBudget = null,Object? totalSpent = null,Object? remaining = null,Object? byCategory = null,Object? percentConsumed = freezed,Object? alertLevel = freezed,Object? alertMessage = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? totalBudget = null,Object? totalSpent = null,Object? remaining = null,Object? byCategory = null,Object? confirmedTotal = null,Object? forecastedTotal = null,Object? percentConsumed = freezed,Object? alertLevel = freezed,Object? alertMessage = freezed,}) {
   return _then(_self.copyWith(
 totalBudget: null == totalBudget ? _self.totalBudget : totalBudget // ignore: cast_nullable_to_non_nullable
 as double,totalSpent: null == totalSpent ? _self.totalSpent : totalSpent // ignore: cast_nullable_to_non_nullable
 as double,remaining: null == remaining ? _self.remaining : remaining // ignore: cast_nullable_to_non_nullable
 as double,byCategory: null == byCategory ? _self.byCategory : byCategory // ignore: cast_nullable_to_non_nullable
-as Map<String, double>,percentConsumed: freezed == percentConsumed ? _self.percentConsumed : percentConsumed // ignore: cast_nullable_to_non_nullable
+as Map<String, double>,confirmedTotal: null == confirmedTotal ? _self.confirmedTotal : confirmedTotal // ignore: cast_nullable_to_non_nullable
+as double,forecastedTotal: null == forecastedTotal ? _self.forecastedTotal : forecastedTotal // ignore: cast_nullable_to_non_nullable
+as double,percentConsumed: freezed == percentConsumed ? _self.percentConsumed : percentConsumed // ignore: cast_nullable_to_non_nullable
 as double?,alertLevel: freezed == alertLevel ? _self.alertLevel : alertLevel // ignore: cast_nullable_to_non_nullable
 as String?,alertMessage: freezed == alertMessage ? _self.alertMessage : alertMessage // ignore: cast_nullable_to_non_nullable
 as String?,
@@ -446,10 +454,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double totalBudget,  double totalSpent,  double remaining,  Map<String, double> byCategory,  double? percentConsumed,  String? alertLevel,  String? alertMessage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double totalBudget,  double totalSpent,  double remaining,  Map<String, double> byCategory,  double confirmedTotal,  double forecastedTotal,  double? percentConsumed,  String? alertLevel,  String? alertMessage)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BudgetSummary() when $default != null:
-return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCategory,_that.percentConsumed,_that.alertLevel,_that.alertMessage);case _:
+return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCategory,_that.confirmedTotal,_that.forecastedTotal,_that.percentConsumed,_that.alertLevel,_that.alertMessage);case _:
   return orElse();
 
 }
@@ -467,10 +475,10 @@ return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCateg
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double totalBudget,  double totalSpent,  double remaining,  Map<String, double> byCategory,  double? percentConsumed,  String? alertLevel,  String? alertMessage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double totalBudget,  double totalSpent,  double remaining,  Map<String, double> byCategory,  double confirmedTotal,  double forecastedTotal,  double? percentConsumed,  String? alertLevel,  String? alertMessage)  $default,) {final _that = this;
 switch (_that) {
 case _BudgetSummary():
-return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCategory,_that.percentConsumed,_that.alertLevel,_that.alertMessage);case _:
+return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCategory,_that.confirmedTotal,_that.forecastedTotal,_that.percentConsumed,_that.alertLevel,_that.alertMessage);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -487,10 +495,10 @@ return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCateg
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double totalBudget,  double totalSpent,  double remaining,  Map<String, double> byCategory,  double? percentConsumed,  String? alertLevel,  String? alertMessage)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double totalBudget,  double totalSpent,  double remaining,  Map<String, double> byCategory,  double confirmedTotal,  double forecastedTotal,  double? percentConsumed,  String? alertLevel,  String? alertMessage)?  $default,) {final _that = this;
 switch (_that) {
 case _BudgetSummary() when $default != null:
-return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCategory,_that.percentConsumed,_that.alertLevel,_that.alertMessage);case _:
+return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCategory,_that.confirmedTotal,_that.forecastedTotal,_that.percentConsumed,_that.alertLevel,_that.alertMessage);case _:
   return null;
 
 }
@@ -502,7 +510,7 @@ return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCateg
 @JsonSerializable()
 
 class _BudgetSummary implements BudgetSummary {
-  const _BudgetSummary({this.totalBudget = 0, this.totalSpent = 0, this.remaining = 0, final  Map<String, double> byCategory = const {}, this.percentConsumed, this.alertLevel, this.alertMessage}): _byCategory = byCategory;
+  const _BudgetSummary({this.totalBudget = 0, this.totalSpent = 0, this.remaining = 0, final  Map<String, double> byCategory = const {}, this.confirmedTotal = 0, this.forecastedTotal = 0, this.percentConsumed, this.alertLevel, this.alertMessage}): _byCategory = byCategory;
   factory _BudgetSummary.fromJson(Map<String, dynamic> json) => _$BudgetSummaryFromJson(json);
 
 @override@JsonKey() final  double totalBudget;
@@ -515,6 +523,8 @@ class _BudgetSummary implements BudgetSummary {
   return EqualUnmodifiableMapView(_byCategory);
 }
 
+@override@JsonKey() final  double confirmedTotal;
+@override@JsonKey() final  double forecastedTotal;
 @override final  double? percentConsumed;
 @override final  String? alertLevel;
 @override final  String? alertMessage;
@@ -532,16 +542,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BudgetSummary&&(identical(other.totalBudget, totalBudget) || other.totalBudget == totalBudget)&&(identical(other.totalSpent, totalSpent) || other.totalSpent == totalSpent)&&(identical(other.remaining, remaining) || other.remaining == remaining)&&const DeepCollectionEquality().equals(other._byCategory, _byCategory)&&(identical(other.percentConsumed, percentConsumed) || other.percentConsumed == percentConsumed)&&(identical(other.alertLevel, alertLevel) || other.alertLevel == alertLevel)&&(identical(other.alertMessage, alertMessage) || other.alertMessage == alertMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BudgetSummary&&(identical(other.totalBudget, totalBudget) || other.totalBudget == totalBudget)&&(identical(other.totalSpent, totalSpent) || other.totalSpent == totalSpent)&&(identical(other.remaining, remaining) || other.remaining == remaining)&&const DeepCollectionEquality().equals(other._byCategory, _byCategory)&&(identical(other.confirmedTotal, confirmedTotal) || other.confirmedTotal == confirmedTotal)&&(identical(other.forecastedTotal, forecastedTotal) || other.forecastedTotal == forecastedTotal)&&(identical(other.percentConsumed, percentConsumed) || other.percentConsumed == percentConsumed)&&(identical(other.alertLevel, alertLevel) || other.alertLevel == alertLevel)&&(identical(other.alertMessage, alertMessage) || other.alertMessage == alertMessage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,totalBudget,totalSpent,remaining,const DeepCollectionEquality().hash(_byCategory),percentConsumed,alertLevel,alertMessage);
+int get hashCode => Object.hash(runtimeType,totalBudget,totalSpent,remaining,const DeepCollectionEquality().hash(_byCategory),confirmedTotal,forecastedTotal,percentConsumed,alertLevel,alertMessage);
 
 @override
 String toString() {
-  return 'BudgetSummary(totalBudget: $totalBudget, totalSpent: $totalSpent, remaining: $remaining, byCategory: $byCategory, percentConsumed: $percentConsumed, alertLevel: $alertLevel, alertMessage: $alertMessage)';
+  return 'BudgetSummary(totalBudget: $totalBudget, totalSpent: $totalSpent, remaining: $remaining, byCategory: $byCategory, confirmedTotal: $confirmedTotal, forecastedTotal: $forecastedTotal, percentConsumed: $percentConsumed, alertLevel: $alertLevel, alertMessage: $alertMessage)';
 }
 
 
@@ -552,7 +562,7 @@ abstract mixin class _$BudgetSummaryCopyWith<$Res> implements $BudgetSummaryCopy
   factory _$BudgetSummaryCopyWith(_BudgetSummary value, $Res Function(_BudgetSummary) _then) = __$BudgetSummaryCopyWithImpl;
 @override @useResult
 $Res call({
- double totalBudget, double totalSpent, double remaining, Map<String, double> byCategory, double? percentConsumed, String? alertLevel, String? alertMessage
+ double totalBudget, double totalSpent, double remaining, Map<String, double> byCategory, double confirmedTotal, double forecastedTotal, double? percentConsumed, String? alertLevel, String? alertMessage
 });
 
 
@@ -569,13 +579,15 @@ class __$BudgetSummaryCopyWithImpl<$Res>
 
 /// Create a copy of BudgetSummary
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? totalBudget = null,Object? totalSpent = null,Object? remaining = null,Object? byCategory = null,Object? percentConsumed = freezed,Object? alertLevel = freezed,Object? alertMessage = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? totalBudget = null,Object? totalSpent = null,Object? remaining = null,Object? byCategory = null,Object? confirmedTotal = null,Object? forecastedTotal = null,Object? percentConsumed = freezed,Object? alertLevel = freezed,Object? alertMessage = freezed,}) {
   return _then(_BudgetSummary(
 totalBudget: null == totalBudget ? _self.totalBudget : totalBudget // ignore: cast_nullable_to_non_nullable
 as double,totalSpent: null == totalSpent ? _self.totalSpent : totalSpent // ignore: cast_nullable_to_non_nullable
 as double,remaining: null == remaining ? _self.remaining : remaining // ignore: cast_nullable_to_non_nullable
 as double,byCategory: null == byCategory ? _self._byCategory : byCategory // ignore: cast_nullable_to_non_nullable
-as Map<String, double>,percentConsumed: freezed == percentConsumed ? _self.percentConsumed : percentConsumed // ignore: cast_nullable_to_non_nullable
+as Map<String, double>,confirmedTotal: null == confirmedTotal ? _self.confirmedTotal : confirmedTotal // ignore: cast_nullable_to_non_nullable
+as double,forecastedTotal: null == forecastedTotal ? _self.forecastedTotal : forecastedTotal // ignore: cast_nullable_to_non_nullable
+as double,percentConsumed: freezed == percentConsumed ? _self.percentConsumed : percentConsumed // ignore: cast_nullable_to_non_nullable
 as double?,alertLevel: freezed == alertLevel ? _self.alertLevel : alertLevel // ignore: cast_nullable_to_non_nullable
 as String?,alertMessage: freezed == alertMessage ? _self.alertMessage : alertMessage // ignore: cast_nullable_to_non_nullable
 as String?,

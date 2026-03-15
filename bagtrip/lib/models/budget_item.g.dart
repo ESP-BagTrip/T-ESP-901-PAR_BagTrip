@@ -16,6 +16,8 @@ _BudgetItem _$BudgetItemFromJson(Map<String, dynamic> json) => _BudgetItem(
       BudgetCategory.other,
   date: json['date'] == null ? null : DateTime.parse(json['date'] as String),
   isPlanned: json['isPlanned'] as bool? ?? true,
+  sourceType: json['sourceType'] as String?,
+  sourceId: json['sourceId'] as String?,
   createdAt: json['createdAt'] == null
       ? null
       : DateTime.parse(json['createdAt'] as String),
@@ -33,6 +35,8 @@ Map<String, dynamic> _$BudgetItemToJson(_BudgetItem instance) =>
       'category': _$BudgetCategoryEnumMap[instance.category]!,
       'date': instance.date?.toIso8601String(),
       'isPlanned': instance.isPlanned,
+      'sourceType': instance.sourceType,
+      'sourceId': instance.sourceId,
       'createdAt': instance.createdAt?.toIso8601String(),
       'updatedAt': instance.updatedAt?.toIso8601String(),
     };
@@ -56,6 +60,8 @@ _BudgetSummary _$BudgetSummaryFromJson(Map<String, dynamic> json) =>
             (k, e) => MapEntry(k, (e as num).toDouble()),
           ) ??
           const {},
+      confirmedTotal: (json['confirmedTotal'] as num?)?.toDouble() ?? 0,
+      forecastedTotal: (json['forecastedTotal'] as num?)?.toDouble() ?? 0,
       percentConsumed: (json['percentConsumed'] as num?)?.toDouble(),
       alertLevel: json['alertLevel'] as String?,
       alertMessage: json['alertMessage'] as String?,
@@ -67,6 +73,8 @@ Map<String, dynamic> _$BudgetSummaryToJson(_BudgetSummary instance) =>
       'totalSpent': instance.totalSpent,
       'remaining': instance.remaining,
       'byCategory': instance.byCategory,
+      'confirmedTotal': instance.confirmedTotal,
+      'forecastedTotal': instance.forecastedTotal,
       'percentConsumed': instance.percentConsumed,
       'alertLevel': instance.alertLevel,
       'alertMessage': instance.alertMessage,

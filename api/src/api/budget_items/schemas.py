@@ -52,6 +52,8 @@ class BudgetSummaryResponse(BaseModel):
     percentConsumed: float | None = Field(None, alias="percent_consumed")
     alertLevel: str | None = Field(None, alias="alert_level")
     alertMessage: str | None = Field(None, alias="alert_message")
+    confirmedTotal: float = Field(0, alias="confirmed_total")
+    forecastedTotal: float = Field(0, alias="forecasted_total")
 
     class Config:
         from_attributes = True

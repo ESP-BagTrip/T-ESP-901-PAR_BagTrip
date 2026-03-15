@@ -4,6 +4,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from src.enums import BudgetCategory, TripStatus
+from src.models.activity import Activity
 from src.models.budget_item import BudgetItem
 from src.models.trip import Trip
 from src.utils.errors import AppError
@@ -120,6 +121,30 @@ class BudgetItemService:
 
         budget_total = float(trip.budget_total) if trip.budget_total else 0.0
 
+        # Confirmed vs forecasted — budget items
+        confirmed_total = 0.0
+        forecasted_total = 0.0
+        for item in items:
+            if item.source_type is not None or not item.is_planned:
+                confirmed_total += float(item.amount)
+            elif item.is_planned and item.source_type is None:
+                forecasted_total += float(item.amount)
+
+        # Confirmed vs forecasted — activities
+        activities = (
+            db.query(Activity)
+            .filter(Activity.trip_id == trip.id)
+            .all()
+        )
+        for activity in activities:
+            if activity.estimated_cost is None:
+                continue
+            cost = float(activity.estimated_cost)
+            if activity.validation_status in ("VALIDATED", "MANUAL"):
+                confirmed_total += cost
+            elif activity.validation_status == "SUGGESTED":
+                forecasted_total += cost
+
         alert_level = None
         alert_message = None
         if budget_total > 0:
@@ -140,4 +165,6 @@ class BudgetItemService:
             "by_category": by_category,
             "alert_level": alert_level,
             "alert_message": alert_message,
+            "confirmed_total": confirmed_total,
+            "forecasted_total": forecasted_total,
         }

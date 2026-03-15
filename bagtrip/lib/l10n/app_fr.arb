@@ -482,7 +482,21 @@
   "baggageCategoryLabel": "Catégorie (optionnel)",
   "baggageEmptyTitle": "Aucun élément",
   "baggageEmptySubtitle": "Ajoutez des éléments à votre liste de bagages",
-  "baggageAddItemTitle": "Ajouter un élément",
+  "baggageAddItemTitle": "Ajouter un \u00e9l\u00e9ment",
+  "baggagePackedCount": "{packed} sur {total} emball\u00e9s",
+  "@baggagePackedCount": {
+    "placeholders": {
+      "packed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "baggageSuggestionsTitle": "Suggestions pour vous",
+  "baggageToPack": "\u00c0 emballer",
+  "baggagePacked": "Emball\u00e9s",
+  "baggageSwipeToPack": "Glisser pour emballer",
+  "baggageUnpack": "D\u00e9baller",
+  "baggageItemName": "Nom de l'\u00e9l\u00e9ment",
+  "fieldRequired": "Ce champ est requis",
   "accommodationsTitle": "Hébergements",
   "accommodationCheckInHelp": "Date d'arrivée",
   "accommodationCheckOutHelp": "Date de départ",
@@ -714,5 +728,23 @@
   "accommodationTypeOther": "Autre",
   "accommodationPricePerNight": "Prix/nuit",
   "accommodationUpdated": "H\u00e9bergement mis \u00e0 jour",
-  "accommodationAiDisclaimer": "Suggestions IA \u2014 v\u00e9rifiez disponibilit\u00e9 et tarifs"
+  "accommodationAiDisclaimer": "Suggestions IA \u2014 v\u00e9rifiez disponibilit\u00e9 et tarifs",
+  "budgetConfirmed": "Confirm\u00e9",
+  "budgetForecasted": "Pr\u00e9visionnel",
+  "budgetEstimateButton": "Estimer mon budget",
+  "budgetEstimateTitle": "Estimation du budget",
+  "budgetEstimateAccept": "Accepter",
+  "budgetEstimateModify": "Modifier",
+  "budgetAccommodationPerNight": "H\u00e9bergement / nuit",
+  "budgetMealsPerDay": "Repas / jour / personne",
+  "budgetLocalTransport": "Transport local / jour",
+  "budgetActivitiesTotal": "Total activit\u00e9s",
+  "budgetTotalRange": "{min} \u2013 {max} {currency}",
+  "@budgetTotalRange": {
+    "placeholders": {
+      "min": {"type": "String"},
+      "max": {"type": "String"},
+      "currency": {"type": "String"}
+    }
+  }
 }

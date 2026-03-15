@@ -1,5 +1,6 @@
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
+import 'package:bagtrip/models/budget_estimation.dart';
 import 'package:bagtrip/models/budget_item.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/budget_repository.dart';
@@ -18,6 +19,8 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
     on<CreateBudgetItem>(_onCreateBudgetItem);
     on<UpdateBudgetItem>(_onUpdateBudgetItem);
     on<DeleteBudgetItem>(_onDeleteBudgetItem);
+    on<EstimateBudget>(_onEstimateBudget);
+    on<AcceptBudgetEstimate>(_onAcceptBudgetEstimate);
   }
 
   Future<void> _onLoadBudget(
@@ -85,6 +88,62 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
     final result = await _budgetRepository.deleteBudgetItem(
       event.tripId,
       event.itemId,
+    );
+    if (isClosed) return;
+    switch (result) {
+      case Success():
+        add(LoadBudget(tripId: event.tripId));
+      case Failure(:final error):
+        emit(BudgetError(error: error));
+    }
+  }
+
+  Future<void> _onEstimateBudget(
+    EstimateBudget event,
+    Emitter<BudgetState> emit,
+  ) async {
+    final currentState = state;
+    final List<BudgetItem> currentItems;
+    final BudgetSummary currentSummary;
+    if (currentState is BudgetLoaded) {
+      currentItems = currentState.items;
+      currentSummary = currentState.summary;
+    } else if (currentState is BudgetEstimated) {
+      currentItems = currentState.items;
+      currentSummary = currentState.summary;
+    } else {
+      currentItems = [];
+      currentSummary = const BudgetSummary();
+    }
+
+    emit(BudgetEstimating());
+    final result = await _budgetRepository.estimateBudget(event.tripId);
+    if (isClosed) return;
+    switch (result) {
+      case Success(:final data):
+        emit(
+          BudgetEstimated(
+            estimation: data,
+            items: currentItems,
+            summary: currentSummary,
+          ),
+        );
+      case Failure(:final error):
+        if (error is QuotaExceededError) {
+          emit(BudgetQuotaExceeded());
+        } else {
+          emit(BudgetError(error: error));
+        }
+    }
+  }
+
+  Future<void> _onAcceptBudgetEstimate(
+    AcceptBudgetEstimate event,
+    Emitter<BudgetState> emit,
+  ) async {
+    final result = await _budgetRepository.acceptBudgetEstimate(
+      event.tripId,
+      event.budgetTotal,
     );
     if (isClosed) return;
     switch (result) {

@@ -33,3 +33,16 @@ class DeleteBudgetItem extends BudgetEvent {
 
   DeleteBudgetItem({required this.tripId, required this.itemId});
 }
+
+class EstimateBudget extends BudgetEvent {
+  final String tripId;
+
+  EstimateBudget({required this.tripId});
+}
+
+class AcceptBudgetEstimate extends BudgetEvent {
+  final String tripId;
+  final double budgetTotal;
+
+  AcceptBudgetEstimate({required this.tripId, required this.budgetTotal});
+}

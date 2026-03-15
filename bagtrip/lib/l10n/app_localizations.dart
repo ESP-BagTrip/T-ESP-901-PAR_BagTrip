@@ -2354,6 +2354,54 @@ abstract class AppLocalizations {
   /// **'Ajouter un élément'**
   String get baggageAddItemTitle;
 
+  /// No description provided for @baggagePackedCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{packed} sur {total} emballés'**
+  String baggagePackedCount(int packed, int total);
+
+  /// No description provided for @baggageSuggestionsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suggestions pour vous'**
+  String get baggageSuggestionsTitle;
+
+  /// No description provided for @baggageToPack.
+  ///
+  /// In fr, this message translates to:
+  /// **'À emballer'**
+  String get baggageToPack;
+
+  /// No description provided for @baggagePacked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Emballés'**
+  String get baggagePacked;
+
+  /// No description provided for @baggageSwipeToPack.
+  ///
+  /// In fr, this message translates to:
+  /// **'Glisser pour emballer'**
+  String get baggageSwipeToPack;
+
+  /// No description provided for @baggageUnpack.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déballer'**
+  String get baggageUnpack;
+
+  /// No description provided for @baggageItemName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom de l\'élément'**
+  String get baggageItemName;
+
+  /// No description provided for @fieldRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce champ est requis'**
+  String get fieldRequired;
+
   /// No description provided for @accommodationsTitle.
   ///
   /// In fr, this message translates to:
@@ -3541,6 +3589,72 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Suggestions IA — vérifiez disponibilité et tarifs'**
   String get accommodationAiDisclaimer;
+
+  /// No description provided for @budgetConfirmed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmé'**
+  String get budgetConfirmed;
+
+  /// No description provided for @budgetForecasted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prévisionnel'**
+  String get budgetForecasted;
+
+  /// No description provided for @budgetEstimateButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Estimer mon budget'**
+  String get budgetEstimateButton;
+
+  /// No description provided for @budgetEstimateTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Estimation du budget'**
+  String get budgetEstimateTitle;
+
+  /// No description provided for @budgetEstimateAccept.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accepter'**
+  String get budgetEstimateAccept;
+
+  /// No description provided for @budgetEstimateModify.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get budgetEstimateModify;
+
+  /// No description provided for @budgetAccommodationPerNight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hébergement / nuit'**
+  String get budgetAccommodationPerNight;
+
+  /// No description provided for @budgetMealsPerDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Repas / jour / personne'**
+  String get budgetMealsPerDay;
+
+  /// No description provided for @budgetLocalTransport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transport local / jour'**
+  String get budgetLocalTransport;
+
+  /// No description provided for @budgetActivitiesTotal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Total activités'**
+  String get budgetActivitiesTotal;
+
+  /// No description provided for @budgetTotalRange.
+  ///
+  /// In fr, this message translates to:
+  /// **'{min} – {max} {currency}'**
+  String budgetTotalRange(String min, String max, String currency);
 }
 
 class _AppLocalizationsDelegate

@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/result.dart';
+import 'package:bagtrip/models/budget_estimation.dart';
 import 'package:bagtrip/models/budget_item.dart';
 
 abstract class BudgetRepository {
@@ -14,4 +15,6 @@ abstract class BudgetRepository {
     Map<String, dynamic> updates,
   );
   Future<Result<void>> deleteBudgetItem(String tripId, String itemId);
+  Future<Result<BudgetEstimation>> estimateBudget(String tripId);
+  Future<Result<void>> acceptBudgetEstimate(String tripId, double budgetTotal);
 }

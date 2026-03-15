@@ -1,5 +1,6 @@
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/baggage_item.dart';
+import 'package:bagtrip/models/suggested_baggage_item.dart';
 
 abstract class BaggageRepository {
   Future<Result<BaggageItem>> createBaggageItem(
@@ -17,5 +18,5 @@ abstract class BaggageRepository {
     Map<String, dynamic> updates,
   );
   Future<Result<void>> deleteBaggageItem(String tripId, String baggageItemId);
-  Future<Result<List<Map<String, dynamic>>>> suggestBaggage(String tripId);
+  Future<Result<List<SuggestedBaggageItem>>> suggestBaggage(String tripId);
 }

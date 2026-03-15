@@ -483,6 +483,20 @@
   "baggageEmptyTitle": "No items",
   "baggageEmptySubtitle": "Add items to your luggage list",
   "baggageAddItemTitle": "Add an item",
+  "baggagePackedCount": "{packed} of {total} packed",
+  "@baggagePackedCount": {
+    "placeholders": {
+      "packed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "baggageSuggestionsTitle": "Suggestions for you",
+  "baggageToPack": "To pack",
+  "baggagePacked": "Packed",
+  "baggageSwipeToPack": "Swipe to pack",
+  "baggageUnpack": "Unpack",
+  "baggageItemName": "Item name",
+  "fieldRequired": "This field is required",
   "accommodationsTitle": "Accommodations",
   "accommodationCheckInHelp": "Check-in date",
   "accommodationCheckOutHelp": "Check-out date",
@@ -714,5 +728,23 @@
   "accommodationTypeOther": "Other",
   "accommodationPricePerNight": "Price/night",
   "accommodationUpdated": "Accommodation updated",
-  "accommodationAiDisclaimer": "AI suggestions \u2014 verify availability and prices"
+  "accommodationAiDisclaimer": "AI suggestions \u2014 verify availability and prices",
+  "budgetConfirmed": "Confirmed",
+  "budgetForecasted": "Forecasted",
+  "budgetEstimateButton": "Estimate my budget",
+  "budgetEstimateTitle": "Budget estimation",
+  "budgetEstimateAccept": "Accept",
+  "budgetEstimateModify": "Modify",
+  "budgetAccommodationPerNight": "Accommodation / night",
+  "budgetMealsPerDay": "Meals / day / person",
+  "budgetLocalTransport": "Local transport / day",
+  "budgetActivitiesTotal": "Activities total",
+  "budgetTotalRange": "{min} – {max} {currency}",
+  "@budgetTotalRange": {
+    "placeholders": {
+      "min": {"type": "String"},
+      "max": {"type": "String"},
+      "currency": {"type": "String"}
+    }
+  }
 }

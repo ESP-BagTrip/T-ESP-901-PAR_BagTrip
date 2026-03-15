@@ -1,6 +1,7 @@
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/logged_failure.dart';
 import 'package:bagtrip/core/result.dart';
+import 'package:bagtrip/models/budget_estimation.dart';
 import 'package:bagtrip/models/budget_item.dart';
 import 'package:bagtrip/repositories/budget_repository.dart';
 import 'package:bagtrip/service/api_client.dart';
@@ -120,6 +121,54 @@ class BudgetRepositoryImpl implements BudgetRepository {
       }
       return loggedFailure(
         UnknownError('delete budget item failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<BudgetEstimation>> estimateBudget(String tripId) async {
+    try {
+      final response = await _apiClient.post('/trips/$tripId/budget/estimate');
+      if (response.statusCode == 200) {
+        final data = response.data;
+        if (data is Map && data['estimation'] is Map) {
+          return Success(
+            BudgetEstimation.fromJson(
+              Map<String, dynamic>.from(data['estimation']),
+            ),
+          );
+        }
+        return loggedFailure(const UnknownError('Invalid estimation response'));
+      }
+      return loggedFailure(
+        UnknownError('estimate budget failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<void>> acceptBudgetEstimate(
+    String tripId,
+    double budgetTotal,
+  ) async {
+    try {
+      final response = await _apiClient.post(
+        '/trips/$tripId/budget/estimate/accept',
+        data: {'budget_total': budgetTotal},
+      );
+      if (response.statusCode == 200) {
+        return const Success(null);
+      }
+      return loggedFailure(
+        UnknownError('accept budget estimate failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
       return loggedFailure(ApiClient.mapDioError(e));

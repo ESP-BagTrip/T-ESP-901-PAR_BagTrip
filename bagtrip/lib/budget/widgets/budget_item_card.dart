@@ -1,3 +1,6 @@
+import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/budget_item.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -15,6 +18,8 @@ class BudgetItemCard extends StatelessWidget {
     this.onDelete,
     this.isViewer = false,
   });
+
+  bool get _isConfirmed => item.sourceType != null || !item.isPlanned;
 
   IconData _categoryIcon(BudgetCategory category) {
     switch (category) {
@@ -35,56 +40,113 @@ class BudgetItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: CircleAvatar(child: Icon(_categoryIcon(item.category))),
-        title: Text(item.label),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (!isViewer)
-              Text(
-                '${item.amount.toStringAsFixed(2)} \u20ac',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
-              ),
-            if (item.date != null)
-              Text(
-                DateFormat('dd/MM/yyyy').format(item.date!),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            Container(
-              margin: const EdgeInsets.only(top: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: item.isPlanned
-                    ? Colors.blue.withValues(alpha: 0.1)
-                    : Colors.green.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                item.isPlanned ? 'Planned' : 'Real',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: item.isPlanned ? Colors.blue : Colors.green,
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = _isConfirmed;
+    final opacity = confirmed ? 1.0 : 0.6;
+
+    return Opacity(
+      opacity: opacity,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: AppSpacing.space8),
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: AppRadius.medium8,
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            children: [
+              // Left accent bar
+              Container(
+                width: 4,
+                decoration: BoxDecoration(
+                  color: confirmed
+                      ? AppColors.primary
+                      : AppColors.primary.withValues(alpha: 0.3),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(AppRadius.cornerRaidus8),
+                    bottomLeft: Radius.circular(AppRadius.cornerRaidus8),
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-        trailing: isViewer || (onEdit == null && onDelete == null)
-            ? null
-            : PopupMenuButton<String>(
-                onSelected: (value) {
-                  if (value == 'edit') onEdit?.call();
-                  if (value == 'delete') onDelete?.call();
-                },
-                itemBuilder: (_) => const [
-                  PopupMenuItem(value: 'edit', child: Text('Edit')),
-                  PopupMenuItem(value: 'delete', child: Text('Delete')),
-                ],
+              // Content
+              Expanded(
+                child: ListTile(
+                  leading: CircleAvatar(
+                    child: Icon(_categoryIcon(item.category)),
+                  ),
+                  title: Text(
+                    item.label,
+                    style: confirmed
+                        ? null
+                        : const TextStyle(fontStyle: FontStyle.italic),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (!isViewer)
+                        Text(
+                          '${item.amount.toStringAsFixed(2)} \u20ac',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      if (item.date != null)
+                        Text(
+                          DateFormat('dd/MM/yyyy').format(item.date!),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      const SizedBox(height: AppSpacing.space4),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.space8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: confirmed
+                                  ? AppColors.success.withValues(alpha: 0.1)
+                                  : AppColors.warning.withValues(alpha: 0.1),
+                              borderRadius: AppRadius.pill,
+                            ),
+                            child: Text(
+                              confirmed
+                                  ? l10n.budgetConfirmed
+                                  : l10n.budgetForecasted,
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: confirmed
+                                        ? AppColors.success
+                                        : AppColors.warning,
+                                  ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  trailing: isViewer || (onEdit == null && onDelete == null)
+                      ? null
+                      : PopupMenuButton<String>(
+                          onSelected: (value) {
+                            if (value == 'edit') onEdit?.call();
+                            if (value == 'delete') onDelete?.call();
+                          },
+                          itemBuilder: (_) => [
+                            PopupMenuItem(
+                              value: 'edit',
+                              child: Text(l10n.editButton),
+                            ),
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: Text(l10n.deleteButton),
+                            ),
+                          ],
+                        ),
+                ),
               ),
+            ],
+          ),
+        ),
       ),
     );
   }

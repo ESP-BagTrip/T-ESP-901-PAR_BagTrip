@@ -171,6 +171,10 @@ from src.api.ai.accommodation_suggest_routes import router as ai_accommodation_s
 
 app.include_router(ai_accommodation_suggest_router)
 
+from src.api.ai.budget_estimate_routes import router as ai_budget_estimate_router
+
+app.include_router(ai_budget_estimate_router)
+
 from src.api.hotels.routes import router as hotel_search_router
 
 app.include_router(hotel_search_router)

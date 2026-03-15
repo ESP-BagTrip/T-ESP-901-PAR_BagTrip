@@ -9,7 +9,7 @@ import 'package:bagtrip/navigation/page_transitions.dart';
 import 'package:bagtrip/notifications/view/activity_page.dart';
 import 'package:bagtrip/notifications/view/notifications_page.dart';
 import 'package:bagtrip/accommodations/view/accommodations_page.dart';
-import 'package:bagtrip/pages/baggage_page.dart';
+import 'package:bagtrip/baggage/view/baggage_page.dart';
 import 'package:bagtrip/pages/feedback_page.dart';
 import 'package:bagtrip/pages/flight_search_result_page.dart';
 import 'package:bagtrip/pages/login_page.dart';
@@ -187,7 +187,7 @@ class BaggageRoute extends GoRouteData with $BaggageRoute {
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       buildSlideTransitionPage<void>(
         state: state,
-        child: BaggagePage(
+        child: BaggageBlocPage(
           tripId: tripId,
           role: role,
           isCompleted: isCompleted,

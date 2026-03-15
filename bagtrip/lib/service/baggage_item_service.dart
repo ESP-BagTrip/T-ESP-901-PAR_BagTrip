@@ -2,6 +2,7 @@ import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/logged_failure.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/baggage_item.dart';
+import 'package:bagtrip/models/suggested_baggage_item.dart';
 import 'package:bagtrip/repositories/baggage_repository.dart';
 import 'package:bagtrip/service/api_client.dart';
 import 'package:dio/dio.dart';
@@ -121,7 +122,7 @@ class BaggageRepositoryImpl implements BaggageRepository {
   }
 
   @override
-  Future<Result<List<Map<String, dynamic>>>> suggestBaggage(
+  Future<Result<List<SuggestedBaggageItem>>> suggestBaggage(
     String tripId,
   ) async {
     try {
@@ -131,7 +132,11 @@ class BaggageRepositoryImpl implements BaggageRepository {
         if (data is Map && data['items'] is List) {
           return Success(
             (data['items'] as List)
-                .map((item) => Map<String, dynamic>.from(item))
+                .map(
+                  (item) => SuggestedBaggageItem.fromJson(
+                    Map<String, dynamic>.from(item),
+                  ),
+                )
                 .toList(),
           );
         }
