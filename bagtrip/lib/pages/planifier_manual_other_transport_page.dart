@@ -5,7 +5,6 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
-import 'package:go_router/go_router.dart';
 
 /// Other transport form: type (car/train/bus/flight booked), details, budget.
 /// Shown when user selects "Non, autre transport" on Transport page. UI only.
@@ -40,13 +39,7 @@ class _PlanifierManualOtherTransportPageState
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              const PlanifierManualTransportRoute().go(context);
-            }
-          },
+          onPressed: () => const PlanifierManualTransportRoute().go(context),
         ),
         title: Text(
           l10n.otherTransportTitle,
@@ -136,30 +129,13 @@ class _PlanifierManualOtherTransportPageState
             ),
             const SizedBox(height: 32),
             _ContinueButton(
-              onPressed: () {
-                final types = ['car', 'train', 'bus', 'flight_booked'];
-                final result = {
-                  'type': types[_selectedTypeIndex],
-                  'details': _detailsController.text.trim(),
-                  'budget': _budgetController.text.trim(),
-                };
-                if (context.canPop()) {
-                  context.pop(result);
-                } else {
-                  const PlanifierManualTransportRoute().go(context);
-                }
-              },
+              onPressed: () =>
+                  const PlanifierManualTransportRoute().go(context),
             ),
             const SizedBox(height: 16),
             Center(
               child: GestureDetector(
-                onTap: () {
-                  if (context.canPop()) {
-                    context.pop();
-                  } else {
-                    const PlanifierManualTransportRoute().go(context);
-                  }
-                },
+                onTap: () => const PlanifierManualTransportRoute().go(context),
                 child: Text(
                   l10n.skipThisStepLabel,
                   style: const TextStyle(

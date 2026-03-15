@@ -5,7 +5,6 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
-import 'package:go_router/go_router.dart';
 
 /// Second step of manual trip planning: flight search form.
 /// Shown after the destination step when user taps "Suivant".
@@ -23,13 +22,7 @@ class PlanifierManualFlightPage extends StatelessWidget {
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                const PlanifierManualTransportRoute().go(context);
-              }
-            },
+            onPressed: () => const PlanifierManualTransportRoute().go(context),
           ),
           title: Text(
             l10n.findYourFlightTitle,

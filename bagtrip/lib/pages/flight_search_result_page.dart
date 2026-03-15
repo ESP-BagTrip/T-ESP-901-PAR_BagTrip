@@ -6,7 +6,6 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
-import 'package:go_router/go_router.dart';
 
 class FlightSearchResultPage extends StatelessWidget {
   final FlightSearchArguments arguments;
@@ -24,13 +23,7 @@ class FlightSearchResultPage extends StatelessWidget {
         foregroundColor: PersonalizationColors.textPrimary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              const PlanifierRoute().go(context);
-            }
-          },
+          onPressed: () => const PlanifierRoute().go(context),
         ),
       ),
       body: BlocProvider(

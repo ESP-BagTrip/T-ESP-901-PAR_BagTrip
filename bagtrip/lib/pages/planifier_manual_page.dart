@@ -3,7 +3,6 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/planifier_manual/destination/planifier_manual_destination_view.dart';
 import 'package:flutter/material.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
-import 'package:go_router/go_router.dart';
 
 class PlanifierManualPage extends StatelessWidget {
   const PlanifierManualPage({super.key});
@@ -17,13 +16,7 @@ class PlanifierManualPage extends StatelessWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              const PlanifierRoute().go(context);
-            }
-          },
+          onPressed: () => const PlanifierRoute().go(context),
         ),
         title: Text(
           l10n.yourDestinationTitle,

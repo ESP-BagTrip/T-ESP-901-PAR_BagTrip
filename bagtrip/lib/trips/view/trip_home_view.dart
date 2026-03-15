@@ -13,7 +13,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
-import 'package:go_router/go_router.dart';
 
 class TripHomeView extends StatelessWidget {
   final String tripId;
@@ -84,13 +83,7 @@ class TripHomeView extends StatelessWidget {
                                 : Icons.arrow_back,
                             color: Colors.white,
                           ),
-                          onPressed: () {
-                            if (context.canPop()) {
-                              context.pop();
-                            } else {
-                              const TripsRoute().go(context);
-                            }
-                          },
+                          onPressed: () => const TripsRoute().go(context),
                         ),
                       ),
                       if (!isViewer)
