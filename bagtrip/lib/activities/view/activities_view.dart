@@ -4,6 +4,7 @@ import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/components/paginated_list.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
+import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:bagtrip/activities/widgets/activity_card.dart';
@@ -20,12 +21,14 @@ class ActivitiesView extends StatelessWidget {
   final String tripId;
   final String role;
   final bool isCompleted;
+  final DateTime? tripStartDate;
 
   const ActivitiesView({
     super.key,
     required this.tripId,
     this.role = 'OWNER',
     this.isCompleted = false,
+    this.tripStartDate,
   });
 
   @override
@@ -92,46 +95,95 @@ class ActivitiesView extends StatelessWidget {
                   ? state.isLoadingMore
                   : (state as ActivitySuggestionsLoaded).isLoadingMore;
 
-              return PaginatedList<Activity>(
-                items: activities,
-                hasMore: hasMore,
-                isLoadingMore: isLoadingMore,
-                onLoadMore: () => context.read<ActivityBloc>().add(
-                  LoadMoreActivities(tripId: tripId),
-                ),
-                onRefresh: () async {
-                  context.read<ActivityBloc>().add(
-                    LoadActivities(tripId: tripId),
-                  );
-                },
-                padding: const EdgeInsets.all(16),
-                emptyWidget: EmptyState(
-                  icon: Icons.event_outlined,
-                  title: AppLocalizations.of(context)!.activitiesEmpty,
-                  subtitle: AppLocalizations.of(
-                    context,
-                  )!.activitiesEmptySubtitle,
-                ),
-                groupBy: _groupByDay,
-                sectionHeaderBuilder: (context, dateKey) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text(
-                    DateFormat(
-                      'EEEE d MMMM yyyy',
-                    ).format(DateTime.parse(dateKey)),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+              final hasSuggested = activities.any(
+                (a) => a.validationStatus == ValidationStatus.suggested,
+              );
+
+              return Column(
+                children: [
+                  if (hasSuggested)
+                    Container(
+                      margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: PersonalizationColors.accentBlue.withValues(
+                          alpha: 0.08,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.auto_awesome,
+                            size: 16,
+                            color: PersonalizationColors.accentBlue,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              AppLocalizations.of(
+                                context,
+                              )!.activityDisclaimerSubtitle,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: PersonalizationColors.accentBlue,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  Expanded(
+                    child: PaginatedList<Activity>(
+                      items: activities,
+                      hasMore: hasMore,
+                      isLoadingMore: isLoadingMore,
+                      onLoadMore: () => context.read<ActivityBloc>().add(
+                        LoadMoreActivities(tripId: tripId),
+                      ),
+                      onRefresh: () async {
+                        context.read<ActivityBloc>().add(
+                          LoadActivities(tripId: tripId),
+                        );
+                      },
+                      padding: const EdgeInsets.all(16),
+                      emptyWidget: EmptyState(
+                        icon: Icons.event_outlined,
+                        title: AppLocalizations.of(context)!.activitiesEmpty,
+                        subtitle: AppLocalizations.of(
+                          context,
+                        )!.activitiesEmptySubtitle,
+                      ),
+                      groupBy: _groupByDay,
+                      sectionHeaderBuilder: (context, dateKey) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          DateFormat(
+                            'EEEE d MMMM yyyy',
+                          ).format(DateTime.parse(dateKey)),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      itemBuilder: (context, activity, _) => ActivityCard(
+                        activity: activity,
+                        isViewer: role == 'VIEWER' || isCompleted,
+                        onEdit: () =>
+                            _showForm(context, tripId, activity: activity),
+                        onDelete: () => context.read<ActivityBloc>().add(
+                          DeleteActivity(
+                            tripId: tripId,
+                            activityId: activity.id,
+                          ),
+                        ),
+                        onValidate: () => _showValidateModal(context, activity),
+                      ),
                     ),
                   ),
-                ),
-                itemBuilder: (context, activity, _) => ActivityCard(
-                  activity: activity,
-                  isViewer: role == 'VIEWER' || isCompleted,
-                  onEdit: () => _showForm(context, tripId, activity: activity),
-                  onDelete: () => context.read<ActivityBloc>().add(
-                    DeleteActivity(tripId: tripId, activityId: activity.id),
-                  ),
-                ),
+                ],
               );
             }
             return const SizedBox.shrink();
@@ -237,10 +289,38 @@ class ActivitiesView extends StatelessWidget {
             itemCount: suggestions.length,
             itemBuilder: (_, index) {
               final s = suggestions[index];
+              final suggestedDay = s['suggestedDay'] as int?;
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
-                  title: Text(s['title'] ?? ''),
+                  title: Row(
+                    children: [
+                      Flexible(child: Text(s['title'] ?? '')),
+                      if (suggestedDay != null) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: PersonalizationColors.accentBlue.withValues(
+                              alpha: 0.1,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Jour $suggestedDay',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: PersonalizationColors.accentBlue,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -277,6 +357,17 @@ class ActivitiesView extends StatelessWidget {
                   trailing: IconButton(
                     icon: const Icon(Icons.add_circle, color: Colors.green),
                     onPressed: () {
+                      String activityDate;
+                      if (suggestedDay != null && tripStartDate != null) {
+                        activityDate = tripStartDate!
+                            .add(Duration(days: suggestedDay - 1))
+                            .toIso8601String()
+                            .split('T')[0];
+                      } else {
+                        activityDate = DateTime.now().toIso8601String().split(
+                          'T',
+                        )[0];
+                      }
                       context.read<ActivityBloc>().add(
                         AddSuggestedActivity(
                           tripId: tripId,
@@ -286,9 +377,8 @@ class ActivitiesView extends StatelessWidget {
                             'category': s['category'] ?? 'OTHER',
                             'estimatedCost': s['estimatedCost'],
                             'location': s['location'],
-                            'date': DateTime.now().toIso8601String().split(
-                              'T',
-                            )[0],
+                            'date': activityDate,
+                            'validationStatus': 'SUGGESTED',
                           },
                         ),
                       );
@@ -326,6 +416,79 @@ class ActivitiesView extends StatelessWidget {
           }
           Navigator.of(context).pop();
         },
+      ),
+    );
+  }
+
+  void _showValidateModal(BuildContext context, Activity activity) {
+    final l10n = AppLocalizations.of(context)!;
+    final costController = TextEditingController(
+      text: activity.estimatedCost?.toStringAsFixed(2) ?? '',
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => Padding(
+        padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 24,
+          bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.activityValidateConfirmTitle,
+              style: Theme.of(
+                sheetContext,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.activityValidateConfirmMessage,
+              style: Theme.of(
+                sheetContext,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: costController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: InputDecoration(
+                labelText: l10n.activityValidateCostLabel,
+                border: const OutlineInputBorder(),
+                prefixText: '\u20ac ',
+              ),
+            ),
+            const SizedBox(height: 20),
+            FilledButton(
+              onPressed: () {
+                final newCost = double.tryParse(costController.text);
+                final data = <String, dynamic>{'validationStatus': 'VALIDATED'};
+                if (newCost != null) {
+                  data['estimatedCost'] = newCost;
+                }
+                context.read<ActivityBloc>().add(
+                  UpdateActivity(
+                    tripId: tripId,
+                    activityId: activity.id,
+                    data: data,
+                  ),
+                );
+                Navigator.of(sheetContext).pop();
+              },
+              child: Text(l10n.activityValidateConfirm),
+            ),
+          ],
+        ),
       ),
     );
   }

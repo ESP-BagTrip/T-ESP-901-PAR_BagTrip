@@ -20,6 +20,13 @@ _Activity _$ActivityFromJson(Map<String, dynamic> json) => _Activity(
       ActivityCategory.other,
   estimatedCost: (json['estimatedCost'] as num?)?.toDouble(),
   isBooked: json['isBooked'] as bool? ?? false,
+  validationStatus:
+      $enumDecodeNullable(
+        _$ValidationStatusEnumMap,
+        json['validationStatus'],
+      ) ??
+      ValidationStatus.manual,
+  suggestedDay: (json['suggestedDay'] as num?)?.toInt(),
   createdAt: json['createdAt'] == null
       ? null
       : DateTime.parse(json['createdAt'] as String),
@@ -40,6 +47,8 @@ Map<String, dynamic> _$ActivityToJson(_Activity instance) => <String, dynamic>{
   'category': _$ActivityCategoryEnumMap[instance.category]!,
   'estimatedCost': instance.estimatedCost,
   'isBooked': instance.isBooked,
+  'validationStatus': _$ValidationStatusEnumMap[instance.validationStatus]!,
+  'suggestedDay': instance.suggestedDay,
   'createdAt': instance.createdAt?.toIso8601String(),
   'updatedAt': instance.updatedAt?.toIso8601String(),
 };
@@ -50,4 +59,10 @@ const _$ActivityCategoryEnumMap = {
   ActivityCategory.transport: 'TRANSPORT',
   ActivityCategory.leisure: 'LEISURE',
   ActivityCategory.other: 'OTHER',
+};
+
+const _$ValidationStatusEnumMap = {
+  ValidationStatus.suggested: 'SUGGESTED',
+  ValidationStatus.validated: 'VALIDATED',
+  ValidationStatus.manual: 'MANUAL',
 };

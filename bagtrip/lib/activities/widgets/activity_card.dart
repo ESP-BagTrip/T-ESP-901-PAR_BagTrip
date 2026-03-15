@@ -1,3 +1,4 @@
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:flutter/material.dart';
 
@@ -5,6 +6,7 @@ class ActivityCard extends StatelessWidget {
   final Activity activity;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback? onValidate;
   final bool isViewer;
 
   const ActivityCard({
@@ -12,6 +14,7 @@ class ActivityCard extends StatelessWidget {
     required this.activity,
     required this.onEdit,
     required this.onDelete,
+    this.onValidate,
     this.isViewer = false,
   });
 
@@ -32,11 +35,50 @@ class ActivityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: CircleAvatar(child: Icon(_categoryIcon(activity.category))),
-        title: Text(activity.title),
+        title: Row(
+          children: [
+            Flexible(child: Text(activity.title)),
+            if (activity.validationStatus == ValidationStatus.suggested)
+              Container(
+                margin: const EdgeInsets.only(left: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF3E0),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  l10n.activityToValidate,
+                  style: const TextStyle(
+                    color: Color(0xFFFF9800),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            if (activity.validationStatus == ValidationStatus.validated)
+              Container(
+                margin: const EdgeInsets.only(left: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  l10n.activityValidated,
+                  style: const TextStyle(
+                    color: Color(0xFF4CAF50),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+          ],
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -68,10 +110,19 @@ class ActivityCard extends StatelessWidget {
                 onSelected: (value) {
                   if (value == 'edit') onEdit();
                   if (value == 'delete') onDelete();
+                  if (value == 'validate') onValidate?.call();
                 },
-                itemBuilder: (_) => const [
-                  PopupMenuItem(value: 'edit', child: Text('Edit')),
-                  PopupMenuItem(value: 'delete', child: Text('Delete')),
+                itemBuilder: (_) => [
+                  PopupMenuItem(value: 'edit', child: Text(l10n.editButton)),
+                  if (activity.validationStatus == ValidationStatus.suggested)
+                    PopupMenuItem(
+                      value: 'validate',
+                      child: Text(l10n.activityValidateConfirm),
+                    ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Text(l10n.deleteButton),
+                  ),
                 ],
               ),
       ),

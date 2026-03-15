@@ -686,5 +686,13 @@
   "flightStatusDelayed": "Delayed",
   "flightStatusCancelled": "Cancelled",
   "flightStatusLanded": "Landed",
-  "flightStatusScheduled": "Scheduled"
+  "flightStatusScheduled": "Scheduled",
+  "editButton": "Edit",
+  "activityToValidate": "To verify",
+  "activityValidated": "Verified",
+  "activityDisclaimerSubtitle": "AI Suggestions \u2014 verify availability and prices",
+  "activityValidateConfirmTitle": "Verify this activity?",
+  "activityValidateConfirmMessage": "You can adjust the estimated cost if needed.",
+  "activityValidateCostLabel": "Actual cost (optional)",
+  "activityValidateConfirm": "Confirm"
 }

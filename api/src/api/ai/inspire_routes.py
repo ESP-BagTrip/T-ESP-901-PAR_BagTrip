@@ -15,6 +15,7 @@ from src.config.database import get_db
 from src.models.user import User
 from src.services.inspire_ai_service import InspireAIService
 from src.services.plan_service import PlanService
+from src.services.profile_service import ProfileService
 from src.utils.errors import AppError, create_http_exception
 
 router = APIRouter(prefix="/v1/ai", tags=["AI Inspiration"])
@@ -28,11 +29,16 @@ async def inspire(
 ):
     """Génère des suggestions de voyages inspirantes via IA."""
     try:
+        profile = ProfileService.get_profile(db, current_user.id)
         result = InspireAIService.generate_inspiration(
-            travel_types=request.travelTypes,
-            budget_range=request.budgetRange,
+            travel_types=request.travelTypes or (", ".join(profile.travel_types) if profile and profile.travel_types else None),
+            budget_range=request.budgetRange or (profile.budget if profile else None),
             duration_days=request.durationDays,
-            companions=request.companions,
+            companions=request.companions or (profile.companions if profile else None),
+            travel_style=profile.travel_style if profile else None,
+            nb_travelers=request.nbTravelers,
+            start_date=request.startDate,
+            end_date=request.endDate,
             season=request.season,
             constraints=request.constraints,
         )

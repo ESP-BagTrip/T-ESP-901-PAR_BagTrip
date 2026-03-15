@@ -1760,4 +1760,30 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get flightStatusScheduled => 'Programmé';
+
+  @override
+  String get editButton => 'Modifier';
+
+  @override
+  String get activityToValidate => 'À vérifier';
+
+  @override
+  String get activityValidated => 'Vérifié';
+
+  @override
+  String get activityDisclaimerSubtitle =>
+      'Suggestions IA — vérifiez disponibilité et tarifs';
+
+  @override
+  String get activityValidateConfirmTitle => 'Vérifier cette activité ?';
+
+  @override
+  String get activityValidateConfirmMessage =>
+      'Vous pouvez ajuster le coût estimé si besoin.';
+
+  @override
+  String get activityValidateCostLabel => 'Coût réel (optionnel)';
+
+  @override
+  String get activityValidateConfirm => 'Confirmer';
 }

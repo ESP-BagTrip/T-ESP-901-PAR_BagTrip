@@ -41,6 +41,7 @@ async def create_activity(
             category=request.category or "OTHER",
             estimated_cost=request.estimatedCost,
             is_booked=request.isBooked or False,
+            validation_status=request.validationStatus or "MANUAL",
         )
         return ActivityResponse.model_validate(activity)
     except AppError as e:
@@ -106,6 +107,7 @@ async def update_activity(
             category=request.category,
             estimated_cost=request.estimatedCost,
             is_booked=request.isBooked,
+            validation_status=request.validationStatus,
         )
         return ActivityResponse.model_validate(activity)
     except AppError as e:

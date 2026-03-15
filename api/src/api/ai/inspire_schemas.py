@@ -10,6 +10,9 @@ class InspireRequest(BaseModel):
     companions: str | None = None
     season: str | None = None
     constraints: str | None = None
+    startDate: str | None = None
+    endDate: str | None = None
+    nbTravelers: int | None = None
 
 
 class SuggestedActivity(BaseModel):
@@ -26,6 +29,7 @@ class TripSuggestion(BaseModel):
     budgetEur: int
     description: str
     activities: list[SuggestedActivity] = []
+    matchReason: str | None = None
 
 
 class InspireResponse(BaseModel):

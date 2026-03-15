@@ -1742,4 +1742,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get flightStatusScheduled => 'Scheduled';
+
+  @override
+  String get editButton => 'Edit';
+
+  @override
+  String get activityToValidate => 'To verify';
+
+  @override
+  String get activityValidated => 'Verified';
+
+  @override
+  String get activityDisclaimerSubtitle =>
+      'AI Suggestions — verify availability and prices';
+
+  @override
+  String get activityValidateConfirmTitle => 'Verify this activity?';
+
+  @override
+  String get activityValidateConfirmMessage =>
+      'You can adjust the estimated cost if needed.';
+
+  @override
+  String get activityValidateCostLabel => 'Actual cost (optional)';
+
+  @override
+  String get activityValidateConfirm => 'Confirm';
 }

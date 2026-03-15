@@ -17,6 +17,16 @@ enum ActivityCategory {
   other,
 }
 
+@JsonEnum(alwaysCreate: true)
+enum ValidationStatus {
+  @JsonValue('SUGGESTED')
+  suggested,
+  @JsonValue('VALIDATED')
+  validated,
+  @JsonValue('MANUAL')
+  manual,
+}
+
 @freezed
 abstract class Activity with _$Activity {
   const factory Activity({
@@ -31,6 +41,8 @@ abstract class Activity with _$Activity {
     @Default(ActivityCategory.other) ActivityCategory category,
     double? estimatedCost,
     @Default(false) bool isBooked,
+    @Default(ValidationStatus.manual) ValidationStatus validationStatus,
+    int? suggestedDay,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _Activity;

@@ -26,6 +26,7 @@ Réponds UNIQUEMENT en JSON valide avec cette structure exacte :
       "durationDays": 7,
       "budgetEur": 1500,
       "description": "Description inspirante du voyage",
+      "matchReason": "Parfait pour votre envie de nature et de randonnée",
       "activities": [
         {
           "title": "Nom de l'activité",
@@ -38,6 +39,8 @@ Réponds UNIQUEMENT en JSON valide avec cette structure exacte :
   ]
 }
 
+Pour chaque destination, ajoute un `matchReason` — une phrase courte et chaleureuse expliquant pourquoi cette destination correspond au profil (ex: 'Parfait pour votre envie de...', 'Idéal pour un voyage en...').
+Utilise le profil complet pour personnaliser chaque suggestion.
 Sois créatif et varié dans tes suggestions. Propose des destinations différentes adaptées aux préférences."""
 
     @staticmethod
@@ -48,6 +51,10 @@ Sois créatif et varié dans tes suggestions. Propose des destinations différen
         companions: str | None = None,
         season: str | None = None,
         constraints: str | None = None,
+        travel_style: str | None = None,
+        nb_travelers: int | None = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
     ) -> dict:
         """Génère des suggestions de voyage via LLM."""
         parts = []
@@ -59,6 +66,14 @@ Sois créatif et varié dans tes suggestions. Propose des destinations différen
             parts.append(f"Durée souhaitée : {duration_days} jours")
         if companions:
             parts.append(f"Compagnons : {companions}")
+        if travel_style:
+            parts.append(f"Style de voyage : {travel_style}")
+        if nb_travelers and nb_travelers > 1:
+            parts.append(f"Nombre de voyageurs : {nb_travelers}")
+        if start_date:
+            parts.append(f"Date de départ : {start_date}")
+        if end_date:
+            parts.append(f"Date de retour : {end_date}")
         if season:
             parts.append(f"Saison : {season}")
         if constraints:
@@ -132,6 +147,7 @@ Sois créatif et varié dans tes suggestions. Propose des destinations différen
                     date=activity_date,
                     category=act.get("category", "OTHER"),
                     estimated_cost=act.get("estimatedCost"),
+                    validation_status="SUGGESTED",
                 )
                 db.add(activity)
 

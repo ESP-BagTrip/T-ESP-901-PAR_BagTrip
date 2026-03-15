@@ -76,6 +76,12 @@ class NotificationType(StrEnum):
     ADMIN = "ADMIN"
 
 
+class ValidationStatus(StrEnum):
+    SUGGESTED = "SUGGESTED"
+    VALIDATED = "VALIDATED"
+    MANUAL = "MANUAL"
+
+
 class FlightType(StrEnum):
     MAIN = "MAIN"
     INTERNAL = "INTERNAL"

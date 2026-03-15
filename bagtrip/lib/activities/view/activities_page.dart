@@ -7,12 +7,14 @@ class ActivitiesPage extends StatelessWidget {
   final String tripId;
   final String role;
   final bool isCompleted;
+  final DateTime? tripStartDate;
 
   const ActivitiesPage({
     super.key,
     required this.tripId,
     this.role = 'OWNER',
     this.isCompleted = false,
+    this.tripStartDate,
   });
 
   @override
@@ -23,6 +25,7 @@ class ActivitiesPage extends StatelessWidget {
         tripId: tripId,
         role: role,
         isCompleted: isCompleted,
+        tripStartDate: tripStartDate,
       ),
     );
   }

@@ -19,6 +19,7 @@ _AiTripProposal _$AiTripProposalFromJson(Map<String, dynamic> json) =>
               ?.map((e) => e as Map<String, dynamic>)
               .toList() ??
           const [],
+      matchReason: json['matchReason'] as String?,
     );
 
 Map<String, dynamic> _$AiTripProposalToJson(_AiTripProposal instance) =>
@@ -30,4 +31,5 @@ Map<String, dynamic> _$AiTripProposalToJson(_AiTripProposal instance) =>
       'budgetEur': instance.priceEur,
       'description': instance.description,
       'activities': instance.activities,
+      'matchReason': instance.matchReason,
     };

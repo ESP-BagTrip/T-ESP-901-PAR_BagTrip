@@ -36,6 +36,7 @@ class ActivityService:
         category: str = "OTHER",
         estimated_cost: float | None = None,
         is_booked: bool = False,
+        validation_status: str = "MANUAL",
     ) -> Activity:
         ActivityService._check_trip_not_completed(trip)
         activity = Activity(
@@ -49,6 +50,7 @@ class ActivityService:
             category=category,
             estimated_cost=estimated_cost,
             is_booked=is_booked,
+            validation_status=validation_status,
         )
         db.add(activity)
         db.commit()
@@ -104,6 +106,7 @@ class ActivityService:
         category: str | None = None,
         estimated_cost: float | None = None,
         is_booked: bool | None = None,
+        validation_status: str | None = None,
     ) -> Activity:
         ActivityService._check_trip_not_completed(trip)
         activity = ActivityService.get_by_id(db, activity_id, trip.id)
@@ -126,6 +129,8 @@ class ActivityService:
             activity.estimated_cost = estimated_cost
         if is_booked is not None:
             activity.is_booked = is_booked
+        if validation_status is not None:
+            activity.validation_status = validation_status
 
         db.commit()
         db.refresh(activity)

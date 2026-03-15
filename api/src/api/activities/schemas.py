@@ -17,6 +17,7 @@ class ActivityCreateRequest(BaseModel):
     category: ActivityCategory | None = None
     estimatedCost: float | None = None
     isBooked: bool | None = None
+    validationStatus: str | None = None
 
 
 class ActivityUpdateRequest(BaseModel):
@@ -29,6 +30,7 @@ class ActivityUpdateRequest(BaseModel):
     category: ActivityCategory | None = None
     estimatedCost: float | None = None
     isBooked: bool | None = None
+    validationStatus: str | None = None
 
 
 class ActivityResponse(BaseModel):
@@ -43,6 +45,7 @@ class ActivityResponse(BaseModel):
     category: str
     estimatedCost: float | None = Field(default=None, alias="estimated_cost")
     isBooked: bool = Field(alias="is_booked")
+    validationStatus: str = Field(default="MANUAL", alias="validation_status")
     createdAt: str = Field(alias="created_at")
     updatedAt: str = Field(alias="updated_at")
 

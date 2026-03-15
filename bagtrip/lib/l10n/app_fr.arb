@@ -686,5 +686,13 @@
   "flightStatusDelayed": "Retard\u00e9",
   "flightStatusCancelled": "Annul\u00e9",
   "flightStatusLanded": "Atterri",
-  "flightStatusScheduled": "Programm\u00e9"
+  "flightStatusScheduled": "Programm\u00e9",
+  "editButton": "Modifier",
+  "activityToValidate": "\u00c0 v\u00e9rifier",
+  "activityValidated": "V\u00e9rifi\u00e9",
+  "activityDisclaimerSubtitle": "Suggestions IA \u2014 v\u00e9rifiez disponibilit\u00e9 et tarifs",
+  "activityValidateConfirmTitle": "V\u00e9rifier cette activit\u00e9 ?",
+  "activityValidateConfirmMessage": "Vous pouvez ajuster le co\u00fbt estim\u00e9 si besoin.",
+  "activityValidateCostLabel": "Co\u00fbt r\u00e9el (optionnel)",
+  "activityValidateConfirm": "Confirmer"
 }

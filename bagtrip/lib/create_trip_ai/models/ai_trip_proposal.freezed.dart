@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AiTripProposal {
 
- String get id; String get destination; String get destinationCountry; int get durationDays;@JsonKey(name: 'budgetEur') int get priceEur; String get description; List<Map<String, dynamic>> get activities;
+ String get id; String get destination; String get destinationCountry; int get durationDays;@JsonKey(name: 'budgetEur') int get priceEur; String get description; List<Map<String, dynamic>> get activities; String? get matchReason;
 /// Create a copy of AiTripProposal
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $AiTripProposalCopyWith<AiTripProposal> get copyWith => _$AiTripProposalCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AiTripProposal&&(identical(other.id, id) || other.id == id)&&(identical(other.destination, destination) || other.destination == destination)&&(identical(other.destinationCountry, destinationCountry) || other.destinationCountry == destinationCountry)&&(identical(other.durationDays, durationDays) || other.durationDays == durationDays)&&(identical(other.priceEur, priceEur) || other.priceEur == priceEur)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other.activities, activities));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AiTripProposal&&(identical(other.id, id) || other.id == id)&&(identical(other.destination, destination) || other.destination == destination)&&(identical(other.destinationCountry, destinationCountry) || other.destinationCountry == destinationCountry)&&(identical(other.durationDays, durationDays) || other.durationDays == durationDays)&&(identical(other.priceEur, priceEur) || other.priceEur == priceEur)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other.activities, activities)&&(identical(other.matchReason, matchReason) || other.matchReason == matchReason));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,destination,destinationCountry,durationDays,priceEur,description,const DeepCollectionEquality().hash(activities));
+int get hashCode => Object.hash(runtimeType,id,destination,destinationCountry,durationDays,priceEur,description,const DeepCollectionEquality().hash(activities),matchReason);
 
 @override
 String toString() {
-  return 'AiTripProposal(id: $id, destination: $destination, destinationCountry: $destinationCountry, durationDays: $durationDays, priceEur: $priceEur, description: $description, activities: $activities)';
+  return 'AiTripProposal(id: $id, destination: $destination, destinationCountry: $destinationCountry, durationDays: $durationDays, priceEur: $priceEur, description: $description, activities: $activities, matchReason: $matchReason)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $AiTripProposalCopyWith<$Res>  {
   factory $AiTripProposalCopyWith(AiTripProposal value, $Res Function(AiTripProposal) _then) = _$AiTripProposalCopyWithImpl;
 @useResult
 $Res call({
- String id, String destination, String destinationCountry, int durationDays,@JsonKey(name: 'budgetEur') int priceEur, String description, List<Map<String, dynamic>> activities
+ String id, String destination, String destinationCountry, int durationDays,@JsonKey(name: 'budgetEur') int priceEur, String description, List<Map<String, dynamic>> activities, String? matchReason
 });
 
 
@@ -65,7 +65,7 @@ class _$AiTripProposalCopyWithImpl<$Res>
 
 /// Create a copy of AiTripProposal
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? destination = null,Object? destinationCountry = null,Object? durationDays = null,Object? priceEur = null,Object? description = null,Object? activities = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? destination = null,Object? destinationCountry = null,Object? durationDays = null,Object? priceEur = null,Object? description = null,Object? activities = null,Object? matchReason = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,destination: null == destination ? _self.destination : destination // ignore: cast_nullable_to_non_nullable
@@ -74,7 +74,8 @@ as String,durationDays: null == durationDays ? _self.durationDays : durationDays
 as int,priceEur: null == priceEur ? _self.priceEur : priceEur // ignore: cast_nullable_to_non_nullable
 as int,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,activities: null == activities ? _self.activities : activities // ignore: cast_nullable_to_non_nullable
-as List<Map<String, dynamic>>,
+as List<Map<String, dynamic>>,matchReason: freezed == matchReason ? _self.matchReason : matchReason // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -159,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String destination,  String destinationCountry,  int durationDays, @JsonKey(name: 'budgetEur')  int priceEur,  String description,  List<Map<String, dynamic>> activities)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String destination,  String destinationCountry,  int durationDays, @JsonKey(name: 'budgetEur')  int priceEur,  String description,  List<Map<String, dynamic>> activities,  String? matchReason)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AiTripProposal() when $default != null:
-return $default(_that.id,_that.destination,_that.destinationCountry,_that.durationDays,_that.priceEur,_that.description,_that.activities);case _:
+return $default(_that.id,_that.destination,_that.destinationCountry,_that.durationDays,_that.priceEur,_that.description,_that.activities,_that.matchReason);case _:
   return orElse();
 
 }
@@ -180,10 +181,10 @@ return $default(_that.id,_that.destination,_that.destinationCountry,_that.durati
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String destination,  String destinationCountry,  int durationDays, @JsonKey(name: 'budgetEur')  int priceEur,  String description,  List<Map<String, dynamic>> activities)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String destination,  String destinationCountry,  int durationDays, @JsonKey(name: 'budgetEur')  int priceEur,  String description,  List<Map<String, dynamic>> activities,  String? matchReason)  $default,) {final _that = this;
 switch (_that) {
 case _AiTripProposal():
-return $default(_that.id,_that.destination,_that.destinationCountry,_that.durationDays,_that.priceEur,_that.description,_that.activities);case _:
+return $default(_that.id,_that.destination,_that.destinationCountry,_that.durationDays,_that.priceEur,_that.description,_that.activities,_that.matchReason);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,10 +201,10 @@ return $default(_that.id,_that.destination,_that.destinationCountry,_that.durati
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String destination,  String destinationCountry,  int durationDays, @JsonKey(name: 'budgetEur')  int priceEur,  String description,  List<Map<String, dynamic>> activities)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String destination,  String destinationCountry,  int durationDays, @JsonKey(name: 'budgetEur')  int priceEur,  String description,  List<Map<String, dynamic>> activities,  String? matchReason)?  $default,) {final _that = this;
 switch (_that) {
 case _AiTripProposal() when $default != null:
-return $default(_that.id,_that.destination,_that.destinationCountry,_that.durationDays,_that.priceEur,_that.description,_that.activities);case _:
+return $default(_that.id,_that.destination,_that.destinationCountry,_that.durationDays,_that.priceEur,_that.description,_that.activities,_that.matchReason);case _:
   return null;
 
 }
@@ -215,7 +216,7 @@ return $default(_that.id,_that.destination,_that.destinationCountry,_that.durati
 @JsonSerializable()
 
 class _AiTripProposal implements AiTripProposal {
-  const _AiTripProposal({this.id = '', this.destination = '', this.destinationCountry = '', this.durationDays = 0, @JsonKey(name: 'budgetEur') this.priceEur = 0, this.description = '', final  List<Map<String, dynamic>> activities = const []}): _activities = activities;
+  const _AiTripProposal({this.id = '', this.destination = '', this.destinationCountry = '', this.durationDays = 0, @JsonKey(name: 'budgetEur') this.priceEur = 0, this.description = '', final  List<Map<String, dynamic>> activities = const [], this.matchReason}): _activities = activities;
   factory _AiTripProposal.fromJson(Map<String, dynamic> json) => _$AiTripProposalFromJson(json);
 
 @override@JsonKey() final  String id;
@@ -231,6 +232,7 @@ class _AiTripProposal implements AiTripProposal {
   return EqualUnmodifiableListView(_activities);
 }
 
+@override final  String? matchReason;
 
 /// Create a copy of AiTripProposal
 /// with the given fields replaced by the non-null parameter values.
@@ -245,16 +247,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AiTripProposal&&(identical(other.id, id) || other.id == id)&&(identical(other.destination, destination) || other.destination == destination)&&(identical(other.destinationCountry, destinationCountry) || other.destinationCountry == destinationCountry)&&(identical(other.durationDays, durationDays) || other.durationDays == durationDays)&&(identical(other.priceEur, priceEur) || other.priceEur == priceEur)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other._activities, _activities));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AiTripProposal&&(identical(other.id, id) || other.id == id)&&(identical(other.destination, destination) || other.destination == destination)&&(identical(other.destinationCountry, destinationCountry) || other.destinationCountry == destinationCountry)&&(identical(other.durationDays, durationDays) || other.durationDays == durationDays)&&(identical(other.priceEur, priceEur) || other.priceEur == priceEur)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other._activities, _activities)&&(identical(other.matchReason, matchReason) || other.matchReason == matchReason));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,destination,destinationCountry,durationDays,priceEur,description,const DeepCollectionEquality().hash(_activities));
+int get hashCode => Object.hash(runtimeType,id,destination,destinationCountry,durationDays,priceEur,description,const DeepCollectionEquality().hash(_activities),matchReason);
 
 @override
 String toString() {
-  return 'AiTripProposal(id: $id, destination: $destination, destinationCountry: $destinationCountry, durationDays: $durationDays, priceEur: $priceEur, description: $description, activities: $activities)';
+  return 'AiTripProposal(id: $id, destination: $destination, destinationCountry: $destinationCountry, durationDays: $durationDays, priceEur: $priceEur, description: $description, activities: $activities, matchReason: $matchReason)';
 }
 
 
@@ -265,7 +267,7 @@ abstract mixin class _$AiTripProposalCopyWith<$Res> implements $AiTripProposalCo
   factory _$AiTripProposalCopyWith(_AiTripProposal value, $Res Function(_AiTripProposal) _then) = __$AiTripProposalCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String destination, String destinationCountry, int durationDays,@JsonKey(name: 'budgetEur') int priceEur, String description, List<Map<String, dynamic>> activities
+ String id, String destination, String destinationCountry, int durationDays,@JsonKey(name: 'budgetEur') int priceEur, String description, List<Map<String, dynamic>> activities, String? matchReason
 });
 
 
@@ -282,7 +284,7 @@ class __$AiTripProposalCopyWithImpl<$Res>
 
 /// Create a copy of AiTripProposal
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? destination = null,Object? destinationCountry = null,Object? durationDays = null,Object? priceEur = null,Object? description = null,Object? activities = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? destination = null,Object? destinationCountry = null,Object? durationDays = null,Object? priceEur = null,Object? description = null,Object? activities = null,Object? matchReason = freezed,}) {
   return _then(_AiTripProposal(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,destination: null == destination ? _self.destination : destination // ignore: cast_nullable_to_non_nullable
@@ -291,7 +293,8 @@ as String,durationDays: null == durationDays ? _self.durationDays : durationDays
 as int,priceEur: null == priceEur ? _self.priceEur : priceEur // ignore: cast_nullable_to_non_nullable
 as int,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,activities: null == activities ? _self._activities : activities // ignore: cast_nullable_to_non_nullable
-as List<Map<String, dynamic>>,
+as List<Map<String, dynamic>>,matchReason: freezed == matchReason ? _self.matchReason : matchReason // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

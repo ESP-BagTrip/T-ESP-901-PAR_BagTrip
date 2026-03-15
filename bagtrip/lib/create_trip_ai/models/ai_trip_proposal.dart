@@ -14,6 +14,7 @@ abstract class AiTripProposal with _$AiTripProposal {
     @JsonKey(name: 'budgetEur') @Default(0) int priceEur,
     @Default('') String description,
     @Default([]) List<Map<String, dynamic>> activities,
+    String? matchReason,
   }) = _AiTripProposal;
 
   factory AiTripProposal.fromJson(Map<String, dynamic> json) =>

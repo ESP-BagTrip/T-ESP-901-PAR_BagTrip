@@ -200,11 +200,13 @@ class ActivitiesRoute extends GoRouteData with $ActivitiesRoute {
     required this.tripId,
     this.role = 'OWNER',
     this.isCompleted = false,
+    this.tripStartDate,
   });
 
   final String tripId;
   final String role;
   final bool isCompleted;
+  final String? tripStartDate;
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
@@ -214,6 +216,9 @@ class ActivitiesRoute extends GoRouteData with $ActivitiesRoute {
           tripId: tripId,
           role: role,
           isCompleted: isCompleted,
+          tripStartDate: tripStartDate != null
+              ? DateTime.tryParse(tripStartDate!)
+              : null,
         ),
       );
 }

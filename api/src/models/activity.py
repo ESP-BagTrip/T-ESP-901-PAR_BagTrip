@@ -22,6 +22,7 @@ class Activity(Base):
     category = Column(String, nullable=False, default="OTHER")
     estimated_cost = Column(Numeric(12, 2), nullable=True)
     is_booked = Column(Boolean, nullable=False, default=False)
+    validation_status = Column(String, nullable=False, default="MANUAL", server_default="MANUAL")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 

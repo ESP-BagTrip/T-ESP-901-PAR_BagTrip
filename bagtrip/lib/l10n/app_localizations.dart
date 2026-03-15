@@ -3373,6 +3373,54 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Programmé'**
   String get flightStatusScheduled;
+
+  /// No description provided for @editButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get editButton;
+
+  /// No description provided for @activityToValidate.
+  ///
+  /// In fr, this message translates to:
+  /// **'À vérifier'**
+  String get activityToValidate;
+
+  /// No description provided for @activityValidated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifié'**
+  String get activityValidated;
+
+  /// No description provided for @activityDisclaimerSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suggestions IA — vérifiez disponibilité et tarifs'**
+  String get activityDisclaimerSubtitle;
+
+  /// No description provided for @activityValidateConfirmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifier cette activité ?'**
+  String get activityValidateConfirmTitle;
+
+  /// No description provided for @activityValidateConfirmMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous pouvez ajuster le coût estimé si besoin.'**
+  String get activityValidateConfirmMessage;
+
+  /// No description provided for @activityValidateCostLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Coût réel (optionnel)'**
+  String get activityValidateCostLabel;
+
+  /// No description provided for @activityValidateConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer'**
+  String get activityValidateConfirm;
 }
 
 class _AppLocalizationsDelegate

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Activity {
 
- String get id; String get tripId; String get title; String? get description; DateTime get date; String? get startTime; String? get endTime; String? get location; ActivityCategory get category; double? get estimatedCost; bool get isBooked; DateTime? get createdAt; DateTime? get updatedAt;
+ String get id; String get tripId; String get title; String? get description; DateTime get date; String? get startTime; String? get endTime; String? get location; ActivityCategory get category; double? get estimatedCost; bool get isBooked; ValidationStatus get validationStatus; int? get suggestedDay; DateTime? get createdAt; DateTime? get updatedAt;
 /// Create a copy of Activity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $ActivityCopyWith<Activity> get copyWith => _$ActivityCopyWithImpl<Activity>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Activity&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.date, date) || other.date == date)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.location, location) || other.location == location)&&(identical(other.category, category) || other.category == category)&&(identical(other.estimatedCost, estimatedCost) || other.estimatedCost == estimatedCost)&&(identical(other.isBooked, isBooked) || other.isBooked == isBooked)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Activity&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.date, date) || other.date == date)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.location, location) || other.location == location)&&(identical(other.category, category) || other.category == category)&&(identical(other.estimatedCost, estimatedCost) || other.estimatedCost == estimatedCost)&&(identical(other.isBooked, isBooked) || other.isBooked == isBooked)&&(identical(other.validationStatus, validationStatus) || other.validationStatus == validationStatus)&&(identical(other.suggestedDay, suggestedDay) || other.suggestedDay == suggestedDay)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,tripId,title,description,date,startTime,endTime,location,category,estimatedCost,isBooked,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,tripId,title,description,date,startTime,endTime,location,category,estimatedCost,isBooked,validationStatus,suggestedDay,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'Activity(id: $id, tripId: $tripId, title: $title, description: $description, date: $date, startTime: $startTime, endTime: $endTime, location: $location, category: $category, estimatedCost: $estimatedCost, isBooked: $isBooked, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Activity(id: $id, tripId: $tripId, title: $title, description: $description, date: $date, startTime: $startTime, endTime: $endTime, location: $location, category: $category, estimatedCost: $estimatedCost, isBooked: $isBooked, validationStatus: $validationStatus, suggestedDay: $suggestedDay, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $ActivityCopyWith<$Res>  {
   factory $ActivityCopyWith(Activity value, $Res Function(Activity) _then) = _$ActivityCopyWithImpl;
 @useResult
 $Res call({
- String id, String tripId, String title, String? description, DateTime date, String? startTime, String? endTime, String? location, ActivityCategory category, double? estimatedCost, bool isBooked, DateTime? createdAt, DateTime? updatedAt
+ String id, String tripId, String title, String? description, DateTime date, String? startTime, String? endTime, String? location, ActivityCategory category, double? estimatedCost, bool isBooked, ValidationStatus validationStatus, int? suggestedDay, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -65,7 +65,7 @@ class _$ActivityCopyWithImpl<$Res>
 
 /// Create a copy of Activity
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? tripId = null,Object? title = null,Object? description = freezed,Object? date = null,Object? startTime = freezed,Object? endTime = freezed,Object? location = freezed,Object? category = null,Object? estimatedCost = freezed,Object? isBooked = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? tripId = null,Object? title = null,Object? description = freezed,Object? date = null,Object? startTime = freezed,Object? endTime = freezed,Object? location = freezed,Object? category = null,Object? estimatedCost = freezed,Object? isBooked = null,Object? validationStatus = null,Object? suggestedDay = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,tripId: null == tripId ? _self.tripId : tripId // ignore: cast_nullable_to_non_nullable
@@ -78,7 +78,9 @@ as String?,location: freezed == location ? _self.location : location // ignore: 
 as String?,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
 as ActivityCategory,estimatedCost: freezed == estimatedCost ? _self.estimatedCost : estimatedCost // ignore: cast_nullable_to_non_nullable
 as double?,isBooked: null == isBooked ? _self.isBooked : isBooked // ignore: cast_nullable_to_non_nullable
-as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as bool,validationStatus: null == validationStatus ? _self.validationStatus : validationStatus // ignore: cast_nullable_to_non_nullable
+as ValidationStatus,suggestedDay: freezed == suggestedDay ? _self.suggestedDay : suggestedDay // ignore: cast_nullable_to_non_nullable
+as int?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
@@ -165,10 +167,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String tripId,  String title,  String? description,  DateTime date,  String? startTime,  String? endTime,  String? location,  ActivityCategory category,  double? estimatedCost,  bool isBooked,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String tripId,  String title,  String? description,  DateTime date,  String? startTime,  String? endTime,  String? location,  ActivityCategory category,  double? estimatedCost,  bool isBooked,  ValidationStatus validationStatus,  int? suggestedDay,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Activity() when $default != null:
-return $default(_that.id,_that.tripId,_that.title,_that.description,_that.date,_that.startTime,_that.endTime,_that.location,_that.category,_that.estimatedCost,_that.isBooked,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.tripId,_that.title,_that.description,_that.date,_that.startTime,_that.endTime,_that.location,_that.category,_that.estimatedCost,_that.isBooked,_that.validationStatus,_that.suggestedDay,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -186,10 +188,10 @@ return $default(_that.id,_that.tripId,_that.title,_that.description,_that.date,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String tripId,  String title,  String? description,  DateTime date,  String? startTime,  String? endTime,  String? location,  ActivityCategory category,  double? estimatedCost,  bool isBooked,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String tripId,  String title,  String? description,  DateTime date,  String? startTime,  String? endTime,  String? location,  ActivityCategory category,  double? estimatedCost,  bool isBooked,  ValidationStatus validationStatus,  int? suggestedDay,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Activity():
-return $default(_that.id,_that.tripId,_that.title,_that.description,_that.date,_that.startTime,_that.endTime,_that.location,_that.category,_that.estimatedCost,_that.isBooked,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.tripId,_that.title,_that.description,_that.date,_that.startTime,_that.endTime,_that.location,_that.category,_that.estimatedCost,_that.isBooked,_that.validationStatus,_that.suggestedDay,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -206,10 +208,10 @@ return $default(_that.id,_that.tripId,_that.title,_that.description,_that.date,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String tripId,  String title,  String? description,  DateTime date,  String? startTime,  String? endTime,  String? location,  ActivityCategory category,  double? estimatedCost,  bool isBooked,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String tripId,  String title,  String? description,  DateTime date,  String? startTime,  String? endTime,  String? location,  ActivityCategory category,  double? estimatedCost,  bool isBooked,  ValidationStatus validationStatus,  int? suggestedDay,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Activity() when $default != null:
-return $default(_that.id,_that.tripId,_that.title,_that.description,_that.date,_that.startTime,_that.endTime,_that.location,_that.category,_that.estimatedCost,_that.isBooked,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.tripId,_that.title,_that.description,_that.date,_that.startTime,_that.endTime,_that.location,_that.category,_that.estimatedCost,_that.isBooked,_that.validationStatus,_that.suggestedDay,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -221,7 +223,7 @@ return $default(_that.id,_that.tripId,_that.title,_that.description,_that.date,_
 @JsonSerializable()
 
 class _Activity implements Activity {
-  const _Activity({required this.id, required this.tripId, required this.title, this.description, required this.date, this.startTime, this.endTime, this.location, this.category = ActivityCategory.other, this.estimatedCost, this.isBooked = false, this.createdAt, this.updatedAt});
+  const _Activity({required this.id, required this.tripId, required this.title, this.description, required this.date, this.startTime, this.endTime, this.location, this.category = ActivityCategory.other, this.estimatedCost, this.isBooked = false, this.validationStatus = ValidationStatus.manual, this.suggestedDay, this.createdAt, this.updatedAt});
   factory _Activity.fromJson(Map<String, dynamic> json) => _$ActivityFromJson(json);
 
 @override final  String id;
@@ -235,6 +237,8 @@ class _Activity implements Activity {
 @override@JsonKey() final  ActivityCategory category;
 @override final  double? estimatedCost;
 @override@JsonKey() final  bool isBooked;
+@override@JsonKey() final  ValidationStatus validationStatus;
+@override final  int? suggestedDay;
 @override final  DateTime? createdAt;
 @override final  DateTime? updatedAt;
 
@@ -251,16 +255,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Activity&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.date, date) || other.date == date)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.location, location) || other.location == location)&&(identical(other.category, category) || other.category == category)&&(identical(other.estimatedCost, estimatedCost) || other.estimatedCost == estimatedCost)&&(identical(other.isBooked, isBooked) || other.isBooked == isBooked)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Activity&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.date, date) || other.date == date)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.location, location) || other.location == location)&&(identical(other.category, category) || other.category == category)&&(identical(other.estimatedCost, estimatedCost) || other.estimatedCost == estimatedCost)&&(identical(other.isBooked, isBooked) || other.isBooked == isBooked)&&(identical(other.validationStatus, validationStatus) || other.validationStatus == validationStatus)&&(identical(other.suggestedDay, suggestedDay) || other.suggestedDay == suggestedDay)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,tripId,title,description,date,startTime,endTime,location,category,estimatedCost,isBooked,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,tripId,title,description,date,startTime,endTime,location,category,estimatedCost,isBooked,validationStatus,suggestedDay,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'Activity(id: $id, tripId: $tripId, title: $title, description: $description, date: $date, startTime: $startTime, endTime: $endTime, location: $location, category: $category, estimatedCost: $estimatedCost, isBooked: $isBooked, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Activity(id: $id, tripId: $tripId, title: $title, description: $description, date: $date, startTime: $startTime, endTime: $endTime, location: $location, category: $category, estimatedCost: $estimatedCost, isBooked: $isBooked, validationStatus: $validationStatus, suggestedDay: $suggestedDay, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -271,7 +275,7 @@ abstract mixin class _$ActivityCopyWith<$Res> implements $ActivityCopyWith<$Res>
   factory _$ActivityCopyWith(_Activity value, $Res Function(_Activity) _then) = __$ActivityCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String tripId, String title, String? description, DateTime date, String? startTime, String? endTime, String? location, ActivityCategory category, double? estimatedCost, bool isBooked, DateTime? createdAt, DateTime? updatedAt
+ String id, String tripId, String title, String? description, DateTime date, String? startTime, String? endTime, String? location, ActivityCategory category, double? estimatedCost, bool isBooked, ValidationStatus validationStatus, int? suggestedDay, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -288,7 +292,7 @@ class __$ActivityCopyWithImpl<$Res>
 
 /// Create a copy of Activity
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? tripId = null,Object? title = null,Object? description = freezed,Object? date = null,Object? startTime = freezed,Object? endTime = freezed,Object? location = freezed,Object? category = null,Object? estimatedCost = freezed,Object? isBooked = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? tripId = null,Object? title = null,Object? description = freezed,Object? date = null,Object? startTime = freezed,Object? endTime = freezed,Object? location = freezed,Object? category = null,Object? estimatedCost = freezed,Object? isBooked = null,Object? validationStatus = null,Object? suggestedDay = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_Activity(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,tripId: null == tripId ? _self.tripId : tripId // ignore: cast_nullable_to_non_nullable
@@ -301,7 +305,9 @@ as String?,location: freezed == location ? _self.location : location // ignore: 
 as String?,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
 as ActivityCategory,estimatedCost: freezed == estimatedCost ? _self.estimatedCost : estimatedCost // ignore: cast_nullable_to_non_nullable
 as double?,isBooked: null == isBooked ? _self.isBooked : isBooked // ignore: cast_nullable_to_non_nullable
-as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as bool,validationStatus: null == validationStatus ? _self.validationStatus : validationStatus // ignore: cast_nullable_to_non_nullable
+as ValidationStatus,suggestedDay: freezed == suggestedDay ? _self.suggestedDay : suggestedDay // ignore: cast_nullable_to_non_nullable
+as int?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));

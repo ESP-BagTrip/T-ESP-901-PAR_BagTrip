@@ -340,6 +340,7 @@ mixin $ActivitiesRoute on GoRouteData {
           _$boolConverter,
         ) ??
         false,
+    tripStartDate: state.uri.queryParameters['trip-start-date'],
   );
 
   ActivitiesRoute get _self => this as ActivitiesRoute;
@@ -351,6 +352,7 @@ mixin $ActivitiesRoute on GoRouteData {
       if (_self.role != 'OWNER') 'role': _self.role,
       if (_self.isCompleted != false)
         'is-completed': _self.isCompleted.toString(),
+      if (_self.tripStartDate != null) 'trip-start-date': _self.tripStartDate,
     },
   );
 
