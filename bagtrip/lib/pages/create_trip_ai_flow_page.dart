@@ -7,7 +7,7 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 
 /// Single entry for the Create Trip AI flow. Provides the bloc and shows
 /// Recap, Results, or Summary based on state (no route push between steps).
@@ -30,7 +30,7 @@ class CreateTripAiFlowPage extends StatelessWidget {
                 content: Text(AppLocalizations.of(context)!.tripCreated),
               ),
             );
-            context.go('/trips');
+            const TripsRoute().go(context);
           }
         },
         child: BlocBuilder<CreateTripAiBloc, CreateTripAiState>(

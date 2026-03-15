@@ -4,6 +4,7 @@ import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/planifier/widgets/planifier_card.dart';
 import 'package:flutter/material.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:go_router/go_router.dart';
 
 /// Second step of manual trip planning: choose transport (flight, other, or skip).
@@ -51,7 +52,8 @@ class PlanifierManualTransportPage extends StatelessWidget {
               ),
               title: l10n.transportOptionFlightTitle,
               description: l10n.transportOptionFlightSubtitle,
-              onTap: () => context.push('/planifier/manual/flight-search'),
+              onTap: () =>
+                  const PlanifierManualFlightSearchRoute().push(context),
             ),
             const SizedBox(height: AppSpacing.space16),
             PlanifierCard(
@@ -65,7 +67,8 @@ class PlanifierManualTransportPage extends StatelessWidget {
               ),
               title: l10n.transportOptionOtherTitle,
               description: l10n.transportOptionOtherSubtitle,
-              onTap: () => context.push('/planifier/manual/transport/other'),
+              onTap: () =>
+                  const PlanifierManualOtherTransportRoute().push(context),
             ),
             const SizedBox(height: AppSpacing.space16),
             PlanifierCard(

@@ -6,7 +6,7 @@ import 'package:bagtrip/gen/assets.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/service/onboarding_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 
 /// Onboarding screen shown once after splash for unauthenticated users.
 /// Displays app value proposition and navigates to login on "Commencer" or
@@ -17,7 +17,7 @@ class OnboardingPage extends StatelessWidget {
   Future<void> _completeOnboarding(BuildContext context) async {
     await OnboardingStorage().setOnboardingSeen();
     if (context.mounted) {
-      context.go('/login');
+      const LoginRoute().go(context);
     }
   }
 

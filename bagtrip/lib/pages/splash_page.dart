@@ -10,7 +10,7 @@ import 'package:bagtrip/service/backend_health.dart';
 import 'package:bagtrip/service/onboarding_storage.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 
 /// Minimum display duration for the splash screen so it remains visible.
 const Duration _kMinSplashDuration = Duration(milliseconds: 1500);
@@ -57,21 +57,21 @@ class _SplashPageState extends State<SplashPage> {
             .hasSeenPersonalizationPrompt(user.id);
         if (!hasSeen) {
           if (!mounted) return;
-          context.go('/personalization');
+          const PersonalizationRoute().go(context);
           return;
         }
       }
       if (!mounted) return;
-      context.go('/trips');
+      const TripsRoute().go(context);
     } else {
       await authRepository.logout();
       if (!mounted) return;
       final hasSeen = await getIt<OnboardingStorage>().hasSeenOnboarding();
       if (!mounted) return;
       if (hasSeen) {
-        context.go('/login');
+        const LoginRoute().go(context);
       } else {
-        context.go('/onboarding');
+        const OnboardingRoute().go(context);
       }
     }
   }

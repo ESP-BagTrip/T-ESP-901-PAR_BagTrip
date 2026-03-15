@@ -13,7 +13,7 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 
 class FlightSearchForm extends StatelessWidget {
   const FlightSearchForm({super.key});
@@ -144,7 +144,7 @@ class FlightSearchForm extends StatelessWidget {
     }
 
     if (context.mounted) {
-      context.go('/flight-search-result', extra: args);
+      FlightSearchResultRoute($extra: args).go(context);
     }
   }
 }

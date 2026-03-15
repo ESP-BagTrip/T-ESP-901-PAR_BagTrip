@@ -4,7 +4,7 @@ import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:intl/intl.dart';
 
 /// First step of manual trip planning: destination, dates, number of travelers.
@@ -55,7 +55,7 @@ class _PlanifierManualDestinationViewState
   }
 
   void _onNext() {
-    context.push('/planifier/manual/transport');
+    const PlanifierManualTransportRoute().push(context);
   }
 
   @override

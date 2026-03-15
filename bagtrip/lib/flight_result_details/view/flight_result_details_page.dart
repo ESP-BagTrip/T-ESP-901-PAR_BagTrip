@@ -9,8 +9,6 @@ class FlightResultDetailsPage extends StatelessWidget {
 
   const FlightResultDetailsPage({super.key, required this.flight});
 
-  static const String routePath = '/flight-result-details';
-
   @override
   Widget build(BuildContext context) {
     return BlocProvider(

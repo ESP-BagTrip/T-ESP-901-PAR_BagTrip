@@ -12,6 +12,7 @@ import 'package:bagtrip/personalization/widgets/travel_types_step_content.dart';
 import 'package:bagtrip/personalization/widgets/welcome_step_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:go_router/go_router.dart';
 
 /// Welcome = 0, content steps 1–5 = companions, budget, interests, frequency, constraints.
@@ -37,11 +38,11 @@ class PersonalizationView extends StatelessWidget {
               GoRouterState.of(context).uri.queryParameters['from'] ==
               'createTripAi';
           if (fromCreateTripAi) {
-            context.go('/planifier/create-trip-ai');
+            const CreateTripAiRoute().go(context);
           } else if (Navigator.of(context).canPop()) {
             context.pop();
           } else {
-            context.go('/trips');
+            const TripsRoute().go(context);
           }
         }
       },

@@ -12,7 +12,7 @@ import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 
 class PlanifierView extends StatelessWidget {
   const PlanifierView({super.key});
@@ -187,7 +187,7 @@ class PlanifierView extends StatelessWidget {
             child: _CreateTripCardManual(
               title: l10n.planifierManualTitle,
               description: l10n.planifierManualDescriptionCard,
-              onTap: () => context.push('/planifier/manual'),
+              onTap: () => const PlanifierManualRoute().push(context),
             ),
           ),
           const SizedBox(width: AppSpacing.space16),
@@ -207,9 +207,9 @@ class PlanifierView extends StatelessWidget {
                         .hasSeenPersonalizationPrompt(userId);
                 if (!context.mounted) return;
                 if (hasSeen) {
-                  context.push('/planifier/create-trip-ai');
+                  const CreateTripAiRoute().push(context);
                 } else {
-                  context.go('/personalization?from=createTripAi');
+                  const PersonalizationRoute(from: 'createTripAi').go(context);
                 }
               },
             ),

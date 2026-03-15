@@ -9,6 +9,7 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:go_router/go_router.dart';
 
 const Color _kRecapTravelTypesTint = Color(0xFFE8F5E9);
@@ -53,7 +54,7 @@ class CreateTripAiRecapView extends StatelessWidget {
             if (context.canPop()) {
               context.pop();
             } else {
-              context.go('/trips');
+              const TripsRoute().go(context);
             }
           },
         ),
@@ -137,8 +138,9 @@ class CreateTripAiRecapView extends StatelessWidget {
               ),
             ),
             TextButton.icon(
-              onPressed: () =>
-                  context.push('/personalization?from=createTripAi'),
+              onPressed: () => const PersonalizationRoute(
+                from: 'createTripAi',
+              ).push(context),
               icon: const Icon(
                 Icons.edit_outlined,
                 size: 18,

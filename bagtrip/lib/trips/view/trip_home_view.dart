@@ -6,6 +6,7 @@ import 'package:bagtrip/trips/widgets/trip_header.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:go_router/go_router.dart';
 
 class TripHomeView extends StatelessWidget {
@@ -19,7 +20,7 @@ class TripHomeView extends StatelessWidget {
       body: BlocConsumer<TripManagementBloc, TripManagementState>(
         listener: (context, state) {
           if (state is TripsLoaded || state is TripDeleted) {
-            context.go('/trips');
+            const TripsRoute().go(context);
           }
           if (state is TripError) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -105,10 +106,10 @@ class TripHomeView extends StatelessWidget {
                           right: 8,
                           child: IconButton(
                             icon: const Icon(Icons.share, color: Colors.white),
-                            onPressed: () => context.go(
-                              '/trips/$tripId/shares',
-                              extra: trip.role,
-                            ),
+                            onPressed: () => SharesRoute(
+                              tripId: tripId,
+                              role: trip.role ?? 'OWNER',
+                            ).go(context),
                           ),
                         ),
                     ],
@@ -182,13 +183,12 @@ class TripHomeView extends StatelessWidget {
                           (feature) => TripFeatureTileWidget(
                             feature: feature,
                             onTap: feature.enabled
-                                ? () => context.go(
-                                    '/trips/$tripId/${feature.route}',
-                                    extra: {
-                                      'role': trip.role,
-                                      'isCompleted': isCompleted,
-                                    },
-                                  )
+                                ? () => tripFeatureRoute(
+                                    tripId: tripId,
+                                    featureRoute: feature.route,
+                                    role: trip.role ?? 'OWNER',
+                                    isCompleted: isCompleted,
+                                  ).go(context)
                                 : null,
                           ),
                         )
@@ -245,7 +245,8 @@ class TripHomeView extends StatelessWidget {
                         vertical: 8,
                       ),
                       child: OutlinedButton.icon(
-                        onPressed: () => context.go('/trips/$tripId/feedback'),
+                        onPressed: () =>
+                            FeedbackRoute(tripId: tripId).go(context),
                         icon: const Icon(Icons.rate_review_outlined),
                         label: Text(
                           AppLocalizations.of(context)!.tripGiveReview,

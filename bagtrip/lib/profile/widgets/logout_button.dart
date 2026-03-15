@@ -5,7 +5,7 @@ import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 
 class LogoutButton extends StatelessWidget {
   const LogoutButton({super.key});
@@ -37,7 +37,7 @@ class LogoutButton extends StatelessWidget {
         child: InkWell(
           onTap: () {
             context.read<AuthBloc>().add(LogoutRequested());
-            context.go('/login');
+            const LoginRoute().go(context);
           },
           borderRadius: AppRadius.large16,
           child: Container(

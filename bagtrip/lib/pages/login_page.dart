@@ -16,7 +16,7 @@ import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 
 /// Toggle and content container corner radius.
 const double _kPanelRadius = 16.0;
@@ -177,16 +177,16 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                 final user = userResult.dataOrNull;
                 if (!context.mounted) return;
                 if (user == null || user.id.isEmpty) {
-                  context.go('/trips');
+                  const TripsRoute().go(context);
                   return;
                 }
                 final hasSeen = await getIt<PersonalizationStorage>()
                     .hasSeenPersonalizationPrompt(user.id);
                 if (!context.mounted) return;
                 if (hasSeen) {
-                  context.go('/trips');
+                  const TripsRoute().go(context);
                 } else {
-                  context.go('/personalization');
+                  const PersonalizationRoute().go(context);
                 }
               });
             }

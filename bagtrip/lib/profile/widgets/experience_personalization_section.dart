@@ -3,7 +3,7 @@ import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/profile/widgets/profile_section_card.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 
 /// Profile section that navigates to the experience personalization flow.
 class ExperiencePersonalizationSection extends StatelessWidget {
@@ -31,7 +31,7 @@ class ExperiencePersonalizationSection extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return ProfileSectionCard(
-      onTap: () => context.push('/personalization'),
+      onTap: () => const PersonalizationRoute().push(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -6,7 +6,7 @@ import 'package:bagtrip/trips/widgets/trip_card.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 
 class TripsListView extends StatelessWidget {
   const TripsListView({super.key});
@@ -31,7 +31,7 @@ class TripsListView extends StatelessWidget {
                   unreadCount = state.unreadCount;
                 }
                 return IconButton(
-                  onPressed: () => context.push('/notifications'),
+                  onPressed: () => const NotificationsRoute().push(context),
                   icon: Badge(
                     isLabelVisible: unreadCount > 0,
                     label: Text(
@@ -120,7 +120,7 @@ class TripsListView extends StatelessWidget {
           },
         ),
         floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => context.go('/planifier'),
+          onPressed: () => const PlanifierRoute().go(context),
           icon: const Icon(Icons.add),
           label: Text(AppLocalizations.of(context)!.tripsNewTrip),
         ),
@@ -177,7 +177,7 @@ class _TripListTab extends StatelessWidget {
           final trip = trips[index];
           return TripCard(
             trip: trip,
-            onTap: () => context.push('/trips/${trip.id}'),
+            onTap: () => TripHomeRoute(tripId: trip.id).push(context),
           );
         },
       ),

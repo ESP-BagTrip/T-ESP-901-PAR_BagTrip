@@ -2,7 +2,7 @@ import 'package:bagtrip/models/notification.dart';
 import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 
 class NotificationCard extends StatelessWidget {
   final AppNotification notification;
@@ -149,19 +149,19 @@ class NotificationCard extends StatelessWidget {
 
     switch (screen) {
       case 'tripHome':
-        context.push('/trips/$tripId');
+        TripHomeRoute(tripId: tripId).push(context);
         break;
       case 'activities':
-        context.push('/trips/$tripId/activities');
+        ActivitiesRoute(tripId: tripId).push(context);
         break;
       case 'budget':
-        context.push('/trips/$tripId/budget');
+        BudgetRoute(tripId: tripId).push(context);
         break;
       case 'feedback':
-        context.push('/trips/$tripId/feedback');
+        FeedbackRoute(tripId: tripId).push(context);
         break;
       default:
-        context.push('/trips/$tripId');
+        TripHomeRoute(tripId: tripId).push(context);
     }
   }
 
