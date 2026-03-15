@@ -70,8 +70,16 @@ class PersonalizationRoute extends GoRouteData with $PersonalizationRoute {
   final String? from;
 
   @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      const NoTransitionPage(child: PersonalizationPage());
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    const child = PersonalizationPage();
+    // When pushed from another screen (profile, trip creation), use a proper
+    // slide transition so that pop() works correctly. NoTransitionPage breaks
+    // the imperative push/pop lifecycle (Future already completed).
+    if (from != null) {
+      return buildSlideTransitionPage<void>(state: state, child: child);
+    }
+    return const NoTransitionPage(child: child);
+  }
 }
 
 // ---------------------------------------------------------------------------

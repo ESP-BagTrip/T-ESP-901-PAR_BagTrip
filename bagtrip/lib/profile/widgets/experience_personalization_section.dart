@@ -31,7 +31,7 @@ class ExperiencePersonalizationSection extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return ProfileSectionCard(
-      onTap: () => const PersonalizationRoute().push(context),
+      onTap: () => const PersonalizationRoute(from: 'profile').push(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

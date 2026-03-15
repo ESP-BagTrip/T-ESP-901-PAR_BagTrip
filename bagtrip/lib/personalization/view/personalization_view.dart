@@ -35,15 +35,14 @@ class PersonalizationView extends StatelessWidget {
       listener: (context, state) {
         if (state is PersonalizationCompleted ||
             state is PersonalizationSkipped) {
-          final fromCreateTripAi =
-              GoRouterState.of(context).uri.queryParameters['from'] ==
-              'createTripAi';
-          if (fromCreateTripAi) {
-            const TripCreationRoute().go(context);
-          } else if (Navigator.of(context).canPop()) {
-            context.pop();
-          } else {
-            const HomeRoute().go(context);
+          final from = GoRouterState.of(context).uri.queryParameters['from'];
+          switch (from) {
+            case 'createTripAi':
+              const TripCreationRoute().go(context);
+            case 'profile':
+              const ProfileRoute().go(context);
+            default:
+              const HomeRoute().go(context);
           }
         }
       },
@@ -97,8 +96,15 @@ class PersonalizationView extends StatelessWidget {
           icon: const Icon(Icons.chevron_left),
           color: PersonalizationColors.textPrimary,
           onPressed: () {
-            if (state.step == 1 && Navigator.of(context).canPop()) {
-              context.pop();
+            if (state.step == 1) {
+              final from = GoRouterState.of(
+                context,
+              ).uri.queryParameters['from'];
+              if (from == 'profile') {
+                const ProfileRoute().go(context);
+              } else {
+                const HomeRoute().go(context);
+              }
             } else {
               bloc.add(PersonalizationPreviousStep());
             }
