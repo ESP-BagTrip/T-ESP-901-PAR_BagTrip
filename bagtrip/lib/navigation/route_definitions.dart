@@ -4,6 +4,7 @@ import 'package:bagtrip/flight_result_details/view/flight_result_details_page.da
 import 'package:bagtrip/flight_search_result/models/flight.dart';
 import 'package:bagtrip/flight_search_result/models/flight_search_arguments.dart';
 import 'package:bagtrip/navigation/page_transitions.dart';
+import 'package:bagtrip/notifications/view/activity_page.dart';
 import 'package:bagtrip/notifications/view/notifications_page.dart';
 import 'package:bagtrip/pages/accommodations_page.dart';
 import 'package:bagtrip/pages/baggage_page.dart';
@@ -16,6 +17,8 @@ import 'package:bagtrip/pages/payment/payment_cancel_page.dart';
 import 'package:bagtrip/pages/payment/payment_result_page.dart';
 import 'package:bagtrip/pages/payment/payment_success_page.dart';
 import 'package:bagtrip/pages/personalization_page.dart';
+import 'package:bagtrip/profile/view/personal_info_page.dart';
+import 'package:bagtrip/profile/view/settings_page.dart';
 import 'package:bagtrip/pages/planifier_manual_flight_page.dart';
 import 'package:bagtrip/pages/planifier_manual_other_transport_page.dart';
 import 'package:bagtrip/pages/planifier_manual_page.dart';
@@ -80,7 +83,7 @@ class PersonalizationRoute extends GoRouteData with $PersonalizationRoute {
 // ---------------------------------------------------------------------------
 
 @TypedGoRoute<PlanifierRoute>(
-  path: '/planifier',
+  path: '/explorer',
   routes: [
     TypedGoRoute<PlanifierManualRoute>(
       path: 'manual',
@@ -320,16 +323,54 @@ class FeedbackRoute extends GoRouteData with $FeedbackRoute {
 }
 
 // ---------------------------------------------------------------------------
-// Branch 2 — Profile
+// Branch 2 — Activity
 // ---------------------------------------------------------------------------
 
-@TypedGoRoute<ProfileRoute>(path: '/profile')
+@TypedGoRoute<ActivityRoute>(path: '/activity')
+class ActivityRoute extends GoRouteData with $ActivityRoute {
+  const ActivityRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      const NoTransitionPage(child: ActivityPage());
+}
+
+// ---------------------------------------------------------------------------
+// Branch 3 — Profile
+// ---------------------------------------------------------------------------
+
+@TypedGoRoute<ProfileRoute>(
+  path: '/profile',
+  routes: [
+    TypedGoRoute<PersonalInfoRoute>(path: 'personal-info'),
+    TypedGoRoute<SettingsRoute>(path: 'settings'),
+  ],
+)
 class ProfileRoute extends GoRouteData with $ProfileRoute {
   const ProfileRoute();
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       const NoTransitionPage(child: ProfilePage());
+}
+
+class PersonalInfoRoute extends GoRouteData with $PersonalInfoRoute {
+  const PersonalInfoRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      buildSlideTransitionPage<void>(
+        state: state,
+        child: const PersonalInfoPage(),
+      );
+}
+
+class SettingsRoute extends GoRouteData with $SettingsRoute {
+  const SettingsRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      buildSlideTransitionPage<void>(state: state, child: const SettingsPage());
 }
 
 // ---------------------------------------------------------------------------

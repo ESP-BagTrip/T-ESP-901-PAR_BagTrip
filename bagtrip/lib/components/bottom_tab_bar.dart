@@ -8,31 +8,41 @@ import 'package:flutter/material.dart';
 class BottomTabBar extends StatelessWidget {
   final NavigationTab activeTab;
   final ValueChanged<NavigationTab> onTabChanged;
+  final int activityBadgeCount;
 
   const BottomTabBar({
     super.key,
     required this.activeTab,
     required this.onTabChanged,
+    this.activityBadgeCount = 0,
   });
 
   static const _tabs = [
-    NavigationTab.planifier,
+    NavigationTab.explorer,
     NavigationTab.trips,
+    NavigationTab.activity,
     NavigationTab.profile,
   ];
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final labels = [l10n.tabNew, l10n.tabTrips, l10n.tabProfile];
+    final labels = [
+      l10n.tabExplorer,
+      l10n.tabTrips,
+      l10n.tabActivity,
+      l10n.tabProfile,
+    ];
     const icons = [
-      Icons.add_circle_outline,
+      Icons.explore_outlined,
       Icons.luggage_outlined,
+      Icons.notifications_outlined,
       Icons.person_outlined,
     ];
     const cupertinoIcons = [
-      CupertinoIcons.add_circled,
+      CupertinoIcons.compass,
       CupertinoIcons.bag,
+      CupertinoIcons.bell,
       CupertinoIcons.person,
     ];
 
@@ -48,7 +58,16 @@ class BottomTabBar extends StatelessWidget {
         items: List.generate(
           _tabs.length,
           (i) => BottomNavigationBarItem(
-            icon: Icon(cupertinoIcons[i]),
+            icon: i == 2
+                ? Badge(
+                    isLabelVisible: activityBadgeCount > 0,
+                    label: Text(
+                      activityBadgeCount > 99 ? '99+' : '$activityBadgeCount',
+                      style: const TextStyle(fontSize: 10),
+                    ),
+                    child: Icon(cupertinoIcons[i]),
+                  )
+                : Icon(cupertinoIcons[i]),
             label: labels[i],
           ),
         ),
@@ -61,8 +80,26 @@ class BottomTabBar extends StatelessWidget {
       destinations: List.generate(
         _tabs.length,
         (i) => NavigationDestination(
-          icon: Icon(icons[i]),
-          selectedIcon: Icon(icons[i], color: ColorName.secondary),
+          icon: i == 2
+              ? Badge(
+                  isLabelVisible: activityBadgeCount > 0,
+                  label: Text(
+                    activityBadgeCount > 99 ? '99+' : '$activityBadgeCount',
+                    style: const TextStyle(fontSize: 10),
+                  ),
+                  child: Icon(icons[i]),
+                )
+              : Icon(icons[i]),
+          selectedIcon: i == 2
+              ? Badge(
+                  isLabelVisible: activityBadgeCount > 0,
+                  label: Text(
+                    activityBadgeCount > 99 ? '99+' : '$activityBadgeCount',
+                    style: const TextStyle(fontSize: 10),
+                  ),
+                  child: Icon(icons[i], color: ColorName.secondary),
+                )
+              : Icon(icons[i], color: ColorName.secondary),
           label: labels[i],
         ),
       ),

@@ -2,14 +2,11 @@ import 'package:bagtrip/components/empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/components/paginated_list.dart';
-import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
-import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bagtrip/trips/widgets/trip_card.dart';
 import 'package:bagtrip/utils/error_display.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
@@ -29,7 +26,6 @@ class _TripsListViewState extends State<TripsListView> {
     for (final status in ['ongoing', 'planned', 'completed']) {
       bloc.add(LoadTripsByStatus(status: status));
     }
-    context.read<NotificationBloc>().add(LoadUnreadCount());
   }
 
   @override
@@ -40,36 +36,10 @@ class _TripsListViewState extends State<TripsListView> {
         appBar: AppBar(
           title: Text(AppLocalizations.of(context)!.tripsMyTrips),
           actions: [
-            BlocBuilder<NotificationBloc, NotificationState>(
-              builder: (context, state) {
-                int unreadCount = 0;
-                if (state is UnreadCountLoaded) {
-                  unreadCount = state.count;
-                } else if (state is NotificationsLoaded) {
-                  unreadCount = state.unreadCount;
-                }
-                return IconButton(
-                  onPressed: () => const NotificationsRoute().push(context),
-                  icon: Badge(
-                    isLabelVisible: unreadCount > 0,
-                    label: Text(
-                      unreadCount > 99 ? '99+' : '$unreadCount',
-                      style: const TextStyle(fontSize: 10),
-                    ),
-                    child: Icon(
-                      AdaptivePlatform.isIOS
-                          ? CupertinoIcons.bell
-                          : Icons.notifications_outlined,
-                    ),
-                  ),
-                );
-              },
+            IconButton(
+              onPressed: () => const PlanifierRoute().go(context),
+              icon: const Icon(Icons.add),
             ),
-            if (AdaptivePlatform.isIOS)
-              IconButton(
-                onPressed: () => const PlanifierRoute().go(context),
-                icon: const Icon(CupertinoIcons.add),
-              ),
           ],
           bottom: TabBar(
             tabs: [
@@ -165,13 +135,6 @@ class _TripsListViewState extends State<TripsListView> {
             return const SizedBox.shrink();
           },
         ),
-        floatingActionButton: AdaptivePlatform.isIOS
-            ? null
-            : FloatingActionButton.extended(
-                onPressed: () => const PlanifierRoute().go(context),
-                icon: const Icon(Icons.add),
-                label: Text(AppLocalizations.of(context)!.tripsNewTrip),
-              ),
       ),
     );
   }

@@ -9,6 +9,7 @@ void main() {
     Widget buildSubject({
       NavigationTab activeTab = NavigationTab.trips,
       ValueChanged<NavigationTab>? onTabChanged,
+      int activityBadgeCount = 0,
     }) {
       return MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -19,12 +20,13 @@ void main() {
           bottomNavigationBar: BottomTabBar(
             activeTab: activeTab,
             onTabChanged: onTabChanged ?? (_) {},
+            activityBadgeCount: activityBadgeCount,
           ),
         ),
       );
     }
 
-    testWidgets('renders 3 navigation destinations', (tester) async {
+    testWidgets('renders 4 navigation destinations', (tester) async {
       await tester.pumpWidget(buildSubject());
       await tester.pumpAndSettle();
 
@@ -32,20 +34,21 @@ void main() {
       expect(navBar, findsOneWidget);
 
       final widget = tester.widget<NavigationBar>(navBar);
-      expect(widget.destinations.length, 3);
+      expect(widget.destinations.length, 4);
     });
 
     testWidgets('renders correct icons for each tab', (tester) async {
       await tester.pumpWidget(buildSubject());
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.add_circle_outline), findsOneWidget);
+      expect(find.byIcon(Icons.explore_outlined), findsOneWidget);
       expect(find.byIcon(Icons.luggage_outlined), findsWidgets);
+      expect(find.byIcon(Icons.notifications_outlined), findsWidgets);
       expect(find.byIcon(Icons.person_outlined), findsOneWidget);
     });
 
-    testWidgets('selected index matches active tab', (tester) async {
-      await tester.pumpWidget(buildSubject(activeTab: NavigationTab.planifier));
+    testWidgets('selected index matches explorer tab', (tester) async {
+      await tester.pumpWidget(buildSubject(activeTab: NavigationTab.explorer));
       await tester.pumpAndSettle();
 
       final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
@@ -60,12 +63,20 @@ void main() {
       expect(navBar.selectedIndex, 1);
     });
 
-    testWidgets('selected index is 2 for profile tab', (tester) async {
-      await tester.pumpWidget(buildSubject(activeTab: NavigationTab.profile));
+    testWidgets('selected index is 2 for activity tab', (tester) async {
+      await tester.pumpWidget(buildSubject(activeTab: NavigationTab.activity));
       await tester.pumpAndSettle();
 
       final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
       expect(navBar.selectedIndex, 2);
+    });
+
+    testWidgets('selected index is 3 for profile tab', (tester) async {
+      await tester.pumpWidget(buildSubject(activeTab: NavigationTab.profile));
+      await tester.pumpAndSettle();
+
+      final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+      expect(navBar.selectedIndex, 3);
     });
 
     testWidgets('onDestinationSelected triggers onTabChanged', (tester) async {
@@ -79,10 +90,10 @@ void main() {
       final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
       navBar.onDestinationSelected?.call(0);
 
-      expect(tappedTab, NavigationTab.planifier);
+      expect(tappedTab, NavigationTab.explorer);
     });
 
-    testWidgets('onDestinationSelected fires profile for index 2', (
+    testWidgets('onDestinationSelected fires activity for index 2', (
       tester,
     ) async {
       NavigationTab? tappedTab;
@@ -95,7 +106,44 @@ void main() {
       final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
       navBar.onDestinationSelected?.call(2);
 
+      expect(tappedTab, NavigationTab.activity);
+    });
+
+    testWidgets('onDestinationSelected fires profile for index 3', (
+      tester,
+    ) async {
+      NavigationTab? tappedTab;
+
+      await tester.pumpWidget(
+        buildSubject(onTabChanged: (tab) => tappedTab = tab),
+      );
+      await tester.pumpAndSettle();
+
+      final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+      navBar.onDestinationSelected?.call(3);
+
       expect(tappedTab, NavigationTab.profile);
+    });
+
+    testWidgets('badge is visible when activityBadgeCount > 0', (tester) async {
+      await tester.pumpWidget(buildSubject(activityBadgeCount: 5));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(Badge), findsWidgets);
+      expect(find.text('5'), findsOneWidget);
+    });
+
+    testWidgets('badge is not visible when activityBadgeCount is 0', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildSubject());
+      await tester.pumpAndSettle();
+
+      // Badge widgets exist but isLabelVisible is false
+      final badges = tester.widgetList<Badge>(find.byType(Badge));
+      for (final badge in badges) {
+        expect(badge.isLabelVisible, isFalse);
+      }
     });
   });
 }

@@ -1394,24 +1394,6 @@ abstract class AppLocalizations {
   /// **'Laissez l\'IA vous aider à créer un voyage personnalisé'**
   String get planifierAIDesc;
 
-  /// No description provided for @planifierSectionMyTrips.
-  ///
-  /// In fr, this message translates to:
-  /// **'Mes voyages'**
-  String get planifierSectionMyTrips;
-
-  /// No description provided for @planifierInProgressTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'En cours de planification'**
-  String get planifierInProgressTitle;
-
-  /// No description provided for @planifierInProgressCount.
-  ///
-  /// In fr, this message translates to:
-  /// **'{count} voyage(s) en attente'**
-  String planifierInProgressCount(int count);
-
   /// No description provided for @planifierCompletedTitle.
   ///
   /// In fr, this message translates to:
@@ -1459,42 +1441,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'NOUVEAU'**
   String get planifierNewBadge;
-
-  /// No description provided for @planifierPlanningTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'En cours'**
-  String get planifierPlanningTitle;
-
-  /// No description provided for @planifierPlanningDescription.
-  ///
-  /// In fr, this message translates to:
-  /// **'Voyages en préparation'**
-  String get planifierPlanningDescription;
-
-  /// No description provided for @planifierInProgressSuffix.
-  ///
-  /// In fr, this message translates to:
-  /// **'{count} en cours'**
-  String planifierInProgressSuffix(int count);
-
-  /// No description provided for @planifierCompletedShort.
-  ///
-  /// In fr, this message translates to:
-  /// **'Terminés'**
-  String get planifierCompletedShort;
-
-  /// No description provided for @planifierCompletedDescriptionCard.
-  ///
-  /// In fr, this message translates to:
-  /// **'Voyages passés et budgets'**
-  String get planifierCompletedDescriptionCard;
-
-  /// No description provided for @planifierCompletedSuffix.
-  ///
-  /// In fr, this message translates to:
-  /// **'{count} terminés'**
-  String planifierCompletedSuffix(int count);
 
   /// No description provided for @planifierSectionExploreDestinations.
   ///
@@ -2240,17 +2186,23 @@ abstract class AppLocalizations {
   /// **'Retour'**
   String get backButton;
 
-  /// No description provided for @tabNew.
+  /// No description provided for @tabExplorer.
   ///
   /// In fr, this message translates to:
-  /// **'Nouveau'**
-  String get tabNew;
+  /// **'Explorer'**
+  String get tabExplorer;
 
   /// No description provided for @tabTrips.
   ///
   /// In fr, this message translates to:
   /// **'Voyages'**
   String get tabTrips;
+
+  /// No description provided for @tabActivity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activité'**
+  String get tabActivity;
 
   /// No description provided for @tabProfile.
   ///
@@ -2543,7 +2495,7 @@ abstract class AppLocalizations {
   /// No description provided for @tripStatusPlanned.
   ///
   /// In fr, this message translates to:
-  /// **'Planifié'**
+  /// **'À venir'**
   String get tripStatusPlanned;
 
   /// No description provided for @tripStatusCompleted.
@@ -3085,6 +3037,48 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Votre paiement est en cours de traitement. Vous recevrez une confirmation sous peu.'**
   String get payment3dsReturnMessage;
+
+  /// No description provided for @nextTripSection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prochain voyage'**
+  String get nextTripSection;
+
+  /// No description provided for @nextTripCountdown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dans {days} jours'**
+  String nextTripCountdown(int days);
+
+  /// No description provided for @nextTripNoUpcoming.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun voyage prévu'**
+  String get nextTripNoUpcoming;
+
+  /// No description provided for @nextTripReady.
+  ///
+  /// In fr, this message translates to:
+  /// **'{percent}% prêt'**
+  String nextTripReady(int percent);
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réglages'**
+  String get settingsTitle;
+
+  /// No description provided for @personalInfoPageTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Informations personnelles'**
+  String get personalInfoPageTitle;
+
+  /// No description provided for @travelPreferencesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Préférences de voyage'**
+  String get travelPreferencesTitle;
 }
 
 class _AppLocalizationsDelegate

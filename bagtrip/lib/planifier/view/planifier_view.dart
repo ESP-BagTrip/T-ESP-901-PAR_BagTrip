@@ -1,9 +1,9 @@
-import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/models/user.dart';
 import 'package:bagtrip/planifier/bloc/planifier_bloc.dart';
 import 'package:bagtrip/core/result.dart';
@@ -21,10 +21,11 @@ class PlanifierView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<PlanifierBloc, PlanifierState>(
       builder: (context, state) {
-        final inProgressCount = state is PlanifierLoaded
-            ? state.inProgressCount
-            : 0;
         final l10n = AppLocalizations.of(context)!;
+        final nextTrip = state is PlanifierLoaded ? state.nextTrip : null;
+        final daysUntil = state is PlanifierLoaded
+            ? state.daysUntilNextTrip
+            : null;
 
         final horizontalPadding = EdgeInsets.only(
           left: MediaQuery.paddingOf(context).left + AppSpacing.space24,
@@ -62,39 +63,14 @@ class PlanifierView extends StatelessWidget {
                           const SizedBox(height: AppSpacing.space32),
                           _buildSectionLabel(
                             context,
-                            l10n.planifierSectionMyTrips.toUpperCase(),
+                            l10n.nextTripSection.toUpperCase(),
                           ),
                           const SizedBox(height: AppSpacing.space8),
-                          _buildMyTripRow(
+                          _buildNextTripCard(
                             context,
                             l10n,
-                            icon: Icons.calendar_today_rounded,
-                            iconDecoration: const BoxDecoration(
-                              color: ColorName.primaryLight,
-                              borderRadius: AppRadius.medium8,
-                            ),
-                            iconColor: ColorName.primary,
-                            title: l10n.planifierPlanningTitle,
-                            description: l10n.planifierPlanningDescription,
-                            trailing: l10n.planifierInProgressSuffix(
-                              inProgressCount,
-                            ),
-                            onTap: () {},
-                          ),
-                          const SizedBox(height: AppSpacing.space8),
-                          _buildMyTripRow(
-                            context,
-                            l10n,
-                            icon: Icons.check_circle_rounded,
-                            iconDecoration: const BoxDecoration(
-                              color: AppColors.success,
-                              shape: BoxShape.circle,
-                            ),
-                            iconColor: AppColors.surface,
-                            title: l10n.planifierCompletedShort,
-                            description: l10n.planifierCompletedDescriptionCard,
-                            trailing: l10n.planifierCompletedSuffix(0),
-                            onTap: () {},
+                            nextTrip,
+                            daysUntil,
                           ),
                           const SizedBox(height: AppSpacing.space32),
                           _buildSectionLabel(
@@ -219,23 +195,45 @@ class PlanifierView extends StatelessWidget {
     );
   }
 
-  Widget _buildMyTripRow(
+  Widget _buildNextTripCard(
     BuildContext context,
-    AppLocalizations l10n, {
-    required IconData icon,
-    required BoxDecoration iconDecoration,
-    required Color iconColor,
-    required String title,
-    required String description,
-    required String trailing,
-    required VoidCallback onTap,
-  }) {
+    AppLocalizations l10n,
+    Trip? nextTrip,
+    int? daysUntil,
+  ) {
+    if (nextTrip == null) {
+      return Container(
+        width: double.infinity,
+        padding: AppSpacing.allEdgeInsetSpace24,
+        decoration: BoxDecoration(
+          color: ColorName.surface,
+          borderRadius: AppRadius.large16,
+          border: Border.all(color: ColorName.primarySoftLight),
+        ),
+        child: Text(
+          l10n.nextTripNoUpcoming,
+          style: const TextStyle(
+            fontFamily: FontFamily.b612,
+            fontSize: 14,
+            color: ColorName.hint,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+
+    final displayName = nextTrip.destinationName ?? nextTrip.title ?? '';
+    final countdown = daysUntil != null
+        ? l10n.nextTripCountdown(daysUntil)
+        : '';
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: () => TripHomeRoute(tripId: nextTrip.id).push(context),
         borderRadius: AppRadius.large16,
         child: Container(
+          width: double.infinity,
           padding: AppSpacing.allEdgeInsetSpace24,
           decoration: BoxDecoration(
             color: ColorName.surface,
@@ -261,9 +259,16 @@ class PlanifierView extends StatelessWidget {
               Container(
                 width: 48,
                 height: 48,
-                decoration: iconDecoration,
+                decoration: const BoxDecoration(
+                  color: ColorName.primaryLight,
+                  borderRadius: AppRadius.medium8,
+                ),
                 alignment: Alignment.center,
-                child: Icon(icon, color: iconColor, size: 24),
+                child: const Icon(
+                  Icons.flight_takeoff_rounded,
+                  color: ColorName.primary,
+                  size: 24,
+                ),
               ),
               const SizedBox(width: AppSpacing.space16),
               Expanded(
@@ -272,7 +277,7 @@ class PlanifierView extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      title,
+                      displayName,
                       style: const TextStyle(
                         fontFamily: FontFamily.b612,
                         fontSize: 16,
@@ -280,28 +285,21 @@ class PlanifierView extends StatelessWidget {
                         color: ColorName.primaryTrueDark,
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.space4),
-                    Text(
-                      description,
-                      style: const TextStyle(
-                        fontFamily: FontFamily.b612,
-                        fontSize: 13,
-                        color: ColorName.textMutedLight,
+                    if (countdown.isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.space4),
+                      Text(
+                        countdown,
+                        style: const TextStyle(
+                          fontFamily: FontFamily.b612,
+                          fontSize: 13,
+                          color: ColorName.textMutedLight,
+                        ),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    ],
                   ],
                 ),
               ),
-              Text(
-                trailing,
-                style: const TextStyle(
-                  fontFamily: FontFamily.b612,
-                  fontSize: 13,
-                  color: ColorName.hint,
-                ),
-              ),
+              const Icon(Icons.chevron_right, color: ColorName.hint, size: 20),
             ],
           ),
         ),
@@ -330,6 +328,7 @@ class PlanifierView extends StatelessWidget {
               colors: [Color(0xFF2D6A6A), Color(0xFF1B4D4D)],
             ),
             icon: Icons.eco_rounded,
+            onTap: () => const CreateTripAiRoute().push(context),
           ),
           const SizedBox(width: AppSpacing.space8),
           _DestinationCard(
@@ -341,6 +340,7 @@ class PlanifierView extends StatelessWidget {
               colors: [ColorName.primary, ColorName.primaryDark],
             ),
             icon: Icons.account_balance_rounded,
+            onTap: () => const CreateTripAiRoute().push(context),
           ),
           const SizedBox(width: AppSpacing.space8),
           _DestinationCard(
@@ -352,6 +352,7 @@ class PlanifierView extends StatelessWidget {
               colors: [Color(0xFFC45C26), Color(0xFF8B4513)],
             ),
             icon: Icons.landscape_rounded,
+            onTap: () => const CreateTripAiRoute().push(context),
           ),
         ],
       ),
@@ -555,77 +556,82 @@ class _DestinationCard extends StatelessWidget {
     required this.country,
     required this.gradient,
     required this.icon,
+    this.onTap,
   });
 
   final String city;
   final String country;
   final LinearGradient gradient;
   final IconData icon;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 130,
-      height: 150,
-      decoration: BoxDecoration(
-        gradient: gradient,
-        borderRadius: AppRadius.large16,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            offset: const Offset(0, 4),
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: 12,
-            right: 12,
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: ColorName.surface.withValues(alpha: 0.25),
-                shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 130,
+        height: 150,
+        decoration: BoxDecoration(
+          gradient: gradient,
+          borderRadius: AppRadius.large16,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              offset: const Offset(0, 4),
+              blurRadius: 8,
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              top: 12,
+              right: 12,
+              child: Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: ColorName.surface.withValues(alpha: 0.25),
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Icon(icon, color: ColorName.surface, size: 18),
               ),
-              alignment: Alignment.center,
-              child: Icon(icon, color: ColorName.surface, size: 18),
             ),
-          ),
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 16,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  city,
-                  style: const TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: ColorName.surface,
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 16,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    city,
+                    style: const TextStyle(
+                      fontFamily: FontFamily.b612,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: ColorName.surface,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  country,
-                  style: TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 12,
-                    color: ColorName.surface.withValues(alpha: 0.85),
+                  const SizedBox(height: 2),
+                  Text(
+                    country,
+                    style: TextStyle(
+                      fontFamily: FontFamily.b612,
+                      fontSize: 12,
+                      color: ColorName.surface.withValues(alpha: 0.85),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

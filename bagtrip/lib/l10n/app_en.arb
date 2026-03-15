@@ -288,14 +288,6 @@
   "planifierManualDesc": "Create your trip step by step with all the details",
   "planifierAITitle": "AI Assistant",
   "planifierAIDesc": "Let AI help you create a personalized trip",
-  "planifierSectionMyTrips": "My trips",
-  "planifierInProgressTitle": "In progress",
-  "planifierInProgressCount": "{count} trip(s) pending",
-  "@planifierInProgressCount": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
-  },
   "planifierCompletedTitle": "Completed trips",
   "planifierCompletedDesc": "View your past trips and budgets",
   "planifierGreeting": "Good morning",
@@ -304,22 +296,6 @@
   "planifierManualDescriptionCard": "Build your itinerary step by step with full control.",
   "planifierAIDescriptionCard": "Let AI craft a personalized trip for you.",
   "planifierNewBadge": "NEW",
-  "planifierPlanningTitle": "Planning",
-  "planifierPlanningDescription": "Trips being prepared",
-  "planifierInProgressSuffix": "{count} in progress",
-  "@planifierInProgressSuffix": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
-  },
-  "planifierCompletedShort": "Completed",
-  "planifierCompletedDescriptionCard": "Past trips & budgets",
-  "planifierCompletedSuffix": "{count} completed",
-  "@planifierCompletedSuffix": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
-  },
   "planifierSectionExploreDestinations": "Explore destinations",
   "destinationKyoto": "Kyoto",
   "destinationSantorini": "Santorini",
@@ -474,8 +450,9 @@
   "comingSoon": "Coming soon",
   "errorTitle": "Error",
   "backButton": "Back",
-  "tabNew": "New",
+  "tabExplorer": "Explore",
   "tabTrips": "Trips",
+  "tabActivity": "Activity",
   "tabProfile": "Profile",
   "notificationsTitle": "Notifications",
   "notificationsMarkAllRead": "Mark all read",
@@ -529,7 +506,7 @@
   "tripsMyTrips": "My trips",
   "tripsNewTrip": "New trip",
   "tripStatusOngoing": "Ongoing",
-  "tripStatusPlanned": "Planned",
+  "tripStatusPlanned": "Upcoming",
   "tripStatusCompleted": "Completed",
   "tripsEmptyOngoing": "No ongoing trips",
   "tripsEmptyPlanned": "No planned trips",
@@ -634,5 +611,26 @@
   "paymentCancelledTitle": "Payment cancelled",
   "paymentCancelledMessage": "Your payment was cancelled. No charges were made.",
   "payment3dsReturnTitle": "Payment processing",
-  "payment3dsReturnMessage": "Your payment is being processed. You will receive a confirmation shortly."
+  "payment3dsReturnMessage": "Your payment is being processed. You will receive a confirmation shortly.",
+  "nextTripSection": "Next trip",
+  "nextTripCountdown": "In {days} days",
+  "@nextTripCountdown": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "nextTripNoUpcoming": "No upcoming trip",
+  "nextTripReady": "{percent}% ready",
+  "@nextTripReady": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTitle": "Settings",
+  "personalInfoPageTitle": "Personal information",
+  "travelPreferencesTitle": "Travel preferences"
 }

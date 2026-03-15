@@ -708,17 +708,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planifierAIDesc => 'Let AI help you create a personalized trip';
 
   @override
-  String get planifierSectionMyTrips => 'My trips';
-
-  @override
-  String get planifierInProgressTitle => 'In progress';
-
-  @override
-  String planifierInProgressCount(int count) {
-    return '$count trip(s) pending';
-  }
-
-  @override
   String get planifierCompletedTitle => 'Completed trips';
 
   @override
@@ -743,28 +732,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get planifierNewBadge => 'NEW';
-
-  @override
-  String get planifierPlanningTitle => 'Planning';
-
-  @override
-  String get planifierPlanningDescription => 'Trips being prepared';
-
-  @override
-  String planifierInProgressSuffix(int count) {
-    return '$count in progress';
-  }
-
-  @override
-  String get planifierCompletedShort => 'Completed';
-
-  @override
-  String get planifierCompletedDescriptionCard => 'Past trips & budgets';
-
-  @override
-  String planifierCompletedSuffix(int count) {
-    return '$count completed';
-  }
 
   @override
   String get planifierSectionExploreDestinations => 'Explore destinations';
@@ -1155,10 +1122,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backButton => 'Back';
 
   @override
-  String get tabNew => 'New';
+  String get tabExplorer => 'Explore';
 
   @override
   String get tabTrips => 'Trips';
+
+  @override
+  String get tabActivity => 'Activity';
 
   @override
   String get tabProfile => 'Profile';
@@ -1310,7 +1280,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tripStatusOngoing => 'Ongoing';
 
   @override
-  String get tripStatusPlanned => 'Planned';
+  String get tripStatusPlanned => 'Upcoming';
 
   @override
   String get tripStatusCompleted => 'Completed';
@@ -1597,4 +1567,29 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get payment3dsReturnMessage =>
       'Your payment is being processed. You will receive a confirmation shortly.';
+
+  @override
+  String get nextTripSection => 'Next trip';
+
+  @override
+  String nextTripCountdown(int days) {
+    return 'In $days days';
+  }
+
+  @override
+  String get nextTripNoUpcoming => 'No upcoming trip';
+
+  @override
+  String nextTripReady(int percent) {
+    return '$percent% ready';
+  }
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get personalInfoPageTitle => 'Personal information';
+
+  @override
+  String get travelPreferencesTitle => 'Travel preferences';
 }

@@ -1,16 +1,19 @@
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
+import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:bagtrip/navigation/bloc/navigation_bloc.dart';
 import 'package:bagtrip/components/bottom_tab_bar.dart';
 import 'package:bagtrip/components/offline_banner.dart';
 
-/// Tab order must match [StatefulShellRoute] branches: planifier, trips, profile.
+/// Tab order must match [StatefulShellRoute] branches: explorer, trips, activity, profile.
 const List<NavigationTab> _shellTabOrder = [
-  NavigationTab.planifier,
+  NavigationTab.explorer,
   NavigationTab.trips,
+  NavigationTab.activity,
   NavigationTab.profile,
 ];
 
@@ -24,13 +27,24 @@ class AppShell extends StatelessWidget {
     final currentIndex = navigationShell.currentIndex;
     final activeTab = _shellTabOrder[currentIndex];
 
-    final tabBar = BottomTabBar(
-      activeTab: activeTab,
-      onTabChanged: (tab) {
-        final index = _shellTabOrder.indexOf(tab);
-        if (index >= 0 && index != currentIndex) {
-          navigationShell.goBranch(index);
+    final tabBar = BlocBuilder<NotificationBloc, NotificationState>(
+      builder: (context, notifState) {
+        int badgeCount = 0;
+        if (notifState is UnreadCountLoaded) {
+          badgeCount = notifState.count;
+        } else if (notifState is NotificationsLoaded) {
+          badgeCount = notifState.unreadCount;
         }
+        return BottomTabBar(
+          activeTab: activeTab,
+          activityBadgeCount: badgeCount,
+          onTabChanged: (tab) {
+            final index = _shellTabOrder.indexOf(tab);
+            if (index >= 0 && index != currentIndex) {
+              navigationShell.goBranch(index);
+            }
+          },
+        );
       },
     );
 

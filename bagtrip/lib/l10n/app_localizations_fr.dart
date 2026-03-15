@@ -719,17 +719,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Laissez l\'IA vous aider à créer un voyage personnalisé';
 
   @override
-  String get planifierSectionMyTrips => 'Mes voyages';
-
-  @override
-  String get planifierInProgressTitle => 'En cours de planification';
-
-  @override
-  String planifierInProgressCount(int count) {
-    return '$count voyage(s) en attente';
-  }
-
-  @override
   String get planifierCompletedTitle => 'Voyages terminés';
 
   @override
@@ -755,28 +744,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get planifierNewBadge => 'NOUVEAU';
-
-  @override
-  String get planifierPlanningTitle => 'En cours';
-
-  @override
-  String get planifierPlanningDescription => 'Voyages en préparation';
-
-  @override
-  String planifierInProgressSuffix(int count) {
-    return '$count en cours';
-  }
-
-  @override
-  String get planifierCompletedShort => 'Terminés';
-
-  @override
-  String get planifierCompletedDescriptionCard => 'Voyages passés et budgets';
-
-  @override
-  String planifierCompletedSuffix(int count) {
-    return '$count terminés';
-  }
 
   @override
   String get planifierSectionExploreDestinations => 'Explorer les destinations';
@@ -1167,10 +1134,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get backButton => 'Retour';
 
   @override
-  String get tabNew => 'Nouveau';
+  String get tabExplorer => 'Explorer';
 
   @override
   String get tabTrips => 'Voyages';
+
+  @override
+  String get tabActivity => 'Activité';
 
   @override
   String get tabProfile => 'Profil';
@@ -1324,7 +1294,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tripStatusOngoing => 'En cours';
 
   @override
-  String get tripStatusPlanned => 'Planifié';
+  String get tripStatusPlanned => 'À venir';
 
   @override
   String get tripStatusCompleted => 'Terminé';
@@ -1614,4 +1584,29 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get payment3dsReturnMessage =>
       'Votre paiement est en cours de traitement. Vous recevrez une confirmation sous peu.';
+
+  @override
+  String get nextTripSection => 'Prochain voyage';
+
+  @override
+  String nextTripCountdown(int days) {
+    return 'Dans $days jours';
+  }
+
+  @override
+  String get nextTripNoUpcoming => 'Aucun voyage prévu';
+
+  @override
+  String nextTripReady(int percent) {
+    return '$percent% prêt';
+  }
+
+  @override
+  String get settingsTitle => 'Réglages';
+
+  @override
+  String get personalInfoPageTitle => 'Informations personnelles';
+
+  @override
+  String get travelPreferencesTitle => 'Préférences de voyage';
 }

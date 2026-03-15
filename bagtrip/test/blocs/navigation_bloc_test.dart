@@ -16,12 +16,22 @@ void main() {
 
     group('NavigationTabChanged', () {
       blocTest<NavigationBloc, NavigationState>(
-        'emits NavigationState(activeTab: planifier) when NavigationTabChanged(planifier) is added',
+        'emits NavigationState(activeTab: explorer) when NavigationTabChanged(explorer) is added',
         build: () => NavigationBloc(),
         act: (bloc) =>
-            bloc.add(const NavigationTabChanged(NavigationTab.planifier)),
+            bloc.add(const NavigationTabChanged(NavigationTab.explorer)),
         expect: () => [
-          const NavigationState(activeTab: NavigationTab.planifier),
+          const NavigationState(activeTab: NavigationTab.explorer),
+        ],
+      );
+
+      blocTest<NavigationBloc, NavigationState>(
+        'emits NavigationState(activeTab: activity) when NavigationTabChanged(activity) is added',
+        build: () => NavigationBloc(),
+        act: (bloc) =>
+            bloc.add(const NavigationTabChanged(NavigationTab.activity)),
+        expect: () => [
+          const NavigationState(activeTab: NavigationTab.activity),
         ],
       );
 
@@ -45,11 +55,11 @@ void main() {
         'emits two states when tab is changed twice in sequence',
         build: () => NavigationBloc(),
         act: (bloc) {
-          bloc.add(const NavigationTabChanged(NavigationTab.planifier));
+          bloc.add(const NavigationTabChanged(NavigationTab.explorer));
           bloc.add(const NavigationTabChanged(NavigationTab.profile));
         },
         expect: () => [
-          const NavigationState(activeTab: NavigationTab.planifier),
+          const NavigationState(activeTab: NavigationTab.explorer),
           const NavigationState(activeTab: NavigationTab.profile),
         ],
       );

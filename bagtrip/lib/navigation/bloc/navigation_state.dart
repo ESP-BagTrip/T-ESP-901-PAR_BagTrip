@@ -1,6 +1,6 @@
 part of 'navigation_bloc.dart';
 
-enum NavigationTab { planifier, trips, profile }
+enum NavigationTab { explorer, trips, activity, profile }
 
 class NavigationState {
   final NavigationTab activeTab;

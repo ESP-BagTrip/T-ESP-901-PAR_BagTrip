@@ -288,14 +288,6 @@
   "planifierManualDesc": "Créez votre voyage étape par étape avec tous les détails",
   "planifierAITitle": "Assistant IA",
   "planifierAIDesc": "Laissez l'IA vous aider à créer un voyage personnalisé",
-  "planifierSectionMyTrips": "Mes voyages",
-  "planifierInProgressTitle": "En cours de planification",
-  "planifierInProgressCount": "{count} voyage(s) en attente",
-  "@planifierInProgressCount": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
-  },
   "planifierCompletedTitle": "Voyages terminés",
   "planifierCompletedDesc": "Consultez vos voyages passés et budgets",
   "planifierGreeting": "Bonjour",
@@ -304,22 +296,6 @@
   "planifierManualDescriptionCard": "Construisez votre itinéraire étape par étape.",
   "planifierAIDescriptionCard": "Laissez l'IA créer un voyage personnalisé pour vous.",
   "planifierNewBadge": "NOUVEAU",
-  "planifierPlanningTitle": "En cours",
-  "planifierPlanningDescription": "Voyages en préparation",
-  "planifierInProgressSuffix": "{count} en cours",
-  "@planifierInProgressSuffix": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
-  },
-  "planifierCompletedShort": "Terminés",
-  "planifierCompletedDescriptionCard": "Voyages passés et budgets",
-  "planifierCompletedSuffix": "{count} terminés",
-  "@planifierCompletedSuffix": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
-  },
   "planifierSectionExploreDestinations": "Explorer les destinations",
   "destinationKyoto": "Kyoto",
   "destinationSantorini": "Santorini",
@@ -474,8 +450,9 @@
   "comingSoon": "Bientôt disponible",
   "errorTitle": "Erreur",
   "backButton": "Retour",
-  "tabNew": "Nouveau",
+  "tabExplorer": "Explorer",
   "tabTrips": "Voyages",
+  "tabActivity": "Activité",
   "tabProfile": "Profil",
   "notificationsTitle": "Notifications",
   "notificationsMarkAllRead": "Tout marquer lu",
@@ -529,7 +506,7 @@
   "tripsMyTrips": "Mes voyages",
   "tripsNewTrip": "Nouveau voyage",
   "tripStatusOngoing": "En cours",
-  "tripStatusPlanned": "Planifié",
+  "tripStatusPlanned": "À venir",
   "tripStatusCompleted": "Terminé",
   "tripsEmptyOngoing": "Aucun voyage en cours",
   "tripsEmptyPlanned": "Aucun voyage planifié",
@@ -634,5 +611,26 @@
   "paymentCancelledTitle": "Paiement annulé",
   "paymentCancelledMessage": "Votre paiement a été annulé. Aucun montant n'a été débité.",
   "payment3dsReturnTitle": "Paiement en cours",
-  "payment3dsReturnMessage": "Votre paiement est en cours de traitement. Vous recevrez une confirmation sous peu."
+  "payment3dsReturnMessage": "Votre paiement est en cours de traitement. Vous recevrez une confirmation sous peu.",
+  "nextTripSection": "Prochain voyage",
+  "nextTripCountdown": "Dans {days} jours",
+  "@nextTripCountdown": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "nextTripNoUpcoming": "Aucun voyage prévu",
+  "nextTripReady": "{percent}% prêt",
+  "@nextTripReady": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTitle": "Réglages",
+  "personalInfoPageTitle": "Informations personnelles",
+  "travelPreferencesTitle": "Préférences de voyage"
 }

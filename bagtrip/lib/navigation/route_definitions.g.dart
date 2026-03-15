@@ -13,6 +13,7 @@ List<RouteBase> get $appRoutes => [
   $personalizationRoute,
   $planifierRoute,
   $tripsRoute,
+  $activityRoute,
   $profileRoute,
   $notificationsRoute,
   $flightSearchResultRoute,
@@ -128,7 +129,7 @@ mixin $PersonalizationRoute on GoRouteData {
 }
 
 RouteBase get $planifierRoute => GoRouteData.$route(
-  path: '/planifier',
+  path: '/explorer',
   factory: $PlanifierRoute._fromState,
   routes: [
     GoRouteData.$route(
@@ -163,7 +164,7 @@ mixin $PlanifierRoute on GoRouteData {
       const PlanifierRoute();
 
   @override
-  String get location => GoRouteData.$location('/planifier');
+  String get location => GoRouteData.$location('/explorer');
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -184,7 +185,7 @@ mixin $PlanifierManualRoute on GoRouteData {
       const PlanifierManualRoute();
 
   @override
-  String get location => GoRouteData.$location('/planifier/manual');
+  String get location => GoRouteData.$location('/explorer/manual');
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -205,7 +206,7 @@ mixin $PlanifierManualTransportRoute on GoRouteData {
       const PlanifierManualTransportRoute();
 
   @override
-  String get location => GoRouteData.$location('/planifier/manual/transport');
+  String get location => GoRouteData.$location('/explorer/manual/transport');
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -227,7 +228,7 @@ mixin $PlanifierManualOtherTransportRoute on GoRouteData {
 
   @override
   String get location =>
-      GoRouteData.$location('/planifier/manual/transport/other');
+      GoRouteData.$location('/explorer/manual/transport/other');
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -249,7 +250,7 @@ mixin $PlanifierManualFlightSearchRoute on GoRouteData {
 
   @override
   String get location =>
-      GoRouteData.$location('/planifier/manual/flight-search');
+      GoRouteData.$location('/explorer/manual/flight-search');
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -270,7 +271,7 @@ mixin $CreateTripAiRoute on GoRouteData {
       const CreateTripAiRoute();
 
   @override
-  String get location => GoRouteData.$location('/planifier/create-trip-ai');
+  String get location => GoRouteData.$location('/explorer/create-trip-ai');
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -588,14 +589,87 @@ bool _$boolConverter(String value) {
   }
 }
 
-RouteBase get $profileRoute =>
-    GoRouteData.$route(path: '/profile', factory: $ProfileRoute._fromState);
+RouteBase get $activityRoute =>
+    GoRouteData.$route(path: '/activity', factory: $ActivityRoute._fromState);
+
+mixin $ActivityRoute on GoRouteData {
+  static ActivityRoute _fromState(GoRouterState state) => const ActivityRoute();
+
+  @override
+  String get location => GoRouteData.$location('/activity');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $profileRoute => GoRouteData.$route(
+  path: '/profile',
+  factory: $ProfileRoute._fromState,
+  routes: [
+    GoRouteData.$route(
+      path: 'personal-info',
+      factory: $PersonalInfoRoute._fromState,
+    ),
+    GoRouteData.$route(path: 'settings', factory: $SettingsRoute._fromState),
+  ],
+);
 
 mixin $ProfileRoute on GoRouteData {
   static ProfileRoute _fromState(GoRouterState state) => const ProfileRoute();
 
   @override
   String get location => GoRouteData.$location('/profile');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $PersonalInfoRoute on GoRouteData {
+  static PersonalInfoRoute _fromState(GoRouterState state) =>
+      const PersonalInfoRoute();
+
+  @override
+  String get location => GoRouteData.$location('/profile/personal-info');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $SettingsRoute on GoRouteData {
+  static SettingsRoute _fromState(GoRouterState state) => const SettingsRoute();
+
+  @override
+  String get location => GoRouteData.$location('/profile/settings');
 
   @override
   void go(BuildContext context) => context.go(location);
