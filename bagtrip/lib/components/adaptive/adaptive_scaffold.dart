@@ -24,12 +24,14 @@ class AdaptiveScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (AdaptivePlatform.isIOS) {
+      final bg =
+          backgroundColor ?? CupertinoTheme.of(context).scaffoldBackgroundColor;
       return CupertinoPageScaffold(
         navigationBar: cupertinoNavigationBar,
-        backgroundColor:
-            backgroundColor ??
-            CupertinoTheme.of(context).scaffoldBackgroundColor,
-        child: SafeArea(child: body),
+        backgroundColor: bg,
+        child: SafeArea(
+          child: Material(color: bg, child: body),
+        ),
       );
     }
 
