@@ -3,7 +3,7 @@ import 'package:bagtrip/baggage/widgets/baggage_add_form.dart';
 import 'package:bagtrip/baggage/widgets/baggage_item_tile.dart';
 import 'package:bagtrip/baggage/widgets/baggage_progress_header.dart';
 import 'package:bagtrip/baggage/widgets/baggage_suggestion_card.dart';
-import 'package:bagtrip/components/empty_state.dart';
+import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/design/app_colors.dart';
@@ -81,10 +81,10 @@ class BaggageView extends StatelessWidget {
             }
             if (state is BaggageLoaded) {
               if (state.items.isEmpty && state.suggestions.isEmpty) {
-                return EmptyState(
+                return ElegantEmptyState(
                   icon: Icons.luggage_outlined,
-                  title: l10n.baggageEmptyTitle,
-                  subtitle: l10n.baggageEmptySubtitle,
+                  title: l10n.emptyBaggageTitle,
+                  subtitle: l10n.emptyBaggageSubtitle,
                 );
               }
               return _buildContent(

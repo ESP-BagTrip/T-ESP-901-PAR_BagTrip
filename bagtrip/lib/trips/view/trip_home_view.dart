@@ -2,6 +2,7 @@ import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
+import 'package:bagtrip/components/staggered_fade_in.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
@@ -203,72 +204,107 @@ class TripHomeView extends StatelessWidget {
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
                       const SizedBox(height: 8),
-                      TripSectionCard(
-                        icon: Icons.flight_rounded,
-                        title: l10n.transportsTitle,
-                        itemCount: _sectionCount(tripHome, 'transports'),
-                        previewItems: _sectionPreviews(tripHome, 'transports'),
-                        emptyLabel: l10n.addFirstTransport,
-                        onTap: () => TransportsRoute(
-                          tripId: tripId,
-                          role: trip.role ?? 'OWNER',
-                          isCompleted: isCompleted,
-                        ).go(context),
-                      ),
-                      const SizedBox(height: 12),
-                      TripSectionCard(
-                        icon: Icons.hotel_rounded,
-                        title: l10n.accommodationsTitle,
-                        itemCount: _sectionCount(tripHome, 'accommodations'),
-                        previewItems: _sectionPreviews(
-                          tripHome,
-                          'accommodations',
+                      StaggeredFadeIn(
+                        index: 0,
+                        child: TripSectionCard(
+                          icon: Icons.flight_rounded,
+                          title: l10n.transportsTitle,
+                          itemCount: _sectionCount(tripHome, 'transports'),
+                          previewItems: _sectionPreviews(
+                            tripHome,
+                            'transports',
+                          ),
+                          emptyLabel: l10n.addFirstTransport,
+                          onTap: () => TransportsRoute(
+                            tripId: tripId,
+                            role: trip.role ?? 'OWNER',
+                            isCompleted: isCompleted,
+                          ).go(context),
                         ),
-                        emptyLabel: l10n.addFirstAccommodation,
-                        onTap: () => AccommodationsRoute(
-                          tripId: tripId,
-                          role: trip.role ?? 'OWNER',
-                          isCompleted: isCompleted,
-                        ).go(context),
                       ),
                       const SizedBox(height: 12),
-                      TripSectionCard(
-                        icon: Icons.hiking_rounded,
-                        title: l10n.activitiesTitle,
-                        itemCount: _sectionCount(tripHome, 'activities'),
-                        previewItems: _sectionPreviews(tripHome, 'activities'),
-                        emptyLabel: l10n.addFirstActivity,
-                        onTap: () => ActivitiesRoute(
-                          tripId: tripId,
-                          role: trip.role ?? 'OWNER',
-                          isCompleted: isCompleted,
-                        ).go(context),
+                      StaggeredFadeIn(
+                        index: 1,
+                        child: TripSectionCard(
+                          icon: Icons.hotel_rounded,
+                          title: l10n.accommodationsTitle,
+                          itemCount: _sectionCount(tripHome, 'accommodations'),
+                          previewItems: _sectionPreviews(
+                            tripHome,
+                            'accommodations',
+                          ),
+                          emptyLabel: l10n.addFirstAccommodation,
+                          onTap: () => AccommodationsRoute(
+                            tripId: tripId,
+                            role: trip.role ?? 'OWNER',
+                            isCompleted: isCompleted,
+                            tripStartDate: trip.startDate?.toIso8601String(),
+                            tripEndDate: trip.endDate?.toIso8601String(),
+                          ).go(context),
+                        ),
                       ),
                       const SizedBox(height: 12),
-                      TripSectionCard(
-                        icon: Icons.luggage_rounded,
-                        title: l10n.baggageTitle,
-                        itemCount: _sectionCount(tripHome, 'baggage'),
-                        previewItems: _sectionPreviews(tripHome, 'baggage'),
-                        emptyLabel: l10n.addFirstBaggage,
-                        onTap: () => BaggageRoute(
-                          tripId: tripId,
-                          role: trip.role ?? 'OWNER',
-                          isCompleted: isCompleted,
-                        ).go(context),
+                      StaggeredFadeIn(
+                        index: 2,
+                        child: TripSectionCard(
+                          icon: Icons.hiking_rounded,
+                          title: l10n.activitiesTitle,
+                          itemCount: _sectionCount(tripHome, 'activities'),
+                          previewItems: _sectionPreviews(
+                            tripHome,
+                            'activities',
+                          ),
+                          emptyLabel: l10n.addFirstActivity,
+                          onTap: () => ActivitiesRoute(
+                            tripId: tripId,
+                            role: trip.role ?? 'OWNER',
+                            isCompleted: isCompleted,
+                          ).go(context),
+                        ),
                       ),
                       const SizedBox(height: 12),
-                      TripSectionCard(
-                        icon: Icons.wallet_rounded,
-                        title: l10n.budgetTitle,
-                        itemCount: _sectionCount(tripHome, 'budget'),
-                        previewItems: _sectionPreviews(tripHome, 'budget'),
-                        emptyLabel: l10n.addFirstBudget,
-                        onTap: () => BudgetRoute(
-                          tripId: tripId,
-                          role: trip.role ?? 'OWNER',
-                          isCompleted: isCompleted,
-                        ).go(context),
+                      StaggeredFadeIn(
+                        index: 3,
+                        child: TripSectionCard(
+                          icon: Icons.luggage_rounded,
+                          title: l10n.baggageTitle,
+                          itemCount: _sectionCount(tripHome, 'baggage'),
+                          previewItems: _sectionPreviews(tripHome, 'baggage'),
+                          emptyLabel: l10n.addFirstBaggage,
+                          onTap: () => BaggageRoute(
+                            tripId: tripId,
+                            role: trip.role ?? 'OWNER',
+                            isCompleted: isCompleted,
+                          ).go(context),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      StaggeredFadeIn(
+                        index: 4,
+                        child: TripSectionCard(
+                          icon: Icons.wallet_rounded,
+                          title: l10n.budgetTitle,
+                          itemCount: _sectionCount(tripHome, 'budget'),
+                          previewItems: _sectionPreviews(tripHome, 'budget'),
+                          emptyLabel: l10n.addFirstBudget,
+                          onTap: () => BudgetRoute(
+                            tripId: tripId,
+                            role: trip.role ?? 'OWNER',
+                            isCompleted: isCompleted,
+                          ).go(context),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      StaggeredFadeIn(
+                        index: 5,
+                        child: TripSectionCard(
+                          icon: Icons.map_rounded,
+                          title: l10n.mapTitle,
+                          itemCount: 0,
+                          previewItems: const [],
+                          emptyLabel: l10n.mapComingSoonShort,
+                          onTap: () => MapRoute(tripId: tripId).go(context),
+                        ),
                       ),
                       const SizedBox(height: 24),
                     ]),

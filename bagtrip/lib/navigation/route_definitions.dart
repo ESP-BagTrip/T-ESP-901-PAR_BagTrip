@@ -1,4 +1,5 @@
 import 'package:bagtrip/activities/view/activities_page.dart';
+import 'package:bagtrip/trips/widgets/map_coming_soon_view.dart';
 import 'package:bagtrip/transports/view/transports_page.dart';
 import 'package:bagtrip/budget/view/budget_page.dart';
 import 'package:bagtrip/flight_result_details/view/flight_result_details_page.dart';
@@ -102,6 +103,7 @@ class PersonalizationRoute extends GoRouteData with $PersonalizationRoute {
         TypedGoRoute<TransportsRoute>(path: 'transports'),
         TypedGoRoute<SharesRoute>(path: 'shares'),
         TypedGoRoute<FeedbackRoute>(path: 'feedback'),
+        TypedGoRoute<MapRoute>(path: 'map'),
       ],
     ),
   ],
@@ -154,11 +156,15 @@ class AccommodationsRoute extends GoRouteData with $AccommodationsRoute {
     required this.tripId,
     this.role = 'OWNER',
     this.isCompleted = false,
+    this.tripStartDate,
+    this.tripEndDate,
   });
 
   final String tripId;
   final String role;
   final bool isCompleted;
+  final String? tripStartDate;
+  final String? tripEndDate;
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
@@ -168,6 +174,12 @@ class AccommodationsRoute extends GoRouteData with $AccommodationsRoute {
           tripId: tripId,
           role: role,
           isCompleted: isCompleted,
+          tripStartDate: tripStartDate != null
+              ? DateTime.tryParse(tripStartDate!)
+              : null,
+          tripEndDate: tripEndDate != null
+              ? DateTime.tryParse(tripEndDate!)
+              : null,
         ),
       );
 }
@@ -262,6 +274,19 @@ class TransportsRoute extends GoRouteData with $TransportsRoute {
           role: role,
           isCompleted: isCompleted,
         ),
+      );
+}
+
+class MapRoute extends GoRouteData with $MapRoute {
+  const MapRoute({required this.tripId});
+
+  final String tripId;
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      buildSlideTransitionPage<void>(
+        state: state,
+        child: const MapComingSoonView(),
       );
 }
 

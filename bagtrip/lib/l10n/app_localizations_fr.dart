@@ -1910,4 +1910,63 @@ class AppLocalizationsFr extends AppLocalizations {
   String budgetTotalRange(String min, String max, String currency) {
     return '$min – $max $currency';
   }
+
+  @override
+  String get statusPending => 'À valider';
+
+  @override
+  String get statusConfirmed => 'Confirmé';
+
+  @override
+  String get statusForecasted => 'Prévisionnel';
+
+  @override
+  String get statusActive => 'En cours';
+
+  @override
+  String get statusCompleted => 'Terminé';
+
+  @override
+  String get emptyTransportsTitle => 'Où volez-vous ?';
+
+  @override
+  String get emptyTransportsSubtitle =>
+      'Ajoutez vos vols pour organiser votre voyage';
+
+  @override
+  String get emptyAccommodationsTitle => 'Où dormirez-vous ?';
+
+  @override
+  String get emptyAccommodationsSubtitle => 'Ajoutez vos hôtels et logements';
+
+  @override
+  String get emptyActivitiesTitle => 'Que découvrirez-vous ?';
+
+  @override
+  String get emptyActivitiesSubtitle =>
+      'Ajoutez des activités pour planifier votre voyage';
+
+  @override
+  String get emptyBaggageTitle => 'Que faut-il emporter ?';
+
+  @override
+  String get emptyBaggageSubtitle =>
+      'Ajoutez des éléments à votre liste de bagages';
+
+  @override
+  String get emptyBudgetTitle => 'Suivez vos dépenses';
+
+  @override
+  String get emptyBudgetSubtitle =>
+      'Suivez vos dépenses et planifiez votre budget voyage';
+
+  @override
+  String get mapTitle => 'Carte';
+
+  @override
+  String get mapComingSoonSubtitle =>
+      'Votre voyage sur une carte. Bientôt disponible.';
+
+  @override
+  String get mapComingSoonShort => 'Carte bientôt';
 }

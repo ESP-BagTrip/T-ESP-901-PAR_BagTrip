@@ -2,7 +2,7 @@ import 'package:bagtrip/accommodations/bloc/accommodation_bloc.dart';
 import 'package:bagtrip/accommodations/widgets/accommodation_card.dart';
 import 'package:bagtrip/accommodations/widgets/add_accommodation_sheet.dart';
 import 'package:bagtrip/accommodations/widgets/ai_suggestions_sheet.dart';
-import 'package:bagtrip/components/empty_state.dart';
+import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
@@ -15,12 +15,16 @@ class AccommodationsView extends StatelessWidget {
   final String tripId;
   final String role;
   final bool isCompleted;
+  final DateTime? tripStartDate;
+  final DateTime? tripEndDate;
 
   const AccommodationsView({
     super.key,
     required this.tripId,
     this.role = 'OWNER',
     this.isCompleted = false,
+    this.tripStartDate,
+    this.tripEndDate,
   });
 
   @override
@@ -87,10 +91,10 @@ class AccommodationsView extends StatelessWidget {
             if (state is AccommodationsLoaded) {
               final accommodations = state.accommodations;
               if (accommodations.isEmpty) {
-                return EmptyState(
+                return ElegantEmptyState(
                   icon: Icons.hotel_outlined,
-                  title: l10n.accommodationEmptyTitle,
-                  subtitle: l10n.accommodationEmptySubtitle,
+                  title: l10n.emptyAccommodationsTitle,
+                  subtitle: l10n.emptyAccommodationsSubtitle,
                 );
               }
               return CustomScrollView(
@@ -134,7 +138,11 @@ class AccommodationsView extends StatelessWidget {
                     backgroundColor: Colors.transparent,
                     builder: (_) => BlocProvider.value(
                       value: context.read<AccommodationBloc>(),
-                      child: AddAccommodationSheet(tripId: tripId),
+                      child: AddAccommodationSheet(
+                        tripId: tripId,
+                        tripStartDate: tripStartDate,
+                        tripEndDate: tripEndDate,
+                      ),
                     ),
                   );
                 },

@@ -3655,6 +3655,114 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{min} – {max} {currency}'**
   String budgetTotalRange(String min, String max, String currency);
+
+  /// No description provided for @statusPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'À valider'**
+  String get statusPending;
+
+  /// No description provided for @statusConfirmed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmé'**
+  String get statusConfirmed;
+
+  /// No description provided for @statusForecasted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prévisionnel'**
+  String get statusForecasted;
+
+  /// No description provided for @statusActive.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get statusActive;
+
+  /// No description provided for @statusCompleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminé'**
+  String get statusCompleted;
+
+  /// No description provided for @emptyTransportsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Où volez-vous ?'**
+  String get emptyTransportsTitle;
+
+  /// No description provided for @emptyTransportsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez vos vols pour organiser votre voyage'**
+  String get emptyTransportsSubtitle;
+
+  /// No description provided for @emptyAccommodationsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Où dormirez-vous ?'**
+  String get emptyAccommodationsTitle;
+
+  /// No description provided for @emptyAccommodationsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez vos hôtels et logements'**
+  String get emptyAccommodationsSubtitle;
+
+  /// No description provided for @emptyActivitiesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Que découvrirez-vous ?'**
+  String get emptyActivitiesTitle;
+
+  /// No description provided for @emptyActivitiesSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez des activités pour planifier votre voyage'**
+  String get emptyActivitiesSubtitle;
+
+  /// No description provided for @emptyBaggageTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Que faut-il emporter ?'**
+  String get emptyBaggageTitle;
+
+  /// No description provided for @emptyBaggageSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez des éléments à votre liste de bagages'**
+  String get emptyBaggageSubtitle;
+
+  /// No description provided for @emptyBudgetTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivez vos dépenses'**
+  String get emptyBudgetTitle;
+
+  /// No description provided for @emptyBudgetSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivez vos dépenses et planifiez votre budget voyage'**
+  String get emptyBudgetSubtitle;
+
+  /// No description provided for @mapTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Carte'**
+  String get mapTitle;
+
+  /// No description provided for @mapComingSoonSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre voyage sur une carte. Bientôt disponible.'**
+  String get mapComingSoonSubtitle;
+
+  /// No description provided for @mapComingSoonShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Carte bientôt'**
+  String get mapComingSoonShort;
 }
 
 class _AppLocalizationsDelegate

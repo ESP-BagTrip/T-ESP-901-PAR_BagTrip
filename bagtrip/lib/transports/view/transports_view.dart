@@ -1,4 +1,5 @@
 import 'package:bagtrip/components/app_snackbar.dart';
+import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/design/app_colors.dart';
@@ -193,49 +194,12 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(48),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.flight_takeoff_rounded,
-              size: 48,
-              color: AppColors.hint,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.addFirstTransport,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontFamily: FontFamily.b612,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: ColorName.primaryTrueDark,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.addFlightSubtitle,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontFamily: FontFamily.b612,
-                fontSize: 13,
-                color: ColorName.textMutedLight,
-              ),
-            ),
-            if (onAdd != null) ...[
-              const SizedBox(height: 24),
-              FilledButton.icon(
-                onPressed: onAdd,
-                icon: const Icon(Icons.add),
-                label: Text(l10n.addFlight),
-              ),
-            ],
-          ],
-        ),
-      ),
+    return ElegantEmptyState(
+      icon: Icons.flight_takeoff_rounded,
+      title: l10n.emptyTransportsTitle,
+      subtitle: l10n.emptyTransportsSubtitle,
+      ctaLabel: onAdd != null ? l10n.addFlight : null,
+      onCta: onAdd,
     );
   }
 }

@@ -12,12 +12,16 @@ class ManualAccommodationForm extends StatefulWidget {
   final String tripId;
   final Map<String, dynamic>? prefill;
   final bool isEstimatedPrice;
+  final DateTime? tripStartDate;
+  final DateTime? tripEndDate;
 
   const ManualAccommodationForm({
     super.key,
     required this.tripId,
     this.prefill,
     this.isEstimatedPrice = false,
+    this.tripStartDate,
+    this.tripEndDate,
   });
 
   @override
@@ -52,6 +56,9 @@ class _ManualAccommodationFormState extends State<ManualAccommodationForm> {
       }
       _currency = p['currency'] as String? ?? 'EUR';
     }
+    // Pre-fill dates from trip if not already set
+    _checkIn ??= widget.tripStartDate;
+    _checkOut ??= widget.tripEndDate;
   }
 
   @override

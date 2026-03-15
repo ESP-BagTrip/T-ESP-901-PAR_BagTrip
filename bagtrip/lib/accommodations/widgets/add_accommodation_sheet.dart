@@ -11,8 +11,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AddAccommodationSheet extends StatelessWidget {
   final String tripId;
+  final DateTime? tripStartDate;
+  final DateTime? tripEndDate;
 
-  const AddAccommodationSheet({super.key, required this.tripId});
+  const AddAccommodationSheet({
+    super.key,
+    required this.tripId,
+    this.tripStartDate,
+    this.tripEndDate,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +70,11 @@ class AddAccommodationSheet extends StatelessWidget {
                 backgroundColor: Colors.transparent,
                 builder: (_) => BlocProvider.value(
                   value: context.read<AccommodationBloc>(),
-                  child: ManualAccommodationForm(tripId: tripId),
+                  child: ManualAccommodationForm(
+                    tripId: tripId,
+                    tripStartDate: tripStartDate,
+                    tripEndDate: tripEndDate,
+                  ),
                 ),
               );
             },

@@ -4,7 +4,7 @@ import 'package:bagtrip/budget/widgets/budget_estimate_sheet.dart';
 import 'package:bagtrip/budget/widgets/budget_item_card.dart';
 import 'package:bagtrip/budget/widgets/budget_item_form.dart';
 import 'package:bagtrip/budget/widgets/budget_summary_header.dart';
-import 'package:bagtrip/components/empty_state.dart';
+import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
@@ -103,10 +103,10 @@ class BudgetView extends StatelessWidget {
     final isReadOnly = isViewer || isCompleted;
 
     if (items.isEmpty && !isReadOnly) {
-      return EmptyState(
+      return ElegantEmptyState(
         icon: Icons.wallet_outlined,
-        title: l10n.noExpenses,
-        subtitle: l10n.trackExpensesAndPlan,
+        title: l10n.emptyBudgetTitle,
+        subtitle: l10n.emptyBudgetSubtitle,
       );
     }
 

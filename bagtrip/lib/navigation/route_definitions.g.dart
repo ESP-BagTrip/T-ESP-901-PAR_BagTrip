@@ -159,6 +159,7 @@ RouteBase get $homeRoute => GoRouteData.$route(
           path: 'feedback',
           factory: $FeedbackRoute._fromState,
         ),
+        GoRouteData.$route(path: 'map', factory: $MapRoute._fromState),
       ],
     ),
   ],
@@ -262,6 +263,8 @@ mixin $AccommodationsRoute on GoRouteData {
               _$boolConverter,
             ) ??
             false,
+        tripStartDate: state.uri.queryParameters['trip-start-date'],
+        tripEndDate: state.uri.queryParameters['trip-end-date'],
       );
 
   AccommodationsRoute get _self => this as AccommodationsRoute;
@@ -273,6 +276,8 @@ mixin $AccommodationsRoute on GoRouteData {
       if (_self.role != 'OWNER') 'role': _self.role,
       if (_self.isCompleted != false)
         'is-completed': _self.isCompleted.toString(),
+      if (_self.tripStartDate != null) 'trip-start-date': _self.tripStartDate,
+      if (_self.tripEndDate != null) 'trip-end-date': _self.tripEndDate,
     },
   );
 
@@ -486,6 +491,30 @@ mixin $FeedbackRoute on GoRouteData {
   String get location => GoRouteData.$location(
     '/home/${Uri.encodeComponent(_self.tripId)}/feedback',
   );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $MapRoute on GoRouteData {
+  static MapRoute _fromState(GoRouterState state) =>
+      MapRoute(tripId: state.pathParameters['tripId']!);
+
+  MapRoute get _self => this as MapRoute;
+
+  @override
+  String get location =>
+      GoRouteData.$location('/home/${Uri.encodeComponent(_self.tripId)}/map');
 
   @override
   void go(BuildContext context) => context.go(location);

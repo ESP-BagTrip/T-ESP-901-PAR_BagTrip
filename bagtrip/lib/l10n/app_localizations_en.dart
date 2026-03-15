@@ -1891,4 +1891,60 @@ class AppLocalizationsEn extends AppLocalizations {
   String budgetTotalRange(String min, String max, String currency) {
     return '$min – $max $currency';
   }
+
+  @override
+  String get statusPending => 'To validate';
+
+  @override
+  String get statusConfirmed => 'Confirmed';
+
+  @override
+  String get statusForecasted => 'Forecasted';
+
+  @override
+  String get statusActive => 'Active';
+
+  @override
+  String get statusCompleted => 'Completed';
+
+  @override
+  String get emptyTransportsTitle => 'Where are you flying?';
+
+  @override
+  String get emptyTransportsSubtitle =>
+      'Add your flights to start organizing your trip';
+
+  @override
+  String get emptyAccommodationsTitle => 'Where will you stay?';
+
+  @override
+  String get emptyAccommodationsSubtitle => 'Add your hotels and lodgings';
+
+  @override
+  String get emptyActivitiesTitle => 'What will you discover?';
+
+  @override
+  String get emptyActivitiesSubtitle => 'Add activities to plan your trip';
+
+  @override
+  String get emptyBaggageTitle => 'What do you need to pack?';
+
+  @override
+  String get emptyBaggageSubtitle => 'Add items to your luggage list';
+
+  @override
+  String get emptyBudgetTitle => 'Track your expenses';
+
+  @override
+  String get emptyBudgetSubtitle =>
+      'Follow your expenses and plan your trip budget';
+
+  @override
+  String get mapTitle => 'Map';
+
+  @override
+  String get mapComingSoonSubtitle => 'Your trip on a map. Coming soon.';
+
+  @override
+  String get mapComingSoonShort => 'Map coming soon';
 }

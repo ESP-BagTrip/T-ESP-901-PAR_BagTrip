@@ -746,5 +746,23 @@
       "max": {"type": "String"},
       "currency": {"type": "String"}
     }
-  }
+  },
+  "statusPending": "To validate",
+  "statusConfirmed": "Confirmed",
+  "statusForecasted": "Forecasted",
+  "statusActive": "Active",
+  "statusCompleted": "Completed",
+  "emptyTransportsTitle": "Where are you flying?",
+  "emptyTransportsSubtitle": "Add your flights to start organizing your trip",
+  "emptyAccommodationsTitle": "Where will you stay?",
+  "emptyAccommodationsSubtitle": "Add your hotels and lodgings",
+  "emptyActivitiesTitle": "What will you discover?",
+  "emptyActivitiesSubtitle": "Add activities to plan your trip",
+  "emptyBaggageTitle": "What do you need to pack?",
+  "emptyBaggageSubtitle": "Add items to your luggage list",
+  "emptyBudgetTitle": "Track your expenses",
+  "emptyBudgetSubtitle": "Follow your expenses and plan your trip budget",
+  "mapTitle": "Map",
+  "mapComingSoonSubtitle": "Your trip on a map. Coming soon.",
+  "mapComingSoonShort": "Map coming soon"
 }

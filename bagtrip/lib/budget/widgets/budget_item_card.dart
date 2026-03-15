@@ -1,5 +1,7 @@
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/status_badge.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/budget_item.dart';
 import 'package:flutter/material.dart';
@@ -42,111 +44,95 @@ class BudgetItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final confirmed = _isConfirmed;
-    final opacity = confirmed ? 1.0 : 0.6;
+    final textColor = confirmed
+        ? AppColors.onSurface
+        : AppColors.onSurface.withValues(alpha: 0.6);
+    final iconColor = confirmed
+        ? AppColors.primary
+        : AppColors.primary.withValues(alpha: 0.5);
 
-    return Opacity(
-      opacity: opacity,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: AppSpacing.space8),
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: AppRadius.medium8,
-        ),
-        child: IntrinsicHeight(
-          child: Row(
-            children: [
-              // Left accent bar
-              Container(
-                width: 4,
-                decoration: BoxDecoration(
-                  color: confirmed
-                      ? AppColors.primary
-                      : AppColors.primary.withValues(alpha: 0.3),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(AppRadius.cornerRaidus8),
-                    bottomLeft: Radius.circular(AppRadius.cornerRaidus8),
-                  ),
-                ),
-              ),
-              // Content
-              Expanded(
-                child: ListTile(
-                  leading: CircleAvatar(
-                    child: Icon(_categoryIcon(item.category)),
-                  ),
-                  title: Text(
-                    item.label,
-                    style: confirmed
-                        ? null
-                        : const TextStyle(fontStyle: FontStyle.italic),
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (!isViewer)
-                        Text(
-                          '${item.amount.toStringAsFixed(2)} \u20ac',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                      if (item.date != null)
-                        Text(
-                          DateFormat('dd/MM/yyyy').format(item.date!),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      const SizedBox(height: AppSpacing.space4),
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.space8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: confirmed
-                                  ? AppColors.success.withValues(alpha: 0.1)
-                                  : AppColors.warning.withValues(alpha: 0.1),
-                              borderRadius: AppRadius.pill,
-                            ),
-                            child: Text(
-                              confirmed
-                                  ? l10n.budgetConfirmed
-                                  : l10n.budgetForecasted,
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(
-                                    color: confirmed
-                                        ? AppColors.success
-                                        : AppColors.warning,
-                                  ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  trailing: isViewer || (onEdit == null && onDelete == null)
-                      ? null
-                      : PopupMenuButton<String>(
-                          onSelected: (value) {
-                            if (value == 'edit') onEdit?.call();
-                            if (value == 'delete') onDelete?.call();
-                          },
-                          itemBuilder: (_) => [
-                            PopupMenuItem(
-                              value: 'edit',
-                              child: Text(l10n.editButton),
-                            ),
-                            PopupMenuItem(
-                              value: 'delete',
-                              child: Text(l10n.deleteButton),
-                            ),
-                          ],
-                        ),
-                ),
-              ),
-            ],
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.space8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppRadius.large16,
+        boxShadow: [
+          BoxShadow(
+            color: ColorName.primary.withValues(alpha: 0.08),
+            offset: const Offset(0, 4),
+            blurRadius: 6,
+            spreadRadius: -1,
           ),
-        ),
+          BoxShadow(
+            color: ColorName.primary.withValues(alpha: 0.04),
+            offset: const Offset(0, 2),
+            blurRadius: 4,
+            spreadRadius: -1,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            child: Icon(_categoryIcon(item.category), color: iconColor),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        item.label,
+                        style: TextStyle(
+                          color: textColor,
+                          fontStyle: confirmed
+                              ? FontStyle.normal
+                              : FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    StatusBadge(
+                      type: confirmed
+                          ? StatusType.confirmed
+                          : StatusType.forecasted,
+                    ),
+                  ],
+                ),
+                if (!isViewer)
+                  Text(
+                    '${item.amount.toStringAsFixed(2)} \u20ac',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
+                if (item.date != null)
+                  Text(
+                    DateFormat('dd/MM/yyyy').format(item.date!),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: textColor),
+                  ),
+              ],
+            ),
+          ),
+          if (!isViewer && (onEdit != null || onDelete != null))
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'edit') onEdit?.call();
+                if (value == 'delete') onDelete?.call();
+              },
+              itemBuilder: (_) => [
+                PopupMenuItem(value: 'edit', child: Text(l10n.editButton)),
+                PopupMenuItem(value: 'delete', child: Text(l10n.deleteButton)),
+              ],
+            ),
+        ],
       ),
     );
   }

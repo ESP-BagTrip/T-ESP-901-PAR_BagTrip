@@ -1,5 +1,5 @@
 import 'package:bagtrip/activities/bloc/activity_bloc.dart';
-import 'package:bagtrip/components/empty_state.dart';
+import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/components/paginated_list.dart';
@@ -150,12 +150,14 @@ class ActivitiesView extends StatelessWidget {
                         );
                       },
                       padding: const EdgeInsets.all(16),
-                      emptyWidget: EmptyState(
+                      emptyWidget: ElegantEmptyState(
                         icon: Icons.event_outlined,
-                        title: AppLocalizations.of(context)!.activitiesEmpty,
+                        title: AppLocalizations.of(
+                          context,
+                        )!.emptyActivitiesTitle,
                         subtitle: AppLocalizations.of(
                           context,
-                        )!.activitiesEmptySubtitle,
+                        )!.emptyActivitiesSubtitle,
                       ),
                       groupBy: _groupByDay,
                       sectionHeaderBuilder: (context, dateKey) => Padding(

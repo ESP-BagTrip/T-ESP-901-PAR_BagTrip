@@ -746,5 +746,23 @@
       "max": {"type": "String"},
       "currency": {"type": "String"}
     }
-  }
+  },
+  "statusPending": "\u00c0 valider",
+  "statusConfirmed": "Confirm\u00e9",
+  "statusForecasted": "Pr\u00e9visionnel",
+  "statusActive": "En cours",
+  "statusCompleted": "Termin\u00e9",
+  "emptyTransportsTitle": "O\u00f9 volez-vous ?",
+  "emptyTransportsSubtitle": "Ajoutez vos vols pour organiser votre voyage",
+  "emptyAccommodationsTitle": "O\u00f9 dormirez-vous ?",
+  "emptyAccommodationsSubtitle": "Ajoutez vos h\u00f4tels et logements",
+  "emptyActivitiesTitle": "Que d\u00e9couvrirez-vous ?",
+  "emptyActivitiesSubtitle": "Ajoutez des activit\u00e9s pour planifier votre voyage",
+  "emptyBaggageTitle": "Que faut-il emporter ?",
+  "emptyBaggageSubtitle": "Ajoutez des \u00e9l\u00e9ments \u00e0 votre liste de bagages",
+  "emptyBudgetTitle": "Suivez vos d\u00e9penses",
+  "emptyBudgetSubtitle": "Suivez vos d\u00e9penses et planifiez votre budget voyage",
+  "mapTitle": "Carte",
+  "mapComingSoonSubtitle": "Votre voyage sur une carte. Bient\u00f4t disponible.",
+  "mapComingSoonShort": "Carte bient\u00f4t"
 }

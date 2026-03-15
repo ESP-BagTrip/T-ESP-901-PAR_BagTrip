@@ -7,12 +7,16 @@ class AccommodationsPage extends StatelessWidget {
   final String tripId;
   final String role;
   final bool isCompleted;
+  final DateTime? tripStartDate;
+  final DateTime? tripEndDate;
 
   const AccommodationsPage({
     super.key,
     required this.tripId,
     this.role = 'OWNER',
     this.isCompleted = false,
+    this.tripStartDate,
+    this.tripEndDate,
   });
 
   @override
@@ -24,6 +28,8 @@ class AccommodationsPage extends StatelessWidget {
         tripId: tripId,
         role: role,
         isCompleted: isCompleted,
+        tripStartDate: tripStartDate,
+        tripEndDate: tripEndDate,
       ),
     );
   }
