@@ -3176,17 +3176,47 @@ abstract class AppLocalizations {
   /// **'Qui ?'**
   String get stepTravelers;
 
-  /// No description provided for @stepTransport.
-  ///
-  /// In fr, this message translates to:
-  /// **'Transport'**
-  String get stepTransport;
-
   /// No description provided for @stepReview.
   ///
   /// In fr, this message translates to:
   /// **'Résumé'**
   String get stepReview;
+
+  /// No description provided for @toValidateBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'A valider'**
+  String get toValidateBadge;
+
+  /// No description provided for @addFirstAccommodation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un hébergement'**
+  String get addFirstAccommodation;
+
+  /// No description provided for @addFirstActivity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une activité'**
+  String get addFirstActivity;
+
+  /// No description provided for @addFirstBaggage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Préparer vos bagages'**
+  String get addFirstBaggage;
+
+  /// No description provided for @addFirstBudget.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivre vos dépenses'**
+  String get addFirstBudget;
+
+  /// No description provided for @budgetTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Budget'**
+  String get budgetTitle;
 }
 
 class _AppLocalizationsDelegate

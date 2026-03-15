@@ -6,7 +6,12 @@ import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
-import 'package:bagtrip/trips/widgets/trip_feature_tile.dart';
+import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/gen/fonts.gen.dart';
+import 'package:bagtrip/models/trip_home.dart';
+import 'package:bagtrip/trips/widgets/trip_section_card.dart';
 import 'package:bagtrip/trips/widgets/trip_header.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/cupertino.dart';
@@ -61,6 +66,7 @@ class TripHomeView extends StatelessWidget {
             final tripHome = state.tripHome;
             final trip = tripHome.trip;
             final stats = tripHome.stats;
+            final l10n = AppLocalizations.of(context)!;
             final isViewer = trip.role == 'VIEWER';
             final isCompleted = trip.status == TripStatus.completed;
 
@@ -135,55 +141,124 @@ class TripHomeView extends StatelessWidget {
                   ),
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _StatItem(
-                          icon: Icons.people,
-                          value: '${stats.nbTravelers}',
-                          label: AppLocalizations.of(context)!.tripTravelers,
-                        ),
-                        if (stats.daysUntilTrip != null)
-                          _StatItem(
-                            icon: Icons.timer,
-                            value: '${stats.daysUntilTrip}',
-                            label: AppLocalizations.of(
-                              context,
-                            )!.tripDaysRemaining,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 8,
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: AppRadius.large16,
+                        border: Border.all(color: ColorName.primarySoftLight),
+                        boxShadow: [
+                          BoxShadow(
+                            color: ColorName.primary.withValues(alpha: 0.08),
+                            offset: const Offset(0, 4),
+                            blurRadius: 6,
+                            spreadRadius: -1,
                           ),
-                        if (stats.tripDuration != null)
-                          _StatItem(
-                            icon: Icons.date_range,
-                            value: '${stats.tripDuration}',
-                            label: AppLocalizations.of(context)!.tripTravelDays,
+                          BoxShadow(
+                            color: ColorName.primary.withValues(alpha: 0.04),
+                            offset: const Offset(0, 2),
+                            blurRadius: 4,
+                            spreadRadius: -1,
                           ),
-                      ],
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _StatItem(
+                            icon: Icons.people_rounded,
+                            value: '${stats.nbTravelers}',
+                            label: AppLocalizations.of(context)!.tripTravelers,
+                          ),
+                          if (stats.daysUntilTrip != null)
+                            _StatItem(
+                              icon: Icons.timer_rounded,
+                              value: '${stats.daysUntilTrip}',
+                              label: AppLocalizations.of(
+                                context,
+                              )!.tripDaysRemaining,
+                            ),
+                          if (stats.tripDuration != null)
+                            _StatItem(
+                              icon: Icons.date_range_rounded,
+                              value: '${stats.tripDuration}',
+                              label: AppLocalizations.of(
+                                context,
+                              )!.tripTravelDays,
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  sliver: SliverGrid.count(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 8,
-                    crossAxisSpacing: 8,
-                    childAspectRatio: 1.3,
-                    children: tripHome.features
-                        .map(
-                          (feature) => TripFeatureTileWidget(
-                            feature: feature,
-                            onTap: feature.enabled
-                                ? () => tripFeatureRoute(
-                                    tripId: tripId,
-                                    featureRoute: feature.route,
-                                    role: trip.role ?? 'OWNER',
-                                    isCompleted: isCompleted,
-                                  ).go(context)
-                                : null,
-                          ),
-                        )
-                        .toList(),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      const SizedBox(height: 8),
+                      TripSectionCard(
+                        icon: Icons.hotel_rounded,
+                        title: l10n.accommodationsTitle,
+                        itemCount: _sectionCount(tripHome, 'accommodations'),
+                        previewItems: _sectionPreviews(
+                          tripHome,
+                          'accommodations',
+                        ),
+                        emptyLabel: l10n.addFirstAccommodation,
+                        onTap: () => AccommodationsRoute(
+                          tripId: tripId,
+                          role: trip.role ?? 'OWNER',
+                          isCompleted: isCompleted,
+                        ).go(context),
+                      ),
+                      const SizedBox(height: 12),
+                      TripSectionCard(
+                        icon: Icons.hiking_rounded,
+                        title: l10n.activitiesTitle,
+                        itemCount: _sectionCount(tripHome, 'activities'),
+                        previewItems: _sectionPreviews(tripHome, 'activities'),
+                        emptyLabel: l10n.addFirstActivity,
+                        onTap: () => ActivitiesRoute(
+                          tripId: tripId,
+                          role: trip.role ?? 'OWNER',
+                          isCompleted: isCompleted,
+                        ).go(context),
+                      ),
+                      const SizedBox(height: 12),
+                      TripSectionCard(
+                        icon: Icons.luggage_rounded,
+                        title: l10n.baggageTitle,
+                        itemCount: _sectionCount(tripHome, 'baggage'),
+                        previewItems: _sectionPreviews(tripHome, 'baggage'),
+                        emptyLabel: l10n.addFirstBaggage,
+                        onTap: () => BaggageRoute(
+                          tripId: tripId,
+                          role: trip.role ?? 'OWNER',
+                          isCompleted: isCompleted,
+                        ).go(context),
+                      ),
+                      const SizedBox(height: 12),
+                      TripSectionCard(
+                        icon: Icons.wallet_rounded,
+                        title: l10n.budgetTitle,
+                        itemCount: _sectionCount(tripHome, 'budget'),
+                        previewItems: _sectionPreviews(tripHome, 'budget'),
+                        emptyLabel: l10n.addFirstBudget,
+                        onTap: () => BudgetRoute(
+                          tripId: tripId,
+                          role: trip.role ?? 'OWNER',
+                          isCompleted: isCompleted,
+                        ).go(context),
+                      ),
+                      const SizedBox(height: 24),
+                    ]),
                   ),
                 ),
                 if (trip.status == TripStatus.draft && !isViewer)
@@ -304,6 +379,20 @@ class TripHomeView extends StatelessWidget {
   }
 }
 
+int _sectionCount(TripHome tripHome, String sectionId) {
+  for (final s in tripHome.sections) {
+    if (s.sectionId == sectionId) return s.count;
+  }
+  return 0;
+}
+
+List<String> _sectionPreviews(TripHome tripHome, String sectionId) {
+  for (final s in tripHome.sections) {
+    if (s.sectionId == sectionId) return s.previewItems;
+  }
+  return [];
+}
+
 class _StatItem extends StatelessWidget {
   final IconData icon;
   final String value;
@@ -319,18 +408,23 @@ class _StatItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(icon, color: Theme.of(context).colorScheme.primary, size: 24),
+        Icon(icon, color: ColorName.primary, size: 24),
         const SizedBox(height: 4),
         Text(
           value,
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            fontFamily: FontFamily.b612,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: ColorName.primaryTrueDark,
+          ),
         ),
         Text(
           label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.outline,
+          style: const TextStyle(
+            fontFamily: FontFamily.b612,
+            fontSize: 11,
+            color: ColorName.textMutedLight,
           ),
         ),
       ],

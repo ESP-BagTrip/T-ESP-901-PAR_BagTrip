@@ -41,18 +41,17 @@ class TripCreationBloc extends Bloc<TripCreationEvent, TripCreationState> {
     on<SelectAiSuggestion>(_onSelectAiSuggestion);
     on<SetDates>(_onSetDates);
     on<SetTravelers>(_onSetTravelers);
-    on<SetTransport>(_onSetTransport);
     on<CreateTripFromFlow>(_onCreateTrip);
   }
 
   void _onGoToStep(GoToStep event, Emitter<TripCreationState> emit) {
-    if (event.step >= 0 && event.step <= 4) {
+    if (event.step >= 0 && event.step <= 3) {
       emit(state.copyWith(currentStep: event.step, clearError: true));
     }
   }
 
   void _onNextStep(NextStep event, Emitter<TripCreationState> emit) {
-    if (state.currentStep < 4) {
+    if (state.currentStep < 3) {
       emit(
         state.copyWith(currentStep: state.currentStep + 1, clearError: true),
       );
@@ -218,10 +217,6 @@ class TripCreationBloc extends Bloc<TripCreationEvent, TripCreationState> {
 
   void _onSetTravelers(SetTravelers event, Emitter<TripCreationState> emit) {
     emit(state.copyWith(nbTravelers: event.count));
-  }
-
-  void _onSetTransport(SetTransport event, Emitter<TripCreationState> emit) {
-    emit(state.copyWith(transportChoice: event.choice));
   }
 
   Future<void> _onCreateTrip(

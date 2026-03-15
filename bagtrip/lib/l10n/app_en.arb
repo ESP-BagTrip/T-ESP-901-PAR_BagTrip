@@ -654,6 +654,11 @@
   "stepDestination": "Where?",
   "stepDates": "When?",
   "stepTravelers": "Who?",
-  "stepTransport": "Transport",
-  "stepReview": "Review"
+  "stepReview": "Review",
+  "toValidateBadge": "To validate",
+  "addFirstAccommodation": "Add an accommodation",
+  "addFirstActivity": "Add an activity",
+  "addFirstBaggage": "Prepare your luggage",
+  "addFirstBudget": "Track your expenses",
+  "budgetTitle": "Budget"
 }

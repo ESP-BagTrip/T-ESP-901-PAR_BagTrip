@@ -1645,8 +1645,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stepTravelers => 'Who?';
 
   @override
-  String get stepTransport => 'Transport';
+  String get stepReview => 'Review';
 
   @override
-  String get stepReview => 'Review';
+  String get toValidateBadge => 'To validate';
+
+  @override
+  String get addFirstAccommodation => 'Add an accommodation';
+
+  @override
+  String get addFirstActivity => 'Add an activity';
+
+  @override
+  String get addFirstBaggage => 'Prepare your luggage';
+
+  @override
+  String get addFirstBudget => 'Track your expenses';
+
+  @override
+  String get budgetTitle => 'Budget';
 }

@@ -563,9 +563,284 @@ as bool,
 
 
 /// @nodoc
+mixin _$TripSectionSummary {
+
+ String get sectionId; int get count; List<String> get previewItems;
+/// Create a copy of TripSectionSummary
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$TripSectionSummaryCopyWith<TripSectionSummary> get copyWith => _$TripSectionSummaryCopyWithImpl<TripSectionSummary>(this as TripSectionSummary, _$identity);
+
+  /// Serializes this TripSectionSummary to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TripSectionSummary&&(identical(other.sectionId, sectionId) || other.sectionId == sectionId)&&(identical(other.count, count) || other.count == count)&&const DeepCollectionEquality().equals(other.previewItems, previewItems));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,sectionId,count,const DeepCollectionEquality().hash(previewItems));
+
+@override
+String toString() {
+  return 'TripSectionSummary(sectionId: $sectionId, count: $count, previewItems: $previewItems)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $TripSectionSummaryCopyWith<$Res>  {
+  factory $TripSectionSummaryCopyWith(TripSectionSummary value, $Res Function(TripSectionSummary) _then) = _$TripSectionSummaryCopyWithImpl;
+@useResult
+$Res call({
+ String sectionId, int count, List<String> previewItems
+});
+
+
+
+
+}
+/// @nodoc
+class _$TripSectionSummaryCopyWithImpl<$Res>
+    implements $TripSectionSummaryCopyWith<$Res> {
+  _$TripSectionSummaryCopyWithImpl(this._self, this._then);
+
+  final TripSectionSummary _self;
+  final $Res Function(TripSectionSummary) _then;
+
+/// Create a copy of TripSectionSummary
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? sectionId = null,Object? count = null,Object? previewItems = null,}) {
+  return _then(_self.copyWith(
+sectionId: null == sectionId ? _self.sectionId : sectionId // ignore: cast_nullable_to_non_nullable
+as String,count: null == count ? _self.count : count // ignore: cast_nullable_to_non_nullable
+as int,previewItems: null == previewItems ? _self.previewItems : previewItems // ignore: cast_nullable_to_non_nullable
+as List<String>,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [TripSectionSummary].
+extension TripSectionSummaryPatterns on TripSectionSummary {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _TripSectionSummary value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _TripSectionSummary() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _TripSectionSummary value)  $default,){
+final _that = this;
+switch (_that) {
+case _TripSectionSummary():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _TripSectionSummary value)?  $default,){
+final _that = this;
+switch (_that) {
+case _TripSectionSummary() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String sectionId,  int count,  List<String> previewItems)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _TripSectionSummary() when $default != null:
+return $default(_that.sectionId,_that.count,_that.previewItems);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String sectionId,  int count,  List<String> previewItems)  $default,) {final _that = this;
+switch (_that) {
+case _TripSectionSummary():
+return $default(_that.sectionId,_that.count,_that.previewItems);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String sectionId,  int count,  List<String> previewItems)?  $default,) {final _that = this;
+switch (_that) {
+case _TripSectionSummary() when $default != null:
+return $default(_that.sectionId,_that.count,_that.previewItems);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _TripSectionSummary implements TripSectionSummary {
+  const _TripSectionSummary({required this.sectionId, this.count = 0, final  List<String> previewItems = const []}): _previewItems = previewItems;
+  factory _TripSectionSummary.fromJson(Map<String, dynamic> json) => _$TripSectionSummaryFromJson(json);
+
+@override final  String sectionId;
+@override@JsonKey() final  int count;
+ final  List<String> _previewItems;
+@override@JsonKey() List<String> get previewItems {
+  if (_previewItems is EqualUnmodifiableListView) return _previewItems;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_previewItems);
+}
+
+
+/// Create a copy of TripSectionSummary
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$TripSectionSummaryCopyWith<_TripSectionSummary> get copyWith => __$TripSectionSummaryCopyWithImpl<_TripSectionSummary>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$TripSectionSummaryToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TripSectionSummary&&(identical(other.sectionId, sectionId) || other.sectionId == sectionId)&&(identical(other.count, count) || other.count == count)&&const DeepCollectionEquality().equals(other._previewItems, _previewItems));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,sectionId,count,const DeepCollectionEquality().hash(_previewItems));
+
+@override
+String toString() {
+  return 'TripSectionSummary(sectionId: $sectionId, count: $count, previewItems: $previewItems)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$TripSectionSummaryCopyWith<$Res> implements $TripSectionSummaryCopyWith<$Res> {
+  factory _$TripSectionSummaryCopyWith(_TripSectionSummary value, $Res Function(_TripSectionSummary) _then) = __$TripSectionSummaryCopyWithImpl;
+@override @useResult
+$Res call({
+ String sectionId, int count, List<String> previewItems
+});
+
+
+
+
+}
+/// @nodoc
+class __$TripSectionSummaryCopyWithImpl<$Res>
+    implements _$TripSectionSummaryCopyWith<$Res> {
+  __$TripSectionSummaryCopyWithImpl(this._self, this._then);
+
+  final _TripSectionSummary _self;
+  final $Res Function(_TripSectionSummary) _then;
+
+/// Create a copy of TripSectionSummary
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? sectionId = null,Object? count = null,Object? previewItems = null,}) {
+  return _then(_TripSectionSummary(
+sectionId: null == sectionId ? _self.sectionId : sectionId // ignore: cast_nullable_to_non_nullable
+as String,count: null == count ? _self.count : count // ignore: cast_nullable_to_non_nullable
+as int,previewItems: null == previewItems ? _self._previewItems : previewItems // ignore: cast_nullable_to_non_nullable
+as List<String>,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$TripHome {
 
- Trip get trip; TripHomeStats get stats; List<TripFeatureTile> get features;
+ Trip get trip; TripHomeStats get stats; List<TripFeatureTile> get features; List<TripSectionSummary> get sections;
 /// Create a copy of TripHome
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -578,16 +853,16 @@ $TripHomeCopyWith<TripHome> get copyWith => _$TripHomeCopyWithImpl<TripHome>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TripHome&&(identical(other.trip, trip) || other.trip == trip)&&(identical(other.stats, stats) || other.stats == stats)&&const DeepCollectionEquality().equals(other.features, features));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TripHome&&(identical(other.trip, trip) || other.trip == trip)&&(identical(other.stats, stats) || other.stats == stats)&&const DeepCollectionEquality().equals(other.features, features)&&const DeepCollectionEquality().equals(other.sections, sections));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,trip,stats,const DeepCollectionEquality().hash(features));
+int get hashCode => Object.hash(runtimeType,trip,stats,const DeepCollectionEquality().hash(features),const DeepCollectionEquality().hash(sections));
 
 @override
 String toString() {
-  return 'TripHome(trip: $trip, stats: $stats, features: $features)';
+  return 'TripHome(trip: $trip, stats: $stats, features: $features, sections: $sections)';
 }
 
 
@@ -598,7 +873,7 @@ abstract mixin class $TripHomeCopyWith<$Res>  {
   factory $TripHomeCopyWith(TripHome value, $Res Function(TripHome) _then) = _$TripHomeCopyWithImpl;
 @useResult
 $Res call({
- Trip trip, TripHomeStats stats, List<TripFeatureTile> features
+ Trip trip, TripHomeStats stats, List<TripFeatureTile> features, List<TripSectionSummary> sections
 });
 
 
@@ -615,12 +890,13 @@ class _$TripHomeCopyWithImpl<$Res>
 
 /// Create a copy of TripHome
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? trip = null,Object? stats = null,Object? features = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? trip = null,Object? stats = null,Object? features = null,Object? sections = null,}) {
   return _then(_self.copyWith(
 trip: null == trip ? _self.trip : trip // ignore: cast_nullable_to_non_nullable
 as Trip,stats: null == stats ? _self.stats : stats // ignore: cast_nullable_to_non_nullable
 as TripHomeStats,features: null == features ? _self.features : features // ignore: cast_nullable_to_non_nullable
-as List<TripFeatureTile>,
+as List<TripFeatureTile>,sections: null == sections ? _self.sections : sections // ignore: cast_nullable_to_non_nullable
+as List<TripSectionSummary>,
   ));
 }
 /// Create a copy of TripHome
@@ -723,10 +999,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Trip trip,  TripHomeStats stats,  List<TripFeatureTile> features)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Trip trip,  TripHomeStats stats,  List<TripFeatureTile> features,  List<TripSectionSummary> sections)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TripHome() when $default != null:
-return $default(_that.trip,_that.stats,_that.features);case _:
+return $default(_that.trip,_that.stats,_that.features,_that.sections);case _:
   return orElse();
 
 }
@@ -744,10 +1020,10 @@ return $default(_that.trip,_that.stats,_that.features);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Trip trip,  TripHomeStats stats,  List<TripFeatureTile> features)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Trip trip,  TripHomeStats stats,  List<TripFeatureTile> features,  List<TripSectionSummary> sections)  $default,) {final _that = this;
 switch (_that) {
 case _TripHome():
-return $default(_that.trip,_that.stats,_that.features);case _:
+return $default(_that.trip,_that.stats,_that.features,_that.sections);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -764,10 +1040,10 @@ return $default(_that.trip,_that.stats,_that.features);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Trip trip,  TripHomeStats stats,  List<TripFeatureTile> features)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Trip trip,  TripHomeStats stats,  List<TripFeatureTile> features,  List<TripSectionSummary> sections)?  $default,) {final _that = this;
 switch (_that) {
 case _TripHome() when $default != null:
-return $default(_that.trip,_that.stats,_that.features);case _:
+return $default(_that.trip,_that.stats,_that.features,_that.sections);case _:
   return null;
 
 }
@@ -779,7 +1055,7 @@ return $default(_that.trip,_that.stats,_that.features);case _:
 @JsonSerializable()
 
 class _TripHome implements TripHome {
-  const _TripHome({required this.trip, required this.stats, required final  List<TripFeatureTile> features}): _features = features;
+  const _TripHome({required this.trip, required this.stats, required final  List<TripFeatureTile> features, final  List<TripSectionSummary> sections = const []}): _features = features,_sections = sections;
   factory _TripHome.fromJson(Map<String, dynamic> json) => _$TripHomeFromJson(json);
 
 @override final  Trip trip;
@@ -789,6 +1065,13 @@ class _TripHome implements TripHome {
   if (_features is EqualUnmodifiableListView) return _features;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_features);
+}
+
+ final  List<TripSectionSummary> _sections;
+@override@JsonKey() List<TripSectionSummary> get sections {
+  if (_sections is EqualUnmodifiableListView) return _sections;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_sections);
 }
 
 
@@ -805,16 +1088,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TripHome&&(identical(other.trip, trip) || other.trip == trip)&&(identical(other.stats, stats) || other.stats == stats)&&const DeepCollectionEquality().equals(other._features, _features));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TripHome&&(identical(other.trip, trip) || other.trip == trip)&&(identical(other.stats, stats) || other.stats == stats)&&const DeepCollectionEquality().equals(other._features, _features)&&const DeepCollectionEquality().equals(other._sections, _sections));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,trip,stats,const DeepCollectionEquality().hash(_features));
+int get hashCode => Object.hash(runtimeType,trip,stats,const DeepCollectionEquality().hash(_features),const DeepCollectionEquality().hash(_sections));
 
 @override
 String toString() {
-  return 'TripHome(trip: $trip, stats: $stats, features: $features)';
+  return 'TripHome(trip: $trip, stats: $stats, features: $features, sections: $sections)';
 }
 
 
@@ -825,7 +1108,7 @@ abstract mixin class _$TripHomeCopyWith<$Res> implements $TripHomeCopyWith<$Res>
   factory _$TripHomeCopyWith(_TripHome value, $Res Function(_TripHome) _then) = __$TripHomeCopyWithImpl;
 @override @useResult
 $Res call({
- Trip trip, TripHomeStats stats, List<TripFeatureTile> features
+ Trip trip, TripHomeStats stats, List<TripFeatureTile> features, List<TripSectionSummary> sections
 });
 
 
@@ -842,12 +1125,13 @@ class __$TripHomeCopyWithImpl<$Res>
 
 /// Create a copy of TripHome
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? trip = null,Object? stats = null,Object? features = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? trip = null,Object? stats = null,Object? features = null,Object? sections = null,}) {
   return _then(_TripHome(
 trip: null == trip ? _self.trip : trip // ignore: cast_nullable_to_non_nullable
 as Trip,stats: null == stats ? _self.stats : stats // ignore: cast_nullable_to_non_nullable
 as TripHomeStats,features: null == features ? _self._features : features // ignore: cast_nullable_to_non_nullable
-as List<TripFeatureTile>,
+as List<TripFeatureTile>,sections: null == sections ? _self._sections : sections // ignore: cast_nullable_to_non_nullable
+as List<TripSectionSummary>,
   ));
 }
 

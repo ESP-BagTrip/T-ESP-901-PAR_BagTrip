@@ -52,11 +52,5 @@ class SetTravelers extends TripCreationEvent {
   SetTravelers(this.count);
 }
 
-// Step 4 — Transport
-class SetTransport extends TripCreationEvent {
-  final TransportChoice choice;
-  SetTransport(this.choice);
-}
-
-// Step 5 — Create
+// Step 4 — Create
 class CreateTripFromFlow extends TripCreationEvent {}

@@ -66,14 +66,6 @@ class StepReviewView extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Transport
-            if (state.transportChoice != null)
-              _ReviewItem(
-                icon: _transportIcon(state.transportChoice!),
-                label: l10n.transportTitle,
-                value: _transportLabel(state.transportChoice!, l10n),
-              ),
-
             // AI highlights
             if (state.selectedAiProposal != null) ...[
               const SizedBox(height: AppSpacing.space24),
@@ -126,14 +118,39 @@ class StepReviewView extends StatelessWidget {
                             color: ColorName.primaryLight,
                             borderRadius: AppRadius.pill,
                           ),
-                          child: Text(
-                            (a['title'] ?? '').toString(),
-                            style: const TextStyle(
-                              fontFamily: FontFamily.b612,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: ColorName.primary,
-                            ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                (a['title'] ?? '').toString(),
+                                style: const TextStyle(
+                                  fontFamily: FontFamily.b612,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: ColorName.primary,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: const BoxDecoration(
+                                  color: ColorName.secondaryLight,
+                                  borderRadius: AppRadius.pill,
+                                ),
+                                child: Text(
+                                  l10n.toValidateBadge,
+                                  style: const TextStyle(
+                                    fontFamily: FontFamily.b612,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w600,
+                                    color: ColorName.secondary,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       )
@@ -189,22 +206,6 @@ class StepReviewView extends StatelessWidget {
         );
       },
     );
-  }
-
-  IconData _transportIcon(TransportChoice choice) {
-    return switch (choice) {
-      TransportChoice.flight => Icons.flight_rounded,
-      TransportChoice.other => Icons.directions_car_rounded,
-      TransportChoice.skip => Icons.skip_next_rounded,
-    };
-  }
-
-  String _transportLabel(TransportChoice choice, AppLocalizations l10n) {
-    return switch (choice) {
-      TransportChoice.flight => l10n.transportOptionFlightTitle,
-      TransportChoice.other => l10n.transportOptionOtherTitle,
-      TransportChoice.skip => l10n.transportOptionSkipTitle,
-    };
   }
 }
 

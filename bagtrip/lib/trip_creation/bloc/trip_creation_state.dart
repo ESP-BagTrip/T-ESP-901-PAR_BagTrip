@@ -1,7 +1,5 @@
 part of 'trip_creation_bloc.dart';
 
-enum TransportChoice { flight, other, skip }
-
 @immutable
 class TripCreationState {
   final int currentStep;
@@ -23,9 +21,6 @@ class TripCreationState {
   // Step 3 — Travelers
   final int nbTravelers;
 
-  // Step 4 — Transport
-  final TransportChoice? transportChoice;
-
   // Status
   final bool isCreating;
   final String? error;
@@ -44,7 +39,6 @@ class TripCreationState {
     this.startDate,
     this.endDate,
     this.nbTravelers = 2,
-    this.transportChoice,
     this.isCreating = false,
     this.error,
     this.createdTripId,
@@ -63,7 +57,6 @@ class TripCreationState {
     DateTime? startDate,
     DateTime? endDate,
     int? nbTravelers,
-    TransportChoice? transportChoice,
     bool? isCreating,
     String? error,
     String? createdTripId,
@@ -98,7 +91,6 @@ class TripCreationState {
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       nbTravelers: nbTravelers ?? this.nbTravelers,
-      transportChoice: transportChoice ?? this.transportChoice,
       isCreating: isCreating ?? this.isCreating,
       error: clearError ? null : (error ?? this.error),
       createdTripId: createdTripId ?? this.createdTripId,
@@ -126,7 +118,6 @@ class TripCreationState {
           startDate == other.startDate &&
           endDate == other.endDate &&
           nbTravelers == other.nbTravelers &&
-          transportChoice == other.transportChoice &&
           isCreating == other.isCreating &&
           error == other.error &&
           createdTripId == other.createdTripId;
@@ -139,7 +130,6 @@ class TripCreationState {
     startDate,
     endDate,
     nbTravelers,
-    transportChoice,
     isCreating,
     error,
     createdTripId,

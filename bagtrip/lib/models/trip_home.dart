@@ -34,11 +34,24 @@ abstract class TripFeatureTile with _$TripFeatureTile {
 }
 
 @freezed
+abstract class TripSectionSummary with _$TripSectionSummary {
+  const factory TripSectionSummary({
+    required String sectionId,
+    @Default(0) int count,
+    @Default([]) List<String> previewItems,
+  }) = _TripSectionSummary;
+
+  factory TripSectionSummary.fromJson(Map<String, dynamic> json) =>
+      _$TripSectionSummaryFromJson(json);
+}
+
+@freezed
 abstract class TripHome with _$TripHome {
   const factory TripHome({
     required Trip trip,
     required TripHomeStats stats,
     required List<TripFeatureTile> features,
+    @Default([]) List<TripSectionSummary> sections,
   }) = _TripHome;
 
   factory TripHome.fromJson(Map<String, dynamic> json) =>

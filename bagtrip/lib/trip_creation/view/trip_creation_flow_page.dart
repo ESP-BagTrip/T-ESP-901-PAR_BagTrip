@@ -6,7 +6,6 @@ import 'package:bagtrip/trip_creation/bloc/trip_creation_bloc.dart';
 import 'package:bagtrip/trip_creation/view/step_dates_view.dart';
 import 'package:bagtrip/trip_creation/view/step_destination_view.dart';
 import 'package:bagtrip/trip_creation/view/step_review_view.dart';
-import 'package:bagtrip/trip_creation/view/step_transport_view.dart';
 import 'package:bagtrip/trip_creation/view/step_travelers_view.dart';
 import 'package:bagtrip/trip_creation/widgets/step_indicator.dart';
 import 'package:flutter/material.dart';
@@ -103,7 +102,6 @@ class _TripCreationFlowPageState extends State<TripCreationFlowPage> {
                         StepDestinationView(),
                         StepDatesView(),
                         StepTravelersView(),
-                        StepTransportView(),
                         StepReviewView(),
                       ],
                     ),
@@ -122,8 +120,7 @@ class _TripCreationFlowPageState extends State<TripCreationFlowPage> {
       0 => l10n.stepDestination,
       1 => l10n.stepDates,
       2 => l10n.stepTravelers,
-      3 => l10n.stepTransport,
-      4 => l10n.stepReview,
+      3 => l10n.stepReview,
       _ => '',
     };
   }

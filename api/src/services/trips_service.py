@@ -8,7 +8,11 @@ from sqlalchemy import literal_column, update
 from sqlalchemy.orm import Session
 
 from src.enums import FlightOrderStatus, NotificationType, TripOrigin, TripStatus
+from src.models.accommodation import Accommodation
+from src.models.activity import Activity
+from src.models.baggage_item import BaggageItem
 from src.models.booking_intent import BookingIntent
+from src.models.budget_item import BudgetItem
 from src.models.flight_order import FlightOrder
 from src.models.stripe_event import StripeEvent
 from src.models.trip import Trip
@@ -253,7 +257,38 @@ class TripsService:
             {"id": "map", "label": "Carte", "icon": "map", "route": "map", "enabled": False},
         ]
 
-        return {"trip": trip, "stats": stats, "features": features}
+        # Section summaries
+        accommodations = db.query(Accommodation).filter(Accommodation.trip_id == trip.id).all()
+        activities_list = db.query(Activity).filter(Activity.trip_id == trip.id).all()
+        baggage_items = db.query(BaggageItem).filter(BaggageItem.trip_id == trip.id).all()
+        budget_items = db.query(BudgetItem).filter(BudgetItem.trip_id == trip.id).all()
+
+        sections = [
+            {
+                "sectionId": "accommodations",
+                "count": len(accommodations),
+                "previewItems": [a.name for a in accommodations[:3] if a.name],
+            },
+            {
+                "sectionId": "activities",
+                "count": len(activities_list),
+                "previewItems": [a.title for a in activities_list[:3] if a.title],
+            },
+            {
+                "sectionId": "baggage",
+                "count": len(baggage_items),
+                "previewItems": [b.name for b in baggage_items[:3] if b.name],
+            },
+            {
+                "sectionId": "budget",
+                "count": len(budget_items),
+                "previewItems": [bi.label for bi in budget_items[:3] if bi.label],
+            },
+        ]
+
+        stats["baggageCount"] = len(baggage_items)
+
+        return {"trip": trip, "stats": stats, "features": features, "sections": sections}
 
     @staticmethod
     def auto_transition_statuses(db: Session) -> tuple[int, int]:

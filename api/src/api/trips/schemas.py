@@ -117,12 +117,21 @@ class TripFeatureTile(BaseModel):
     enabled: bool = False
 
 
+class TripSectionSummary(BaseModel):
+    """Résumé d'une section pour la page d'accueil d'un trip."""
+
+    sectionId: str
+    count: int = 0
+    previewItems: list[str] = []
+
+
 class TripHomeResponse(BaseModel):
     """Réponse pour la page d'accueil d'un trip."""
 
     trip: TripResponse
     stats: TripHomeStats
     features: list[TripFeatureTile]
+    sections: list[TripSectionSummary] = []
 
 
 class TripGroupedResponse(BaseModel):

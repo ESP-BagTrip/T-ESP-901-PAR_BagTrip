@@ -42,16 +42,40 @@ Map<String, dynamic> _$TripFeatureTileToJson(_TripFeatureTile instance) =>
       'enabled': instance.enabled,
     };
 
+_TripSectionSummary _$TripSectionSummaryFromJson(Map<String, dynamic> json) =>
+    _TripSectionSummary(
+      sectionId: json['sectionId'] as String,
+      count: (json['count'] as num?)?.toInt() ?? 0,
+      previewItems:
+          (json['previewItems'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+    );
+
+Map<String, dynamic> _$TripSectionSummaryToJson(_TripSectionSummary instance) =>
+    <String, dynamic>{
+      'sectionId': instance.sectionId,
+      'count': instance.count,
+      'previewItems': instance.previewItems,
+    };
+
 _TripHome _$TripHomeFromJson(Map<String, dynamic> json) => _TripHome(
   trip: Trip.fromJson(json['trip'] as Map<String, dynamic>),
   stats: TripHomeStats.fromJson(json['stats'] as Map<String, dynamic>),
   features: (json['features'] as List<dynamic>)
       .map((e) => TripFeatureTile.fromJson(e as Map<String, dynamic>))
       .toList(),
+  sections:
+      (json['sections'] as List<dynamic>?)
+          ?.map((e) => TripSectionSummary.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$TripHomeToJson(_TripHome instance) => <String, dynamic>{
   'trip': instance.trip.toJson(),
   'stats': instance.stats.toJson(),
   'features': instance.features.map((e) => e.toJson()).toList(),
+  'sections': instance.sections.map((e) => e.toJson()).toList(),
 };
