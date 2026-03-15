@@ -1,4 +1,3 @@
-import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -20,45 +19,19 @@ class RecentBookingsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(
-                    Icons.flight_outlined,
-                    color: ColorName.secondary,
-                    size: 20,
-                  ),
-                  const SizedBox(width: AppSpacing.space8),
-                  Text(
-                    AppLocalizations.of(context)!.recentBookingsTitle,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: ColorName.primaryTrueDark,
-                    ),
-                  ),
-                ],
+              const Icon(
+                Icons.flight_outlined,
+                color: ColorName.secondary,
+                size: 20,
               ),
-              TextButton(
-                onPressed: () {
-                  AppSnackBar.showInfo(
-                    context,
-                    message: AppLocalizations.of(context)!.comingSoon,
-                  );
-                },
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  AppLocalizations.of(context)!.viewAllButton,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: ColorName.secondary,
-                    fontWeight: FontWeight.w600,
-                  ),
+              const SizedBox(width: AppSpacing.space8),
+              Text(
+                AppLocalizations.of(context)!.recentBookingsTitle,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: ColorName.primaryTrueDark,
                 ),
               ),
             ],

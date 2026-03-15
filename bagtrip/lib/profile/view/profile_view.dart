@@ -1,4 +1,5 @@
 import 'package:bagtrip/booking/bloc/booking_bloc.dart';
+import 'package:bagtrip/components/adaptive/adaptive_edit_dialog.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
@@ -41,6 +42,8 @@ class ProfileView extends StatelessWidget {
         }
 
         if (state is UserProfileLoaded) {
+          final l10n = AppLocalizations.of(context)!;
+
           final content = Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -49,12 +52,15 @@ class ProfileView extends StatelessWidget {
                 memberSince: DateFormat.yMMM(
                   Localizations.localeOf(context).languageCode,
                 ).format(state.memberSince),
+                onEditName: () => _editName(context, state, l10n),
               ),
               const SizedBox(height: AppSpacing.space16),
               PersonalInfoSection(
+                name: state.name,
                 email: state.email,
                 phone: state.phone,
-                address: state.address.isEmpty ? '—' : state.address,
+                onEditName: () => _editName(context, state, l10n),
+                onEditPhone: () => _editPhone(context, state, l10n),
               ),
               const SizedBox(height: AppSpacing.space16),
               const PreferencesSection(),
@@ -100,5 +106,44 @@ class ProfileView extends StatelessWidget {
         return const SizedBox.shrink();
       },
     );
+  }
+
+  Future<void> _editName(
+    BuildContext context,
+    UserProfileLoaded state,
+    AppLocalizations l10n,
+  ) async {
+    final currentName = state.name == state.email ? '' : state.name;
+    final newName = await showAdaptiveEditDialog(
+      context: context,
+      title: l10n.editNameTitle,
+      currentValue: currentName,
+      confirmLabel: l10n.saveButton,
+      cancelLabel: l10n.cancelButton,
+      placeholder: l10n.nameLabel,
+    );
+    if (newName != null && newName.trim().isNotEmpty && context.mounted) {
+      context.read<UserProfileBloc>().add(UpdateUserName(newName.trim()));
+    }
+  }
+
+  Future<void> _editPhone(
+    BuildContext context,
+    UserProfileLoaded state,
+    AppLocalizations l10n,
+  ) async {
+    final currentPhone = state.phone == '—' ? '' : state.phone;
+    final newPhone = await showAdaptiveEditDialog(
+      context: context,
+      title: l10n.editPhoneTitle,
+      currentValue: currentPhone,
+      confirmLabel: l10n.saveButton,
+      cancelLabel: l10n.cancelButton,
+      placeholder: l10n.phoneLabel,
+      keyboardType: TextInputType.phone,
+    );
+    if (newPhone != null && newPhone.trim().isNotEmpty && context.mounted) {
+      context.read<UserProfileBloc>().add(UpdateUserPhone(newPhone.trim()));
+    }
   }
 }

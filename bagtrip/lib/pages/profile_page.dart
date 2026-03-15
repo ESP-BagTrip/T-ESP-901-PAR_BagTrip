@@ -1,4 +1,5 @@
 import 'package:bagtrip/booking/bloc/booking_bloc.dart';
+import 'package:bagtrip/components/adaptive/adaptive_scaffold.dart';
 import 'package:bagtrip/profile/bloc/user_profile_bloc.dart';
 import 'package:bagtrip/profile/view/profile_view.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +22,7 @@ class ProfilePage extends StatelessWidget {
       bookingBloc.add(LoadBookings());
     }
 
-    return const Scaffold(
+    return const AdaptiveScaffold(
       body: SafeArea(left: false, right: false, child: ProfileView()),
     );
   }

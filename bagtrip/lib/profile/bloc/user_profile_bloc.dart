@@ -18,6 +18,8 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
        super(UserProfileInitial()) {
     on<LoadUserProfile>(_onLoadUserProfile);
     on<ResetUserProfile>(_onResetUserProfile);
+    on<UpdateUserName>(_onUpdateUserName);
+    on<UpdateUserPhone>(_onUpdateUserPhone);
   }
 
   final AuthRepository _authRepository;
@@ -69,7 +71,6 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
                 : user.email,
             email: user.email,
             phone: user.phone?.trim().isNotEmpty == true ? user.phone! : '—',
-            address: '—',
             memberSince: memberSince,
             travelTypes: travelTypes,
             travelStyle: travelStyle,
@@ -91,5 +92,49 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
     Emitter<UserProfileState> emit,
   ) {
     emit(UserProfileInitial());
+  }
+
+  Future<void> _onUpdateUserName(
+    UpdateUserName event,
+    Emitter<UserProfileState> emit,
+  ) async {
+    final current = state;
+    if (current is! UserProfileLoaded) return;
+
+    emit(current.copyWith(isUpdating: true));
+
+    final result = await _authRepository.updateUser(fullName: event.name);
+    if (isClosed) return;
+
+    switch (result) {
+      case Success(:final data):
+        final name = data.fullName?.trim().isNotEmpty == true
+            ? data.fullName!
+            : data.email;
+        emit(current.copyWith(name: name, isUpdating: false));
+      case Failure():
+        emit(current.copyWith(isUpdating: false));
+    }
+  }
+
+  Future<void> _onUpdateUserPhone(
+    UpdateUserPhone event,
+    Emitter<UserProfileState> emit,
+  ) async {
+    final current = state;
+    if (current is! UserProfileLoaded) return;
+
+    emit(current.copyWith(isUpdating: true));
+
+    final result = await _authRepository.updateUser(phone: event.phone);
+    if (isClosed) return;
+
+    switch (result) {
+      case Success(:final data):
+        final phone = data.phone?.trim().isNotEmpty == true ? data.phone! : '—';
+        emit(current.copyWith(phone: phone, isUpdating: false));
+      case Failure():
+        emit(current.copyWith(isUpdating: false));
+    }
   }
 }

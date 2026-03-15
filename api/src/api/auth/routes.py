@@ -21,6 +21,7 @@ from src.api.auth.schemas import (
     LogoutRequest,
     RefreshTokenRequest,
     SignupRequest,
+    UpdateUserRequest,
     UserResponse,
 )
 from src.config.database import get_db
@@ -155,6 +156,8 @@ async def register(request: SignupRequest, response: Response, db: Session = Dep
         user=UserResponse(
             id=user.id,
             email=user.email,
+            full_name=user.full_name,
+            phone=user.phone,
             created_at=user.created_at,
             updated_at=user.updated_at,
             plan=user.plan or "FREE",
@@ -234,6 +237,8 @@ async def login(request: LoginRequest, response: Response, db: Session = Depends
         user=UserResponse(
             id=user.id,
             email=user.email,
+            full_name=user.full_name,
+            phone=user.phone,
             created_at=user.created_at,
             updated_at=user.updated_at,
             plan=user.plan or "FREE",
@@ -282,6 +287,47 @@ async def me(
     return UserResponse(
         id=current_user.id,
         email=current_user.email,
+        full_name=current_user.full_name,
+        phone=current_user.phone,
+        created_at=current_user.created_at,
+        updated_at=current_user.updated_at,
+        is_profile_completed=is_completed,
+        plan=current_user.plan or "FREE",
+        ai_generations_remaining=plan_info["ai_generations_remaining"],
+        plan_expires_at=current_user.plan_expires_at,
+    )
+
+
+@router.patch(
+    "/me",
+    response_model=UserResponse,
+    summary="Update current user profile",
+    description="Update the authenticated user's name and/or phone",
+)
+async def update_me(
+    request: UpdateUserRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Update the current user's profile (name, phone)."""
+    if request.fullName is not None:
+        current_user.full_name = request.fullName
+    if request.phone is not None:
+        current_user.phone = request.phone
+
+    current_user.updated_at = datetime.now(UTC)
+    db.commit()
+    db.refresh(current_user)
+
+    from src.services.profile_service import ProfileService
+
+    is_completed, _ = ProfileService.check_completion(db, current_user.id)
+    plan_info = PlanService.get_plan_info(db, current_user)
+    return UserResponse(
+        id=current_user.id,
+        email=current_user.email,
+        full_name=current_user.full_name,
+        phone=current_user.phone,
         created_at=current_user.created_at,
         updated_at=current_user.updated_at,
         is_profile_completed=is_completed,
@@ -404,6 +450,8 @@ async def google_sign_in(
             user=UserResponse(
                 id=user.id,
                 email=user.email,
+                full_name=user.full_name,
+                phone=user.phone,
                 created_at=user.created_at,
                 updated_at=user.updated_at,
                 plan=user.plan or "FREE",
@@ -543,6 +591,8 @@ async def apple_sign_in(
             user=UserResponse(
                 id=user.id,
                 email=user.email,
+                full_name=user.full_name,
+                phone=user.phone,
                 created_at=user.created_at,
                 updated_at=user.updated_at,
                 plan=user.plan or "FREE",
@@ -612,6 +662,8 @@ async def refresh(
         user=UserResponse(
             id=user.id,
             email=user.email,
+            full_name=user.full_name,
+            phone=user.phone,
             created_at=user.created_at,
             updated_at=user.updated_at,
             plan=user.plan or "FREE",

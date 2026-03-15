@@ -206,6 +206,26 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Result<User>> updateUser({String? fullName, String? phone}) async {
+    try {
+      final data = <String, dynamic>{};
+      if (fullName != null) data['fullName'] = fullName;
+      if (phone != null) data['phone'] = phone;
+
+      final response = await _apiClient.patch('/auth/me', data: data);
+
+      if (response.statusCode == 200) {
+        return Success(User.fromJson(response.data as Map<String, dynamic>));
+      }
+      return Failure(UnknownError('update failed: ${response.statusCode}'));
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return Failure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
   Future<Result<void>> logout() async {
     try {
       final refreshToken = await _storageService.getRefreshToken();

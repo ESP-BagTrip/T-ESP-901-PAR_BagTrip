@@ -327,16 +327,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get personalInfoTitle => 'Personal Information';
 
   @override
+  String get nameLabel => 'NAME';
+
+  @override
   String get emailLabel => 'EMAIL';
 
   @override
   String get phoneLabel => 'PHONE';
 
   @override
-  String get addressLabel => 'ADDRESS';
+  String get modifyButton => 'Modify';
 
   @override
-  String get modifyButton => 'Modify';
+  String get editNameTitle => 'Edit name';
+
+  @override
+  String get editPhoneTitle => 'Edit phone number';
+
+  @override
+  String get saveButton => 'Save';
+
+  @override
+  String get profileUpdateSuccess => 'Profile updated successfully';
+
+  @override
+  String get profileUpdateError => 'Failed to update profile';
 
   @override
   String get preferencesTitle => 'Preferences';

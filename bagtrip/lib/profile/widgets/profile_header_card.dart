@@ -7,11 +7,13 @@ import 'package:flutter/material.dart';
 class ProfileHeaderCard extends StatelessWidget {
   final String name;
   final String memberSince;
+  final VoidCallback? onEditName;
 
   const ProfileHeaderCard({
     super.key,
     required this.name,
     required this.memberSince,
+    this.onEditName,
   });
 
   String _getInitials(String fullName) {
@@ -76,18 +78,21 @@ class ProfileHeaderCard extends StatelessWidget {
               Positioned(
                 bottom: 0,
                 right: 0,
-                child: Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: ColorName.secondary,
-                    border: Border.all(color: AppColors.surface, width: 2),
-                  ),
-                  child: const Icon(
-                    Icons.edit_outlined,
-                    size: 14,
-                    color: AppColors.surface,
+                child: GestureDetector(
+                  onTap: onEditName,
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: ColorName.secondary,
+                      border: Border.all(color: AppColors.surface, width: 2),
+                    ),
+                    child: const Icon(
+                      Icons.edit_outlined,
+                      size: 14,
+                      color: AppColors.surface,
+                    ),
                   ),
                 ),
               ),

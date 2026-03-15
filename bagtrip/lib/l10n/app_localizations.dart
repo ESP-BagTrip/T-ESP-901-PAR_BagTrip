@@ -668,6 +668,12 @@ abstract class AppLocalizations {
   /// **'Informations personnelles'**
   String get personalInfoTitle;
 
+  /// No description provided for @nameLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'NOM'**
+  String get nameLabel;
+
   /// No description provided for @emailLabel.
   ///
   /// In fr, this message translates to:
@@ -680,17 +686,41 @@ abstract class AppLocalizations {
   /// **'TÉLÉPHONE'**
   String get phoneLabel;
 
-  /// No description provided for @addressLabel.
-  ///
-  /// In fr, this message translates to:
-  /// **'ADRESSE'**
-  String get addressLabel;
-
   /// No description provided for @modifyButton.
   ///
   /// In fr, this message translates to:
   /// **'Modifier'**
   String get modifyButton;
+
+  /// No description provided for @editNameTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le nom'**
+  String get editNameTitle;
+
+  /// No description provided for @editPhoneTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le téléphone'**
+  String get editPhoneTitle;
+
+  /// No description provided for @saveButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer'**
+  String get saveButton;
+
+  /// No description provided for @profileUpdateSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil mis à jour avec succès'**
+  String get profileUpdateSuccess;
+
+  /// No description provided for @profileUpdateError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la mise à jour du profil'**
+  String get profileUpdateError;
 
   /// No description provided for @preferencesTitle.
   ///

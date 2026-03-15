@@ -225,5 +225,133 @@ void main() {
         expect: () => [isA<UserProfileInitial>()],
       );
     });
+
+    // ── UpdateUserName ─────────────────────────────────────────────────
+
+    group('UpdateUserName', () {
+      blocTest<UserProfileBloc, UserProfileState>(
+        'updates name on success',
+        seed: () => UserProfileLoaded(
+          name: 'Old Name',
+          email: 'test@example.com',
+          phone: '+33612345678',
+          memberSince: DateTime(2024),
+        ),
+        build: () {
+          when(
+            () => mockAuthRepo.updateUser(fullName: 'New Name'),
+          ).thenAnswer((_) async => Success(makeUser(fullName: 'New Name')));
+          return UserProfileBloc(
+            authRepository: mockAuthRepo,
+            profileRepository: mockProfileRepo,
+          );
+        },
+        act: (bloc) => bloc.add(UpdateUserName('New Name')),
+        expect: () => [
+          isA<UserProfileLoaded>().having(
+            (s) => s.isUpdating,
+            'isUpdating',
+            true,
+          ),
+          isA<UserProfileLoaded>()
+              .having((s) => s.name, 'name', 'New Name')
+              .having((s) => s.isUpdating, 'isUpdating', false),
+        ],
+      );
+
+      blocTest<UserProfileBloc, UserProfileState>(
+        'reverts isUpdating on failure',
+        seed: () => UserProfileLoaded(
+          name: 'Old Name',
+          email: 'test@example.com',
+          phone: '+33612345678',
+          memberSince: DateTime(2024),
+        ),
+        build: () {
+          when(
+            () => mockAuthRepo.updateUser(fullName: 'New Name'),
+          ).thenAnswer((_) async => const Failure(NetworkError('fail')));
+          return UserProfileBloc(
+            authRepository: mockAuthRepo,
+            profileRepository: mockProfileRepo,
+          );
+        },
+        act: (bloc) => bloc.add(UpdateUserName('New Name')),
+        expect: () => [
+          isA<UserProfileLoaded>().having(
+            (s) => s.isUpdating,
+            'isUpdating',
+            true,
+          ),
+          isA<UserProfileLoaded>()
+              .having((s) => s.name, 'name', 'Old Name')
+              .having((s) => s.isUpdating, 'isUpdating', false),
+        ],
+      );
+    });
+
+    // ── UpdateUserPhone ────────────────────────────────────────────────
+
+    group('UpdateUserPhone', () {
+      blocTest<UserProfileBloc, UserProfileState>(
+        'updates phone on success',
+        seed: () => UserProfileLoaded(
+          name: 'Test User',
+          email: 'test@example.com',
+          phone: '—',
+          memberSince: DateTime(2024),
+        ),
+        build: () {
+          when(
+            () => mockAuthRepo.updateUser(phone: '+33699999999'),
+          ).thenAnswer((_) async => Success(makeUser(phone: '+33699999999')));
+          return UserProfileBloc(
+            authRepository: mockAuthRepo,
+            profileRepository: mockProfileRepo,
+          );
+        },
+        act: (bloc) => bloc.add(UpdateUserPhone('+33699999999')),
+        expect: () => [
+          isA<UserProfileLoaded>().having(
+            (s) => s.isUpdating,
+            'isUpdating',
+            true,
+          ),
+          isA<UserProfileLoaded>()
+              .having((s) => s.phone, 'phone', '+33699999999')
+              .having((s) => s.isUpdating, 'isUpdating', false),
+        ],
+      );
+
+      blocTest<UserProfileBloc, UserProfileState>(
+        'reverts isUpdating on failure',
+        seed: () => UserProfileLoaded(
+          name: 'Test User',
+          email: 'test@example.com',
+          phone: '—',
+          memberSince: DateTime(2024),
+        ),
+        build: () {
+          when(
+            () => mockAuthRepo.updateUser(phone: '+33699999999'),
+          ).thenAnswer((_) async => const Failure(NetworkError('fail')));
+          return UserProfileBloc(
+            authRepository: mockAuthRepo,
+            profileRepository: mockProfileRepo,
+          );
+        },
+        act: (bloc) => bloc.add(UpdateUserPhone('+33699999999')),
+        expect: () => [
+          isA<UserProfileLoaded>().having(
+            (s) => s.isUpdating,
+            'isUpdating',
+            true,
+          ),
+          isA<UserProfileLoaded>()
+              .having((s) => s.phone, 'phone', '—')
+              .having((s) => s.isUpdating, 'isUpdating', false),
+        ],
+      );
+    });
   });
 }

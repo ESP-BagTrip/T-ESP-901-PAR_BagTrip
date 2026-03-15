@@ -13,5 +13,6 @@ abstract class AuthRepository {
   Future<Result<AuthResponse>> loginWithApple();
   Future<Result<void>> logout();
   Future<Result<User?>> getCurrentUser();
+  Future<Result<User>> updateUser({String? fullName, String? phone});
   Future<Result<bool>> isAuthenticated();
 }

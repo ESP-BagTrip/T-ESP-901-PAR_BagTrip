@@ -27,6 +27,8 @@ class UserResponse(BaseModel):
 
     id: UUID
     email: str
+    full_name: str | None = Field(None, alias="fullName")
+    phone: str | None = Field(None, alias="phone")
     created_at: datetime = Field(..., alias="createdAt")
     updated_at: datetime | None = Field(None, alias="updatedAt")
     is_profile_completed: bool = Field(False, alias="isProfileCompleted")
@@ -37,6 +39,13 @@ class UserResponse(BaseModel):
     class Config:
         from_attributes = True
         populate_by_name = True
+
+
+class UpdateUserRequest(BaseModel):
+    """Requête de mise à jour du profil utilisateur."""
+
+    fullName: str | None = None
+    phone: str | None = None
 
 
 class GoogleSignInRequest(BaseModel):

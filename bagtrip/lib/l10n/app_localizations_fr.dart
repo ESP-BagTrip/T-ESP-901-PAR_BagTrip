@@ -330,16 +330,31 @@ class AppLocalizationsFr extends AppLocalizations {
   String get personalInfoTitle => 'Informations personnelles';
 
   @override
+  String get nameLabel => 'NOM';
+
+  @override
   String get emailLabel => 'EMAIL';
 
   @override
   String get phoneLabel => 'TÉLÉPHONE';
 
   @override
-  String get addressLabel => 'ADRESSE';
+  String get modifyButton => 'Modifier';
 
   @override
-  String get modifyButton => 'Modifier';
+  String get editNameTitle => 'Modifier le nom';
+
+  @override
+  String get editPhoneTitle => 'Modifier le téléphone';
+
+  @override
+  String get saveButton => 'Enregistrer';
+
+  @override
+  String get profileUpdateSuccess => 'Profil mis à jour avec succès';
+
+  @override
+  String get profileUpdateError => 'Échec de la mise à jour du profil';
 
   @override
   String get preferencesTitle => 'Préférences';
