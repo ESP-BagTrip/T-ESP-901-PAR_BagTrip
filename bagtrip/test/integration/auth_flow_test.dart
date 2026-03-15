@@ -1,6 +1,8 @@
 import 'package:bagtrip/auth/bloc/auth_bloc.dart';
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
+import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -10,9 +12,29 @@ import '../helpers/test_fixtures.dart';
 
 void main() {
   late MockAuthRepository mockAuthRepo;
+  late MockCrashlyticsService mockCrashlyticsService;
 
   setUp(() {
     mockAuthRepo = MockAuthRepository();
+    mockCrashlyticsService = MockCrashlyticsService();
+
+    if (getIt.isRegistered<CrashlyticsService>()) {
+      getIt.unregister<CrashlyticsService>();
+    }
+    getIt.registerLazySingleton<CrashlyticsService>(
+      () => mockCrashlyticsService,
+    );
+
+    when(
+      () => mockCrashlyticsService.setUserId(any()),
+    ).thenAnswer((_) async {});
+    when(() => mockCrashlyticsService.clearUserId()).thenAnswer((_) async {});
+  });
+
+  tearDown(() {
+    if (getIt.isRegistered<CrashlyticsService>()) {
+      getIt.unregister<CrashlyticsService>();
+    }
   });
 
   group('Auth integration flow', () {

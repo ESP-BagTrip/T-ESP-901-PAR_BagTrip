@@ -20,6 +20,7 @@ import 'package:bagtrip/service/subscription_service.dart';
 import 'package:bagtrip/service/ai_service.dart';
 import 'package:bagtrip/service/location_service.dart';
 import 'package:bagtrip/service/onboarding_storage.dart';
+import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
 
 import 'package:bagtrip/repositories/repositories.dart';
@@ -33,6 +34,7 @@ void setupServiceLocator() {
   getIt.registerLazySingleton<PersonalizationStorage>(
     () => PersonalizationStorage(),
   );
+  getIt.registerLazySingleton<CrashlyticsService>(() => CrashlyticsService());
 
   // 2. ApiClient (depends on StorageService)
   getIt.registerLazySingleton<ApiClient>(

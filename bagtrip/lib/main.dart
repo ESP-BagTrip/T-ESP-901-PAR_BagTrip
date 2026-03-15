@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:bagtrip/auth/bloc/auth_bloc.dart';
 import 'package:bagtrip/auth/widgets/auth_listener.dart';
@@ -10,6 +11,7 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/app_router.dart';
 import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
 import 'package:bagtrip/profile/bloc/user_profile_bloc.dart';
+import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bagtrip/service/local_notification_service.dart';
 import 'package:bagtrip/repositories/notification_repository.dart';
 import 'package:bagtrip/settings/bloc/settings_bloc.dart';
@@ -29,6 +31,15 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   setupServiceLocator();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Crashlytics
+  final crashlyticsService = getIt<CrashlyticsService>();
+  await crashlyticsService.initialize();
+  FlutterError.onError = crashlyticsService.recordFlutterFatalError;
+  PlatformDispatcher.instance.onError = (error, stack) {
+    crashlyticsService.recordPlatformError(error, stack);
+    return true;
+  };
 
   // FCM setup
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);

@@ -1,5 +1,6 @@
 import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/repositories/trip_repository.dart';
+import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bagtrip/repositories/activity_repository.dart';
 import 'package:bagtrip/repositories/accommodation_repository.dart';
 import 'package:bagtrip/repositories/budget_repository.dart';
@@ -44,3 +45,5 @@ class MockSubscriptionRepository extends Mock
     implements SubscriptionRepository {}
 
 class MockAiRepository extends Mock implements AiRepository {}
+
+class MockCrashlyticsService extends Mock implements CrashlyticsService {}

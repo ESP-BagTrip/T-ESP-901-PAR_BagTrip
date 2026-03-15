@@ -6,6 +6,7 @@ import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/auth_response.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
+import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bagtrip/repositories/notification_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -53,6 +54,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     if (isClosed) return;
     switch (result) {
       case Success(:final data):
+        getIt<CrashlyticsService>().setUserId(data.user.id);
         emit(AuthSuccess(authResponse: data));
         _registerDeviceToken();
       case Failure(:final error):
@@ -73,6 +75,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     if (isClosed) return;
     switch (result) {
       case Success(:final data):
+        getIt<CrashlyticsService>().setUserId(data.user.id);
         emit(AuthSuccess(authResponse: data));
         _registerDeviceToken();
       case Failure(:final error):
@@ -89,6 +92,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     if (isClosed) return;
     switch (result) {
       case Success(:final data):
+        getIt<CrashlyticsService>().setUserId(data.user.id);
         emit(AuthSuccess(authResponse: data));
         _registerDeviceToken();
       case Failure(:final error):
@@ -109,6 +113,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     if (isClosed) return;
     switch (result) {
       case Success(:final data):
+        getIt<CrashlyticsService>().setUserId(data.user.id);
         emit(AuthSuccess(authResponse: data));
         _registerDeviceToken();
       case Failure(:final error):
@@ -125,6 +130,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
+    getIt<CrashlyticsService>().clearUserId();
     await _authRepository.logout();
     if (isClosed) return;
     emit(AuthInitial());
