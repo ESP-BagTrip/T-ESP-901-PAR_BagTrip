@@ -3,7 +3,6 @@ import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/trip_share.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/trip_share_repository.dart';
-import 'package:bagtrip/utils/error_display.dart';
 import 'package:bloc/bloc.dart';
 
 part 'trip_share_event.dart';
@@ -32,7 +31,7 @@ class TripShareBloc extends Bloc<TripShareEvent, TripShareState> {
       case Success(:final data):
         emit(TripShareLoaded(shares: data));
       case Failure(:final error):
-        emit(TripShareError(message: toUserFriendlyMessage(error)));
+        emit(TripShareError(error: error));
     }
   }
 
@@ -53,7 +52,7 @@ class TripShareBloc extends Bloc<TripShareEvent, TripShareState> {
         if (error is QuotaExceededError) {
           emit(TripShareQuotaExceeded());
         } else {
-          emit(TripShareError(message: toUserFriendlyMessage(error)));
+          emit(TripShareError(error: error));
         }
     }
   }
@@ -72,7 +71,7 @@ class TripShareBloc extends Bloc<TripShareEvent, TripShareState> {
       case Success():
         add(LoadShares(tripId: event.tripId));
       case Failure(:final error):
-        emit(TripShareError(message: toUserFriendlyMessage(error)));
+        emit(TripShareError(error: error));
     }
   }
 }

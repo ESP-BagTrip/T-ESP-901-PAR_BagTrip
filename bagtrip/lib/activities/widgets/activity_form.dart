@@ -1,3 +1,4 @@
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -106,18 +107,21 @@ class _ActivityFormState extends State<ActivityForm> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                widget.activity != null ? 'Edit Activity' : 'New Activity',
+                widget.activity != null
+                    ? AppLocalizations.of(context)!.activityFormEdit
+                    : AppLocalizations.of(context)!.activityFormNew,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Title *',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: '${AppLocalizations.of(context)!.activityTitle} *',
+                  border: const OutlineInputBorder(),
                 ),
-                validator: (v) =>
-                    (v == null || v.isEmpty) ? 'Title is required' : null,
+                validator: (v) => (v == null || v.isEmpty)
+                    ? AppLocalizations.of(context)!.activityTitleRequired
+                    : null,
               ),
               const SizedBox(height: 12),
               ListTile(
@@ -136,9 +140,9 @@ class _ActivityFormState extends State<ActivityForm> {
               ),
               TextFormField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.activityDescription,
+                  border: const OutlineInputBorder(),
                 ),
                 maxLines: 2,
               ),
@@ -151,7 +155,7 @@ class _ActivityFormState extends State<ActivityForm> {
                       title: Text(
                         _startTime != null
                             ? 'Start: ${_formatTime(_startTime!)}'
-                            : 'Start time',
+                            : AppLocalizations.of(context)!.activityStartTime,
                       ),
                       onTap: () async {
                         final picked = await showTimePicker(
@@ -170,7 +174,7 @@ class _ActivityFormState extends State<ActivityForm> {
                       title: Text(
                         _endTime != null
                             ? 'End: ${_formatTime(_endTime!)}'
-                            : 'End time',
+                            : AppLocalizations.of(context)!.activityEndTime,
                       ),
                       onTap: () async {
                         final picked = await showTimePicker(
@@ -187,17 +191,17 @@ class _ActivityFormState extends State<ActivityForm> {
               ),
               TextFormField(
                 controller: _locationController,
-                decoration: const InputDecoration(
-                  labelText: 'Location',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.activityLocation,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<ActivityCategory>(
                 initialValue: _category,
-                decoration: const InputDecoration(
-                  labelText: 'Category',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.activityCategory,
+                  border: const OutlineInputBorder(),
                 ),
                 items: ActivityCategory.values
                     .map(
@@ -213,10 +217,11 @@ class _ActivityFormState extends State<ActivityForm> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _costController,
-                decoration: const InputDecoration(
-                  labelText: 'Estimated cost (\u20ac)',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.euro),
+                decoration: InputDecoration(
+                  labelText:
+                      '${AppLocalizations.of(context)!.activityEstimatedCost} (\u20ac)',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.euro),
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
@@ -225,14 +230,18 @@ class _ActivityFormState extends State<ActivityForm> {
               const SizedBox(height: 12),
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Booked'),
+                title: Text(AppLocalizations.of(context)!.activityFormBooked),
                 value: _isBooked,
                 onChanged: (v) => setState(() => _isBooked = v ?? false),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _submit,
-                child: Text(widget.activity != null ? 'Update' : 'Create'),
+                child: Text(
+                  widget.activity != null
+                      ? AppLocalizations.of(context)!.activityFormUpdate
+                      : AppLocalizations.of(context)!.activityFormCreate,
+                ),
               ),
             ],
           ),

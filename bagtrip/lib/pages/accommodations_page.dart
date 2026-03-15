@@ -1,6 +1,7 @@
 import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/accommodation.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/config/service_locator.dart';
@@ -70,7 +71,10 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
         });
       case Failure(:final error):
         setState(() {
-          _errorMessage = toUserFriendlyMessage(error);
+          _errorMessage = toUserFriendlyMessage(
+            error,
+            AppLocalizations.of(context)!,
+          );
           _isLoading = false;
         });
     }
@@ -82,7 +86,9 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
       initialDate: DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime(2100),
-      helpText: isCheckIn ? 'Date d\'arrivée' : 'Date de départ',
+      helpText: isCheckIn
+          ? AppLocalizations.of(context)!.accommodationCheckInHelp
+          : AppLocalizations.of(context)!.accommodationCheckOutHelp,
     );
     if (picked != null) {
       setState(() {
@@ -130,12 +136,17 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
         await _loadAccommodations();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Hébergement ajouté avec succès')),
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.accommodationAdded),
+            ),
           );
         }
       case Failure(:final error):
         setState(() {
-          _errorMessage = toUserFriendlyMessage(error);
+          _errorMessage = toUserFriendlyMessage(
+            error,
+            AppLocalizations.of(context)!,
+          );
         });
     }
     setState(() {
@@ -147,19 +158,17 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Supprimer l\'hébergement'),
-        content: const Text(
-          'Êtes-vous sûr de vouloir supprimer cet hébergement ?',
-        ),
+        title: Text(AppLocalizations.of(context)!.accommodationDeleteTitle),
+        content: Text(AppLocalizations.of(context)!.accommodationDeleteConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Annuler'),
+            child: Text(AppLocalizations.of(context)!.cancelButton),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(foregroundColor: ColorName.error),
-            child: const Text('Supprimer'),
+            child: Text(AppLocalizations.of(context)!.deleteButton),
           ),
         ],
       ),
@@ -175,14 +184,21 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
           await _loadAccommodations();
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Hébergement supprimé')),
+              SnackBar(
+                content: Text(
+                  AppLocalizations.of(context)!.accommodationDeleted,
+                ),
+              ),
             );
           }
         case Failure(:final error):
           if (mounted) {
             AppSnackBar.showError(
               context,
-              message: toUserFriendlyMessage(error),
+              message: toUserFriendlyMessage(
+                error,
+                AppLocalizations.of(context)!,
+              ),
             );
           }
       }
@@ -191,11 +207,12 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isViewer = widget.role == 'VIEWER';
     final isReadOnly = isViewer || widget.isCompleted;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Hébergements')),
+      appBar: AppBar(title: Text(l10n.accommodationsTitle)),
       body: SafeArea(
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
@@ -214,13 +231,13 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  'Aucun hébergement',
+                                  l10n.accommodationEmptyTitle,
                                   style: Theme.of(context).textTheme.titleMedium
                                       ?.copyWith(color: AppColors.hint),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Ajoutez vos hôtels et logements',
+                                  l10n.accommodationEmptySubtitle,
                                   style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
                                         color: AppColors.textMutedLight,
@@ -295,7 +312,7 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'Ajouter un hébergement',
+                              l10n.accommodationAddTitle,
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             const SizedBox(height: 16),
@@ -328,10 +345,13 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
                                   child: InkWell(
                                     onTap: () => _selectDate(context, true),
                                     child: InputDecorator(
-                                      decoration: const InputDecoration(
-                                        labelText: 'Arrivée',
-                                        border: OutlineInputBorder(),
-                                        prefixIcon: Icon(Icons.calendar_today),
+                                      decoration: InputDecoration(
+                                        labelText:
+                                            l10n.accommodationCheckInLabel,
+                                        border: const OutlineInputBorder(),
+                                        prefixIcon: const Icon(
+                                          Icons.calendar_today,
+                                        ),
                                       ),
                                       child: Text(
                                         _checkInDate != null
@@ -348,10 +368,13 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
                                   child: InkWell(
                                     onTap: () => _selectDate(context, false),
                                     child: InputDecorator(
-                                      decoration: const InputDecoration(
-                                        labelText: 'Départ',
-                                        border: OutlineInputBorder(),
-                                        prefixIcon: Icon(Icons.calendar_today),
+                                      decoration: InputDecoration(
+                                        labelText:
+                                            l10n.accommodationCheckOutLabel,
+                                        border: const OutlineInputBorder(),
+                                        prefixIcon: const Icon(
+                                          Icons.calendar_today,
+                                        ),
                                       ),
                                       child: Text(
                                         _checkOutDate != null
@@ -401,7 +424,7 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
                                       ),
                                     )
                                   : const Icon(Icons.add),
-                              label: const Text('Ajouter'),
+                              label: Text(l10n.addButton),
                             ),
                           ],
                         ),

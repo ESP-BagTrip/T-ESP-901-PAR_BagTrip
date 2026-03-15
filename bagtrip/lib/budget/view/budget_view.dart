@@ -6,6 +6,7 @@ import 'package:bagtrip/budget/widgets/budget_summary_header.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/budget_item.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -24,7 +25,7 @@ class BudgetView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Budget')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.budgetItems)),
       body: BlocBuilder<BudgetBloc, BudgetState>(
         builder: (context, state) {
           if (state is BudgetLoading) {
@@ -41,7 +42,12 @@ class BudgetView extends StatelessWidget {
                     color: Theme.of(context).colorScheme.error,
                   ),
                   const SizedBox(height: 16),
-                  Text(state.message),
+                  Text(
+                    toUserFriendlyMessage(
+                      state.error,
+                      AppLocalizations.of(context)!,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   FilledButton.icon(
                     onPressed: () => context.read<BudgetBloc>().add(

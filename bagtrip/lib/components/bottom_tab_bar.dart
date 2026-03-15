@@ -1,6 +1,7 @@
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/bloc/navigation_bloc.dart';
 import 'package:flutter/material.dart';
 
@@ -74,19 +75,19 @@ class BottomTabBar extends StatelessWidget {
               _buildTabItem(
                 context,
                 NavigationTab.planifier,
-                'Nouveau',
+                AppLocalizations.of(context)!.tabNew,
                 Icons.add_circle_outline,
               ),
               _buildTabItem(
                 context,
                 NavigationTab.trips,
-                'Voyages',
+                AppLocalizations.of(context)!.tabTrips,
                 Icons.luggage_outlined,
               ),
               _buildTabItem(
                 context,
                 NavigationTab.profile,
-                'Profil',
+                AppLocalizations.of(context)!.tabProfile,
                 Icons.person_outlined,
               ),
             ],

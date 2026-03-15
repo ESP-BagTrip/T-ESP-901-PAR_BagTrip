@@ -6,7 +6,6 @@ import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/ai_repository.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
-import 'package:bagtrip/utils/error_display.dart';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 
@@ -181,7 +180,7 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
         if (error is QuotaExceededError) {
           emit(CreateTripAiQuotaExceeded());
         } else {
-          emit(CreateTripAiError(toUserFriendlyMessage(error)));
+          emit(CreateTripAiError(error));
         }
     }
   }
@@ -234,7 +233,11 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
     Emitter<CreateTripAiState> emit,
   ) async {
     if (_selectedProposal == null) {
-      emit(CreateTripAiError('Aucune proposition sélectionnée.'));
+      emit(
+        CreateTripAiError(
+          const UnknownError('Aucune proposition sélectionnée.'),
+        ),
+      );
       return;
     }
     emit(CreateTripAiSearchLoading());
@@ -261,7 +264,7 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
         if (error is QuotaExceededError) {
           emit(CreateTripAiQuotaExceeded());
         } else {
-          emit(CreateTripAiError(toUserFriendlyMessage(error)));
+          emit(CreateTripAiError(error));
         }
     }
   }

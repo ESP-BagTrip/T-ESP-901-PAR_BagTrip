@@ -3,9 +3,7 @@ import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/repositories/profile_repository.dart';
-import 'package:bagtrip/utils/error_display.dart';
 import 'package:bloc/bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:meta/meta.dart';
 
 part 'user_profile_event.dart';
@@ -42,9 +40,7 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
           if (isClosed) return;
           emit(
             UserProfileError(
-              message: toUserFriendlyMessage(
-                const AuthenticationError('Session expirée'),
-              ),
+              error: const AuthenticationError('Session expirée'),
             ),
           );
           return;
@@ -64,9 +60,7 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
           companions = travelerProfile.companions;
         }
 
-        final memberSince = DateFormat.yMMM(
-          'fr',
-        ).format(user.createdAt ?? DateTime.now());
+        final memberSince = user.createdAt ?? DateTime.now();
 
         emit(
           UserProfileLoaded(
@@ -88,7 +82,7 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
           await _authRepository.logout();
           if (isClosed) return;
         }
-        emit(UserProfileError(message: toUserFriendlyMessage(error)));
+        emit(UserProfileError(error: error));
     }
   }
 

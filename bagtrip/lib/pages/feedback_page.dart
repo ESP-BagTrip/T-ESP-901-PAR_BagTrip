@@ -3,7 +3,9 @@ import 'package:bagtrip/feedback/view/feedback_form_view.dart';
 import 'package:bagtrip/feedback/view/feedback_list_view.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/config/service_locator.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -55,11 +57,11 @@ class _FeedbackPageContentState extends State<_FeedbackPageContent> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Avis'),
-          bottom: const TabBar(
+          title: Text(AppLocalizations.of(context)!.feedbackTitle),
+          bottom: TabBar(
             tabs: [
-              Tab(text: 'Donner un avis'),
-              Tab(text: 'Tous les avis'),
+              Tab(text: AppLocalizations.of(context)!.feedbackGiveReview),
+              Tab(text: AppLocalizations.of(context)!.feedbackAllReviews),
             ],
           ),
         ),
@@ -67,15 +69,22 @@ class _FeedbackPageContentState extends State<_FeedbackPageContent> {
           listener: (context, state) {
             if (state is FeedbackSubmitted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Avis envoy\u00e9 avec succ\u00e8s'),
+                SnackBar(
+                  content: Text(AppLocalizations.of(context)!.feedbackSent),
                 ),
               );
             }
             if (state is FeedbackError) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(state.message)));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    toUserFriendlyMessage(
+                      state.error,
+                      AppLocalizations.of(context)!,
+                    ),
+                  ),
+                ),
+              );
             }
           },
           builder: (context, state) {

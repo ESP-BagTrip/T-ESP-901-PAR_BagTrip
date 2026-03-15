@@ -141,7 +141,9 @@ class FareInfoCard extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Bientôt disponible')),
+                SnackBar(
+                  content: Text(AppLocalizations.of(context)!.comingSoon),
+                ),
               );
             },
             style: ElevatedButton.styleFrom(

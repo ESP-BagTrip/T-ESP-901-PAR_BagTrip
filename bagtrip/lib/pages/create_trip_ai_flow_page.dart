@@ -3,6 +3,8 @@ import 'package:bagtrip/create_trip_ai/view/create_trip_ai_recap_view.dart';
 import 'package:bagtrip/create_trip_ai/view/create_trip_ai_results_view.dart';
 import 'package:bagtrip/create_trip_ai/view/create_trip_ai_summary_view.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -23,9 +25,11 @@ class CreateTripAiFlowPage extends StatelessWidget {
             context.read<CreateTripAiBloc>().add(CreateTripAiLoadRecap());
           }
           if (state is CreateTripAiTripCreated) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('Voyage créé !')));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(AppLocalizations.of(context)!.tripCreated),
+              ),
+            );
             context.go('/trips');
           }
         },
@@ -50,7 +54,9 @@ class CreateTripAiFlowPage extends StatelessWidget {
             }
             if (state is CreateTripAiError) {
               return Scaffold(
-                appBar: AppBar(title: const Text('Erreur')),
+                appBar: AppBar(
+                  title: Text(AppLocalizations.of(context)!.errorTitle),
+                ),
                 body: Center(
                   child: Padding(
                     padding: const EdgeInsets.all(24),
@@ -63,14 +69,20 @@ class CreateTripAiFlowPage extends StatelessWidget {
                           color: Theme.of(context).colorScheme.error,
                         ),
                         const SizedBox(height: 16),
-                        Text(state.message, textAlign: TextAlign.center),
+                        Text(
+                          toUserFriendlyMessage(
+                            state.error,
+                            AppLocalizations.of(context)!,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                         const SizedBox(height: 16),
                         FilledButton.icon(
                           onPressed: () => context.read<CreateTripAiBloc>().add(
                             CreateTripAiLoadRecap(),
                           ),
                           icon: const Icon(Icons.arrow_back),
-                          label: const Text('Retour'),
+                          label: Text(AppLocalizations.of(context)!.backButton),
                         ),
                       ],
                     ),

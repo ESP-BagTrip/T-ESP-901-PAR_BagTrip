@@ -1,5 +1,7 @@
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip_share.dart';
 import 'package:bagtrip/trips/bloc/trip_share_bloc.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -36,14 +38,12 @@ class _TripSharesViewState extends State<TripSharesView> {
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('R\u00e9voquer l\'acc\u00e8s'),
-        content: const Text(
-          '\u00cates-vous s\u00fbr de vouloir r\u00e9voquer l\'acc\u00e8s de cet utilisateur ?',
-        ),
+        title: Text(AppLocalizations.of(context)!.sharesRevokeTitle),
+        content: Text(AppLocalizations.of(context)!.sharesRevokeConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Annuler'),
+            child: Text(AppLocalizations.of(context)!.cancelButton),
           ),
           TextButton(
             onPressed: () {
@@ -55,7 +55,7 @@ class _TripSharesViewState extends State<TripSharesView> {
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('R\u00e9voquer'),
+            child: Text(AppLocalizations.of(context)!.sharesRevokeButton),
           ),
         ],
       ),
@@ -65,13 +65,20 @@ class _TripSharesViewState extends State<TripSharesView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Partages')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.sharesTitle)),
       body: BlocConsumer<TripShareBloc, TripShareState>(
         listener: (context, state) {
           if (state is TripShareError) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  toUserFriendlyMessage(
+                    state.error,
+                    AppLocalizations.of(context)!,
+                  ),
+                ),
+              ),
+            );
           }
         },
         builder: (context, state) {
@@ -97,12 +104,12 @@ class _TripSharesViewState extends State<TripSharesView> {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'Aucun partage',
+                              AppLocalizations.of(context)!.sharesEmpty,
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Invitez des personnes \u00e0 consulter votre voyage',
+                              AppLocalizations.of(context)!.sharesEmptySubtitle,
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ],
@@ -199,7 +206,9 @@ class _TripSharesViewState extends State<TripSharesView> {
                         ElevatedButton.icon(
                           onPressed: isLoading ? null : _handleInvite,
                           icon: const Icon(Icons.person_add),
-                          label: const Text('Inviter'),
+                          label: Text(
+                            AppLocalizations.of(context)!.sharesInviteButton,
+                          ),
                         ),
                       ],
                     ),

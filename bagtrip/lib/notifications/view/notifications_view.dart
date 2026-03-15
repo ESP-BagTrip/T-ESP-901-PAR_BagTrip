@@ -1,6 +1,8 @@
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/notification.dart';
 import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
 import 'package:bagtrip/notifications/widgets/notification_card.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -11,7 +13,7 @@ class NotificationsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifications'),
+        title: Text(AppLocalizations.of(context)!.notificationsTitle),
         actions: [
           BlocBuilder<NotificationBloc, NotificationState>(
             builder: (context, state) {
@@ -20,7 +22,9 @@ class NotificationsView extends StatelessWidget {
                   onPressed: () {
                     context.read<NotificationBloc>().add(MarkAllRead());
                   },
-                  child: const Text('Tout marquer lu'),
+                  child: Text(
+                    AppLocalizations.of(context)!.notificationsMarkAllRead,
+                  ),
                 );
               }
               return const SizedBox.shrink();
@@ -45,14 +49,19 @@ class NotificationsView extends StatelessWidget {
                     color: Theme.of(context).colorScheme.error,
                   ),
                   const SizedBox(height: 16),
-                  Text(state.message),
+                  Text(
+                    toUserFriendlyMessage(
+                      state.error,
+                      AppLocalizations.of(context)!,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   FilledButton.icon(
                     onPressed: () => context.read<NotificationBloc>().add(
                       LoadNotifications(),
                     ),
                     icon: const Icon(Icons.refresh),
-                    label: const Text('Réessayer'),
+                    label: Text(AppLocalizations.of(context)!.retryButton),
                   ),
                 ],
               ),
@@ -74,7 +83,7 @@ class NotificationsView extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Aucune notification',
+                      AppLocalizations.of(context)!.notificationsEmpty,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: Theme.of(context).colorScheme.outline,
                       ),
@@ -105,7 +114,10 @@ class NotificationsView extends StatelessWidget {
     // Group by date
     final Map<String, List<AppNotification>> grouped = {};
     for (final notif in notifications) {
-      final dateKey = _formatDateKey(notif.createdAt ?? DateTime.now());
+      final dateKey = _formatDateKey(
+        notif.createdAt ?? DateTime.now(),
+        AppLocalizations.of(context)!,
+      );
       grouped.putIfAbsent(dateKey, () => []).add(notif);
     }
 
@@ -135,15 +147,15 @@ class NotificationsView extends StatelessWidget {
     );
   }
 
-  String _formatDateKey(DateTime date) {
+  String _formatDateKey(DateTime date, AppLocalizations l10n) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final notifDate = DateTime(date.year, date.month, date.day);
     final diff = today.difference(notifDate).inDays;
 
-    if (diff == 0) return "Aujourd'hui";
-    if (diff == 1) return 'Hier';
-    if (diff < 7) return 'Il y a $diff jours';
+    if (diff == 0) return l10n.notificationsToday;
+    if (diff == 1) return l10n.notificationsYesterday;
+    if (diff < 7) return l10n.notificationsDaysAgo(diff);
     return '${date.day}/${date.month}/${date.year}';
   }
 }

@@ -1,3 +1,4 @@
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
@@ -19,7 +20,7 @@ class TripsListView extends StatelessWidget {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Mes voyages'),
+          title: Text(AppLocalizations.of(context)!.tripsMyTrips),
           actions: [
             BlocBuilder<NotificationBloc, NotificationState>(
               builder: (context, state) {
@@ -43,11 +44,11 @@ class TripsListView extends StatelessWidget {
               },
             ),
           ],
-          bottom: const TabBar(
+          bottom: TabBar(
             tabs: [
-              Tab(text: 'En cours'),
-              Tab(text: 'Planifiés'),
-              Tab(text: 'Terminés'),
+              Tab(text: AppLocalizations.of(context)!.tripStatusOngoing),
+              Tab(text: AppLocalizations.of(context)!.tripStatusPlanned),
+              Tab(text: AppLocalizations.of(context)!.tripStatusCompleted),
             ],
           ),
         ),
@@ -68,13 +69,18 @@ class TripsListView extends StatelessWidget {
                       color: Theme.of(context).colorScheme.error,
                     ),
                     const SizedBox(height: 16),
-                    Text(toUserFriendlyMessage(state.error)),
+                    Text(
+                      toUserFriendlyMessage(
+                        state.error,
+                        AppLocalizations.of(context)!,
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     FilledButton.icon(
                       onPressed: () =>
                           context.read<TripManagementBloc>().add(LoadTrips()),
                       icon: const Icon(Icons.refresh),
-                      label: const Text('Réessayer'),
+                      label: Text(AppLocalizations.of(context)!.retryButton),
                     ),
                   ],
                 ),
@@ -87,17 +93,23 @@ class TripsListView extends StatelessWidget {
                 children: [
                   _TripListTab(
                     trips: grouped.ongoing,
-                    emptyMessage: 'Aucun voyage en cours',
+                    emptyMessage: AppLocalizations.of(
+                      context,
+                    )!.tripsEmptyOngoing,
                     emptyIcon: Icons.flight_takeoff,
                   ),
                   _TripListTab(
                     trips: grouped.planned,
-                    emptyMessage: 'Aucun voyage planifié',
+                    emptyMessage: AppLocalizations.of(
+                      context,
+                    )!.tripsEmptyPlanned,
                     emptyIcon: Icons.calendar_today,
                   ),
                   _TripListTab(
                     trips: grouped.completed,
-                    emptyMessage: 'Aucun voyage terminé',
+                    emptyMessage: AppLocalizations.of(
+                      context,
+                    )!.tripsEmptyCompleted,
                     emptyIcon: Icons.check_circle_outline,
                   ),
                 ],
@@ -110,7 +122,7 @@ class TripsListView extends StatelessWidget {
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () => context.go('/planifier'),
           icon: const Icon(Icons.add),
-          label: const Text('Nouveau voyage'),
+          label: Text(AppLocalizations.of(context)!.tripsNewTrip),
         ),
       ),
     );

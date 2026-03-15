@@ -12,8 +12,8 @@ class TripShareLoaded extends TripShareState {
 }
 
 class TripShareError extends TripShareState {
-  final String message;
-  TripShareError({required this.message});
+  final AppError error;
+  TripShareError({required this.error});
 }
 
 class TripShareQuotaExceeded extends TripShareState {}

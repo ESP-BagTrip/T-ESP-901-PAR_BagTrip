@@ -1,8 +1,8 @@
+import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/budget_item.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/budget_repository.dart';
-import 'package:bagtrip/utils/error_display.dart';
 import 'package:bloc/bloc.dart';
 
 part 'budget_event.dart';
@@ -39,7 +39,7 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
       final error = itemsResult is Failure<List<BudgetItem>>
           ? itemsResult.error
           : (summaryResult as Failure<BudgetSummary>).error;
-      emit(BudgetError(message: toUserFriendlyMessage(error)));
+      emit(BudgetError(error: error));
     }
   }
 
@@ -56,7 +56,7 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
       case Success():
         add(LoadBudget(tripId: event.tripId));
       case Failure(:final error):
-        emit(BudgetError(message: toUserFriendlyMessage(error)));
+        emit(BudgetError(error: error));
     }
   }
 
@@ -74,7 +74,7 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
       case Success():
         add(LoadBudget(tripId: event.tripId));
       case Failure(:final error):
-        emit(BudgetError(message: toUserFriendlyMessage(error)));
+        emit(BudgetError(error: error));
     }
   }
 
@@ -91,7 +91,7 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
       case Success():
         add(LoadBudget(tripId: event.tripId));
       case Failure(:final error):
-        emit(BudgetError(message: toUserFriendlyMessage(error)));
+        emit(BudgetError(error: error));
     }
   }
 }

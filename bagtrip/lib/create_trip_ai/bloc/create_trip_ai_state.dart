@@ -60,8 +60,8 @@ final class CreateTripAiSummaryLoaded extends CreateTripAiState {
 final class CreateTripAiSearchLoading extends CreateTripAiState {}
 
 final class CreateTripAiError extends CreateTripAiState {
-  CreateTripAiError(this.message);
-  final String message;
+  CreateTripAiError(this.error);
+  final AppError error;
 }
 
 final class CreateTripAiTripCreated extends CreateTripAiState {

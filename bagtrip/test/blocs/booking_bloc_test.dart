@@ -55,7 +55,6 @@ void main() {
           expect(loaded.recentBookings, hasLength(1));
           final rb = loaded.recentBookings.first;
           expect(rb.id, 'book-1');
-          expect(rb.route, 'Réservation');
           expect(rb.status, 'confirmed');
         },
       );

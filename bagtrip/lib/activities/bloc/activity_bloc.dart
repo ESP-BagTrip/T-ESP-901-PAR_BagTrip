@@ -3,7 +3,6 @@ import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/activity_repository.dart';
-import 'package:bagtrip/utils/error_display.dart';
 import 'package:bloc/bloc.dart';
 import 'package:intl/intl.dart';
 
@@ -53,7 +52,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
           ActivitiesLoaded(activities: data, groupedByDay: _groupByDay(data)),
         );
       case Failure(:final error):
-        emit(ActivityError(message: toUserFriendlyMessage(error)));
+        emit(ActivityError(error: error));
     }
   }
 
@@ -70,7 +69,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
       case Success():
         add(LoadActivities(tripId: event.tripId));
       case Failure(:final error):
-        emit(ActivityError(message: toUserFriendlyMessage(error)));
+        emit(ActivityError(error: error));
     }
   }
 
@@ -88,7 +87,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
       case Success():
         add(LoadActivities(tripId: event.tripId));
       case Failure(:final error):
-        emit(ActivityError(message: toUserFriendlyMessage(error)));
+        emit(ActivityError(error: error));
     }
   }
 
@@ -105,7 +104,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
       case Success():
         add(LoadActivities(tripId: event.tripId));
       case Failure(:final error):
-        emit(ActivityError(message: toUserFriendlyMessage(error)));
+        emit(ActivityError(error: error));
     }
   }
 
@@ -143,7 +142,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
           );
           emit(ActivityQuotaExceeded());
         } else {
-          emit(ActivityError(message: toUserFriendlyMessage(error)));
+          emit(ActivityError(error: error));
         }
     }
   }
@@ -161,7 +160,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
       case Success():
         add(LoadActivities(tripId: event.tripId));
       case Failure(:final error):
-        emit(ActivityError(message: toUserFriendlyMessage(error)));
+        emit(ActivityError(error: error));
     }
   }
 }

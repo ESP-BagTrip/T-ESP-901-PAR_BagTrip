@@ -63,7 +63,7 @@ class ExperiencePersonalizationSection extends StatelessWidget {
           if (!_hasPreferences) ...[
             const SizedBox(height: AppSpacing.space8),
             Text(
-              'Configurez vos préférences',
+              l10n.profileConfigurePreferences,
               style: TextStyle(
                 fontSize: 13,
                 color: ColorName.primaryTrueDark.withValues(alpha: 0.5),
@@ -93,7 +93,7 @@ class ExperiencePersonalizationSection extends StatelessWidget {
             if (travelStyle != null) ...[
               const SizedBox(height: 4),
               Text(
-                'Style : $travelStyle',
+                l10n.profileStyleLabel(travelStyle!),
                 style: TextStyle(
                   fontSize: 13,
                   color: ColorName.primaryTrueDark.withValues(alpha: 0.7),
@@ -103,7 +103,7 @@ class ExperiencePersonalizationSection extends StatelessWidget {
             if (budget != null) ...[
               const SizedBox(height: 4),
               Text(
-                'Budget : $budget',
+                l10n.profileBudgetLabel(budget!),
                 style: TextStyle(
                   fontSize: 13,
                   color: ColorName.primaryTrueDark.withValues(alpha: 0.7),
@@ -113,7 +113,7 @@ class ExperiencePersonalizationSection extends StatelessWidget {
             if (companions != null) ...[
               const SizedBox(height: 4),
               Text(
-                'Compagnons : $companions',
+                l10n.profileCompanionsLabel(companions!),
                 style: TextStyle(
                   fontSize: 13,
                   color: ColorName.primaryTrueDark.withValues(alpha: 0.7),

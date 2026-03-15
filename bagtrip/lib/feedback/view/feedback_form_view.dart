@@ -1,9 +1,11 @@
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
 import 'package:bagtrip/feedback/bloc/feedback_bloc.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/feedback.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -52,15 +54,17 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Donner votre avis')),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.feedbackGiveYourReview),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Note globale',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            Text(
+              AppLocalizations.of(context)!.feedbackOverallRating,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 8),
             Row(
@@ -83,26 +87,26 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
             const SizedBox(height: 16),
             TextField(
               controller: _highlightsController,
-              decoration: const InputDecoration(
-                labelText: 'Points forts',
-                hintText: 'Qu\'avez-vous aime ?',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.feedbackHighlights,
+                hintText: AppLocalizations.of(context)!.feedbackHighlightsHint,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _lowlightsController,
-              decoration: const InputDecoration(
-                labelText: 'Points faibles',
-                hintText: 'Qu\'est-ce qui pourrait etre ameliore ?',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.feedbackLowlights,
+                hintText: AppLocalizations.of(context)!.feedbackLowlightsHint,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: const Text('Recommanderiez-vous ce voyage ?'),
+              title: Text(AppLocalizations.of(context)!.feedbackWouldRecommend),
               value: _wouldRecommend,
               onChanged: (value) {
                 setState(() {
@@ -115,12 +119,23 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
               listener: (context, state) {
                 if (state is FeedbackSubmitted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Merci pour votre avis !')),
+                    SnackBar(
+                      content: Text(
+                        AppLocalizations.of(context)!.feedbackThanks,
+                      ),
+                    ),
                   );
                 } else if (state is FeedbackError) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text(state.message)));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        toUserFriendlyMessage(
+                          state.error,
+                          AppLocalizations.of(context)!,
+                        ),
+                      ),
+                    ),
+                  );
                 }
               },
               builder: (context, state) {
@@ -144,7 +159,9 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
                     );
                   },
                   icon: const Icon(Icons.send),
-                  label: const Text('Envoyer mon avis'),
+                  label: Text(
+                    AppLocalizations.of(context)!.feedbackSubmitButton,
+                  ),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
@@ -183,13 +200,13 @@ class _ReadOnlyFeedbackView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.check_circle, color: Colors.green),
-                      SizedBox(width: 8),
+                      const Icon(Icons.check_circle, color: Colors.green),
+                      const SizedBox(width: 8),
                       Text(
-                        'Votre avis a ete envoye',
-                        style: TextStyle(
+                        AppLocalizations.of(context)!.feedbackSent,
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
@@ -197,9 +214,9 @@ class _ReadOnlyFeedbackView extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Note globale',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  Text(
+                    AppLocalizations.of(context)!.feedbackOverallRating,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -216,9 +233,9 @@ class _ReadOnlyFeedbackView extends StatelessWidget {
                   if (feedback.highlights != null &&
                       feedback.highlights!.isNotEmpty) ...[
                     const SizedBox(height: 12),
-                    const Text(
-                      'Points forts',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    Text(
+                      AppLocalizations.of(context)!.feedbackHighlights,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
                     Text(feedback.highlights!),
@@ -226,9 +243,9 @@ class _ReadOnlyFeedbackView extends StatelessWidget {
                   if (feedback.lowlights != null &&
                       feedback.lowlights!.isNotEmpty) ...[
                     const SizedBox(height: 12),
-                    const Text(
-                      'Points faibles',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    Text(
+                      AppLocalizations.of(context)!.feedbackLowlights,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
                     Text(feedback.lowlights!),
@@ -236,11 +253,15 @@ class _ReadOnlyFeedbackView extends StatelessWidget {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      const Text(
-                        'Recommande : ',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      Text(
+                        AppLocalizations.of(context)!.feedbackRecommended,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      Text(feedback.wouldRecommend ? 'Oui' : 'Non'),
+                      Text(
+                        feedback.wouldRecommend
+                            ? AppLocalizations.of(context)!.feedbackYesLabel
+                            : AppLocalizations.of(context)!.feedbackNoLabel,
+                      ),
                     ],
                   ),
                 ],
@@ -277,9 +298,7 @@ class _PostTripSuggestionSection extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Decouvrez votre prochain voyage ideal base sur vos experiences.',
-                  ),
+                  Text(AppLocalizations.of(context)!.feedbackDiscoverText),
                   const SizedBox(height: 12),
                   ElevatedButton.icon(
                     onPressed: () async {
@@ -299,7 +318,9 @@ class _PostTripSuggestionSection extends StatelessWidget {
                       }
                     },
                     icon: const Icon(Icons.auto_awesome),
-                    label: const Text('Decouvrir mon prochain voyage'),
+                    label: Text(
+                      AppLocalizations.of(context)!.feedbackDiscoverNextTrip,
+                    ),
                   ),
                 ],
               ),
@@ -324,7 +345,12 @@ class _PostTripSuggestionSection extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  Text(state.message),
+                  Text(
+                    toUserFriendlyMessage(
+                      state.error,
+                      AppLocalizations.of(context)!,
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   TextButton.icon(
                     onPressed: () {
@@ -333,7 +359,7 @@ class _PostTripSuggestionSection extends StatelessWidget {
                       );
                     },
                     icon: const Icon(Icons.refresh),
-                    label: const Text('Réessayer'),
+                    label: Text(AppLocalizations.of(context)!.retryButton),
                   ),
                 ],
               ),
@@ -376,7 +402,7 @@ class _PostTripSuggestionCard extends StatelessWidget {
                 const Icon(Icons.auto_awesome, color: Colors.amber),
                 const SizedBox(width: 8),
                 Text(
-                  'Votre prochain voyage',
+                  AppLocalizations.of(context)!.postTripNextTrip,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),

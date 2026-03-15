@@ -12,7 +12,7 @@ final class UserProfileLoaded extends UserProfileState {
   final String email;
   final String phone;
   final String address;
-  final String memberSince;
+  final DateTime memberSince;
   final List<String> travelTypes;
   final String? travelStyle;
   final String? budget;
@@ -32,7 +32,7 @@ final class UserProfileLoaded extends UserProfileState {
 }
 
 final class UserProfileError extends UserProfileState {
-  final String message;
+  final AppError error;
 
-  UserProfileError({required this.message});
+  UserProfileError({required this.error});
 }

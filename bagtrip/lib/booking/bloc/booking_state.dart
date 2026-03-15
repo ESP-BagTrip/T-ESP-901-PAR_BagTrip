@@ -13,7 +13,7 @@ class BookingLoaded extends BookingState {
 }
 
 class BookingError extends BookingState {
-  final String message;
+  final AppError error;
 
-  BookingError({required this.message});
+  BookingError({required this.error});
 }

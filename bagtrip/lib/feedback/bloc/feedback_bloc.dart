@@ -1,9 +1,9 @@
+import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/feedback.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/ai_repository.dart';
 import 'package:bagtrip/repositories/feedback_repository.dart';
-import 'package:bagtrip/utils/error_display.dart';
 import 'package:bloc/bloc.dart';
 
 part 'feedback_event.dart';
@@ -35,7 +35,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
       case Success(:final data):
         emit(FeedbackLoaded(feedbacks: data));
       case Failure(:final error):
-        emit(FeedbackError(message: toUserFriendlyMessage(error)));
+        emit(FeedbackError(error: error));
     }
   }
 
@@ -57,7 +57,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
         emit(FeedbackSubmitted());
         add(LoadFeedbacks(tripId: event.tripId));
       case Failure(:final error):
-        emit(FeedbackError(message: toUserFriendlyMessage(error)));
+        emit(FeedbackError(error: error));
     }
   }
 
@@ -72,7 +72,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
       case Success(:final data):
         emit(PostTripSuggestionLoaded(suggestion: data));
       case Failure(:final error):
-        emit(PostTripSuggestionError(message: toUserFriendlyMessage(error)));
+        emit(PostTripSuggestionError(error: error));
     }
   }
 }

@@ -14,7 +14,7 @@ class BudgetLoaded extends BudgetState {
 }
 
 class BudgetError extends BudgetState {
-  final String message;
+  final AppError error;
 
-  BudgetError({required this.message});
+  BudgetError({required this.error});
 }

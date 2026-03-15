@@ -134,7 +134,7 @@ void main() {
       verify: (bloc) {
         final state = bloc.state as AuthError;
         expect(state.isLoginMode, isTrue);
-        expect(state.errorMessage, isNotEmpty);
+        expect(state.error, isNotNull);
       },
     );
   });

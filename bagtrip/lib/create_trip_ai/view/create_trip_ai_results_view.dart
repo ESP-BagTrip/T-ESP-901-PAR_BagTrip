@@ -5,6 +5,8 @@ import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -24,7 +26,7 @@ class CreateTripAiResultsView extends StatelessWidget {
           return Scaffold(
             backgroundColor: PersonalizationColors.gradientStart,
             appBar: AppBar(
-              title: const Text('Résultats IA'),
+              title: Text(AppLocalizations.of(context)!.aiResultsTitle),
               backgroundColor: PersonalizationColors.gradientStart,
               foregroundColor: PersonalizationColors.textPrimary,
               elevation: 0,
@@ -42,7 +44,10 @@ class CreateTripAiResultsView extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      state.message,
+                      toUserFriendlyMessage(
+                        state.error,
+                        AppLocalizations.of(context)!,
+                      ),
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: PersonalizationColors.textPrimary,
@@ -56,7 +61,7 @@ class CreateTripAiResultsView extends StatelessWidget {
                         );
                       },
                       icon: const Icon(Icons.refresh),
-                      label: const Text('Réessayer'),
+                      label: Text(AppLocalizations.of(context)!.retryButton),
                     ),
                   ],
                 ),
@@ -76,7 +81,7 @@ class CreateTripAiResultsView extends StatelessWidget {
     return Scaffold(
       backgroundColor: PersonalizationColors.gradientStart,
       appBar: AppBar(
-        title: const Text('Résultats IA'),
+        title: Text(AppLocalizations.of(context)!.aiResultsTitle),
         backgroundColor: PersonalizationColors.gradientStart,
         foregroundColor: PersonalizationColors.textPrimary,
         elevation: 0,

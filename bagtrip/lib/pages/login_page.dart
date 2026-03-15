@@ -13,6 +13,7 @@ import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -190,7 +191,13 @@ class _LoginPageContentState extends State<_LoginPageContent> {
               });
             }
             if (state is AuthError && context.mounted) {
-              AppSnackBar.showError(context, message: state.errorMessage);
+              AppSnackBar.showError(
+                context,
+                message: toUserFriendlyMessage(
+                  state.error,
+                  AppLocalizations.of(context)!,
+                ),
+              );
             }
           },
           child: BlocBuilder<AuthBloc, AuthState>(

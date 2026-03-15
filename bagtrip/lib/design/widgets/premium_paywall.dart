@@ -1,6 +1,7 @@
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/design/widgets/premium_cta_button.dart';
 import 'package:bagtrip/config/service_locator.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/repositories/subscription_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -77,13 +78,17 @@ class _PremiumPaywallState extends State<PremiumPaywall> {
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          _buildFeature('G\u00e9n\u00e9rations IA illimit\u00e9es'),
-          _buildFeature('Jusqu\'\u00e0 10 viewers par trip'),
-          _buildFeature('Notifications hors-ligne'),
-          _buildFeature('Suggestions post-voyage IA'),
+          _buildFeature(
+            AppLocalizations.of(context)!.premiumFeatureAiUnlimited,
+          ),
+          _buildFeature(AppLocalizations.of(context)!.premiumFeatureViewers),
+          _buildFeature(
+            AppLocalizations.of(context)!.premiumFeatureOfflineNotifs,
+          ),
+          _buildFeature(AppLocalizations.of(context)!.premiumFeaturePostTrip),
           const SizedBox(height: 24),
           PremiumCtaButton(
-            label: 'Passer \u00e0 Premium - 9,99\u20AC/mois',
+            label: AppLocalizations.of(context)!.premiumCtaButton,
             onPressed: _handleUpgrade,
             isLoading: _isLoading,
           ),

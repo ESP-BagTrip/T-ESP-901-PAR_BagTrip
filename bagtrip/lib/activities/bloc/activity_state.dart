@@ -14,9 +14,9 @@ class ActivitiesLoaded extends ActivityState {
 }
 
 class ActivityError extends ActivityState {
-  final String message;
+  final AppError error;
 
-  ActivityError({required this.message});
+  ActivityError({required this.error});
 }
 
 class ActivitySuggestionsLoading extends ActivityState {}

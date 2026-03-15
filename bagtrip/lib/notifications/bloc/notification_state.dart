@@ -28,6 +28,6 @@ class UnreadCountLoaded extends NotificationState {
 }
 
 class NotificationError extends NotificationState {
-  final String message;
-  NotificationError({required this.message});
+  final AppError error;
+  NotificationError({required this.error});
 }

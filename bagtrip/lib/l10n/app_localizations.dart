@@ -2173,6 +2173,774 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Marquer comme prêt'**
   String get markAsReady;
+
+  /// No description provided for @cancelButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get cancelButton;
+
+  /// No description provided for @deleteButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer'**
+  String get deleteButton;
+
+  /// No description provided for @addButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter'**
+  String get addButton;
+
+  /// No description provided for @comingSoon.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bientôt disponible'**
+  String get comingSoon;
+
+  /// No description provided for @errorTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur'**
+  String get errorTitle;
+
+  /// No description provided for @backButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour'**
+  String get backButton;
+
+  /// No description provided for @tabNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau'**
+  String get tabNew;
+
+  /// No description provided for @tabTrips.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voyages'**
+  String get tabTrips;
+
+  /// No description provided for @tabProfile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil'**
+  String get tabProfile;
+
+  /// No description provided for @notificationsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notifications'**
+  String get notificationsTitle;
+
+  /// No description provided for @notificationsMarkAllRead.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout marquer lu'**
+  String get notificationsMarkAllRead;
+
+  /// No description provided for @notificationsEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune notification'**
+  String get notificationsEmpty;
+
+  /// No description provided for @notificationsToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aujourd\'hui'**
+  String get notificationsToday;
+
+  /// No description provided for @notificationsYesterday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hier'**
+  String get notificationsYesterday;
+
+  /// No description provided for @notificationsDaysAgo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il y a {count} jours'**
+  String notificationsDaysAgo(int count);
+
+  /// No description provided for @baggageTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bagages'**
+  String get baggageTitle;
+
+  /// No description provided for @baggageSuggestionsTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suggestions IA'**
+  String get baggageSuggestionsTooltip;
+
+  /// No description provided for @baggageCategoryDocuments.
+  ///
+  /// In fr, this message translates to:
+  /// **'Documents'**
+  String get baggageCategoryDocuments;
+
+  /// No description provided for @baggageCategoryClothing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vêtements'**
+  String get baggageCategoryClothing;
+
+  /// No description provided for @baggageCategoryElectronics.
+  ///
+  /// In fr, this message translates to:
+  /// **'Électronique'**
+  String get baggageCategoryElectronics;
+
+  /// No description provided for @baggageCategoryHygiene.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hygiène'**
+  String get baggageCategoryHygiene;
+
+  /// No description provided for @baggageCategoryMedication.
+  ///
+  /// In fr, this message translates to:
+  /// **'Médicaments'**
+  String get baggageCategoryMedication;
+
+  /// No description provided for @baggageCategoryAccessories.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accessoires'**
+  String get baggageCategoryAccessories;
+
+  /// No description provided for @baggageCategoryOther.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autre'**
+  String get baggageCategoryOther;
+
+  /// No description provided for @baggageDeleteTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer l\'élément'**
+  String get baggageDeleteTitle;
+
+  /// No description provided for @baggageDeleteConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Êtes-vous sûr de vouloir supprimer cet élément ?'**
+  String get baggageDeleteConfirm;
+
+  /// No description provided for @baggageItemAdded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Élément ajouté'**
+  String get baggageItemAdded;
+
+  /// No description provided for @baggageItemDeleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Élément supprimé'**
+  String get baggageItemDeleted;
+
+  /// No description provided for @baggageItemAddedFromSuggestion.
+  ///
+  /// In fr, this message translates to:
+  /// **'Élément ajouté depuis suggestion'**
+  String get baggageItemAddedFromSuggestion;
+
+  /// No description provided for @baggageQuantityLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Qté'**
+  String get baggageQuantityLabel;
+
+  /// No description provided for @baggageCategoryLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Catégorie (optionnel)'**
+  String get baggageCategoryLabel;
+
+  /// No description provided for @baggageEmptyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun élément'**
+  String get baggageEmptyTitle;
+
+  /// No description provided for @baggageEmptySubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez des éléments à votre liste de bagages'**
+  String get baggageEmptySubtitle;
+
+  /// No description provided for @baggageAddItemTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un élément'**
+  String get baggageAddItemTitle;
+
+  /// No description provided for @accommodationsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hébergements'**
+  String get accommodationsTitle;
+
+  /// No description provided for @accommodationCheckInHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date d\'arrivée'**
+  String get accommodationCheckInHelp;
+
+  /// No description provided for @accommodationCheckOutHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date de départ'**
+  String get accommodationCheckOutHelp;
+
+  /// No description provided for @accommodationAdded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hébergement ajouté avec succès'**
+  String get accommodationAdded;
+
+  /// No description provided for @accommodationDeleteTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer l\'hébergement'**
+  String get accommodationDeleteTitle;
+
+  /// No description provided for @accommodationDeleteConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Êtes-vous sûr de vouloir supprimer cet hébergement ?'**
+  String get accommodationDeleteConfirm;
+
+  /// No description provided for @accommodationDeleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hébergement supprimé'**
+  String get accommodationDeleted;
+
+  /// No description provided for @accommodationCheckInLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Arrivée'**
+  String get accommodationCheckInLabel;
+
+  /// No description provided for @accommodationCheckOutLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Départ'**
+  String get accommodationCheckOutLabel;
+
+  /// No description provided for @accommodationEmptyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun hébergement'**
+  String get accommodationEmptyTitle;
+
+  /// No description provided for @accommodationEmptySubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez vos hôtels et logements'**
+  String get accommodationEmptySubtitle;
+
+  /// No description provided for @accommodationAddTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un hébergement'**
+  String get accommodationAddTitle;
+
+  /// No description provided for @tripTravelers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voyageurs'**
+  String get tripTravelers;
+
+  /// No description provided for @tripDaysRemaining.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jours restants'**
+  String get tripDaysRemaining;
+
+  /// No description provided for @tripTravelDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jours de voyage'**
+  String get tripTravelDays;
+
+  /// No description provided for @tripComplete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminer le voyage'**
+  String get tripComplete;
+
+  /// No description provided for @tripDeleteTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer le voyage'**
+  String get tripDeleteTitle;
+
+  /// No description provided for @tripDeleteConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Êtes-vous sûr de vouloir supprimer ce voyage ? Cette action est irréversible.'**
+  String get tripDeleteConfirm;
+
+  /// No description provided for @tripGiveReview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Donner un avis'**
+  String get tripGiveReview;
+
+  /// No description provided for @tripsMyTrips.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes voyages'**
+  String get tripsMyTrips;
+
+  /// No description provided for @tripsNewTrip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau voyage'**
+  String get tripsNewTrip;
+
+  /// No description provided for @tripStatusOngoing.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get tripStatusOngoing;
+
+  /// No description provided for @tripStatusPlanned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planifié'**
+  String get tripStatusPlanned;
+
+  /// No description provided for @tripStatusCompleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminé'**
+  String get tripStatusCompleted;
+
+  /// No description provided for @tripsEmptyOngoing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun voyage en cours'**
+  String get tripsEmptyOngoing;
+
+  /// No description provided for @tripsEmptyPlanned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun voyage planifié'**
+  String get tripsEmptyPlanned;
+
+  /// No description provided for @tripsEmptyCompleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun voyage terminé'**
+  String get tripsEmptyCompleted;
+
+  /// No description provided for @sharesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partages'**
+  String get sharesTitle;
+
+  /// No description provided for @sharesInviteButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inviter'**
+  String get sharesInviteButton;
+
+  /// No description provided for @sharesRevokeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Révoquer l\'accès'**
+  String get sharesRevokeTitle;
+
+  /// No description provided for @sharesRevokeConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Êtes-vous sûr de vouloir révoquer l\'accès de cet utilisateur ?'**
+  String get sharesRevokeConfirm;
+
+  /// No description provided for @sharesRevokeButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Révoquer'**
+  String get sharesRevokeButton;
+
+  /// No description provided for @sharesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun partage'**
+  String get sharesEmpty;
+
+  /// No description provided for @sharesEmptySubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Invitez des personnes à consulter votre voyage'**
+  String get sharesEmptySubtitle;
+
+  /// No description provided for @tripCreated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voyage créé !'**
+  String get tripCreated;
+
+  /// No description provided for @aiResultsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résultats IA'**
+  String get aiResultsTitle;
+
+  /// No description provided for @feedbackTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avis'**
+  String get feedbackTitle;
+
+  /// No description provided for @feedbackGiveReview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Donner un avis'**
+  String get feedbackGiveReview;
+
+  /// No description provided for @feedbackAllReviews.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous les avis'**
+  String get feedbackAllReviews;
+
+  /// No description provided for @feedbackGiveYourReview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Donner votre avis'**
+  String get feedbackGiveYourReview;
+
+  /// No description provided for @feedbackOverallRating.
+  ///
+  /// In fr, this message translates to:
+  /// **'Note globale'**
+  String get feedbackOverallRating;
+
+  /// No description provided for @feedbackHighlights.
+  ///
+  /// In fr, this message translates to:
+  /// **'Points forts'**
+  String get feedbackHighlights;
+
+  /// No description provided for @feedbackHighlightsHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Qu\'avez-vous aimé ?'**
+  String get feedbackHighlightsHint;
+
+  /// No description provided for @feedbackLowlights.
+  ///
+  /// In fr, this message translates to:
+  /// **'Points faibles'**
+  String get feedbackLowlights;
+
+  /// No description provided for @feedbackLowlightsHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Qu\'est-ce qui pourrait être amélioré ?'**
+  String get feedbackLowlightsHint;
+
+  /// No description provided for @feedbackWouldRecommend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recommanderiez-vous ce voyage ?'**
+  String get feedbackWouldRecommend;
+
+  /// No description provided for @feedbackThanks.
+  ///
+  /// In fr, this message translates to:
+  /// **'Merci pour votre avis !'**
+  String get feedbackThanks;
+
+  /// No description provided for @feedbackSubmitButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer mon avis'**
+  String get feedbackSubmitButton;
+
+  /// No description provided for @feedbackSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre avis a été envoyé'**
+  String get feedbackSent;
+
+  /// No description provided for @feedbackRecommended.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recommandé : '**
+  String get feedbackRecommended;
+
+  /// No description provided for @feedbackDiscoverNextTrip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Découvrir mon prochain voyage'**
+  String get feedbackDiscoverNextTrip;
+
+  /// No description provided for @feedbackDiscoverText.
+  ///
+  /// In fr, this message translates to:
+  /// **'Découvrez votre prochain voyage idéal basé sur vos expériences.'**
+  String get feedbackDiscoverText;
+
+  /// No description provided for @postTripSuggestionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prochain voyage suggéré'**
+  String get postTripSuggestionTitle;
+
+  /// No description provided for @postTripNextTrip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre prochain voyage'**
+  String get postTripNextTrip;
+
+  /// No description provided for @postTripBasedOnPreferences.
+  ///
+  /// In fr, this message translates to:
+  /// **'Basé sur vos préférences'**
+  String get postTripBasedOnPreferences;
+
+  /// No description provided for @postTripProposedActivities.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activités proposées'**
+  String get postTripProposedActivities;
+
+  /// No description provided for @postTripCreateTrip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer ce voyage'**
+  String get postTripCreateTrip;
+
+  /// No description provided for @filterCabinBagIncluded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bagage cabine inclus'**
+  String get filterCabinBagIncluded;
+
+  /// No description provided for @filterCheckedBagIncluded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bagage soute inclus'**
+  String get filterCheckedBagIncluded;
+
+  /// No description provided for @filterReset.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réinitialiser'**
+  String get filterReset;
+
+  /// No description provided for @premiumFeatureAiUnlimited.
+  ///
+  /// In fr, this message translates to:
+  /// **'Générations IA illimitées'**
+  String get premiumFeatureAiUnlimited;
+
+  /// No description provided for @premiumFeatureViewers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jusqu\'à 10 viewers par trip'**
+  String get premiumFeatureViewers;
+
+  /// No description provided for @premiumFeatureOfflineNotifs.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notifications hors-ligne'**
+  String get premiumFeatureOfflineNotifs;
+
+  /// No description provided for @premiumFeaturePostTrip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suggestions post-voyage IA'**
+  String get premiumFeaturePostTrip;
+
+  /// No description provided for @premiumCtaButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passer à Premium - 9,99€/mois'**
+  String get premiumCtaButton;
+
+  /// No description provided for @profileConfigurePreferences.
+  ///
+  /// In fr, this message translates to:
+  /// **'Configurez vos préférences'**
+  String get profileConfigurePreferences;
+
+  /// No description provided for @profileStyleLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Style : {style}'**
+  String profileStyleLabel(String style);
+
+  /// No description provided for @profileBudgetLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Budget : {budget}'**
+  String profileBudgetLabel(String budget);
+
+  /// No description provided for @profileCompanionsLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compagnons : {companions}'**
+  String profileCompanionsLabel(String companions);
+
+  /// No description provided for @errorNetwork.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur de connexion. Vérifiez votre connexion internet.'**
+  String get errorNetwork;
+
+  /// No description provided for @errorAuth.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identifiants incorrects ou session expirée.'**
+  String get errorAuth;
+
+  /// No description provided for @errorForbidden.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accès refusé.'**
+  String get errorForbidden;
+
+  /// No description provided for @errorNotFound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ressource non trouvée.'**
+  String get errorNotFound;
+
+  /// No description provided for @errorValidation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Requête invalide.'**
+  String get errorValidation;
+
+  /// No description provided for @errorQuota.
+  ///
+  /// In fr, this message translates to:
+  /// **'Limite atteinte. Passez à Premium pour continuer.'**
+  String get errorQuota;
+
+  /// No description provided for @errorStaleContext.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le contexte a été mis à jour. Veuillez rafraîchir.'**
+  String get errorStaleContext;
+
+  /// No description provided for @errorServer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur serveur. Veuillez réessayer plus tard.'**
+  String get errorServer;
+
+  /// No description provided for @errorRateLimit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trop de requêtes. Veuillez patienter.'**
+  String get errorRateLimit;
+
+  /// No description provided for @errorCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Opération annulée.'**
+  String get errorCancelled;
+
+  /// No description provided for @errorUnknown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une erreur est survenue. Veuillez réessayer.'**
+  String get errorUnknown;
+
+  /// No description provided for @errorSessionExpired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Session expirée'**
+  String get errorSessionExpired;
+
+  /// No description provided for @bookingLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réservation'**
+  String get bookingLabel;
+
+  /// No description provided for @activitiesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activités'**
+  String get activitiesTitle;
+
+  /// No description provided for @activitiesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune activité'**
+  String get activitiesEmpty;
+
+  /// No description provided for @activitiesEmptySubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez des activités pour planifier votre voyage'**
+  String get activitiesEmptySubtitle;
+
+  /// No description provided for @activitiesSuggestionsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suggestions IA'**
+  String get activitiesSuggestionsTitle;
+
+  /// No description provided for @activityFormNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle activité'**
+  String get activityFormNew;
+
+  /// No description provided for @activityFormEdit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier l\'activité'**
+  String get activityFormEdit;
+
+  /// No description provided for @activityTitleRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le titre est requis'**
+  String get activityTitleRequired;
+
+  /// No description provided for @activityFormCreate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer'**
+  String get activityFormCreate;
+
+  /// No description provided for @activityFormUpdate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get activityFormUpdate;
+
+  /// No description provided for @activityFormBooked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réservé'**
+  String get activityFormBooked;
+
+  /// No description provided for @feedbackYesLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Oui'**
+  String get feedbackYesLabel;
+
+  /// No description provided for @feedbackNoLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non'**
+  String get feedbackNoLabel;
 }
 
 class _AppLocalizationsDelegate

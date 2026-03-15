@@ -5,6 +5,7 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/recent_booking.dart';
 import 'package:bagtrip/profile/widgets/profile_section_card.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class RecentBookingsSection extends StatelessWidget {
   final List<RecentBooking> recentBookings;
@@ -41,7 +42,9 @@ class RecentBookingsSection extends StatelessWidget {
               TextButton(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Bientôt disponible')),
+                    SnackBar(
+                      content: Text(AppLocalizations.of(context)!.comingSoon),
+                    ),
                   );
                 },
                 style: TextButton.styleFrom(
@@ -85,11 +88,15 @@ class RecentBookingsSection extends StatelessWidget {
 
   Widget _buildBookingRow(RecentBooking booking, BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).languageCode;
     final localizedStatus = _getLocalizedStatus(booking.status, localizations);
     final isCompleted =
         booking.status.toUpperCase() == 'CONFIRMED' ||
         booking.status == localizations.bookingStatusCompleted ||
         localizedStatus == localizations.bookingStatusCompleted;
+    final formattedDate = DateFormat('d MMM yyyy', locale).format(booking.date);
+    final formattedPrice =
+        '${NumberFormat.decimalPattern(locale).format(booking.priceTotal)} ${booking.currency}';
 
     return Row(
       children: [
@@ -112,7 +119,7 @@ class RecentBookingsSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                booking.route,
+                localizations.bookingLabel,
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -137,7 +144,7 @@ class RecentBookingsSection extends StatelessWidget {
                   ),
                   const SizedBox(width: AppSpacing.space4),
                   Text(
-                    booking.date,
+                    formattedDate,
                     style: TextStyle(
                       fontSize: 12,
                       color: ColorName.primaryTrueDark.withValues(alpha: 0.6),
@@ -154,7 +161,7 @@ class RecentBookingsSection extends StatelessWidget {
                   ),
                   const SizedBox(width: AppSpacing.space8),
                   Text(
-                    booking.price,
+                    formattedPrice,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,

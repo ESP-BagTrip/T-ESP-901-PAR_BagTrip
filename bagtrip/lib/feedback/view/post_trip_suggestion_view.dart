@@ -1,3 +1,4 @@
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class PostTripSuggestionView extends StatelessWidget {
@@ -20,7 +21,9 @@ class PostTripSuggestionView extends StatelessWidget {
     final activities = (suggestion['activities'] as List?) ?? [];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Prochain voyage suggere')),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.postTripSuggestionTitle),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -45,7 +48,7 @@ class PostTripSuggestionView extends StatelessWidget {
             if (highlights.isNotEmpty) ...[
               const SizedBox(height: 24),
               Text(
-                'Base sur vos preferences',
+                AppLocalizations.of(context)!.postTripBasedOnPreferences,
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -71,7 +74,7 @@ class PostTripSuggestionView extends StatelessWidget {
             if (activities.isNotEmpty) ...[
               const SizedBox(height: 24),
               Text(
-                'Activites proposees',
+                AppLocalizations.of(context)!.postTripProposedActivities,
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -100,7 +103,7 @@ class PostTripSuggestionView extends StatelessWidget {
                   Navigator.of(context).pop();
                 },
                 icon: const Icon(Icons.flight_takeoff),
-                label: const Text('Creer ce voyage'),
+                label: Text(AppLocalizations.of(context)!.postTripCreateTrip),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),

@@ -2,6 +2,7 @@ import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/flight_search_result/bloc/flight_search_result_bloc.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -163,7 +164,9 @@ class _FilterDialogState extends State<FilterDialog> {
                     ),
                     const SizedBox(height: AppSpacing.space8),
                     CheckboxListTile(
-                      title: const Text('Bagage cabine inclus'),
+                      title: Text(
+                        AppLocalizations.of(context)!.filterCabinBagIncluded,
+                      ),
                       value: _cabinBagIncluded ?? false,
                       onChanged: (value) {
                         setState(() {
@@ -173,7 +176,9 @@ class _FilterDialogState extends State<FilterDialog> {
                       contentPadding: EdgeInsets.zero,
                     ),
                     CheckboxListTile(
-                      title: const Text('Bagage soute inclus'),
+                      title: Text(
+                        AppLocalizations.of(context)!.filterCheckedBagIncluded,
+                      ),
                       value: _checkedBagIncluded ?? false,
                       onChanged: (value) {
                         setState(() {
@@ -240,7 +245,7 @@ class _FilterDialogState extends State<FilterDialog> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text('Réinitialiser'),
+                    child: Text(AppLocalizations.of(context)!.filterReset),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.space16),

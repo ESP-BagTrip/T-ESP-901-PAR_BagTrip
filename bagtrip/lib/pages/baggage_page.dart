@@ -2,6 +2,7 @@ import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/baggage_item.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/config/service_locator.dart';
@@ -40,14 +41,14 @@ class _BaggagePageState extends State<BaggagePage> {
   String? _errorMessage;
   String? _selectedCategory;
 
-  static const _categories = [
-    'Documents',
-    'Vêtements',
-    'Electronique',
-    'Hygiène',
-    'Médicaments',
-    'Accessoires',
-    'Autre',
+  List<String> _getCategories(AppLocalizations l10n) => [
+    l10n.baggageCategoryDocuments,
+    l10n.baggageCategoryClothing,
+    l10n.baggageCategoryElectronics,
+    l10n.baggageCategoryHygiene,
+    l10n.baggageCategoryMedication,
+    l10n.baggageCategoryAccessories,
+    l10n.baggageCategoryOther,
   ];
 
   @override
@@ -78,7 +79,10 @@ class _BaggagePageState extends State<BaggagePage> {
         });
       case Failure(:final error):
         setState(() {
-          _errorMessage = toUserFriendlyMessage(error);
+          _errorMessage = toUserFriendlyMessage(
+            error,
+            AppLocalizations.of(context)!,
+          );
           _isLoading = false;
         });
     }
@@ -95,7 +99,13 @@ class _BaggagePageState extends State<BaggagePage> {
         await _loadBaggageItems();
       case Failure(:final error):
         if (mounted) {
-          AppSnackBar.showError(context, message: toUserFriendlyMessage(error));
+          AppSnackBar.showError(
+            context,
+            message: toUserFriendlyMessage(
+              error,
+              AppLocalizations.of(context)!,
+            ),
+          );
         }
     }
   }
@@ -124,13 +134,18 @@ class _BaggagePageState extends State<BaggagePage> {
         _selectedCategory = null;
         await _loadBaggageItems();
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Élément ajouté')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.baggageItemAdded),
+            ),
+          );
         }
       case Failure(:final error):
         setState(() {
-          _errorMessage = toUserFriendlyMessage(error);
+          _errorMessage = toUserFriendlyMessage(
+            error,
+            AppLocalizations.of(context)!,
+          );
         });
     }
     setState(() {
@@ -142,17 +157,17 @@ class _BaggagePageState extends State<BaggagePage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Supprimer l\'élément'),
-        content: const Text('Êtes-vous sûr de vouloir supprimer cet élément ?'),
+        title: Text(AppLocalizations.of(context)!.baggageDeleteTitle),
+        content: Text(AppLocalizations.of(context)!.baggageDeleteConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Annuler'),
+            child: Text(AppLocalizations.of(context)!.cancelButton),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(foregroundColor: ColorName.error),
-            child: const Text('Supprimer'),
+            child: Text(AppLocalizations.of(context)!.deleteButton),
           ),
         ],
       ),
@@ -167,15 +182,20 @@ class _BaggagePageState extends State<BaggagePage> {
         case Success():
           await _loadBaggageItems();
           if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('Élément supprimé')));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(AppLocalizations.of(context)!.baggageItemDeleted),
+              ),
+            );
           }
         case Failure(:final error):
           if (mounted) {
             AppSnackBar.showError(
               context,
-              message: toUserFriendlyMessage(error),
+              message: toUserFriendlyMessage(
+                error,
+                AppLocalizations.of(context)!,
+              ),
             );
           }
       }
@@ -210,7 +230,13 @@ class _BaggagePageState extends State<BaggagePage> {
           _isSuggestLoading = false;
         });
         if (mounted) {
-          AppSnackBar.showError(context, message: toUserFriendlyMessage(error));
+          AppSnackBar.showError(
+            context,
+            message: toUserFriendlyMessage(
+              error,
+              AppLocalizations.of(context)!,
+            ),
+          );
         }
     }
   }
@@ -230,25 +256,36 @@ class _BaggagePageState extends State<BaggagePage> {
         await _loadBaggageItems();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Élément ajouté depuis suggestion')),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.baggageItemAddedFromSuggestion,
+              ),
+            ),
           );
         }
       case Failure(:final error):
         if (mounted) {
-          AppSnackBar.showError(context, message: toUserFriendlyMessage(error));
+          AppSnackBar.showError(
+            context,
+            message: toUserFriendlyMessage(
+              error,
+              AppLocalizations.of(context)!,
+            ),
+          );
         }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final packedCount = _baggageItems.where((item) => item.isPacked).length;
     final isViewer = widget.role == 'VIEWER';
     final isReadOnly = isViewer || widget.isCompleted;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Bagages'),
+        title: Text(l10n.baggageTitle),
         actions: [
           if (!isReadOnly)
             IconButton(
@@ -259,7 +296,7 @@ class _BaggagePageState extends State<BaggagePage> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.auto_awesome),
-              tooltip: 'Suggestions IA',
+              tooltip: l10n.baggageSuggestionsTooltip,
               onPressed: _isSuggestLoading ? null : _handleSuggestBaggage,
             ),
           if (_baggageItems.isNotEmpty)
@@ -294,13 +331,13 @@ class _BaggagePageState extends State<BaggagePage> {
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  'Aucun élément',
+                                  l10n.baggageEmptyTitle,
                                   style: Theme.of(context).textTheme.titleMedium
                                       ?.copyWith(color: AppColors.hint),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Ajoutez des éléments à votre liste de bagages',
+                                  l10n.baggageEmptySubtitle,
                                   style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
                                         color: AppColors.textMutedLight,
@@ -398,7 +435,7 @@ class _BaggagePageState extends State<BaggagePage> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Suggestions IA',
+                                l10n.baggageSuggestionsTooltip,
                                 style: Theme.of(context).textTheme.titleSmall,
                               ),
                               IconButton(
@@ -456,7 +493,7 @@ class _BaggagePageState extends State<BaggagePage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'Ajouter un élément',
+                              l10n.baggageAddItemTitle,
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             const SizedBox(height: 16),
@@ -484,9 +521,9 @@ class _BaggagePageState extends State<BaggagePage> {
                                 Expanded(
                                   child: TextFormField(
                                     controller: _quantityController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Qté',
-                                      border: OutlineInputBorder(),
+                                    decoration: InputDecoration(
+                                      labelText: l10n.baggageQuantityLabel,
+                                      border: const OutlineInputBorder(),
                                     ),
                                     keyboardType: TextInputType.number,
                                   ),
@@ -496,11 +533,11 @@ class _BaggagePageState extends State<BaggagePage> {
                             const SizedBox(height: 12),
                             DropdownButtonFormField<String>(
                               initialValue: _selectedCategory,
-                              decoration: const InputDecoration(
-                                labelText: 'Catégorie (optionnel)',
-                                border: OutlineInputBorder(),
+                              decoration: InputDecoration(
+                                labelText: l10n.baggageCategoryLabel,
+                                border: const OutlineInputBorder(),
                               ),
-                              items: _categories
+                              items: _getCategories(l10n)
                                   .map(
                                     (cat) => DropdownMenuItem(
                                       value: cat,
@@ -537,7 +574,7 @@ class _BaggagePageState extends State<BaggagePage> {
                                       ),
                                     )
                                   : const Icon(Icons.add),
-                              label: const Text('Ajouter'),
+                              label: Text(l10n.addButton),
                             ),
                           ],
                         ),

@@ -1,3 +1,4 @@
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:flutter/material.dart';
 
@@ -18,15 +19,16 @@ class TripStatusBadge extends StatelessWidget {
     }
   }
 
-  String _label() {
+  String _label(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     switch (status) {
       case TripStatus.ongoing:
-        return 'En cours';
+        return l10n.tripStatusOngoing;
       case TripStatus.planned:
       case TripStatus.draft:
-        return 'Planifié';
+        return l10n.tripStatusPlanned;
       case TripStatus.completed:
-        return 'Terminé';
+        return l10n.tripStatusCompleted;
     }
   }
 
@@ -39,7 +41,7 @@ class TripStatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        _label(),
+        _label(context),
         style: TextStyle(
           color: _backgroundColor(),
           fontSize: 12,

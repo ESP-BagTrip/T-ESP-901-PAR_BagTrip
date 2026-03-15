@@ -1,4 +1,6 @@
 import 'package:bagtrip/booking/bloc/booking_bloc.dart';
+import 'package:bagtrip/utils/error_display.dart';
+import 'package:intl/intl.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -39,7 +41,10 @@ class ProfileView extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.space16),
                   Text(
-                    state.message,
+                    toUserFriendlyMessage(
+                      state.error,
+                      AppLocalizations.of(context)!,
+                    ),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: ColorName.primaryTrueDark.withValues(alpha: 0.8),
@@ -66,7 +71,9 @@ class ProfileView extends StatelessWidget {
               children: [
                 ProfileHeaderCard(
                   name: state.name.isNotEmpty ? state.name : state.email,
-                  memberSince: state.memberSince,
+                  memberSince: DateFormat.yMMM(
+                    Localizations.localeOf(context).languageCode,
+                  ).format(state.memberSince),
                 ),
                 const SizedBox(height: AppSpacing.space16),
                 PersonalInfoSection(

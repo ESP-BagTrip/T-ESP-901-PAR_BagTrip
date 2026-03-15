@@ -7,7 +7,6 @@ import 'package:bagtrip/models/auth_response.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/repositories/notification_repository.dart';
-import 'package:bagtrip/utils/error_display.dart';
 import 'package:bloc/bloc.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:meta/meta.dart';
@@ -57,12 +56,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthSuccess(authResponse: data));
         _registerDeviceToken();
       case Failure(:final error):
-        emit(
-          AuthError(
-            errorMessage: toUserFriendlyMessage(error),
-            isLoginMode: _isLoginMode,
-          ),
-        );
+        emit(AuthError(error: error, isLoginMode: _isLoginMode));
     }
   }
 
@@ -82,12 +76,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthSuccess(authResponse: data));
         _registerDeviceToken();
       case Failure(:final error):
-        emit(
-          AuthError(
-            errorMessage: toUserFriendlyMessage(error),
-            isLoginMode: _isLoginMode,
-          ),
-        );
+        emit(AuthError(error: error, isLoginMode: _isLoginMode));
     }
   }
 
@@ -106,12 +95,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         if (error is CancelledError) {
           emit(AuthInitial(isLoginMode: _isLoginMode));
         } else {
-          emit(
-            AuthError(
-              errorMessage: toUserFriendlyMessage(error),
-              isLoginMode: _isLoginMode,
-            ),
-          );
+          emit(AuthError(error: error, isLoginMode: _isLoginMode));
         }
     }
   }
@@ -131,12 +115,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         if (error is CancelledError) {
           emit(AuthInitial(isLoginMode: _isLoginMode));
         } else {
-          emit(
-            AuthError(
-              errorMessage: toUserFriendlyMessage(error),
-              isLoginMode: _isLoginMode,
-            ),
-          );
+          emit(AuthError(error: error, isLoginMode: _isLoginMode));
         }
     }
   }

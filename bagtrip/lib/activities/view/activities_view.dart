@@ -1,4 +1,6 @@
 import 'package:bagtrip/activities/bloc/activity_bloc.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:bagtrip/activities/widgets/activity_card.dart';
 import 'package:bagtrip/activities/widgets/activity_form.dart';
 import 'package:bagtrip/design/app_colors.dart';
@@ -32,12 +34,14 @@ class ActivitiesView extends StatelessWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Activities'),
+          title: Text(AppLocalizations.of(context)!.activitiesTitle),
           actions: [
             if (role != 'VIEWER' && !isCompleted)
               IconButton(
                 icon: const Icon(Icons.auto_awesome),
-                tooltip: 'Suggestions IA',
+                tooltip: AppLocalizations.of(
+                  context,
+                )!.activitiesSuggestionsTitle,
                 onPressed: () {
                   context.read<ActivityBloc>().add(
                     SuggestActivities(tripId: tripId),
@@ -63,14 +67,19 @@ class ActivitiesView extends StatelessWidget {
                       color: Theme.of(context).colorScheme.error,
                     ),
                     const SizedBox(height: 16),
-                    Text(state.message),
+                    Text(
+                      toUserFriendlyMessage(
+                        state.error,
+                        AppLocalizations.of(context)!,
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     FilledButton.icon(
                       onPressed: () => context.read<ActivityBloc>().add(
                         LoadActivities(tripId: tripId),
                       ),
                       icon: const Icon(Icons.refresh),
-                      label: const Text('Retry'),
+                      label: Text(AppLocalizations.of(context)!.retryButton),
                     ),
                   ],
                 ),
@@ -97,13 +106,13 @@ class ActivitiesView extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'No activities yet',
+                        AppLocalizations.of(context)!.activitiesEmpty,
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(color: AppColors.hint),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Add activities to plan your trip',
+                        AppLocalizations.of(context)!.activitiesEmptySubtitle,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppColors.textMutedLight,
                         ),
@@ -185,7 +194,7 @@ class ActivitiesView extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Suggestions IA',
+                    AppLocalizations.of(context)!.activitiesSuggestionsTitle,
                     style: Theme.of(sheetContext).textTheme.titleLarge,
                   ),
                   IconButton(

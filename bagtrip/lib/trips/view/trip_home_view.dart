@@ -23,7 +23,14 @@ class TripHomeView extends StatelessWidget {
           }
           if (state is TripError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(toUserFriendlyMessage(state.error))),
+              SnackBar(
+                content: Text(
+                  toUserFriendlyMessage(
+                    state.error,
+                    AppLocalizations.of(context)!,
+                  ),
+                ),
+              ),
             );
             context.read<TripManagementBloc>().add(
               LoadTripHome(tripId: tripId),
@@ -46,14 +53,19 @@ class TripHomeView extends StatelessWidget {
                     color: Theme.of(context).colorScheme.error,
                   ),
                   const SizedBox(height: 16),
-                  Text(toUserFriendlyMessage(state.error)),
+                  Text(
+                    toUserFriendlyMessage(
+                      state.error,
+                      AppLocalizations.of(context)!,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   FilledButton.icon(
                     onPressed: () => context.read<TripManagementBloc>().add(
                       LoadTripHome(tripId: tripId),
                     ),
                     icon: const Icon(Icons.refresh),
-                    label: const Text('Réessayer'),
+                    label: Text(AppLocalizations.of(context)!.retryButton),
                   ),
                 ],
               ),
@@ -138,19 +150,21 @@ class TripHomeView extends StatelessWidget {
                         _StatItem(
                           icon: Icons.people,
                           value: '${stats.nbTravelers}',
-                          label: 'Voyageurs',
+                          label: AppLocalizations.of(context)!.tripTravelers,
                         ),
                         if (stats.daysUntilTrip != null)
                           _StatItem(
                             icon: Icons.timer,
                             value: '${stats.daysUntilTrip}',
-                            label: 'Jours restants',
+                            label: AppLocalizations.of(
+                              context,
+                            )!.tripDaysRemaining,
                           ),
                         if (stats.tripDuration != null)
                           _StatItem(
                             icon: Icons.date_range,
                             value: '${stats.tripDuration}',
-                            label: 'Jours de voyage',
+                            label: AppLocalizations.of(context)!.tripTravelDays,
                           ),
                       ],
                     ),
@@ -216,7 +230,7 @@ class TripHomeView extends StatelessWidget {
                           );
                         },
                         icon: const Icon(Icons.check_circle_outline),
-                        label: const Text('Terminer le voyage'),
+                        label: Text(AppLocalizations.of(context)!.tripComplete),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
@@ -233,7 +247,9 @@ class TripHomeView extends StatelessWidget {
                       child: OutlinedButton.icon(
                         onPressed: () => context.go('/trips/$tripId/feedback'),
                         icon: const Icon(Icons.rate_review_outlined),
-                        label: const Text('Donner un avis'),
+                        label: Text(
+                          AppLocalizations.of(context)!.tripGiveReview,
+                        ),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
@@ -252,15 +268,19 @@ class TripHomeView extends StatelessWidget {
                           showDialog<void>(
                             context: context,
                             builder: (dialogContext) => AlertDialog(
-                              title: const Text('Supprimer le voyage'),
-                              content: const Text(
-                                'Êtes-vous sûr de vouloir supprimer ce voyage ? Cette action est irréversible.',
+                              title: Text(
+                                AppLocalizations.of(context)!.tripDeleteTitle,
+                              ),
+                              content: Text(
+                                AppLocalizations.of(context)!.tripDeleteConfirm,
                               ),
                               actions: [
                                 TextButton(
                                   onPressed: () =>
                                       Navigator.of(dialogContext).pop(),
-                                  child: const Text('Annuler'),
+                                  child: Text(
+                                    AppLocalizations.of(context)!.cancelButton,
+                                  ),
                                 ),
                                 TextButton(
                                   onPressed: () {
@@ -274,14 +294,18 @@ class TripHomeView extends StatelessWidget {
                                       context,
                                     ).colorScheme.error,
                                   ),
-                                  child: const Text('Supprimer'),
+                                  child: Text(
+                                    AppLocalizations.of(context)!.deleteButton,
+                                  ),
                                 ),
                               ],
                             ),
                           );
                         },
                         icon: const Icon(Icons.delete_outline),
-                        label: const Text('Supprimer le voyage'),
+                        label: Text(
+                          AppLocalizations.of(context)!.tripDeleteTitle,
+                        ),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Theme.of(context).colorScheme.error,
                           side: BorderSide(

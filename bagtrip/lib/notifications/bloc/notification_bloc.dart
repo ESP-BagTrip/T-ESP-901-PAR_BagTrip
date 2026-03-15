@@ -1,8 +1,8 @@
+import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/notification.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/notification_repository.dart';
-import 'package:bagtrip/utils/error_display.dart';
 import 'package:bloc/bloc.dart';
 
 part 'notification_event.dart';
@@ -43,7 +43,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
           ),
         );
       case Failure(:final error):
-        emit(NotificationError(message: toUserFriendlyMessage(error)));
+        emit(NotificationError(error: error));
     }
   }
 
@@ -74,7 +74,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       case Success():
         add(LoadNotifications());
       case Failure(:final error):
-        emit(NotificationError(message: toUserFriendlyMessage(error)));
+        emit(NotificationError(error: error));
     }
   }
 
@@ -88,7 +88,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       case Success():
         add(LoadNotifications());
       case Failure(:final error):
-        emit(NotificationError(message: toUserFriendlyMessage(error)));
+        emit(NotificationError(error: error));
     }
   }
 

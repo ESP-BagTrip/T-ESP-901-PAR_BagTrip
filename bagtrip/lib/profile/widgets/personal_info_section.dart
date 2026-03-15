@@ -102,9 +102,9 @@ class PersonalInfoSection extends StatelessWidget {
         ),
         TextButton(
           onPressed: () {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('Bientôt disponible')));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(AppLocalizations.of(context)!.comingSoon)),
+            );
           },
           style: TextButton.styleFrom(
             padding: EdgeInsets.zero,

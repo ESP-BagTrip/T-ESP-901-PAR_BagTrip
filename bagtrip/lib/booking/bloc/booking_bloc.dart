@@ -1,11 +1,10 @@
+import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/booking_response.dart';
 import 'package:bagtrip/models/recent_booking.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/booking_repository.dart';
-import 'package:bagtrip/utils/error_display.dart';
 import 'package:bloc/bloc.dart';
-import 'package:intl/intl.dart';
 
 part 'booking_event.dart';
 part 'booking_state.dart';
@@ -34,21 +33,17 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
           ),
         );
       case Failure(:final error):
-        emit(BookingError(message: toUserFriendlyMessage(error)));
+        emit(BookingError(error: error));
     }
   }
 
   RecentBooking _mapBookingToRecentBooking(BookingResponse b) {
     return RecentBooking(
       id: b.id,
-      route: 'Réservation',
       details: b.status,
-      date: DateFormat(
-        'd MMM yyyy',
-        'fr',
-      ).format(b.createdAt ?? DateTime.now()),
-      price:
-          '${NumberFormat.decimalPattern('fr').format(b.priceTotal)} ${b.currency}',
+      date: b.createdAt ?? DateTime.now(),
+      priceTotal: b.priceTotal,
+      currency: b.currency,
       status: b.status,
     );
   }
