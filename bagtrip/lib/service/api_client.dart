@@ -6,6 +6,7 @@ import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bagtrip/service/performance_interceptor.dart';
 import 'package:bagtrip/service/storage_service.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 class ApiClient {
   late final Dio _dio;
@@ -29,6 +30,16 @@ class ApiClient {
     );
 
     _dio.interceptors.add(PerformanceInterceptor());
+
+    if (kDebugMode) {
+      _dio.interceptors.add(
+        LogInterceptor(
+          requestBody: true,
+          responseBody: true,
+          logPrint: (obj) => debugPrint('[API] $obj'),
+        ),
+      );
+    }
 
     // Interceptor to add JWT token.
     _dio.interceptors.add(

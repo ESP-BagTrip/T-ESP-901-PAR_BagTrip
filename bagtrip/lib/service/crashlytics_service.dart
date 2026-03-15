@@ -30,7 +30,12 @@ class CrashlyticsService {
   }
 
   Future<void> recordAppError(AppError error, {StackTrace? stackTrace}) async {
-    if (kDebugMode) return;
+    if (kDebugMode) {
+      debugPrint(
+        '[AppError] ${error.runtimeType}: ${error.message} (status: ${error.statusCode})',
+      );
+      return;
+    }
 
     final isFatal = error is ServerError || error is UnknownError;
 
