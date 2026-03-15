@@ -612,5 +612,7 @@
   "feedbackYesLabel": "Yes",
   "feedbackNoLabel": "No",
   "offlineMode": "You are offline. Showing cached data.",
-  "offlineWriteError": "This action requires an internet connection."
+  "offlineWriteError": "This action requires an internet connection.",
+  "loadingMore": "Loading more...",
+  "noMoreItems": "No more items"
 }

@@ -1,3 +1,4 @@
+import 'package:bagtrip/core/paginated_response.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/models/trip_grouped.dart';
@@ -19,6 +20,11 @@ abstract class TripRepository {
   });
   Future<Result<List<Trip>>> getTrips();
   Future<Result<TripGrouped>> getGroupedTrips();
+  Future<Result<PaginatedResponse<Trip>>> getTripsPaginated({
+    int page = 1,
+    int limit = 20,
+    String? status,
+  });
   Future<Result<TripHome>> getTripHome(String tripId);
   Future<Result<Trip>> getTripById(String tripId);
   Future<Result<Trip>> updateTripStatus(String tripId, String status);

@@ -1,6 +1,7 @@
 """Service pour la gestion des trips."""
 
 from datetime import UTC, date, datetime
+from math import ceil
 from uuid import UUID
 
 from sqlalchemy import literal_column, update
@@ -73,6 +74,38 @@ class TripsService:
             .filter(TripShare.user_id == user_id)
         )
         return owned.union_all(shared).order_by(Trip.created_at.desc()).all()
+
+    @staticmethod
+    def get_trips_by_user_paginated(
+        db: Session,
+        user_id: UUID,
+        page: int = 1,
+        limit: int = 20,
+        status: str | None = None,
+    ) -> tuple[list[tuple[Trip, str]], int, int]:
+        """Get paginated trips for a user. Returns (items, total, total_pages)."""
+        owned = db.query(Trip, literal_column("'OWNER'").label("role")).filter(
+            Trip.user_id == user_id
+        )
+        shared = (
+            db.query(Trip, TripShare.role)
+            .join(TripShare, TripShare.trip_id == Trip.id)
+            .filter(TripShare.user_id == user_id)
+        )
+        query = owned.union_all(shared)
+        if status:
+            status_map = {
+                "ongoing": [TripStatus.ONGOING, "active"],
+                "planned": [TripStatus.DRAFT, TripStatus.PLANNED, "draft", "planning", "planned"],
+                "completed": [TripStatus.COMPLETED, "completed", "archived"],
+            }
+            allowed = status_map.get(status, [status])
+            query = query.filter(Trip.status.in_(allowed))
+        query = query.order_by(Trip.created_at.desc())
+        total = query.count()
+        total_pages = ceil(total / limit) if limit > 0 else 0
+        items = query.offset((page - 1) * limit).limit(limit).all()
+        return items, total, total_pages
 
     @staticmethod
     def get_trip_by_id(db: Session, trip_id: UUID, user_id: UUID) -> Trip | None:

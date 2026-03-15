@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from src.enums import ActivityCategory
 
 
+
 class ActivityCreateRequest(BaseModel):
     title: str
     date: dt.date
@@ -52,3 +53,14 @@ class ActivityResponse(BaseModel):
 
 class ActivityListResponse(BaseModel):
     items: list[ActivityResponse]
+
+
+class ActivityPaginatedResponse(BaseModel):
+    items: list[ActivityResponse]
+    total: int
+    page: int
+    limit: int
+    totalPages: int = Field(alias="total_pages")
+
+    class Config:
+        populate_by_name = True

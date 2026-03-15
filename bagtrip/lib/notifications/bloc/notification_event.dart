@@ -16,6 +16,8 @@ class MarkNotificationRead extends NotificationEvent {
 
 class MarkAllRead extends NotificationEvent {}
 
+class LoadMoreNotifications extends NotificationEvent {}
+
 class NotificationReceived extends NotificationEvent {
   final String title;
   final String body;

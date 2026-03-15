@@ -612,5 +612,7 @@
   "feedbackYesLabel": "Oui",
   "feedbackNoLabel": "Non",
   "offlineMode": "Vous êtes hors ligne. Données en cache affichées.",
-  "offlineWriteError": "Cette action nécessite une connexion internet."
+  "offlineWriteError": "Cette action nécessite une connexion internet.",
+  "loadingMore": "Chargement...",
+  "noMoreItems": "Plus d'éléments"
 }

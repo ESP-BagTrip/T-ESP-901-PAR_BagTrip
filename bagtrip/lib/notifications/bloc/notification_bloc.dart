@@ -16,6 +16,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
           notificationRepository ?? getIt<NotificationRepository>(),
       super(NotificationInitial()) {
     on<LoadNotifications>(_onLoadNotifications);
+    on<LoadMoreNotifications>(_onLoadMore);
     on<LoadUnreadCount>(_onLoadUnreadCount);
     on<MarkNotificationRead>(_onMarkNotificationRead);
     on<MarkAllRead>(_onMarkAllRead);
@@ -44,6 +45,56 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
         );
       case Failure(:final error):
         emit(NotificationError(error: error));
+    }
+  }
+
+  Future<void> _onLoadMore(
+    LoadMoreNotifications event,
+    Emitter<NotificationState> emit,
+  ) async {
+    final current = state;
+    if (current is! NotificationsLoaded ||
+        !current.hasMore ||
+        current.isLoadingMore) {
+      return;
+    }
+    emit(
+      NotificationsLoaded(
+        notifications: current.notifications,
+        unreadCount: current.unreadCount,
+        totalPages: current.totalPages,
+        currentPage: current.currentPage,
+        total: current.total,
+        isLoadingMore: true,
+      ),
+    );
+    final nextPage = current.currentPage + 1;
+    final result = await _notificationRepository.getNotifications(
+      page: nextPage,
+    );
+    if (isClosed) return;
+    switch (result) {
+      case Success(:final data):
+        final newItems = data['items'] as List<AppNotification>;
+        emit(
+          NotificationsLoaded(
+            notifications: [...current.notifications, ...newItems],
+            unreadCount: data['unreadCount'] as int,
+            totalPages: data['totalPages'] as int,
+            currentPage: nextPage,
+            total: data['total'] as int,
+          ),
+        );
+      case Failure():
+        emit(
+          NotificationsLoaded(
+            notifications: current.notifications,
+            unreadCount: current.unreadCount,
+            totalPages: current.totalPages,
+            currentPage: current.currentPage,
+            total: current.total,
+          ),
+        );
     }
   }
 

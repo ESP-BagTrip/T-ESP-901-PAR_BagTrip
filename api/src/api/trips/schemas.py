@@ -71,6 +71,19 @@ class TripListResponse(BaseModel):
     items: list[TripResponse]
 
 
+class TripPaginatedResponse(BaseModel):
+    """Réponse paginée de trips."""
+
+    items: list[TripResponse]
+    total: int
+    page: int
+    limit: int
+    totalPages: int = Field(alias="total_pages")
+
+    class Config:
+        populate_by_name = True
+
+
 class TripDetailResponse(BaseModel):
     """Réponse détaillée d'un trip avec agrégations."""
 

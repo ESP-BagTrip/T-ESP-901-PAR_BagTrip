@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/paginated_response.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/repositories/activity_repository.dart';
@@ -30,6 +31,43 @@ class ActivityRepositoryImpl implements ActivityRepository {
       }
       return Failure(
         UnknownError('fetch activities failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return Failure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<PaginatedResponse<Activity>>> getActivitiesPaginated(
+    String tripId, {
+    int page = 1,
+    int limit = 20,
+  }) async {
+    try {
+      final response = await _apiClient.get(
+        '/trips/$tripId/activities',
+        queryParameters: {'page': page, 'limit': limit},
+      );
+      if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+        final items = (data['items'] as List)
+            .map((json) => Activity.fromJson(json))
+            .toList();
+        return Success(
+          PaginatedResponse<Activity>(
+            items: items,
+            total: data['total'] as int,
+            page: data['page'] as int,
+            totalPages: data['totalPages'] as int,
+          ),
+        );
+      }
+      return Failure(
+        UnknownError(
+          'fetch activities paginated failed: ${response.statusCode}',
+        ),
       );
     } on DioException catch (e) {
       return Failure(ApiClient.mapDioError(e));

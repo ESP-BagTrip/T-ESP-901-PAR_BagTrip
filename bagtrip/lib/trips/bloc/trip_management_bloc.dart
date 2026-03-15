@@ -16,6 +16,8 @@ class TripManagementBloc
     : _tripRepository = tripRepository ?? getIt<TripRepository>(),
       super(TripManagementInitial()) {
     on<LoadTrips>(_onLoadTrips);
+    on<LoadTripsByStatus>(_onLoadTripsByStatus);
+    on<LoadMoreTripsByStatus>(_onLoadMoreTripsByStatus);
     on<CreateTrip>(_onCreateTrip);
     on<LoadTripHome>(_onLoadTripHome);
     on<UpdateTripStatus>(_onUpdateTripStatus);
@@ -36,6 +38,77 @@ class TripManagementBloc
         emit(TripsLoaded(groupedTrips: data));
       case Failure(:final error):
         emit(TripError(error: error));
+    }
+  }
+
+  Future<void> _onLoadTripsByStatus(
+    LoadTripsByStatus event,
+    Emitter<TripManagementState> emit,
+  ) async {
+    // Preserve other tabs' data
+    final currentTabs = state is TripsTabLoaded
+        ? (state as TripsTabLoaded).tabs
+        : <String, TripTabData>{};
+
+    if (event.page == 1 && currentTabs.isEmpty) {
+      emit(TripsLoading());
+    }
+
+    final result = await _tripRepository.getTripsPaginated(
+      page: event.page,
+      status: event.status,
+    );
+    if (isClosed) return;
+    switch (result) {
+      case Success(:final data):
+        final updatedTabs = Map<String, TripTabData>.from(currentTabs);
+        updatedTabs[event.status] = TripTabData(
+          trips: data.items,
+          currentPage: data.page,
+          totalPages: data.totalPages,
+        );
+        emit(TripsTabLoaded(tabs: updatedTabs));
+      case Failure(:final error):
+        emit(TripError(error: error));
+    }
+  }
+
+  Future<void> _onLoadMoreTripsByStatus(
+    LoadMoreTripsByStatus event,
+    Emitter<TripManagementState> emit,
+  ) async {
+    if (state is! TripsTabLoaded) return;
+    final currentState = state as TripsTabLoaded;
+    final tabData = currentState.getTab(event.status);
+    if (!tabData.hasMore || tabData.isLoadingMore) return;
+
+    // Mark as loading
+    final loadingTabs = Map<String, TripTabData>.from(currentState.tabs);
+    loadingTabs[event.status] = tabData.copyWith(isLoadingMore: true);
+    emit(TripsTabLoaded(tabs: loadingTabs));
+
+    final nextPage = tabData.currentPage + 1;
+    final result = await _tripRepository.getTripsPaginated(
+      page: nextPage,
+      status: event.status,
+    );
+    if (isClosed) return;
+
+    final latestTabs = state is TripsTabLoaded
+        ? Map<String, TripTabData>.from((state as TripsTabLoaded).tabs)
+        : loadingTabs;
+
+    switch (result) {
+      case Success(:final data):
+        latestTabs[event.status] = TripTabData(
+          trips: [...tabData.trips, ...data.items],
+          currentPage: data.page,
+          totalPages: data.totalPages,
+        );
+        emit(TripsTabLoaded(tabs: latestTabs));
+      case Failure():
+        latestTabs[event.status] = tabData.copyWith(isLoadingMore: false);
+        emit(TripsTabLoaded(tabs: latestTabs));
     }
   }
 
@@ -103,7 +176,10 @@ class TripManagementBloc
     switch (result) {
       case Success():
         emit(TripDeleted());
-        add(LoadTrips());
+        // Reload all tabs
+        for (final status in ['ongoing', 'planned', 'completed']) {
+          add(LoadTripsByStatus(status: status));
+        }
       case Failure(:final error):
         emit(TripError(error: error));
     }

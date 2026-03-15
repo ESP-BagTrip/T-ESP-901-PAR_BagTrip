@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/paginated_list.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/notification.dart';
 import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
@@ -69,8 +70,17 @@ class NotificationsView extends StatelessWidget {
           }
 
           if (state is NotificationsLoaded) {
-            if (state.notifications.isEmpty) {
-              return Center(
+            return PaginatedList<AppNotification>(
+              items: state.notifications,
+              hasMore: state.hasMore,
+              isLoadingMore: state.isLoadingMore,
+              onLoadMore: () =>
+                  context.read<NotificationBloc>().add(LoadMoreNotifications()),
+              onRefresh: () async {
+                context.read<NotificationBloc>().add(LoadNotifications());
+              },
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              emptyWidget: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -90,14 +100,23 @@ class NotificationsView extends StatelessWidget {
                     ),
                   ],
                 ),
-              );
-            }
-
-            return RefreshIndicator(
-              onRefresh: () async {
-                context.read<NotificationBloc>().add(LoadNotifications());
-              },
-              child: _buildGroupedList(context, state.notifications),
+              ),
+              groupBy: (notifications) => _groupByDate(context, notifications),
+              sectionHeaderBuilder: (context, dateKey) => Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Text(
+                  dateKey,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.outline,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              itemBuilder: (context, notif, _) =>
+                  NotificationCard(notification: notif),
             );
           }
 
@@ -107,44 +126,17 @@ class NotificationsView extends StatelessWidget {
     );
   }
 
-  Widget _buildGroupedList(
+  Map<String, List<AppNotification>> _groupByDate(
     BuildContext context,
     List<AppNotification> notifications,
   ) {
-    // Group by date
+    final l10n = AppLocalizations.of(context)!;
     final Map<String, List<AppNotification>> grouped = {};
     for (final notif in notifications) {
-      final dateKey = _formatDateKey(
-        notif.createdAt ?? DateTime.now(),
-        AppLocalizations.of(context)!,
-      );
+      final dateKey = _formatDateKey(notif.createdAt ?? DateTime.now(), l10n);
       grouped.putIfAbsent(dateKey, () => []).add(notif);
     }
-
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: grouped.length,
-      itemBuilder: (context, index) {
-        final dateKey = grouped.keys.elementAt(index);
-        final items = grouped[dateKey]!;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                dateKey,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            ...items.map((notif) => NotificationCard(notification: notif)),
-          ],
-        );
-      },
-    );
+    return grouped;
   }
 
   String _formatDateKey(DateTime date, AppLocalizations l10n) {

@@ -16,6 +16,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
     : _activityRepository = activityRepository ?? getIt<ActivityRepository>(),
       super(ActivityInitial()) {
     on<LoadActivities>(_onLoadActivities);
+    on<LoadMoreActivities>(_onLoadMoreActivities);
     on<CreateActivity>(_onCreateActivity);
     on<UpdateActivity>(_onUpdateActivity);
     on<DeleteActivity>(_onDeleteActivity);
@@ -44,15 +45,70 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
     Emitter<ActivityState> emit,
   ) async {
     emit(ActivityLoading());
-    final result = await _activityRepository.getActivities(event.tripId);
+    final result = await _activityRepository.getActivitiesPaginated(
+      event.tripId,
+    );
     if (isClosed) return;
     switch (result) {
       case Success(:final data):
         emit(
-          ActivitiesLoaded(activities: data, groupedByDay: _groupByDay(data)),
+          ActivitiesLoaded(
+            activities: data.items,
+            groupedByDay: _groupByDay(data.items),
+            currentPage: data.page,
+            totalPages: data.totalPages,
+          ),
         );
       case Failure(:final error):
         emit(ActivityError(error: error));
+    }
+  }
+
+  Future<void> _onLoadMoreActivities(
+    LoadMoreActivities event,
+    Emitter<ActivityState> emit,
+  ) async {
+    final current = state;
+    if (current is! ActivitiesLoaded ||
+        !current.hasMore ||
+        current.isLoadingMore) {
+      return;
+    }
+    emit(
+      ActivitiesLoaded(
+        activities: current.activities,
+        groupedByDay: current.groupedByDay,
+        currentPage: current.currentPage,
+        totalPages: current.totalPages,
+        isLoadingMore: true,
+      ),
+    );
+    final nextPage = current.currentPage + 1;
+    final result = await _activityRepository.getActivitiesPaginated(
+      event.tripId,
+      page: nextPage,
+    );
+    if (isClosed) return;
+    switch (result) {
+      case Success(:final data):
+        final allActivities = [...current.activities, ...data.items];
+        emit(
+          ActivitiesLoaded(
+            activities: allActivities,
+            groupedByDay: _groupByDay(allActivities),
+            currentPage: data.page,
+            totalPages: data.totalPages,
+          ),
+        );
+      case Failure():
+        emit(
+          ActivitiesLoaded(
+            activities: current.activities,
+            groupedByDay: current.groupedByDay,
+            currentPage: current.currentPage,
+            totalPages: current.totalPages,
+          ),
+        );
     }
   }
 
@@ -115,9 +171,14 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
     // Preserve current activities if available
     List<Activity> currentActivities = [];
     Map<String, List<Activity>> currentGrouped = {};
+    int currentPage = 1;
+    int totalPages = 1;
     if (state is ActivitiesLoaded) {
-      currentActivities = (state as ActivitiesLoaded).activities;
-      currentGrouped = (state as ActivitiesLoaded).groupedByDay;
+      final loaded = state as ActivitiesLoaded;
+      currentActivities = loaded.activities;
+      currentGrouped = loaded.groupedByDay;
+      currentPage = loaded.currentPage;
+      totalPages = loaded.totalPages;
     }
 
     emit(ActivitySuggestionsLoading());
@@ -130,6 +191,8 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
             suggestions: data,
             activities: currentActivities,
             groupedByDay: currentGrouped,
+            currentPage: currentPage,
+            totalPages: totalPages,
           ),
         );
       case Failure(:final error):
@@ -138,6 +201,8 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
             ActivitiesLoaded(
               activities: currentActivities,
               groupedByDay: currentGrouped,
+              currentPage: currentPage,
+              totalPages: totalPages,
             ),
           );
           emit(ActivityQuotaExceeded());

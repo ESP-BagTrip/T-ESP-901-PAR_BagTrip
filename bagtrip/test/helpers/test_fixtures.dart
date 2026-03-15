@@ -1,3 +1,4 @@
+import 'package:bagtrip/core/paginated_response.dart';
 import 'package:bagtrip/models/user.dart';
 import 'package:bagtrip/models/auth_response.dart';
 import 'package:bagtrip/models/trip.dart';
@@ -270,5 +271,19 @@ BookingResponse makeBookingResponse({
     priceTotal: priceTotal,
     currency: currency,
     createdAt: createdAt ?? DateTime(2024, 5),
+  );
+}
+
+PaginatedResponse<T> makePaginatedResponse<T>({
+  required List<T> items,
+  int page = 1,
+  int total = 1,
+  int totalPages = 1,
+}) {
+  return PaginatedResponse<T>(
+    items: items,
+    total: total,
+    page: page,
+    totalPages: totalPages,
   );
 }

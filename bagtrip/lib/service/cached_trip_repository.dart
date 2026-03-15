@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/paginated_response.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/core/cache/cache_service.dart';
 import 'package:bagtrip/core/cache/connectivity_service.dart';
@@ -81,6 +82,16 @@ class CachedTripRepository implements TripRepository {
       return Success(items);
     }
     return const Failure(NetworkError('No cached data available'));
+  }
+
+  @override
+  Future<Result<PaginatedResponse<Trip>>> getTripsPaginated({
+    int page = 1,
+    int limit = 20,
+    String? status,
+  }) async {
+    // Paginated calls are not cached — always delegate to remote.
+    return _remote.getTripsPaginated(page: page, limit: limit, status: status);
   }
 
   // --------------- WRITE methods ---------------

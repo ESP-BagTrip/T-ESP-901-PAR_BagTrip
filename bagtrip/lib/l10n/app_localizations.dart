@@ -2953,6 +2953,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Cette action nécessite une connexion internet.'**
   String get offlineWriteError;
+
+  /// No description provided for @loadingMore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement...'**
+  String get loadingMore;
+
+  /// No description provided for @noMoreItems.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus d\'éléments'**
+  String get noMoreItems;
 }
 
 class _AppLocalizationsDelegate

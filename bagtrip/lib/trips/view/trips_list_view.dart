@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/paginated_list.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
@@ -8,14 +9,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 
-class TripsListView extends StatelessWidget {
+class TripsListView extends StatefulWidget {
   const TripsListView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Load unread count for badge
-    context.read<NotificationBloc>().add(LoadUnreadCount());
+  State<TripsListView> createState() => _TripsListViewState();
+}
 
+class _TripsListViewState extends State<TripsListView> {
+  @override
+  void initState() {
+    super.initState();
+    final bloc = context.read<TripManagementBloc>();
+    for (final status in ['ongoing', 'planned', 'completed']) {
+      bloc.add(LoadTripsByStatus(status: status));
+    }
+    context.read<NotificationBloc>().add(LoadUnreadCount());
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -77,8 +90,13 @@ class TripsListView extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     FilledButton.icon(
-                      onPressed: () =>
-                          context.read<TripManagementBloc>().add(LoadTrips()),
+                      onPressed: () {
+                        for (final s in ['ongoing', 'planned', 'completed']) {
+                          context.read<TripManagementBloc>().add(
+                            LoadTripsByStatus(status: s),
+                          );
+                        }
+                      },
                       icon: const Icon(Icons.refresh),
                       label: Text(AppLocalizations.of(context)!.retryButton),
                     ),
@@ -87,25 +105,57 @@ class TripsListView extends StatelessWidget {
               );
             }
 
-            if (state is TripsLoaded) {
-              final grouped = state.groupedTrips;
+            if (state is TripsTabLoaded) {
               return TabBarView(
                 children: [
                   _TripListTab(
-                    trips: grouped.ongoing,
+                    tabData: state.getTab('ongoing'),
+                    status: 'ongoing',
                     emptyMessage: AppLocalizations.of(
                       context,
                     )!.tripsEmptyOngoing,
                     emptyIcon: Icons.flight_takeoff,
                   ),
                   _TripListTab(
-                    trips: grouped.planned,
+                    tabData: state.getTab('planned'),
+                    status: 'planned',
                     emptyMessage: AppLocalizations.of(
                       context,
                     )!.tripsEmptyPlanned,
                     emptyIcon: Icons.calendar_today,
                   ),
                   _TripListTab(
+                    tabData: state.getTab('completed'),
+                    status: 'completed',
+                    emptyMessage: AppLocalizations.of(
+                      context,
+                    )!.tripsEmptyCompleted,
+                    emptyIcon: Icons.check_circle_outline,
+                  ),
+                ],
+              );
+            }
+
+            // Backward compat with TripsLoaded (grouped)
+            if (state is TripsLoaded) {
+              final grouped = state.groupedTrips;
+              return TabBarView(
+                children: [
+                  _LegacyTripListTab(
+                    trips: grouped.ongoing,
+                    emptyMessage: AppLocalizations.of(
+                      context,
+                    )!.tripsEmptyOngoing,
+                    emptyIcon: Icons.flight_takeoff,
+                  ),
+                  _LegacyTripListTab(
+                    trips: grouped.planned,
+                    emptyMessage: AppLocalizations.of(
+                      context,
+                    )!.tripsEmptyPlanned,
+                    emptyIcon: Icons.calendar_today,
+                  ),
+                  _LegacyTripListTab(
                     trips: grouped.completed,
                     emptyMessage: AppLocalizations.of(
                       context,
@@ -130,11 +180,69 @@ class TripsListView extends StatelessWidget {
 }
 
 class _TripListTab extends StatelessWidget {
-  final List<Trip> trips;
+  final TripTabData tabData;
+  final String status;
   final String emptyMessage;
   final IconData emptyIcon;
 
   const _TripListTab({
+    required this.tabData,
+    required this.status,
+    required this.emptyMessage,
+    required this.emptyIcon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return PaginatedList<Trip>(
+      items: tabData.trips,
+      hasMore: tabData.hasMore,
+      isLoadingMore: tabData.isLoadingMore,
+      onLoadMore: () => context.read<TripManagementBloc>().add(
+        LoadMoreTripsByStatus(status: status),
+      ),
+      onRefresh: () async {
+        context.read<TripManagementBloc>().add(
+          LoadTripsByStatus(status: status),
+        );
+      },
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      emptyWidget: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              emptyIcon,
+              size: 64,
+              color: Theme.of(
+                context,
+              ).colorScheme.outline.withValues(alpha: 0.4),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              emptyMessage,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
+          ],
+        ),
+      ),
+      itemBuilder: (context, trip, _) => TripCard(
+        trip: trip,
+        onTap: () => TripHomeRoute(tripId: trip.id).push(context),
+      ),
+    );
+  }
+}
+
+/// Legacy tab for backward compat with TripsLoaded (non-paginated).
+class _LegacyTripListTab extends StatelessWidget {
+  final List<Trip> trips;
+  final String emptyMessage;
+  final IconData emptyIcon;
+
+  const _LegacyTripListTab({
     required this.trips,
     required this.emptyMessage,
     required this.emptyIcon,

@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/paginated_response.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/models/trip_grouped.dart';
@@ -75,6 +76,43 @@ class TripRepositoryImpl implements TripRepository {
       }
       return Failure(
         UnknownError('fetch trips failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return Failure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return Failure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<PaginatedResponse<Trip>>> getTripsPaginated({
+    int page = 1,
+    int limit = 20,
+    String? status,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{'page': page, 'limit': limit};
+      if (status != null) queryParams['status'] = status;
+      final response = await _apiClient.get(
+        '/trips',
+        queryParameters: queryParams,
+      );
+      if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+        final items = (data['items'] as List)
+            .map((json) => Trip.fromJson(json))
+            .toList();
+        return Success(
+          PaginatedResponse<Trip>(
+            items: items,
+            total: data['total'] as int,
+            page: data['page'] as int,
+            totalPages: data['totalPages'] as int,
+          ),
+        );
+      }
+      return Failure(
+        UnknownError('fetch trips paginated failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
       return Failure(ApiClient.mapDioError(e));

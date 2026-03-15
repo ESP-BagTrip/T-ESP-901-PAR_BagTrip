@@ -1,6 +1,8 @@
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/paginated_response.dart';
 import 'package:bagtrip/core/result.dart';
+import 'package:bagtrip/models/trip.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -111,30 +113,43 @@ void main() {
   });
 
   group('Trip deletion flow', () {
-    // ── DeleteTrip -> TripDeleted -> auto LoadTrips -> TripsLoaded ─────
+    // ── DeleteTrip -> TripDeleted -> auto LoadTripsByStatus x3 -> TripsTabLoaded ─────
 
     blocTest<TripManagementBloc, TripManagementState>(
-      'delete trip then auto-loads grouped trips',
+      'delete trip then auto-loads paginated trips by status',
       build: () {
         when(
           () => mockTripRepo.deleteTrip(any()),
         ).thenAnswer((_) async => const Success(null));
         when(
-          () => mockTripRepo.getGroupedTrips(),
-        ).thenAnswer((_) async => Success(makeTripGrouped()));
+          () => mockTripRepo.getTripsPaginated(
+            page: any(named: 'page'),
+            status: any(named: 'status'),
+          ),
+        ).thenAnswer(
+          (_) async => Success(
+            PaginatedResponse<Trip>(
+              items: [makeTrip()],
+              total: 1,
+              page: 1,
+              totalPages: 1,
+            ),
+          ),
+        );
         return TripManagementBloc(tripRepository: mockTripRepo);
       },
       act: (bloc) => bloc.add(DeleteTrip(tripId: 'trip-1')),
-      wait: const Duration(milliseconds: 100),
+      wait: const Duration(milliseconds: 200),
       expect: () => [
         isA<TripDeleting>(),
         isA<TripDeleted>(),
         isA<TripsLoading>(),
-        isA<TripsLoaded>(),
+        isA<TripsTabLoaded>(),
+        isA<TripsTabLoaded>(),
+        isA<TripsTabLoaded>(),
       ],
       verify: (_) {
         verify(() => mockTripRepo.deleteTrip('trip-1')).called(1);
-        verify(() => mockTripRepo.getGroupedTrips()).called(1);
       },
     );
 
@@ -155,30 +170,43 @@ void main() {
     // ── Delete then auto-reload returns empty lists ───────────────────
 
     blocTest<TripManagementBloc, TripManagementState>(
-      'delete last trip results in empty grouped trips after auto-reload',
+      'delete last trip results in empty tabs after auto-reload',
       build: () {
         when(
           () => mockTripRepo.deleteTrip(any()),
         ).thenAnswer((_) async => const Success(null));
-        when(() => mockTripRepo.getGroupedTrips()).thenAnswer(
-          (_) async =>
-              Success(makeTripGrouped(ongoing: [], planned: [], completed: [])),
+        when(
+          () => mockTripRepo.getTripsPaginated(
+            page: any(named: 'page'),
+            status: any(named: 'status'),
+          ),
+        ).thenAnswer(
+          (_) async => const Success(
+            PaginatedResponse<Trip>(
+              items: [],
+              total: 0,
+              page: 1,
+              totalPages: 0,
+            ),
+          ),
         );
         return TripManagementBloc(tripRepository: mockTripRepo);
       },
       act: (bloc) => bloc.add(DeleteTrip(tripId: 'trip-1')),
-      wait: const Duration(milliseconds: 100),
+      wait: const Duration(milliseconds: 200),
       expect: () => [
         isA<TripDeleting>(),
         isA<TripDeleted>(),
         isA<TripsLoading>(),
-        isA<TripsLoaded>(),
+        isA<TripsTabLoaded>(),
+        isA<TripsTabLoaded>(),
+        isA<TripsTabLoaded>(),
       ],
       verify: (bloc) {
-        final state = bloc.state as TripsLoaded;
-        expect(state.groupedTrips.ongoing, isEmpty);
-        expect(state.groupedTrips.planned, isEmpty);
-        expect(state.groupedTrips.completed, isEmpty);
+        final state = bloc.state as TripsTabLoaded;
+        expect(state.getTab('ongoing').trips, isEmpty);
+        expect(state.getTab('planned').trips, isEmpty);
+        expect(state.getTab('completed').trips, isEmpty);
       },
     );
   });

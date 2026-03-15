@@ -4,6 +4,17 @@ sealed class TripManagementEvent {}
 
 class LoadTrips extends TripManagementEvent {}
 
+class LoadTripsByStatus extends TripManagementEvent {
+  final String status;
+  final int page;
+  LoadTripsByStatus({required this.status, this.page = 1});
+}
+
+class LoadMoreTripsByStatus extends TripManagementEvent {
+  final String status;
+  LoadMoreTripsByStatus({required this.status});
+}
+
 class CreateTrip extends TripManagementEvent {
   final String title;
   final String? description;

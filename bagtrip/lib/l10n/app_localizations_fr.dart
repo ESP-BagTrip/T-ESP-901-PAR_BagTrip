@@ -1542,4 +1542,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get offlineWriteError =>
       'Cette action nécessite une connexion internet.';
+
+  @override
+  String get loadingMore => 'Chargement...';
+
+  @override
+  String get noMoreItems => 'Plus d\'éléments';
 }

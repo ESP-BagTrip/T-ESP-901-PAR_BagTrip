@@ -1525,4 +1525,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get offlineWriteError =>
       'This action requires an internet connection.';
+
+  @override
+  String get loadingMore => 'Loading more...';
+
+  @override
+  String get noMoreItems => 'No more items';
 }

@@ -1,5 +1,6 @@
 import 'package:bagtrip/activities/bloc/activity_bloc.dart';
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/paginated_response.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bloc_test/bloc_test.dart';
@@ -31,8 +32,15 @@ void main() {
           makeActivity(id: 'act-2', title: 'Museum', date: DateTime(2024, 6)),
         ];
         when(
-          () => mockActivityRepo.getActivities(any()),
-        ).thenAnswer((_) async => Success(activities));
+          () => mockActivityRepo.getActivitiesPaginated(
+            any(),
+            page: any(named: 'page'),
+            limit: any(named: 'limit'),
+          ),
+        ).thenAnswer(
+          (_) async =>
+              Success(makePaginatedResponse(items: activities, total: 2)),
+        );
         return ActivityBloc(activityRepository: mockActivityRepo);
       },
       act: (bloc) => bloc.add(LoadActivities(tripId: 'trip-1')),
@@ -47,6 +55,8 @@ void main() {
         final dayList = state.groupedByDay['2024-06-01']!;
         expect(dayList[0].title, 'Museum');
         expect(dayList[1].title, 'Lunch');
+        expect(state.currentPage, 1);
+        expect(state.totalPages, 1);
       },
     );
 
@@ -54,12 +64,112 @@ void main() {
       'emits [ActivityLoading, ActivityError] when LoadActivities fails',
       build: () {
         when(
-          () => mockActivityRepo.getActivities(any()),
+          () => mockActivityRepo.getActivitiesPaginated(
+            any(),
+            page: any(named: 'page'),
+            limit: any(named: 'limit'),
+          ),
         ).thenAnswer((_) async => const Failure(NetworkError('err')));
         return ActivityBloc(activityRepository: mockActivityRepo);
       },
       act: (bloc) => bloc.add(LoadActivities(tripId: 'trip-1')),
       expect: () => [isA<ActivityLoading>(), isA<ActivityError>()],
+    );
+
+    // ── LoadMoreActivities ────────────────────────────────────────────
+
+    blocTest<ActivityBloc, ActivityState>(
+      'LoadMoreActivities appends items and regroups',
+      build: () {
+        when(
+          () => mockActivityRepo.getActivitiesPaginated(
+            any(),
+            page: 2,
+            limit: any(named: 'limit'),
+          ),
+        ).thenAnswer(
+          (_) async => Success(
+            PaginatedResponse<Activity>(
+              items: [
+                makeActivity(
+                  id: 'act-3',
+                  title: 'Dinner',
+                  date: DateTime(2024, 6, 2),
+                ),
+              ],
+              total: 3,
+              page: 2,
+              totalPages: 2,
+            ),
+          ),
+        );
+        return ActivityBloc(activityRepository: mockActivityRepo);
+      },
+      seed: () => ActivitiesLoaded(
+        activities: [
+          makeActivity(title: 'Lunch', date: DateTime(2024, 6)),
+          makeActivity(id: 'act-2', title: 'Museum', date: DateTime(2024, 6)),
+        ],
+        groupedByDay: {
+          '2024-06-01': [
+            makeActivity(title: 'Museum', date: DateTime(2024, 6)),
+            makeActivity(
+              title: 'Lunch',
+              date: DateTime(2024, 6),
+              startTime: '12:00',
+            ),
+          ],
+        },
+        totalPages: 2,
+      ),
+      act: (bloc) => bloc.add(LoadMoreActivities(tripId: 'trip-1')),
+      expect: () => [
+        isA<ActivitiesLoaded>().having(
+          (s) => s.isLoadingMore,
+          'isLoadingMore',
+          true,
+        ),
+        isA<ActivitiesLoaded>().having(
+          (s) => s.activities.length,
+          'activities.length',
+          3,
+        ),
+      ],
+      verify: (bloc) {
+        final state = bloc.state as ActivitiesLoaded;
+        expect(state.currentPage, 2);
+        // Two days now
+        expect(state.groupedByDay.keys.length, 2);
+        expect(state.isLoadingMore, false);
+      },
+    );
+
+    blocTest<ActivityBloc, ActivityState>(
+      'LoadMoreActivities does nothing when hasMore is false',
+      build: () => ActivityBloc(activityRepository: mockActivityRepo),
+      seed: () => ActivitiesLoaded(
+        activities: [makeActivity()],
+        groupedByDay: {
+          '2024-06-01': [makeActivity()],
+        },
+      ),
+      act: (bloc) => bloc.add(LoadMoreActivities(tripId: 'trip-1')),
+      expect: () => <ActivityState>[],
+    );
+
+    blocTest<ActivityBloc, ActivityState>(
+      'LoadMoreActivities does nothing when already loading',
+      build: () => ActivityBloc(activityRepository: mockActivityRepo),
+      seed: () => ActivitiesLoaded(
+        activities: [makeActivity()],
+        groupedByDay: {
+          '2024-06-01': [makeActivity()],
+        },
+        totalPages: 2,
+        isLoadingMore: true,
+      ),
+      act: (bloc) => bloc.add(LoadMoreActivities(tripId: 'trip-1')),
+      expect: () => <ActivityState>[],
     );
 
     // ── CreateActivity ──────────────────────────────────────────────────
@@ -71,8 +181,14 @@ void main() {
           () => mockActivityRepo.createActivity(any(), any()),
         ).thenAnswer((_) async => Success(makeActivity()));
         when(
-          () => mockActivityRepo.getActivities(any()),
-        ).thenAnswer((_) async => Success([makeActivity()]));
+          () => mockActivityRepo.getActivitiesPaginated(
+            any(),
+            page: any(named: 'page'),
+            limit: any(named: 'limit'),
+          ),
+        ).thenAnswer(
+          (_) async => Success(makePaginatedResponse(items: [makeActivity()])),
+        );
         return ActivityBloc(activityRepository: mockActivityRepo);
       },
       act: (bloc) => bloc.add(
@@ -88,7 +204,6 @@ void main() {
         verify(
           () => mockActivityRepo.createActivity('trip-1', any()),
         ).called(1);
-        verify(() => mockActivityRepo.getActivities('trip-1')).called(1);
       },
     );
 
@@ -101,8 +216,16 @@ void main() {
           () => mockActivityRepo.deleteActivity(any(), any()),
         ).thenAnswer((_) async => const Success(null));
         when(
-          () => mockActivityRepo.getActivities(any()),
-        ).thenAnswer((_) async => const Success(<Activity>[]));
+          () => mockActivityRepo.getActivitiesPaginated(
+            any(),
+            page: any(named: 'page'),
+            limit: any(named: 'limit'),
+          ),
+        ).thenAnswer(
+          (_) async => Success(
+            makePaginatedResponse(items: <Activity>[], total: 0, totalPages: 0),
+          ),
+        );
         return ActivityBloc(activityRepository: mockActivityRepo);
       },
       act: (bloc) =>
@@ -113,7 +236,6 @@ void main() {
         verify(
           () => mockActivityRepo.deleteActivity('trip-1', 'act-1'),
         ).called(1);
-        verify(() => mockActivityRepo.getActivities('trip-1')).called(1);
       },
     );
 

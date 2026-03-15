@@ -1,11 +1,12 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Path, status
+from fastapi import APIRouter, Depends, Path, Query, status
 from sqlalchemy.orm import Session
 
 from src.api.activities.schemas import (
     ActivityCreateRequest,
     ActivityListResponse,
+    ActivityPaginatedResponse,
     ActivityResponse,
     ActivityUpdateRequest,
 )
@@ -46,18 +47,24 @@ async def create_activity(
         raise create_http_exception(e) from e
 
 
-@router.get("/{tripId}/activities", response_model=ActivityListResponse)
+@router.get("/{tripId}/activities", response_model=ActivityPaginatedResponse)
 async def list_activities(
+    page: int = Query(default=1, ge=1, description="Page number"),
+    limit: int = Query(default=20, ge=1, le=100, description="Items per page"),
     access: TripAccess = Depends(get_trip_access),
     db: Session = Depends(get_db),
 ):
     try:
-        activities = ActivityService.get_by_trip(db, access.trip.id)
+        activities, total, total_pages = ActivityService.get_by_trip_paginated(
+            db, access.trip.id, page=page, limit=limit,
+        )
         items = [ActivityResponse.model_validate(a) for a in activities]
         if access.role == TripRole.VIEWER:
             for item in items:
                 item.estimatedCost = None
-        return ActivityListResponse(items=items)
+        return ActivityPaginatedResponse(
+            items=items, total=total, page=page, limit=limit, total_pages=total_pages,
+        )
     except AppError as e:
         raise create_http_exception(e) from e
 

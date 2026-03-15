@@ -12,6 +12,9 @@ class NotificationsLoaded extends NotificationState {
   final int totalPages;
   final int currentPage;
   final int total;
+  final bool isLoadingMore;
+
+  bool get hasMore => currentPage < totalPages;
 
   NotificationsLoaded({
     required this.notifications,
@@ -19,6 +22,7 @@ class NotificationsLoaded extends NotificationState {
     required this.totalPages,
     required this.currentPage,
     required this.total,
+    this.isLoadingMore = false,
   });
 }
 

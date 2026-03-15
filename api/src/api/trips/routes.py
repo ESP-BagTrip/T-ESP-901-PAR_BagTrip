@@ -1,6 +1,6 @@
 """Routes pour les trips."""
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from src.api.auth.middleware import get_current_user
@@ -11,6 +11,7 @@ from src.api.trips.schemas import (
     TripGroupedResponse,
     TripHomeResponse,
     TripListResponse,
+    TripPaginatedResponse,
     TripResponse,
     TripStatusUpdateRequest,
     TripUpdateRequest,
@@ -64,23 +65,30 @@ async def create_trip(
 
 @router.get(
     "",
-    response_model=TripListResponse,
-    summary="List user trips",
-    description="Get all trips for the authenticated user (owned + shared)",
+    response_model=TripPaginatedResponse,
+    summary="List user trips (paginated)",
+    description="Get paginated trips for the authenticated user (owned + shared)",
 )
 async def list_trips(
+    page: int = Query(default=1, ge=1, description="Page number"),
+    limit: int = Query(default=20, ge=1, le=100, description="Items per page"),
+    status: str | None = Query(default=None, description="Filter by status: ongoing, planned, completed"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Lister les trips de l'utilisateur (owned + shared)."""
+    """Lister les trips de l'utilisateur (owned + shared) avec pagination."""
     try:
-        rows = TripsService.get_trips_by_user(db, current_user.id)
+        rows, total, total_pages = TripsService.get_trips_by_user_paginated(
+            db, current_user.id, page=page, limit=limit, status=status,
+        )
         items = []
         for trip, role in rows:
             resp = TripResponse.model_validate(trip)
             resp.role = role
             items.append(resp)
-        return TripListResponse(items=items)
+        return TripPaginatedResponse(
+            items=items, total=total, page=page, limit=limit, total_pages=total_pages,
+        )
     except AppError as e:
         raise create_http_exception(e) from e
 

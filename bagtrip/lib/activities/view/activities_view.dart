@@ -1,4 +1,5 @@
 import 'package:bagtrip/activities/bloc/activity_bloc.dart';
+import 'package:bagtrip/components/paginated_list.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:bagtrip/activities/widgets/activity_card.dart';
@@ -90,12 +91,27 @@ class ActivitiesView extends StatelessWidget {
               final activities = state is ActivitiesLoaded
                   ? state.activities
                   : (state as ActivitySuggestionsLoaded).activities;
-              final groupedByDay = state is ActivitiesLoaded
-                  ? state.groupedByDay
-                  : (state as ActivitySuggestionsLoaded).groupedByDay;
+              final hasMore = state is ActivitiesLoaded
+                  ? state.hasMore
+                  : (state as ActivitySuggestionsLoaded).hasMore;
+              final isLoadingMore = state is ActivitiesLoaded
+                  ? state.isLoadingMore
+                  : (state as ActivitySuggestionsLoaded).isLoadingMore;
 
-              if (activities.isEmpty) {
-                return Center(
+              return PaginatedList<Activity>(
+                items: activities,
+                hasMore: hasMore,
+                isLoadingMore: isLoadingMore,
+                onLoadMore: () => context.read<ActivityBloc>().add(
+                  LoadMoreActivities(tripId: tripId),
+                ),
+                onRefresh: () async {
+                  context.read<ActivityBloc>().add(
+                    LoadActivities(tripId: tripId),
+                  );
+                },
+                padding: const EdgeInsets.all(16),
+                emptyWidget: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -119,46 +135,27 @@ class ActivitiesView extends StatelessWidget {
                       ),
                     ],
                   ),
-                );
-              }
-              final sortedKeys = groupedByDay.keys.toList()..sort();
-              return ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: sortedKeys.length,
-                itemBuilder: (context, index) {
-                  final dateKey = sortedKeys[index];
-                  final dayActivities = groupedByDay[dateKey]!;
-                  final dateLabel = DateFormat(
-                    'EEEE d MMMM yyyy',
-                  ).format(DateTime.parse(dateKey));
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Text(
-                          dateLabel,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      ...dayActivities.map(
-                        (activity) => ActivityCard(
-                          activity: activity,
-                          isViewer: role == 'VIEWER' || isCompleted,
-                          onEdit: () =>
-                              _showForm(context, tripId, activity: activity),
-                          onDelete: () => context.read<ActivityBloc>().add(
-                            DeleteActivity(
-                              tripId: tripId,
-                              activityId: activity.id,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
+                ),
+                groupBy: _groupByDay,
+                sectionHeaderBuilder: (context, dateKey) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    DateFormat(
+                      'EEEE d MMMM yyyy',
+                    ).format(DateTime.parse(dateKey)),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                itemBuilder: (context, activity, _) => ActivityCard(
+                  activity: activity,
+                  isViewer: role == 'VIEWER' || isCompleted,
+                  onEdit: () => _showForm(context, tripId, activity: activity),
+                  onDelete: () => context.read<ActivityBloc>().add(
+                    DeleteActivity(tripId: tripId, activityId: activity.id),
+                  ),
+                ),
               );
             }
             return const SizedBox.shrink();
@@ -172,6 +169,15 @@ class ActivitiesView extends StatelessWidget {
             : null,
       ),
     );
+  }
+
+  Map<String, List<Activity>> _groupByDay(List<Activity> activities) {
+    final Map<String, List<Activity>> grouped = {};
+    for (final activity in activities) {
+      final key = DateFormat('yyyy-MM-dd').format(activity.date);
+      grouped.putIfAbsent(key, () => []).add(activity);
+    }
+    return grouped;
   }
 
   void _showSuggestionsSheet(

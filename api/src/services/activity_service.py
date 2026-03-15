@@ -1,4 +1,5 @@
 from datetime import date, time
+from math import ceil
 from uuid import UUID
 
 from sqlalchemy import asc
@@ -62,6 +63,21 @@ class ActivityService:
             .order_by(asc(Activity.date), asc(Activity.start_time))
             .all()
         )
+
+    @staticmethod
+    def get_by_trip_paginated(
+        db: Session, trip_id: UUID, page: int = 1, limit: int = 20
+    ) -> tuple[list[Activity], int, int]:
+        """Get paginated activities for a trip. Returns (items, total, total_pages)."""
+        query = (
+            db.query(Activity)
+            .filter(Activity.trip_id == trip_id)
+            .order_by(asc(Activity.date), asc(Activity.start_time))
+        )
+        total = query.count()
+        total_pages = ceil(total / limit) if limit > 0 else 0
+        items = query.offset((page - 1) * limit).limit(limit).all()
+        return items, total, total_pages
 
     @staticmethod
     def get_by_id(db: Session, activity_id: UUID, trip_id: UUID) -> Activity:

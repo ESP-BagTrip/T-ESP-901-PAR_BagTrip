@@ -17,7 +17,12 @@ void main() {
   });
 
   /// Helper to stub getNotifications with a standard success response.
-  void stubLoadNotificationsSuccess() {
+  void stubLoadNotificationsSuccess({
+    int page = 1,
+    int totalPages = 1,
+    int total = 1,
+    List<AppNotification>? items,
+  }) {
     when(
       () => mockNotifRepo.getNotifications(
         page: any(named: 'page'),
@@ -25,11 +30,34 @@ void main() {
       ),
     ).thenAnswer(
       (_) async => Success(<String, dynamic>{
-        'items': <AppNotification>[makeAppNotification()],
+        'items': items ?? <AppNotification>[makeAppNotification()],
         'unreadCount': 1,
-        'totalPages': 1,
-        'page': 1,
-        'total': 1,
+        'totalPages': totalPages,
+        'page': page,
+        'total': total,
+      }),
+    );
+  }
+
+  void stubLoadNotificationsPage(
+    int page, {
+    int totalPages = 2,
+    List<AppNotification>? items,
+  }) {
+    when(
+      () => mockNotifRepo.getNotifications(
+        page: page,
+        limit: any(named: 'limit'),
+      ),
+    ).thenAnswer(
+      (_) async => Success(<String, dynamic>{
+        'items':
+            items ??
+            <AppNotification>[makeAppNotification(id: 'notif-page-$page')],
+        'unreadCount': 0,
+        'totalPages': totalPages,
+        'page': page,
+        'total': 2,
       }),
     );
   }
@@ -52,6 +80,7 @@ void main() {
         expect(state.totalPages, 1);
         expect(state.currentPage, 1);
         expect(state.total, 1);
+        expect(state.isLoadingMore, false);
       },
     );
 
@@ -68,6 +97,115 @@ void main() {
       },
       act: (bloc) => bloc.add(LoadNotifications()),
       expect: () => [isA<NotificationLoading>(), isA<NotificationError>()],
+    );
+
+    // ── LoadMoreNotifications ─────────────────────────────────────────
+
+    blocTest<NotificationBloc, NotificationState>(
+      'LoadMoreNotifications appends items from next page',
+      build: () {
+        stubLoadNotificationsPage(1);
+        stubLoadNotificationsPage(2);
+        return NotificationBloc(notificationRepository: mockNotifRepo);
+      },
+      seed: () => NotificationsLoaded(
+        notifications: [makeAppNotification(id: 'notif-page-1')],
+        unreadCount: 1,
+        totalPages: 2,
+        currentPage: 1,
+        total: 2,
+      ),
+      act: (bloc) => bloc.add(LoadMoreNotifications()),
+      expect: () => [
+        // isLoadingMore = true
+        isA<NotificationsLoaded>().having(
+          (s) => s.isLoadingMore,
+          'isLoadingMore',
+          true,
+        ),
+        // Loaded with appended items
+        isA<NotificationsLoaded>().having(
+          (s) => s.notifications.length,
+          'notifications.length',
+          2,
+        ),
+      ],
+      verify: (bloc) {
+        final state = bloc.state as NotificationsLoaded;
+        expect(state.currentPage, 2);
+        expect(state.isLoadingMore, false);
+      },
+    );
+
+    blocTest<NotificationBloc, NotificationState>(
+      'LoadMoreNotifications does nothing when hasMore is false',
+      build: () {
+        return NotificationBloc(notificationRepository: mockNotifRepo);
+      },
+      seed: () => NotificationsLoaded(
+        notifications: [makeAppNotification()],
+        unreadCount: 0,
+        totalPages: 1,
+        currentPage: 1,
+        total: 1,
+      ),
+      act: (bloc) => bloc.add(LoadMoreNotifications()),
+      expect: () => <NotificationState>[],
+    );
+
+    blocTest<NotificationBloc, NotificationState>(
+      'LoadMoreNotifications does nothing when already loading',
+      build: () {
+        return NotificationBloc(notificationRepository: mockNotifRepo);
+      },
+      seed: () => NotificationsLoaded(
+        notifications: [makeAppNotification()],
+        unreadCount: 0,
+        totalPages: 2,
+        currentPage: 1,
+        total: 2,
+        isLoadingMore: true, // ignore: avoid_redundant_argument_values
+      ),
+      act: (bloc) => bloc.add(LoadMoreNotifications()),
+      expect: () => <NotificationState>[],
+    );
+
+    blocTest<NotificationBloc, NotificationState>(
+      'LoadMoreNotifications preserves data on failure',
+      build: () {
+        when(
+          () => mockNotifRepo.getNotifications(
+            page: 2,
+            limit: any(named: 'limit'),
+          ),
+        ).thenAnswer((_) async => const Failure(NetworkError('err')));
+        return NotificationBloc(notificationRepository: mockNotifRepo);
+      },
+      seed: () => NotificationsLoaded(
+        notifications: [makeAppNotification()],
+        unreadCount: 1,
+        totalPages: 2,
+        currentPage: 1,
+        total: 2,
+      ),
+      act: (bloc) => bloc.add(LoadMoreNotifications()),
+      expect: () => [
+        isA<NotificationsLoaded>().having(
+          (s) => s.isLoadingMore,
+          'isLoadingMore',
+          true,
+        ),
+        isA<NotificationsLoaded>().having(
+          (s) => s.notifications.length,
+          'notifications preserved',
+          1,
+        ),
+      ],
+      verify: (bloc) {
+        final state = bloc.state as NotificationsLoaded;
+        expect(state.currentPage, 1);
+        expect(state.isLoadingMore, false);
+      },
     );
 
     // ── LoadUnreadCount ─────────────────────────────────────────────────
