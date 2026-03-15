@@ -127,4 +127,111 @@ class AccommodationRepositoryImpl implements AccommodationRepository {
       return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
+
+  @override
+  Future<Result<List<Map<String, dynamic>>>> suggestAccommodations(
+    String tripId, {
+    String? constraints,
+  }) async {
+    try {
+      final response = await _apiClient.post(
+        '/trips/$tripId/accommodations/suggest',
+        data: {if (constraints != null) 'constraints': constraints},
+      );
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final items =
+            (data['accommodations'] as List?)
+                ?.map((e) => Map<String, dynamic>.from(e as Map))
+                .toList() ??
+            [];
+        return Success(items);
+      }
+      return loggedFailure(
+        UnknownError('suggest accommodations failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<List<Map<String, dynamic>>>> searchHotelsByCity(
+    String cityCode, {
+    String? checkIn,
+    String? checkOut,
+    int? adults,
+    String? ratings,
+  }) async {
+    try {
+      final params = <String, dynamic>{
+        'cityCode': cityCode,
+        if (checkIn != null) 'checkInDate': checkIn,
+        if (checkOut != null) 'checkOutDate': checkOut,
+        if (adults != null) 'adults': adults,
+        if (ratings != null) 'ratings': ratings,
+      };
+      final response = await _apiClient.get(
+        '/travel/hotels/by-city',
+        queryParameters: params,
+      );
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final items =
+            (data['data'] as List?)
+                ?.map((e) => Map<String, dynamic>.from(e as Map))
+                .toList() ??
+            [];
+        return Success(items);
+      }
+      return loggedFailure(
+        UnknownError('search hotels failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<List<Map<String, dynamic>>>> searchHotelOffers(
+    String hotelIds, {
+    String? checkIn,
+    String? checkOut,
+    int? adults,
+    String? currency,
+  }) async {
+    try {
+      final params = <String, dynamic>{
+        'hotelIds': hotelIds,
+        if (checkIn != null) 'checkInDate': checkIn,
+        if (checkOut != null) 'checkOutDate': checkOut,
+        if (adults != null) 'adults': adults,
+        if (currency != null) 'currency': currency,
+      };
+      final response = await _apiClient.get(
+        '/travel/hotels/offers',
+        queryParameters: params,
+      );
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final items =
+            (data['data'] as List?)
+                ?.map((e) => Map<String, dynamic>.from(e as Map))
+                .toList() ??
+            [];
+        return Success(items);
+      }
+      return loggedFailure(
+        UnknownError('search hotel offers failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
 }

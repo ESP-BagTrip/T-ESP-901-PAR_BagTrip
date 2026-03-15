@@ -1768,4 +1768,66 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activityValidateConfirm => 'Confirm';
+
+  @override
+  String get accommodationSearchHotels => 'Search a hotel';
+
+  @override
+  String get accommodationSearchHotelsSubtitle => 'Find and compare prices';
+
+  @override
+  String get accommodationAddManually => 'Add manually';
+
+  @override
+  String get accommodationAddManuallySubtitle =>
+      'Airbnb, hostel, hotel, camping...';
+
+  @override
+  String get accommodationAiSuggestTitle => 'AI Recommendations';
+
+  @override
+  String get accommodationAiSuggestLoading => 'Generating suggestions...';
+
+  @override
+  String get accommodationEstimatedPrice => 'Estimated price';
+
+  @override
+  String get accommodationNights => 'night(s)';
+
+  @override
+  String get accommodationTotal => 'Total';
+
+  @override
+  String get accommodationSearchInArea => 'Search in area';
+
+  @override
+  String get accommodationTypeHotel => 'Hotel';
+
+  @override
+  String get accommodationTypeAirbnb => 'Airbnb';
+
+  @override
+  String get accommodationTypeHostel => 'Hostel';
+
+  @override
+  String get accommodationTypeCamping => 'Camping';
+
+  @override
+  String get accommodationTypeGuesthouse => 'Guesthouse';
+
+  @override
+  String get accommodationTypeResort => 'Resort';
+
+  @override
+  String get accommodationTypeOther => 'Other';
+
+  @override
+  String get accommodationPricePerNight => 'Price/night';
+
+  @override
+  String get accommodationUpdated => 'Accommodation updated';
+
+  @override
+  String get accommodationAiDisclaimer =>
+      'AI suggestions — verify availability and prices';
 }

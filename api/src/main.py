@@ -167,6 +167,14 @@ from src.api.ai.inspire_routes import router as ai_inspire_router
 
 app.include_router(ai_inspire_router)
 
+from src.api.ai.accommodation_suggest_routes import router as ai_accommodation_suggest_router
+
+app.include_router(ai_accommodation_suggest_router)
+
+from src.api.hotels.routes import router as hotel_search_router
+
+app.include_router(hotel_search_router)
+
 
 # Gestion globale des erreurs
 @app.exception_handler(AppError)

@@ -487,3 +487,94 @@ class FlightOrderResponse(BaseModel):
     """Réponse de création de commande."""
 
     data: dict
+
+
+# ============================================================================
+# HOTEL TYPES
+# ============================================================================
+
+
+class HotelListSearchQuery(BaseModel):
+    """Requête de recherche d'hôtels par ville."""
+
+    cityCode: str = Field(..., description="IATA city code (e.g. PAR)")
+    radius: int | None = None
+    radiusUnit: Literal["KM", "MILE"] | None = None
+    ratings: str | None = Field(None, description="Comma-separated star ratings, e.g. '3,4,5'")
+    hotelSource: Literal["ALL", "BEDBANK", "DIRECTCHAIN"] | None = None
+
+
+class HotelGeoCode(BaseModel):
+    """Coordonnées géographiques d'un hôtel."""
+
+    latitude: float
+    longitude: float
+
+
+class HotelAddress(BaseModel):
+    """Adresse d'un hôtel."""
+
+    countryCode: str | None = None
+
+
+class HotelListItem(BaseModel):
+    """Hôtel trouvé via Hotel List API."""
+
+    chainCode: str | None = None
+    iataCode: str | None = None
+    dupeId: int | None = None
+    name: str | None = None
+    hotelId: str
+    geoCode: HotelGeoCode | None = None
+    address: HotelAddress | None = None
+    lastUpdate: str | None = None
+
+
+class HotelListResponse(BaseModel):
+    """Réponse de recherche d'hôtels par ville."""
+
+    data: list[HotelListItem]
+
+
+class HotelOffersSearchQuery(BaseModel):
+    """Requête de recherche d'offres d'hôtels."""
+
+    hotelIds: str = Field(..., description="Comma-separated hotel IDs (max 50)")
+    adults: int | None = 1
+    checkInDate: str | None = Field(None, description="YYYY-MM-DD")
+    checkOutDate: str | None = Field(None, description="YYYY-MM-DD")
+    currency: str | None = None
+
+
+class HotelOfferPrice(BaseModel):
+    """Prix d'une offre d'hôtel."""
+
+    currency: str | None = None
+    base: str | None = None
+    total: str | None = None
+
+
+class HotelOffer(BaseModel):
+    """Offre d'hôtel."""
+
+    id: str | None = None
+    checkInDate: str | None = None
+    checkOutDate: str | None = None
+    room: dict | None = None
+    guests: dict | None = None
+    price: HotelOfferPrice | None = None
+
+
+class HotelOfferResult(BaseModel):
+    """Résultat d'une recherche d'offres d'hôtel."""
+
+    type: str = "hotel-offers"
+    hotel: dict
+    available: bool = True
+    offers: list[HotelOffer] = []
+
+
+class HotelOffersResponse(BaseModel):
+    """Réponse de recherche d'offres d'hôtels."""
+
+    data: list[HotelOfferResult]

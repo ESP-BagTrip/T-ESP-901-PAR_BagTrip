@@ -3421,6 +3421,126 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Confirmer'**
   String get activityValidateConfirm;
+
+  /// No description provided for @accommodationSearchHotels.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher un hôtel'**
+  String get accommodationSearchHotels;
+
+  /// No description provided for @accommodationSearchHotelsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trouver et comparer les prix'**
+  String get accommodationSearchHotelsSubtitle;
+
+  /// No description provided for @accommodationAddManually.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter manuellement'**
+  String get accommodationAddManually;
+
+  /// No description provided for @accommodationAddManuallySubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Airbnb, auberge, hôtel, camping...'**
+  String get accommodationAddManuallySubtitle;
+
+  /// No description provided for @accommodationAiSuggestTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recommandations IA'**
+  String get accommodationAiSuggestTitle;
+
+  /// No description provided for @accommodationAiSuggestLoading.
+  ///
+  /// In fr, this message translates to:
+  /// **'Génération des suggestions...'**
+  String get accommodationAiSuggestLoading;
+
+  /// No description provided for @accommodationEstimatedPrice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prix estimé'**
+  String get accommodationEstimatedPrice;
+
+  /// No description provided for @accommodationNights.
+  ///
+  /// In fr, this message translates to:
+  /// **'nuit(s)'**
+  String get accommodationNights;
+
+  /// No description provided for @accommodationTotal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Total'**
+  String get accommodationTotal;
+
+  /// No description provided for @accommodationSearchInArea.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher dans le quartier'**
+  String get accommodationSearchInArea;
+
+  /// No description provided for @accommodationTypeHotel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hôtel'**
+  String get accommodationTypeHotel;
+
+  /// No description provided for @accommodationTypeAirbnb.
+  ///
+  /// In fr, this message translates to:
+  /// **'Airbnb'**
+  String get accommodationTypeAirbnb;
+
+  /// No description provided for @accommodationTypeHostel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Auberge'**
+  String get accommodationTypeHostel;
+
+  /// No description provided for @accommodationTypeCamping.
+  ///
+  /// In fr, this message translates to:
+  /// **'Camping'**
+  String get accommodationTypeCamping;
+
+  /// No description provided for @accommodationTypeGuesthouse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Maison d\'hôtes'**
+  String get accommodationTypeGuesthouse;
+
+  /// No description provided for @accommodationTypeResort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Resort'**
+  String get accommodationTypeResort;
+
+  /// No description provided for @accommodationTypeOther.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autre'**
+  String get accommodationTypeOther;
+
+  /// No description provided for @accommodationPricePerNight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prix/nuit'**
+  String get accommodationPricePerNight;
+
+  /// No description provided for @accommodationUpdated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hébergement mis à jour'**
+  String get accommodationUpdated;
+
+  /// No description provided for @accommodationAiDisclaimer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suggestions IA — vérifiez disponibilité et tarifs'**
+  String get accommodationAiDisclaimer;
 }
 
 class _AppLocalizationsDelegate

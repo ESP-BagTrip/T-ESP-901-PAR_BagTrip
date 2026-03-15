@@ -23,4 +23,22 @@ abstract class AccommodationRepository {
     String tripId,
     String accommodationId,
   );
+  Future<Result<List<Map<String, dynamic>>>> suggestAccommodations(
+    String tripId, {
+    String? constraints,
+  });
+  Future<Result<List<Map<String, dynamic>>>> searchHotelsByCity(
+    String cityCode, {
+    String? checkIn,
+    String? checkOut,
+    int? adults,
+    String? ratings,
+  });
+  Future<Result<List<Map<String, dynamic>>>> searchHotelOffers(
+    String hotelIds, {
+    String? checkIn,
+    String? checkOut,
+    int? adults,
+    String? currency,
+  });
 }

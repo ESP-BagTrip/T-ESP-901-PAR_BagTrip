@@ -1786,4 +1786,67 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get activityValidateConfirm => 'Confirmer';
+
+  @override
+  String get accommodationSearchHotels => 'Rechercher un hôtel';
+
+  @override
+  String get accommodationSearchHotelsSubtitle =>
+      'Trouver et comparer les prix';
+
+  @override
+  String get accommodationAddManually => 'Ajouter manuellement';
+
+  @override
+  String get accommodationAddManuallySubtitle =>
+      'Airbnb, auberge, hôtel, camping...';
+
+  @override
+  String get accommodationAiSuggestTitle => 'Recommandations IA';
+
+  @override
+  String get accommodationAiSuggestLoading => 'Génération des suggestions...';
+
+  @override
+  String get accommodationEstimatedPrice => 'Prix estimé';
+
+  @override
+  String get accommodationNights => 'nuit(s)';
+
+  @override
+  String get accommodationTotal => 'Total';
+
+  @override
+  String get accommodationSearchInArea => 'Rechercher dans le quartier';
+
+  @override
+  String get accommodationTypeHotel => 'Hôtel';
+
+  @override
+  String get accommodationTypeAirbnb => 'Airbnb';
+
+  @override
+  String get accommodationTypeHostel => 'Auberge';
+
+  @override
+  String get accommodationTypeCamping => 'Camping';
+
+  @override
+  String get accommodationTypeGuesthouse => 'Maison d\'hôtes';
+
+  @override
+  String get accommodationTypeResort => 'Resort';
+
+  @override
+  String get accommodationTypeOther => 'Autre';
+
+  @override
+  String get accommodationPricePerNight => 'Prix/nuit';
+
+  @override
+  String get accommodationUpdated => 'Hébergement mis à jour';
+
+  @override
+  String get accommodationAiDisclaimer =>
+      'Suggestions IA — vérifiez disponibilité et tarifs';
 }

@@ -7,6 +7,10 @@ from .flights import (
     search_flight_destinations,
     search_flight_offers,
 )
+from .hotels import (
+    search_hotel_list,
+    search_hotel_offers,
+)
 from .locations import (
     search_location_by_id,
     search_location_nearest,
@@ -18,6 +22,8 @@ from .types import (
     FlightOffer,
     FlightOfferSearchQuery,
     FlightOrderTraveler,
+    HotelListSearchQuery,
+    HotelOffersSearchQuery,
     LocationIdSearchQuery,
     LocationKeywordSearchQuery,
     LocationNearestSearchQuery,
@@ -62,6 +68,15 @@ class AmadeusClient:
     ):
         """Crée une commande de vol."""
         return await create_flight_order(flight_offer, travelers)
+
+    # Hotel methods
+    async def search_hotel_list(self, query: HotelListSearchQuery):
+        """Recherche d'hôtels par ville."""
+        return await search_hotel_list(query)
+
+    async def search_hotel_offers(self, query: HotelOffersSearchQuery):
+        """Recherche d'offres d'hôtels."""
+        return await search_hotel_offers(query)
 
 
 # Instance globale du client

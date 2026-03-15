@@ -8,7 +8,7 @@ import 'package:bagtrip/home/view/home_page.dart';
 import 'package:bagtrip/navigation/page_transitions.dart';
 import 'package:bagtrip/notifications/view/activity_page.dart';
 import 'package:bagtrip/notifications/view/notifications_page.dart';
-import 'package:bagtrip/pages/accommodations_page.dart';
+import 'package:bagtrip/accommodations/view/accommodations_page.dart';
 import 'package:bagtrip/pages/baggage_page.dart';
 import 'package:bagtrip/pages/feedback_page.dart';
 import 'package:bagtrip/pages/flight_search_result_page.dart';
