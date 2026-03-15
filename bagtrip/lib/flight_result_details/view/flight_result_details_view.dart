@@ -33,7 +33,7 @@ class FlightResultDetailsView extends StatelessWidget {
             if (context.canPop()) {
               context.pop();
             } else {
-              const TripsRoute().go(context);
+              const HomeRoute().go(context);
             }
           },
         ),

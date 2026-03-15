@@ -36,8 +36,18 @@ class TripRepositoryImpl implements TripRepository {
           'title': title,
           if (originIata != null) 'originIata': originIata,
           if (destinationIata != null) 'destinationIata': destinationIata,
-          if (startDate != null) 'startDate': startDate.toIso8601String(),
-          if (endDate != null) 'endDate': endDate.toIso8601String(),
+          if (startDate != null)
+            'startDate': DateTime(
+              startDate.year,
+              startDate.month,
+              startDate.day,
+            ).toIso8601String(),
+          if (endDate != null)
+            'endDate': DateTime(
+              endDate.year,
+              endDate.month,
+              endDate.day,
+            ).toIso8601String(),
           if (description != null) 'description': description,
           if (destinationName != null) 'destinationName': destinationName,
           if (nbTravelers != null) 'nbTravelers': nbTravelers,

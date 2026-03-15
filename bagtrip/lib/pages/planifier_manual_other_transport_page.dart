@@ -39,7 +39,7 @@ class _PlanifierManualOtherTransportPageState
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => const PlanifierManualTransportRoute().go(context),
+          onPressed: () => const HomeRoute().go(context),
         ),
         title: Text(
           l10n.otherTransportTitle,
@@ -128,14 +128,11 @@ class _PlanifierManualOtherTransportPageState
               hint: l10n.transportBudgetHint,
             ),
             const SizedBox(height: 32),
-            _ContinueButton(
-              onPressed: () =>
-                  const PlanifierManualTransportRoute().go(context),
-            ),
+            _ContinueButton(onPressed: () => const HomeRoute().go(context)),
             const SizedBox(height: 16),
             Center(
               child: GestureDetector(
-                onTap: () => const PlanifierManualTransportRoute().go(context),
+                onTap: () => const HomeRoute().go(context),
                 child: Text(
                   l10n.skipThisStepLabel,
                   style: const TextStyle(

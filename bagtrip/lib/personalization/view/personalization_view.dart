@@ -39,11 +39,11 @@ class PersonalizationView extends StatelessWidget {
               GoRouterState.of(context).uri.queryParameters['from'] ==
               'createTripAi';
           if (fromCreateTripAi) {
-            const CreateTripAiRoute().go(context);
+            const TripCreationRoute().go(context);
           } else if (Navigator.of(context).canPop()) {
             context.pop();
           } else {
-            const TripsRoute().go(context);
+            const HomeRoute().go(context);
           }
         }
       },

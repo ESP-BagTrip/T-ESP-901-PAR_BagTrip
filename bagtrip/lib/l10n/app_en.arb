@@ -450,8 +450,7 @@
   "comingSoon": "Coming soon",
   "errorTitle": "Error",
   "backButton": "Back",
-  "tabExplorer": "Explore",
-  "tabTrips": "Trips",
+  "tabHome": "Home",
   "tabActivity": "Activity",
   "tabProfile": "Profile",
   "notificationsTitle": "Notifications",
@@ -632,5 +631,29 @@
   },
   "settingsTitle": "Settings",
   "personalInfoPageTitle": "Personal information",
-  "travelPreferencesTitle": "Travel preferences"
+  "travelPreferencesTitle": "Travel preferences",
+  "homeGreeting": "Welcome back, {name}",
+  "@homeGreeting": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "homeWelcomeTitle": "Ready to travel?",
+  "homeWelcomeSubtitle": "Create your first trip in a few steps. Manual or AI-assisted — your choice.",
+  "homeCreateFirstTrip": "Create my first trip",
+  "planTripCta": "Plan a trip",
+  "planTripCtaSubtitle": "Manual or AI-assisted",
+  "inspireMe": "Inspire me",
+  "datesLabel": "DATES",
+  "suggestedDuration": "Suggested duration",
+  "days": "days",
+  "reviewTitle": "Summary",
+  "aiSuggestionsTitle": "AI SUGGESTIONS",
+  "createTripButton": "Create trip",
+  "tripCreatedSuccess": "Trip created successfully!",
+  "stepDestination": "Where?",
+  "stepDates": "When?",
+  "stepTravelers": "Who?",
+  "stepTransport": "Transport",
+  "stepReview": "Review"
 }

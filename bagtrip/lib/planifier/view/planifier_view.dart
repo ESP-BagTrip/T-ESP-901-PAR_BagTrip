@@ -163,7 +163,7 @@ class PlanifierView extends StatelessWidget {
             child: _CreateTripCardManual(
               title: l10n.planifierManualTitle,
               description: l10n.planifierManualDescriptionCard,
-              onTap: () => const PlanifierManualRoute().go(context),
+              onTap: () => const TripCreationRoute().go(context),
             ),
           ),
           const SizedBox(width: AppSpacing.space16),
@@ -183,7 +183,7 @@ class PlanifierView extends StatelessWidget {
                         .hasSeenPersonalizationPrompt(userId);
                 if (!context.mounted) return;
                 if (hasSeen) {
-                  const CreateTripAiRoute().go(context);
+                  const TripCreationRoute().go(context);
                 } else {
                   const PersonalizationRoute(from: 'createTripAi').go(context);
                 }
@@ -328,7 +328,7 @@ class PlanifierView extends StatelessWidget {
               colors: [Color(0xFF2D6A6A), Color(0xFF1B4D4D)],
             ),
             icon: Icons.eco_rounded,
-            onTap: () => const CreateTripAiRoute().go(context),
+            onTap: () => const TripCreationRoute().go(context),
           ),
           const SizedBox(width: AppSpacing.space8),
           _DestinationCard(
@@ -340,7 +340,7 @@ class PlanifierView extends StatelessWidget {
               colors: [ColorName.primary, ColorName.primaryDark],
             ),
             icon: Icons.account_balance_rounded,
-            onTap: () => const CreateTripAiRoute().go(context),
+            onTap: () => const TripCreationRoute().go(context),
           ),
           const SizedBox(width: AppSpacing.space8),
           _DestinationCard(
@@ -352,7 +352,7 @@ class PlanifierView extends StatelessWidget {
               colors: [Color(0xFFC45C26), Color(0xFF8B4513)],
             ),
             icon: Icons.landscape_rounded,
-            onTap: () => const CreateTripAiRoute().go(context),
+            onTap: () => const TripCreationRoute().go(context),
           ),
         ],
       ),

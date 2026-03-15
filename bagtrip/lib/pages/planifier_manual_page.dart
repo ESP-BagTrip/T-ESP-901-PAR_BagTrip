@@ -16,7 +16,7 @@ class PlanifierManualPage extends StatelessWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => const PlanifierRoute().go(context),
+          onPressed: () => const HomeRoute().go(context),
         ),
         title: Text(
           l10n.yourDestinationTitle,

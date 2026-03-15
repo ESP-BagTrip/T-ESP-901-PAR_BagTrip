@@ -179,14 +179,14 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                 final user = userResult.dataOrNull;
                 if (!context.mounted) return;
                 if (user == null || user.id.isEmpty) {
-                  const TripsRoute().go(context);
+                  const HomeRoute().go(context);
                   return;
                 }
                 final hasSeen = await getIt<PersonalizationStorage>()
                     .hasSeenPersonalizationPrompt(user.id);
                 if (!context.mounted) return;
                 if (hasSeen) {
-                  const TripsRoute().go(context);
+                  const HomeRoute().go(context);
                 } else {
                   const PersonalizationRoute().go(context);
                 }

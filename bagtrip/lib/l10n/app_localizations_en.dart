@@ -1122,10 +1122,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backButton => 'Back';
 
   @override
-  String get tabExplorer => 'Explore';
-
-  @override
-  String get tabTrips => 'Trips';
+  String get tabHome => 'Home';
 
   @override
   String get tabActivity => 'Activity';
@@ -1592,4 +1589,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get travelPreferencesTitle => 'Travel preferences';
+
+  @override
+  String homeGreeting(String name) {
+    return 'Welcome back, $name';
+  }
+
+  @override
+  String get homeWelcomeTitle => 'Ready to travel?';
+
+  @override
+  String get homeWelcomeSubtitle =>
+      'Create your first trip in a few steps. Manual or AI-assisted — your choice.';
+
+  @override
+  String get homeCreateFirstTrip => 'Create my first trip';
+
+  @override
+  String get planTripCta => 'Plan a trip';
+
+  @override
+  String get planTripCtaSubtitle => 'Manual or AI-assisted';
+
+  @override
+  String get inspireMe => 'Inspire me';
+
+  @override
+  String get datesLabel => 'DATES';
+
+  @override
+  String get suggestedDuration => 'Suggested duration';
+
+  @override
+  String get days => 'days';
+
+  @override
+  String get reviewTitle => 'Summary';
+
+  @override
+  String get aiSuggestionsTitle => 'AI SUGGESTIONS';
+
+  @override
+  String get createTripButton => 'Create trip';
+
+  @override
+  String get tripCreatedSuccess => 'Trip created successfully!';
+
+  @override
+  String get stepDestination => 'Where?';
+
+  @override
+  String get stepDates => 'When?';
+
+  @override
+  String get stepTravelers => 'Who?';
+
+  @override
+  String get stepTransport => 'Transport';
+
+  @override
+  String get stepReview => 'Review';
 }

@@ -64,7 +64,7 @@ class _SplashPageState extends State<SplashPage> {
         }
       }
       if (!mounted) return;
-      const TripsRoute().go(context);
+      const HomeRoute().go(context);
     } else {
       await authRepository.logout();
       if (!mounted) return;

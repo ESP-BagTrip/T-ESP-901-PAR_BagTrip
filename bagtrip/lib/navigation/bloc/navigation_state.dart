@@ -1,11 +1,11 @@
 part of 'navigation_bloc.dart';
 
-enum NavigationTab { explorer, trips, activity, profile }
+enum NavigationTab { home, activity, profile }
 
 class NavigationState {
   final NavigationTab activeTab;
 
-  const NavigationState({this.activeTab = NavigationTab.trips});
+  const NavigationState({this.activeTab = NavigationTab.home});
 
   NavigationState copyWith({NavigationTab? activeTab}) {
     return NavigationState(activeTab: activeTab ?? this.activeTab);

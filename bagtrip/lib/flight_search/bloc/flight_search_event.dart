@@ -109,3 +109,17 @@ class SearchFlights extends FlightSearchEvent {}
 class ShowValidationErrors extends FlightSearchEvent {}
 
 class SwapAirports extends FlightSearchEvent {}
+
+class InitWithPrefilledData extends FlightSearchEvent {
+  final Map<String, dynamic>? arrivalAirport;
+  final DateTime? departureDate;
+  final DateTime? returnDate;
+  final int? adults;
+
+  InitWithPrefilledData({
+    this.arrivalAirport,
+    this.departureDate,
+    this.returnDate,
+    this.adults,
+  });
+}

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Trip {
 
- String get id; String get userId; String? get title; String? get originIata; String? get destinationIata; DateTime? get startDate; DateTime? get endDate;@TripStatusConverter() TripStatus get status; String? get description; String? get destinationName; int? get nbTravelers; String? get coverImageUrl; double? get budgetTotal; String? get origin; String? get role; DateTime? get createdAt; DateTime? get updatedAt;
+ String get id; String? get userId; String? get title; String? get originIata; String? get destinationIata; DateTime? get startDate; DateTime? get endDate;@TripStatusConverter() TripStatus get status; String? get description; String? get destinationName; int? get nbTravelers; String? get coverImageUrl; double? get budgetTotal; String? get origin; String? get role; DateTime? get createdAt; DateTime? get updatedAt;
 /// Create a copy of Trip
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $TripCopyWith<$Res>  {
   factory $TripCopyWith(Trip value, $Res Function(Trip) _then) = _$TripCopyWithImpl;
 @useResult
 $Res call({
- String id, String userId, String? title, String? originIata, String? destinationIata, DateTime? startDate, DateTime? endDate,@TripStatusConverter() TripStatus status, String? description, String? destinationName, int? nbTravelers, String? coverImageUrl, double? budgetTotal, String? origin, String? role, DateTime? createdAt, DateTime? updatedAt
+ String id, String? userId, String? title, String? originIata, String? destinationIata, DateTime? startDate, DateTime? endDate,@TripStatusConverter() TripStatus status, String? description, String? destinationName, int? nbTravelers, String? coverImageUrl, double? budgetTotal, String? origin, String? role, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -65,11 +65,11 @@ class _$TripCopyWithImpl<$Res>
 
 /// Create a copy of Trip
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? title = freezed,Object? originIata = freezed,Object? destinationIata = freezed,Object? startDate = freezed,Object? endDate = freezed,Object? status = null,Object? description = freezed,Object? destinationName = freezed,Object? nbTravelers = freezed,Object? coverImageUrl = freezed,Object? budgetTotal = freezed,Object? origin = freezed,Object? role = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = freezed,Object? title = freezed,Object? originIata = freezed,Object? destinationIata = freezed,Object? startDate = freezed,Object? endDate = freezed,Object? status = null,Object? description = freezed,Object? destinationName = freezed,Object? nbTravelers = freezed,Object? coverImageUrl = freezed,Object? budgetTotal = freezed,Object? origin = freezed,Object? role = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
-as String,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,originIata: freezed == originIata ? _self.originIata : originIata // ignore: cast_nullable_to_non_nullable
 as String?,destinationIata: freezed == destinationIata ? _self.destinationIata : destinationIata // ignore: cast_nullable_to_non_nullable
 as String?,startDate: freezed == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable
@@ -169,7 +169,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String userId,  String? title,  String? originIata,  String? destinationIata,  DateTime? startDate,  DateTime? endDate, @TripStatusConverter()  TripStatus status,  String? description,  String? destinationName,  int? nbTravelers,  String? coverImageUrl,  double? budgetTotal,  String? origin,  String? role,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? userId,  String? title,  String? originIata,  String? destinationIata,  DateTime? startDate,  DateTime? endDate, @TripStatusConverter()  TripStatus status,  String? description,  String? destinationName,  int? nbTravelers,  String? coverImageUrl,  double? budgetTotal,  String? origin,  String? role,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Trip() when $default != null:
 return $default(_that.id,_that.userId,_that.title,_that.originIata,_that.destinationIata,_that.startDate,_that.endDate,_that.status,_that.description,_that.destinationName,_that.nbTravelers,_that.coverImageUrl,_that.budgetTotal,_that.origin,_that.role,_that.createdAt,_that.updatedAt);case _:
@@ -190,7 +190,7 @@ return $default(_that.id,_that.userId,_that.title,_that.originIata,_that.destina
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String userId,  String? title,  String? originIata,  String? destinationIata,  DateTime? startDate,  DateTime? endDate, @TripStatusConverter()  TripStatus status,  String? description,  String? destinationName,  int? nbTravelers,  String? coverImageUrl,  double? budgetTotal,  String? origin,  String? role,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? userId,  String? title,  String? originIata,  String? destinationIata,  DateTime? startDate,  DateTime? endDate, @TripStatusConverter()  TripStatus status,  String? description,  String? destinationName,  int? nbTravelers,  String? coverImageUrl,  double? budgetTotal,  String? origin,  String? role,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Trip():
 return $default(_that.id,_that.userId,_that.title,_that.originIata,_that.destinationIata,_that.startDate,_that.endDate,_that.status,_that.description,_that.destinationName,_that.nbTravelers,_that.coverImageUrl,_that.budgetTotal,_that.origin,_that.role,_that.createdAt,_that.updatedAt);case _:
@@ -210,7 +210,7 @@ return $default(_that.id,_that.userId,_that.title,_that.originIata,_that.destina
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String userId,  String? title,  String? originIata,  String? destinationIata,  DateTime? startDate,  DateTime? endDate, @TripStatusConverter()  TripStatus status,  String? description,  String? destinationName,  int? nbTravelers,  String? coverImageUrl,  double? budgetTotal,  String? origin,  String? role,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? userId,  String? title,  String? originIata,  String? destinationIata,  DateTime? startDate,  DateTime? endDate, @TripStatusConverter()  TripStatus status,  String? description,  String? destinationName,  int? nbTravelers,  String? coverImageUrl,  double? budgetTotal,  String? origin,  String? role,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Trip() when $default != null:
 return $default(_that.id,_that.userId,_that.title,_that.originIata,_that.destinationIata,_that.startDate,_that.endDate,_that.status,_that.description,_that.destinationName,_that.nbTravelers,_that.coverImageUrl,_that.budgetTotal,_that.origin,_that.role,_that.createdAt,_that.updatedAt);case _:
@@ -225,11 +225,11 @@ return $default(_that.id,_that.userId,_that.title,_that.originIata,_that.destina
 @JsonSerializable()
 
 class _Trip implements Trip {
-  const _Trip({required this.id, required this.userId, this.title, this.originIata, this.destinationIata, this.startDate, this.endDate, @TripStatusConverter() this.status = TripStatus.draft, this.description, this.destinationName, this.nbTravelers, this.coverImageUrl, this.budgetTotal, this.origin, this.role, this.createdAt, this.updatedAt});
+  const _Trip({required this.id, this.userId, this.title, this.originIata, this.destinationIata, this.startDate, this.endDate, @TripStatusConverter() this.status = TripStatus.draft, this.description, this.destinationName, this.nbTravelers, this.coverImageUrl, this.budgetTotal, this.origin, this.role, this.createdAt, this.updatedAt});
   factory _Trip.fromJson(Map<String, dynamic> json) => _$TripFromJson(json);
 
 @override final  String id;
-@override final  String userId;
+@override final  String? userId;
 @override final  String? title;
 @override final  String? originIata;
 @override final  String? destinationIata;
@@ -279,7 +279,7 @@ abstract mixin class _$TripCopyWith<$Res> implements $TripCopyWith<$Res> {
   factory _$TripCopyWith(_Trip value, $Res Function(_Trip) _then) = __$TripCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String userId, String? title, String? originIata, String? destinationIata, DateTime? startDate, DateTime? endDate,@TripStatusConverter() TripStatus status, String? description, String? destinationName, int? nbTravelers, String? coverImageUrl, double? budgetTotal, String? origin, String? role, DateTime? createdAt, DateTime? updatedAt
+ String id, String? userId, String? title, String? originIata, String? destinationIata, DateTime? startDate, DateTime? endDate,@TripStatusConverter() TripStatus status, String? description, String? destinationName, int? nbTravelers, String? coverImageUrl, double? budgetTotal, String? origin, String? role, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -296,11 +296,11 @@ class __$TripCopyWithImpl<$Res>
 
 /// Create a copy of Trip
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? title = freezed,Object? originIata = freezed,Object? destinationIata = freezed,Object? startDate = freezed,Object? endDate = freezed,Object? status = null,Object? description = freezed,Object? destinationName = freezed,Object? nbTravelers = freezed,Object? coverImageUrl = freezed,Object? budgetTotal = freezed,Object? origin = freezed,Object? role = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = freezed,Object? title = freezed,Object? originIata = freezed,Object? destinationIata = freezed,Object? startDate = freezed,Object? endDate = freezed,Object? status = null,Object? description = freezed,Object? destinationName = freezed,Object? nbTravelers = freezed,Object? coverImageUrl = freezed,Object? budgetTotal = freezed,Object? origin = freezed,Object? role = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_Trip(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
-as String,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,originIata: freezed == originIata ? _self.originIata : originIata // ignore: cast_nullable_to_non_nullable
 as String?,destinationIata: freezed == destinationIata ? _self.destinationIata : destinationIata // ignore: cast_nullable_to_non_nullable
 as String?,startDate: freezed == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable

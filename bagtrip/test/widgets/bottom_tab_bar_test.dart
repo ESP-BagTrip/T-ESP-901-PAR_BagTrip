@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('BottomTabBar', () {
     Widget buildSubject({
-      NavigationTab activeTab = NavigationTab.trips,
+      NavigationTab activeTab = NavigationTab.home,
       ValueChanged<NavigationTab>? onTabChanged,
       int activityBadgeCount = 0,
     }) {
@@ -26,7 +26,7 @@ void main() {
       );
     }
 
-    testWidgets('renders 4 navigation destinations', (tester) async {
+    testWidgets('renders 3 navigation destinations', (tester) async {
       await tester.pumpWidget(buildSubject());
       await tester.pumpAndSettle();
 
@@ -34,49 +34,31 @@ void main() {
       expect(navBar, findsOneWidget);
 
       final widget = tester.widget<NavigationBar>(navBar);
-      expect(widget.destinations.length, 4);
+      expect(widget.destinations.length, 3);
     });
 
-    testWidgets('renders correct icons for each tab', (tester) async {
+    testWidgets('selected index matches home tab', (tester) async {
       await tester.pumpWidget(buildSubject());
-      await tester.pumpAndSettle();
-
-      expect(find.byIcon(Icons.explore_outlined), findsOneWidget);
-      expect(find.byIcon(Icons.luggage_outlined), findsWidgets);
-      expect(find.byIcon(Icons.notifications_outlined), findsWidgets);
-      expect(find.byIcon(Icons.person_outlined), findsOneWidget);
-    });
-
-    testWidgets('selected index matches explorer tab', (tester) async {
-      await tester.pumpWidget(buildSubject(activeTab: NavigationTab.explorer));
       await tester.pumpAndSettle();
 
       final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
       expect(navBar.selectedIndex, 0);
     });
 
-    testWidgets('selected index is 1 for trips tab', (tester) async {
-      await tester.pumpWidget(buildSubject());
+    testWidgets('selected index is 1 for activity tab', (tester) async {
+      await tester.pumpWidget(buildSubject(activeTab: NavigationTab.activity));
       await tester.pumpAndSettle();
 
       final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
       expect(navBar.selectedIndex, 1);
     });
 
-    testWidgets('selected index is 2 for activity tab', (tester) async {
-      await tester.pumpWidget(buildSubject(activeTab: NavigationTab.activity));
-      await tester.pumpAndSettle();
-
-      final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
-      expect(navBar.selectedIndex, 2);
-    });
-
-    testWidgets('selected index is 3 for profile tab', (tester) async {
+    testWidgets('selected index is 2 for profile tab', (tester) async {
       await tester.pumpWidget(buildSubject(activeTab: NavigationTab.profile));
       await tester.pumpAndSettle();
 
       final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
-      expect(navBar.selectedIndex, 3);
+      expect(navBar.selectedIndex, 2);
     });
 
     testWidgets('onDestinationSelected triggers onTabChanged', (tester) async {
@@ -90,10 +72,26 @@ void main() {
       final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
       navBar.onDestinationSelected?.call(0);
 
-      expect(tappedTab, NavigationTab.explorer);
+      expect(tappedTab, NavigationTab.home);
     });
 
-    testWidgets('onDestinationSelected fires activity for index 2', (
+    testWidgets('onDestinationSelected fires activity for index 1', (
+      tester,
+    ) async {
+      NavigationTab? tappedTab;
+
+      await tester.pumpWidget(
+        buildSubject(onTabChanged: (tab) => tappedTab = tab),
+      );
+      await tester.pumpAndSettle();
+
+      final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+      navBar.onDestinationSelected?.call(1);
+
+      expect(tappedTab, NavigationTab.activity);
+    });
+
+    testWidgets('onDestinationSelected fires profile for index 2', (
       tester,
     ) async {
       NavigationTab? tappedTab;
@@ -105,22 +103,6 @@ void main() {
 
       final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
       navBar.onDestinationSelected?.call(2);
-
-      expect(tappedTab, NavigationTab.activity);
-    });
-
-    testWidgets('onDestinationSelected fires profile for index 3', (
-      tester,
-    ) async {
-      NavigationTab? tappedTab;
-
-      await tester.pumpWidget(
-        buildSubject(onTabChanged: (tab) => tappedTab = tab),
-      );
-      await tester.pumpAndSettle();
-
-      final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
-      navBar.onDestinationSelected?.call(3);
 
       expect(tappedTab, NavigationTab.profile);
     });

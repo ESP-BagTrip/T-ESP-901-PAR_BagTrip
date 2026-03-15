@@ -3,12 +3,12 @@ import 'package:bagtrip/budget/view/budget_page.dart';
 import 'package:bagtrip/flight_result_details/view/flight_result_details_page.dart';
 import 'package:bagtrip/flight_search_result/models/flight.dart';
 import 'package:bagtrip/flight_search_result/models/flight_search_arguments.dart';
+import 'package:bagtrip/home/view/home_page.dart';
 import 'package:bagtrip/navigation/page_transitions.dart';
 import 'package:bagtrip/notifications/view/activity_page.dart';
 import 'package:bagtrip/notifications/view/notifications_page.dart';
 import 'package:bagtrip/pages/accommodations_page.dart';
 import 'package:bagtrip/pages/baggage_page.dart';
-import 'package:bagtrip/pages/create_trip_ai_flow_page.dart';
 import 'package:bagtrip/pages/feedback_page.dart';
 import 'package:bagtrip/pages/flight_search_result_page.dart';
 import 'package:bagtrip/pages/login_page.dart';
@@ -17,20 +17,16 @@ import 'package:bagtrip/pages/payment/payment_cancel_page.dart';
 import 'package:bagtrip/pages/payment/payment_result_page.dart';
 import 'package:bagtrip/pages/payment/payment_success_page.dart';
 import 'package:bagtrip/pages/personalization_page.dart';
+import 'package:bagtrip/pages/planifier_manual_flight_page.dart';
 import 'package:bagtrip/profile/view/personal_info_page.dart';
 import 'package:bagtrip/profile/view/settings_page.dart';
-import 'package:bagtrip/pages/planifier_manual_flight_page.dart';
-import 'package:bagtrip/pages/planifier_manual_other_transport_page.dart';
-import 'package:bagtrip/pages/planifier_manual_page.dart';
-import 'package:bagtrip/pages/planifier_manual_transport_page.dart';
-import 'package:bagtrip/pages/planifier_page.dart';
 import 'package:bagtrip/pages/profile_page.dart';
 import 'package:bagtrip/pages/splash_page.dart';
 import 'package:bagtrip/pages/subscription/subscription_cancel_page.dart';
 import 'package:bagtrip/pages/subscription/subscription_success_page.dart';
 import 'package:bagtrip/pages/trip_home_page.dart';
 import 'package:bagtrip/pages/trip_shares_page.dart';
-import 'package:bagtrip/pages/trips_list_page.dart';
+import 'package:bagtrip/trip_creation/view/trip_creation_flow_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -79,100 +75,14 @@ class PersonalizationRoute extends GoRouteData with $PersonalizationRoute {
 }
 
 // ---------------------------------------------------------------------------
-// Branch 0 — Planifier
+// Branch 0 — Home (replaces Explorer + Trips)
 // ---------------------------------------------------------------------------
 
-@TypedGoRoute<PlanifierRoute>(
-  path: '/explorer',
+@TypedGoRoute<HomeRoute>(
+  path: '/home',
   routes: [
-    TypedGoRoute<PlanifierManualRoute>(
-      path: 'manual',
-      routes: [
-        TypedGoRoute<PlanifierManualTransportRoute>(
-          path: 'transport',
-          routes: [
-            TypedGoRoute<PlanifierManualOtherTransportRoute>(path: 'other'),
-          ],
-        ),
-        TypedGoRoute<PlanifierManualFlightSearchRoute>(path: 'flight-search'),
-      ],
-    ),
-    TypedGoRoute<CreateTripAiRoute>(path: 'create-trip-ai'),
-  ],
-)
-class PlanifierRoute extends GoRouteData with $PlanifierRoute {
-  const PlanifierRoute();
-
-  @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      const NoTransitionPage(child: PlanifierPage());
-}
-
-class PlanifierManualRoute extends GoRouteData with $PlanifierManualRoute {
-  const PlanifierManualRoute();
-
-  @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      buildSlideTransitionPage<void>(
-        state: state,
-        child: const PlanifierManualPage(),
-      );
-}
-
-class PlanifierManualTransportRoute extends GoRouteData
-    with $PlanifierManualTransportRoute {
-  const PlanifierManualTransportRoute();
-
-  @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      buildSlideTransitionPage<void>(
-        state: state,
-        child: const PlanifierManualTransportPage(),
-      );
-}
-
-class PlanifierManualOtherTransportRoute extends GoRouteData
-    with $PlanifierManualOtherTransportRoute {
-  const PlanifierManualOtherTransportRoute();
-
-  @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      buildSlideTransitionPage<void>(
-        state: state,
-        child: const PlanifierManualOtherTransportPage(),
-      );
-}
-
-class PlanifierManualFlightSearchRoute extends GoRouteData
-    with $PlanifierManualFlightSearchRoute {
-  const PlanifierManualFlightSearchRoute();
-
-  @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      buildSlideTransitionPage<void>(
-        state: state,
-        child: const PlanifierManualFlightPage(),
-      );
-}
-
-class CreateTripAiRoute extends GoRouteData with $CreateTripAiRoute {
-  const CreateTripAiRoute();
-
-  @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      buildSlideTransitionPage<void>(
-        state: state,
-        child: const CreateTripAiFlowPage(),
-      );
-}
-
-// ---------------------------------------------------------------------------
-// Branch 1 — Trips
-// ---------------------------------------------------------------------------
-
-@TypedGoRoute<TripsRoute>(
-  path: '/trips',
-  routes: [
+    TypedGoRoute<TripCreationRoute>(path: 'create'),
+    TypedGoRoute<TripFlightSearchRoute>(path: 'flight-search'),
     TypedGoRoute<TripHomeRoute>(
       path: ':tripId',
       routes: [
@@ -186,12 +96,34 @@ class CreateTripAiRoute extends GoRouteData with $CreateTripAiRoute {
     ),
   ],
 )
-class TripsRoute extends GoRouteData with $TripsRoute {
-  const TripsRoute();
+class HomeRoute extends GoRouteData with $HomeRoute {
+  const HomeRoute();
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      const NoTransitionPage(child: TripsListPage());
+      const NoTransitionPage(child: HomePage());
+}
+
+class TripCreationRoute extends GoRouteData with $TripCreationRoute {
+  const TripCreationRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      buildSlideTransitionPage<void>(
+        state: state,
+        child: const TripCreationFlowPage(),
+      );
+}
+
+class TripFlightSearchRoute extends GoRouteData with $TripFlightSearchRoute {
+  const TripFlightSearchRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      buildSlideTransitionPage<void>(
+        state: state,
+        child: const PlanifierManualFlightPage(),
+      );
 }
 
 class TripHomeRoute extends GoRouteData with $TripHomeRoute {
@@ -323,7 +255,7 @@ class FeedbackRoute extends GoRouteData with $FeedbackRoute {
 }
 
 // ---------------------------------------------------------------------------
-// Branch 2 — Activity
+// Branch 1 — Activity
 // ---------------------------------------------------------------------------
 
 @TypedGoRoute<ActivityRoute>(path: '/activity')
@@ -336,7 +268,7 @@ class ActivityRoute extends GoRouteData with $ActivityRoute {
 }
 
 // ---------------------------------------------------------------------------
-// Branch 3 — Profile
+// Branch 2 — Profile
 // ---------------------------------------------------------------------------
 
 @TypedGoRoute<ProfileRoute>(
@@ -399,7 +331,7 @@ class FlightSearchResultRoute extends GoRouteData
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) {
     if ($extra == null) {
-      return const NoTransitionPage(child: TripsListPage());
+      return const NoTransitionPage(child: HomePage());
     }
     return buildSlideTransitionPage<void>(
       state: state,
@@ -418,7 +350,7 @@ class FlightResultDetailsRoute extends GoRouteData
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) {
     if ($extra == null) {
-      return const NoTransitionPage(child: TripsListPage());
+      return const NoTransitionPage(child: HomePage());
     }
     return buildSlideTransitionPage<void>(
       state: state,

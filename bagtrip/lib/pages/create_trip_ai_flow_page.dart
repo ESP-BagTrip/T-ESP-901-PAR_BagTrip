@@ -32,7 +32,7 @@ class CreateTripAiFlowPage extends StatelessWidget {
               context,
               message: AppLocalizations.of(context)!.tripCreated,
             );
-            const TripsRoute().go(context);
+            const HomeRoute().go(context);
           }
         },
         child: BlocBuilder<CreateTripAiBloc, CreateTripAiState>(

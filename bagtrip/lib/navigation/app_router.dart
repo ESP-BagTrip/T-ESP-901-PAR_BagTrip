@@ -41,13 +41,11 @@ final GoRouter appRouter = GoRouter(
         return AppShell(navigationShell: navigationShell);
       },
       branches: [
-        // Branch 0: Explorer
-        StatefulShellBranch(routes: [$planifierRoute]),
-        // Branch 1: Voyages
-        StatefulShellBranch(routes: [$tripsRoute]),
-        // Branch 2: Activité
+        // Branch 0: Home
+        StatefulShellBranch(routes: [$homeRoute]),
+        // Branch 1: Activity
         StatefulShellBranch(routes: [$activityRoute]),
-        // Branch 3: Profil
+        // Branch 2: Profile
         StatefulShellBranch(routes: [$profileRoute]),
       ],
     ),

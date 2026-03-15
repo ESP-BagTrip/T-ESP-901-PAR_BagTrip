@@ -36,6 +36,7 @@ class FlightSearchBloc extends Bloc<FlightSearchEvent, FlightSearchState> {
     on<SearchFlights>(_onSearchFlights);
     on<ShowValidationErrors>(_onShowValidationErrors);
     on<SwapAirports>(_onSwapAirports);
+    on<InitWithPrefilledData>(_onInitWithPrefilledData);
   }
 
   FlightSearchLoaded _currentState() {
@@ -272,6 +273,20 @@ class FlightSearchBloc extends Bloc<FlightSearchEvent, FlightSearchState> {
       current.copyWith(
         departureAirport: current.arrivalAirport,
         arrivalAirport: current.departureAirport,
+      ),
+    );
+  }
+
+  Future<void> _onInitWithPrefilledData(
+    InitWithPrefilledData event,
+    Emitter<FlightSearchState> emit,
+  ) async {
+    emit(
+      FlightSearchLoaded(
+        arrivalAirport: event.arrivalAirport,
+        departureDate: event.departureDate,
+        returnDate: event.returnDate,
+        adults: event.adults ?? 1,
       ),
     );
   }

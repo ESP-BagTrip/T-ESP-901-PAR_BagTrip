@@ -25,7 +25,7 @@ class TripHomeView extends StatelessWidget {
       body: BlocConsumer<TripManagementBloc, TripManagementState>(
         listener: (context, state) {
           if (state is TripsLoaded || state is TripDeleted) {
-            const TripsRoute().go(context);
+            const HomeRoute().go(context);
           }
           if (state is TripError) {
             AppSnackBar.showError(
@@ -83,7 +83,7 @@ class TripHomeView extends StatelessWidget {
                                 : Icons.arrow_back,
                             color: Colors.white,
                           ),
-                          onPressed: () => const TripsRoute().go(context),
+                          onPressed: () => const HomeRoute().go(context),
                         ),
                       ),
                       if (!isViewer)

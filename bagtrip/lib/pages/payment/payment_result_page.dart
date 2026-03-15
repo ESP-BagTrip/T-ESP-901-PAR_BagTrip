@@ -60,7 +60,7 @@ class PaymentResultPage extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => const TripsRoute().go(context),
+                      onPressed: () => const HomeRoute().go(context),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: ColorName.secondary,
                         foregroundColor: Colors.white,

@@ -23,7 +23,7 @@ class FlightSearchResultPage extends StatelessWidget {
         foregroundColor: PersonalizationColors.textPrimary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => const PlanifierRoute().go(context),
+          onPressed: () => const HomeRoute().go(context),
         ),
       ),
       body: BlocProvider(

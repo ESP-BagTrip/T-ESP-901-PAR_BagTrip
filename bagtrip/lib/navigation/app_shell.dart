@@ -9,10 +9,9 @@ import 'package:bagtrip/navigation/bloc/navigation_bloc.dart';
 import 'package:bagtrip/components/bottom_tab_bar.dart';
 import 'package:bagtrip/components/offline_banner.dart';
 
-/// Tab order must match [StatefulShellRoute] branches: explorer, trips, activity, profile.
+/// Tab order must match [StatefulShellRoute] branches: home, activity, profile.
 const List<NavigationTab> _shellTabOrder = [
-  NavigationTab.explorer,
-  NavigationTab.trips,
+  NavigationTab.home,
   NavigationTab.activity,
   NavigationTab.profile,
 ];

@@ -18,8 +18,7 @@ class BottomTabBar extends StatelessWidget {
   });
 
   static const _tabs = [
-    NavigationTab.explorer,
-    NavigationTab.trips,
+    NavigationTab.home,
     NavigationTab.activity,
     NavigationTab.profile,
   ];
@@ -27,21 +26,14 @@ class BottomTabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final labels = [
-      l10n.tabExplorer,
-      l10n.tabTrips,
-      l10n.tabActivity,
-      l10n.tabProfile,
-    ];
+    final labels = [l10n.tabHome, l10n.tabActivity, l10n.tabProfile];
     const icons = [
-      Icons.explore_outlined,
-      Icons.luggage_outlined,
+      Icons.home_outlined,
       Icons.notifications_outlined,
       Icons.person_outlined,
     ];
     const cupertinoIcons = [
-      CupertinoIcons.compass,
-      CupertinoIcons.bag,
+      CupertinoIcons.house,
       CupertinoIcons.bell,
       CupertinoIcons.person,
     ];
@@ -58,7 +50,7 @@ class BottomTabBar extends StatelessWidget {
         items: List.generate(
           _tabs.length,
           (i) => BottomNavigationBarItem(
-            icon: i == 2
+            icon: i == 1
                 ? Badge(
                     isLabelVisible: activityBadgeCount > 0,
                     label: Text(
@@ -80,7 +72,7 @@ class BottomTabBar extends StatelessWidget {
       destinations: List.generate(
         _tabs.length,
         (i) => NavigationDestination(
-          icon: i == 2
+          icon: i == 1
               ? Badge(
                   isLabelVisible: activityBadgeCount > 0,
                   label: Text(
@@ -90,7 +82,7 @@ class BottomTabBar extends StatelessWidget {
                   child: Icon(icons[i]),
                 )
               : Icon(icons[i]),
-          selectedIcon: i == 2
+          selectedIcon: i == 1
               ? Badge(
                   isLabelVisible: activityBadgeCount > 0,
                   label: Text(

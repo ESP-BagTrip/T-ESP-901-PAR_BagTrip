@@ -1134,10 +1134,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get backButton => 'Retour';
 
   @override
-  String get tabExplorer => 'Explorer';
-
-  @override
-  String get tabTrips => 'Voyages';
+  String get tabHome => 'Accueil';
 
   @override
   String get tabActivity => 'Activité';
@@ -1609,4 +1606,64 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get travelPreferencesTitle => 'Préférences de voyage';
+
+  @override
+  String homeGreeting(String name) {
+    return 'Bon voyage, $name';
+  }
+
+  @override
+  String get homeWelcomeTitle => 'Prêt à voyager ?';
+
+  @override
+  String get homeWelcomeSubtitle =>
+      'Créez votre premier voyage en quelques étapes. Manuel ou assisté par l\'IA — à vous de choisir.';
+
+  @override
+  String get homeCreateFirstTrip => 'Créer mon premier voyage';
+
+  @override
+  String get planTripCta => 'Planifier un voyage';
+
+  @override
+  String get planTripCtaSubtitle => 'Manuel ou assisté par l\'IA';
+
+  @override
+  String get inspireMe => 'Inspire-moi';
+
+  @override
+  String get datesLabel => 'DATES';
+
+  @override
+  String get suggestedDuration => 'Durée suggérée';
+
+  @override
+  String get days => 'jours';
+
+  @override
+  String get reviewTitle => 'Récapitulatif';
+
+  @override
+  String get aiSuggestionsTitle => 'SUGGESTIONS IA';
+
+  @override
+  String get createTripButton => 'Créer le voyage';
+
+  @override
+  String get tripCreatedSuccess => 'Voyage créé avec succès !';
+
+  @override
+  String get stepDestination => 'Où ?';
+
+  @override
+  String get stepDates => 'Quand ?';
+
+  @override
+  String get stepTravelers => 'Qui ?';
+
+  @override
+  String get stepTransport => 'Transport';
+
+  @override
+  String get stepReview => 'Résumé';
 }

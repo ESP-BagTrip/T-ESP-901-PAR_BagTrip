@@ -8,7 +8,7 @@ part of 'trip.dart';
 
 _Trip _$TripFromJson(Map<String, dynamic> json) => _Trip(
   id: json['id'] as String,
-  userId: json['userId'] as String,
+  userId: json['userId'] as String?,
   title: json['title'] as String?,
   originIata: json['originIata'] as String?,
   destinationIata: json['destinationIata'] as String?,

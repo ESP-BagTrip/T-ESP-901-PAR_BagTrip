@@ -70,7 +70,7 @@ class _PlanifierManualDestinationViewState
   void _onNext() {
     setState(() => _hasAttemptedNext = true);
     if (!_isFormValid) return;
-    const PlanifierManualTransportRoute().go(context);
+    const HomeRoute().go(context);
   }
 
   @override

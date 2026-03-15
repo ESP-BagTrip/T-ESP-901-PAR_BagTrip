@@ -40,7 +40,7 @@ class TripStatusConverter implements JsonConverter<TripStatus, String> {
 abstract class Trip with _$Trip {
   const factory Trip({
     required String id,
-    required String userId,
+    String? userId,
     String? title,
     String? originIata,
     String? destinationIata,

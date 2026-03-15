@@ -2186,17 +2186,11 @@ abstract class AppLocalizations {
   /// **'Retour'**
   String get backButton;
 
-  /// No description provided for @tabExplorer.
+  /// No description provided for @tabHome.
   ///
   /// In fr, this message translates to:
-  /// **'Explorer'**
-  String get tabExplorer;
-
-  /// No description provided for @tabTrips.
-  ///
-  /// In fr, this message translates to:
-  /// **'Voyages'**
-  String get tabTrips;
+  /// **'Accueil'**
+  String get tabHome;
 
   /// No description provided for @tabActivity.
   ///
@@ -3079,6 +3073,120 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Préférences de voyage'**
   String get travelPreferencesTitle;
+
+  /// No description provided for @homeGreeting.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bon voyage, {name}'**
+  String homeGreeting(String name);
+
+  /// No description provided for @homeWelcomeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prêt à voyager ?'**
+  String get homeWelcomeTitle;
+
+  /// No description provided for @homeWelcomeSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créez votre premier voyage en quelques étapes. Manuel ou assisté par l\'IA — à vous de choisir.'**
+  String get homeWelcomeSubtitle;
+
+  /// No description provided for @homeCreateFirstTrip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer mon premier voyage'**
+  String get homeCreateFirstTrip;
+
+  /// No description provided for @planTripCta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planifier un voyage'**
+  String get planTripCta;
+
+  /// No description provided for @planTripCtaSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Manuel ou assisté par l\'IA'**
+  String get planTripCtaSubtitle;
+
+  /// No description provided for @inspireMe.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inspire-moi'**
+  String get inspireMe;
+
+  /// No description provided for @datesLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'DATES'**
+  String get datesLabel;
+
+  /// No description provided for @suggestedDuration.
+  ///
+  /// In fr, this message translates to:
+  /// **'Durée suggérée'**
+  String get suggestedDuration;
+
+  /// No description provided for @days.
+  ///
+  /// In fr, this message translates to:
+  /// **'jours'**
+  String get days;
+
+  /// No description provided for @reviewTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Récapitulatif'**
+  String get reviewTitle;
+
+  /// No description provided for @aiSuggestionsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'SUGGESTIONS IA'**
+  String get aiSuggestionsTitle;
+
+  /// No description provided for @createTripButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer le voyage'**
+  String get createTripButton;
+
+  /// No description provided for @tripCreatedSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voyage créé avec succès !'**
+  String get tripCreatedSuccess;
+
+  /// No description provided for @stepDestination.
+  ///
+  /// In fr, this message translates to:
+  /// **'Où ?'**
+  String get stepDestination;
+
+  /// No description provided for @stepDates.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quand ?'**
+  String get stepDates;
+
+  /// No description provided for @stepTravelers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Qui ?'**
+  String get stepTravelers;
+
+  /// No description provided for @stepTransport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transport'**
+  String get stepTransport;
+
+  /// No description provided for @stepReview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résumé'**
+  String get stepReview;
 }
 
 class _AppLocalizationsDelegate

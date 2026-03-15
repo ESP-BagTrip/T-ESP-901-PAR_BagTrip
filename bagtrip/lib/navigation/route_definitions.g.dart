@@ -11,8 +11,7 @@ List<RouteBase> get $appRoutes => [
   $loginRoute,
   $onboardingRoute,
   $personalizationRoute,
-  $planifierRoute,
-  $tripsRoute,
+  $homeRoute,
   $activityRoute,
   $profileRoute,
   $notificationsRoute,
@@ -128,169 +127,15 @@ mixin $PersonalizationRoute on GoRouteData {
   void replace(BuildContext context) => context.replace(location);
 }
 
-RouteBase get $planifierRoute => GoRouteData.$route(
-  path: '/explorer',
-  factory: $PlanifierRoute._fromState,
+RouteBase get $homeRoute => GoRouteData.$route(
+  path: '/home',
+  factory: $HomeRoute._fromState,
   routes: [
+    GoRouteData.$route(path: 'create', factory: $TripCreationRoute._fromState),
     GoRouteData.$route(
-      path: 'manual',
-      factory: $PlanifierManualRoute._fromState,
-      routes: [
-        GoRouteData.$route(
-          path: 'transport',
-          factory: $PlanifierManualTransportRoute._fromState,
-          routes: [
-            GoRouteData.$route(
-              path: 'other',
-              factory: $PlanifierManualOtherTransportRoute._fromState,
-            ),
-          ],
-        ),
-        GoRouteData.$route(
-          path: 'flight-search',
-          factory: $PlanifierManualFlightSearchRoute._fromState,
-        ),
-      ],
+      path: 'flight-search',
+      factory: $TripFlightSearchRoute._fromState,
     ),
-    GoRouteData.$route(
-      path: 'create-trip-ai',
-      factory: $CreateTripAiRoute._fromState,
-    ),
-  ],
-);
-
-mixin $PlanifierRoute on GoRouteData {
-  static PlanifierRoute _fromState(GoRouterState state) =>
-      const PlanifierRoute();
-
-  @override
-  String get location => GoRouteData.$location('/explorer');
-
-  @override
-  void go(BuildContext context) => context.go(location);
-
-  @override
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
-
-  @override
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
-
-  @override
-  void replace(BuildContext context) => context.replace(location);
-}
-
-mixin $PlanifierManualRoute on GoRouteData {
-  static PlanifierManualRoute _fromState(GoRouterState state) =>
-      const PlanifierManualRoute();
-
-  @override
-  String get location => GoRouteData.$location('/explorer/manual');
-
-  @override
-  void go(BuildContext context) => context.go(location);
-
-  @override
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
-
-  @override
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
-
-  @override
-  void replace(BuildContext context) => context.replace(location);
-}
-
-mixin $PlanifierManualTransportRoute on GoRouteData {
-  static PlanifierManualTransportRoute _fromState(GoRouterState state) =>
-      const PlanifierManualTransportRoute();
-
-  @override
-  String get location => GoRouteData.$location('/explorer/manual/transport');
-
-  @override
-  void go(BuildContext context) => context.go(location);
-
-  @override
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
-
-  @override
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
-
-  @override
-  void replace(BuildContext context) => context.replace(location);
-}
-
-mixin $PlanifierManualOtherTransportRoute on GoRouteData {
-  static PlanifierManualOtherTransportRoute _fromState(GoRouterState state) =>
-      const PlanifierManualOtherTransportRoute();
-
-  @override
-  String get location =>
-      GoRouteData.$location('/explorer/manual/transport/other');
-
-  @override
-  void go(BuildContext context) => context.go(location);
-
-  @override
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
-
-  @override
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
-
-  @override
-  void replace(BuildContext context) => context.replace(location);
-}
-
-mixin $PlanifierManualFlightSearchRoute on GoRouteData {
-  static PlanifierManualFlightSearchRoute _fromState(GoRouterState state) =>
-      const PlanifierManualFlightSearchRoute();
-
-  @override
-  String get location =>
-      GoRouteData.$location('/explorer/manual/flight-search');
-
-  @override
-  void go(BuildContext context) => context.go(location);
-
-  @override
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
-
-  @override
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
-
-  @override
-  void replace(BuildContext context) => context.replace(location);
-}
-
-mixin $CreateTripAiRoute on GoRouteData {
-  static CreateTripAiRoute _fromState(GoRouterState state) =>
-      const CreateTripAiRoute();
-
-  @override
-  String get location => GoRouteData.$location('/explorer/create-trip-ai');
-
-  @override
-  void go(BuildContext context) => context.go(location);
-
-  @override
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
-
-  @override
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
-
-  @override
-  void replace(BuildContext context) => context.replace(location);
-}
-
-RouteBase get $tripsRoute => GoRouteData.$route(
-  path: '/trips',
-  factory: $TripsRoute._fromState,
-  routes: [
     GoRouteData.$route(
       path: ':tripId',
       factory: $TripHomeRoute._fromState,
@@ -315,11 +160,53 @@ RouteBase get $tripsRoute => GoRouteData.$route(
   ],
 );
 
-mixin $TripsRoute on GoRouteData {
-  static TripsRoute _fromState(GoRouterState state) => const TripsRoute();
+mixin $HomeRoute on GoRouteData {
+  static HomeRoute _fromState(GoRouterState state) => const HomeRoute();
 
   @override
-  String get location => GoRouteData.$location('/trips');
+  String get location => GoRouteData.$location('/home');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $TripCreationRoute on GoRouteData {
+  static TripCreationRoute _fromState(GoRouterState state) =>
+      const TripCreationRoute();
+
+  @override
+  String get location => GoRouteData.$location('/home/create');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $TripFlightSearchRoute on GoRouteData {
+  static TripFlightSearchRoute _fromState(GoRouterState state) =>
+      const TripFlightSearchRoute();
+
+  @override
+  String get location => GoRouteData.$location('/home/flight-search');
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -343,7 +230,7 @@ mixin $TripHomeRoute on GoRouteData {
 
   @override
   String get location =>
-      GoRouteData.$location('/trips/${Uri.encodeComponent(_self.tripId)}');
+      GoRouteData.$location('/home/${Uri.encodeComponent(_self.tripId)}');
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -377,7 +264,7 @@ mixin $AccommodationsRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location(
-    '/trips/${Uri.encodeComponent(_self.tripId)}/accommodations',
+    '/home/${Uri.encodeComponent(_self.tripId)}/accommodations',
     queryParams: {
       if (_self.role != 'OWNER') 'role': _self.role,
       if (_self.isCompleted != false)
@@ -416,7 +303,7 @@ mixin $BaggageRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location(
-    '/trips/${Uri.encodeComponent(_self.tripId)}/baggage',
+    '/home/${Uri.encodeComponent(_self.tripId)}/baggage',
     queryParams: {
       if (_self.role != 'OWNER') 'role': _self.role,
       if (_self.isCompleted != false)
@@ -455,7 +342,7 @@ mixin $ActivitiesRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location(
-    '/trips/${Uri.encodeComponent(_self.tripId)}/activities',
+    '/home/${Uri.encodeComponent(_self.tripId)}/activities',
     queryParams: {
       if (_self.role != 'OWNER') 'role': _self.role,
       if (_self.isCompleted != false)
@@ -494,7 +381,7 @@ mixin $BudgetRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location(
-    '/trips/${Uri.encodeComponent(_self.tripId)}/budget',
+    '/home/${Uri.encodeComponent(_self.tripId)}/budget',
     queryParams: {
       if (_self.role != 'OWNER') 'role': _self.role,
       if (_self.isCompleted != false)
@@ -526,7 +413,7 @@ mixin $SharesRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location(
-    '/trips/${Uri.encodeComponent(_self.tripId)}/shares',
+    '/home/${Uri.encodeComponent(_self.tripId)}/shares',
     queryParams: {if (_self.role != 'OWNER') 'role': _self.role},
   );
 
@@ -552,7 +439,7 @@ mixin $FeedbackRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location(
-    '/trips/${Uri.encodeComponent(_self.tripId)}/feedback',
+    '/home/${Uri.encodeComponent(_self.tripId)}/feedback',
   );
 
   @override
