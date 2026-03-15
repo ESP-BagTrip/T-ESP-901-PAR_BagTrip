@@ -1,6 +1,7 @@
 import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
-import 'package:bagtrip/components/adaptive/adaptive_indicator.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
+import 'package:bagtrip/components/empty_state.dart';
+import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -303,36 +304,15 @@ class _BaggagePageState extends State<BaggagePage> {
       ),
       body: SafeArea(
         child: _isLoading
-            ? const Center(child: AdaptiveIndicator())
+            ? const LoadingView()
             : Column(
                 children: [
                   Expanded(
                     child: _baggageItems.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.luggage_outlined,
-                                  size: 64,
-                                  color: AppColors.hint,
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  l10n.baggageEmptyTitle,
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(color: AppColors.hint),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  l10n.baggageEmptySubtitle,
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: AppColors.textMutedLight,
-                                      ),
-                                ),
-                              ],
-                            ),
+                        ? EmptyState(
+                            icon: Icons.luggage_outlined,
+                            title: l10n.baggageEmptyTitle,
+                            subtitle: l10n.baggageEmptySubtitle,
                           )
                         : ListView.builder(
                             padding: const EdgeInsets.all(16),

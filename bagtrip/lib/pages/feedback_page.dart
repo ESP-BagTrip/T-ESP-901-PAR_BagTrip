@@ -1,4 +1,5 @@
 import 'package:bagtrip/components/app_snackbar.dart';
+import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/feedback/bloc/feedback_bloc.dart';
 import 'package:bagtrip/feedback/view/feedback_form_view.dart';
 import 'package:bagtrip/feedback/view/feedback_list_view.dart';
@@ -91,14 +92,14 @@ class _FeedbackPageContentState extends State<_FeedbackPageContent> {
             return TabBarView(
               children: [
                 isLoading
-                    ? const Center(child: CircularProgressIndicator.adaptive())
+                    ? const LoadingView()
                     : FeedbackFormView(
                         tripId: widget.tripId,
                         currentUserId: _currentUserId,
                         feedbacks: feedbacks.cast(),
                       ),
                 isLoading
-                    ? const Center(child: CircularProgressIndicator.adaptive())
+                    ? const LoadingView()
                     : FeedbackListView(feedbacks: feedbacks.cast()),
               ],
             );

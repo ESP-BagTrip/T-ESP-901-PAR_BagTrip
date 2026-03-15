@@ -1,7 +1,8 @@
 import 'package:bagtrip/components/adaptive/adaptive_date_picker.dart';
 import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
-import 'package:bagtrip/components/adaptive/adaptive_indicator.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
+import 'package:bagtrip/components/empty_state.dart';
+import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -203,36 +204,15 @@ class _AccommodationsPageState extends State<AccommodationsPage> {
       appBar: AppBar(title: Text(l10n.accommodationsTitle)),
       body: SafeArea(
         child: _isLoading
-            ? const Center(child: AdaptiveIndicator())
+            ? const LoadingView()
             : Column(
                 children: [
                   Expanded(
                     child: _accommodations.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.hotel_outlined,
-                                  size: 64,
-                                  color: AppColors.hint,
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  l10n.accommodationEmptyTitle,
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(color: AppColors.hint),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  l10n.accommodationEmptySubtitle,
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: AppColors.textMutedLight,
-                                      ),
-                                ),
-                              ],
-                            ),
+                        ? EmptyState(
+                            icon: Icons.hotel_outlined,
+                            title: l10n.accommodationEmptyTitle,
+                            subtitle: l10n.accommodationEmptySubtitle,
                           )
                         : ListView.builder(
                             padding: const EdgeInsets.all(16),

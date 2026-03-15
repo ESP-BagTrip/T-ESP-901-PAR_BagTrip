@@ -1,5 +1,7 @@
 import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
+import 'package:bagtrip/components/empty_state.dart';
+import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip_share.dart';
 import 'package:bagtrip/trips/bloc/trip_share_bloc.dart';
@@ -78,29 +80,14 @@ class _TripSharesViewState extends State<TripSharesView> {
             children: [
               Expanded(
                 child: isLoading
-                    ? const Center(child: CircularProgressIndicator.adaptive())
+                    ? const LoadingView()
                     : shares.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.people_outline,
-                              size: 64,
-                              color: Theme.of(context).colorScheme.outline,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              AppLocalizations.of(context)!.sharesEmpty,
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              AppLocalizations.of(context)!.sharesEmptySubtitle,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
+                    ? EmptyState(
+                        icon: Icons.people_outline,
+                        title: AppLocalizations.of(context)!.sharesEmpty,
+                        subtitle: AppLocalizations.of(
+                          context,
+                        )!.sharesEmptySubtitle,
                       )
                     : ListView.builder(
                         padding: const EdgeInsets.all(16),

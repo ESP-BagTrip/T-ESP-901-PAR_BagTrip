@@ -3,9 +3,10 @@ import 'package:bagtrip/budget/widgets/budget_alert_banner.dart';
 import 'package:bagtrip/budget/widgets/budget_item_card.dart';
 import 'package:bagtrip/budget/widgets/budget_item_form.dart';
 import 'package:bagtrip/budget/widgets/budget_summary_header.dart';
-import 'package:bagtrip/components/adaptive/adaptive_indicator.dart';
+import 'package:bagtrip/components/empty_state.dart';
+import 'package:bagtrip/components/error_view.dart';
+import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
-import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/budget_item.dart';
 import 'package:bagtrip/utils/error_display.dart';
@@ -43,66 +44,26 @@ class BudgetView extends StatelessWidget {
       body: BlocBuilder<BudgetBloc, BudgetState>(
         builder: (context, state) {
           if (state is BudgetLoading) {
-            return const Center(child: AdaptiveIndicator());
+            return const LoadingView();
           }
           if (state is BudgetError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 48,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    toUserFriendlyMessage(
-                      state.error,
-                      AppLocalizations.of(context)!,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  FilledButton.icon(
-                    onPressed: () => context.read<BudgetBloc>().add(
-                      LoadBudget(tripId: tripId),
-                    ),
-                    icon: const Icon(Icons.refresh),
-                    label: Text(AppLocalizations.of(context)!.retryButton),
-                  ),
-                ],
+            return ErrorView(
+              message: toUserFriendlyMessage(
+                state.error,
+                AppLocalizations.of(context)!,
               ),
+              onRetry: () =>
+                  context.read<BudgetBloc>().add(LoadBudget(tripId: tripId)),
             );
           }
           if (state is BudgetLoaded) {
             final isViewer = role == 'VIEWER';
             final isReadOnly = isViewer || isCompleted;
             if (state.items.isEmpty && !isReadOnly) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.wallet_outlined,
-                      size: 64,
-                      color: AppColors.hint,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      AppLocalizations.of(context)!.noExpenses,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.titleMedium?.copyWith(color: AppColors.hint),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      AppLocalizations.of(context)!.trackExpensesAndPlan,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textMutedLight,
-                      ),
-                    ),
-                  ],
-                ),
+              return EmptyState(
+                icon: Icons.wallet_outlined,
+                title: AppLocalizations.of(context)!.noExpenses,
+                subtitle: AppLocalizations.of(context)!.trackExpensesAndPlan,
               );
             }
             if (isViewer) {

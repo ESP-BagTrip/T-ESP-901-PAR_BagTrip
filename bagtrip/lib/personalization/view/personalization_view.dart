@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/premium_cta_button.dart';
@@ -49,9 +50,7 @@ class PersonalizationView extends StatelessWidget {
       child: BlocBuilder<PersonalizationBloc, PersonalizationState>(
         builder: (context, state) {
           if (state is PersonalizationLoading) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator.adaptive()),
-            );
+            return const Scaffold(body: LoadingView());
           }
           if (state is! PersonalizationLoaded) {
             return const Scaffold(body: SizedBox.shrink());

@@ -1,5 +1,6 @@
 import 'package:bagtrip/booking/bloc/booking_bloc.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
+import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/flight_result_details/bloc/flight_result_details_bloc.dart';
@@ -75,9 +76,7 @@ class FlightResultDetailsView extends StatelessWidget {
           child: BlocBuilder<FlightResultDetailsBloc, FlightResultDetailsState>(
             builder: (context, state) {
               if (state is! FlightResultDetailsLoaded) {
-                return const Center(
-                  child: CircularProgressIndicator.adaptive(),
-                );
+                return const LoadingView();
               }
 
               final flight = state.flight;

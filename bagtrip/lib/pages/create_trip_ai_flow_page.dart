@@ -1,4 +1,6 @@
 import 'package:bagtrip/components/app_snackbar.dart';
+import 'package:bagtrip/components/error_view.dart';
+import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/create_trip_ai/bloc/create_trip_ai_bloc.dart';
 import 'package:bagtrip/create_trip_ai/view/create_trip_ai_recap_view.dart';
 import 'package:bagtrip/create_trip_ai/view/create_trip_ai_results_view.dart';
@@ -41,9 +43,7 @@ class CreateTripAiFlowPage extends StatelessWidget {
               return const CreateTripAiRecapView();
             }
             if (state is CreateTripAiSearchLoading) {
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator.adaptive()),
-              );
+              return const Scaffold(body: LoadingView());
             }
             if (state is CreateTripAiResultsLoaded) {
               return const CreateTripAiResultsView();
@@ -57,42 +57,20 @@ class CreateTripAiFlowPage extends StatelessWidget {
                 appBar: AppBar(
                   title: Text(AppLocalizations.of(context)!.errorTitle),
                 ),
-                body: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          size: 48,
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          toUserFriendlyMessage(
-                            state.error,
-                            AppLocalizations.of(context)!,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 16),
-                        FilledButton.icon(
-                          onPressed: () => context.read<CreateTripAiBloc>().add(
-                            CreateTripAiLoadRecap(),
-                          ),
-                          icon: const Icon(Icons.arrow_back),
-                          label: Text(AppLocalizations.of(context)!.backButton),
-                        ),
-                      ],
-                    ),
+                body: ErrorView(
+                  message: toUserFriendlyMessage(
+                    state.error,
+                    AppLocalizations.of(context)!,
                   ),
+                  onRetry: () => context.read<CreateTripAiBloc>().add(
+                    CreateTripAiLoadRecap(),
+                  ),
+                  retryIcon: Icons.arrow_back,
+                  retryLabel: AppLocalizations.of(context)!.backButton,
                 ),
               );
             }
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator.adaptive()),
-            );
+            return const Scaffold(body: LoadingView());
           },
         ),
       ),

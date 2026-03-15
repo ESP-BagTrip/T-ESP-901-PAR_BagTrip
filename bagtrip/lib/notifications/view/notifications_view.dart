@@ -1,3 +1,6 @@
+import 'package:bagtrip/components/empty_state.dart';
+import 'package:bagtrip/components/error_view.dart';
+import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/components/paginated_list.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/notification.dart';
@@ -36,36 +39,17 @@ class NotificationsView extends StatelessWidget {
       body: BlocBuilder<NotificationBloc, NotificationState>(
         builder: (context, state) {
           if (state is NotificationLoading) {
-            return const Center(child: CircularProgressIndicator.adaptive());
+            return const LoadingView();
           }
 
           if (state is NotificationError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 48,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    toUserFriendlyMessage(
-                      state.error,
-                      AppLocalizations.of(context)!,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  FilledButton.icon(
-                    onPressed: () => context.read<NotificationBloc>().add(
-                      LoadNotifications(),
-                    ),
-                    icon: const Icon(Icons.refresh),
-                    label: Text(AppLocalizations.of(context)!.retryButton),
-                  ),
-                ],
+            return ErrorView(
+              message: toUserFriendlyMessage(
+                state.error,
+                AppLocalizations.of(context)!,
               ),
+              onRetry: () =>
+                  context.read<NotificationBloc>().add(LoadNotifications()),
             );
           }
 
@@ -80,26 +64,9 @@ class NotificationsView extends StatelessWidget {
                 context.read<NotificationBloc>().add(LoadNotifications());
               },
               padding: const EdgeInsets.symmetric(vertical: 8),
-              emptyWidget: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.notifications_none,
-                      size: 64,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.outline.withValues(alpha: 0.4),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      AppLocalizations.of(context)!.notificationsEmpty,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                    ),
-                  ],
-                ),
+              emptyWidget: EmptyState(
+                icon: Icons.notifications_none,
+                title: AppLocalizations.of(context)!.notificationsEmpty,
               ),
               groupBy: (notifications) => _groupByDate(context, notifications),
               sectionHeaderBuilder: (context, dateKey) => Padding(

@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/empty_state.dart';
 import 'package:bagtrip/models/feedback.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -10,19 +11,9 @@ class FeedbackListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (feedbacks.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.rate_review_outlined,
-              size: 64,
-              color: Theme.of(context).colorScheme.outline,
-            ),
-            const SizedBox(height: 16),
-            Text('Aucun avis', style: Theme.of(context).textTheme.titleMedium),
-          ],
-        ),
+      return const EmptyState(
+        icon: Icons.rate_review_outlined,
+        title: 'Aucun avis',
       );
     }
 

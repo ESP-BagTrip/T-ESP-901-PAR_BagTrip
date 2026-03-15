@@ -1,5 +1,7 @@
 import 'package:bagtrip/activities/bloc/activity_bloc.dart';
-import 'package:bagtrip/components/adaptive/adaptive_indicator.dart';
+import 'package:bagtrip/components/empty_state.dart';
+import 'package:bagtrip/components/error_view.dart';
+import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/components/paginated_list.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -65,34 +67,16 @@ class ActivitiesView extends StatelessWidget {
           builder: (context, state) {
             if (state is ActivityLoading ||
                 state is ActivitySuggestionsLoading) {
-              return const Center(child: AdaptiveIndicator());
+              return const LoadingView();
             }
             if (state is ActivityError) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 48,
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      toUserFriendlyMessage(
-                        state.error,
-                        AppLocalizations.of(context)!,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    FilledButton.icon(
-                      onPressed: () => context.read<ActivityBloc>().add(
-                        LoadActivities(tripId: tripId),
-                      ),
-                      icon: const Icon(Icons.refresh),
-                      label: Text(AppLocalizations.of(context)!.retryButton),
-                    ),
-                  ],
+              return ErrorView(
+                message: toUserFriendlyMessage(
+                  state.error,
+                  AppLocalizations.of(context)!,
+                ),
+                onRetry: () => context.read<ActivityBloc>().add(
+                  LoadActivities(tripId: tripId),
                 ),
               );
             }
@@ -121,30 +105,12 @@ class ActivitiesView extends StatelessWidget {
                   );
                 },
                 padding: const EdgeInsets.all(16),
-                emptyWidget: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.event_outlined,
-                        size: 64,
-                        color: AppColors.hint,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        AppLocalizations.of(context)!.activitiesEmpty,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(color: AppColors.hint),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        AppLocalizations.of(context)!.activitiesEmptySubtitle,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textMutedLight,
-                        ),
-                      ),
-                    ],
-                  ),
+                emptyWidget: EmptyState(
+                  icon: Icons.event_outlined,
+                  title: AppLocalizations.of(context)!.activitiesEmpty,
+                  subtitle: AppLocalizations.of(
+                    context,
+                  )!.activitiesEmptySubtitle,
                 ),
                 groupBy: _groupByDay,
                 sectionHeaderBuilder: (context, dateKey) => Padding(

@@ -1,6 +1,7 @@
 import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
-import 'package:bagtrip/components/adaptive/adaptive_indicator.dart';
+import 'package:bagtrip/components/error_view.dart';
+import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
@@ -42,35 +43,17 @@ class TripHomeView extends StatelessWidget {
         },
         builder: (context, state) {
           if (state is TripHomeLoading) {
-            return const Center(child: AdaptiveIndicator());
+            return const LoadingView();
           }
 
           if (state is TripError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 48,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    toUserFriendlyMessage(
-                      state.error,
-                      AppLocalizations.of(context)!,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  FilledButton.icon(
-                    onPressed: () => context.read<TripManagementBloc>().add(
-                      LoadTripHome(tripId: tripId),
-                    ),
-                    icon: const Icon(Icons.refresh),
-                    label: Text(AppLocalizations.of(context)!.retryButton),
-                  ),
-                ],
+            return ErrorView(
+              message: toUserFriendlyMessage(
+                state.error,
+                AppLocalizations.of(context)!,
+              ),
+              onRetry: () => context.read<TripManagementBloc>().add(
+                LoadTripHome(tripId: tripId),
               ),
             );
           }
