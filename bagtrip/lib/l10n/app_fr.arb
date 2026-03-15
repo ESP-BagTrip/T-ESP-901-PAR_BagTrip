@@ -610,5 +610,7 @@
   "activityFormUpdate": "Modifier",
   "activityFormBooked": "Réservé",
   "feedbackYesLabel": "Oui",
-  "feedbackNoLabel": "Non"
+  "feedbackNoLabel": "Non",
+  "offlineMode": "Vous êtes hors ligne. Données en cache affichées.",
+  "offlineWriteError": "Cette action nécessite une connexion internet."
 }

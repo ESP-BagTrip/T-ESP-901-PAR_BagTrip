@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/cache/cache_service.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/auth_response.dart';
 import 'package:bagtrip/config/service_locator.dart';
@@ -132,6 +133,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     getIt<CrashlyticsService>().clearUserId();
     await _authRepository.logout();
+    await getIt<CacheService>().clearAll();
     if (isClosed) return;
     emit(AuthInitial());
   }

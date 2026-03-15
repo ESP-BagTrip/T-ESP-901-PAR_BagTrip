@@ -1,6 +1,7 @@
 import 'package:bagtrip/auth/bloc/auth_bloc.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/cache/cache_service.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bloc_test/bloc_test.dart';
@@ -26,6 +27,14 @@ void main() {
       () => mockCrashlyticsService,
     );
 
+    // Register mock CacheService used by AuthBloc on logout
+    if (getIt.isRegistered<CacheService>()) {
+      getIt.unregister<CacheService>();
+    }
+    final mockCacheService = MockCacheService();
+    getIt.registerLazySingleton<CacheService>(() => mockCacheService);
+    when(() => mockCacheService.clearAll()).thenAnswer((_) async {});
+
     when(
       () => mockCrashlyticsService.setUserId(any()),
     ).thenAnswer((_) async {});
@@ -35,6 +44,9 @@ void main() {
   tearDown(() {
     if (getIt.isRegistered<CrashlyticsService>()) {
       getIt.unregister<CrashlyticsService>();
+    }
+    if (getIt.isRegistered<CacheService>()) {
+      getIt.unregister<CacheService>();
     }
   });
 

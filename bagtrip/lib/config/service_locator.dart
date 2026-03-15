@@ -22,6 +22,9 @@ import 'package:bagtrip/service/location_service.dart';
 import 'package:bagtrip/service/onboarding_storage.dart';
 import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
+import 'package:bagtrip/service/cached_trip_repository.dart';
+import 'package:bagtrip/core/cache/cache_service.dart';
+import 'package:bagtrip/core/cache/connectivity_service.dart';
 
 import 'package:bagtrip/repositories/repositories.dart';
 
@@ -35,6 +38,8 @@ void setupServiceLocator() {
     () => PersonalizationStorage(),
   );
   getIt.registerLazySingleton<CrashlyticsService>(() => CrashlyticsService());
+  getIt.registerLazySingleton<CacheService>(() => CacheService());
+  getIt.registerLazySingleton<ConnectivityService>(() => ConnectivityService());
 
   // 2. ApiClient (depends on StorageService)
   getIt.registerLazySingleton<ApiClient>(
@@ -69,7 +74,11 @@ void setupServiceLocator() {
     () => BudgetRepositoryImpl(apiClient: getIt<ApiClient>()),
   );
   getIt.registerLazySingleton<TripRepository>(
-    () => TripRepositoryImpl(apiClient: getIt<ApiClient>()),
+    () => CachedTripRepository(
+      remote: TripRepositoryImpl(apiClient: getIt<ApiClient>()),
+      cache: getIt<CacheService>(),
+      connectivity: getIt<ConnectivityService>(),
+    ),
   );
   getIt.registerLazySingleton<TripShareRepository>(
     () => TripShareRepositoryImpl(apiClient: getIt<ApiClient>()),

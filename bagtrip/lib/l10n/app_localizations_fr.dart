@@ -1535,4 +1535,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get feedbackNoLabel => 'Non';
+
+  @override
+  String get offlineMode => 'Vous êtes hors ligne. Données en cache affichées.';
+
+  @override
+  String get offlineWriteError =>
+      'Cette action nécessite une connexion internet.';
 }

@@ -2941,6 +2941,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Non'**
   String get feedbackNoLabel;
+
+  /// No description provided for @offlineMode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous êtes hors ligne. Données en cache affichées.'**
+  String get offlineMode;
+
+  /// No description provided for @offlineWriteError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette action nécessite une connexion internet.'**
+  String get offlineWriteError;
 }
 
 class _AppLocalizationsDelegate

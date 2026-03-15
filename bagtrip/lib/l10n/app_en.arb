@@ -610,5 +610,7 @@
   "activityFormUpdate": "Update",
   "activityFormBooked": "Booked",
   "feedbackYesLabel": "Yes",
-  "feedbackNoLabel": "No"
+  "feedbackNoLabel": "No",
+  "offlineMode": "You are offline. Showing cached data.",
+  "offlineWriteError": "This action requires an internet connection."
 }

@@ -16,6 +16,9 @@ import 'package:bagtrip/service/local_notification_service.dart';
 import 'package:bagtrip/repositories/notification_repository.dart';
 import 'package:bagtrip/settings/bloc/settings_bloc.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
+import 'package:bagtrip/core/cache/cache_service.dart';
+import 'package:bagtrip/core/cache/connectivity_service.dart';
+import 'package:bagtrip/core/cache/connectivity_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -47,6 +50,10 @@ void main() async {
 
   // Local notifications for foreground display
   await LocalNotificationService.initialize();
+
+  // Offline cache
+  await CacheService.initialize();
+  await getIt<ConnectivityService>().initialize();
 
   runApp(const MyApp());
 }
@@ -98,6 +105,7 @@ class _MyAppState extends State<MyApp> {
         BlocProvider(create: (context) => AuthBloc()),
         BlocProvider(create: (context) => TripManagementBloc()),
         BlocProvider(create: (context) => NotificationBloc()),
+        BlocProvider(create: (context) => ConnectivityBloc()),
       ],
       child: AuthListener(
         router: appRouter,

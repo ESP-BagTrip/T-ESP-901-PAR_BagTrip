@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:bagtrip/navigation/bloc/navigation_bloc.dart';
 import 'package:bagtrip/components/bottom_tab_bar.dart';
+import 'package:bagtrip/components/offline_banner.dart';
 
 /// Tab order must match [StatefulShellRoute] branches: planifier, trips, profile.
 const List<NavigationTab> _shellTabOrder = [
@@ -22,7 +23,12 @@ class AppShell extends StatelessWidget {
     final activeTab = _shellTabOrder[currentIndex];
 
     return Scaffold(
-      body: navigationShell,
+      body: Column(
+        children: [
+          const OfflineBanner(),
+          Expanded(child: navigationShell),
+        ],
+      ),
       bottomNavigationBar: BottomTabBar(
         activeTab: activeTab,
         onTabChanged: (tab) {

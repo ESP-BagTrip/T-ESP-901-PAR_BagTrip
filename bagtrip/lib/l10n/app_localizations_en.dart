@@ -1518,4 +1518,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feedbackNoLabel => 'No';
+
+  @override
+  String get offlineMode => 'You are offline. Showing cached data.';
+
+  @override
+  String get offlineWriteError =>
+      'This action requires an internet connection.';
 }
