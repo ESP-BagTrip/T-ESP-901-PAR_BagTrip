@@ -1,19 +1,11 @@
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
-/// Returns an [AppBar] on Android and a [CupertinoNavigationBar] on iOS.
-///
-/// Usage: pass the result of [AdaptiveAppBar.build] as the [appBar] /
-/// [cupertinoNavigationBar] parameter of [AdaptiveScaffold], or use
-/// it directly in a [Scaffold].
+/// Returns an [AppBar] on Android and a [GlassAppBar] on iOS.
 class AdaptiveAppBar {
   const AdaptiveAppBar._();
 
-  /// Builds a platform-appropriate app bar.
-  ///
-  /// On iOS the navigation bar is translucent with a blur effect,
-  /// mimicking the native iOS look.
   static PreferredSizeWidget build({
     required BuildContext context,
     required String title,
@@ -22,10 +14,11 @@ class AdaptiveAppBar {
     PreferredSizeWidget? bottom,
   }) {
     if (AdaptivePlatform.isIOS) {
-      return _CupertinoAppBarAdapter(
+      return _GlassAppBarAdapter(
         title: title,
         actions: actions,
         leading: leading,
+        bottom: bottom,
       );
     }
 
@@ -38,35 +31,40 @@ class AdaptiveAppBar {
   }
 }
 
-/// Wraps [CupertinoNavigationBar] in a [PreferredSizeWidget] so it can be
+/// Wraps [GlassAppBar] in a [PreferredSizeWidget] so it can be
 /// used as [Scaffold.appBar].
-class _CupertinoAppBarAdapter extends StatelessWidget
+class _GlassAppBarAdapter extends StatelessWidget
     implements PreferredSizeWidget {
-  const _CupertinoAppBarAdapter({
+  const _GlassAppBarAdapter({
     required this.title,
     this.actions,
     this.leading,
+    this.bottom,
   });
 
   final String title;
   final List<Widget>? actions;
   final Widget? leading;
+  final PreferredSizeWidget? bottom;
 
   @override
-  Size get preferredSize => const Size.fromHeight(44);
+  Size get preferredSize =>
+      Size.fromHeight(44 + (bottom?.preferredSize.height ?? 0));
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoNavigationBar(
-      middle: Text(title),
+    final glassBar = GlassAppBar(
+      useOwnLayer: true,
+      title: Text(title),
       leading: leading,
-      trailing: actions != null && actions!.isNotEmpty
-          ? Row(mainAxisSize: MainAxisSize.min, children: actions!)
-          : null,
-      backgroundColor: CupertinoTheme.of(
-        context,
-      ).barBackgroundColor.withValues(alpha: 0.85),
-      border: null,
+      actions: actions != null && actions!.isNotEmpty ? actions : null,
+    );
+
+    if (bottom == null) return glassBar;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [glassBar, bottom!],
     );
   }
 }

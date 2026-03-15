@@ -49,11 +49,15 @@ class AppShell extends StatelessWidget {
 
     if (AdaptivePlatform.isIOS) {
       return CupertinoPageScaffold(
-        child: Column(
+        child: Stack(
           children: [
-            const OfflineBanner(),
-            Expanded(child: navigationShell),
-            tabBar,
+            Column(
+              children: [
+                const OfflineBanner(),
+                Expanded(child: navigationShell),
+              ],
+            ),
+            Positioned(left: 0, right: 0, bottom: 0, child: tabBar),
           ],
         ),
       );

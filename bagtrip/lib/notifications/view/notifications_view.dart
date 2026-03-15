@@ -1,7 +1,9 @@
+import 'package:bagtrip/components/adaptive/adaptive_app_bar.dart';
 import 'package:bagtrip/components/empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/components/paginated_list.dart';
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/notification.dart';
 import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
@@ -16,8 +18,9 @@ class NotificationsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.notificationsTitle),
+      appBar: AdaptiveAppBar.build(
+        context: context,
+        title: AppLocalizations.of(context)!.notificationsTitle,
         actions: [
           BlocBuilder<NotificationBloc, NotificationState>(
             builder: (context, state) {
@@ -63,7 +66,10 @@ class NotificationsView extends StatelessWidget {
               onRefresh: () async {
                 context.read<NotificationBloc>().add(LoadNotifications());
               },
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: EdgeInsets.only(
+                top: 8,
+                bottom: AdaptivePlatform.isIOS ? 100 : 8,
+              ),
               emptyWidget: EmptyState(
                 icon: Icons.notifications_none,
                 title: AppLocalizations.of(context)!.notificationsEmpty,

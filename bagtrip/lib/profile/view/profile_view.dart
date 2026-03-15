@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/adaptive/adaptive_app_bar.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
@@ -21,87 +22,93 @@ class ProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<UserProfileBloc, UserProfileState>(
-      builder: (context, state) {
-        if (state is UserProfileInitial || state is UserProfileLoading) {
-          return const LoadingView();
-        }
+    return Scaffold(
+      appBar: AdaptiveAppBar.build(
+        context: context,
+        title: AppLocalizations.of(context)!.tabProfile,
+      ),
+      body: BlocBuilder<UserProfileBloc, UserProfileState>(
+        builder: (context, state) {
+          if (state is UserProfileInitial || state is UserProfileLoading) {
+            return const LoadingView();
+          }
 
-        if (state is UserProfileError) {
-          return ErrorView(
-            message: toUserFriendlyMessage(
-              state.error,
-              AppLocalizations.of(context)!,
-            ),
-            onRetry: () =>
-                context.read<UserProfileBloc>().add(LoadUserProfile()),
-          );
-        }
-
-        if (state is UserProfileLoaded) {
-          final l10n = AppLocalizations.of(context)!;
-
-          final content = Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ProfileHeaderCard(
-                name: state.name.isNotEmpty ? state.name : state.email,
-                memberSince: DateFormat.yMMM(
-                  Localizations.localeOf(context).languageCode,
-                ).format(state.memberSince),
+          if (state is UserProfileError) {
+            return ErrorView(
+              message: toUserFriendlyMessage(
+                state.error,
+                AppLocalizations.of(context)!,
               ),
-              const SizedBox(height: AppSpacing.space16),
-              _buildNavigationRow(
-                context,
-                icon: AdaptivePlatform.isIOS
-                    ? CupertinoIcons.person
-                    : Icons.person_outline,
-                title: l10n.personalInfoPageTitle,
-                onTap: () => const PersonalInfoRoute().go(context),
-              ),
-              const SizedBox(height: AppSpacing.space8),
-              _buildNavigationRow(
-                context,
-                icon: AdaptivePlatform.isIOS
-                    ? CupertinoIcons.airplane
-                    : Icons.flight_outlined,
-                title: l10n.travelPreferencesTitle,
-                onTap: () =>
-                    const PersonalizationRoute(from: 'profile').push(context),
-              ),
-              const SizedBox(height: AppSpacing.space8),
-              _buildNavigationRow(
-                context,
-                icon: AdaptivePlatform.isIOS
-                    ? CupertinoIcons.gear
-                    : Icons.settings_outlined,
-                title: l10n.settingsTitle,
-                onTap: () => const SettingsRoute().go(context),
-              ),
-              const SizedBox(height: AppSpacing.space24),
-              const LogoutButton(),
-              const SizedBox(height: AppSpacing.space24),
-              const ProfileFooter(),
-            ],
-          );
-
-          if (AdaptivePlatform.isIOS) {
-            return CupertinoScrollbar(
-              child: SingleChildScrollView(
-                padding: AppSpacing.allEdgeInsetSpace24,
-                child: content,
-              ),
+              onRetry: () =>
+                  context.read<UserProfileBloc>().add(LoadUserProfile()),
             );
           }
 
-          return SingleChildScrollView(
-            padding: AppSpacing.allEdgeInsetSpace24,
-            child: content,
-          );
-        }
+          if (state is UserProfileLoaded) {
+            final l10n = AppLocalizations.of(context)!;
 
-        return const SizedBox.shrink();
-      },
+            final content = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ProfileHeaderCard(
+                  name: state.name.isNotEmpty ? state.name : state.email,
+                  memberSince: DateFormat.yMMM(
+                    Localizations.localeOf(context).languageCode,
+                  ).format(state.memberSince),
+                ),
+                const SizedBox(height: AppSpacing.space16),
+                _buildNavigationRow(
+                  context,
+                  icon: AdaptivePlatform.isIOS
+                      ? CupertinoIcons.person
+                      : Icons.person_outline,
+                  title: l10n.personalInfoPageTitle,
+                  onTap: () => const PersonalInfoRoute().go(context),
+                ),
+                const SizedBox(height: AppSpacing.space8),
+                _buildNavigationRow(
+                  context,
+                  icon: AdaptivePlatform.isIOS
+                      ? CupertinoIcons.airplane
+                      : Icons.flight_outlined,
+                  title: l10n.travelPreferencesTitle,
+                  onTap: () =>
+                      const PersonalizationRoute(from: 'profile').push(context),
+                ),
+                const SizedBox(height: AppSpacing.space8),
+                _buildNavigationRow(
+                  context,
+                  icon: AdaptivePlatform.isIOS
+                      ? CupertinoIcons.gear
+                      : Icons.settings_outlined,
+                  title: l10n.settingsTitle,
+                  onTap: () => const SettingsRoute().go(context),
+                ),
+                const SizedBox(height: AppSpacing.space24),
+                const LogoutButton(),
+                const SizedBox(height: AppSpacing.space24),
+                const ProfileFooter(),
+              ],
+            );
+
+            if (AdaptivePlatform.isIOS) {
+              return CupertinoScrollbar(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
+                  child: content,
+                ),
+              );
+            }
+
+            return SingleChildScrollView(
+              padding: AppSpacing.allEdgeInsetSpace24,
+              child: content,
+            );
+          }
+
+          return const SizedBox.shrink();
+        },
+      ),
     );
   }
 

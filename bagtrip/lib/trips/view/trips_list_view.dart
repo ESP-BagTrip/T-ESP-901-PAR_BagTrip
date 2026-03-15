@@ -1,7 +1,9 @@
+import 'package:bagtrip/components/adaptive/adaptive_app_bar.dart';
 import 'package:bagtrip/components/empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/components/paginated_list.dart';
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
@@ -33,8 +35,9 @@ class _TripsListViewState extends State<TripsListView> {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(AppLocalizations.of(context)!.tripsMyTrips),
+        appBar: AdaptiveAppBar.build(
+          context: context,
+          title: AppLocalizations.of(context)!.tripsMyTrips,
           actions: [
             IconButton(
               onPressed: () => const TripCreationRoute().go(context),
@@ -167,7 +170,10 @@ class _TripListTab extends StatelessWidget {
           LoadTripsByStatus(status: status),
         );
       },
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.only(
+        top: 8,
+        bottom: AdaptivePlatform.isIOS ? 100 : 8,
+      ),
       emptyWidget: EmptyState(icon: emptyIcon, title: emptyMessage),
       itemBuilder: (context, trip, _) => TripCard(
         trip: trip,
@@ -200,7 +206,10 @@ class _LegacyTripListTab extends StatelessWidget {
         context.read<TripManagementBloc>().add(LoadTrips());
       },
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: EdgeInsets.only(
+          top: 8,
+          bottom: AdaptivePlatform.isIOS ? 100 : 8,
+        ),
         itemCount: trips.length,
         itemBuilder: (context, index) {
           final trip = trips[index];

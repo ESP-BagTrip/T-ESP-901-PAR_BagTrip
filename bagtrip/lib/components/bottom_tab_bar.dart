@@ -4,6 +4,7 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/bloc/navigation_bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 class BottomTabBar extends StatelessWidget {
   final NavigationTab activeTab;
@@ -23,6 +24,12 @@ class BottomTabBar extends StatelessWidget {
     NavigationTab.profile,
   ];
 
+  static const _selectedCupertinoIcons = [
+    CupertinoIcons.house_fill,
+    CupertinoIcons.bell_fill,
+    CupertinoIcons.person_fill,
+  ];
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -39,31 +46,45 @@ class BottomTabBar extends StatelessWidget {
     ];
 
     if (AdaptivePlatform.isIOS) {
-      return CupertinoTabBar(
-        currentIndex: _tabs.indexOf(activeTab),
-        onTap: (index) => onTabChanged(_tabs[index]),
-        activeColor: ColorName.secondary,
-        inactiveColor: CupertinoColors.systemGrey,
-        backgroundColor: CupertinoTheme.of(
-          context,
-        ).barBackgroundColor.withValues(alpha: 0.92),
-        items: List.generate(
-          _tabs.length,
-          (i) => BottomNavigationBarItem(
-            icon: i == 1
-                ? Badge(
-                    isLabelVisible: activityBadgeCount > 0,
-                    label: Text(
-                      activityBadgeCount > 99 ? '99+' : '$activityBadgeCount',
-                      style: const TextStyle(fontSize: 10),
-                    ),
-                    child: Icon(cupertinoIcons[i]),
-                  )
-                : Icon(cupertinoIcons[i]),
-            label: labels[i],
+      Widget bar = Material(
+        type: MaterialType.transparency,
+        child: GlassBottomBar(
+          tabs: List.generate(
+            _tabs.length,
+            (i) => GlassBottomBarTab(
+              icon: cupertinoIcons[i],
+              selectedIcon: _selectedCupertinoIcons[i],
+              label: labels[i],
+              glowColor: ColorName.secondary,
+            ),
           ),
+          selectedIndex: _tabs.indexOf(activeTab),
+          onTabSelected: (index) => onTabChanged(_tabs[index]),
+          unselectedIconColor: CupertinoColors.systemGrey,
         ),
       );
+
+      if (activityBadgeCount > 0) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        bar = Stack(
+          clipBehavior: Clip.none,
+          children: [
+            bar,
+            Positioned(
+              left: screenWidth / 2 + 8,
+              top: 14,
+              child: IgnorePointer(
+                child: GlassBadge(
+                  count: activityBadgeCount,
+                  child: const SizedBox.shrink(),
+                ),
+              ),
+            ),
+          ],
+        );
+      }
+
+      return bar;
     }
 
     return NavigationBar(
