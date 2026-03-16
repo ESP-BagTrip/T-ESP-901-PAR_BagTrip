@@ -179,6 +179,7 @@ async def get_trip_home(
             trip=trip_resp,
             stats=data["stats"],
             features=data["features"],
+            sections=data["sections"],
         )
     except AppError as e:
         raise create_http_exception(e) from e

@@ -149,7 +149,7 @@ class ActivitiesView extends StatelessWidget {
                           LoadActivities(tripId: tripId),
                         );
                       },
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                       emptyWidget: ElegantEmptyState(
                         icon: Icons.event_outlined,
                         title: AppLocalizations.of(
@@ -192,9 +192,10 @@ class ActivitiesView extends StatelessWidget {
           },
         ),
         floatingActionButton: canEdit && !AdaptivePlatform.isIOS
-            ? FloatingActionButton(
+            ? FloatingActionButton.extended(
                 onPressed: () => _showForm(context, tripId),
-                child: const Icon(Icons.add),
+                icon: const Icon(Icons.add),
+                label: Text(AppLocalizations.of(context)!.addActivity),
               )
             : null,
       ),

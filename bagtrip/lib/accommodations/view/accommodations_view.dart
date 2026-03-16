@@ -124,6 +124,7 @@ class AccommodationsView extends StatelessWidget {
                       }, childCount: accommodations.length),
                     ),
                   ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
                 ],
               );
             }

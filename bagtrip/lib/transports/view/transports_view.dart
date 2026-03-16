@@ -2,7 +2,6 @@ import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
-import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -32,18 +31,7 @@ class TransportsView extends StatelessWidget {
     final isOwner = role == 'OWNER';
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          l10n.transportsTitle,
-          style: const TextStyle(
-            fontFamily: FontFamily.b612,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-      ),
+      appBar: AppBar(title: Text(l10n.transportsTitle)),
       body: BlocConsumer<TransportBloc, TransportState>(
         listener: (context, state) {
           if (state is TransportError) {
@@ -166,8 +154,6 @@ class TransportsView extends StatelessWidget {
               onPressed: () => _showAddSheet(context),
               icon: const Icon(Icons.add),
               label: Text(l10n.addFlight),
-              backgroundColor: ColorName.primary,
-              foregroundColor: Colors.white,
             )
           : null,
     );

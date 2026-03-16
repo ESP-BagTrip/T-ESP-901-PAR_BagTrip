@@ -1,6 +1,6 @@
 import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
-import 'package:bagtrip/components/empty_state.dart';
+import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip_share.dart';
@@ -56,17 +56,16 @@ class _TripSharesViewState extends State<TripSharesView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
-      appBar: AppBar(title: Text(AppLocalizations.of(context)!.sharesTitle)),
+      appBar: AppBar(title: Text(l10n.sharesTitle)),
       body: BlocConsumer<TripShareBloc, TripShareState>(
         listener: (context, state) {
           if (state is TripShareError) {
             AppSnackBar.showError(
               context,
-              message: toUserFriendlyMessage(
-                state.error,
-                AppLocalizations.of(context)!,
-              ),
+              message: toUserFriendlyMessage(state.error, l10n),
             );
           }
         },
@@ -76,122 +75,108 @@ class _TripSharesViewState extends State<TripSharesView> {
               : <TripShare>[];
           final isLoading = state is TripShareLoading;
 
-          return Column(
-            children: [
-              Expanded(
-                child: isLoading
-                    ? const LoadingView()
-                    : shares.isEmpty
-                    ? EmptyState(
-                        icon: Icons.people_outline,
-                        title: AppLocalizations.of(context)!.sharesEmpty,
-                        subtitle: AppLocalizations.of(
-                          context,
-                        )!.sharesEmptySubtitle,
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: shares.length,
-                        itemBuilder: (context, index) {
-                          final share = shares[index];
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Row(
-                                children: [
-                                  const CircleAvatar(child: Icon(Icons.person)),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          share.userFullName ?? share.userEmail,
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.bodyLarge,
-                                        ),
-                                        if (share.userFullName != null)
-                                          Text(
-                                            share.userEmail,
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.bodyMedium,
-                                          ),
-                                        Text(
-                                          'Invit\u00e9 le ${DateFormat('dd/MM/yyyy').format(share.invitedAt ?? DateTime.now())}',
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.bodySmall,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (widget.role != 'VIEWER')
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.remove_circle_outline,
-                                      ),
-                                      onPressed: () => _handleRevoke(share.id),
-                                    ),
-                                ],
+          if (isLoading) return const LoadingView();
+
+          if (shares.isEmpty) {
+            return ElegantEmptyState(
+              icon: Icons.people_outline,
+              title: l10n.sharesEmpty,
+              subtitle: l10n.sharesEmptySubtitle,
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: shares.length,
+            itemBuilder: (context, index) {
+              final share = shares[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      const CircleAvatar(child: Icon(Icons.person)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              share.userFullName ?? share.userEmail,
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                            if (share.userFullName != null)
+                              Text(
+                                share.userEmail,
+                                style: Theme.of(context).textTheme.bodyMedium,
                               ),
+                            Text(
+                              'Invit\u00e9 le ${DateFormat('dd/MM/yyyy').format(share.invitedAt ?? DateTime.now())}',
+                              style: Theme.of(context).textTheme.bodySmall,
                             ),
-                          );
-                        },
+                          ],
+                        ),
                       ),
-              ),
-              if (widget.role != 'VIEWER')
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    border: Border(
-                      top: BorderSide(color: Theme.of(context).dividerColor),
-                    ),
-                  ),
-                  child: Form(
-                    key: _formKey,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: _emailController,
-                            decoration: const InputDecoration(
-                              labelText: 'Email',
-                              border: OutlineInputBorder(),
-                              hintText: 'utilisateur@exemple.com',
-                            ),
-                            keyboardType: TextInputType.emailAddress,
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Requis';
-                              }
-                              if (!value.contains('@')) {
-                                return 'Email invalide';
-                              }
-                              return null;
-                            },
-                          ),
+                      if (widget.role != 'VIEWER')
+                        IconButton(
+                          icon: const Icon(Icons.remove_circle_outline),
+                          onPressed: () => _handleRevoke(share.id),
                         ),
-                        const SizedBox(width: 12),
-                        ElevatedButton.icon(
-                          onPressed: isLoading ? null : _handleInvite,
-                          icon: const Icon(Icons.person_add),
-                          label: Text(
-                            AppLocalizations.of(context)!.sharesInviteButton,
-                          ),
-                        ),
-                      ],
-                    ),
+                    ],
                   ),
                 ),
-            ],
+              );
+            },
           );
         },
       ),
+      bottomNavigationBar: widget.role != 'VIEWER'
+          ? SafeArea(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  border: Border(
+                    top: BorderSide(color: Theme.of(context).dividerColor),
+                  ),
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _emailController,
+                          decoration: const InputDecoration(
+                            labelText: 'Email',
+                            border: OutlineInputBorder(),
+                            hintText: 'utilisateur@exemple.com',
+                          ),
+                          keyboardType: TextInputType.emailAddress,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Requis';
+                            }
+                            if (!value.contains('@')) {
+                              return 'Email invalide';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      IconButton.filled(
+                        onPressed: _handleInvite,
+                        icon: const Icon(Icons.person_add),
+                        tooltip: l10n.sharesInviteButton,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
+          : null,
     );
   }
 }

@@ -35,21 +35,14 @@ class _TripSectionCardState extends State<TripSectionCard> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: AppRadius.large16,
-        border: Border.all(color: ColorName.primarySoftLight),
+        borderRadius: AppRadius.large20,
         boxShadow: [
           BoxShadow(
-            color: ColorName.primary.withValues(alpha: 0.08),
-            offset: const Offset(0, 4),
-            blurRadius: 6,
-            spreadRadius: -1,
-          ),
-          BoxShadow(
-            color: ColorName.primary.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: 0.06),
             offset: const Offset(0, 2),
-            blurRadius: 4,
-            spreadRadius: -1,
+            blurRadius: 12,
           ),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 4),
         ],
       ),
       child: Column(
@@ -62,14 +55,14 @@ class _TripSectionCardState extends State<TripSectionCard> {
             child: Row(
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
-                  decoration: const BoxDecoration(
-                    color: ColorName.primaryLight,
-                    borderRadius: AppRadius.medium8,
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: ColorName.primary.withValues(alpha: 0.1),
+                    borderRadius: AppRadius.large16,
                   ),
                   alignment: Alignment.center,
-                  child: Icon(widget.icon, size: 20, color: ColorName.primary),
+                  child: Icon(widget.icon, size: 22, color: ColorName.primary),
                 ),
                 const SizedBox(width: 14),
                 Expanded(

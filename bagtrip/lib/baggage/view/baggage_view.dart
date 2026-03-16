@@ -289,7 +289,7 @@ class BaggageView extends StatelessWidget {
         ],
 
         // Bottom padding for FAB
-        const SliverToBoxAdapter(child: SizedBox(height: 80)),
+        const SliverToBoxAdapter(child: SizedBox(height: 100)),
       ],
     );
   }

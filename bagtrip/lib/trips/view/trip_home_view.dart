@@ -153,20 +153,16 @@ class TripHomeView extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: AppColors.surface,
-                        borderRadius: AppRadius.large16,
-                        border: Border.all(color: ColorName.primarySoftLight),
+                        borderRadius: AppRadius.large20,
                         boxShadow: [
                           BoxShadow(
-                            color: ColorName.primary.withValues(alpha: 0.08),
-                            offset: const Offset(0, 4),
-                            blurRadius: 6,
-                            spreadRadius: -1,
+                            color: Colors.black.withValues(alpha: 0.06),
+                            offset: const Offset(0, 2),
+                            blurRadius: 12,
                           ),
                           BoxShadow(
-                            color: ColorName.primary.withValues(alpha: 0.04),
-                            offset: const Offset(0, 2),
+                            color: Colors.black.withValues(alpha: 0.02),
                             blurRadius: 4,
-                            spreadRadius: -1,
                           ),
                         ],
                       ),
@@ -215,11 +211,18 @@ class TripHomeView extends StatelessWidget {
                             'transports',
                           ),
                           emptyLabel: l10n.addFirstTransport,
-                          onTap: () => TransportsRoute(
-                            tripId: tripId,
-                            role: trip.role ?? 'OWNER',
-                            isCompleted: isCompleted,
-                          ).go(context),
+                          onTap: () async {
+                            await TransportsRoute(
+                              tripId: tripId,
+                              role: trip.role ?? 'OWNER',
+                              isCompleted: isCompleted,
+                            ).push(context);
+                            if (context.mounted) {
+                              context.read<TripManagementBloc>().add(
+                                LoadTripHome(tripId: tripId),
+                              );
+                            }
+                          },
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -234,13 +237,20 @@ class TripHomeView extends StatelessWidget {
                             'accommodations',
                           ),
                           emptyLabel: l10n.addFirstAccommodation,
-                          onTap: () => AccommodationsRoute(
-                            tripId: tripId,
-                            role: trip.role ?? 'OWNER',
-                            isCompleted: isCompleted,
-                            tripStartDate: trip.startDate?.toIso8601String(),
-                            tripEndDate: trip.endDate?.toIso8601String(),
-                          ).go(context),
+                          onTap: () async {
+                            await AccommodationsRoute(
+                              tripId: tripId,
+                              role: trip.role ?? 'OWNER',
+                              isCompleted: isCompleted,
+                              tripStartDate: trip.startDate?.toIso8601String(),
+                              tripEndDate: trip.endDate?.toIso8601String(),
+                            ).push(context);
+                            if (context.mounted) {
+                              context.read<TripManagementBloc>().add(
+                                LoadTripHome(tripId: tripId),
+                              );
+                            }
+                          },
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -255,11 +265,18 @@ class TripHomeView extends StatelessWidget {
                             'activities',
                           ),
                           emptyLabel: l10n.addFirstActivity,
-                          onTap: () => ActivitiesRoute(
-                            tripId: tripId,
-                            role: trip.role ?? 'OWNER',
-                            isCompleted: isCompleted,
-                          ).go(context),
+                          onTap: () async {
+                            await ActivitiesRoute(
+                              tripId: tripId,
+                              role: trip.role ?? 'OWNER',
+                              isCompleted: isCompleted,
+                            ).push(context);
+                            if (context.mounted) {
+                              context.read<TripManagementBloc>().add(
+                                LoadTripHome(tripId: tripId),
+                              );
+                            }
+                          },
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -271,11 +288,18 @@ class TripHomeView extends StatelessWidget {
                           itemCount: _sectionCount(tripHome, 'baggage'),
                           previewItems: _sectionPreviews(tripHome, 'baggage'),
                           emptyLabel: l10n.addFirstBaggage,
-                          onTap: () => BaggageRoute(
-                            tripId: tripId,
-                            role: trip.role ?? 'OWNER',
-                            isCompleted: isCompleted,
-                          ).go(context),
+                          onTap: () async {
+                            await BaggageRoute(
+                              tripId: tripId,
+                              role: trip.role ?? 'OWNER',
+                              isCompleted: isCompleted,
+                            ).push(context);
+                            if (context.mounted) {
+                              context.read<TripManagementBloc>().add(
+                                LoadTripHome(tripId: tripId),
+                              );
+                            }
+                          },
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -287,11 +311,18 @@ class TripHomeView extends StatelessWidget {
                           itemCount: _sectionCount(tripHome, 'budget'),
                           previewItems: _sectionPreviews(tripHome, 'budget'),
                           emptyLabel: l10n.addFirstBudget,
-                          onTap: () => BudgetRoute(
-                            tripId: tripId,
-                            role: trip.role ?? 'OWNER',
-                            isCompleted: isCompleted,
-                          ).go(context),
+                          onTap: () async {
+                            await BudgetRoute(
+                              tripId: tripId,
+                              role: trip.role ?? 'OWNER',
+                              isCompleted: isCompleted,
+                            ).push(context);
+                            if (context.mounted) {
+                              context.read<TripManagementBloc>().add(
+                                LoadTripHome(tripId: tripId),
+                              );
+                            }
+                          },
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -306,7 +337,6 @@ class TripHomeView extends StatelessWidget {
                           onTap: () => MapRoute(tripId: tripId).go(context),
                         ),
                       ),
-                      const SizedBox(height: 24),
                     ]),
                   ),
                 ),
@@ -417,6 +447,7 @@ class TripHomeView extends StatelessWidget {
                       ),
                     ),
                   ),
+                const SliverToBoxAdapter(child: SizedBox(height: 100)),
               ],
             );
           }

@@ -67,13 +67,19 @@ class _AccommodationCardState extends State<AccommodationCard> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: AppRadius.large20,
+            borderRadius: AppRadius.large16,
             boxShadow: [
               BoxShadow(
                 color: ColorName.primary.withValues(alpha: 0.08),
                 offset: const Offset(0, 4),
-                blurRadius: 12,
-                spreadRadius: -2,
+                blurRadius: 6,
+                spreadRadius: -1,
+              ),
+              BoxShadow(
+                color: ColorName.primary.withValues(alpha: 0.04),
+                offset: const Offset(0, 2),
+                blurRadius: 4,
+                spreadRadius: -1,
               ),
             ],
           ),

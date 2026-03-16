@@ -84,9 +84,10 @@ class BudgetView extends StatelessWidget {
         },
       ),
       floatingActionButton: canEdit && !AdaptivePlatform.isIOS
-          ? FloatingActionButton(
+          ? FloatingActionButton.extended(
               onPressed: () => _showForm(context, tripId),
-              child: const Icon(Icons.add),
+              icon: const Icon(Icons.add),
+              label: Text(AppLocalizations.of(context)!.addExpense),
             )
           : null,
     );
@@ -213,6 +214,8 @@ class BudgetView extends StatelessWidget {
             ),
           ),
         ],
+
+        const SizedBox(height: 100),
       ],
     );
   }

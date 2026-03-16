@@ -55,7 +55,7 @@ class TripShareService:
         if limit is not None and share_count >= limit:
             raise AppError(
                 "SHARE_QUOTA_EXCEEDED",
-                403,
+                402,
                 f"Maximum {limit} shares reached. Upgrade for more.",
             )
 
