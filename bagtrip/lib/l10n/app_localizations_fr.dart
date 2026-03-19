@@ -2055,4 +2055,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get budgetSkipLabel => 'Je verrai plus tard';
+
+  @override
+  String get destinationSectionLabel => 'DESTINATION';
+
+  @override
+  String get destinationOrSeparator => 'OU';
+
+  @override
+  String get destinationNoResults => 'Aucun résultat trouvé';
+
+  @override
+  String get destinationAiLoading => 'Notre IA cherche pour vous...';
+
+  @override
+  String get destinationSelected => 'Destination sélectionnée';
 }

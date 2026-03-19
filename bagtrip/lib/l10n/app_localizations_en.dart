@@ -2033,4 +2033,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get budgetSkipLabel => 'I\'ll decide later';
+
+  @override
+  String get destinationSectionLabel => 'DESTINATION';
+
+  @override
+  String get destinationOrSeparator => 'OR';
+
+  @override
+  String get destinationNoResults => 'No results found';
+
+  @override
+  String get destinationAiLoading => 'Our AI is searching for you...';
+
+  @override
+  String get destinationSelected => 'Selected destination';
 }

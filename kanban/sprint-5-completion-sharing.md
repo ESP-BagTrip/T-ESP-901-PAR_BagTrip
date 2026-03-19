@@ -2,7 +2,6 @@
 
 > **Objectif** : Permettre a l'utilisateur de completer son voyage apres creation — affiner les dates, booker des vols, gerer hebergements, bagages, activites, budget, et partager le trip.
 > **Dependances** : Sprint 3 (Trip Detail Page avec toutes les sections)
-> **Branch** : `feat/SMP-350-completion-sharing`
 > **Ref design** : Tripsy trip editing, Wanderlog collaborative, TripIt sharing
 
 > Ce sprint est parallelisable avec le Sprint 4 (pas de dependance mutuelle).

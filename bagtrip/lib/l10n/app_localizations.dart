@@ -3919,6 +3919,36 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Je verrai plus tard'**
   String get budgetSkipLabel;
+
+  /// No description provided for @destinationSectionLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'DESTINATION'**
+  String get destinationSectionLabel;
+
+  /// No description provided for @destinationOrSeparator.
+  ///
+  /// In fr, this message translates to:
+  /// **'OU'**
+  String get destinationOrSeparator;
+
+  /// No description provided for @destinationNoResults.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun résultat trouvé'**
+  String get destinationNoResults;
+
+  /// No description provided for @destinationAiLoading.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notre IA cherche pour vous...'**
+  String get destinationAiLoading;
+
+  /// No description provided for @destinationSelected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Destination sélectionnée'**
+  String get destinationSelected;
 }
 
 class _AppLocalizationsDelegate

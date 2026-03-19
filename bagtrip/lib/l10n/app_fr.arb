@@ -795,5 +795,10 @@
   "budgetPresetNoLimit": "Sans limite",
   "budgetPresetNoLimitDesc": "400+ €/jour",
   "budgetEstimationLabel": "TOTAL ESTIMÉ",
-  "budgetSkipLabel": "Je verrai plus tard"
+  "budgetSkipLabel": "Je verrai plus tard",
+  "destinationSectionLabel": "DESTINATION",
+  "destinationOrSeparator": "OU",
+  "destinationNoResults": "Aucun résultat trouvé",
+  "destinationAiLoading": "Notre IA cherche pour vous...",
+  "destinationSelected": "Destination sélectionnée"
 }

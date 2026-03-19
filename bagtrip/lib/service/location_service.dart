@@ -9,6 +9,7 @@ import 'package:dio/dio.dart';
 class LocationService {
   final Dio _dio;
   final String baseUrl = AppConfig.apiBaseUrl;
+  final Map<String, List<Map<String, dynamic>>> _searchCache = {};
 
   LocationService({Dio? dio}) : _dio = dio ?? Dio();
 
@@ -107,6 +108,11 @@ class LocationService {
     String keyword,
     String subType,
   ) async {
+    final cacheKey = '${keyword.toLowerCase().trim()}|$subType';
+    if (_searchCache.containsKey(cacheKey)) {
+      return Success(_searchCache[cacheKey]!);
+    }
+
     try {
       final response = await _dio.get(
         '$baseUrl/travel/locations',
@@ -150,6 +156,7 @@ class LocationService {
 
       // Return valid results even when status code is not 200.
       if (results != null && results.isNotEmpty) {
+        _searchCache[cacheKey] = results;
         return Success(results);
       }
 
@@ -199,6 +206,7 @@ class LocationService {
 
           // Return valid results even when status code indicates an error.
           if (results != null && results.isNotEmpty) {
+            _searchCache[cacheKey] = results;
             return Success(results);
           }
         } catch (_) {

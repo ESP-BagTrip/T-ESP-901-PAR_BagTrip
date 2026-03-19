@@ -795,5 +795,10 @@
   "budgetPresetNoLimit": "No limit",
   "budgetPresetNoLimitDesc": "400+ €/day",
   "budgetEstimationLabel": "ESTIMATED TOTAL",
-  "budgetSkipLabel": "I'll decide later"
+  "budgetSkipLabel": "I'll decide later",
+  "destinationSectionLabel": "DESTINATION",
+  "destinationOrSeparator": "OR",
+  "destinationNoResults": "No results found",
+  "destinationAiLoading": "Our AI is searching for you...",
+  "destinationSelected": "Selected destination"
 }

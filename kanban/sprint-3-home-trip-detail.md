@@ -2,7 +2,6 @@
 
 > **Objectif** : Refondre la home pour qu'elle s'adapte au contexte utilisateur (nouveau, en voyage, planificateur), et creer le trip detail comme hub central post-creation.
 > **Dependances** : Sprint 1 (HomeBloc parallelise, design tokens), Sprint 2 (creation de trip — le trip detail affiche le resultat)
-> **Branch** : `feat/SMP-330-home-trip-detail`
 > **Ref design** : Airbnb home, Apple Wallet card stack, Tripsy dashboard, TripIt trip view
 
 **Ce sprint inclut** : hero transitions, skeleton loading, pull-to-refresh, staggered list animations. Pas differe.

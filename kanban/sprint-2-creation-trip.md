@@ -2,7 +2,6 @@
 
 > **Objectif** : Implementer le wizard complet de creation de voyage (6 steps) avec un seul BLoC unifie, remplacant les deux anciens flows (manuel + AI).
 > **Dependances** : Sprint 1 (fondation, composants, routes, API validation)
-> **Branch** : `feat/SMP-320-unified-trip-creation`
 > **Ref design** : Tripsy creation, Hopper flexible dates, Airbnb search
 
 **Ce sprint inclut** : les animations du wizard (transitions entre steps, celebration), les haptics, et les skeleton/shimmer de la generation SSE. Le polish n'est pas differe.

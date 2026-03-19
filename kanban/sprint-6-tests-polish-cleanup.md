@@ -2,7 +2,6 @@
 
 > **Objectif** : Ecrire les tests manquants, finaliser le polish (context menus, accessibility), optimiser les performances, supprimer le code legacy, et preparer la release.
 > **Dependances** : Tous les sprints precedents
-> **Branch** : `feat/SMP-360-tests-polish-cleanup`
 
 **Ce sprint est le seul sprint de "finalisation"** car le polish principal (animations, haptics, skeletons) a ete integre dans chaque sprint precedent. Ce qui reste ici, c'est :
 1. Les tests de couverture manquants

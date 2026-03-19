@@ -2,7 +2,6 @@
 
 > **Objectif** : L'app se transforme automatiquement quand un voyage est en cours. Timeline temps reel, actions contextuelles, meteo live, notifications, post-trip.
 > **Dependances** : Sprint 3 (Home ActiveTripView + Trip Detail)
-> **Branch** : `feat/SMP-340-in-trip-mode`
 > **Ref design** : TripIt Pro real-time, Tripsy today view, Apple Maps transit mode
 
 **Pourquoi ce sprint est ici (Sprint 4, pas Sprint 8)** : Le mode in-trip est le differenciateur du produit. C'est la raison pour laquelle un utilisateur garderait l'app installee. Il doit etre prototype et valide tot, pas relegue en fin de roadmap.

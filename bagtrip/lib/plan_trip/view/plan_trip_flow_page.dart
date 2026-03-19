@@ -9,6 +9,7 @@ import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
 import 'package:bagtrip/plan_trip/models/duration_preset.dart';
 import 'package:bagtrip/plan_trip/models/budget_preset.dart';
 import 'package:bagtrip/plan_trip/view/step_dates_view.dart';
+import 'package:bagtrip/plan_trip/view/step_destination_view.dart';
 import 'package:bagtrip/plan_trip/view/step_travelers_budget_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -109,7 +110,7 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
                       children: const [
                         StepDatesView(),
                         StepTravelersBudgetView(),
-                        Center(child: Text('Step 2')),
+                        StepDestinationView(),
                         Center(child: Text('Step 3')),
                         Center(child: Text('Step 4')),
                         Center(child: Text('Step 5')),
@@ -163,6 +164,21 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
             icon: Icons.account_balance_wallet_outlined,
             label: l10n.budgetLabel,
             value: _budgetPresetLabel(state.budgetPreset!, l10n),
+          ),
+        );
+      }
+    }
+    if (state.currentStep > 2 && state.isDestinationValid) {
+      final destName =
+          state.selectedManualDestination?.name ??
+          state.selectedAiDestination?.city ??
+          '';
+      if (destName.isNotEmpty) {
+        items.add(
+          StepSummaryItem(
+            icon: Icons.place_outlined,
+            label: l10n.stepDestination,
+            value: destName,
           ),
         );
       }
