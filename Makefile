@@ -9,6 +9,54 @@ COMPOSE      := docker compose
 FLUTTER_DIR  := bagtrip
 ADMIN_APP_DIR := admin-panel/application
 API_DIR      := api
+API_PORT     := 3000
+
+# ── API URL detection ────────────────────────────────────────
+# Detect the Flutter target device and resolve the right API host.
+#   • Simulator / desktop  → localhost (same machine)
+#   • Physical device      → Mac's LAN IP so the phone can reach the API
+#
+# FLUTTER_DEVICE can be overridden:  make dev FLUTTER_DEVICE=<device-id>
+FLUTTER_DEVICE ?=
+
+# Resolve the host dynamically (called in recipes via $(shell …) or inline)
+# Tries multiple interfaces: en0 (Wi-Fi), en1-en6, bridge*, then any non-loopback.
+define resolve_api_host
+$(shell \
+	device="$(1)"; \
+	if [ -z "$$device" ]; then \
+		echo "localhost"; \
+	elif echo "$$device" | grep -qiE "simulator|emulator|macos|linux|windows|chrome"; then \
+		echo "localhost"; \
+	else \
+		ip=""; \
+		for iface in en0 en1 en2 en3 en4 en5 en6 bridge0; do \
+			candidate=$$(ipconfig getifaddr $$iface 2>/dev/null); \
+			if [ -n "$$candidate" ] && echo "$$candidate" | grep -qvE "^169\.254\.|^127\."; then \
+				ip="$$candidate"; break; \
+			fi; \
+		done; \
+		if [ -z "$$ip" ]; then \
+			ip=$$(ifconfig 2>/dev/null | grep "inet " | grep -v 127.0.0.1 | grep -v "169.254" | head -1 | awk '{print $$2}'); \
+		fi; \
+		if [ -n "$$ip" ]; then echo "$$ip"; else echo "localhost"; fi; \
+	fi \
+)
+endef
+
+# Auto-detect connected device when FLUTTER_DEVICE is empty
+# flutter devices output: "iPhone de yanis (mobile) • <id> • ios • ..."
+# The bullet is U+2022; we split on it and grab the device id (field 2).
+define detect_device
+$(shell \
+	if [ -n "$(FLUTTER_DEVICE)" ]; then \
+		echo "$(FLUTTER_DEVICE)"; \
+	else \
+		flutter devices 2>/dev/null | grep -iE "iPhone|iPad|Android" | head -1 | \
+		sed 's/•/|/g' | awk -F'|' '{gsub(/^[ \t]+|[ \t]+$$/,"",$$2); print $$2}'; \
+	fi \
+)
+endef
 
 # ── Colors ───────────────────────────────────────────────────
 CYAN    := \033[36m
@@ -108,23 +156,37 @@ dev: ## Start Docker services + Flutter app
 	@printf "$(CYAN)[info]$(RESET) Starting Docker services…\n"
 	@$(COMPOSE) up -d --build
 	@printf "\n$(GREEN)[ok]$(RESET)   Services ready:\n"
-	@printf "       API          http://localhost:3000\n"
-	@printf "       API Docs     http://localhost:3000/docs\n"
+	@printf "       API          http://localhost:$(API_PORT)\n"
+	@printf "       API Docs     http://localhost:$(API_PORT)/docs\n"
 	@printf "       Admin Panel  http://localhost:8000\n\n"
-	@printf "$(CYAN)[info]$(RESET) Starting Flutter app (hot reload: r/R, quit: q)…\n\n"
-	@cd $(FLUTTER_DIR) && flutter run
+	@$(MAKE) --no-print-directory _flutter-run
 
 dev-docker: ## Start Docker services only (db, api, admin)
 	@printf "$(CYAN)[info]$(RESET) Starting Docker services…\n"
 	@$(COMPOSE) up -d --build
 	@printf "\n$(GREEN)[ok]$(RESET)   Services ready:\n"
-	@printf "       API          http://localhost:3000\n"
-	@printf "       API Docs     http://localhost:3000/docs\n"
+	@printf "       API          http://localhost:$(API_PORT)\n"
+	@printf "       API Docs     http://localhost:$(API_PORT)/docs\n"
 	@printf "       Admin Panel  http://localhost:8000\n\n"
 
 dev-mobile: ## Start Flutter app only
+	@$(MAKE) --no-print-directory _flutter-run
+
+# Internal: detect device, resolve API host, inject --dart-define, run Flutter
+_flutter-run:
+	$(eval DEVICE := $(call detect_device))
+	$(eval API_HOST := $(call resolve_api_host,$(DEVICE)))
+	$(eval API_URL := http://$(API_HOST):$(API_PORT)/v1)
+	$(eval DEVICE_FLAG := $(if $(DEVICE),-d $(DEVICE),))
+	@printf "$(CYAN)[info]$(RESET) Target device: $(if $(DEVICE),$(DEVICE),auto)\n"
+	@printf "$(CYAN)[info]$(RESET) API URL:       $(API_URL)\n"
+	@if [ "$(API_HOST)" != "localhost" ]; then \
+		printf "$(YELLOW)[warn]$(RESET) Physical device detected — using LAN IP $(API_HOST)\n"; \
+		printf "       Make sure your Mac firewall allows port $(API_PORT)\n\n"; \
+	fi
 	@printf "$(CYAN)[info]$(RESET) Starting Flutter app (hot reload: r/R, quit: q)…\n\n"
-	@cd $(FLUTTER_DIR) && flutter run
+	@cd $(FLUTTER_DIR) && flutter run $(DEVICE_FLAG) \
+		--dart-define=API_BASE_URL=$(API_URL)
 
 stop: ## Stop Docker services
 	@printf "$(CYAN)[info]$(RESET) Stopping services…\n"
