@@ -26,7 +26,7 @@ class StepTravelersView extends StatelessWidget {
                   size: 18,
                   color: ColorName.secondary,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.space8),
                 Text(
                   l10n.numberOfTravelersLabel,
                   style: const TextStyle(
@@ -45,7 +45,7 @@ class StepTravelersView extends StatelessWidget {
             Row(
               children: [
                 for (int i = 1; i <= 4; i++) ...[
-                  if (i > 1) const SizedBox(width: 8),
+                  if (i > 1) const SizedBox(width: AppSpacing.space8),
                   Expanded(
                     child: _TravelerChip(
                       label: '$i',
@@ -55,7 +55,7 @@ class StepTravelersView extends StatelessWidget {
                     ),
                   ),
                 ],
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.space8),
                 Expanded(
                   child: _TravelerChip(
                     label: l10n.travelerCount5Plus,
@@ -67,7 +67,7 @@ class StepTravelersView extends StatelessWidget {
               ],
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: AppSpacing.space32),
 
             // Navigation buttons
             Row(
@@ -78,7 +78,7 @@ class StepTravelersView extends StatelessWidget {
                         context.read<TripCreationBloc>().add(PreviousStep()),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.space12),
                 Expanded(
                   flex: 2,
                   child: _NextButton(
@@ -114,7 +114,7 @@ class _TravelerChip extends StatelessWidget {
         onTap: onTap,
         borderRadius: AppRadius.pill,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: AppSpacing.verticalSpace16,
           decoration: BoxDecoration(
             color: selected ? ColorName.primary : ColorName.surfaceLight,
             borderRadius: AppRadius.pill,

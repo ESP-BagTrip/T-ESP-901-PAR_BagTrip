@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/accommodations/bloc/accommodation_bloc.dart';
 import 'package:bagtrip/accommodations/widgets/accommodation_card.dart';
 import 'package:bagtrip/accommodations/widgets/add_accommodation_sheet.dart';
@@ -107,12 +108,14 @@ class AccommodationsView extends StatelessWidget {
               return CustomScrollView(
                 slivers: [
                   SliverPadding(
-                    padding: const EdgeInsets.all(16),
+                    padding: AppSpacing.allEdgeInsetSpace16,
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate((context, index) {
                         final accommodation = accommodations[index];
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.only(
+                            bottom: AppSpacing.space12,
+                          ),
                           child: AccommodationCard(
                             accommodation: accommodation,
                             isViewer: !canEdit,

@@ -1947,4 +1947,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mapComingSoonShort => 'Map coming soon';
+
+  @override
+  String get datesModeExact => 'Exact dates';
+
+  @override
+  String get datesModeMonth => 'Month';
+
+  @override
+  String get datesModeFlexible => 'Flexible';
+
+  @override
+  String get datesFlexibleWhenever => 'Whenever';
+
+  @override
+  String get datesFlexibleWeekend => 'Weekend';
+
+  @override
+  String get datesFlexibleWeek => '1 week';
+
+  @override
+  String get datesFlexibleTwoWeeks => '2 weeks';
 }

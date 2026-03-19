@@ -424,7 +424,10 @@ class _PlanTripCta extends StatelessWidget {
         borderRadius: AppRadius.large16,
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.space24,
+            vertical: 20,
+          ),
           decoration: BoxDecoration(
             color: theme.cardTheme.color ?? theme.colorScheme.surface,
             borderRadius: AppRadius.large16,
@@ -530,8 +533,8 @@ class _TripsSectionState extends State<_TripsSection>
       children: [
         // Segmented control
         Container(
-          margin: const EdgeInsets.symmetric(horizontal: 24),
-          padding: const EdgeInsets.all(4),
+          margin: const EdgeInsets.symmetric(horizontal: AppSpacing.space24),
+          padding: AppSpacing.allEdgeInsetSpace4,
           decoration: BoxDecoration(
             color: isDark ? ColorName.surfaceDark : ColorName.surfaceLight,
             borderRadius: AppRadius.pill,
@@ -570,7 +573,7 @@ class _TripsSectionState extends State<_TripsSection>
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.space12),
 
         // Trip lists
         SizedBox(
@@ -663,7 +666,7 @@ class _TripListContent extends StatelessWidget {
           LoadTripsByStatus(status: status),
         );
       },
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: AppSpacing.verticalSpace4,
       emptyWidget: ElegantEmptyState(icon: emptyIcon, title: emptyMessage),
       itemBuilder: (context, trip, _) => TripCard(
         trip: trip,
@@ -690,7 +693,7 @@ class _LegacyTripList extends StatelessWidget {
       return ElegantEmptyState(icon: emptyIcon, title: emptyMessage);
     }
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: AppSpacing.verticalSpace4,
       itemCount: trips.length,
       itemBuilder: (context, index) {
         final trip = trips[index];

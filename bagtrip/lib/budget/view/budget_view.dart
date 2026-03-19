@@ -271,7 +271,7 @@ class BudgetView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.space12),
             Center(
               child: Container(
                 width: 40,

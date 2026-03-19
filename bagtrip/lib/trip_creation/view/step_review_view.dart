@@ -18,7 +18,7 @@ class StepReviewView extends StatelessWidget {
     return BlocBuilder<TripCreationBloc, TripCreationState>(
       builder: (context, state) {
         return ListView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, AppSpacing.space40),
           children: [
             // Title
             Text(
@@ -43,7 +43,7 @@ class StepReviewView extends StatelessWidget {
                   state.destinationCountry!,
               ].join(', '),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.space16),
 
             // Dates
             if (state.startDate != null && state.endDate != null)
@@ -55,7 +55,7 @@ class StepReviewView extends StatelessWidget {
                 trailing:
                     '${state.endDate!.difference(state.startDate!).inDays} ${l10n.days}',
               ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.space16),
 
             // Travelers
             _ReviewItem(
@@ -65,7 +65,7 @@ class StepReviewView extends StatelessWidget {
                   ? l10n.travelerCount5Plus
                   : '${state.nbTravelers}',
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.space16),
 
             // AI highlights
             if (state.selectedAiProposal != null) ...[
@@ -79,7 +79,7 @@ class StepReviewView extends StatelessWidget {
                     size: 18,
                     color: ColorName.secondary,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.space8),
                   Text(
                     l10n.aiSuggestionsTitle,
                     style: const TextStyle(
@@ -92,7 +92,7 @@ class StepReviewView extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.space12),
               if (state.selectedAiProposal!.description.isNotEmpty)
                 Text(
                   state.selectedAiProposal!.description,
@@ -103,16 +103,16 @@ class StepReviewView extends StatelessWidget {
                   ),
                 ),
               if (state.selectedAiProposal!.activities.isNotEmpty) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.space12),
                 Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: AppSpacing.space8,
+                  runSpacing: AppSpacing.space8,
                   children: state.selectedAiProposal!.activities
                       .take(4)
                       .map(
                         (a) => Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
+                            horizontal: AppSpacing.space12,
                             vertical: 6,
                           ),
                           decoration: const BoxDecoration(
@@ -160,12 +160,12 @@ class StepReviewView extends StatelessWidget {
               ],
             ],
 
-            const SizedBox(height: 32),
+            const SizedBox(height: AppSpacing.space32),
 
             // Error message
             if (state.error != null) ...[
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: AppSpacing.allEdgeInsetSpace12,
                 decoration: const BoxDecoration(
                   color: AppColors.errorBg,
                   borderRadius: AppRadius.medium8,
@@ -179,7 +179,7 @@ class StepReviewView extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.space16),
             ],
 
             // Navigation buttons
@@ -191,7 +191,7 @@ class StepReviewView extends StatelessWidget {
                         context.read<TripCreationBloc>().add(PreviousStep()),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.space12),
                 Expanded(
                   flex: 2,
                   child: _CreateButton(
@@ -226,7 +226,7 @@ class _ReviewItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: AppSpacing.allEdgeInsetSpace16,
       decoration: BoxDecoration(
         color: ColorName.surface,
         borderRadius: AppRadius.large16,
@@ -281,7 +281,10 @@ class _ReviewItem extends StatelessWidget {
           ),
           if (trailing != null)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: AppSpacing.space4,
+              ),
               decoration: const BoxDecoration(
                 color: ColorName.primaryLight,
                 borderRadius: AppRadius.pill,
@@ -382,7 +385,7 @@ class _CreateButton extends StatelessWidget {
                         color: ColorName.surface,
                         size: 20,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppSpacing.space8),
                       Text(
                         l10n.createTripButton,
                         style: const TextStyle(

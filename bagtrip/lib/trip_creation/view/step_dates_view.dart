@@ -28,7 +28,7 @@ class StepDatesView extends StatelessWidget {
                   size: 18,
                   color: ColorName.secondary,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.space8),
                 Text(
                   l10n.datesLabel,
                   style: const TextStyle(
@@ -48,8 +48,8 @@ class StepDatesView extends StatelessWidget {
                 state.selectedAiProposal!.durationDays > 0) ...[
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+                  horizontal: AppSpacing.space16,
+                  vertical: AppSpacing.space12,
                 ),
                 decoration: const BoxDecoration(
                   color: ColorName.primaryLight,
@@ -62,7 +62,7 @@ class StepDatesView extends StatelessWidget {
                       size: 16,
                       color: ColorName.primary,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.space8),
                     Text(
                       '${l10n.suggestedDuration}: ${state.selectedAiProposal!.durationDays} ${l10n.days}',
                       style: const TextStyle(
@@ -89,7 +89,7 @@ class StepDatesView extends StatelessWidget {
                     onTap: () => _pickDates(context, state),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.space12),
                 Expanded(
                   child: _DateCard(
                     label: l10n.returnLabel,
@@ -107,8 +107,8 @@ class StepDatesView extends StatelessWidget {
               Center(
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
+                    horizontal: AppSpacing.space16,
+                    vertical: AppSpacing.space8,
                   ),
                   decoration: BoxDecoration(
                     color: ColorName.surface,
@@ -128,7 +128,7 @@ class StepDatesView extends StatelessWidget {
               ),
             ],
 
-            const SizedBox(height: 32),
+            const SizedBox(height: AppSpacing.space32),
 
             // Navigation buttons
             Row(
@@ -139,7 +139,7 @@ class StepDatesView extends StatelessWidget {
                         context.read<TripCreationBloc>().add(PreviousStep()),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.space12),
                 Expanded(
                   flex: 2,
                   child: _NextButton(
@@ -201,7 +201,7 @@ class _DateCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: AppRadius.large16,
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: AppSpacing.allEdgeInsetSpace16,
           decoration: BoxDecoration(
             color: ColorName.surfaceLight,
             borderRadius: AppRadius.large16,
@@ -239,7 +239,7 @@ class _DateCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.space8),
               Text(
                 displayText,
                 style: TextStyle(

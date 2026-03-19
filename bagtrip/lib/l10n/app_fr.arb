@@ -764,5 +764,12 @@
   "emptyBudgetSubtitle": "Suivez vos d\u00e9penses et planifiez votre budget voyage",
   "mapTitle": "Carte",
   "mapComingSoonSubtitle": "Votre voyage sur une carte. Bient\u00f4t disponible.",
-  "mapComingSoonShort": "Carte bient\u00f4t"
+  "mapComingSoonShort": "Carte bient\u00f4t",
+  "datesModeExact": "Dates exactes",
+  "datesModeMonth": "Mois",
+  "datesModeFlexible": "Flexible",
+  "datesFlexibleWhenever": "N'importe quand",
+  "datesFlexibleWeekend": "Week-end",
+  "datesFlexibleWeek": "1 semaine",
+  "datesFlexibleTwoWeeks": "2 semaines"
 }

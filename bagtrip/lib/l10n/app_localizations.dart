@@ -3763,6 +3763,48 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Carte bientôt'**
   String get mapComingSoonShort;
+
+  /// No description provided for @datesModeExact.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dates exactes'**
+  String get datesModeExact;
+
+  /// No description provided for @datesModeMonth.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mois'**
+  String get datesModeMonth;
+
+  /// No description provided for @datesModeFlexible.
+  ///
+  /// In fr, this message translates to:
+  /// **'Flexible'**
+  String get datesModeFlexible;
+
+  /// No description provided for @datesFlexibleWhenever.
+  ///
+  /// In fr, this message translates to:
+  /// **'N\'importe quand'**
+  String get datesFlexibleWhenever;
+
+  /// No description provided for @datesFlexibleWeekend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Week-end'**
+  String get datesFlexibleWeekend;
+
+  /// No description provided for @datesFlexibleWeek.
+  ///
+  /// In fr, this message translates to:
+  /// **'1 semaine'**
+  String get datesFlexibleWeek;
+
+  /// No description provided for @datesFlexibleTwoWeeks.
+  ///
+  /// In fr, this message translates to:
+  /// **'2 semaines'**
+  String get datesFlexibleTwoWeeks;
 }
 
 class _AppLocalizationsDelegate

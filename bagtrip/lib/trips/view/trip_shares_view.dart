@@ -1,4 +1,5 @@
 import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
+import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/loading_view.dart';
@@ -86,18 +87,18 @@ class _TripSharesViewState extends State<TripSharesView> {
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: AppSpacing.allEdgeInsetSpace16,
             itemCount: shares.length,
             itemBuilder: (context, index) {
               final share = shares[index];
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
                 child: Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: AppSpacing.allEdgeInsetSpace12,
                   child: Row(
                     children: [
                       const CircleAvatar(child: Icon(Icons.person)),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: AppSpacing.space12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,7 +135,7 @@ class _TripSharesViewState extends State<TripSharesView> {
       bottomNavigationBar: widget.role != 'VIEWER'
           ? SafeArea(
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: AppSpacing.allEdgeInsetSpace16,
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   border: Border(
@@ -165,7 +166,7 @@ class _TripSharesViewState extends State<TripSharesView> {
                           },
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: AppSpacing.space12),
                       IconButton.filled(
                         onPressed: _handleInvite,
                         icon: const Icon(Icons.person_add),

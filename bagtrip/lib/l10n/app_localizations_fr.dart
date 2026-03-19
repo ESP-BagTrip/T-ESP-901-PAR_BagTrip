@@ -1969,4 +1969,25 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mapComingSoonShort => 'Carte bientôt';
+
+  @override
+  String get datesModeExact => 'Dates exactes';
+
+  @override
+  String get datesModeMonth => 'Mois';
+
+  @override
+  String get datesModeFlexible => 'Flexible';
+
+  @override
+  String get datesFlexibleWhenever => 'N\'importe quand';
+
+  @override
+  String get datesFlexibleWeekend => 'Week-end';
+
+  @override
+  String get datesFlexibleWeek => '1 semaine';
+
+  @override
+  String get datesFlexibleTwoWeeks => '2 semaines';
 }

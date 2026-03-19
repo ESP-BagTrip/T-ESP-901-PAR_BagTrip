@@ -764,5 +764,12 @@
   "emptyBudgetSubtitle": "Follow your expenses and plan your trip budget",
   "mapTitle": "Map",
   "mapComingSoonSubtitle": "Your trip on a map. Coming soon.",
-  "mapComingSoonShort": "Map coming soon"
+  "mapComingSoonShort": "Map coming soon",
+  "datesModeExact": "Exact dates",
+  "datesModeMonth": "Month",
+  "datesModeFlexible": "Flexible",
+  "datesFlexibleWhenever": "Whenever",
+  "datesFlexibleWeekend": "Weekend",
+  "datesFlexibleWeek": "1 week",
+  "datesFlexibleTwoWeeks": "2 weeks"
 }

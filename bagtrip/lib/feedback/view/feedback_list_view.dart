@@ -1,5 +1,6 @@
 import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/models/feedback.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -19,14 +20,14 @@ class FeedbackListView extends StatelessWidget {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: AppSpacing.allEdgeInsetSpace16,
       itemCount: feedbacks.length,
       itemBuilder: (context, index) {
         final feedback = feedbacks[index];
         return Card(
-          margin: const EdgeInsets.only(bottom: 12),
+          margin: const EdgeInsets.only(bottom: AppSpacing.space12),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: AppSpacing.allEdgeInsetSpace16,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -51,20 +52,20 @@ class FeedbackListView extends StatelessWidget {
                   ],
                 ),
                 if (feedback.highlights != null) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.space8),
                   Text(
                     'Points forts : ${feedback.highlights}',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
                 if (feedback.lowlights != null) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.space4),
                   Text(
                     '\u00c0 am\u00e9liorer : ${feedback.lowlights}',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.space8),
                 Row(
                   children: [
                     Icon(
@@ -76,7 +77,7 @@ class FeedbackListView extends StatelessWidget {
                           ? AppColors.success
                           : AppColors.error,
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: AppSpacing.space4),
                     Text(
                       feedback.wouldRecommend
                           ? 'Recommande'

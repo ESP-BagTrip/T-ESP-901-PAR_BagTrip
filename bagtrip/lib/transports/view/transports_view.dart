@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
@@ -80,7 +81,12 @@ class TransportsView extends StatelessWidget {
                 if (state.mainFlights.isNotEmpty)
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.space24,
+                        AppSpacing.space16,
+                        AppSpacing.space24,
+                        AppSpacing.space8,
+                      ),
                       child: Text(
                         l10n.mainFlightsSection,
                         style: TextStyle(
@@ -106,7 +112,12 @@ class TransportsView extends StatelessWidget {
                 if (state.internalFlights.isNotEmpty) ...[
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.space24,
+                        AppSpacing.space24,
+                        AppSpacing.space24,
+                        AppSpacing.space8,
+                      ),
                       child: Text(
                         l10n.internalFlightsSection,
                         style: TextStyle(
@@ -119,12 +130,14 @@ class TransportsView extends StatelessWidget {
                     ),
                   ),
                   SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    padding: AppSpacing.horizontalSpace24,
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate((context, index) {
                         final flight = state.internalFlights[index];
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.only(
+                            bottom: AppSpacing.space12,
+                          ),
                           child: FlightCard(
                             flight: flight,
                             compact: true,

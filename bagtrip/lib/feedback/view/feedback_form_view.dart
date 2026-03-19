@@ -1,5 +1,6 @@
 import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
 import 'package:bagtrip/feedback/bloc/feedback_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -60,7 +61,7 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
         title: Text(AppLocalizations.of(context)!.feedbackGiveYourReview),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.allEdgeInsetSpace16,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -68,7 +69,7 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
               AppLocalizations.of(context)!.feedbackOverallRating,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.space8),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(5, (index) {
@@ -86,7 +87,7 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
                 );
               }),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.space16),
             TextField(
               controller: _highlightsController,
               decoration: InputDecoration(
@@ -96,7 +97,7 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
               ),
               maxLines: 3,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.space16),
             TextField(
               controller: _lowlightsController,
               decoration: InputDecoration(
@@ -106,7 +107,7 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
               ),
               maxLines: 3,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.space16),
             SwitchListTile.adaptive(
               title: Text(AppLocalizations.of(context)!.feedbackWouldRecommend),
               value: _wouldRecommend,
@@ -116,7 +117,7 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
                 });
               },
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.space24),
             BlocConsumer<FeedbackBloc, FeedbackState>(
               listener: (context, state) {
                 if (state is FeedbackSubmitted) {
@@ -166,7 +167,7 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
                 );
               },
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.space24),
             _PostTripSuggestionSection(
               tripId: widget.tripId,
               hasSubmitted: false,
@@ -187,21 +188,21 @@ class _ReadOnlyFeedbackView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: AppSpacing.allEdgeInsetSpace16,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Card(
             color: const Color(0xFFF0F7FF),
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: AppSpacing.allEdgeInsetSpace16,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
                       const Icon(Icons.check_circle, color: AppColors.success),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppSpacing.space8),
                       Text(
                         AppLocalizations.of(context)!.feedbackSent,
                         style: const TextStyle(
@@ -211,12 +212,12 @@ class _ReadOnlyFeedbackView extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.space16),
                   Text(
                     AppLocalizations.of(context)!.feedbackOverallRating,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.space4),
                   Row(
                     children: List.generate(5, (index) {
                       return Icon(
@@ -230,25 +231,25 @@ class _ReadOnlyFeedbackView extends StatelessWidget {
                   ),
                   if (feedback.highlights != null &&
                       feedback.highlights!.isNotEmpty) ...[
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.space12),
                     Text(
                       AppLocalizations.of(context)!.feedbackHighlights,
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.space4),
                     Text(feedback.highlights!),
                   ],
                   if (feedback.lowlights != null &&
                       feedback.lowlights!.isNotEmpty) ...[
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.space12),
                     Text(
                       AppLocalizations.of(context)!.feedbackLowlights,
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.space4),
                     Text(feedback.lowlights!),
                   ],
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.space12),
                   Row(
                     children: [
                       Text(
@@ -266,7 +267,7 @@ class _ReadOnlyFeedbackView extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.space24),
           _PostTripSuggestionSection(tripId: tripId, hasSubmitted: true),
         ],
       ),
@@ -292,12 +293,12 @@ class _PostTripSuggestionSection extends StatelessWidget {
           return Card(
             color: const Color(0xFFF0F7FF),
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: AppSpacing.allEdgeInsetSpace16,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(AppLocalizations.of(context)!.feedbackDiscoverText),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.space12),
                   ElevatedButton.icon(
                     onPressed: () async {
                       final authRepository = getIt<AuthRepository>();
@@ -328,7 +329,7 @@ class _PostTripSuggestionSection extends StatelessWidget {
         if (state is PostTripSuggestionLoading) {
           return const Center(
             child: Padding(
-              padding: EdgeInsets.all(24),
+              padding: AppSpacing.allEdgeInsetSpace24,
               child: CircularProgressIndicator.adaptive(),
             ),
           );
@@ -340,7 +341,7 @@ class _PostTripSuggestionSection extends StatelessWidget {
           return Card(
             color: const Color(0xFFFFF0F0),
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: AppSpacing.allEdgeInsetSpace16,
               child: Column(
                 children: [
                   Text(
@@ -349,7 +350,7 @@ class _PostTripSuggestionSection extends StatelessWidget {
                       AppLocalizations.of(context)!,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.space12),
                   TextButton.icon(
                     onPressed: () {
                       context.read<FeedbackBloc>().add(
@@ -391,14 +392,14 @@ class _PostTripSuggestionCard extends StatelessWidget {
     return Card(
       color: const Color(0xFFF0F7FF),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.allEdgeInsetSpace16,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 const Icon(Icons.auto_awesome, color: AppColors.starRating),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.space8),
                 Text(
                   AppLocalizations.of(context)!.postTripNextTrip,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -407,28 +408,28 @@ class _PostTripSuggestionCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.space12),
             Text(
               '$destination, $country',
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.space4),
             Row(
               children: [
                 Chip(label: Text('$duration jours')),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.space8),
                 Chip(label: Text('$budget\u20ac')),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.space8),
             Text(description, maxLines: 3, overflow: TextOverflow.ellipsis),
             if (highlights.isNotEmpty) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.space8),
               Wrap(
-                spacing: 4,
-                runSpacing: 4,
+                spacing: AppSpacing.space4,
+                runSpacing: AppSpacing.space4,
                 children: highlights
                     .map(
                       (h) => Chip(

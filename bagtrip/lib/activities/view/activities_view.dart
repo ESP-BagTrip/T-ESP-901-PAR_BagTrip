@@ -1,4 +1,5 @@
 import 'package:bagtrip/activities/bloc/activity_bloc.dart';
+import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
@@ -103,7 +104,12 @@ class ActivitiesView extends StatelessWidget {
                 children: [
                   if (hasSuggested)
                     Container(
-                      margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                      margin: const EdgeInsets.fromLTRB(
+                        AppSpacing.space16,
+                        AppSpacing.space8,
+                        AppSpacing.space16,
+                        AppSpacing.space4,
+                      ),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
                         vertical: 10,
@@ -121,7 +127,7 @@ class ActivitiesView extends StatelessWidget {
                             size: 16,
                             color: PersonalizationColors.accentBlue,
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: AppSpacing.space8),
                           Expanded(
                             child: Text(
                               AppLocalizations.of(
@@ -149,7 +155,12 @@ class ActivitiesView extends StatelessWidget {
                           LoadActivities(tripId: tripId),
                         );
                       },
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.space16,
+                        AppSpacing.space16,
+                        AppSpacing.space16,
+                        100,
+                      ),
                       emptyWidget: ElegantEmptyState(
                         icon: Icons.event_outlined,
                         title: AppLocalizations.of(
@@ -161,7 +172,7 @@ class ActivitiesView extends StatelessWidget {
                       ),
                       groupBy: _groupByDay,
                       sectionHeaderBuilder: (context, dateKey) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        padding: AppSpacing.verticalSpace8,
                         child: Text(
                           DateFormat(
                             'EEEE d MMMM yyyy',
@@ -270,7 +281,7 @@ class ActivitiesView extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: AppSpacing.allEdgeInsetSpace16,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -288,22 +299,22 @@ class ActivitiesView extends StatelessWidget {
         Expanded(
           child: ListView.builder(
             controller: scrollController,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: AppSpacing.horizontalSpace16,
             itemCount: suggestions.length,
             itemBuilder: (_, index) {
               final s = suggestions[index];
               final suggestedDay = s['suggestedDay'] as int?;
               return Card(
-                margin: const EdgeInsets.only(bottom: 12),
+                margin: const EdgeInsets.only(bottom: AppSpacing.space12),
                 child: ListTile(
                   title: Row(
                     children: [
                       Flexible(child: Text(s['title'] ?? '')),
                       if (suggestedDay != null) ...[
-                        const SizedBox(width: 8),
+                        const SizedBox(width: AppSpacing.space8),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
+                            horizontal: AppSpacing.space8,
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
@@ -333,7 +344,7 @@ class ActivitiesView extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.space4),
                       Row(
                         children: [
                           if (s['category'] != null)
@@ -346,7 +357,7 @@ class ActivitiesView extends StatelessWidget {
                               visualDensity: VisualDensity.compact,
                             ),
                           if (s['estimatedCost'] != null) ...[
-                            const SizedBox(width: 8),
+                            const SizedBox(width: AppSpacing.space8),
                             Text(
                               '~${s['estimatedCost']}€',
                               style: Theme.of(context).textTheme.bodySmall
@@ -414,7 +425,7 @@ class ActivitiesView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.space12),
             Center(
               child: Container(
                 width: 40,
@@ -465,10 +476,12 @@ class ActivitiesView extends StatelessWidget {
       ),
       builder: (sheetContext) => Padding(
         padding: EdgeInsets.only(
-          left: 24,
-          right: 24,
-          top: 24,
-          bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 24,
+          left: AppSpacing.space24,
+          right: AppSpacing.space24,
+          top: AppSpacing.space24,
+          bottom:
+              MediaQuery.of(sheetContext).viewInsets.bottom +
+              AppSpacing.space24,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -480,7 +493,7 @@ class ActivitiesView extends StatelessWidget {
                 sheetContext,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.space8),
             Text(
               l10n.activityValidateConfirmMessage,
               style: Theme.of(

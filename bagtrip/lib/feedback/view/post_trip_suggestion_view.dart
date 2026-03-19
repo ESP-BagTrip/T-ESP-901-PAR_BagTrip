@@ -1,4 +1,5 @@
 import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
@@ -26,7 +27,7 @@ class PostTripSuggestionView extends StatelessWidget {
         title: Text(AppLocalizations.of(context)!.postTripSuggestionTitle),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.allEdgeInsetSpace16,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -36,28 +37,28 @@ class PostTripSuggestionView extends StatelessWidget {
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.space8),
             Row(
               children: [
                 Chip(label: Text('$duration jours')),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.space8),
                 Chip(label: Text('$budget\u20ac')),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.space16),
             Text(description, style: Theme.of(context).textTheme.bodyLarge),
             if (highlights.isNotEmpty) ...[
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.space24),
               Text(
                 AppLocalizations.of(context)!.postTripBasedOnPreferences,
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.space8),
               Wrap(
-                spacing: 8,
-                runSpacing: 8,
+                spacing: AppSpacing.space8,
+                runSpacing: AppSpacing.space8,
                 children: highlights
                     .map(
                       (h) => Chip(
@@ -73,18 +74,18 @@ class PostTripSuggestionView extends StatelessWidget {
               ),
             ],
             if (activities.isNotEmpty) ...[
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.space24),
               Text(
                 AppLocalizations.of(context)!.postTripProposedActivities,
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.space8),
               ...activities.map((a) {
                 final activity = a is Map ? a : {};
                 return Card(
-                  margin: const EdgeInsets.only(bottom: 8),
+                  margin: AppSpacing.onlyBottomSpace8,
                   child: ListTile(
                     title: Text(activity['title'] ?? ''),
                     subtitle: Text(activity['description'] ?? ''),
@@ -95,7 +96,7 @@ class PostTripSuggestionView extends StatelessWidget {
                 );
               }),
             ],
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.space24),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(

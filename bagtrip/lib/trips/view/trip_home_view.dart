@@ -81,8 +81,10 @@ class TripHomeView extends StatelessWidget {
                         daysUntilTrip: stats.daysUntilTrip,
                       ),
                       Positioned(
-                        top: MediaQuery.of(context).padding.top + 8,
-                        left: 8,
+                        top:
+                            MediaQuery.of(context).padding.top +
+                            AppSpacing.space8,
+                        left: AppSpacing.space8,
                         child: IconButton(
                           icon: Icon(
                             AdaptivePlatform.isIOS
@@ -95,8 +97,10 @@ class TripHomeView extends StatelessWidget {
                       ),
                       if (!isViewer)
                         Positioned(
-                          top: MediaQuery.of(context).padding.top + 8,
-                          right: 8,
+                          top:
+                              MediaQuery.of(context).padding.top +
+                              AppSpacing.space8,
+                          right: AppSpacing.space8,
                           child: IconButton(
                             icon: Icon(
                               AdaptivePlatform.isIOS
@@ -117,10 +121,10 @@ class TripHomeView extends StatelessWidget {
                   SliverToBoxAdapter(
                     child: Container(
                       margin: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
+                        horizontal: AppSpacing.space16,
+                        vertical: AppSpacing.space8,
                       ),
-                      padding: const EdgeInsets.all(12),
+                      padding: AppSpacing.allEdgeInsetSpace12,
                       decoration: BoxDecoration(
                         color: AppColors.surfaceLight,
                         borderRadius: BorderRadius.circular(8),
@@ -128,7 +132,7 @@ class TripHomeView extends StatelessWidget {
                       child: Row(
                         children: [
                           const Icon(Icons.lock_outline, color: AppColors.hint),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: AppSpacing.space8),
                           Expanded(
                             child: Text(
                               AppLocalizations.of(
@@ -143,12 +147,12 @@ class TripHomeView extends StatelessWidget {
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 8,
+                      horizontal: AppSpacing.space24,
+                      vertical: AppSpacing.space8,
                     ),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
+                        horizontal: AppSpacing.space16,
                         vertical: 14,
                       ),
                       decoration: BoxDecoration(
@@ -196,10 +200,10 @@ class TripHomeView extends StatelessWidget {
                   ),
                 ),
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: AppSpacing.horizontalSpace24,
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.space8),
                       StaggeredFadeIn(
                         index: 0,
                         child: TripSectionCard(
@@ -225,7 +229,7 @@ class TripHomeView extends StatelessWidget {
                           },
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.space12),
                       StaggeredFadeIn(
                         index: 1,
                         child: TripSectionCard(
@@ -253,7 +257,7 @@ class TripHomeView extends StatelessWidget {
                           },
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.space12),
                       StaggeredFadeIn(
                         index: 2,
                         child: TripSectionCard(
@@ -279,7 +283,7 @@ class TripHomeView extends StatelessWidget {
                           },
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.space12),
                       StaggeredFadeIn(
                         index: 3,
                         child: TripSectionCard(
@@ -302,7 +306,7 @@ class TripHomeView extends StatelessWidget {
                           },
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.space12),
                       StaggeredFadeIn(
                         index: 4,
                         child: TripSectionCard(
@@ -325,7 +329,7 @@ class TripHomeView extends StatelessWidget {
                           },
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.space12),
                       StaggeredFadeIn(
                         index: 5,
                         child: TripSectionCard(
@@ -344,8 +348,8 @@ class TripHomeView extends StatelessWidget {
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 8,
+                        horizontal: AppSpacing.space24,
+                        vertical: AppSpacing.space8,
                       ),
                       child: FilledButton.icon(
                         onPressed: () {
@@ -364,7 +368,7 @@ class TripHomeView extends StatelessWidget {
                 if (trip.status == TripStatus.ongoing && !isViewer)
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.all(24),
+                      padding: AppSpacing.allEdgeInsetSpace24,
                       child: OutlinedButton.icon(
                         onPressed: () {
                           context.read<TripManagementBloc>().add(
@@ -386,8 +390,8 @@ class TripHomeView extends StatelessWidget {
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 8,
+                        horizontal: AppSpacing.space24,
+                        vertical: AppSpacing.space8,
                       ),
                       child: OutlinedButton.icon(
                         onPressed: () =>
@@ -406,8 +410,8 @@ class TripHomeView extends StatelessWidget {
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 8,
+                        horizontal: AppSpacing.space24,
+                        vertical: AppSpacing.space8,
                       ),
                       child: OutlinedButton.icon(
                         onPressed: () {
@@ -489,7 +493,7 @@ class _StatItem extends StatelessWidget {
     return Column(
       children: [
         Icon(icon, color: ColorName.primary, size: 24),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppSpacing.space4),
         Text(
           value,
           style: const TextStyle(

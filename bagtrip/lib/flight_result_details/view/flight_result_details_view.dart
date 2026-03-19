@@ -132,7 +132,7 @@ class FlightResultDetailsView extends StatelessWidget {
                       tagLabel: getStopsLabel(flight.outboundStops),
                       tagColor: getStopsColor(flight.outboundStops),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.space16),
                     // Return Flight (if exists)
                     if (flight.returnDepartureTime != null) ...[
                       FlightDetailCard(
@@ -149,19 +149,19 @@ class FlightResultDetailsView extends StatelessWidget {
                         tagLabel: getStopsLabel(flight.returnStops ?? 0),
                         tagColor: getStopsColor(flight.returnStops ?? 0),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: AppSpacing.space16),
                     ],
                     BaggageInfoCard(
                       checkedBags: flight.checkedBags,
                       cabinBags: flight.cabinBags,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.space16),
                     ClassInfoCard(
                       bookingClass: flight.bookingClass,
                       cabinClass: flight.cabinClass,
                       fareBasis: flight.fareBasis,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.space16),
                     FareInfoCard(
                       price: flight.price,
                       basePrice: flight.basePrice,
@@ -170,7 +170,7 @@ class FlightResultDetailsView extends StatelessWidget {
                         flight.lastTicketingDate,
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: AppSpacing.space32),
                   ],
                 ),
               );

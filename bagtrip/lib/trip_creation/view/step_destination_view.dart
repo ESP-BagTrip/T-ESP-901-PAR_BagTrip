@@ -18,7 +18,7 @@ class StepDestinationView extends StatelessWidget {
     return BlocBuilder<TripCreationBloc, TripCreationState>(
       builder: (context, state) {
         return ListView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, AppSpacing.space40),
           children: [
             // Section label
             Row(
@@ -28,7 +28,7 @@ class StepDestinationView extends StatelessWidget {
                   size: 18,
                   color: ColorName.secondary,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.space8),
                 Text(
                   l10n.destinationLabel,
                   style: const TextStyle(
@@ -41,14 +41,14 @@ class StepDestinationView extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.space8),
 
             // Autocomplete search field
             DestinationSearchField(hintText: l10n.destinationPlaceholder),
 
             // Selected destination display
             if (state.destinationName != null) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.space12),
               _SelectedDestinationChip(
                 name: state.destinationName!,
                 country: state.destinationCountry ?? '',
@@ -66,7 +66,7 @@ class StepDestinationView extends StatelessWidget {
               onTap: () => const CreateTripAiFlowRoute().go(context),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: AppSpacing.space32),
 
             // Next button
             _NextButton(
@@ -96,7 +96,10 @@ class _SelectedDestinationChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.space16,
+        vertical: AppSpacing.space12,
+      ),
       decoration: BoxDecoration(
         color: ColorName.primaryLight,
         borderRadius: AppRadius.large16,
@@ -165,7 +168,10 @@ class _InspireMeButton extends StatelessWidget {
         onTap: isLoading ? null : onTap,
         borderRadius: AppRadius.large16,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: AppSpacing.space16,
+          ),
           decoration: BoxDecoration(
             borderRadius: AppRadius.large16,
             gradient: const LinearGradient(

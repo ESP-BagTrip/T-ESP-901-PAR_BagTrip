@@ -56,19 +56,19 @@ class CreateTripAiRecapView extends StatelessWidget {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: AppSpacing.horizontalSpace16,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.space8),
               _buildHeader(context, l10n),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.space24),
               _buildPreferencesSection(context, l10n, s),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.space24),
               _buildDatesSection(context, l10n, s),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.space32),
               _buildLaunchButton(context, l10n, canLaunch),
-              const SizedBox(height: 48),
+              const SizedBox(height: AppSpacing.space48),
             ],
           ),
         ),
@@ -100,7 +100,7 @@ class CreateTripAiRecapView extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.space8),
         Text(
           l10n.recapTitle,
           style: const TextStyle(
@@ -153,20 +153,20 @@ class CreateTripAiRecapView extends StatelessWidget {
               ),
               style: TextButton.styleFrom(
                 foregroundColor: ColorName.hint,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: AppSpacing.horizontalSpace8,
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.space12),
         SectionCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: AppSpacing.verticalSpace8,
                 child: _preferenceRow(
                   context,
                   iconBg: _kRecapTravelTypesTint,
@@ -177,7 +177,7 @@ class CreateTripAiRecapView extends StatelessWidget {
               ),
               const Divider(height: 24),
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: AppSpacing.verticalSpace8,
                 child: _preferenceRow(
                   context,
                   iconBg: _kRecapStyleTint,
@@ -188,7 +188,7 @@ class CreateTripAiRecapView extends StatelessWidget {
               ),
               const Divider(height: 24),
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: AppSpacing.verticalSpace8,
                 child: _preferenceRow(
                   context,
                   iconBg: _kRecapBudgetTint,
@@ -199,7 +199,7 @@ class CreateTripAiRecapView extends StatelessWidget {
               ),
               const Divider(height: 24),
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: AppSpacing.verticalSpace8,
                 child: _preferenceRow(
                   context,
                   iconBg: _kRecapCompanionsTint,
@@ -211,7 +211,7 @@ class CreateTripAiRecapView extends StatelessWidget {
               if (s.constraints != null && s.constraints!.isNotEmpty) ...[
                 const Divider(height: 24),
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  padding: AppSpacing.verticalSpace8,
                   child: _preferenceRow(
                     context,
                     iconBg: _kRecapConstraintsTint,
@@ -246,7 +246,7 @@ class CreateTripAiRecapView extends StatelessWidget {
           alignment: Alignment.center,
           child: Icon(iconData, size: 20, color: ColorName.primaryTrueDark),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: AppSpacing.space12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,8 +298,8 @@ class CreateTripAiRecapView extends StatelessWidget {
       );
     }
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: AppSpacing.space8,
+      runSpacing: AppSpacing.space8,
       children: list
           .map(
             (label) => Container(
@@ -344,7 +344,7 @@ class CreateTripAiRecapView extends StatelessWidget {
             color: ColorName.primaryTrueDark,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.space12),
         Row(
           children: [
             Expanded(
@@ -369,7 +369,7 @@ class CreateTripAiRecapView extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.space12),
             Expanded(
               child: SummaryDateCard(
                 label: l10n.returnLabel.toUpperCase(),
@@ -404,7 +404,7 @@ class CreateTripAiRecapView extends StatelessWidget {
     bool canLaunch,
   ) {
     return SizedBox(
-      height: 48,
+      height: AppSpacing.space48,
       width: double.infinity,
       child: ElevatedButton(
         onPressed: canLaunch

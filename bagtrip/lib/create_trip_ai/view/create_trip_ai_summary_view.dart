@@ -217,7 +217,7 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
               children: [
                 IconButton(
                   icon: Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: AppSpacing.allEdgeInsetSpace8,
                     decoration: BoxDecoration(
                       color: ColorName.surface.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
@@ -250,7 +250,7 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
                           color: ColorName.surface,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.space4),
                       Text(
                         s.destinationCountry,
                         style: const TextStyle(
@@ -304,7 +304,10 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
 
   Widget _upcomingChip({required IconData icon, required String label}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.space12,
+        vertical: AppSpacing.space8,
+      ),
       decoration: const BoxDecoration(
         color: ColorName.primary,
         borderRadius: AppRadius.medium8,
@@ -340,9 +343,9 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.space12),
             _sheetSectionLabel(l10n.summarySectionCurated),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.space4),
             Text(
               l10n.summaryTripHighlights,
               style: const TextStyle(
@@ -354,13 +357,13 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
             ),
             const SizedBox(height: AppSpacing.space8),
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: AppSpacing.space8,
+              runSpacing: AppSpacing.space8,
               children: s.highlights.map((h) => _highlightChip(h)).toList(),
             ),
             const SizedBox(height: AppSpacing.space24),
             _sheetSectionLabel(l10n.summarySectionWhereStay),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.space4),
             Text(
               l10n.summaryAccommodation,
               style: const TextStyle(
@@ -374,7 +377,7 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
             _buildAccommodationCard(context, l10n, s),
             const SizedBox(height: AppSpacing.space24),
             _sheetSectionLabel(l10n.summarySectionFlight),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.space4),
             Text(
               l10n.summaryFlight,
               style: const TextStyle(
@@ -388,7 +391,7 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
             _buildFlightCard(context, l10n, s),
             const SizedBox(height: AppSpacing.space24),
             _sheetSectionLabel(l10n.summarySectionYourJourney),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.space4),
             Text(
               l10n.summaryDayByDay,
               style: const TextStyle(
@@ -402,7 +405,7 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
             _buildDayByDayTimeline(context, l10n, s),
             const SizedBox(height: AppSpacing.space24),
             _sheetSectionLabel(l10n.summarySectionEssentials),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.space4),
             Text(
               l10n.summaryWhatToBring,
               style: const TextStyle(
@@ -440,7 +443,10 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
 
   Widget _highlightChip(String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.space12,
+        vertical: AppSpacing.space8,
+      ),
       decoration: BoxDecoration(
         color: ColorName.surfaceLight,
         borderRadius: AppRadius.medium8,
@@ -474,7 +480,10 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
   Widget _sourceBadge(String source) {
     final isVerified = source.toLowerCase() == 'amadeus';
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.space8,
+        vertical: AppSpacing.space4,
+      ),
       decoration: BoxDecoration(
         color: isVerified
             ? ColorName.success.withValues(alpha: 0.2)
@@ -563,11 +572,11 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.space8),
                     _sourceBadge(s.accommodationSource),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.space4),
                 Text(
                   subtitle,
                   style: const TextStyle(
@@ -577,7 +586,7 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
                   ),
                 ),
                 if (s.accommodationPrice > 0) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.space4),
                   Text(
                     '${s.accommodationPrice.toStringAsFixed(0)} EUR total',
                     style: const TextStyle(
@@ -669,11 +678,11 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.space8),
                     _sourceBadge(s.flightSource),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.space4),
                 Text(
                   details,
                   style: const TextStyle(
@@ -683,7 +692,7 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
                   ),
                 ),
                 if (s.flightPrice > 0) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.space4),
                   Text(
                     '${s.flightPrice.toStringAsFixed(0)} EUR',
                     style: const TextStyle(
@@ -751,12 +760,12 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
                       Expanded(
                         child: Container(
                           width: 2,
-                          margin: const EdgeInsets.symmetric(vertical: 4),
+                          margin: AppSpacing.verticalSpace4,
                           color: ColorName.primarySoftLight,
                         ),
                       )
                     else
-                      const SizedBox(height: 24),
+                      const SizedBox(height: AppSpacing.space24),
                   ],
                 ),
                 const SizedBox(width: AppSpacing.space16),
@@ -776,7 +785,7 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
                           ),
                         ),
                         if (description.isNotEmpty) ...[
-                          const SizedBox(height: 4),
+                          const SizedBox(height: AppSpacing.space4),
                           Text(
                             description,
                             style: const TextStyle(
@@ -788,7 +797,7 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
                           ),
                         ],
                         if (category.isNotEmpty) ...[
-                          const SizedBox(height: 8),
+                          const SizedBox(height: AppSpacing.space8),
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 10,
@@ -936,7 +945,7 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
 
   Widget _buildSaveButton(BuildContext context, AppLocalizations l10n) {
     return SizedBox(
-      height: 56,
+      height: AppSpacing.space56,
       width: double.infinity,
       child: Material(
         color: Colors.transparent,
@@ -972,7 +981,7 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
 
   Widget _buildRegenerateButton(BuildContext context, AppLocalizations l10n) {
     return SizedBox(
-      height: 56,
+      height: AppSpacing.space56,
       width: double.infinity,
       child: OutlinedButton(
         onPressed: () {
