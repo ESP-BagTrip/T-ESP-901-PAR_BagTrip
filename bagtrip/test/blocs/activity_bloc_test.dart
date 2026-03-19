@@ -175,7 +175,40 @@ void main() {
     // ── CreateActivity ──────────────────────────────────────────────────
 
     blocTest<ActivityBloc, ActivityState>(
-      'triggers LoadActivities internally after CreateActivity succeeds',
+      'CreateActivity appends item to local state without re-fetching',
+      build: () {
+        final newActivity = makeActivity(id: 'act-new', title: 'New Activity');
+        when(
+          () => mockActivityRepo.createActivity(any(), any()),
+        ).thenAnswer((_) async => Success(newActivity));
+        return ActivityBloc(activityRepository: mockActivityRepo);
+      },
+      seed: () => ActivitiesLoaded(
+        activities: [makeActivity()],
+        groupedByDay: {
+          '2024-06-01': [makeActivity()],
+        },
+      ),
+      act: (bloc) => bloc.add(
+        CreateActivity(tripId: 'trip-1', data: {'title': 'New Activity'}),
+      ),
+      expect: () => [isA<ActivitiesLoaded>()],
+      verify: (bloc) {
+        final state = bloc.state as ActivitiesLoaded;
+        expect(state.activities.length, 2);
+        expect(state.activities.last.id, 'act-new');
+        verifyNever(
+          () => mockActivityRepo.getActivitiesPaginated(
+            any(),
+            page: any(named: 'page'),
+            limit: any(named: 'limit'),
+          ),
+        );
+      },
+    );
+
+    blocTest<ActivityBloc, ActivityState>(
+      'CreateActivity falls back to LoadActivities when state is not ActivitiesLoaded',
       build: () {
         when(
           () => mockActivityRepo.createActivity(any(), any()),
@@ -195,22 +228,50 @@ void main() {
         CreateActivity(tripId: 'trip-1', data: {'title': 'New Activity'}),
       ),
       wait: const Duration(milliseconds: 100),
-      expect: () => [
-        // CreateActivity success triggers add(LoadActivities)
-        isA<ActivityLoading>(),
-        isA<ActivitiesLoaded>(),
-      ],
-      verify: (_) {
-        verify(
-          () => mockActivityRepo.createActivity('trip-1', any()),
-        ).called(1);
-      },
+      expect: () => [isA<ActivityLoading>(), isA<ActivitiesLoaded>()],
     );
 
     // ── DeleteActivity ──────────────────────────────────────────────────
 
     blocTest<ActivityBloc, ActivityState>(
-      'triggers LoadActivities internally after DeleteActivity succeeds',
+      'DeleteActivity removes item from local state without re-fetching',
+      build: () {
+        when(
+          () => mockActivityRepo.deleteActivity(any(), any()),
+        ).thenAnswer((_) async => const Success(null));
+        return ActivityBloc(activityRepository: mockActivityRepo);
+      },
+      seed: () => ActivitiesLoaded(
+        activities: [
+          makeActivity(),
+          makeActivity(id: 'act-2', title: 'Museum', date: DateTime(2024, 6)),
+        ],
+        groupedByDay: {
+          '2024-06-01': [
+            makeActivity(),
+            makeActivity(id: 'act-2', title: 'Museum', date: DateTime(2024, 6)),
+          ],
+        },
+      ),
+      act: (bloc) =>
+          bloc.add(DeleteActivity(tripId: 'trip-1', activityId: 'act-1')),
+      expect: () => [isA<ActivitiesLoaded>()],
+      verify: (bloc) {
+        final state = bloc.state as ActivitiesLoaded;
+        expect(state.activities.length, 1);
+        expect(state.activities.first.id, 'act-2');
+        verifyNever(
+          () => mockActivityRepo.getActivitiesPaginated(
+            any(),
+            page: any(named: 'page'),
+            limit: any(named: 'limit'),
+          ),
+        );
+      },
+    );
+
+    blocTest<ActivityBloc, ActivityState>(
+      'DeleteActivity falls back to LoadActivities when state is not ActivitiesLoaded',
       build: () {
         when(
           () => mockActivityRepo.deleteActivity(any(), any()),
@@ -232,11 +293,6 @@ void main() {
           bloc.add(DeleteActivity(tripId: 'trip-1', activityId: 'act-1')),
       wait: const Duration(milliseconds: 100),
       expect: () => [isA<ActivityLoading>(), isA<ActivitiesLoaded>()],
-      verify: (_) {
-        verify(
-          () => mockActivityRepo.deleteActivity('trip-1', 'act-1'),
-        ).called(1);
-      },
     );
 
     // ── SuggestActivities ───────────────────────────────────────────────

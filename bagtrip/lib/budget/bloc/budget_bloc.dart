@@ -56,8 +56,18 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
     );
     if (isClosed) return;
     switch (result) {
-      case Success():
-        add(LoadBudget(tripId: event.tripId));
+      case Success(:final data):
+        final current = state;
+        if (current is BudgetLoaded) {
+          emit(
+            BudgetLoaded(
+              items: [...current.items, data],
+              summary: current.summary,
+            ),
+          );
+        } else {
+          add(LoadBudget(tripId: event.tripId));
+        }
       case Failure(:final error):
         emit(BudgetError(error: error));
     }
@@ -74,8 +84,16 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
     );
     if (isClosed) return;
     switch (result) {
-      case Success():
-        add(LoadBudget(tripId: event.tripId));
+      case Success(:final data):
+        final current = state;
+        if (current is BudgetLoaded) {
+          final updated = current.items
+              .map((i) => i.id == data.id ? data : i)
+              .toList();
+          emit(BudgetLoaded(items: updated, summary: current.summary));
+        } else {
+          add(LoadBudget(tripId: event.tripId));
+        }
       case Failure(:final error):
         emit(BudgetError(error: error));
     }
@@ -92,7 +110,15 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
     if (isClosed) return;
     switch (result) {
       case Success():
-        add(LoadBudget(tripId: event.tripId));
+        final current = state;
+        if (current is BudgetLoaded) {
+          final updated = current.items
+              .where((i) => i.id != event.itemId)
+              .toList();
+          emit(BudgetLoaded(items: updated, summary: current.summary));
+        } else {
+          add(LoadBudget(tripId: event.tripId));
+        }
       case Failure(:final error):
         emit(BudgetError(error: error));
     }

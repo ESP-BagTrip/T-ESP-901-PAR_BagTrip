@@ -263,7 +263,38 @@ void main() {
     // ── MarkNotificationRead ────────────────────────────────────────────
 
     blocTest<NotificationBloc, NotificationState>(
-      'triggers LoadNotifications after MarkNotificationRead succeeds',
+      'MarkNotificationRead updates local state without re-fetching',
+      build: () {
+        when(
+          () => mockNotifRepo.markAsRead(any()),
+        ).thenAnswer((_) async => Success(makeAppNotification(isRead: true)));
+        return NotificationBloc(notificationRepository: mockNotifRepo);
+      },
+      seed: () => NotificationsLoaded(
+        notifications: [makeAppNotification()],
+        unreadCount: 1,
+        totalPages: 1,
+        currentPage: 1,
+        total: 1,
+      ),
+      act: (bloc) => bloc.add(MarkNotificationRead(notificationId: 'notif-1')),
+      expect: () => [isA<NotificationsLoaded>()],
+      verify: (bloc) {
+        final state = bloc.state as NotificationsLoaded;
+        expect(state.notifications.first.isRead, true);
+        expect(state.unreadCount, 0);
+        verify(() => mockNotifRepo.markAsRead('notif-1')).called(1);
+        verifyNever(
+          () => mockNotifRepo.getNotifications(
+            page: any(named: 'page'),
+            limit: any(named: 'limit'),
+          ),
+        );
+      },
+    );
+
+    blocTest<NotificationBloc, NotificationState>(
+      'MarkNotificationRead falls back to LoadNotifications when state is not NotificationsLoaded',
       build: () {
         when(
           () => mockNotifRepo.markAsRead(any()),
@@ -274,15 +305,46 @@ void main() {
       act: (bloc) => bloc.add(MarkNotificationRead(notificationId: 'notif-1')),
       wait: const Duration(milliseconds: 100),
       expect: () => [isA<NotificationLoading>(), isA<NotificationsLoaded>()],
-      verify: (_) {
-        verify(() => mockNotifRepo.markAsRead('notif-1')).called(1);
-      },
     );
 
     // ── MarkAllRead ─────────────────────────────────────────────────────
 
     blocTest<NotificationBloc, NotificationState>(
-      'triggers LoadNotifications after MarkAllRead succeeds',
+      'MarkAllRead updates local state without re-fetching',
+      build: () {
+        when(
+          () => mockNotifRepo.markAllAsRead(),
+        ).thenAnswer((_) async => const Success(3));
+        return NotificationBloc(notificationRepository: mockNotifRepo);
+      },
+      seed: () => NotificationsLoaded(
+        notifications: [
+          makeAppNotification(id: 'n1'),
+          makeAppNotification(id: 'n2', isRead: true),
+        ],
+        unreadCount: 1,
+        totalPages: 1,
+        currentPage: 1,
+        total: 2,
+      ),
+      act: (bloc) => bloc.add(MarkAllRead()),
+      expect: () => [isA<NotificationsLoaded>()],
+      verify: (bloc) {
+        final state = bloc.state as NotificationsLoaded;
+        expect(state.notifications.every((n) => n.isRead), true);
+        expect(state.unreadCount, 0);
+        verify(() => mockNotifRepo.markAllAsRead()).called(1);
+        verifyNever(
+          () => mockNotifRepo.getNotifications(
+            page: any(named: 'page'),
+            limit: any(named: 'limit'),
+          ),
+        );
+      },
+    );
+
+    blocTest<NotificationBloc, NotificationState>(
+      'MarkAllRead falls back to LoadNotifications when state is not NotificationsLoaded',
       build: () {
         when(
           () => mockNotifRepo.markAllAsRead(),
@@ -293,9 +355,6 @@ void main() {
       act: (bloc) => bloc.add(MarkAllRead()),
       wait: const Duration(milliseconds: 100),
       expect: () => [isA<NotificationLoading>(), isA<NotificationsLoaded>()],
-      verify: (_) {
-        verify(() => mockNotifRepo.markAllAsRead()).called(1);
-      },
     );
   });
 }

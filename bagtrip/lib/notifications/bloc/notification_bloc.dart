@@ -124,8 +124,29 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     );
     if (isClosed) return;
     switch (result) {
-      case Success():
-        add(LoadNotifications());
+      case Success(:final data):
+        final current = state;
+        if (current is NotificationsLoaded) {
+          final wasUnread = current.notifications.any(
+            (n) => n.id == data.id && !n.isRead,
+          );
+          final updated = current.notifications
+              .map((n) => n.id == data.id ? data : n)
+              .toList();
+          emit(
+            NotificationsLoaded(
+              notifications: updated,
+              unreadCount: wasUnread
+                  ? current.unreadCount - 1
+                  : current.unreadCount,
+              totalPages: current.totalPages,
+              currentPage: current.currentPage,
+              total: current.total,
+            ),
+          );
+        } else {
+          add(LoadNotifications());
+        }
       case Failure(:final error):
         emit(NotificationError(error: error));
     }
@@ -139,7 +160,23 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     if (isClosed) return;
     switch (result) {
       case Success():
-        add(LoadNotifications());
+        final current = state;
+        if (current is NotificationsLoaded) {
+          final updated = current.notifications
+              .map((n) => n.copyWith(isRead: true))
+              .toList();
+          emit(
+            NotificationsLoaded(
+              notifications: updated,
+              unreadCount: 0,
+              totalPages: current.totalPages,
+              currentPage: current.currentPage,
+              total: current.total,
+            ),
+          );
+        } else {
+          add(LoadNotifications());
+        }
       case Failure(:final error):
         emit(NotificationError(error: error));
     }

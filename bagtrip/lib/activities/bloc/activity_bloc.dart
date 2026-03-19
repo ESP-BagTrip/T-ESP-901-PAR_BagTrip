@@ -124,8 +124,21 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
     );
     if (isClosed) return;
     switch (result) {
-      case Success():
-        add(LoadActivities(tripId: event.tripId));
+      case Success(:final data):
+        final current = state;
+        if (current is ActivitiesLoaded) {
+          final updated = [...current.activities, data];
+          emit(
+            ActivitiesLoaded(
+              activities: updated,
+              groupedByDay: _groupByDay(updated),
+              currentPage: current.currentPage,
+              totalPages: current.totalPages,
+            ),
+          );
+        } else {
+          add(LoadActivities(tripId: event.tripId));
+        }
       case Failure(:final error):
         emit(ActivityError(error: error));
     }
@@ -142,8 +155,23 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
     );
     if (isClosed) return;
     switch (result) {
-      case Success():
-        add(LoadActivities(tripId: event.tripId));
+      case Success(:final data):
+        final current = state;
+        if (current is ActivitiesLoaded) {
+          final updated = current.activities
+              .map((a) => a.id == data.id ? data : a)
+              .toList();
+          emit(
+            ActivitiesLoaded(
+              activities: updated,
+              groupedByDay: _groupByDay(updated),
+              currentPage: current.currentPage,
+              totalPages: current.totalPages,
+            ),
+          );
+        } else {
+          add(LoadActivities(tripId: event.tripId));
+        }
       case Failure(:final error):
         emit(ActivityError(error: error));
     }
@@ -160,7 +188,22 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
     if (isClosed) return;
     switch (result) {
       case Success():
-        add(LoadActivities(tripId: event.tripId));
+        final current = state;
+        if (current is ActivitiesLoaded) {
+          final updated = current.activities
+              .where((a) => a.id != event.activityId)
+              .toList();
+          emit(
+            ActivitiesLoaded(
+              activities: updated,
+              groupedByDay: _groupByDay(updated),
+              currentPage: current.currentPage,
+              totalPages: current.totalPages,
+            ),
+          );
+        } else {
+          add(LoadActivities(tripId: event.tripId));
+        }
       case Failure(:final error):
         emit(ActivityError(error: error));
     }
@@ -224,8 +267,21 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
     );
     if (isClosed) return;
     switch (result) {
-      case Success():
-        add(LoadActivities(tripId: event.tripId));
+      case Success(:final data):
+        final current = state;
+        if (current is ActivitiesLoaded) {
+          final updated = [...current.activities, data];
+          emit(
+            ActivitiesLoaded(
+              activities: updated,
+              groupedByDay: _groupByDay(updated),
+              currentPage: current.currentPage,
+              totalPages: current.totalPages,
+            ),
+          );
+        } else {
+          add(LoadActivities(tripId: event.tripId));
+        }
       case Failure(:final error):
         emit(ActivityError(error: error));
     }

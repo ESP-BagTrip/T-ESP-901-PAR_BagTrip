@@ -46,6 +46,19 @@ class BaggageBloc extends Bloc<BaggageEvent, BaggageState> {
     }
   }
 
+  BaggageLoaded _rebuildLoaded(
+    List<BaggageItem> items, {
+    List<SuggestedBaggageItem> suggestions = const [],
+  }) {
+    final packed = items.where((item) => item.isPacked).length;
+    return BaggageLoaded(
+      items: items,
+      packedCount: packed,
+      totalCount: items.length,
+      suggestions: suggestions,
+    );
+  }
+
   Future<void> _onTogglePacked(
     TogglePacked event,
     Emitter<BaggageState> emit,
@@ -57,8 +70,16 @@ class BaggageBloc extends Bloc<BaggageEvent, BaggageState> {
     );
     if (isClosed) return;
     switch (result) {
-      case Success():
-        add(LoadBaggage(tripId: event.tripId));
+      case Success(:final data):
+        final current = state;
+        if (current is BaggageLoaded) {
+          final updated = current.items
+              .map((i) => i.id == data.id ? data : i)
+              .toList();
+          emit(_rebuildLoaded(updated, suggestions: current.suggestions));
+        } else {
+          add(LoadBaggage(tripId: event.tripId));
+        }
       case Failure(:final error):
         emit(BaggageError(error: error));
     }
@@ -75,7 +96,15 @@ class BaggageBloc extends Bloc<BaggageEvent, BaggageState> {
     if (isClosed) return;
     switch (result) {
       case Success():
-        add(LoadBaggage(tripId: event.tripId));
+        final current = state;
+        if (current is BaggageLoaded) {
+          final updated = current.items
+              .where((i) => i.id != event.itemId)
+              .toList();
+          emit(_rebuildLoaded(updated, suggestions: current.suggestions));
+        } else {
+          add(LoadBaggage(tripId: event.tripId));
+        }
       case Failure(:final error):
         emit(BaggageError(error: error));
     }
@@ -93,8 +122,14 @@ class BaggageBloc extends Bloc<BaggageEvent, BaggageState> {
     );
     if (isClosed) return;
     switch (result) {
-      case Success():
-        add(LoadBaggage(tripId: event.tripId));
+      case Success(:final data):
+        final current = state;
+        if (current is BaggageLoaded) {
+          final updated = [...current.items, data];
+          emit(_rebuildLoaded(updated, suggestions: current.suggestions));
+        } else {
+          add(LoadBaggage(tripId: event.tripId));
+        }
       case Failure(:final error):
         emit(BaggageError(error: error));
     }

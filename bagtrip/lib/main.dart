@@ -1,7 +1,8 @@
-import 'dart:io';
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:bagtrip/auth/bloc/auth_bloc.dart';
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/auth/widgets/auth_listener.dart';
 import 'package:bagtrip/booking/bloc/booking_bloc.dart';
 import 'package:bagtrip/components/snack_bar_scope.dart';
@@ -77,15 +78,25 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  late final StreamSubscription<RemoteMessage> _onMessageSub;
+  late final StreamSubscription<String> _onTokenRefreshSub;
+
   @override
   void initState() {
     super.initState();
     _setupFCMListeners();
   }
 
+  @override
+  void dispose() {
+    _onMessageSub.cancel();
+    _onTokenRefreshSub.cancel();
+    super.dispose();
+  }
+
   void _setupFCMListeners() {
     // Foreground messages — show local notification
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    _onMessageSub = FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       final notification = message.notification;
       if (notification != null) {
         LocalNotificationService.show(
@@ -97,8 +108,10 @@ class _MyAppState extends State<MyApp> {
     });
 
     // Token refresh — re-register with backend
-    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
-      final platform = Platform.isIOS ? 'ios' : 'android';
+    _onTokenRefreshSub = FirebaseMessaging.instance.onTokenRefresh.listen((
+      newToken,
+    ) {
+      final platform = AdaptivePlatform.isIOS ? 'ios' : 'android';
       getIt<NotificationRepository>().registerDeviceToken(
         newToken,
         platform: platform,
@@ -158,7 +171,7 @@ class _AdaptiveScrollBehavior extends ScrollBehavior {
 
   @override
   ScrollPhysics getScrollPhysics(BuildContext context) {
-    return Platform.isIOS
+    return AdaptivePlatform.isIOS
         ? const BouncingScrollPhysics()
         : const ClampingScrollPhysics();
   }
@@ -169,7 +182,7 @@ class _AdaptiveScrollBehavior extends ScrollBehavior {
     Widget child,
     ScrollableDetails details,
   ) {
-    if (Platform.isIOS) return child;
+    if (AdaptivePlatform.isIOS) return child;
     return super.buildOverscrollIndicator(context, child, details);
   }
 }

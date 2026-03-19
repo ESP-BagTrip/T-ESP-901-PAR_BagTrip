@@ -60,8 +60,17 @@ class AccommodationBloc extends Bloc<AccommodationEvent, AccommodationState> {
     );
     if (isClosed) return;
     switch (result) {
-      case Success():
-        add(LoadAccommodations(tripId: event.tripId));
+      case Success(:final data):
+        final current = state;
+        if (current is AccommodationsLoaded) {
+          emit(
+            AccommodationsLoaded(
+              accommodations: [...current.accommodations, data],
+            ),
+          );
+        } else {
+          add(LoadAccommodations(tripId: event.tripId));
+        }
       case Failure(:final error):
         emit(AccommodationError(error: error));
     }
@@ -78,8 +87,16 @@ class AccommodationBloc extends Bloc<AccommodationEvent, AccommodationState> {
     );
     if (isClosed) return;
     switch (result) {
-      case Success():
-        add(LoadAccommodations(tripId: event.tripId));
+      case Success(:final data):
+        final current = state;
+        if (current is AccommodationsLoaded) {
+          final updated = current.accommodations
+              .map((a) => a.id == data.id ? data : a)
+              .toList();
+          emit(AccommodationsLoaded(accommodations: updated));
+        } else {
+          add(LoadAccommodations(tripId: event.tripId));
+        }
       case Failure(:final error):
         emit(AccommodationError(error: error));
     }
@@ -96,7 +113,15 @@ class AccommodationBloc extends Bloc<AccommodationEvent, AccommodationState> {
     if (isClosed) return;
     switch (result) {
       case Success():
-        add(LoadAccommodations(tripId: event.tripId));
+        final current = state;
+        if (current is AccommodationsLoaded) {
+          final updated = current.accommodations
+              .where((a) => a.id != event.accommodationId)
+              .toList();
+          emit(AccommodationsLoaded(accommodations: updated));
+        } else {
+          add(LoadAccommodations(tripId: event.tripId));
+        }
       case Failure(:final error):
         emit(AccommodationError(error: error));
     }
