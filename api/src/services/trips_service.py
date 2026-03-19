@@ -7,7 +7,7 @@ from uuid import UUID
 from sqlalchemy import literal_column, update
 from sqlalchemy.orm import Session
 
-from src.enums import FlightOrderStatus, NotificationType, TripOrigin, TripStatus
+from src.enums import DateMode, FlightOrderStatus, NotificationType, TripOrigin, TripStatus
 from src.models.accommodation import Accommodation
 from src.models.activity import Activity
 from src.models.baggage_item import BaggageItem
@@ -47,6 +47,7 @@ class TripsService:
         cover_image_url: str | None = None,
         budget_total: float | None = None,
         origin: str | None = None,
+        date_mode: str | None = None,
     ) -> Trip:
         """Créer un nouveau trip."""
         trip = Trip(
@@ -63,6 +64,7 @@ class TripsService:
             cover_image_url=cover_image_url,
             budget_total=budget_total,
             origin=origin or TripOrigin.MANUAL,
+            date_mode=date_mode or DateMode.EXACT,
         )
         db.add(trip)
 
@@ -150,6 +152,7 @@ class TripsService:
         nb_travelers: int | None = None,
         cover_image_url: str | None = None,
         budget_total: float | None = None,
+        date_mode: str | None = None,
     ) -> Trip:
         """Mettre à jour un trip (ownership déjà vérifiée par la dependency)."""
         if trip.status == TripStatus.COMPLETED:
@@ -175,6 +178,8 @@ class TripsService:
             trip.cover_image_url = cover_image_url
         if budget_total is not None:
             trip.budget_total = budget_total
+        if date_mode is not None:
+            trip.date_mode = date_mode
 
         db.commit()
         db.refresh(trip)
@@ -327,6 +332,13 @@ class TripsService:
         """
         today = datetime.now(UTC).date()
 
+        # Capture trips that will transition PLANNED→ONGOING before updating
+        starting_trips = (
+            db.query(Trip)
+            .filter(Trip.status == TripStatus.PLANNED, Trip.start_date.isnot(None), Trip.start_date <= today)
+            .all()
+        )
+
         planned_to_ongoing = db.execute(
             update(Trip)
             .where(Trip.status == TripStatus.PLANNED, Trip.start_date.isnot(None), Trip.start_date <= today)
@@ -347,6 +359,25 @@ class TripsService:
         ).rowcount
 
         db.commit()
+
+        # Send TRIP_STARTED notifications for newly started trips
+        if starting_trips:
+            from src.services.notification_service import NotificationService
+
+            for trip in starting_trips:
+                try:
+                    recipients = NotificationService._get_trip_recipients(db, trip)
+                    NotificationService.create_and_send_bulk(
+                        db=db,
+                        user_ids=recipients,
+                        trip_id=trip.id,
+                        notif_type=NotificationType.TRIP_STARTED,
+                        title="Bon voyage !",
+                        body=f"Votre voyage « {trip.title or 'sans titre'} » commence aujourd'hui !",
+                        data={"screen": "trip_home", "tripId": str(trip.id)},
+                    )
+                except Exception:
+                    pass
 
         # Send TRIP_ENDED notifications for newly completed trips
         if completing_trips:

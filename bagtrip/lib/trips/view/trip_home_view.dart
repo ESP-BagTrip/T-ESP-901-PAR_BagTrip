@@ -90,7 +90,7 @@ class TripHomeView extends StatelessWidget {
                             AdaptivePlatform.isIOS
                                 ? CupertinoIcons.back
                                 : Icons.arrow_back,
-                            color: Colors.white,
+                            color: AppColors.white,
                           ),
                           onPressed: () => const HomeRoute().go(context),
                         ),
@@ -106,7 +106,7 @@ class TripHomeView extends StatelessWidget {
                               AdaptivePlatform.isIOS
                                   ? CupertinoIcons.share
                                   : Icons.share,
-                              color: Colors.white,
+                              color: AppColors.white,
                             ),
                             onPressed: () => SharesRoute(
                               tripId: tripId,
@@ -160,12 +160,12 @@ class TripHomeView extends StatelessWidget {
                         borderRadius: AppRadius.large20,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.06),
+                            color: AppColors.shadowLight,
                             offset: const Offset(0, 2),
                             blurRadius: 12,
                           ),
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.02),
+                            color: AppColors.shadowFaint,
                             blurRadius: 4,
                           ),
                         ],

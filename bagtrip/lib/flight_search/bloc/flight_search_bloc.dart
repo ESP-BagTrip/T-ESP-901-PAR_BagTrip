@@ -295,4 +295,10 @@ class FlightSearchBloc extends Bloc<FlightSearchEvent, FlightSearchState> {
       ),
     );
   }
+
+  @override
+  // ignore: unnecessary_overrides
+  Future<void> close() {
+    return super.close();
+  }
 }

@@ -5,7 +5,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, model_validator
 
-from src.enums import TripOrigin, TripStatus
+from src.enums import DateMode, TripOrigin, TripStatus
 
 
 class TripCreateRequest(BaseModel):
@@ -22,6 +22,7 @@ class TripCreateRequest(BaseModel):
     coverImageUrl: str | None = None
     budgetTotal: float | None = None
     origin: TripOrigin | None = None
+    dateMode: DateMode = DateMode.EXACT
 
     @model_validator(mode="after")
     def validate_trip(self) -> "TripCreateRequest":
@@ -50,6 +51,7 @@ class TripUpdateRequest(BaseModel):
     nbTravelers: int | None = None
     coverImageUrl: str | None = None
     budgetTotal: float | None = None
+    dateMode: DateMode | None = None
 
 
 class TripResponse(BaseModel):
@@ -68,6 +70,7 @@ class TripResponse(BaseModel):
     coverImageUrl: str | None = Field(default=None, alias="cover_image_url")
     budgetTotal: float | None = Field(default=None, alias="budget_total")
     origin: str | None = None
+    dateMode: str = Field(default="EXACT", alias="date_mode")
     archivedAt: datetime | None = Field(default=None, alias="archived_at")
     createdAt: datetime = Field(alias="created_at")
     updatedAt: datetime = Field(alias="updated_at")

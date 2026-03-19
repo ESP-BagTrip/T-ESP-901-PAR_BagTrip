@@ -55,6 +55,7 @@ async def create_trip(
             cover_image_url=request.coverImageUrl,
             budget_total=request.budgetTotal,
             origin=request.origin,
+            date_mode=request.dateMode,
         )
         resp = TripResponse.model_validate(trip)
         resp.role = "OWNER"
@@ -211,6 +212,7 @@ async def update_trip(
             nb_travelers=request.nbTravelers,
             cover_image_url=request.coverImageUrl,
             budget_total=request.budgetTotal,
+            date_mode=request.dateMode,
         )
         resp = TripResponse.model_validate(trip)
         resp.role = "OWNER"

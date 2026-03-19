@@ -140,4 +140,10 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
         emit(current.copyWith(isUpdating: false));
     }
   }
+
+  @override
+  // ignore: unnecessary_overrides
+  Future<void> close() {
+    return super.close();
+  }
 }

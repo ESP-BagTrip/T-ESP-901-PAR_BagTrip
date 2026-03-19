@@ -75,6 +75,7 @@ class NotificationType(StrEnum):
     FLIGHT_H1 = "FLIGHT_H1"
     MORNING_SUMMARY = "MORNING_SUMMARY"
     ACTIVITY_H1 = "ACTIVITY_H1"
+    TRIP_STARTED = "TRIP_STARTED"
     TRIP_ENDED = "TRIP_ENDED"
     BUDGET_ALERT = "BUDGET_ALERT"
     TRIP_SHARED = "TRIP_SHARED"
@@ -85,6 +86,12 @@ class ValidationStatus(StrEnum):
     SUGGESTED = "SUGGESTED"
     VALIDATED = "VALIDATED"
     MANUAL = "MANUAL"
+
+
+class DateMode(StrEnum):
+    EXACT = "EXACT"
+    MONTH = "MONTH"
+    FLEXIBLE = "FLEXIBLE"
 
 
 class FlightType(StrEnum):

@@ -233,7 +233,7 @@ class _ReviewItem extends StatelessWidget {
         border: Border.all(color: ColorName.primarySoftLight),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: AppColors.shadowSubtle,
             offset: const Offset(0, 2),
             blurRadius: 8,
           ),

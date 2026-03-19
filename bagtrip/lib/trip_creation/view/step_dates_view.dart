@@ -1,4 +1,5 @@
 import 'package:bagtrip/components/custom_calendar_picker.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -210,7 +211,7 @@ class _DateCard extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
+                color: AppColors.shadowSubtle,
                 offset: const Offset(0, 2),
                 blurRadius: 8,
               ),

@@ -101,4 +101,10 @@ class TransportBloc extends Bloc<TransportEvent, TransportState> {
   ) async {
     emit(TransportInitial());
   }
+
+  @override
+  // ignore: unnecessary_overrides
+  Future<void> close() {
+    return super.close();
+  }
 }

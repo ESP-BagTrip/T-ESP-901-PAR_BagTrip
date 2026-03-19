@@ -98,4 +98,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       ),
     );
   }
+
+  @override
+  // ignore: unnecessary_overrides
+  Future<void> close() {
+    return super.close();
+  }
 }

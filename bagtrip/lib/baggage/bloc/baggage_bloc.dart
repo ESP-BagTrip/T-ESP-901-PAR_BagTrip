@@ -249,4 +249,10 @@ class BaggageBloc extends Bloc<BaggageEvent, BaggageState> {
       );
     }
   }
+
+  @override
+  // ignore: unnecessary_overrides
+  Future<void> close() {
+    return super.close();
+  }
 }

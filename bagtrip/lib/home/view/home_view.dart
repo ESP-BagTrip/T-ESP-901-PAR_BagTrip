@@ -3,6 +3,7 @@ import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/components/paginated_list.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -558,7 +559,7 @@ class _TripsSectionState extends State<_TripsSection>
               borderRadius: AppRadius.pill,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
+                  color: AppColors.shadowLight,
                   offset: const Offset(0, 1),
                   blurRadius: 4,
                 ),

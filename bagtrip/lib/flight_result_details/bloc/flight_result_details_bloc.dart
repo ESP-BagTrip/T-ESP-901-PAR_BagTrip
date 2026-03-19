@@ -12,4 +12,10 @@ class FlightResultDetailsBloc
       emit(FlightResultDetailsLoaded(event.flight));
     });
   }
+
+  @override
+  // ignore: unnecessary_overrides
+  Future<void> close() {
+    return super.close();
+  }
 }

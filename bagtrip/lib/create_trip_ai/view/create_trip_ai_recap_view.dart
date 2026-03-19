@@ -1,6 +1,7 @@
 import 'package:bagtrip/components/custom_calendar_picker.dart';
 import 'package:bagtrip/components/summary_date_card.dart';
 import 'package:bagtrip/create_trip_ai/bloc/create_trip_ai_bloc.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/flight_search/widgets/section_card.dart';
@@ -416,7 +417,7 @@ class CreateTripAiRecapView extends StatelessWidget {
             : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: ColorName.primary,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(50),
           ),

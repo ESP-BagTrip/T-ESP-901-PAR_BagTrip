@@ -286,4 +286,10 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
         emit(ActivityError(error: error));
     }
   }
+
+  @override
+  // ignore: unnecessary_overrides
+  Future<void> close() {
+    return super.close();
+  }
 }

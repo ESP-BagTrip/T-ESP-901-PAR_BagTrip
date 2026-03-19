@@ -90,4 +90,16 @@ class AppColors {
   // --- Error feedback (light) ---
   static const Color errorBg = Color(0xFFFFEBEE); // red.shade50
   static const Color errorText = Color(0xFFD32F2F); // red.shade700
+
+  // --- Overlays / shadows / dividers ---
+  static const Color white = ColorName.surface; // #FFFFFF
+  static final Color shadowLight = const Color(
+    0xFF000000,
+  ).withValues(alpha: 0.06);
+  static final Color shadowSubtle = const Color(
+    0xFF000000,
+  ).withValues(alpha: 0.04);
+  static final Color shadowFaint = const Color(
+    0xFF000000,
+  ).withValues(alpha: 0.02);
 }

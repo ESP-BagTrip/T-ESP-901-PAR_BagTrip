@@ -191,4 +191,10 @@ class AccommodationBloc extends Bloc<AccommodationEvent, AccommodationState> {
   ) async {
     emit(AccommodationInitial());
   }
+
+  @override
+  // ignore: unnecessary_overrides
+  Future<void> close() {
+    return super.close();
+  }
 }

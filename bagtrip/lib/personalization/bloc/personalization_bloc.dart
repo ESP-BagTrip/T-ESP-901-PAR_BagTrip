@@ -267,4 +267,10 @@ class PersonalizationBloc
 
     emit(PersonalizationCompleted());
   }
+
+  @override
+  // ignore: unnecessary_overrides
+  Future<void> close() {
+    return super.close();
+  }
 }
