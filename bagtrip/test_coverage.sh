@@ -17,7 +17,7 @@ echo "Coverage report generated at: coverage/lcov.info"
 
 # Check coverage threshold
 if command -v lcov &> /dev/null; then
-  COVERAGE=$(lcov --summary coverage/lcov.info 2>&1 | grep 'lines' | grep -oP '[\d.]+(?=%)')
+  COVERAGE=$(lcov --summary coverage/lcov.info 2>&1 | grep 'lines' | sed 's/.*: *\([0-9.]*\)%.*/\1/')
   echo "Line coverage: ${COVERAGE}%"
   if [ "$(echo "$COVERAGE < $COVERAGE_THRESHOLD" | bc -l)" -eq 1 ]; then
     echo "FAIL: Coverage ${COVERAGE}% is below threshold ${COVERAGE_THRESHOLD}%"
