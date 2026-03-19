@@ -2,7 +2,7 @@ part of 'navigation_bloc.dart';
 
 enum NavigationTab { home, activity, profile }
 
-class NavigationState {
+final class NavigationState {
   final NavigationTab activeTab;
 
   const NavigationState({this.activeTab = NavigationTab.home});

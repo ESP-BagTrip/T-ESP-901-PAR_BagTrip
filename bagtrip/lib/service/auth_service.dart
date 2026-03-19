@@ -82,7 +82,9 @@ class AuthRepositoryImpl implements AuthRepository {
       if (response.statusCode == 200) {
         return Success(User.fromJson(response.data));
       }
-      return const Success(null);
+      return loggedFailure(
+        ServerError('Unexpected status ${response.statusCode}'),
+      );
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         return loggedFailure(
@@ -93,10 +95,13 @@ class AuthRepositoryImpl implements AuthRepository {
           ),
         );
       }
-      return const Success(null);
+      return loggedFailure(
+        NetworkError(e.message ?? 'Network error', originalError: e),
+      );
     } catch (e) {
-      debugPrint('[BestEffort] getCurrentUser failed: $e');
-      return const Success(null);
+      return loggedFailure(
+        UnknownError('getCurrentUser failed', originalError: e),
+      );
     }
   }
 
@@ -243,7 +248,7 @@ class AuthRepositoryImpl implements AuthRepository {
         );
       }
     } catch (e) {
-      debugPrint('[BestEffort] logout server call failed: $e');
+      if (kDebugMode) debugPrint('[BestEffort] logout server call failed: $e');
     }
     await _storageService.clearAll();
     return const Success(null);

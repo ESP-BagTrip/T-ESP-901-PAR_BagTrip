@@ -28,7 +28,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
                 .toList(),
           );
         }
-        return const Success([]);
+        return const Failure(ServerError('Invalid response format'));
       }
       return loggedFailure(
         UnknownError('fetch activities failed: ${response.statusCode}'),
@@ -160,7 +160,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
                 .toList(),
           );
         }
-        return const Success([]);
+        return const Failure(ServerError('Invalid suggestion response format'));
       }
       return loggedFailure(
         UnknownError('suggest activities failed: ${response.statusCode}'),

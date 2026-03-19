@@ -106,7 +106,7 @@ class AiRepositoryImpl implements AiRepository {
       if (originCity != null) 'originCity': originCity,
     };
 
-    debugPrint('[SSE] Connecting to $url');
+    if (kDebugMode) debugPrint('[SSE] Connecting to $url');
 
     final sseStream = SSEClient.subscribeToSSE(
       method: SSERequestType.POST,
@@ -131,10 +131,12 @@ class AiRepositoryImpl implements AiRepository {
         final data = json.decode(event.data!) as Map<String, dynamic>;
         yield {'event': eventType, 'data': data};
       } catch (e) {
-        debugPrint('[SSE] Failed to parse event data: ${event.data}');
+        if (kDebugMode) {
+          debugPrint('[SSE] Failed to parse event data: ${event.data}');
+        }
       }
     }
 
-    debugPrint('[SSE] Stream closed');
+    if (kDebugMode) debugPrint('[SSE] Stream closed');
   }
 }

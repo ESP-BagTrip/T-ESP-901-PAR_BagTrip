@@ -13,6 +13,7 @@ import 'package:bagtrip/accommodations/view/accommodations_page.dart';
 import 'package:bagtrip/baggage/view/baggage_page.dart';
 import 'package:bagtrip/pages/feedback_page.dart';
 import 'package:bagtrip/pages/flight_search_result_page.dart';
+import 'package:bagtrip/pages/create_trip_ai_flow_page.dart';
 import 'package:bagtrip/pages/login_page.dart';
 import 'package:bagtrip/pages/onboarding_page.dart';
 import 'package:bagtrip/pages/payment/payment_cancel_page.dart';
@@ -451,6 +452,22 @@ class SubscriptionCancelRoute extends GoRouteData
       buildSlideTransitionPage<void>(
         state: state,
         child: const SubscriptionCancelPage(),
+      );
+}
+
+// ---------------------------------------------------------------------------
+// AI trip creation (outside shell)
+// ---------------------------------------------------------------------------
+
+@TypedGoRoute<CreateTripAiFlowRoute>(path: '/create-trip-ai')
+class CreateTripAiFlowRoute extends GoRouteData with $CreateTripAiFlowRoute {
+  const CreateTripAiFlowRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      buildSlideTransitionPage<void>(
+        state: state,
+        child: const CreateTripAiFlowPage(),
       );
 }
 

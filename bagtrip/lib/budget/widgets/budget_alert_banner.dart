@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/budget_item.dart';
 import 'package:flutter/material.dart';
@@ -12,10 +13,12 @@ class BudgetAlertBanner extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final isDanger = summary.alertLevel == 'DANGER';
 
-    final bgColor = isDanger ? Colors.red.shade50 : Colors.orange.shade50;
-    final borderColor = isDanger ? Colors.red.shade300 : Colors.orange.shade300;
-    final iconColor = isDanger ? Colors.red.shade700 : Colors.orange.shade700;
-    final textColor = isDanger ? Colors.red.shade900 : Colors.orange.shade900;
+    final bgColor = isDanger ? AppColors.dangerBg : AppColors.warningBg;
+    final borderColor = isDanger
+        ? AppColors.dangerBorder
+        : AppColors.warningBorder;
+    final iconColor = isDanger ? AppColors.dangerIcon : AppColors.warningIcon;
+    final textColor = isDanger ? AppColors.dangerText : AppColors.warningText;
     final icon = isDanger ? Icons.error : Icons.warning;
 
     final String message;

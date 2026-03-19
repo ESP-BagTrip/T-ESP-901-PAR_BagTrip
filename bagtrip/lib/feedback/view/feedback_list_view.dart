@@ -1,4 +1,5 @@
-import 'package:bagtrip/components/empty_state.dart';
+import 'package:bagtrip/components/elegant_empty_state.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/models/feedback.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -11,7 +12,7 @@ class FeedbackListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (feedbacks.isEmpty) {
-      return const EmptyState(
+      return const ElegantEmptyState(
         icon: Icons.rate_review_outlined,
         title: 'Aucun avis',
       );
@@ -37,7 +38,7 @@ class FeedbackListView extends StatelessWidget {
                             ? Icons.star
                             : Icons.star_border,
                         size: 20,
-                        color: Colors.amber,
+                        color: AppColors.starRating,
                       );
                     }),
                     const Spacer(),
@@ -72,8 +73,8 @@ class FeedbackListView extends StatelessWidget {
                           : Icons.thumb_down,
                       size: 16,
                       color: feedback.wouldRecommend
-                          ? Colors.green
-                          : Colors.red,
+                          ? AppColors.success
+                          : AppColors.error,
                     ),
                     const SizedBox(width: 4),
                     Text(

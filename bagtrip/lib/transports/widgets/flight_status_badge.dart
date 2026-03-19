@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:flutter/material.dart';
@@ -43,7 +44,7 @@ class FlightStatusBadge extends StatelessWidget {
 
   (Color, String) _statusConfig(String status, int? delay) {
     return switch (status.toLowerCase()) {
-      'scheduled' => (Colors.grey, 'Scheduled'),
+      'scheduled' => (AppColors.hint, 'Scheduled'),
       'active' || 'en-route' => (ColorName.success, 'On time'),
       'landed' => (ColorName.info, 'Landed'),
       'cancelled' => (ColorName.error, 'Cancelled'),

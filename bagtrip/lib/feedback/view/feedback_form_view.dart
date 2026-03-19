@@ -1,4 +1,5 @@
 import 'package:bagtrip/components/app_snackbar.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
 import 'package:bagtrip/feedback/bloc/feedback_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -74,7 +75,7 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
                 return IconButton(
                   icon: Icon(
                     index < _rating ? Icons.star : Icons.star_border,
-                    color: Colors.amber,
+                    color: AppColors.starRating,
                     size: 36,
                   ),
                   onPressed: () {
@@ -199,7 +200,7 @@ class _ReadOnlyFeedbackView extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.check_circle, color: Colors.green),
+                      const Icon(Icons.check_circle, color: AppColors.success),
                       const SizedBox(width: 8),
                       Text(
                         AppLocalizations.of(context)!.feedbackSent,
@@ -222,7 +223,7 @@ class _ReadOnlyFeedbackView extends StatelessWidget {
                         index < feedback.overallRating
                             ? Icons.star
                             : Icons.star_border,
-                        color: Colors.amber,
+                        color: AppColors.starRating,
                         size: 28,
                       );
                     }),
@@ -396,7 +397,7 @@ class _PostTripSuggestionCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.auto_awesome, color: Colors.amber),
+                const Icon(Icons.auto_awesome, color: AppColors.starRating),
                 const SizedBox(width: 8),
                 Text(
                   AppLocalizations.of(context)!.postTripNextTrip,

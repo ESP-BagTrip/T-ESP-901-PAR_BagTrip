@@ -60,7 +60,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
       }
       return const Success(0);
     } catch (e) {
-      debugPrint('[BestEffort] getUnreadCount failed: $e');
+      if (kDebugMode) debugPrint('[BestEffort] getUnreadCount failed: $e');
       return const Success(0);
     }
   }
@@ -117,7 +117,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
         },
       );
     } catch (e) {
-      debugPrint('[BestEffort] registerDeviceToken failed: $e');
+      if (kDebugMode) debugPrint('[BestEffort] registerDeviceToken failed: $e');
     }
     return const Success(null);
   }
@@ -127,7 +127,9 @@ class NotificationRepositoryImpl implements NotificationRepository {
     try {
       await _apiClient.delete('/device-tokens/$fcmToken');
     } catch (e) {
-      debugPrint('[BestEffort] unregisterDeviceToken failed: $e');
+      if (kDebugMode) {
+        debugPrint('[BestEffort] unregisterDeviceToken failed: $e');
+      }
     }
     return const Success(null);
   }

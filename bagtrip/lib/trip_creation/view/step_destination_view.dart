@@ -2,7 +2,7 @@ import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/pages/create_trip_ai_flow_page.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trip_creation/bloc/trip_creation_bloc.dart';
 import 'package:bagtrip/trip_creation/widgets/destination_search_field.dart';
 import 'package:flutter/material.dart';
@@ -63,13 +63,7 @@ class StepDestinationView extends StatelessWidget {
             // "Inspire-moi" — navigate to AI planning flow
             _InspireMeButton(
               isLoading: false,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const CreateTripAiFlowPage(),
-                  ),
-                );
-              },
+              onTap: () => const CreateTripAiFlowRoute().go(context),
             ),
 
             const SizedBox(height: 32),

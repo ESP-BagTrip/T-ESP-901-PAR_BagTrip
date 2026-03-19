@@ -237,17 +237,23 @@ class BudgetView extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     switch (category.toUpperCase()) {
       case 'FLIGHT':
-        return isDark ? Colors.blue.shade800 : Colors.blue.shade100;
+        return isDark ? AppColors.categoryFlightDark : AppColors.categoryFlight;
       case 'ACCOMMODATION':
-        return isDark ? Colors.purple.shade800 : Colors.purple.shade100;
+        return isDark
+            ? AppColors.categoryAccommodationDark
+            : AppColors.categoryAccommodation;
       case 'FOOD':
-        return isDark ? Colors.orange.shade800 : Colors.orange.shade100;
+        return isDark ? AppColors.categoryFoodDark : AppColors.categoryFood;
       case 'ACTIVITY':
-        return isDark ? Colors.teal.shade800 : Colors.teal.shade100;
+        return isDark
+            ? AppColors.categoryActivityDark
+            : AppColors.categoryActivity;
       case 'TRANSPORT':
-        return isDark ? Colors.indigo.shade800 : Colors.indigo.shade100;
+        return isDark
+            ? AppColors.categoryTransportDark
+            : AppColors.categoryTransport;
       default:
-        return isDark ? Colors.grey.shade800 : Colors.grey.shade200;
+        return isDark ? AppColors.categoryOtherDark : AppColors.categoryOther;
     }
   }
 

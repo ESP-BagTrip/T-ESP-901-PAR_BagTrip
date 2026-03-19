@@ -81,7 +81,7 @@ class CachedTripRepository implements TripRepository {
           .toList();
       return Success(items);
     }
-    return const Failure(NetworkError('No cached data available'));
+    return const Failure(UnknownError('No cached data available'));
   }
 
   @override
@@ -169,7 +169,7 @@ class CachedTripRepository implements TripRepository {
     if (cached != null) {
       return Success(fromJson(cached));
     }
-    return const Failure(NetworkError('No cached data available'));
+    return const Failure(UnknownError('No cached data available'));
   }
 
   Future<void> _invalidateListCaches() async {

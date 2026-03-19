@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
@@ -63,7 +64,7 @@ class PostTripSuggestionView extends StatelessWidget {
                         avatar: const Icon(
                           Icons.check_circle,
                           size: 16,
-                          color: Colors.green,
+                          color: AppColors.success,
                         ),
                         label: Text(h, style: const TextStyle(fontSize: 12)),
                       ),

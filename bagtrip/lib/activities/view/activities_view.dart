@@ -358,7 +358,10 @@ class ActivitiesView extends StatelessWidget {
                     ],
                   ),
                   trailing: IconButton(
-                    icon: const Icon(Icons.add_circle, color: Colors.green),
+                    icon: const Icon(
+                      Icons.add_circle,
+                      color: AppColors.success,
+                    ),
                     onPressed: () {
                       String activityDate;
                       if (suggestedDay != null && tripStartDate != null) {
@@ -482,7 +485,7 @@ class ActivitiesView extends StatelessWidget {
               l10n.activityValidateConfirmMessage,
               style: Theme.of(
                 sheetContext,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.hint),
             ),
             const SizedBox(height: 20),
             TextField(

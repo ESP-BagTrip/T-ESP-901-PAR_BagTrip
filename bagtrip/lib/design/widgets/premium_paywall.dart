@@ -1,5 +1,6 @@
 import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/core/result.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/widgets/premium_cta_button.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -59,7 +60,7 @@ class _PremiumPaywallState extends State<PremiumPaywall> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: AppColors.border,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -102,7 +103,7 @@ class _PremiumPaywallState extends State<PremiumPaywall> {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          const Icon(Icons.check_circle, color: Colors.green, size: 20),
+          const Icon(Icons.check_circle, color: AppColors.success, size: 20),
           const SizedBox(width: 12),
           Expanded(child: Text(text)),
         ],

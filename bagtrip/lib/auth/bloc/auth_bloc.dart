@@ -1,8 +1,7 @@
 import 'dart:developer' as developer;
-import 'dart:io';
-
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/cache/cache_service.dart';
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/auth_response.dart';
 import 'package:bagtrip/config/service_locator.dart';
@@ -35,7 +34,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final token = await FirebaseMessaging.instance.getToken();
       if (token != null) {
-        final platform = Platform.isIOS ? 'ios' : 'android';
+        final platform = AdaptivePlatform.isIOS ? 'ios' : 'android';
         await getIt<NotificationRepository>().registerDeviceToken(
           token,
           platform: platform,

@@ -1,5 +1,5 @@
 import 'package:bagtrip/components/adaptive/adaptive_app_bar.dart';
-import 'package:bagtrip/components/empty_state.dart';
+import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/components/paginated_list.dart';
@@ -174,7 +174,7 @@ class _TripListTab extends StatelessWidget {
         top: 8,
         bottom: AdaptivePlatform.isIOS ? 100 : 8,
       ),
-      emptyWidget: EmptyState(icon: emptyIcon, title: emptyMessage),
+      emptyWidget: ElegantEmptyState(icon: emptyIcon, title: emptyMessage),
       itemBuilder: (context, trip, _) => TripCard(
         trip: trip,
         onTap: () => TripHomeRoute(tripId: trip.id).go(context),
@@ -198,7 +198,7 @@ class _LegacyTripListTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (trips.isEmpty) {
-      return EmptyState(icon: emptyIcon, title: emptyMessage);
+      return ElegantEmptyState(icon: emptyIcon, title: emptyMessage);
     }
 
     return RefreshIndicator(

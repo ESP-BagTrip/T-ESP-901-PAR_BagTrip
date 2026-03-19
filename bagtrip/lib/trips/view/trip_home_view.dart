@@ -122,12 +122,12 @@ class TripHomeView extends StatelessWidget {
                       ),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
+                        color: AppColors.surfaceLight,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.lock_outline, color: Colors.grey.shade600),
+                          const Icon(Icons.lock_outline, color: AppColors.hint),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(

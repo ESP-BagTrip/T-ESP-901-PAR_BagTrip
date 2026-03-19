@@ -70,7 +70,7 @@ class AccommodationRepositoryImpl implements AccommodationRepository {
                 .toList(),
           );
         }
-        return const Success([]);
+        return const Failure(ServerError('Invalid response format'));
       }
       return loggedFailure(
         UnknownError('fetch accommodations failed: ${response.statusCode}'),

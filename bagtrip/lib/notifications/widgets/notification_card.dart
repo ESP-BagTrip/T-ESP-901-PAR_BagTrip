@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/models/notification.dart';
 import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
 import 'package:flutter/material.dart';
@@ -112,19 +113,19 @@ class NotificationCard extends StatelessWidget {
   Color _iconColor(ThemeData theme) {
     switch (notification.type) {
       case 'DEPARTURE_REMINDER':
-        return Colors.blue;
+        return AppColors.info;
       case 'FLIGHT_H4':
-        return Colors.indigo;
+        return AppColors.categoryTransportDark;
       case 'FLIGHT_H1':
-        return Colors.purple;
+        return AppColors.categoryAccommodationDark;
       case 'MORNING_SUMMARY':
-        return Colors.amber;
+        return AppColors.starRating;
       case 'ACTIVITY_H1':
-        return Colors.green;
+        return AppColors.success;
       case 'BUDGET_ALERT':
-        return Colors.orange;
+        return AppColors.warning;
       case 'TRIP_ENDED':
-        return Colors.teal;
+        return AppColors.categoryActivityDark;
       default:
         return theme.colorScheme.primary;
     }

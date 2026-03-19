@@ -1,6 +1,6 @@
 part of 'settings_bloc.dart';
 
-class SettingsState {
+final class SettingsState {
   final String selectedTheme;
   final String selectedLanguage;
 

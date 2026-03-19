@@ -99,7 +99,7 @@ class ApiClient {
       }
       return false;
     } catch (e) {
-      debugPrint('[BestEffort] token refresh failed: $e');
+      if (kDebugMode) debugPrint('[BestEffort] token refresh failed: $e');
       return false;
     } finally {
       _isRefreshing = false;

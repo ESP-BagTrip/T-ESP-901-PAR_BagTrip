@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -165,16 +166,16 @@ class StepReviewView extends StatelessWidget {
             if (state.error != null) ...[
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade50,
+                decoration: const BoxDecoration(
+                  color: AppColors.errorBg,
                   borderRadius: AppRadius.medium8,
                 ),
                 child: Text(
                   state.error!,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: FontFamily.b612,
                     fontSize: 13,
-                    color: Colors.red.shade700,
+                    color: AppColors.errorText,
                   ),
                 ),
               ),

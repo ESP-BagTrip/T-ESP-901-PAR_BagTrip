@@ -83,7 +83,7 @@ class BaggageRepositoryImpl implements BaggageRepository {
                 .toList(),
           );
         }
-        return const Success([]);
+        return const Failure(ServerError('Invalid response format'));
       }
       return loggedFailure(
         UnknownError('fetch baggage items failed: ${response.statusCode}'),
@@ -160,7 +160,7 @@ class BaggageRepositoryImpl implements BaggageRepository {
                 .toList(),
           );
         }
-        return const Success([]);
+        return const Failure(ServerError('Invalid suggestion response format'));
       }
       return loggedFailure(
         UnknownError('suggest baggage failed: ${response.statusCode}'),
