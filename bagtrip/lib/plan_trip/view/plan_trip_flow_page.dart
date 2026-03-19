@@ -7,7 +7,9 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
 import 'package:bagtrip/plan_trip/models/duration_preset.dart';
+import 'package:bagtrip/plan_trip/models/budget_preset.dart';
 import 'package:bagtrip/plan_trip/view/step_dates_view.dart';
+import 'package:bagtrip/plan_trip/view/step_travelers_budget_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -106,7 +108,7 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
                       physics: const NeverScrollableScrollPhysics(),
                       children: const [
                         StepDatesView(),
-                        Center(child: Text('Step 1')),
+                        StepTravelersBudgetView(),
                         Center(child: Text('Step 2')),
                         Center(child: Text('Step 3')),
                         Center(child: Text('Step 4')),
@@ -147,6 +149,24 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
         ),
       );
     }
+    if (state.currentStep > 1) {
+      items.add(
+        StepSummaryItem(
+          icon: Icons.people_outline_rounded,
+          label: l10n.travelersLabel,
+          value: l10n.travelerCountLabel(state.nbTravelers),
+        ),
+      );
+      if (state.budgetPreset != null) {
+        items.add(
+          StepSummaryItem(
+            icon: Icons.account_balance_wallet_outlined,
+            label: l10n.budgetLabel,
+            value: _budgetPresetLabel(state.budgetPreset!, l10n),
+          ),
+        );
+      }
+    }
     return items;
   }
 
@@ -166,5 +186,14 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
       return l10n.datesModeMonth;
     }
     return '';
+  }
+
+  String _budgetPresetLabel(BudgetPreset preset, AppLocalizations l10n) {
+    return switch (preset) {
+      BudgetPreset.backpacker => l10n.budgetPresetBackpacker,
+      BudgetPreset.comfortable => l10n.budgetPresetComfortable,
+      BudgetPreset.premium => l10n.budgetPresetPremium,
+      BudgetPreset.noLimit => l10n.budgetPresetNoLimit,
+    };
   }
 }

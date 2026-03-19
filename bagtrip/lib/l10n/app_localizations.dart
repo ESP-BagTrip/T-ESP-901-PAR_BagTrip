@@ -3841,6 +3841,84 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Quand partez-vous ?'**
   String get planTripStepDates;
+
+  /// No description provided for @travelersLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'VOYAGEURS'**
+  String get travelersLabel;
+
+  /// No description provided for @travelerCountLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 voyageur} other{{count} voyageurs}}'**
+  String travelerCountLabel(int count);
+
+  /// No description provided for @budgetLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'BUDGET'**
+  String get budgetLabel;
+
+  /// No description provided for @budgetPresetBackpacker.
+  ///
+  /// In fr, this message translates to:
+  /// **'Routard'**
+  String get budgetPresetBackpacker;
+
+  /// No description provided for @budgetPresetBackpackerDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'30–60 €/jour'**
+  String get budgetPresetBackpackerDesc;
+
+  /// No description provided for @budgetPresetComfortable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confortable'**
+  String get budgetPresetComfortable;
+
+  /// No description provided for @budgetPresetComfortableDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'80–150 €/jour'**
+  String get budgetPresetComfortableDesc;
+
+  /// No description provided for @budgetPresetPremium.
+  ///
+  /// In fr, this message translates to:
+  /// **'Premium'**
+  String get budgetPresetPremium;
+
+  /// No description provided for @budgetPresetPremiumDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'200–400 €/jour'**
+  String get budgetPresetPremiumDesc;
+
+  /// No description provided for @budgetPresetNoLimit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sans limite'**
+  String get budgetPresetNoLimit;
+
+  /// No description provided for @budgetPresetNoLimitDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'400+ €/jour'**
+  String get budgetPresetNoLimitDesc;
+
+  /// No description provided for @budgetEstimationLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'TOTAL ESTIMÉ'**
+  String get budgetEstimationLabel;
+
+  /// No description provided for @budgetSkipLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Je verrai plus tard'**
+  String get budgetSkipLabel;
 }
 
 class _AppLocalizationsDelegate

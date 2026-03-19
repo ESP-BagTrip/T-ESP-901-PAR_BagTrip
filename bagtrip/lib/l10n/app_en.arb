@@ -777,5 +777,23 @@
   "datesFlexibleWeekDays": "7 days",
   "datesFlexibleTwoWeeksDays": "14 days",
   "datesFlexibleThreeWeeksDays": "21 days",
-  "planTripStepDates": "When are you going?"
+  "planTripStepDates": "When are you going?",
+  "travelersLabel": "TRAVELERS",
+  "travelerCountLabel": "{count, plural, =1{1 traveler} other{{count} travelers}}",
+  "@travelerCountLabel": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "budgetLabel": "BUDGET",
+  "budgetPresetBackpacker": "Backpacker",
+  "budgetPresetBackpackerDesc": "30–60 €/day",
+  "budgetPresetComfortable": "Comfortable",
+  "budgetPresetComfortableDesc": "80–150 €/day",
+  "budgetPresetPremium": "Premium",
+  "budgetPresetPremiumDesc": "200–400 €/day",
+  "budgetPresetNoLimit": "No limit",
+  "budgetPresetNoLimitDesc": "400+ €/day",
+  "budgetEstimationLabel": "ESTIMATED TOTAL",
+  "budgetSkipLabel": "I'll decide later"
 }

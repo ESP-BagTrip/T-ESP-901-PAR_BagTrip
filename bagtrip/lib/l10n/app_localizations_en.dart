@@ -1986,4 +1986,51 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get planTripStepDates => 'When are you going?';
+
+  @override
+  String get travelersLabel => 'TRAVELERS';
+
+  @override
+  String travelerCountLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count travelers',
+      one: '1 traveler',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get budgetLabel => 'BUDGET';
+
+  @override
+  String get budgetPresetBackpacker => 'Backpacker';
+
+  @override
+  String get budgetPresetBackpackerDesc => '30–60 €/day';
+
+  @override
+  String get budgetPresetComfortable => 'Comfortable';
+
+  @override
+  String get budgetPresetComfortableDesc => '80–150 €/day';
+
+  @override
+  String get budgetPresetPremium => 'Premium';
+
+  @override
+  String get budgetPresetPremiumDesc => '200–400 €/day';
+
+  @override
+  String get budgetPresetNoLimit => 'No limit';
+
+  @override
+  String get budgetPresetNoLimitDesc => '400+ €/day';
+
+  @override
+  String get budgetEstimationLabel => 'ESTIMATED TOTAL';
+
+  @override
+  String get budgetSkipLabel => 'I\'ll decide later';
 }

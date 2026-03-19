@@ -2008,4 +2008,51 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get planTripStepDates => 'Quand partez-vous ?';
+
+  @override
+  String get travelersLabel => 'VOYAGEURS';
+
+  @override
+  String travelerCountLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count voyageurs',
+      one: '1 voyageur',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get budgetLabel => 'BUDGET';
+
+  @override
+  String get budgetPresetBackpacker => 'Routard';
+
+  @override
+  String get budgetPresetBackpackerDesc => '30–60 €/jour';
+
+  @override
+  String get budgetPresetComfortable => 'Confortable';
+
+  @override
+  String get budgetPresetComfortableDesc => '80–150 €/jour';
+
+  @override
+  String get budgetPresetPremium => 'Premium';
+
+  @override
+  String get budgetPresetPremiumDesc => '200–400 €/jour';
+
+  @override
+  String get budgetPresetNoLimit => 'Sans limite';
+
+  @override
+  String get budgetPresetNoLimitDesc => '400+ €/jour';
+
+  @override
+  String get budgetEstimationLabel => 'TOTAL ESTIMÉ';
+
+  @override
+  String get budgetSkipLabel => 'Je verrai plus tard';
 }
