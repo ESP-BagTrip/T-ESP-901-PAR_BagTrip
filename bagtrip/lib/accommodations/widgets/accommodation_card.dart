@@ -1,4 +1,3 @@
-import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -39,6 +38,7 @@ class _AccommodationCardState extends State<AccommodationCard> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final a = widget.accommodation;
     final l10n = AppLocalizations.of(context)!;
 
@@ -66,7 +66,7 @@ class _AccommodationCardState extends State<AccommodationCard> {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: theme.cardTheme.color ?? theme.colorScheme.surface,
             borderRadius: AppRadius.large16,
             boxShadow: [
               BoxShadow(
@@ -92,11 +92,11 @@ class _AccommodationCardState extends State<AccommodationCard> {
                   Expanded(
                     child: Text(
                       a.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: FontFamily.b612,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: ColorName.primaryTrueDark,
+                        color: theme.colorScheme.onSurface,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -108,7 +108,7 @@ class _AccommodationCardState extends State<AccommodationCard> {
                     const SizedBox(width: 4),
                     IconButton(
                       icon: const Icon(Icons.delete_outline, size: 20),
-                      color: ColorName.hint,
+                      color: theme.colorScheme.outline,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                       onPressed: widget.onDelete,
@@ -122,10 +122,10 @@ class _AccommodationCardState extends State<AccommodationCard> {
                 const SizedBox(height: 4),
                 Text(
                   a.address!,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFamily.b612,
                     fontSize: 13,
-                    color: ColorName.textMutedLight,
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -145,20 +145,20 @@ class _AccommodationCardState extends State<AccommodationCard> {
                     const SizedBox(width: 6),
                     Text(
                       '${checkInStr ?? '?'} \u2192 ${checkOutStr ?? '?'}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: FontFamily.b612,
                         fontSize: 13,
-                        color: ColorName.primaryTrueDark,
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                     if (nights != null) ...[
                       const SizedBox(width: 8),
                       Text(
                         '$nights ${l10n.accommodationNights}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: FontFamily.b612,
                           fontSize: 12,
-                          color: ColorName.textMutedLight,
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -184,11 +184,11 @@ class _AccommodationCardState extends State<AccommodationCard> {
                       const Spacer(),
                       Text(
                         '${l10n.accommodationTotal} ${(a.pricePerNight! * nights).toStringAsFixed(0)} ${a.currency ?? 'EUR'}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: FontFamily.b612,
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: ColorName.primaryTrueDark,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                     ],

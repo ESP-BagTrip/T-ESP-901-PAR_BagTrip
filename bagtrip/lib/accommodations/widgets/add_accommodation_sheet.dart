@@ -1,7 +1,6 @@
 import 'package:bagtrip/accommodations/bloc/accommodation_bloc.dart';
 import 'package:bagtrip/accommodations/widgets/hotel_search_sheet.dart';
 import 'package:bagtrip/accommodations/widgets/manual_accommodation_form.dart';
-import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -23,12 +22,13 @@ class AddAccommodationSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -40,7 +40,9 @@ class AddAccommodationSheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: ColorName.hint.withValues(alpha: 0.3),
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.3,
+                ),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -48,11 +50,11 @@ class AddAccommodationSheet extends StatelessWidget {
           const SizedBox(height: 20),
           Text(
             l10n.accommodationAddTitle,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: FontFamily.b612,
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: ColorName.primaryTrueDark,
+              color: theme.colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 24),
@@ -121,13 +123,15 @@ class _OptionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return InkWell(
       onTap: onTap,
       borderRadius: AppRadius.large16,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          border: Border.all(color: ColorName.primarySoftLight),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
           borderRadius: AppRadius.large16,
         ),
         child: Row(
@@ -148,26 +152,26 @@ class _OptionTile extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.b612,
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: ColorName.primaryTrueDark,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.b612,
                       fontSize: 12,
-                      color: ColorName.textMutedLight,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: ColorName.hint),
+            Icon(Icons.chevron_right, color: theme.colorScheme.outline),
           ],
         ),
       ),

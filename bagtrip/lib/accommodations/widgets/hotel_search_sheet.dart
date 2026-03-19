@@ -1,6 +1,5 @@
 import 'package:bagtrip/accommodations/bloc/accommodation_bloc.dart';
 import 'package:bagtrip/accommodations/widgets/manual_accommodation_form.dart';
-import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -78,9 +77,9 @@ class _HotelSearchSheetState extends State<HotelSearchSheet> {
       minChildSize: 0.4,
       expand: false,
       builder: (sheetContext, scrollController) => Container(
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        decoration: BoxDecoration(
+          color: Theme.of(sheetContext).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
           children: [
@@ -94,7 +93,9 @@ class _HotelSearchSheetState extends State<HotelSearchSheet> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: ColorName.hint.withValues(alpha: 0.3),
+                        color: Theme.of(
+                          sheetContext,
+                        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -102,11 +103,11 @@ class _HotelSearchSheetState extends State<HotelSearchSheet> {
                   const SizedBox(height: 16),
                   Text(
                     l10n.accommodationSearchHotels,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.b612,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: ColorName.primaryTrueDark,
+                      color: Theme.of(sheetContext).colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -149,7 +150,9 @@ class _HotelSearchSheetState extends State<HotelSearchSheet> {
                       return Center(
                         child: Text(
                           l10n.accommodationEmptyTitle,
-                          style: const TextStyle(color: ColorName.hint),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
                         ),
                       );
                     }
@@ -180,15 +183,17 @@ class _HotelSearchSheetState extends State<HotelSearchSheet> {
                             ),
                             subtitle: Text(
                               hotelId,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
-                                color: ColorName.textMutedLight,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
                             ),
-                            trailing: const Icon(
+                            trailing: Icon(
                               Icons.arrow_forward_ios,
                               size: 16,
-                              color: ColorName.hint,
+                              color: Theme.of(context).colorScheme.outline,
                             ),
                             onTap: () => _selectHotel(hotel),
                           ),

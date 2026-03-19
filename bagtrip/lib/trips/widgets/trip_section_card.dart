@@ -1,4 +1,3 @@
-import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -31,10 +30,13 @@ class _TripSectionCardState extends State<TripSectionCard> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.cardTheme.color ?? theme.colorScheme.surface,
         borderRadius: AppRadius.large20,
         boxShadow: [
           BoxShadow(
@@ -68,11 +70,11 @@ class _TripSectionCardState extends State<TripSectionCard> {
                 Expanded(
                   child: Text(
                     widget.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.b612,
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: ColorName.primaryTrueDark,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -82,8 +84,10 @@ class _TripSectionCardState extends State<TripSectionCard> {
                       horizontal: 10,
                       vertical: 4,
                     ),
-                    decoration: const BoxDecoration(
-                      color: ColorName.primaryLight,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? ColorName.primaryDark
+                          : ColorName.primaryLight,
                       borderRadius: AppRadius.pill,
                     ),
                     child: Text(
@@ -103,7 +107,7 @@ class _TripSectionCardState extends State<TripSectionCard> {
                   child: Icon(
                     Icons.keyboard_arrow_down_rounded,
                     size: 20,
-                    color: ColorName.primaryTrueDark.withValues(alpha: 0.4),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                   ),
                 ),
               ],
@@ -129,6 +133,8 @@ class _TripSectionCardState extends State<TripSectionCard> {
   }
 
   Widget _buildBody() {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -153,10 +159,10 @@ class _TripSectionCardState extends State<TripSectionCard> {
                       Expanded(
                         child: Text(
                           item,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: FontFamily.b612,
                             fontSize: 13,
-                            color: ColorName.textMutedLight,
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

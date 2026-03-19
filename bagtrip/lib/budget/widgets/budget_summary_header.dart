@@ -16,6 +16,7 @@ class BudgetSummaryHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final confirmedRatio = summary.totalBudget > 0
         ? summary.confirmedTotal / summary.totalBudget
@@ -28,8 +29,8 @@ class BudgetSummaryHeader extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.space16),
       padding: AppSpacing.allEdgeInsetSpace16,
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: theme.cardTheme.color ?? theme.colorScheme.surface,
         borderRadius: AppRadius.large16,
       ),
       child: Column(

@@ -21,10 +21,12 @@ class PersonalizationSingleSelectCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Material(
       color: selected
           ? AppColors.secondaryLight.withValues(alpha: 0.3)
-          : AppColors.surface,
+          : theme.cardTheme.color ?? theme.colorScheme.surface,
       borderRadius: AppRadius.large16,
       child: InkWell(
         onTap: onTap,
@@ -36,7 +38,7 @@ class PersonalizationSingleSelectCard extends StatelessWidget {
             border: Border.all(
               color: selected
                   ? AppColors.secondary
-                  : ColorName.primarySoftLight,
+                  : theme.colorScheme.outlineVariant,
               width: selected ? 2 : 1,
             ),
             boxShadow: [
@@ -54,7 +56,7 @@ class PersonalizationSingleSelectCard extends StatelessWidget {
                 size: 28,
                 color: selected
                     ? AppColors.secondary
-                    : AppColors.textMutedLight,
+                    : theme.colorScheme.onSurfaceVariant,
               ),
               const SizedBox(width: AppSpacing.space16),
               Expanded(
@@ -63,17 +65,17 @@ class PersonalizationSingleSelectCard extends StatelessWidget {
                   children: [
                     Text(
                       label,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: AppColors.primaryTrueDark,
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                     if (description != null) ...[
                       const SizedBox(height: AppSpacing.space4),
                       Text(
                         description!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textMutedLight,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],

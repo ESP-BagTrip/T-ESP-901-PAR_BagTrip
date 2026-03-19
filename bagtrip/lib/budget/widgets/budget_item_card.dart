@@ -42,6 +42,7 @@ class BudgetItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final confirmed = _isConfirmed;
     final textColor = confirmed
@@ -55,7 +56,7 @@ class BudgetItemCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: AppSpacing.space8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.cardTheme.color ?? theme.colorScheme.surface,
         borderRadius: AppRadius.large16,
         boxShadow: [
           BoxShadow(

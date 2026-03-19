@@ -36,9 +36,9 @@ class _BudgetEstimateSheetState extends State<BudgetEstimateSheet> {
       expand: false,
       builder: (context, scrollController) {
         return Container(
-          decoration: const BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.vertical(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(
               top: Radius.circular(AppRadius.cornerRadius20),
             ),
           ),

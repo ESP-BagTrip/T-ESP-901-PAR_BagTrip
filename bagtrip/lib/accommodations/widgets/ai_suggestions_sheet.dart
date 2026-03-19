@@ -1,7 +1,6 @@
 import 'package:bagtrip/accommodations/bloc/accommodation_bloc.dart';
 import 'package:bagtrip/accommodations/widgets/hotel_search_sheet.dart';
 import 'package:bagtrip/accommodations/widgets/manual_accommodation_form.dart';
-import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -29,9 +28,9 @@ class AiSuggestionsSheet extends StatelessWidget {
       minChildSize: 0.3,
       expand: false,
       builder: (sheetContext, scrollController) => Container(
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        decoration: BoxDecoration(
+          color: Theme.of(sheetContext).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
           children: [
@@ -42,11 +41,11 @@ class AiSuggestionsSheet extends StatelessWidget {
                 children: [
                   Text(
                     l10n.accommodationAiSuggestTitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.b612,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: ColorName.primaryTrueDark,
+                      color: Theme.of(sheetContext).colorScheme.onSurface,
                     ),
                   ),
                   IconButton(
@@ -69,10 +68,10 @@ class AiSuggestionsSheet extends StatelessWidget {
                       child: Text(
                         l10n.accommodationAiDisclaimer,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: FontFamily.b612,
                           fontSize: 11,
-                          color: ColorName.textMutedLight,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     );
@@ -90,9 +89,13 @@ class AiSuggestionsSheet extends StatelessWidget {
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color:
+                          Theme.of(context).cardTheme.color ??
+                          Theme.of(context).colorScheme.surface,
                       borderRadius: AppRadius.large16,
-                      border: Border.all(color: ColorName.primarySoftLight),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,11 +140,11 @@ class AiSuggestionsSheet extends StatelessWidget {
                         // Name
                         Text(
                           name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: FontFamily.b612,
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: ColorName.primaryTrueDark,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
 
@@ -175,10 +178,12 @@ class AiSuggestionsSheet extends StatelessWidget {
                             reason,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: FontFamily.b612,
                               fontSize: 12,
-                              color: ColorName.textMutedLight,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
