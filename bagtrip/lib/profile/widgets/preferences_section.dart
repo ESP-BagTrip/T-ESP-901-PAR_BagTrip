@@ -12,6 +12,7 @@ class PreferencesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return BlocBuilder<SettingsBloc, SettingsState>(
       builder: (context, settingsState) {
         return ProfileSectionCard(
@@ -28,10 +29,10 @@ class PreferencesSection extends StatelessWidget {
                   const SizedBox(width: AppSpacing.space8),
                   Text(
                     AppLocalizations.of(context)!.preferencesTitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: ColorName.primaryTrueDark,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                 ],
@@ -48,6 +49,7 @@ class PreferencesSection extends StatelessWidget {
   }
 
   Widget _buildLanguageRow(BuildContext context, String selectedLanguage) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
     return Row(
       children: [
         Icon(
@@ -65,24 +67,21 @@ class PreferencesSection extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: ColorName.primaryTrueDark.withValues(alpha: 0.5),
+                  color: onSurface.withValues(alpha: 0.5),
                   letterSpacing: 0.5,
                 ),
               ),
               const SizedBox(height: AppSpacing.space4),
               Text(
                 selectedLanguage,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: ColorName.primaryTrueDark,
-                ),
+                style: TextStyle(fontSize: 14, color: onSurface),
               ),
             ],
           ),
         ),
         Icon(
           Icons.chevron_right,
-          color: ColorName.primaryTrueDark.withValues(alpha: 0.4),
+          color: onSurface.withValues(alpha: 0.4),
           size: 20,
         ),
       ],
@@ -90,6 +89,7 @@ class PreferencesSection extends StatelessWidget {
   }
 
   Widget _buildThemeSelector(BuildContext context, String currentTheme) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -110,7 +110,7 @@ class PreferencesSection extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
-                      color: ColorName.primaryTrueDark.withValues(alpha: 0.5),
+                      color: onSurface.withValues(alpha: 0.5),
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -119,7 +119,7 @@ class PreferencesSection extends StatelessWidget {
                     AppLocalizations.of(context)!.chooseThemeHint,
                     style: TextStyle(
                       fontSize: 12,
-                      color: ColorName.primaryTrueDark.withValues(alpha: 0.6),
+                      color: onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -172,6 +172,9 @@ class PreferencesSection extends StatelessWidget {
     IconData icon,
     bool isSelected,
   ) {
+    final theme = Theme.of(context);
+    final onSurface = theme.colorScheme.onSurface;
+    final isDark = theme.brightness == Brightness.dark;
     return InkWell(
       onTap: () {
         context.read<SettingsBloc>().add(ChangeTheme(themeValue));
@@ -185,12 +188,14 @@ class PreferencesSection extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? ColorName.secondary.withValues(alpha: 0.1)
+              : isDark
+              ? ColorName.primaryDark
               : ColorName.primaryLight,
           borderRadius: AppRadius.medium8,
           border: Border.all(
             color: isSelected
                 ? ColorName.secondary
-                : ColorName.primarySoftLight,
+                : theme.colorScheme.outlineVariant,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -204,7 +209,7 @@ class PreferencesSection extends StatelessWidget {
                   icon,
                   color: isSelected
                       ? ColorName.secondary
-                      : ColorName.primaryTrueDark.withValues(alpha: 0.6),
+                      : onSurface.withValues(alpha: 0.6),
                   size: 20,
                 ),
                 const SizedBox(height: AppSpacing.space4),
@@ -216,7 +221,7 @@ class PreferencesSection extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: isSelected
                         ? ColorName.secondary
-                        : ColorName.primaryTrueDark.withValues(alpha: 0.7),
+                        : onSurface.withValues(alpha: 0.7),
                   ),
                 ),
               ],
