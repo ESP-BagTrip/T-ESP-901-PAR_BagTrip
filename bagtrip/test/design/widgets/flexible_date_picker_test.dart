@@ -1,5 +1,6 @@
 import 'package:bagtrip/design/widgets/flexible_date_picker.dart';
 import 'package:bagtrip/plan_trip/models/date_mode.dart';
+import 'package:bagtrip/plan_trip/models/duration_preset.dart';
 import 'package:flutter/material.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,8 +9,11 @@ void main() {
   Widget buildApp({
     DateMode mode = DateMode.exact,
     ValueChanged<DateMode>? onModeChanged,
-    String? flexibilityLabel,
-    ValueChanged<String>? onFlexibilityChanged,
+    DurationPreset? selectedDuration,
+    ValueChanged<DurationPreset>? onDurationChanged,
+    int? selectedMonth,
+    int? selectedYear,
+    void Function(int, int)? onMonthSelected,
   }) {
     return MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -20,8 +24,11 @@ void main() {
           child: FlexibleDatePicker(
             mode: mode,
             onModeChanged: onModeChanged ?? (_) {},
-            flexibilityLabel: flexibilityLabel,
-            onFlexibilityChanged: onFlexibilityChanged,
+            selectedDuration: selectedDuration,
+            onDurationChanged: onDurationChanged,
+            selectedMonth: selectedMonth,
+            selectedYear: selectedYear,
+            onMonthSelected: onMonthSelected,
           ),
         ),
       ),
@@ -47,22 +54,24 @@ void main() {
       expect(find.text('RETURN'), findsOneWidget);
     });
 
-    testWidgets('flexible mode shows flexibility chips', (tester) async {
+    testWidgets('flexible mode shows duration chip selector with 4 cards', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildApp(mode: DateMode.flexible));
       await tester.pumpAndSettle();
 
-      expect(find.text('Whenever'), findsOneWidget);
       expect(find.text('Weekend'), findsOneWidget);
       expect(find.text('1 week'), findsOneWidget);
       expect(find.text('2 weeks'), findsOneWidget);
+      expect(find.text('3 weeks'), findsOneWidget);
     });
 
-    testWidgets('flexibility chip fires callback', (tester) async {
-      String? selected;
+    testWidgets('flexible chip fires DurationPreset callback', (tester) async {
+      DurationPreset? selected;
       await tester.pumpWidget(
         buildApp(
           mode: DateMode.flexible,
-          onFlexibilityChanged: (v) => selected = v,
+          onDurationChanged: (v) => selected = v,
         ),
       );
       await tester.pumpAndSettle();
@@ -70,7 +79,42 @@ void main() {
       await tester.tap(find.text('Weekend'));
       await tester.pump();
 
-      expect(selected, 'Weekend');
+      expect(selected, DurationPreset.weekend);
+    });
+
+    testWidgets('month mode shows 12 month cells', (tester) async {
+      await tester.pumpWidget(buildApp(mode: DateMode.month));
+      await tester.pumpAndSettle();
+
+      // MonthGridPicker renders 12 cells in a GridView
+      final gridFinder = find.byType(GridView);
+      expect(gridFinder, findsOneWidget);
+    });
+
+    testWidgets('month selection fires callback with month and year', (
+      tester,
+    ) async {
+      int? calledMonth;
+      int? calledYear;
+      await tester.pumpWidget(
+        buildApp(
+          mode: DateMode.month,
+          onMonthSelected: (m, y) {
+            calledMonth = m;
+            calledYear = y;
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Tap a visible month cell in the grid
+      final gestureDetectors = find.byType(GestureDetector);
+      await tester.tap(gestureDetectors.last);
+      await tester.pump();
+
+      // The callback should have been called
+      expect(calledMonth, isNotNull);
+      expect(calledYear, isNotNull);
     });
 
     testWidgets('mode change callback fires', (tester) async {

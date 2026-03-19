@@ -5,6 +5,9 @@ import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/plan_trip/models/date_mode.dart';
+import 'package:bagtrip/plan_trip/models/duration_preset.dart';
+import 'package:bagtrip/plan_trip/widgets/duration_chip_selector.dart';
+import 'package:bagtrip/plan_trip/widgets/month_grid_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -18,10 +21,11 @@ class FlexibleDatePicker extends StatelessWidget {
   final DateTime? startDate;
   final DateTime? endDate;
   final void Function(DateTime? start, DateTime? end)? onDatesChanged;
-  final DateTime? selectedMonth;
-  final ValueChanged<DateTime>? onMonthChanged;
-  final String? flexibilityLabel;
-  final ValueChanged<String>? onFlexibilityChanged;
+  final int? selectedMonth;
+  final int? selectedYear;
+  final void Function(int month, int year)? onMonthSelected;
+  final DurationPreset? selectedDuration;
+  final ValueChanged<DurationPreset>? onDurationChanged;
 
   const FlexibleDatePicker({
     super.key,
@@ -31,9 +35,10 @@ class FlexibleDatePicker extends StatelessWidget {
     this.endDate,
     this.onDatesChanged,
     this.selectedMonth,
-    this.onMonthChanged,
-    this.flexibilityLabel,
-    this.onFlexibilityChanged,
+    this.selectedYear,
+    this.onMonthSelected,
+    this.selectedDuration,
+    this.onDurationChanged,
   });
 
   @override
@@ -121,17 +126,17 @@ class FlexibleDatePicker extends StatelessWidget {
           l10n: l10n,
         );
       case DateMode.month:
-        return _MonthContent(
+        return MonthGridPicker(
           key: const ValueKey(DateMode.month),
           selectedMonth: selectedMonth,
-          onMonthChanged: onMonthChanged,
+          selectedYear: selectedYear,
+          onMonthSelected: (month, year) => onMonthSelected?.call(month, year),
         );
       case DateMode.flexible:
-        return _FlexibleContent(
+        return DurationChipSelector(
           key: const ValueKey(DateMode.flexible),
-          selectedLabel: flexibilityLabel,
-          onChanged: onFlexibilityChanged,
-          l10n: l10n,
+          selected: selectedDuration,
+          onSelected: (preset) => onDurationChanged?.call(preset),
         );
     }
   }
@@ -241,159 +246,6 @@ class _DateCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Month mode: horizontal scrollable month chips
-// ---------------------------------------------------------------------------
-
-class _MonthContent extends StatelessWidget {
-  final DateTime? selectedMonth;
-  final ValueChanged<DateTime>? onMonthChanged;
-
-  const _MonthContent({super.key, this.selectedMonth, this.onMonthChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final months = List.generate(12, (i) => DateTime(now.year, now.month + i));
-
-    return SizedBox(
-      height: 48,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: months.length,
-        separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.space8),
-        itemBuilder: (context, index) {
-          final m = months[index];
-          final isSelected =
-              selectedMonth != null &&
-              selectedMonth!.year == m.year &&
-              selectedMonth!.month == m.month;
-
-          return GestureDetector(
-            onTap: () {
-              AppHaptics.light();
-              onMonthChanged?.call(m);
-            },
-            child: AnimatedContainer(
-              duration: AppAnimations.microInteraction,
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.space16,
-                vertical: AppSpacing.space12,
-              ),
-              decoration: BoxDecoration(
-                color: isSelected ? ColorName.primaryLight : ColorName.surface,
-                borderRadius: AppRadius.pill,
-                border: Border.all(
-                  color: isSelected
-                      ? ColorName.primary
-                      : ColorName.primarySoftLight,
-                ),
-              ),
-              child: Text(
-                _monthLabel(m),
-                style: TextStyle(
-                  fontFamily: FontFamily.b612,
-                  fontSize: 13,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
-                  color: isSelected
-                      ? ColorName.primary
-                      : ColorName.primaryTrueDark,
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  String _monthLabel(DateTime d) {
-    const names = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${names[(d.month - 1) % 12]} ${d.year}';
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Flexible mode: text chips
-// ---------------------------------------------------------------------------
-
-class _FlexibleContent extends StatelessWidget {
-  final String? selectedLabel;
-  final ValueChanged<String>? onChanged;
-  final AppLocalizations l10n;
-
-  const _FlexibleContent({
-    super.key,
-    this.selectedLabel,
-    this.onChanged,
-    required this.l10n,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final options = [
-      l10n.datesFlexibleWhenever,
-      l10n.datesFlexibleWeekend,
-      l10n.datesFlexibleWeek,
-      l10n.datesFlexibleTwoWeeks,
-    ];
-
-    return Wrap(
-      spacing: AppSpacing.space8,
-      runSpacing: AppSpacing.space8,
-      children: options.map((label) {
-        final isSelected = selectedLabel == label;
-        return GestureDetector(
-          onTap: () {
-            AppHaptics.light();
-            onChanged?.call(label);
-          },
-          child: AnimatedContainer(
-            duration: AppAnimations.microInteraction,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.space16,
-              vertical: AppSpacing.space12,
-            ),
-            decoration: BoxDecoration(
-              color: isSelected ? ColorName.primaryLight : ColorName.surface,
-              borderRadius: AppRadius.pill,
-              border: Border.all(
-                color: isSelected
-                    ? ColorName.primary
-                    : ColorName.primarySoftLight,
-              ),
-            ),
-            child: Text(
-              label,
-              style: TextStyle(
-                fontFamily: FontFamily.b612,
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
-                color: isSelected
-                    ? ColorName.primary
-                    : ColorName.primaryTrueDark,
-              ),
-            ),
-          ),
-        );
-      }).toList(),
     );
   }
 }

@@ -3805,6 +3805,42 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'2 semaines'**
   String get datesFlexibleTwoWeeks;
+
+  /// No description provided for @datesFlexibleThreeWeeks.
+  ///
+  /// In fr, this message translates to:
+  /// **'3 semaines'**
+  String get datesFlexibleThreeWeeks;
+
+  /// No description provided for @datesFlexibleWeekendDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'2-3 jours'**
+  String get datesFlexibleWeekendDays;
+
+  /// No description provided for @datesFlexibleWeekDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'7 jours'**
+  String get datesFlexibleWeekDays;
+
+  /// No description provided for @datesFlexibleTwoWeeksDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'14 jours'**
+  String get datesFlexibleTwoWeeksDays;
+
+  /// No description provided for @datesFlexibleThreeWeeksDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'21 jours'**
+  String get datesFlexibleThreeWeeksDays;
+
+  /// No description provided for @planTripStepDates.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quand partez-vous ?'**
+  String get planTripStepDates;
 }
 
 class _AppLocalizationsDelegate

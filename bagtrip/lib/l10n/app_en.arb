@@ -771,5 +771,11 @@
   "datesFlexibleWhenever": "Whenever",
   "datesFlexibleWeekend": "Weekend",
   "datesFlexibleWeek": "1 week",
-  "datesFlexibleTwoWeeks": "2 weeks"
+  "datesFlexibleTwoWeeks": "2 weeks",
+  "datesFlexibleThreeWeeks": "3 weeks",
+  "datesFlexibleWeekendDays": "2-3 days",
+  "datesFlexibleWeekDays": "7 days",
+  "datesFlexibleTwoWeeksDays": "14 days",
+  "datesFlexibleThreeWeeksDays": "21 days",
+  "planTripStepDates": "When are you going?"
 }

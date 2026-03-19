@@ -1968,4 +1968,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get datesFlexibleTwoWeeks => '2 weeks';
+
+  @override
+  String get datesFlexibleThreeWeeks => '3 weeks';
+
+  @override
+  String get datesFlexibleWeekendDays => '2-3 days';
+
+  @override
+  String get datesFlexibleWeekDays => '7 days';
+
+  @override
+  String get datesFlexibleTwoWeeksDays => '14 days';
+
+  @override
+  String get datesFlexibleThreeWeeksDays => '21 days';
+
+  @override
+  String get planTripStepDates => 'When are you going?';
 }
