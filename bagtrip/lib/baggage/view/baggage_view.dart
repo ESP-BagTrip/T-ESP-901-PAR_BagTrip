@@ -9,9 +9,11 @@ import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/baggage_item.dart';
 import 'package:bagtrip/utils/error_display.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -52,6 +54,11 @@ class BaggageView extends StatelessWidget {
                     SuggestBaggage(tripId: tripId),
                   );
                 },
+              ),
+            if (canEdit && AdaptivePlatform.isIOS)
+              IconButton(
+                icon: const Icon(CupertinoIcons.add),
+                onPressed: () => _showAddForm(context),
               ),
           ],
         ),
@@ -99,7 +106,7 @@ class BaggageView extends StatelessWidget {
             return const SizedBox.shrink();
           },
         ),
-        floatingActionButton: canEdit
+        floatingActionButton: canEdit && !AdaptivePlatform.isIOS
             ? FloatingActionButton.extended(
                 onPressed: () => _showAddForm(context),
                 icon: const Icon(Icons.add),

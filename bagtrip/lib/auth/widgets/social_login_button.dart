@@ -41,7 +41,7 @@ class SocialLoginButton extends StatelessWidget {
   }
 
   Color get _backgroundColor {
-    if (useDarkStyle) return ColorName.primaryLight;
+    if (useDarkStyle) return AppColors.surfaceDark;
     switch (provider) {
       case SocialProvider.google:
         return AppColors.surface;
@@ -62,7 +62,7 @@ class SocialLoginButton extends StatelessWidget {
 
   BorderSide get _side {
     if (useDarkStyle) {
-      return const BorderSide(color: ColorName.primaryLight);
+      return BorderSide(color: AppColors.surface.withValues(alpha: 0.2));
     }
     return BorderSide(
       color: provider == SocialProvider.google

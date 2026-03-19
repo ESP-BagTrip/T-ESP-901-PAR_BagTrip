@@ -9,17 +9,13 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (context) => HomeBloc()..add(LoadHome())),
-        BlocProvider.value(
-          value: context.read<TripManagementBloc>()
-            ..add(LoadTripsByStatus(status: 'ongoing'))
-            ..add(LoadTripsByStatus(status: 'planned'))
-            ..add(LoadTripsByStatus(status: 'completed')),
-        ),
-      ],
-      child: const HomeView(),
-    );
+    final homeBloc = context.read<HomeBloc>();
+    if (homeBloc.state is HomeInitial) {
+      homeBloc.add(LoadHome());
+      for (final s in ['ongoing', 'planned', 'completed']) {
+        context.read<TripManagementBloc>().add(LoadTripsByStatus(status: s));
+      }
+    }
+    return const HomeView();
   }
 }

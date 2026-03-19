@@ -2,6 +2,7 @@ import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -10,6 +11,7 @@ import 'package:bagtrip/transports/widgets/add_flight_sheet.dart';
 import 'package:bagtrip/transports/widgets/flight_card.dart';
 import 'package:bagtrip/transports/widgets/main_flights_section.dart';
 import 'package:bagtrip/utils/error_display.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -31,7 +33,16 @@ class TransportsView extends StatelessWidget {
     final isOwner = role == 'OWNER';
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.transportsTitle)),
+      appBar: AppBar(
+        title: Text(l10n.transportsTitle),
+        actions: [
+          if (isOwner && !isCompleted && AdaptivePlatform.isIOS)
+            IconButton(
+              icon: const Icon(CupertinoIcons.add),
+              onPressed: () => _showAddSheet(context),
+            ),
+        ],
+      ),
       body: BlocConsumer<TransportBloc, TransportState>(
         listener: (context, state) {
           if (state is TransportError) {
@@ -93,15 +104,6 @@ class TransportsView extends StatelessWidget {
                           : null,
                     ),
                   ),
-                if (state.mainFlights.isEmpty)
-                  SliverToBoxAdapter(
-                    child: MainFlightsSection(
-                      flights: const [],
-                      onAdd: isOwner && !isCompleted
-                          ? () => _showAddSheet(context)
-                          : null,
-                    ),
-                  ),
                 if (state.internalFlights.isNotEmpty) ...[
                   SliverToBoxAdapter(
                     child: Padding(
@@ -149,11 +151,18 @@ class TransportsView extends StatelessWidget {
           return const SizedBox.shrink();
         },
       ),
-      floatingActionButton: isOwner && !isCompleted
-          ? FloatingActionButton.extended(
-              onPressed: () => _showAddSheet(context),
-              icon: const Icon(Icons.add),
-              label: Text(l10n.addFlight),
+      floatingActionButton: isOwner && !isCompleted && !AdaptivePlatform.isIOS
+          ? BlocBuilder<TransportBloc, TransportState>(
+              builder: (context, state) {
+                if (state is TransportsLoaded && state.transports.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+                return FloatingActionButton.extended(
+                  onPressed: () => _showAddSheet(context),
+                  icon: const Icon(Icons.add),
+                  label: Text(l10n.addFlight),
+                );
+              },
             )
           : null,
     );
@@ -166,7 +175,7 @@ class TransportsView extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (_) => BlocProvider.value(
         value: context.read<TransportBloc>(),
-        child: AddFlightSheet(tripId: tripId),
+        child: AddFlightSheet(tripId: tripId, parentContext: context),
       ),
     );
   }

@@ -17,6 +17,7 @@ import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bagtrip/service/local_notification_service.dart';
 import 'package:bagtrip/repositories/notification_repository.dart';
 import 'package:bagtrip/settings/bloc/settings_bloc.dart';
+import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bagtrip/core/cache/cache_service.dart';
 import 'package:bagtrip/core/cache/connectivity_service.dart';
@@ -114,6 +115,7 @@ class _MyAppState extends State<MyApp> {
         BlocProvider(create: (context) => BookingBloc()),
         BlocProvider(create: (context) => AuthBloc()),
         BlocProvider(create: (context) => TripManagementBloc()),
+        BlocProvider(create: (context) => HomeBloc()),
         BlocProvider(create: (context) => NotificationBloc()),
         BlocProvider(create: (context) => ConnectivityBloc()),
       ],

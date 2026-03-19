@@ -52,7 +52,7 @@ class AuthTextField extends StatelessWidget {
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w600,
-              color: ColorName.primaryTrueDark,
+              color: textColor ?? ColorName.primaryTrueDark,
             ),
           ),
           const SizedBox(height: AppSpacing.space8),

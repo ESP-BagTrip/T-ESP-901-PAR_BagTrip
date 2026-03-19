@@ -54,12 +54,32 @@ class BaggageRepositoryImpl implements BaggageRepository {
         final data = response.data;
         if (data is List) {
           return Success(
-            data.map((json) => BaggageItem.fromJson(json)).toList(),
+            data
+                .map((json) {
+                  try {
+                    return BaggageItem.fromJson(
+                      Map<String, dynamic>.from(json),
+                    );
+                  } catch (_) {
+                    return null;
+                  }
+                })
+                .whereType<BaggageItem>()
+                .toList(),
           );
         } else if (data is Map && data['items'] is List) {
           return Success(
             (data['items'] as List)
-                .map((json) => BaggageItem.fromJson(json))
+                .map((json) {
+                  try {
+                    return BaggageItem.fromJson(
+                      Map<String, dynamic>.from(json),
+                    );
+                  } catch (_) {
+                    return null;
+                  }
+                })
+                .whereType<BaggageItem>()
                 .toList(),
           );
         }

@@ -580,6 +580,11 @@ class _LoginSignUpToggle extends StatelessWidget {
       );
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final unselectedTextColor = isDark
+        ? textColor.withValues(alpha: 0.5)
+        : textColor.withValues(alpha: 0.5);
+
     return Row(
       children: [
         Expanded(
@@ -605,7 +610,7 @@ class _LoginSignUpToggle extends StatelessWidget {
                   fontFamily: FontFamily.b612,
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
-                  color: textColor,
+                  color: isLogin ? textColor : unselectedTextColor,
                 ),
               ),
             ),
@@ -635,7 +640,7 @@ class _LoginSignUpToggle extends StatelessWidget {
                   fontFamily: FontFamily.b612,
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
-                  color: textColor,
+                  color: !isLogin ? textColor : unselectedTextColor,
                 ),
               ),
             ),

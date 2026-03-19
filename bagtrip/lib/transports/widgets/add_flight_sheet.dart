@@ -11,8 +11,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AddFlightSheet extends StatelessWidget {
   final String tripId;
+  final BuildContext parentContext;
 
-  const AddFlightSheet({super.key, required this.tripId});
+  const AddFlightSheet({
+    super.key,
+    required this.tripId,
+    required this.parentContext,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -68,13 +73,14 @@ class AddFlightSheet extends StatelessWidget {
             title: l10n.addManuallyOption,
             subtitle: l10n.addManuallyOptionSubtitle,
             onTap: () {
+              final bloc = context.read<TransportBloc>();
               Navigator.of(context).pop();
               showModalBottomSheet(
-                context: context,
+                context: parentContext,
                 isScrollControlled: true,
                 backgroundColor: Colors.transparent,
                 builder: (_) => BlocProvider.value(
-                  value: context.read<TransportBloc>(),
+                  value: bloc,
                   child: ManualFlightForm(tripId: tripId),
                 ),
               );

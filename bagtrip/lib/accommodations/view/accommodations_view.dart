@@ -6,8 +6,10 @@ import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/utils/error_display.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -72,6 +74,11 @@ class AccommodationsView extends StatelessWidget {
                   );
                 },
               ),
+            if (canEdit && AdaptivePlatform.isIOS)
+              IconButton(
+                icon: const Icon(CupertinoIcons.add),
+                onPressed: () => _showAddSheet(context),
+              ),
           ],
         ),
         body: BlocBuilder<AccommodationBloc, AccommodationState>(
@@ -131,26 +138,28 @@ class AccommodationsView extends StatelessWidget {
             return const SizedBox.shrink();
           },
         ),
-        floatingActionButton: canEdit
+        floatingActionButton: canEdit && !AdaptivePlatform.isIOS
             ? FloatingActionButton.extended(
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    backgroundColor: Colors.transparent,
-                    builder: (_) => BlocProvider.value(
-                      value: context.read<AccommodationBloc>(),
-                      child: AddAccommodationSheet(
-                        tripId: tripId,
-                        tripStartDate: tripStartDate,
-                        tripEndDate: tripEndDate,
-                      ),
-                    ),
-                  );
-                },
+                onPressed: () => _showAddSheet(context),
                 icon: const Icon(Icons.add),
                 label: Text(l10n.accommodationAddTitle),
               )
             : null,
+      ),
+    );
+  }
+
+  void _showAddSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => BlocProvider.value(
+        value: context.read<AccommodationBloc>(),
+        child: AddAccommodationSheet(
+          tripId: tripId,
+          tripStartDate: tripStartDate,
+          tripEndDate: tripEndDate,
+        ),
       ),
     );
   }

@@ -402,23 +402,46 @@ class ActivitiesView extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (_) => ActivityForm(
-        tripId: tripId,
-        activity: activity,
-        onSave: (data) {
-          if (activity != null) {
-            bloc.add(
-              UpdateActivity(
-                tripId: tripId,
-                activityId: activity.id,
-                data: data,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            );
-          } else {
-            bloc.add(CreateActivity(tripId: tripId, data: data));
-          }
-          Navigator.of(context).pop();
-        },
+            ),
+            ActivityForm(
+              tripId: tripId,
+              activity: activity,
+              onSave: (data) {
+                if (activity != null) {
+                  bloc.add(
+                    UpdateActivity(
+                      tripId: tripId,
+                      activityId: activity.id,
+                      data: data,
+                    ),
+                  );
+                } else {
+                  bloc.add(CreateActivity(tripId: tripId, data: data));
+                }
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

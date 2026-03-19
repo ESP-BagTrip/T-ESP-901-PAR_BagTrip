@@ -1,5 +1,6 @@
-import 'package:bagtrip/components/empty_state.dart';
+import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/loading_view.dart';
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/components/paginated_list.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
@@ -301,7 +302,11 @@ class _ReturningUserHome extends StatelessWidget {
         ),
 
         // Bottom padding
-        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.space32)),
+        SliverToBoxAdapter(
+          child: SizedBox(
+            height: AdaptivePlatform.isIOS ? 100 : AppSpacing.space32,
+          ),
+        ),
       ],
     );
   }
@@ -657,7 +662,7 @@ class _TripListContent extends StatelessWidget {
         );
       },
       padding: const EdgeInsets.symmetric(vertical: 4),
-      emptyWidget: EmptyState(icon: emptyIcon, title: emptyMessage),
+      emptyWidget: ElegantEmptyState(icon: emptyIcon, title: emptyMessage),
       itemBuilder: (context, trip, _) => TripCard(
         trip: trip,
         onTap: () => TripHomeRoute(tripId: trip.id).go(context),
@@ -680,7 +685,7 @@ class _LegacyTripList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (trips.isEmpty) {
-      return EmptyState(icon: emptyIcon, title: emptyMessage);
+      return ElegantEmptyState(icon: emptyIcon, title: emptyMessage);
     }
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 4),

@@ -24,39 +24,42 @@ Future<TimeOfDay?> showAdaptiveTimePicker({
     await showCupertinoModalPopup<void>(
       context: context,
       builder: (ctx) => Container(
-        height: 300,
+        height: 300 + MediaQuery.of(ctx).padding.bottom,
         color: CupertinoColors.systemBackground.resolveFrom(ctx),
-        child: Column(
-          children: [
-            SizedBox(
-              height: 44,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  CupertinoButton(
-                    onPressed: () => Navigator.of(ctx).pop(),
-                    child: const Text('Cancel'),
-                  ),
-                  CupertinoButton(
-                    onPressed: () {
-                      selected ??= initialTime;
-                      Navigator.of(ctx).pop();
-                    },
-                    child: const Text('Done'),
-                  ),
-                ],
+        child: SafeArea(
+          top: false,
+          child: Column(
+            children: [
+              SizedBox(
+                height: 44,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CupertinoButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      child: const Text('Cancel'),
+                    ),
+                    CupertinoButton(
+                      onPressed: () {
+                        selected ??= initialTime;
+                        Navigator.of(ctx).pop();
+                      },
+                      child: const Text('Done'),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Expanded(
-              child: CupertinoDatePicker(
-                mode: CupertinoDatePickerMode.time,
-                initialDateTime: initial,
-                onDateTimeChanged: (date) {
-                  selected = TimeOfDay(hour: date.hour, minute: date.minute);
-                },
+              Expanded(
+                child: CupertinoDatePicker(
+                  mode: CupertinoDatePickerMode.time,
+                  initialDateTime: initial,
+                  onDateTimeChanged: (date) {
+                    selected = TimeOfDay(hour: date.hour, minute: date.minute);
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
