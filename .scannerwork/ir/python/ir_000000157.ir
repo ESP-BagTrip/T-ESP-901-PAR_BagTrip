@@ -1,10 +1,0 @@
-
-6-"event: {event_type}\ndata: {event_data}\n\n"str
-F="Helper pour émettre un événement SSE au format standard."str
-event_type ((data* (4"l!
-
- ("#unknown-value#7
-5
- (!
-event_data"?python-unknown?:Bstr
-   (9*H/home/aurelien/T-ESP-901-81605-PAR_Gospalaga/api/src/api/agent/routes.py

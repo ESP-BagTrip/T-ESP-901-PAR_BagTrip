@@ -1,8 +1,0 @@
-
-<3"Vérifie si le niveau de log doit être affiché."strself% %(level% %()"d&
-$
-' '(""#get-field# level:*
-(
-' '(""
-#binop >=#2>=:Bbool
-' '("*D/home/aurelien/T-ESP-901-81605-PAR_Gospalaga/api/src/utils/logger.py
