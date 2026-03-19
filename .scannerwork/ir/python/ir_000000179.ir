@@ -1,0 +1,10 @@
+
+%"Formate le message de log."str
+>5"{message} {json.dumps(data, indent=2, default=str)}"strself) )(level) )((message)* )(6data)8 )(O"I)
+'
++ +("
+__bool__*:BboolH"
++ +( *+ +(
+"
+. .(I"
+/ /(*D/home/aurelien/T-ESP-901-81605-PAR_Gospalaga/api/src/utils/logger.py

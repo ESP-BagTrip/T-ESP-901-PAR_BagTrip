@@ -27,7 +27,7 @@ err   = @printf "$(RED)[err]$(RESET)  %s\n" $(1)
 .PHONY: help init \
         dev dev-docker dev-mobile stop logs \
         dev-clean \
-        check lint lint-api lint-admin lint-mobile test test-api test-mobile \
+        check lint lint-api lint-admin lint-mobile test test-api test-mobile sonar-analyze \
         db-migrate db-revision db-shell \
         shell-api shell-admin
 
@@ -54,6 +54,7 @@ help: ## Show this help
 	@printf "  $(CYAN)make check$(RESET)           Run pre-commit on all files\n"
 	@printf "  $(CYAN)make lint$(RESET)            Run all linters (api + admin + mobile)\n"
 	@printf "  $(CYAN)make test$(RESET)            Run all tests (api + mobile)\n"
+	@printf "  $(CYAN)make sonar-analyze$(RESET)   Run SonarCloud analysis\n"
 	@printf "\n"
 	@printf "$(BOLD) Database$(RESET)\n"
 	@printf "  $(CYAN)make db-migrate$(RESET)      Run Alembic migrations (upgrade head)\n"
@@ -196,6 +197,11 @@ test-mobile: ## Run Flutter tests
 	@printf "$(CYAN)[info]$(RESET) Running Flutter tests…\n"
 	@cd $(FLUTTER_DIR) && flutter test
 	$(call ok,"Mobile tests passed")
+
+sonar-analyze: ## Run SonarCloud analysis
+	@printf "$(CYAN)[info]$(RESET) Running SonarCloud analysis…\n"
+	@./scripts/run-sonar-analysis.sh
+	$(call ok,"SonarCloud analysis complete")
 
 # ══════════════════════════════════════════════════════════════
 #  DATABASE
