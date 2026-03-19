@@ -3949,6 +3949,42 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Destination sélectionnée'**
   String get destinationSelected;
+
+  /// No description provided for @stepAiProposals.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos destinations'**
+  String get stepAiProposals;
+
+  /// No description provided for @chooseThisDestination.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir cette destination'**
+  String get chooseThisDestination;
+
+  /// No description provided for @swipeToDiscover.
+  ///
+  /// In fr, this message translates to:
+  /// **'Glissez pour découvrir →'**
+  String get swipeToDiscover;
+
+  /// No description provided for @aiProposalsEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune suggestion disponible'**
+  String get aiProposalsEmpty;
+
+  /// No description provided for @aiProposalsEmptySubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retournez en arrière et réessayez'**
+  String get aiProposalsEmptySubtitle;
+
+  /// No description provided for @aiBadgeLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'IA'**
+  String get aiBadgeLabel;
 }
 
 class _AppLocalizationsDelegate

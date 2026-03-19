@@ -800,5 +800,11 @@
   "destinationOrSeparator": "OR",
   "destinationNoResults": "No results found",
   "destinationAiLoading": "Our AI is searching for you...",
-  "destinationSelected": "Selected destination"
+  "destinationSelected": "Selected destination",
+  "stepAiProposals": "Your destinations",
+  "chooseThisDestination": "Choose this destination",
+  "swipeToDiscover": "Swipe to discover →",
+  "aiProposalsEmpty": "No suggestions available",
+  "aiProposalsEmptySubtitle": "Go back and try again",
+  "aiBadgeLabel": "AI"
 }

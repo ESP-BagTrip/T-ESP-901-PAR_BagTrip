@@ -10,6 +10,7 @@ import 'package:bagtrip/plan_trip/models/duration_preset.dart';
 import 'package:bagtrip/plan_trip/models/budget_preset.dart';
 import 'package:bagtrip/plan_trip/view/step_dates_view.dart';
 import 'package:bagtrip/plan_trip/view/step_destination_view.dart';
+import 'package:bagtrip/plan_trip/view/step_ai_proposals_view.dart';
 import 'package:bagtrip/plan_trip/view/step_travelers_budget_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -111,7 +112,7 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
                         StepDatesView(),
                         StepTravelersBudgetView(),
                         StepDestinationView(),
-                        Center(child: Text('Step 3')),
+                        StepAiProposalsView(),
                         Center(child: Text('Step 4')),
                         Center(child: Text('Step 5')),
                       ],
@@ -131,7 +132,8 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
       0 => l10n.planTripStepDates,
       1 => l10n.stepTravelers,
       2 => l10n.stepDestination,
-      3 => l10n.stepReview,
+      3 => l10n.stepAiProposals,
+      4 => l10n.stepReview,
       _ => '',
     };
   }

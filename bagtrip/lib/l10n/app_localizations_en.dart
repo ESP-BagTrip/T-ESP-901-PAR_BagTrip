@@ -2048,4 +2048,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get destinationSelected => 'Selected destination';
+
+  @override
+  String get stepAiProposals => 'Your destinations';
+
+  @override
+  String get chooseThisDestination => 'Choose this destination';
+
+  @override
+  String get swipeToDiscover => 'Swipe to discover →';
+
+  @override
+  String get aiProposalsEmpty => 'No suggestions available';
+
+  @override
+  String get aiProposalsEmptySubtitle => 'Go back and try again';
+
+  @override
+  String get aiBadgeLabel => 'AI';
 }

@@ -2070,4 +2070,22 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get destinationSelected => 'Destination sélectionnée';
+
+  @override
+  String get stepAiProposals => 'Vos destinations';
+
+  @override
+  String get chooseThisDestination => 'Choisir cette destination';
+
+  @override
+  String get swipeToDiscover => 'Glissez pour découvrir →';
+
+  @override
+  String get aiProposalsEmpty => 'Aucune suggestion disponible';
+
+  @override
+  String get aiProposalsEmptySubtitle => 'Retournez en arrière et réessayez';
+
+  @override
+  String get aiBadgeLabel => 'IA';
 }
