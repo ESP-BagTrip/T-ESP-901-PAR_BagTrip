@@ -1,4 +1,3 @@
-import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -81,6 +80,7 @@ class _EmptyCTA extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -91,33 +91,33 @@ class _EmptyCTA extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
           decoration: BoxDecoration(
             borderRadius: AppRadius.large20,
-            border: Border.all(color: ColorName.hint.withValues(alpha: 0.3)),
+            border: Border.all(color: theme.colorScheme.outlineVariant),
           ),
           child: Column(
             children: [
-              const Icon(
+              Icon(
                 Icons.flight_takeoff_rounded,
                 size: 48,
-                color: AppColors.hint,
+                color: theme.colorScheme.outline,
               ),
               const SizedBox(height: 12),
               Text(
                 l10n.addFirstTransport,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: FontFamily.b612,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: ColorName.primaryTrueDark,
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 l10n.addFlightSubtitle,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: FontFamily.b612,
                   fontSize: 12,
-                  color: ColorName.textMutedLight,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
             ],

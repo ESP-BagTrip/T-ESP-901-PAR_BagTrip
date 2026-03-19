@@ -64,8 +64,8 @@ class ElegantEmptyState extends StatelessWidget {
                     Container(
                       width: 80,
                       height: 80,
-                      decoration: const BoxDecoration(
-                        color: AppColors.primaryLight,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primaryContainer,
                         shape: BoxShape.circle,
                       ),
                       alignment: Alignment.center,
@@ -77,19 +77,16 @@ class ElegantEmptyState extends StatelessWidget {
               const SizedBox(height: AppSpacing.space16),
               Text(
                 title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primaryTrueDark,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                 textAlign: TextAlign.center,
               ),
               if (subtitle != null) ...[
                 const SizedBox(height: AppSpacing.space8),
                 Text(
                   subtitle!,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textMutedLight,
-                  ),
+                  style: Theme.of(context).textTheme.bodySmall,
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,

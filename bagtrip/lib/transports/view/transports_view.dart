@@ -3,7 +3,6 @@ import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/transports/bloc/transport_bloc.dart';
@@ -84,11 +83,11 @@ class TransportsView extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
                       child: Text(
                         l10n.mainFlightsSection,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: FontFamily.b612,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: ColorName.primaryTrueDark,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),
@@ -110,11 +109,11 @@ class TransportsView extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
                       child: Text(
                         l10n.internalFlightsSection,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: FontFamily.b612,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: ColorName.primaryTrueDark,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),

@@ -171,7 +171,7 @@ class BudgetView extends StatelessWidget {
                 label: Text(
                   '${entry.key}: ${entry.value.toStringAsFixed(2)} \u20ac',
                 ),
-                backgroundColor: _categoryColor(entry.key),
+                backgroundColor: _categoryColor(context, entry.key),
               );
             }).toList(),
           ),
@@ -233,20 +233,21 @@ class BudgetView extends StatelessWidget {
     );
   }
 
-  Color _categoryColor(String category) {
+  Color _categoryColor(BuildContext context, String category) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     switch (category.toUpperCase()) {
       case 'FLIGHT':
-        return Colors.blue.shade100;
+        return isDark ? Colors.blue.shade800 : Colors.blue.shade100;
       case 'ACCOMMODATION':
-        return Colors.purple.shade100;
+        return isDark ? Colors.purple.shade800 : Colors.purple.shade100;
       case 'FOOD':
-        return Colors.orange.shade100;
+        return isDark ? Colors.orange.shade800 : Colors.orange.shade100;
       case 'ACTIVITY':
-        return Colors.teal.shade100;
+        return isDark ? Colors.teal.shade800 : Colors.teal.shade100;
       case 'TRANSPORT':
-        return Colors.indigo.shade100;
+        return isDark ? Colors.indigo.shade800 : Colors.indigo.shade100;
       default:
-        return Colors.grey.shade200;
+        return isDark ? Colors.grey.shade800 : Colors.grey.shade200;
     }
   }
 
@@ -256,10 +257,10 @@ class BudgetView extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      builder: (sheetCtx) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(sheetCtx).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -270,7 +271,9 @@ class BudgetView extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.3),
+                  color: Theme.of(
+                    sheetCtx,
+                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),

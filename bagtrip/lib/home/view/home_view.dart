@@ -2,7 +2,6 @@ import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/components/paginated_list.dart';
-import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -21,7 +20,6 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: PersonalizationColors.gradientStart,
       body: SafeArea(
         child: BlocBuilder<HomeBloc, HomeState>(
           builder: (context, homeState) {
@@ -113,11 +111,11 @@ class _NewUserHome extends StatelessWidget {
                   name.isNotEmpty
                       ? l10n.homeGreeting(name)
                       : l10n.homeWelcomeTitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFamily.b612,
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
-                    color: ColorName.primaryTrueDark,
+                    color: Theme.of(context).colorScheme.onSurface,
                     letterSpacing: 0.3,
                   ),
                   textAlign: TextAlign.center,
@@ -127,10 +125,10 @@ class _NewUserHome extends StatelessWidget {
                 // Subtitle
                 Text(
                   l10n.homeWelcomeSubtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFamily.b612,
                     fontSize: 16,
-                    color: ColorName.textMutedLight,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     height: 1.5,
                   ),
                   textAlign: TextAlign.center,
@@ -235,11 +233,11 @@ class _ReturningUserHome extends StatelessWidget {
               name.isNotEmpty
                   ? l10n.homeGreeting(name)
                   : l10n.planifierGreeting,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: FontFamily.b612,
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
-                color: ColorName.primaryTrueDark,
+                color: Theme.of(context).colorScheme.onSurface,
                 letterSpacing: 0.5,
               ),
             ),
@@ -284,11 +282,11 @@ class _ReturningUserHome extends StatelessWidget {
             ),
             child: Text(
               l10n.tripsMyTrips.toUpperCase(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: FontFamily.b612,
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: ColorName.primaryTrueDark,
+                color: Theme.of(context).colorScheme.onSurface,
                 letterSpacing: 0.5,
               ),
             ),
@@ -418,6 +416,7 @@ class _PlanTripCta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -427,9 +426,9 @@ class _PlanTripCta extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           decoration: BoxDecoration(
-            color: ColorName.surface,
+            color: theme.cardTheme.color ?? theme.colorScheme.surface,
             borderRadius: AppRadius.large16,
-            border: Border.all(color: ColorName.primarySoftLight),
+            border: Border.all(color: theme.colorScheme.outlineVariant),
             boxShadow: [
               BoxShadow(
                 color: ColorName.primary.withValues(alpha: 0.08),
@@ -463,29 +462,29 @@ class _PlanTripCta extends StatelessWidget {
                   children: [
                     Text(
                       l10n.planTripCta,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: FontFamily.b612,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: ColorName.primaryTrueDark,
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       l10n.planTripCtaSubtitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: FontFamily.b612,
                         fontSize: 13,
-                        color: ColorName.textMutedLight,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.arrow_forward_ios_rounded,
                 size: 16,
-                color: ColorName.hint,
+                color: theme.colorScheme.outline,
               ),
             ],
           ),
@@ -524,20 +523,23 @@ class _TripsSectionState extends State<_TripsSection>
   Widget build(BuildContext context) {
     final l10n = widget.l10n;
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Column(
       children: [
         // Segmented control
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 24),
           padding: const EdgeInsets.all(4),
-          decoration: const BoxDecoration(
-            color: ColorName.surfaceLight,
+          decoration: BoxDecoration(
+            color: isDark ? ColorName.surfaceDark : ColorName.surfaceLight,
             borderRadius: AppRadius.pill,
           ),
           child: TabBar(
             controller: _tabController,
             indicator: BoxDecoration(
-              color: ColorName.surface,
+              color: theme.colorScheme.surface,
               borderRadius: AppRadius.pill,
               boxShadow: [
                 BoxShadow(
@@ -549,8 +551,8 @@ class _TripsSectionState extends State<_TripsSection>
             ),
             indicatorSize: TabBarIndicatorSize.tab,
             dividerColor: Colors.transparent,
-            labelColor: ColorName.primaryTrueDark,
-            unselectedLabelColor: ColorName.hint,
+            labelColor: theme.colorScheme.onSurface,
+            unselectedLabelColor: theme.colorScheme.outline,
             labelStyle: const TextStyle(
               fontFamily: FontFamily.b612,
               fontSize: 12,

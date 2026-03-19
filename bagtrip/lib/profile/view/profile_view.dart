@@ -118,6 +118,7 @@ class ProfileView extends StatelessWidget {
     required String title,
     required VoidCallback onTap,
   }) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
     return ProfileSectionCard(
       onTap: onTap,
       child: Row(
@@ -127,16 +128,16 @@ class ProfileView extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: ColorName.primaryTrueDark,
+                color: onSurface,
               ),
             ),
           ),
           Icon(
             Icons.chevron_right,
-            color: ColorName.primaryTrueDark.withValues(alpha: 0.4),
+            color: onSurface.withValues(alpha: 0.4),
             size: 20,
           ),
         ],
