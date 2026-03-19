@@ -38,7 +38,7 @@ class TripCreationState {
     this.isLoadingAi = false,
     this.startDate,
     this.endDate,
-    this.nbTravelers = 2,
+    this.nbTravelers = 1,
     this.isCreating = false,
     this.error,
     this.createdTripId,

@@ -16,8 +16,10 @@ from src.models.budget_item import BudgetItem
 from src.models.flight_order import FlightOrder
 from src.models.manual_flight import ManualFlight
 from src.models.stripe_event import StripeEvent
+from src.models.traveler import TripTraveler
 from src.models.trip import Trip
 from src.models.trip_share import TripShare
+from src.models.user import User
 from src.utils.errors import AppError
 
 
@@ -63,6 +65,23 @@ class TripsService:
             origin=origin or TripOrigin.MANUAL,
         )
         db.add(trip)
+
+        # Auto-add creator as first traveler
+        user = db.query(User).filter(User.id == user_id).first()
+        first_name, last_name = "Voyageur", "Principal"
+        if user and user.full_name:
+            parts = user.full_name.strip().split(" ", 1)
+            first_name = parts[0]
+            last_name = parts[1] if len(parts) > 1 else first_name
+
+        owner_traveler = TripTraveler(
+            trip_id=trip.id,
+            traveler_type="ADULT",
+            first_name=first_name,
+            last_name=last_name,
+        )
+        db.add(owner_traveler)
+
         db.commit()
         db.refresh(trip)
         return trip

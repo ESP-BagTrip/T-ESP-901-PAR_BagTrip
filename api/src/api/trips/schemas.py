@@ -3,7 +3,7 @@
 from datetime import date, datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from src.enums import TripOrigin, TripStatus
 
@@ -22,6 +22,19 @@ class TripCreateRequest(BaseModel):
     coverImageUrl: str | None = None
     budgetTotal: float | None = None
     origin: TripOrigin | None = None
+
+    @model_validator(mode="after")
+    def validate_trip(self) -> "TripCreateRequest":
+        # Destination requise
+        if not self.destinationName and not self.destinationIata:
+            raise ValueError("At least destinationName or destinationIata is required")
+        # Ordre des dates
+        if self.startDate and self.endDate and self.startDate > self.endDate:
+            raise ValueError("startDate must be before or equal to endDate")
+        # Date future
+        if self.startDate and self.startDate < date.today():
+            raise ValueError("startDate must be today or in the future")
+        return self
 
 
 class TripUpdateRequest(BaseModel):

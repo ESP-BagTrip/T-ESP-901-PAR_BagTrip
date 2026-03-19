@@ -24,18 +24,20 @@ class ActivityCard extends StatelessWidget {
 
   IconData _categoryIcon(ActivityCategory category) {
     switch (category) {
-      case ActivityCategory.visit:
-        return Icons.museum;
-      case ActivityCategory.restaurant:
-        return Icons.restaurant;
-      case ActivityCategory.transport:
-        return Icons.directions_car;
-      case ActivityCategory.leisure:
-        return Icons.sports_tennis;
       case ActivityCategory.culture:
-        return Icons.theater_comedy;
+        return Icons.museum;
       case ActivityCategory.nature:
         return Icons.park;
+      case ActivityCategory.food:
+        return Icons.restaurant;
+      case ActivityCategory.sport:
+        return Icons.fitness_center;
+      case ActivityCategory.shopping:
+        return Icons.shopping_bag;
+      case ActivityCategory.nightlife:
+        return Icons.nightlife;
+      case ActivityCategory.relaxation:
+        return Icons.spa;
       case ActivityCategory.other:
         return Icons.event;
     }

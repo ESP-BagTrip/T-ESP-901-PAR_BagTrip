@@ -58,12 +58,13 @@ Map<String, dynamic> _$ActivityToJson(_Activity instance) => <String, dynamic>{
 };
 
 const _$ActivityCategoryEnumMap = {
-  ActivityCategory.visit: 'VISIT',
-  ActivityCategory.restaurant: 'RESTAURANT',
-  ActivityCategory.transport: 'TRANSPORT',
-  ActivityCategory.leisure: 'LEISURE',
   ActivityCategory.culture: 'CULTURE',
   ActivityCategory.nature: 'NATURE',
+  ActivityCategory.food: 'FOOD',
+  ActivityCategory.sport: 'SPORT',
+  ActivityCategory.shopping: 'SHOPPING',
+  ActivityCategory.nightlife: 'NIGHTLIFE',
+  ActivityCategory.relaxation: 'RELAXATION',
   ActivityCategory.other: 'OTHER',
 };
 

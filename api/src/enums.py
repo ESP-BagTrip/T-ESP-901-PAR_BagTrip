@@ -16,10 +16,13 @@ class TripOrigin(StrEnum):
 
 
 class ActivityCategory(StrEnum):
-    VISIT = "VISIT"
-    RESTAURANT = "RESTAURANT"
-    TRANSPORT = "TRANSPORT"
-    LEISURE = "LEISURE"
+    CULTURE = "CULTURE"
+    NATURE = "NATURE"
+    FOOD = "FOOD"
+    SPORT = "SPORT"
+    SHOPPING = "SHOPPING"
+    NIGHTLIFE = "NIGHTLIFE"
+    RELAXATION = "RELAXATION"
     OTHER = "OTHER"
 
 
@@ -33,10 +36,12 @@ class BudgetCategory(StrEnum):
 
 
 class BaggageCategory(StrEnum):
-    CLOTHES = "CLOTHES"
-    ELECTRONICS = "ELECTRONICS"
     DOCUMENTS = "DOCUMENTS"
-    HYGIENE = "HYGIENE"
+    CLOTHING = "CLOTHING"
+    ELECTRONICS = "ELECTRONICS"
+    TOILETRIES = "TOILETRIES"
+    HEALTH = "HEALTH"
+    ACCESSORIES = "ACCESSORIES"
     OTHER = "OTHER"
 
 

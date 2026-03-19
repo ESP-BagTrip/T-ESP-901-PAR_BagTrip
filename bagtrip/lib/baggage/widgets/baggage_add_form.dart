@@ -18,17 +18,17 @@ class _BaggageAddFormState extends State<BaggageAddForm> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   int _quantity = 1;
-  String _category = 'Autre';
+  String _category = 'OTHER';
 
-  static const _categories = [
-    'Vetements',
-    'Electronique',
-    'Toilette',
-    'Documents',
-    'Sante',
-    'Accessoires',
-    'Autre',
-  ];
+  static const _categoryMap = {
+    'CLOTHING': 'Vêtements',
+    'ELECTRONICS': 'Électronique',
+    'TOILETRIES': 'Toilette',
+    'DOCUMENTS': 'Documents',
+    'HEALTH': 'Santé',
+    'ACCESSORIES': 'Accessoires',
+    'OTHER': 'Autre',
+  };
 
   @override
   void initState() {
@@ -163,10 +163,13 @@ class _BaggageAddFormState extends State<BaggageAddForm> {
                   labelText: l10n.baggageCategoryLabel,
                   border: const OutlineInputBorder(),
                 ),
-                items: _categories
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                items: _categoryMap.entries
+                    .map(
+                      (e) =>
+                          DropdownMenuItem(value: e.key, child: Text(e.value)),
+                    )
                     .toList(),
-                onChanged: (v) => setState(() => _category = v ?? 'Autre'),
+                onChanged: (v) => setState(() => _category = v ?? 'OTHER'),
               ),
               const SizedBox(height: AppSpacing.space24),
 

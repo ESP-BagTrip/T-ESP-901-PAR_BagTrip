@@ -12,10 +12,13 @@ void main() {
         'category': category,
       });
 
-      expect(fromCategory('VISIT').category, ActivityCategory.visit);
-      expect(fromCategory('RESTAURANT').category, ActivityCategory.restaurant);
-      expect(fromCategory('TRANSPORT').category, ActivityCategory.transport);
-      expect(fromCategory('LEISURE').category, ActivityCategory.leisure);
+      expect(fromCategory('CULTURE').category, ActivityCategory.culture);
+      expect(fromCategory('NATURE').category, ActivityCategory.nature);
+      expect(fromCategory('FOOD').category, ActivityCategory.food);
+      expect(fromCategory('SPORT').category, ActivityCategory.sport);
+      expect(fromCategory('SHOPPING').category, ActivityCategory.shopping);
+      expect(fromCategory('NIGHTLIFE').category, ActivityCategory.nightlife);
+      expect(fromCategory('RELAXATION').category, ActivityCategory.relaxation);
       expect(fromCategory('OTHER').category, ActivityCategory.other);
     });
 
@@ -42,7 +45,7 @@ void main() {
           'start_time': '09:00',
           'end_time': '12:00',
           'location': 'Champ de Mars, Paris',
-          'category': 'VISIT',
+          'category': 'CULTURE',
           'estimated_cost': 25.50,
           'is_booked': true,
           'created_at': '2024-01-15T10:30:00.000',
@@ -59,7 +62,7 @@ void main() {
         expect(activity.startTime, '09:00');
         expect(activity.endTime, '12:00');
         expect(activity.location, 'Champ de Mars, Paris');
-        expect(activity.category, ActivityCategory.visit);
+        expect(activity.category, ActivityCategory.culture);
         expect(activity.estimatedCost, 25.50);
         expect(activity.isBooked, true);
         expect(activity.createdAt, DateTime.parse('2024-01-15T10:30:00.000'));
@@ -103,7 +106,7 @@ void main() {
           startTime: '10:00',
           endTime: '13:00',
           location: 'Louvre, Paris',
-          category: ActivityCategory.visit,
+          category: ActivityCategory.culture,
           estimatedCost: 17.0,
           isBooked: true,
           createdAt: DateTime.parse('2024-01-01T00:00:00.000'),
@@ -122,11 +125,11 @@ void main() {
           tripId: 't1',
           title: 'Lunch',
           date: DateTime.parse('2024-06-01T12:00:00.000'),
-          category: ActivityCategory.restaurant,
+          category: ActivityCategory.food,
         );
 
         final json = activity.toJson();
-        expect(json['category'], 'RESTAURANT');
+        expect(json['category'], 'FOOD');
       });
 
       test('serializes date as ISO 8601 string', () {
@@ -186,13 +189,13 @@ void main() {
         );
         final updated = activity.copyWith(
           title: 'New Title',
-          category: ActivityCategory.leisure,
+          category: ActivityCategory.relaxation,
           isBooked: true,
         );
 
         expect(updated.id, 'a1');
         expect(updated.title, 'New Title');
-        expect(updated.category, ActivityCategory.leisure);
+        expect(updated.category, ActivityCategory.relaxation);
         expect(updated.isBooked, true);
       });
 

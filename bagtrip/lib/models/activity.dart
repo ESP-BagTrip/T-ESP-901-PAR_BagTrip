@@ -5,18 +5,20 @@ part 'activity.g.dart';
 
 @JsonEnum(alwaysCreate: true)
 enum ActivityCategory {
-  @JsonValue('VISIT')
-  visit,
-  @JsonValue('RESTAURANT')
-  restaurant,
-  @JsonValue('TRANSPORT')
-  transport,
-  @JsonValue('LEISURE')
-  leisure,
   @JsonValue('CULTURE')
   culture,
   @JsonValue('NATURE')
   nature,
+  @JsonValue('FOOD')
+  food,
+  @JsonValue('SPORT')
+  sport,
+  @JsonValue('SHOPPING')
+  shopping,
+  @JsonValue('NIGHTLIFE')
+  nightlife,
+  @JsonValue('RELAXATION')
+  relaxation,
   @JsonValue('OTHER')
   other,
 }

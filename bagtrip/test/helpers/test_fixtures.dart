@@ -107,7 +107,7 @@ Activity makeActivity({
   String title = 'Visit Eiffel Tower',
   DateTime? date,
   String? startTime = '09:00',
-  ActivityCategory category = ActivityCategory.visit,
+  ActivityCategory category = ActivityCategory.culture,
 }) {
   return Activity(
     id: id,

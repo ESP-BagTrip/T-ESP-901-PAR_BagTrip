@@ -90,7 +90,12 @@ def test_full_flow(auth_token: str, db: Session, test_user: User):
     trip_response = client.post(
         "/v1/trips",
         headers=headers,
-        json={"title": "Voyage à Paris"},
+        json={
+            "title": "Voyage à Paris",
+            "destinationName": "Paris",
+            "startDate": "2099-06-01",
+            "endDate": "2099-06-10",
+        },
     )
     assert trip_response.status_code == 200
     trip_id = trip_response.json()["trip"]["id"]
@@ -153,7 +158,12 @@ def test_context_version_mismatch(
     trip_response = client.post(
         "/v1/trips",
         headers=headers,
-        json={"title": "Test Trip"},
+        json={
+            "title": "Test Trip",
+            "destinationName": "Paris",
+            "startDate": "2099-06-01",
+            "endDate": "2099-06-10",
+        },
     )
     trip_id = trip_response.json()["trip"]["id"]
 
@@ -200,7 +210,12 @@ def test_rate_limiting(auth_token: str, db: Session, test_user: User):
     trip_response = client.post(
         "/v1/trips",
         headers=headers,
-        json={"title": "Test Trip"},
+        json={
+            "title": "Test Trip",
+            "destinationName": "Paris",
+            "startDate": "2099-06-01",
+            "endDate": "2099-06-10",
+        },
     )
     trip_id = trip_response.json()["trip"]["id"]
 
@@ -241,7 +256,12 @@ def test_rbac_unauthorized_access(
     trip_response = client.post(
         "/v1/trips",
         headers=headers1,
-        json={"title": "User1 Trip"},
+        json={
+            "title": "User1 Trip",
+            "destinationName": "Paris",
+            "startDate": "2099-06-01",
+            "endDate": "2099-06-10",
+        },
     )
     trip_id = trip_response.json()["trip"]["id"]
 
