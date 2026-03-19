@@ -829,10 +829,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get skipThisStepLabel => 'Skip this step';
 
   @override
-  String get recapTitle => 'Summary';
+  String get recapTitle => 'Plan your trip';
 
   @override
-  String get recapFinalStepLabel => 'FINAL STEP';
+  String get recapFinalStepLabel => 'AI PLANNING';
 
   @override
   String get recapDateChoose => 'Choose';

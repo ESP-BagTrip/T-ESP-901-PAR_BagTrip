@@ -841,10 +841,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get skipThisStepLabel => 'Passer cette étape';
 
   @override
-  String get recapTitle => 'Récapitulatif';
+  String get recapTitle => 'Planifiez votre voyage';
 
   @override
-  String get recapFinalStepLabel => 'ÉTAPE FINALE';
+  String get recapFinalStepLabel => 'PLANIFICATION IA';
 
   @override
   String get recapDateChoose => 'Choisir';

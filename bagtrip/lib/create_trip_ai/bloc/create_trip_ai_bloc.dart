@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
-import 'package:bagtrip/create_trip_ai/models/ai_trip_proposal.dart';
 import 'package:bagtrip/create_trip_ai/models/trip_summary.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/ai_repository.dart';
@@ -27,7 +26,6 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
     on<CreateTripAiSetDepartureDate>(_onSetDepartureDate);
     on<CreateTripAiSetReturnDate>(_onSetReturnDate);
     on<CreateTripAiLaunchSearch>(_onLaunchSearch);
-    on<CreateTripAiSelectProposal>(_onSelectProposal);
     on<CreateTripAiRegenerate>(_onRegenerate);
     on<CreateTripAiAcceptSuggestion>(_onAcceptSuggestion);
   }
@@ -43,9 +41,6 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
   String? _lastConstraints;
   DateTime? _lastDepartureDate;
   DateTime? _lastReturnDate;
-
-  // Store the selected proposal (with activities) for save
-  AiTripProposal? _selectedProposal;
 
   // Store the trip plan from streaming for accept
   Map<String, dynamic>? _lastTripPlan;
@@ -266,47 +261,11 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
     }
   }
 
-  void _onSelectProposal(
-    CreateTripAiSelectProposal event,
-    Emitter<CreateTripAiState> emit,
-  ) {
-    final p = event.proposal;
-    _selectedProposal = p;
-    // Map the proposal (with activities) to a TripSummary
-    final activities = p.activities;
-    emit(
-      CreateTripAiSummaryLoaded(
-        TripSummary(
-          destination: p.destination,
-          destinationCountry: p.destinationCountry,
-          durationDays: p.durationDays,
-          budgetEur: p.priceEur,
-          highlights: activities
-              .take(4)
-              .map((a) => (a['title'] ?? '') as String)
-              .toList(),
-          accommodation: 'À déterminer',
-          dayByDayProgram: activities
-              .take(p.durationDays)
-              .map((a) => (a['title'] ?? '') as String)
-              .toList(),
-          essentialItems: const [
-            'Passeport',
-            'Adaptateur de voyage',
-            'Crème solaire',
-            'Trousse de premiers secours',
-          ],
-        ),
-      ),
-    );
-  }
-
   Future<void> _onRegenerate(
     CreateTripAiRegenerate event,
     Emitter<CreateTripAiState> emit,
   ) async {
     _lastTripPlan = null;
-    _selectedProposal = null;
     add(CreateTripAiLaunchSearch());
   }
 
@@ -316,13 +275,8 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
   ) async {
     emit(CreateTripAiSearchLoading());
 
-    // Build suggestion from trip plan or selected proposal
-    Map<String, dynamic> suggestion;
-    if (_lastTripPlan != null) {
-      suggestion = _tripPlanToSuggestion(_lastTripPlan!);
-    } else if (_selectedProposal != null) {
-      suggestion = _selectedProposal!.toJson();
-    } else {
+    // Build suggestion from trip plan
+    if (_lastTripPlan == null) {
       emit(
         CreateTripAiError(
           const UnknownError('Aucune proposition sélectionnée.'),
@@ -330,6 +284,7 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
       );
       return;
     }
+    final suggestion = _tripPlanToSuggestion(_lastTripPlan!);
 
     String? startDateStr;
     String? endDateStr;

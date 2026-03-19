@@ -1,14 +1,9 @@
-import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/navigation/route_definitions.dart';
-import 'package:bagtrip/service/personalization_storage.dart';
-import 'package:bagtrip/config/service_locator.dart';
-import 'package:bagtrip/repositories/auth_repository.dart';
+import 'package:bagtrip/pages/create_trip_ai_flow_page.dart';
 import 'package:bagtrip/trip_creation/bloc/trip_creation_bloc.dart';
-import 'package:bagtrip/trip_creation/widgets/ai_suggestion_card.dart';
 import 'package:bagtrip/trip_creation/widgets/destination_search_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -65,44 +60,17 @@ class StepDestinationView extends StatelessWidget {
 
             const SizedBox(height: AppSpacing.space24),
 
-            // "Inspire-moi" button
+            // "Inspire-moi" — navigate to AI planning flow
             _InspireMeButton(
-              isLoading: state.isLoadingAi,
-              onTap: () async {
-                final userResult = await getIt<AuthRepository>()
-                    .getCurrentUser();
-                final user = userResult.dataOrNull;
-                final userId = user?.id ?? '';
-                final hasSeen =
-                    userId.isEmpty ||
-                    await getIt<PersonalizationStorage>()
-                        .hasSeenPersonalizationPrompt(userId);
-                if (!context.mounted) return;
-                if (hasSeen) {
-                  context.read<TripCreationBloc>().add(LaunchInspireMe());
-                } else {
-                  const PersonalizationRoute(from: 'tripCreation').go(context);
-                }
+              isLoading: false,
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const CreateTripAiFlowPage(),
+                  ),
+                );
               },
             ),
-
-            // AI suggestions
-            if (state.aiSuggestions != null &&
-                state.aiSuggestions!.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.space16),
-              ...state.aiSuggestions!.map(
-                (proposal) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: AiSuggestionCard(
-                    proposal: proposal,
-                    isSelected: state.selectedAiProposal?.id == proposal.id,
-                    onTap: () => context.read<TripCreationBloc>().add(
-                      SelectAiSuggestion(proposal),
-                    ),
-                  ),
-                ),
-              ),
-            ],
 
             const SizedBox(height: 32),
 

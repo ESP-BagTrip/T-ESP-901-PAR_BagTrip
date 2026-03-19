@@ -28,37 +28,8 @@ class AiRepositoryImpl implements AiRepository {
     String? season,
     String? constraints,
   }) async {
-    try {
-      final response = await _apiClient.post(
-        '/ai/inspire',
-        data: {
-          if (travelTypes != null) 'travelTypes': travelTypes,
-          if (budgetRange != null) 'budgetRange': budgetRange,
-          if (durationDays != null) 'durationDays': durationDays,
-          if (companions != null) 'companions': companions,
-          if (season != null) 'season': season,
-          if (constraints != null) 'constraints': constraints,
-        },
-      );
-      if (response.statusCode == 200) {
-        final data = response.data;
-        if (data is Map && data['suggestions'] is List) {
-          return Success(
-            (data['suggestions'] as List)
-                .map((s) => Map<String, dynamic>.from(s))
-                .toList(),
-          );
-        }
-        return const Success([]);
-      }
-      return loggedFailure(
-        UnknownError('get inspiration failed: ${response.statusCode}'),
-      );
-    } on DioException catch (e) {
-      return loggedFailure(ApiClient.mapDioError(e));
-    } catch (e) {
-      return loggedFailure(UnknownError(e.toString(), originalError: e));
-    }
+    // Legacy endpoint removed — AI planning now uses planTripStream().
+    return const Success([]);
   }
 
   @override
@@ -69,7 +40,7 @@ class AiRepositoryImpl implements AiRepository {
   }) async {
     try {
       final response = await _apiClient.post(
-        '/ai/inspire/accept',
+        '/ai/plan-trip/accept',
         data: {
           'suggestion': suggestion,
           if (startDate != null) 'startDate': startDate,

@@ -3,17 +3,24 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
+from datetime import date, timedelta
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from src.api.ai.plan_trip_schemas import PlanTripRequest
+from src.api.ai.plan_trip_schemas import AcceptPlanRequest, PlanTripRequest
+from src.api.auth.middleware import get_current_user
 from src.api.auth.plan_guard import require_ai_quota
 from src.config.database import get_db
+from src.models.activity import Activity
+from src.models.baggage_item import BaggageItem
 from src.models.user import User
 from src.services.plan_service import PlanService
+from src.services.trips_service import TripsService
+from src.utils.errors import AppError, create_http_exception
 from src.utils.logger import logger
 
 router = APIRouter(prefix="/v1/ai", tags=["AI Trip Planning"])
@@ -142,3 +149,94 @@ async def plan_trip_stream(
             "X-Accel-Buffering": "no",
         },
     )
+
+
+# Default baggage items for AI-generated trips
+_DEFAULT_BAGGAGE = [
+    {"name": "Passeport", "category": "DOCUMENTS"},
+    {"name": "Adaptateur de voyage", "category": "ELECTRONICS"},
+    {"name": "Crème solaire", "category": "TOILETRIES"},
+    {"name": "Trousse de premiers secours", "category": "HEALTH"},
+    {"name": "Chargeur de téléphone", "category": "ELECTRONICS"},
+    {"name": "Vêtements de rechange", "category": "CLOTHING"},
+]
+
+
+@router.post("/plan-trip/accept")
+async def accept_plan(
+    request: AcceptPlanRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Create a DRAFT trip from the multi-agent plan."""
+    try:
+        suggestion = request.suggestion
+
+        trip = TripsService.create_trip(
+            db=db,
+            user_id=current_user.id,
+            title=f"Voyage à {suggestion.get('destination', 'Inconnu')}",
+            origin_iata=None,
+            destination_iata=None,
+            destination_name=suggestion.get("destination"),
+            description=suggestion.get("description"),
+            budget_total=suggestion.get("budgetEur"),
+            start_date=request.startDate,
+            end_date=request.endDate,
+            origin="AI",
+        )
+
+        # Create activities from suggestion
+        activities_data = suggestion.get("activities", [])
+        if activities_data:
+            trip_start = None
+            if request.startDate:
+                with contextlib.suppress(ValueError):
+                    trip_start = date.fromisoformat(request.startDate)
+
+            duration_days = suggestion.get("durationDays", len(activities_data)) or len(activities_data)
+
+            for i, act in enumerate(activities_data):
+                day_offset = i % max(duration_days, 1)
+                activity_date = (
+                    trip_start + timedelta(days=day_offset)
+                    if trip_start
+                    else date.today() + timedelta(days=day_offset)
+                )
+
+                activity = Activity(
+                    trip_id=trip.id,
+                    title=act.get("title", f"Activité {i + 1}"),
+                    description=act.get("description", ""),
+                    date=activity_date,
+                    category=act.get("category", "OTHER"),
+                    estimated_cost=act.get("estimatedCost"),
+                    validation_status="SUGGESTED",
+                )
+                db.add(activity)
+
+        # Create default baggage items
+        for bag in _DEFAULT_BAGGAGE:
+            item = BaggageItem(
+                trip_id=trip.id,
+                name=bag["name"],
+                category=bag["category"],
+            )
+            db.add(item)
+
+        db.commit()
+        db.refresh(trip)
+
+        return {
+            "id": str(trip.id),
+            "title": trip.title,
+            "status": trip.status,
+            "destinationName": trip.destination_name,
+            "description": trip.description,
+            "budgetTotal": trip.budget_total,
+            "origin": trip.origin,
+            "startDate": str(trip.start_date) if trip.start_date else None,
+            "endDate": str(trip.end_date) if trip.end_date else None,
+        }
+    except AppError as e:
+        raise create_http_exception(e) from e

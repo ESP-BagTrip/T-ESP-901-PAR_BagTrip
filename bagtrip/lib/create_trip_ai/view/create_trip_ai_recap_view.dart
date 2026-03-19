@@ -10,7 +10,6 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
-import 'package:go_router/go_router.dart';
 
 const Color _kRecapTravelTypesTint = Color(0xFFE8F5E9);
 const Color _kRecapStyleTint = Color(0xFFE3F2FD);
@@ -50,13 +49,7 @@ class CreateTripAiRecapView extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.chevron_left),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              const HomeRoute().go(context);
-            }
-          },
+          onPressed: () => const HomeRoute().go(context),
         ),
         title: const SizedBox.shrink(),
         centerTitle: true,
@@ -89,7 +82,11 @@ class CreateTripAiRecapView extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.diamond, size: 14, color: ColorName.secondary),
+            const Icon(
+              Icons.auto_awesome,
+              size: 14,
+              color: ColorName.secondary,
+            ),
             const SizedBox(width: 6),
             Text(
               l10n.recapFinalStepLabel,

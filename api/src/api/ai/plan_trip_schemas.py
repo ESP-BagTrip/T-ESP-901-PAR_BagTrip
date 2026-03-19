@@ -17,3 +17,11 @@ class PlanTripRequest(BaseModel):
     originCity: str | None = None
     travelStyle: str | None = None
     nbTravelers: int | None = 1
+
+
+class AcceptPlanRequest(BaseModel):
+    """Request body for POST /v1/ai/plan-trip/accept."""
+
+    suggestion: dict
+    startDate: str | None = None
+    endDate: str | None = None

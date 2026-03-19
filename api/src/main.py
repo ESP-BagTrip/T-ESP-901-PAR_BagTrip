@@ -151,29 +151,9 @@ app.include_router(profile_router)  # Préfixé avec /v1/profile
 app.include_router(booking_router)  # DÉPRÉCIÉ - utiliser /v1/trips/{tripId}/booking-intents
 
 # Routes IA
-from src.api.ai.activity_suggest_routes import router as ai_activity_suggest_router
-
-app.include_router(ai_activity_suggest_router)
-
-from src.api.ai.baggage_suggest_routes import router as ai_baggage_suggest_router
-
-app.include_router(ai_baggage_suggest_router)
-
 from src.api.ai.post_trip_routes import router as ai_post_trip_router
 
 app.include_router(ai_post_trip_router)
-
-from src.api.ai.inspire_routes import router as ai_inspire_router
-
-app.include_router(ai_inspire_router)
-
-from src.api.ai.accommodation_suggest_routes import router as ai_accommodation_suggest_router
-
-app.include_router(ai_accommodation_suggest_router)
-
-from src.api.ai.budget_estimate_routes import router as ai_budget_estimate_router
-
-app.include_router(ai_budget_estimate_router)
 
 from src.api.ai.plan_trip_routes import router as ai_plan_trip_router
 

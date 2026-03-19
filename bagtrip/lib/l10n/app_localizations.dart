@@ -1631,13 +1631,13 @@ abstract class AppLocalizations {
   /// No description provided for @recapTitle.
   ///
   /// In fr, this message translates to:
-  /// **'Récapitulatif'**
+  /// **'Planifiez votre voyage'**
   String get recapTitle;
 
   /// No description provided for @recapFinalStepLabel.
   ///
   /// In fr, this message translates to:
-  /// **'ÉTAPE FINALE'**
+  /// **'PLANIFICATION IA'**
   String get recapFinalStepLabel;
 
   /// No description provided for @recapDateChoose.

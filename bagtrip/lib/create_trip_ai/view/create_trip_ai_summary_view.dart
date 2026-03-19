@@ -7,7 +7,6 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 /// Category icon mapping for activity categories.
 IconData _categoryIcon(String category) {
@@ -229,7 +228,9 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
                       size: 24,
                     ),
                   ),
-                  onPressed: () => context.pop(),
+                  onPressed: () => context.read<CreateTripAiBloc>().add(
+                    CreateTripAiLoadRecap(),
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(

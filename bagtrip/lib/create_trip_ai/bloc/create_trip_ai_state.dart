@@ -47,11 +47,6 @@ final class CreateTripAiRecapLoaded extends CreateTripAiState {
   }
 }
 
-final class CreateTripAiResultsLoaded extends CreateTripAiState {
-  CreateTripAiResultsLoaded(this.proposals);
-  final List<AiTripProposal> proposals;
-}
-
 /// Progressive streaming state — accumulates data as SSE events arrive.
 final class CreateTripAiStreaming extends CreateTripAiState {
   CreateTripAiStreaming({

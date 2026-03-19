@@ -3,7 +3,6 @@ import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/create_trip_ai/bloc/create_trip_ai_bloc.dart';
 import 'package:bagtrip/create_trip_ai/view/create_trip_ai_recap_view.dart';
-import 'package:bagtrip/create_trip_ai/view/create_trip_ai_results_view.dart';
 import 'package:bagtrip/create_trip_ai/view/create_trip_ai_summary_view.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -13,7 +12,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 
 /// Single entry for the Create Trip AI flow. Provides the bloc and shows
-/// Recap, Results, or Summary based on state (no route push between steps).
+/// Recap, Streaming, or Summary based on state (no route push between steps).
 class CreateTripAiFlowPage extends StatelessWidget {
   const CreateTripAiFlowPage({super.key});
 
@@ -45,8 +44,8 @@ class CreateTripAiFlowPage extends StatelessWidget {
             if (state is CreateTripAiSearchLoading) {
               return const Scaffold(body: LoadingView());
             }
-            if (state is CreateTripAiResultsLoaded) {
-              return const CreateTripAiResultsView();
+            if (state is CreateTripAiStreaming) {
+              return const CreateTripAiSummaryView();
             }
             if (state is CreateTripAiSummaryLoaded ||
                 state is CreateTripAiTripCreated) {

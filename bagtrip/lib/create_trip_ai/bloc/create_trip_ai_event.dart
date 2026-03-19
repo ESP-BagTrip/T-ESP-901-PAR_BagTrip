@@ -17,11 +17,6 @@ final class CreateTripAiSetReturnDate extends CreateTripAiEvent {
 
 final class CreateTripAiLaunchSearch extends CreateTripAiEvent {}
 
-final class CreateTripAiSelectProposal extends CreateTripAiEvent {
-  CreateTripAiSelectProposal(this.proposal);
-  final AiTripProposal proposal;
-}
-
 final class CreateTripAiRegenerate extends CreateTripAiEvent {}
 
 final class CreateTripAiAcceptSuggestion extends CreateTripAiEvent {}
