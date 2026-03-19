@@ -1,0 +1,729 @@
+import 'dart:async';
+
+import 'package:bagtrip/config/service_locator.dart';
+import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/result.dart';
+import 'package:bagtrip/plan_trip/models/ai_destination.dart';
+import 'package:bagtrip/plan_trip/models/budget_preset.dart';
+import 'package:bagtrip/plan_trip/models/date_mode.dart';
+import 'package:bagtrip/plan_trip/models/duration_preset.dart';
+import 'package:bagtrip/plan_trip/models/location_result.dart';
+import 'package:bagtrip/plan_trip/models/step_status.dart';
+import 'package:bagtrip/plan_trip/models/trip_plan.dart';
+import 'package:bagtrip/repositories/ai_repository.dart';
+import 'package:bagtrip/repositories/auth_repository.dart';
+import 'package:bagtrip/repositories/trip_repository.dart';
+import 'package:bagtrip/service/location_service.dart';
+import 'package:bagtrip/service/personalization_storage.dart';
+import 'package:bloc/bloc.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'plan_trip_event.dart';
+part 'plan_trip_state.dart';
+part 'plan_trip_bloc.freezed.dart';
+
+class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
+  final LocationService _locationService;
+  final TripRepository _tripRepository;
+  final AiRepository _aiRepository;
+  final AuthRepository _authRepository;
+  final PersonalizationStorage _storage;
+
+  StreamSubscription<Map<String, dynamic>>? _sseSubscription;
+
+  PlanTripBloc({
+    LocationService? locationService,
+    TripRepository? tripRepository,
+    AiRepository? aiRepository,
+    AuthRepository? authRepository,
+    PersonalizationStorage? personalizationStorage,
+  }) : _locationService = locationService ?? getIt<LocationService>(),
+       _tripRepository = tripRepository ?? getIt<TripRepository>(),
+       _aiRepository = aiRepository ?? getIt<AiRepository>(),
+       _authRepository = authRepository ?? getIt<AuthRepository>(),
+       _storage = personalizationStorage ?? getIt<PersonalizationStorage>(),
+       super(const PlanTripState()) {
+    // Navigation
+    on<PlanTripNextStep>(_onNextStep);
+    on<PlanTripPreviousStep>(_onPreviousStep);
+    on<PlanTripGoToStep>(_onGoToStep);
+    // Step 0 — Dates
+    on<PlanTripSetDateMode>(_onSetDateMode);
+    on<PlanTripSetExactDates>(_onSetExactDates);
+    on<PlanTripSetMonthPreference>(_onSetMonthPreference);
+    on<PlanTripSetFlexibleDuration>(_onSetFlexibleDuration);
+    // Step 1 — Travelers + Budget
+    on<PlanTripSetTravelers>(_onSetTravelers);
+    on<PlanTripSetBudgetPreset>(_onSetBudgetPreset);
+    // Step 2 — Destination
+    on<PlanTripSearchDestination>(_onSearchDestination);
+    on<PlanTripSelectManualDestination>(_onSelectManualDestination);
+    on<PlanTripRequestAiSuggestions>(_onRequestAiSuggestions);
+    on<PlanTripSelectAiDestination>(_onSelectAiDestination);
+    // Step 3 — Proposals
+    on<PlanTripSwipeProposal>(_onSwipeProposal);
+    // Step 4 — Generation
+    on<PlanTripStartGeneration>(_onStartGeneration);
+    on<PlanTripRetryGeneration>(_onRetryGeneration);
+    // Step 5 — Review
+    on<PlanTripCreateTrip>(_onCreateTrip);
+    on<PlanTripBackToProposals>(_onBackToProposals);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Navigation
+  // ---------------------------------------------------------------------------
+
+  void _onNextStep(PlanTripNextStep event, Emitter<PlanTripState> emit) {
+    var next = state.currentStep + 1;
+
+    // Skip proposals step (3) for manual flow
+    if (state.isManualFlow && next == 3) next = 4;
+
+    if (next < state.totalSteps) {
+      emit(state.copyWith(currentStep: next, error: null));
+    }
+  }
+
+  void _onPreviousStep(
+    PlanTripPreviousStep event,
+    Emitter<PlanTripState> emit,
+  ) {
+    var prev = state.currentStep - 1;
+
+    // Skip proposals step (3) for manual flow going back
+    if (state.isManualFlow && prev == 3) prev = 2;
+
+    if (prev >= 0) {
+      emit(state.copyWith(currentStep: prev, error: null));
+    }
+  }
+
+  void _onGoToStep(PlanTripGoToStep event, Emitter<PlanTripState> emit) {
+    if (event.step >= 0 && event.step < state.totalSteps) {
+      emit(state.copyWith(currentStep: event.step, error: null));
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 0 — Dates
+  // ---------------------------------------------------------------------------
+
+  void _onSetDateMode(PlanTripSetDateMode event, Emitter<PlanTripState> emit) {
+    emit(state.copyWith(dateMode: event.mode));
+  }
+
+  void _onSetExactDates(
+    PlanTripSetExactDates event,
+    Emitter<PlanTripState> emit,
+  ) {
+    emit(state.copyWith(startDate: event.start, endDate: event.end));
+  }
+
+  void _onSetMonthPreference(
+    PlanTripSetMonthPreference event,
+    Emitter<PlanTripState> emit,
+  ) {
+    emit(
+      state.copyWith(preferredMonth: event.month, preferredYear: event.year),
+    );
+  }
+
+  void _onSetFlexibleDuration(
+    PlanTripSetFlexibleDuration event,
+    Emitter<PlanTripState> emit,
+  ) {
+    emit(state.copyWith(flexibleDuration: event.preset));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 1 — Travelers + Budget
+  // ---------------------------------------------------------------------------
+
+  void _onSetTravelers(
+    PlanTripSetTravelers event,
+    Emitter<PlanTripState> emit,
+  ) {
+    emit(state.copyWith(nbTravelers: event.count));
+  }
+
+  void _onSetBudgetPreset(
+    PlanTripSetBudgetPreset event,
+    Emitter<PlanTripState> emit,
+  ) {
+    emit(state.copyWith(budgetPreset: event.preset));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 2 — Destination
+  // ---------------------------------------------------------------------------
+
+  Future<void> _onSearchDestination(
+    PlanTripSearchDestination event,
+    Emitter<PlanTripState> emit,
+  ) async {
+    if (event.query.length < 2) {
+      emit(state.copyWith(searchResults: [], isSearching: false));
+      return;
+    }
+
+    emit(state.copyWith(isSearching: true, error: null));
+
+    final result = await _locationService.searchLocationsByKeyword(
+      event.query,
+      'CITY,AIRPORT',
+    );
+    if (isClosed) return;
+
+    switch (result) {
+      case Success(:final data):
+        final results = data.map((m) => LocationResult.fromJson(m)).toList();
+        emit(state.copyWith(isSearching: false, searchResults: results));
+      case Failure(:final error):
+        emit(state.copyWith(isSearching: false, error: error.message));
+    }
+  }
+
+  void _onSelectManualDestination(
+    PlanTripSelectManualDestination event,
+    Emitter<PlanTripState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        selectedManualDestination: event.location,
+        searchResults: [],
+        isManualFlow: true,
+        selectedAiDestination: null,
+      ),
+    );
+  }
+
+  Future<void> _onRequestAiSuggestions(
+    PlanTripRequestAiSuggestions event,
+    Emitter<PlanTripState> emit,
+  ) async {
+    emit(state.copyWith(isLoadingAiSuggestions: true, error: null));
+
+    try {
+      final userResult = await _authRepository.getCurrentUser();
+      if (isClosed) return;
+      final userId = userResult.dataOrNull?.id ?? '';
+
+      String? travelTypes;
+      String? budget;
+      String? companions;
+      String? constraints;
+
+      if (userId.isNotEmpty) {
+        travelTypes = await _storage.getTravelTypes(userId);
+        if (isClosed) return;
+        budget = await _storage.getBudget(userId);
+        if (isClosed) return;
+        companions = await _storage.getCompanions(userId);
+        if (isClosed) return;
+        constraints = await _storage.getConstraints(userId);
+        if (isClosed) return;
+
+        travelTypes = travelTypes.isEmpty ? null : travelTypes;
+        budget = budget.isEmpty ? null : budget;
+        companions = companions.isEmpty ? null : companions;
+        constraints = constraints.isEmpty ? null : constraints;
+      }
+
+      String? season;
+      if (state.startDate != null) {
+        final month = state.startDate!.month;
+        season = switch (month) {
+          >= 3 && <= 5 => 'printemps',
+          >= 6 && <= 8 => 'été',
+          >= 9 && <= 11 => 'automne',
+          _ => 'hiver',
+        };
+      } else if (state.preferredMonth != null) {
+        season = switch (state.preferredMonth!) {
+          >= 3 && <= 5 => 'printemps',
+          >= 6 && <= 8 => 'été',
+          >= 9 && <= 11 => 'automne',
+          _ => 'hiver',
+        };
+      }
+
+      final result = await _aiRepository.getInspiration(
+        travelTypes: travelTypes,
+        budgetRange: budget,
+        durationDays: state.tripDurationDays,
+        companions: companions,
+        season: season,
+        constraints: constraints,
+      );
+      if (isClosed) return;
+
+      switch (result) {
+        case Success(:final data):
+          final suggestions = data.map((m) {
+            return AiDestination(
+              city: m['destination'] as String? ?? '',
+              country: m['destinationCountry'] as String? ?? '',
+              iata: m['iata'] as String?,
+              matchReason: m['matchReason'] as String?,
+            );
+          }).toList();
+          emit(
+            state.copyWith(
+              isLoadingAiSuggestions: false,
+              aiSuggestions: suggestions,
+              isManualFlow: false,
+            ),
+          );
+        case Failure(:final error):
+          emit(
+            state.copyWith(isLoadingAiSuggestions: false, error: error.message),
+          );
+      }
+    } catch (e) {
+      if (isClosed) return;
+      emit(state.copyWith(isLoadingAiSuggestions: false, error: e.toString()));
+    }
+  }
+
+  void _onSelectAiDestination(
+    PlanTripSelectAiDestination event,
+    Emitter<PlanTripState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        selectedAiDestination: event.destination,
+        selectedManualDestination: null,
+        isManualFlow: false,
+        currentStep: 3,
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 3 — Proposals (swipe)
+  // ---------------------------------------------------------------------------
+
+  void _onSwipeProposal(
+    PlanTripSwipeProposal event,
+    Emitter<PlanTripState> emit,
+  ) {
+    // Select the AI destination at the swiped index and advance to generation
+    if (event.index >= 0 && event.index < state.aiSuggestions.length) {
+      final destination = state.aiSuggestions[event.index];
+      emit(state.copyWith(selectedAiDestination: destination, currentStep: 4));
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 4 — Generation (SSE streaming)
+  // ---------------------------------------------------------------------------
+
+  Future<void> _onStartGeneration(
+    PlanTripStartGeneration event,
+    Emitter<PlanTripState> emit,
+  ) async {
+    // Check AI quota
+    final userResult = await _authRepository.getCurrentUser();
+    if (isClosed) return;
+    final user = userResult.dataOrNull;
+    if (user != null &&
+        user.aiGenerationsRemaining != null &&
+        user.aiGenerationsRemaining! <= 0) {
+      emit(state.copyWith(generationError: 'AI generation quota exceeded'));
+      return;
+    }
+
+    // Initialize generation steps
+    final steps = <String, StepStatus>{
+      'destinations': StepStatus.pending,
+      'activities': StepStatus.pending,
+      'accommodations': StepStatus.pending,
+      'baggage': StepStatus.pending,
+      'budget': StepStatus.pending,
+    };
+
+    emit(
+      state.copyWith(
+        generationSteps: steps,
+        generationProgress: 0.0,
+        generationMessage: 'Préparation de votre voyage...',
+        generatedPlan: null,
+        generationError: null,
+      ),
+    );
+
+    // Build SSE params
+    final params = _buildSseParams();
+
+    // Start SSE stream
+    try {
+      await emit.forEach<Map<String, dynamic>>(
+        _aiRepository.planTripStream(
+          travelTypes: params['travelTypes'] as String?,
+          budgetRange: params['budgetRange'] as String?,
+          durationDays: params['durationDays'] as int?,
+          companions: params['companions'] as String?,
+          constraints: params['constraints'] as String?,
+          departureDate: params['departureDate'] as String?,
+          returnDate: params['returnDate'] as String?,
+        ),
+        onData: (sseEvent) => _handleSseEvent(sseEvent),
+      );
+    } catch (e) {
+      if (isClosed) return;
+      emit(state.copyWith(generationError: e.toString()));
+    }
+  }
+
+  PlanTripState _handleSseEvent(Map<String, dynamic> sseEvent) {
+    final eventType = sseEvent['event'] as String? ?? 'message';
+    final data = sseEvent['data'] as Map<String, dynamic>? ?? {};
+
+    switch (eventType) {
+      case 'progress':
+        return state.copyWith(
+          generationMessage:
+              data['message'] as String? ?? state.generationMessage,
+        );
+
+      case 'destinations':
+        final updatedSteps = Map<String, StepStatus>.from(state.generationSteps)
+          ..['destinations'] = StepStatus.completed
+          ..['activities'] = StepStatus.inProgress;
+        return state.copyWith(
+          generationSteps: updatedSteps,
+          generationProgress: 0.2,
+        );
+
+      case 'activities':
+        final updatedSteps = Map<String, StepStatus>.from(state.generationSteps)
+          ..['activities'] = StepStatus.completed
+          ..['accommodations'] = StepStatus.inProgress;
+        return state.copyWith(
+          generationSteps: updatedSteps,
+          generationProgress: 0.4,
+        );
+
+      case 'accommodations':
+        final updatedSteps = Map<String, StepStatus>.from(state.generationSteps)
+          ..['accommodations'] = StepStatus.completed
+          ..['baggage'] = StepStatus.inProgress;
+        return state.copyWith(
+          generationSteps: updatedSteps,
+          generationProgress: 0.6,
+        );
+
+      case 'baggage':
+        final updatedSteps = Map<String, StepStatus>.from(state.generationSteps)
+          ..['baggage'] = StepStatus.completed
+          ..['budget'] = StepStatus.inProgress;
+        return state.copyWith(
+          generationSteps: updatedSteps,
+          generationProgress: 0.8,
+        );
+
+      case 'budget':
+        final updatedSteps = Map<String, StepStatus>.from(state.generationSteps)
+          ..['budget'] = StepStatus.completed;
+        return state.copyWith(
+          generationSteps: updatedSteps,
+          generationProgress: 0.9,
+        );
+
+      case 'complete':
+        final tripPlanData = data['tripPlan'] as Map<String, dynamic>?;
+        if (tripPlanData != null) {
+          final plan = _tripPlanFromSseData(tripPlanData);
+          return state.copyWith(
+            generatedPlan: plan,
+            generationProgress: 1.0,
+            currentStep: 5,
+          );
+        }
+        return state;
+
+      case 'error':
+        return state.copyWith(
+          generationError: data['message'] as String? ?? 'Stream error',
+        );
+
+      case 'done':
+        if (state.generatedPlan == null) {
+          // Fallback: advance to review with empty plan
+          return state.copyWith(generationProgress: 1.0, currentStep: 5);
+        }
+        return state;
+
+      default:
+        return state;
+    }
+  }
+
+  Future<void> _onRetryGeneration(
+    PlanTripRetryGeneration event,
+    Emitter<PlanTripState> emit,
+  ) async {
+    await _sseSubscription?.cancel();
+    _sseSubscription = null;
+    add(const PlanTripEvent.startGeneration());
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 5 — Review / Create
+  // ---------------------------------------------------------------------------
+
+  Future<void> _onCreateTrip(
+    PlanTripCreateTrip event,
+    Emitter<PlanTripState> emit,
+  ) async {
+    emit(state.copyWith(isCreating: true, error: null));
+
+    if (state.isManualFlow) {
+      await _createManualTrip(emit);
+    } else {
+      await _createAiTrip(emit);
+    }
+  }
+
+  Future<void> _createManualTrip(Emitter<PlanTripState> emit) async {
+    final dest = state.selectedManualDestination;
+    final title = dest?.name ?? 'Mon voyage';
+
+    final result = await _tripRepository.createTrip(
+      title: title,
+      destinationName: dest?.name,
+      destinationIata: dest?.iataCode,
+      startDate: state.startDate,
+      endDate: state.endDate,
+      nbTravelers: state.nbTravelers,
+    );
+    if (isClosed) return;
+
+    switch (result) {
+      case Success(:final data):
+        emit(state.copyWith(isCreating: false, createdTripId: data.id));
+      case Failure(:final error):
+        emit(state.copyWith(isCreating: false, error: error.message));
+    }
+  }
+
+  Future<void> _createAiTrip(Emitter<PlanTripState> emit) async {
+    final plan = state.generatedPlan;
+    if (plan == null) {
+      emit(
+        state.copyWith(isCreating: false, error: 'Aucune proposition générée.'),
+      );
+      return;
+    }
+
+    final suggestion = _tripPlanToSuggestion(plan);
+
+    String? startDateStr;
+    String? endDateStr;
+    if (state.startDate != null) {
+      startDateStr = state.startDate!.toIso8601String().split('T')[0];
+    }
+    if (state.endDate != null) {
+      endDateStr = state.endDate!.toIso8601String().split('T')[0];
+    }
+
+    final result = await _aiRepository.acceptInspiration(
+      suggestion,
+      startDate: startDateStr,
+      endDate: endDateStr,
+    );
+    if (isClosed) return;
+
+    switch (result) {
+      case Success(:final data):
+        final tripId =
+            data['id']?.toString() ?? data['tripId']?.toString() ?? '';
+        emit(state.copyWith(isCreating: false, createdTripId: tripId));
+      case Failure(:final error):
+        if (error is QuotaExceededError) {
+          emit(
+            state.copyWith(
+              isCreating: false,
+              error: 'AI generation quota exceeded',
+            ),
+          );
+        } else {
+          emit(state.copyWith(isCreating: false, error: error.message));
+        }
+    }
+  }
+
+  void _onBackToProposals(
+    PlanTripBackToProposals event,
+    Emitter<PlanTripState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        currentStep: state.isManualFlow ? 2 : 3,
+        generatedPlan: null,
+        generationError: null,
+        generationSteps: {},
+        generationProgress: 0.0,
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
+  /// Collect wizard data into SSE request params.
+  Map<String, dynamic> _buildSseParams() {
+    String? departureDate;
+    String? returnDate;
+
+    if (state.startDate != null) {
+      departureDate = state.startDate!.toIso8601String().split('T')[0];
+    }
+    if (state.endDate != null) {
+      returnDate = state.endDate!.toIso8601String().split('T')[0];
+    }
+
+    final budgetRange = state.budgetPreset?.name;
+
+    return {
+      'durationDays': state.tripDurationDays,
+      'departureDate': departureDate,
+      'returnDate': returnDate,
+      'budgetRange': budgetRange,
+    };
+  }
+
+  /// Convert SSE 'complete' tripPlan data to [TripPlan].
+  ///
+  /// Ported from [CreateTripAiBloc._tripPlanToSummary], adapted to produce
+  /// [TripPlan] instead of [TripSummary].
+  TripPlan _tripPlanFromSseData(Map<String, dynamic> tripPlan) {
+    final dest = tripPlan['destination'] as Map<String, dynamic>? ?? {};
+    final weather = tripPlan['weather'] as Map<String, dynamic>? ?? {};
+    final activities =
+        (tripPlan['activities'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final accommodations =
+        (tripPlan['accommodations'] as List?)?.cast<Map<String, dynamic>>() ??
+        [];
+    final baggage =
+        (tripPlan['baggage'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final budget = tripPlan['budget'] as Map<String, dynamic>? ?? {};
+
+    // Highlights from top activities
+    final highlights = activities
+        .take(4)
+        .map((a) => (a['title'] ?? '') as String)
+        .toList();
+
+    // Best accommodation
+    String accommodationName = 'À déterminer';
+    String accommodationSubtitle = '';
+    double accommodationPrice = 0;
+    String accommodationSource = 'estimated';
+    if (accommodations.isNotEmpty) {
+      final best = accommodations.first;
+      accommodationName = best['name'] as String? ?? 'Hôtel';
+      accommodationPrice =
+          (best['price_total'] as num?)?.toDouble() ??
+          (best['price_per_night'] as num?)?.toDouble() ??
+          0;
+      accommodationSource = best['source'] as String? ?? 'estimated';
+      final currency = best['currency'] as String? ?? 'EUR';
+      accommodationSubtitle =
+          '${dest['city'] ?? ''} · ${accommodationPrice.toStringAsFixed(0)} $currency';
+    }
+
+    // Flight info from budget
+    String flightRoute = '';
+    String flightDetails = '';
+    double flightPrice = 0;
+    String flightSource = 'estimated';
+    final flightBudget = budget['flights'] as Map<String, dynamic>?;
+    if (flightBudget != null) {
+      flightPrice = (flightBudget['amount'] as num?)?.toDouble() ?? 0;
+      flightSource = flightBudget['source'] as String? ?? 'estimated';
+      flightDetails = flightBudget['details'] as String? ?? '';
+      flightRoute = flightBudget['details'] as String? ?? '';
+    }
+
+    // Day-by-day from activities
+    final dayProgram = activities
+        .map((a) => (a['title'] ?? '') as String)
+        .toList();
+    final dayDescriptions = activities
+        .map((a) => (a['description'] ?? '') as String)
+        .toList();
+    final dayCategories = activities
+        .map((a) => (a['category'] ?? 'OTHER') as String)
+        .toList();
+
+    // Essential items from baggage
+    final essentialItems = baggage
+        .map((b) => (b['name'] ?? '') as String)
+        .toList();
+    final essentialReasons = baggage
+        .map((b) => (b['reason'] ?? '') as String)
+        .toList();
+
+    // Budget total
+    final totalMin = (budget['total_min'] as num?)?.toInt() ?? 0;
+    final totalMax = (budget['total_max'] as num?)?.toInt() ?? 0;
+    final budgetEur = totalMax > 0 ? totalMax : totalMin;
+
+    return TripPlan(
+      destinationCity: dest['city'] as String? ?? '',
+      destinationCountry: dest['country'] as String? ?? '',
+      destinationIata: dest['iata'] as String?,
+      durationDays: tripPlan['duration_days'] as int? ?? 7,
+      budgetEur: budgetEur,
+      highlights: highlights,
+      accommodationName: accommodationName,
+      accommodationSubtitle: accommodationSubtitle,
+      accommodationPrice: accommodationPrice,
+      accommodationSource: accommodationSource,
+      flightRoute: flightRoute,
+      flightDetails: flightDetails,
+      flightPrice: flightPrice,
+      flightSource: flightSource,
+      dayProgram: dayProgram,
+      dayDescriptions: dayDescriptions,
+      dayCategories: dayCategories,
+      essentialItems: essentialItems,
+      essentialReasons: essentialReasons,
+      budgetBreakdown: budget,
+      weatherData: weather,
+    );
+  }
+
+  /// Convert [TripPlan] to suggestion format for `/ai/plan-trip/accept`.
+  Map<String, dynamic> _tripPlanToSuggestion(TripPlan plan) {
+    return {
+      'destination': plan.destinationCity,
+      'destinationCountry': plan.destinationCountry,
+      'durationDays': plan.durationDays,
+      'budgetEur': plan.budgetEur,
+      'description':
+          'AI-planned trip to ${plan.destinationCity.isEmpty ? 'destination' : plan.destinationCity}',
+      'activities': List.generate(plan.dayProgram.length, (i) {
+        return {
+          'title': plan.dayProgram[i],
+          'description': i < plan.dayDescriptions.length
+              ? plan.dayDescriptions[i]
+              : '',
+          'category': i < plan.dayCategories.length
+              ? plan.dayCategories[i]
+              : 'OTHER',
+        };
+      }),
+      'matchReason': 'Planned with real-time data',
+    };
+  }
+
+  @override
+  Future<void> close() {
+    _sseSubscription?.cancel();
+    return super.close();
+  }
+}

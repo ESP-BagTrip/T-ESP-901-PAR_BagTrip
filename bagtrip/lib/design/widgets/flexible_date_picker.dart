@@ -4,12 +4,10 @@ import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
+import 'package:bagtrip/plan_trip/models/date_mode.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-
-/// Date selection mode for [FlexibleDatePicker].
-enum DateMode { exact, month, flexible }
 
 /// 3-mode date picker with segment control.
 ///
