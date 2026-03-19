@@ -75,16 +75,16 @@ class TripCreationBloc extends Bloc<TripCreationEvent, TripCreationState> {
       return;
     }
     emit(state.copyWith(isLoadingLocations: true, clearError: true));
-    try {
-      final results = await _locationService.searchLocationsByKeyword(
-        event.keyword,
-        'CITY,AIRPORT',
-      );
-      if (isClosed) return;
-      emit(state.copyWith(isLoadingLocations: false, locationResults: results));
-    } catch (e) {
-      if (isClosed) return;
-      emit(state.copyWith(isLoadingLocations: false, error: e.toString()));
+    final result = await _locationService.searchLocationsByKeyword(
+      event.keyword,
+      'CITY,AIRPORT',
+    );
+    if (isClosed) return;
+    switch (result) {
+      case Success(:final data):
+        emit(state.copyWith(isLoadingLocations: false, locationResults: data));
+      case Failure(:final error):
+        emit(state.copyWith(isLoadingLocations: false, error: error.message));
     }
   }
 

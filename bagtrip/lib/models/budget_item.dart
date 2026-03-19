@@ -42,15 +42,15 @@ abstract class BudgetItem with _$BudgetItem {
 @freezed
 abstract class BudgetSummary with _$BudgetSummary {
   const factory BudgetSummary({
-    @Default(0) double totalBudget,
-    @Default(0) double totalSpent,
+    @JsonKey(name: 'totalBudget') @Default(0) double totalBudget,
+    @JsonKey(name: 'totalSpent') @Default(0) double totalSpent,
     @Default(0) double remaining,
-    @Default({}) Map<String, double> byCategory,
-    @Default(0) double confirmedTotal,
-    @Default(0) double forecastedTotal,
-    double? percentConsumed,
-    String? alertLevel,
-    String? alertMessage,
+    @JsonKey(name: 'byCategory') @Default({}) Map<String, double> byCategory,
+    @JsonKey(name: 'confirmedTotal') @Default(0) double confirmedTotal,
+    @JsonKey(name: 'forecastedTotal') @Default(0) double forecastedTotal,
+    @JsonKey(name: 'percentConsumed') double? percentConsumed,
+    @JsonKey(name: 'alertLevel') String? alertLevel,
+    @JsonKey(name: 'alertMessage') String? alertMessage,
   }) = _BudgetSummary;
 
   factory BudgetSummary.fromJson(Map<String, dynamic> json) =>

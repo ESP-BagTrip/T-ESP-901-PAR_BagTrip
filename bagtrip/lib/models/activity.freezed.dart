@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Activity {
 
- String get id;@JsonKey(name: 'trip_id') String get tripId; String get title; String? get description; DateTime get date;@JsonKey(name: 'start_time') String? get startTime;@JsonKey(name: 'end_time') String? get endTime; String? get location;@JsonKey(unknownEnumValue: ActivityCategory.other) ActivityCategory get category;@JsonKey(name: 'estimated_cost') double? get estimatedCost;@JsonKey(name: 'is_booked') bool get isBooked;@JsonKey(name: 'validation_status') ValidationStatus get validationStatus; int? get suggestedDay;@JsonKey(name: 'created_at') DateTime? get createdAt;@JsonKey(name: 'updated_at') DateTime? get updatedAt;
+ String get id; String get tripId; String get title; String? get description; DateTime get date; String? get startTime; String? get endTime; String? get location;@JsonKey(unknownEnumValue: ActivityCategory.other) ActivityCategory get category; double? get estimatedCost; bool get isBooked; ValidationStatus get validationStatus; int? get suggestedDay; DateTime? get createdAt; DateTime? get updatedAt;
 /// Create a copy of Activity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $ActivityCopyWith<$Res>  {
   factory $ActivityCopyWith(Activity value, $Res Function(Activity) _then) = _$ActivityCopyWithImpl;
 @useResult
 $Res call({
- String id,@JsonKey(name: 'trip_id') String tripId, String title, String? description, DateTime date,@JsonKey(name: 'start_time') String? startTime,@JsonKey(name: 'end_time') String? endTime, String? location,@JsonKey(unknownEnumValue: ActivityCategory.other) ActivityCategory category,@JsonKey(name: 'estimated_cost') double? estimatedCost,@JsonKey(name: 'is_booked') bool isBooked,@JsonKey(name: 'validation_status') ValidationStatus validationStatus, int? suggestedDay,@JsonKey(name: 'created_at') DateTime? createdAt,@JsonKey(name: 'updated_at') DateTime? updatedAt
+ String id, String tripId, String title, String? description, DateTime date, String? startTime, String? endTime, String? location,@JsonKey(unknownEnumValue: ActivityCategory.other) ActivityCategory category, double? estimatedCost, bool isBooked, ValidationStatus validationStatus, int? suggestedDay, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -167,7 +167,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'trip_id')  String tripId,  String title,  String? description,  DateTime date, @JsonKey(name: 'start_time')  String? startTime, @JsonKey(name: 'end_time')  String? endTime,  String? location, @JsonKey(unknownEnumValue: ActivityCategory.other)  ActivityCategory category, @JsonKey(name: 'estimated_cost')  double? estimatedCost, @JsonKey(name: 'is_booked')  bool isBooked, @JsonKey(name: 'validation_status')  ValidationStatus validationStatus,  int? suggestedDay, @JsonKey(name: 'created_at')  DateTime? createdAt, @JsonKey(name: 'updated_at')  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String tripId,  String title,  String? description,  DateTime date,  String? startTime,  String? endTime,  String? location, @JsonKey(unknownEnumValue: ActivityCategory.other)  ActivityCategory category,  double? estimatedCost,  bool isBooked,  ValidationStatus validationStatus,  int? suggestedDay,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Activity() when $default != null:
 return $default(_that.id,_that.tripId,_that.title,_that.description,_that.date,_that.startTime,_that.endTime,_that.location,_that.category,_that.estimatedCost,_that.isBooked,_that.validationStatus,_that.suggestedDay,_that.createdAt,_that.updatedAt);case _:
@@ -188,7 +188,7 @@ return $default(_that.id,_that.tripId,_that.title,_that.description,_that.date,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'trip_id')  String tripId,  String title,  String? description,  DateTime date, @JsonKey(name: 'start_time')  String? startTime, @JsonKey(name: 'end_time')  String? endTime,  String? location, @JsonKey(unknownEnumValue: ActivityCategory.other)  ActivityCategory category, @JsonKey(name: 'estimated_cost')  double? estimatedCost, @JsonKey(name: 'is_booked')  bool isBooked, @JsonKey(name: 'validation_status')  ValidationStatus validationStatus,  int? suggestedDay, @JsonKey(name: 'created_at')  DateTime? createdAt, @JsonKey(name: 'updated_at')  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String tripId,  String title,  String? description,  DateTime date,  String? startTime,  String? endTime,  String? location, @JsonKey(unknownEnumValue: ActivityCategory.other)  ActivityCategory category,  double? estimatedCost,  bool isBooked,  ValidationStatus validationStatus,  int? suggestedDay,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Activity():
 return $default(_that.id,_that.tripId,_that.title,_that.description,_that.date,_that.startTime,_that.endTime,_that.location,_that.category,_that.estimatedCost,_that.isBooked,_that.validationStatus,_that.suggestedDay,_that.createdAt,_that.updatedAt);case _:
@@ -208,7 +208,7 @@ return $default(_that.id,_that.tripId,_that.title,_that.description,_that.date,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'trip_id')  String tripId,  String title,  String? description,  DateTime date, @JsonKey(name: 'start_time')  String? startTime, @JsonKey(name: 'end_time')  String? endTime,  String? location, @JsonKey(unknownEnumValue: ActivityCategory.other)  ActivityCategory category, @JsonKey(name: 'estimated_cost')  double? estimatedCost, @JsonKey(name: 'is_booked')  bool isBooked, @JsonKey(name: 'validation_status')  ValidationStatus validationStatus,  int? suggestedDay, @JsonKey(name: 'created_at')  DateTime? createdAt, @JsonKey(name: 'updated_at')  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String tripId,  String title,  String? description,  DateTime date,  String? startTime,  String? endTime,  String? location, @JsonKey(unknownEnumValue: ActivityCategory.other)  ActivityCategory category,  double? estimatedCost,  bool isBooked,  ValidationStatus validationStatus,  int? suggestedDay,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Activity() when $default != null:
 return $default(_that.id,_that.tripId,_that.title,_that.description,_that.date,_that.startTime,_that.endTime,_that.location,_that.category,_that.estimatedCost,_that.isBooked,_that.validationStatus,_that.suggestedDay,_that.createdAt,_that.updatedAt);case _:
@@ -223,24 +223,24 @@ return $default(_that.id,_that.tripId,_that.title,_that.description,_that.date,_
 @JsonSerializable()
 
 class _Activity implements Activity {
-  const _Activity({required this.id, @JsonKey(name: 'trip_id') required this.tripId, required this.title, this.description, required this.date, @JsonKey(name: 'start_time') this.startTime, @JsonKey(name: 'end_time') this.endTime, this.location, @JsonKey(unknownEnumValue: ActivityCategory.other) this.category = ActivityCategory.other, @JsonKey(name: 'estimated_cost') this.estimatedCost, @JsonKey(name: 'is_booked') this.isBooked = false, @JsonKey(name: 'validation_status') this.validationStatus = ValidationStatus.manual, this.suggestedDay, @JsonKey(name: 'created_at') this.createdAt, @JsonKey(name: 'updated_at') this.updatedAt});
+  const _Activity({required this.id, required this.tripId, required this.title, this.description, required this.date, this.startTime, this.endTime, this.location, @JsonKey(unknownEnumValue: ActivityCategory.other) this.category = ActivityCategory.other, this.estimatedCost, this.isBooked = false, this.validationStatus = ValidationStatus.manual, this.suggestedDay, this.createdAt, this.updatedAt});
   factory _Activity.fromJson(Map<String, dynamic> json) => _$ActivityFromJson(json);
 
 @override final  String id;
-@override@JsonKey(name: 'trip_id') final  String tripId;
+@override final  String tripId;
 @override final  String title;
 @override final  String? description;
 @override final  DateTime date;
-@override@JsonKey(name: 'start_time') final  String? startTime;
-@override@JsonKey(name: 'end_time') final  String? endTime;
+@override final  String? startTime;
+@override final  String? endTime;
 @override final  String? location;
 @override@JsonKey(unknownEnumValue: ActivityCategory.other) final  ActivityCategory category;
-@override@JsonKey(name: 'estimated_cost') final  double? estimatedCost;
-@override@JsonKey(name: 'is_booked') final  bool isBooked;
-@override@JsonKey(name: 'validation_status') final  ValidationStatus validationStatus;
+@override final  double? estimatedCost;
+@override@JsonKey() final  bool isBooked;
+@override@JsonKey() final  ValidationStatus validationStatus;
 @override final  int? suggestedDay;
-@override@JsonKey(name: 'created_at') final  DateTime? createdAt;
-@override@JsonKey(name: 'updated_at') final  DateTime? updatedAt;
+@override final  DateTime? createdAt;
+@override final  DateTime? updatedAt;
 
 /// Create a copy of Activity
 /// with the given fields replaced by the non-null parameter values.
@@ -275,7 +275,7 @@ abstract mixin class _$ActivityCopyWith<$Res> implements $ActivityCopyWith<$Res>
   factory _$ActivityCopyWith(_Activity value, $Res Function(_Activity) _then) = __$ActivityCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@JsonKey(name: 'trip_id') String tripId, String title, String? description, DateTime date,@JsonKey(name: 'start_time') String? startTime,@JsonKey(name: 'end_time') String? endTime, String? location,@JsonKey(unknownEnumValue: ActivityCategory.other) ActivityCategory category,@JsonKey(name: 'estimated_cost') double? estimatedCost,@JsonKey(name: 'is_booked') bool isBooked,@JsonKey(name: 'validation_status') ValidationStatus validationStatus, int? suggestedDay,@JsonKey(name: 'created_at') DateTime? createdAt,@JsonKey(name: 'updated_at') DateTime? updatedAt
+ String id, String tripId, String title, String? description, DateTime date, String? startTime, String? endTime, String? location,@JsonKey(unknownEnumValue: ActivityCategory.other) ActivityCategory category, double? estimatedCost, bool isBooked, ValidationStatus validationStatus, int? suggestedDay, DateTime? createdAt, DateTime? updatedAt
 });
 
 

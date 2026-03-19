@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$FlightInfo {
 
- String? get flightIata; String? get airlineIata; String? get airlineName; String? get status; String? get departureIata; String? get departureTerminal; String? get departureGate; String? get departureTime; String? get departureActual; int? get departureDelay; String? get arrivalIata; String? get arrivalTerminal; String? get arrivalGate; String? get arrivalTime; String? get arrivalActual; int? get arrivalDelay;
+@JsonKey(name: 'flightIata') String? get flightIata;@JsonKey(name: 'airlineIata') String? get airlineIata;@JsonKey(name: 'airlineName') String? get airlineName; String? get status;@JsonKey(name: 'departureIata') String? get departureIata;@JsonKey(name: 'departureTerminal') String? get departureTerminal;@JsonKey(name: 'departureGate') String? get departureGate;@JsonKey(name: 'departureTime') String? get departureTime;@JsonKey(name: 'departureActual') String? get departureActual;@JsonKey(name: 'departureDelay') int? get departureDelay;@JsonKey(name: 'arrivalIata') String? get arrivalIata;@JsonKey(name: 'arrivalTerminal') String? get arrivalTerminal;@JsonKey(name: 'arrivalGate') String? get arrivalGate;@JsonKey(name: 'arrivalTime') String? get arrivalTime;@JsonKey(name: 'arrivalActual') String? get arrivalActual;@JsonKey(name: 'arrivalDelay') int? get arrivalDelay;
 /// Create a copy of FlightInfo
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $FlightInfoCopyWith<$Res>  {
   factory $FlightInfoCopyWith(FlightInfo value, $Res Function(FlightInfo) _then) = _$FlightInfoCopyWithImpl;
 @useResult
 $Res call({
- String? flightIata, String? airlineIata, String? airlineName, String? status, String? departureIata, String? departureTerminal, String? departureGate, String? departureTime, String? departureActual, int? departureDelay, String? arrivalIata, String? arrivalTerminal, String? arrivalGate, String? arrivalTime, String? arrivalActual, int? arrivalDelay
+@JsonKey(name: 'flightIata') String? flightIata,@JsonKey(name: 'airlineIata') String? airlineIata,@JsonKey(name: 'airlineName') String? airlineName, String? status,@JsonKey(name: 'departureIata') String? departureIata,@JsonKey(name: 'departureTerminal') String? departureTerminal,@JsonKey(name: 'departureGate') String? departureGate,@JsonKey(name: 'departureTime') String? departureTime,@JsonKey(name: 'departureActual') String? departureActual,@JsonKey(name: 'departureDelay') int? departureDelay,@JsonKey(name: 'arrivalIata') String? arrivalIata,@JsonKey(name: 'arrivalTerminal') String? arrivalTerminal,@JsonKey(name: 'arrivalGate') String? arrivalGate,@JsonKey(name: 'arrivalTime') String? arrivalTime,@JsonKey(name: 'arrivalActual') String? arrivalActual,@JsonKey(name: 'arrivalDelay') int? arrivalDelay
 });
 
 
@@ -168,7 +168,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? flightIata,  String? airlineIata,  String? airlineName,  String? status,  String? departureIata,  String? departureTerminal,  String? departureGate,  String? departureTime,  String? departureActual,  int? departureDelay,  String? arrivalIata,  String? arrivalTerminal,  String? arrivalGate,  String? arrivalTime,  String? arrivalActual,  int? arrivalDelay)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'flightIata')  String? flightIata, @JsonKey(name: 'airlineIata')  String? airlineIata, @JsonKey(name: 'airlineName')  String? airlineName,  String? status, @JsonKey(name: 'departureIata')  String? departureIata, @JsonKey(name: 'departureTerminal')  String? departureTerminal, @JsonKey(name: 'departureGate')  String? departureGate, @JsonKey(name: 'departureTime')  String? departureTime, @JsonKey(name: 'departureActual')  String? departureActual, @JsonKey(name: 'departureDelay')  int? departureDelay, @JsonKey(name: 'arrivalIata')  String? arrivalIata, @JsonKey(name: 'arrivalTerminal')  String? arrivalTerminal, @JsonKey(name: 'arrivalGate')  String? arrivalGate, @JsonKey(name: 'arrivalTime')  String? arrivalTime, @JsonKey(name: 'arrivalActual')  String? arrivalActual, @JsonKey(name: 'arrivalDelay')  int? arrivalDelay)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _FlightInfo() when $default != null:
 return $default(_that.flightIata,_that.airlineIata,_that.airlineName,_that.status,_that.departureIata,_that.departureTerminal,_that.departureGate,_that.departureTime,_that.departureActual,_that.departureDelay,_that.arrivalIata,_that.arrivalTerminal,_that.arrivalGate,_that.arrivalTime,_that.arrivalActual,_that.arrivalDelay);case _:
@@ -189,7 +189,7 @@ return $default(_that.flightIata,_that.airlineIata,_that.airlineName,_that.statu
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? flightIata,  String? airlineIata,  String? airlineName,  String? status,  String? departureIata,  String? departureTerminal,  String? departureGate,  String? departureTime,  String? departureActual,  int? departureDelay,  String? arrivalIata,  String? arrivalTerminal,  String? arrivalGate,  String? arrivalTime,  String? arrivalActual,  int? arrivalDelay)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'flightIata')  String? flightIata, @JsonKey(name: 'airlineIata')  String? airlineIata, @JsonKey(name: 'airlineName')  String? airlineName,  String? status, @JsonKey(name: 'departureIata')  String? departureIata, @JsonKey(name: 'departureTerminal')  String? departureTerminal, @JsonKey(name: 'departureGate')  String? departureGate, @JsonKey(name: 'departureTime')  String? departureTime, @JsonKey(name: 'departureActual')  String? departureActual, @JsonKey(name: 'departureDelay')  int? departureDelay, @JsonKey(name: 'arrivalIata')  String? arrivalIata, @JsonKey(name: 'arrivalTerminal')  String? arrivalTerminal, @JsonKey(name: 'arrivalGate')  String? arrivalGate, @JsonKey(name: 'arrivalTime')  String? arrivalTime, @JsonKey(name: 'arrivalActual')  String? arrivalActual, @JsonKey(name: 'arrivalDelay')  int? arrivalDelay)  $default,) {final _that = this;
 switch (_that) {
 case _FlightInfo():
 return $default(_that.flightIata,_that.airlineIata,_that.airlineName,_that.status,_that.departureIata,_that.departureTerminal,_that.departureGate,_that.departureTime,_that.departureActual,_that.departureDelay,_that.arrivalIata,_that.arrivalTerminal,_that.arrivalGate,_that.arrivalTime,_that.arrivalActual,_that.arrivalDelay);case _:
@@ -209,7 +209,7 @@ return $default(_that.flightIata,_that.airlineIata,_that.airlineName,_that.statu
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? flightIata,  String? airlineIata,  String? airlineName,  String? status,  String? departureIata,  String? departureTerminal,  String? departureGate,  String? departureTime,  String? departureActual,  int? departureDelay,  String? arrivalIata,  String? arrivalTerminal,  String? arrivalGate,  String? arrivalTime,  String? arrivalActual,  int? arrivalDelay)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'flightIata')  String? flightIata, @JsonKey(name: 'airlineIata')  String? airlineIata, @JsonKey(name: 'airlineName')  String? airlineName,  String? status, @JsonKey(name: 'departureIata')  String? departureIata, @JsonKey(name: 'departureTerminal')  String? departureTerminal, @JsonKey(name: 'departureGate')  String? departureGate, @JsonKey(name: 'departureTime')  String? departureTime, @JsonKey(name: 'departureActual')  String? departureActual, @JsonKey(name: 'departureDelay')  int? departureDelay, @JsonKey(name: 'arrivalIata')  String? arrivalIata, @JsonKey(name: 'arrivalTerminal')  String? arrivalTerminal, @JsonKey(name: 'arrivalGate')  String? arrivalGate, @JsonKey(name: 'arrivalTime')  String? arrivalTime, @JsonKey(name: 'arrivalActual')  String? arrivalActual, @JsonKey(name: 'arrivalDelay')  int? arrivalDelay)?  $default,) {final _that = this;
 switch (_that) {
 case _FlightInfo() when $default != null:
 return $default(_that.flightIata,_that.airlineIata,_that.airlineName,_that.status,_that.departureIata,_that.departureTerminal,_that.departureGate,_that.departureTime,_that.departureActual,_that.departureDelay,_that.arrivalIata,_that.arrivalTerminal,_that.arrivalGate,_that.arrivalTime,_that.arrivalActual,_that.arrivalDelay);case _:
@@ -224,25 +224,25 @@ return $default(_that.flightIata,_that.airlineIata,_that.airlineName,_that.statu
 @JsonSerializable()
 
 class _FlightInfo implements FlightInfo {
-  const _FlightInfo({this.flightIata, this.airlineIata, this.airlineName, this.status, this.departureIata, this.departureTerminal, this.departureGate, this.departureTime, this.departureActual, this.departureDelay, this.arrivalIata, this.arrivalTerminal, this.arrivalGate, this.arrivalTime, this.arrivalActual, this.arrivalDelay});
+  const _FlightInfo({@JsonKey(name: 'flightIata') this.flightIata, @JsonKey(name: 'airlineIata') this.airlineIata, @JsonKey(name: 'airlineName') this.airlineName, this.status, @JsonKey(name: 'departureIata') this.departureIata, @JsonKey(name: 'departureTerminal') this.departureTerminal, @JsonKey(name: 'departureGate') this.departureGate, @JsonKey(name: 'departureTime') this.departureTime, @JsonKey(name: 'departureActual') this.departureActual, @JsonKey(name: 'departureDelay') this.departureDelay, @JsonKey(name: 'arrivalIata') this.arrivalIata, @JsonKey(name: 'arrivalTerminal') this.arrivalTerminal, @JsonKey(name: 'arrivalGate') this.arrivalGate, @JsonKey(name: 'arrivalTime') this.arrivalTime, @JsonKey(name: 'arrivalActual') this.arrivalActual, @JsonKey(name: 'arrivalDelay') this.arrivalDelay});
   factory _FlightInfo.fromJson(Map<String, dynamic> json) => _$FlightInfoFromJson(json);
 
-@override final  String? flightIata;
-@override final  String? airlineIata;
-@override final  String? airlineName;
+@override@JsonKey(name: 'flightIata') final  String? flightIata;
+@override@JsonKey(name: 'airlineIata') final  String? airlineIata;
+@override@JsonKey(name: 'airlineName') final  String? airlineName;
 @override final  String? status;
-@override final  String? departureIata;
-@override final  String? departureTerminal;
-@override final  String? departureGate;
-@override final  String? departureTime;
-@override final  String? departureActual;
-@override final  int? departureDelay;
-@override final  String? arrivalIata;
-@override final  String? arrivalTerminal;
-@override final  String? arrivalGate;
-@override final  String? arrivalTime;
-@override final  String? arrivalActual;
-@override final  int? arrivalDelay;
+@override@JsonKey(name: 'departureIata') final  String? departureIata;
+@override@JsonKey(name: 'departureTerminal') final  String? departureTerminal;
+@override@JsonKey(name: 'departureGate') final  String? departureGate;
+@override@JsonKey(name: 'departureTime') final  String? departureTime;
+@override@JsonKey(name: 'departureActual') final  String? departureActual;
+@override@JsonKey(name: 'departureDelay') final  int? departureDelay;
+@override@JsonKey(name: 'arrivalIata') final  String? arrivalIata;
+@override@JsonKey(name: 'arrivalTerminal') final  String? arrivalTerminal;
+@override@JsonKey(name: 'arrivalGate') final  String? arrivalGate;
+@override@JsonKey(name: 'arrivalTime') final  String? arrivalTime;
+@override@JsonKey(name: 'arrivalActual') final  String? arrivalActual;
+@override@JsonKey(name: 'arrivalDelay') final  int? arrivalDelay;
 
 /// Create a copy of FlightInfo
 /// with the given fields replaced by the non-null parameter values.
@@ -277,7 +277,7 @@ abstract mixin class _$FlightInfoCopyWith<$Res> implements $FlightInfoCopyWith<$
   factory _$FlightInfoCopyWith(_FlightInfo value, $Res Function(_FlightInfo) _then) = __$FlightInfoCopyWithImpl;
 @override @useResult
 $Res call({
- String? flightIata, String? airlineIata, String? airlineName, String? status, String? departureIata, String? departureTerminal, String? departureGate, String? departureTime, String? departureActual, int? departureDelay, String? arrivalIata, String? arrivalTerminal, String? arrivalGate, String? arrivalTime, String? arrivalActual, int? arrivalDelay
+@JsonKey(name: 'flightIata') String? flightIata,@JsonKey(name: 'airlineIata') String? airlineIata,@JsonKey(name: 'airlineName') String? airlineName, String? status,@JsonKey(name: 'departureIata') String? departureIata,@JsonKey(name: 'departureTerminal') String? departureTerminal,@JsonKey(name: 'departureGate') String? departureGate,@JsonKey(name: 'departureTime') String? departureTime,@JsonKey(name: 'departureActual') String? departureActual,@JsonKey(name: 'departureDelay') int? departureDelay,@JsonKey(name: 'arrivalIata') String? arrivalIata,@JsonKey(name: 'arrivalTerminal') String? arrivalTerminal,@JsonKey(name: 'arrivalGate') String? arrivalGate,@JsonKey(name: 'arrivalTime') String? arrivalTime,@JsonKey(name: 'arrivalActual') String? arrivalActual,@JsonKey(name: 'arrivalDelay') int? arrivalDelay
 });
 
 

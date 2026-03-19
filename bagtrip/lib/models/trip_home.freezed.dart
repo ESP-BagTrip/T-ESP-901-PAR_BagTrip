@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TripHomeStats {
 
- int get baggageCount; double get totalExpenses; int get nbTravelers; int? get daysUntilTrip; int? get tripDuration;
+@JsonKey(name: 'baggageCount') int get baggageCount;@JsonKey(name: 'totalExpenses') double get totalExpenses;@JsonKey(name: 'nbTravelers') int get nbTravelers;@JsonKey(name: 'daysUntilTrip') int? get daysUntilTrip;@JsonKey(name: 'tripDuration') int? get tripDuration;
 /// Create a copy of TripHomeStats
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $TripHomeStatsCopyWith<$Res>  {
   factory $TripHomeStatsCopyWith(TripHomeStats value, $Res Function(TripHomeStats) _then) = _$TripHomeStatsCopyWithImpl;
 @useResult
 $Res call({
- int baggageCount, double totalExpenses, int nbTravelers, int? daysUntilTrip, int? tripDuration
+@JsonKey(name: 'baggageCount') int baggageCount,@JsonKey(name: 'totalExpenses') double totalExpenses,@JsonKey(name: 'nbTravelers') int nbTravelers,@JsonKey(name: 'daysUntilTrip') int? daysUntilTrip,@JsonKey(name: 'tripDuration') int? tripDuration
 });
 
 
@@ -157,7 +157,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int baggageCount,  double totalExpenses,  int nbTravelers,  int? daysUntilTrip,  int? tripDuration)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'baggageCount')  int baggageCount, @JsonKey(name: 'totalExpenses')  double totalExpenses, @JsonKey(name: 'nbTravelers')  int nbTravelers, @JsonKey(name: 'daysUntilTrip')  int? daysUntilTrip, @JsonKey(name: 'tripDuration')  int? tripDuration)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TripHomeStats() when $default != null:
 return $default(_that.baggageCount,_that.totalExpenses,_that.nbTravelers,_that.daysUntilTrip,_that.tripDuration);case _:
@@ -178,7 +178,7 @@ return $default(_that.baggageCount,_that.totalExpenses,_that.nbTravelers,_that.d
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int baggageCount,  double totalExpenses,  int nbTravelers,  int? daysUntilTrip,  int? tripDuration)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'baggageCount')  int baggageCount, @JsonKey(name: 'totalExpenses')  double totalExpenses, @JsonKey(name: 'nbTravelers')  int nbTravelers, @JsonKey(name: 'daysUntilTrip')  int? daysUntilTrip, @JsonKey(name: 'tripDuration')  int? tripDuration)  $default,) {final _that = this;
 switch (_that) {
 case _TripHomeStats():
 return $default(_that.baggageCount,_that.totalExpenses,_that.nbTravelers,_that.daysUntilTrip,_that.tripDuration);case _:
@@ -198,7 +198,7 @@ return $default(_that.baggageCount,_that.totalExpenses,_that.nbTravelers,_that.d
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int baggageCount,  double totalExpenses,  int nbTravelers,  int? daysUntilTrip,  int? tripDuration)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'baggageCount')  int baggageCount, @JsonKey(name: 'totalExpenses')  double totalExpenses, @JsonKey(name: 'nbTravelers')  int nbTravelers, @JsonKey(name: 'daysUntilTrip')  int? daysUntilTrip, @JsonKey(name: 'tripDuration')  int? tripDuration)?  $default,) {final _that = this;
 switch (_that) {
 case _TripHomeStats() when $default != null:
 return $default(_that.baggageCount,_that.totalExpenses,_that.nbTravelers,_that.daysUntilTrip,_that.tripDuration);case _:
@@ -213,14 +213,14 @@ return $default(_that.baggageCount,_that.totalExpenses,_that.nbTravelers,_that.d
 @JsonSerializable()
 
 class _TripHomeStats implements TripHomeStats {
-  const _TripHomeStats({this.baggageCount = 0, this.totalExpenses = 0.0, this.nbTravelers = 1, this.daysUntilTrip, this.tripDuration});
+  const _TripHomeStats({@JsonKey(name: 'baggageCount') this.baggageCount = 0, @JsonKey(name: 'totalExpenses') this.totalExpenses = 0.0, @JsonKey(name: 'nbTravelers') this.nbTravelers = 1, @JsonKey(name: 'daysUntilTrip') this.daysUntilTrip, @JsonKey(name: 'tripDuration') this.tripDuration});
   factory _TripHomeStats.fromJson(Map<String, dynamic> json) => _$TripHomeStatsFromJson(json);
 
-@override@JsonKey() final  int baggageCount;
-@override@JsonKey() final  double totalExpenses;
-@override@JsonKey() final  int nbTravelers;
-@override final  int? daysUntilTrip;
-@override final  int? tripDuration;
+@override@JsonKey(name: 'baggageCount') final  int baggageCount;
+@override@JsonKey(name: 'totalExpenses') final  double totalExpenses;
+@override@JsonKey(name: 'nbTravelers') final  int nbTravelers;
+@override@JsonKey(name: 'daysUntilTrip') final  int? daysUntilTrip;
+@override@JsonKey(name: 'tripDuration') final  int? tripDuration;
 
 /// Create a copy of TripHomeStats
 /// with the given fields replaced by the non-null parameter values.
@@ -255,7 +255,7 @@ abstract mixin class _$TripHomeStatsCopyWith<$Res> implements $TripHomeStatsCopy
   factory _$TripHomeStatsCopyWith(_TripHomeStats value, $Res Function(_TripHomeStats) _then) = __$TripHomeStatsCopyWithImpl;
 @override @useResult
 $Res call({
- int baggageCount, double totalExpenses, int nbTravelers, int? daysUntilTrip, int? tripDuration
+@JsonKey(name: 'baggageCount') int baggageCount,@JsonKey(name: 'totalExpenses') double totalExpenses,@JsonKey(name: 'nbTravelers') int nbTravelers,@JsonKey(name: 'daysUntilTrip') int? daysUntilTrip,@JsonKey(name: 'tripDuration') int? tripDuration
 });
 
 
@@ -565,7 +565,7 @@ as bool,
 /// @nodoc
 mixin _$TripSectionSummary {
 
- String get sectionId; int get count; List<String> get previewItems;
+@JsonKey(name: 'sectionId') String get sectionId; int get count;@JsonKey(name: 'previewItems') List<String> get previewItems;
 /// Create a copy of TripSectionSummary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -598,7 +598,7 @@ abstract mixin class $TripSectionSummaryCopyWith<$Res>  {
   factory $TripSectionSummaryCopyWith(TripSectionSummary value, $Res Function(TripSectionSummary) _then) = _$TripSectionSummaryCopyWithImpl;
 @useResult
 $Res call({
- String sectionId, int count, List<String> previewItems
+@JsonKey(name: 'sectionId') String sectionId, int count,@JsonKey(name: 'previewItems') List<String> previewItems
 });
 
 
@@ -705,7 +705,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String sectionId,  int count,  List<String> previewItems)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'sectionId')  String sectionId,  int count, @JsonKey(name: 'previewItems')  List<String> previewItems)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TripSectionSummary() when $default != null:
 return $default(_that.sectionId,_that.count,_that.previewItems);case _:
@@ -726,7 +726,7 @@ return $default(_that.sectionId,_that.count,_that.previewItems);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String sectionId,  int count,  List<String> previewItems)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'sectionId')  String sectionId,  int count, @JsonKey(name: 'previewItems')  List<String> previewItems)  $default,) {final _that = this;
 switch (_that) {
 case _TripSectionSummary():
 return $default(_that.sectionId,_that.count,_that.previewItems);case _:
@@ -746,7 +746,7 @@ return $default(_that.sectionId,_that.count,_that.previewItems);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String sectionId,  int count,  List<String> previewItems)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'sectionId')  String sectionId,  int count, @JsonKey(name: 'previewItems')  List<String> previewItems)?  $default,) {final _that = this;
 switch (_that) {
 case _TripSectionSummary() when $default != null:
 return $default(_that.sectionId,_that.count,_that.previewItems);case _:
@@ -761,13 +761,13 @@ return $default(_that.sectionId,_that.count,_that.previewItems);case _:
 @JsonSerializable()
 
 class _TripSectionSummary implements TripSectionSummary {
-  const _TripSectionSummary({required this.sectionId, this.count = 0, final  List<String> previewItems = const []}): _previewItems = previewItems;
+  const _TripSectionSummary({@JsonKey(name: 'sectionId') required this.sectionId, this.count = 0, @JsonKey(name: 'previewItems') final  List<String> previewItems = const []}): _previewItems = previewItems;
   factory _TripSectionSummary.fromJson(Map<String, dynamic> json) => _$TripSectionSummaryFromJson(json);
 
-@override final  String sectionId;
+@override@JsonKey(name: 'sectionId') final  String sectionId;
 @override@JsonKey() final  int count;
  final  List<String> _previewItems;
-@override@JsonKey() List<String> get previewItems {
+@override@JsonKey(name: 'previewItems') List<String> get previewItems {
   if (_previewItems is EqualUnmodifiableListView) return _previewItems;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_previewItems);
@@ -807,7 +807,7 @@ abstract mixin class _$TripSectionSummaryCopyWith<$Res> implements $TripSectionS
   factory _$TripSectionSummaryCopyWith(_TripSectionSummary value, $Res Function(_TripSectionSummary) _then) = __$TripSectionSummaryCopyWithImpl;
 @override @useResult
 $Res call({
- String sectionId, int count, List<String> previewItems
+@JsonKey(name: 'sectionId') String sectionId, int count,@JsonKey(name: 'previewItems') List<String> previewItems
 });
 
 

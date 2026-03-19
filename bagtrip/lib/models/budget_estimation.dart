@@ -6,14 +6,14 @@ part 'budget_estimation.g.dart';
 @freezed
 abstract class BudgetEstimation with _$BudgetEstimation {
   const factory BudgetEstimation({
-    double? accommodationPerNight,
-    double? mealsPerDayPerPerson,
-    double? localTransportPerDay,
-    double? activitiesTotal,
-    double? totalMin,
-    double? totalMax,
+    @JsonKey(name: 'accommodationPerNight') double? accommodationPerNight,
+    @JsonKey(name: 'mealsPerDayPerPerson') double? mealsPerDayPerPerson,
+    @JsonKey(name: 'localTransportPerDay') double? localTransportPerDay,
+    @JsonKey(name: 'activitiesTotal') double? activitiesTotal,
+    @JsonKey(name: 'totalMin') double? totalMin,
+    @JsonKey(name: 'totalMax') double? totalMax,
     @Default('EUR') String currency,
-    String? breakdownNotes,
+    @JsonKey(name: 'breakdownNotes') String? breakdownNotes,
   }) = _BudgetEstimation;
 
   factory BudgetEstimation.fromJson(Map<String, dynamic> json) =>

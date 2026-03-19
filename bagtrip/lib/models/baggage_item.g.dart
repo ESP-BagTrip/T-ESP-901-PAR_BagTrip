@@ -8,29 +8,29 @@ part of 'baggage_item.dart';
 
 _BaggageItem _$BaggageItemFromJson(Map<String, dynamic> json) => _BaggageItem(
   id: json['id'] as String,
-  tripId: json['tripId'] as String,
+  tripId: json['trip_id'] as String,
   name: json['name'] as String,
   quantity: (json['quantity'] as num?)?.toInt(),
-  isPacked: json['isPacked'] as bool? ?? false,
+  isPacked: json['is_packed'] as bool? ?? false,
   category: json['category'] as String?,
   notes: json['notes'] as String?,
-  createdAt: json['createdAt'] == null
+  createdAt: json['created_at'] == null
       ? null
-      : DateTime.parse(json['createdAt'] as String),
-  updatedAt: json['updatedAt'] == null
+      : DateTime.parse(json['created_at'] as String),
+  updatedAt: json['updated_at'] == null
       ? null
-      : DateTime.parse(json['updatedAt'] as String),
+      : DateTime.parse(json['updated_at'] as String),
 );
 
 Map<String, dynamic> _$BaggageItemToJson(_BaggageItem instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'tripId': instance.tripId,
+      'trip_id': instance.tripId,
       'name': instance.name,
       'quantity': instance.quantity,
-      'isPacked': instance.isPacked,
+      'is_packed': instance.isPacked,
       'category': instance.category,
       'notes': instance.notes,
-      'createdAt': instance.createdAt?.toIso8601String(),
-      'updatedAt': instance.updatedAt?.toIso8601String(),
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
     };

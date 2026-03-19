@@ -1,17 +1,19 @@
-class RecentBooking {
-  final String id;
-  final String details;
-  final DateTime date;
-  final double priceTotal;
-  final String currency;
-  final String status;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  RecentBooking({
-    required this.id,
-    required this.details,
-    required this.date,
-    required this.priceTotal,
-    required this.currency,
-    required this.status,
-  });
+part 'recent_booking.freezed.dart';
+part 'recent_booking.g.dart';
+
+@freezed
+abstract class RecentBooking with _$RecentBooking {
+  const factory RecentBooking({
+    required String id,
+    required String details,
+    required DateTime date,
+    @JsonKey(name: 'priceTotal') required double priceTotal,
+    required String currency,
+    required String status,
+  }) = _RecentBooking;
+
+  factory RecentBooking.fromJson(Map<String, dynamic> json) =>
+      _$RecentBookingFromJson(json);
 }

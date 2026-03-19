@@ -1,4 +1,8 @@
+import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/logged_failure.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/service/api_client.dart';
+import 'package:dio/dio.dart';
 
 class AgentService {
   final ApiClient _apiClient;
@@ -18,7 +22,7 @@ class AgentService {
 
   /// Quick action (SELECT/BOOK).
   /// TODO: Implement in Epic 6.
-  Future<Map<String, dynamic>> action({
+  Future<Result<Map<String, dynamic>>> action({
     required String tripId,
     required String conversationId,
     required Map<String, dynamic> action,
@@ -36,12 +40,32 @@ class AgentService {
       );
 
       if (response.statusCode == 200) {
-        return response.data as Map<String, dynamic>;
+        final data = response.data;
+        if (data is Map<String, dynamic>) {
+          return Success(data);
+        }
+        return loggedFailure(
+          ServerError(
+            'Unexpected response format',
+            statusCode: response.statusCode,
+          ),
+        );
       } else {
-        throw Exception('Failed to execute action: ${response.statusCode}');
+        return loggedFailure(
+          ServerError(
+            'Failed to execute action: ${response.statusCode}',
+            statusCode: response.statusCode,
+          ),
+        );
       }
+    } on DioException catch (e) {
+      return loggedFailure(
+        NetworkError('Error executing action: ${e.message}'),
+      );
     } catch (e) {
-      throw Exception('Error executing action: $e');
+      return loggedFailure(
+        UnknownError('Error executing action: $e', originalError: e),
+      );
     }
   }
 }

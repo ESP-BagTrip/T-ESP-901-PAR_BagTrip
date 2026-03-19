@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AiTripProposal {
 
- String get id; String get destination; String get destinationCountry; int get durationDays;@JsonKey(name: 'budgetEur') int get priceEur; String get description; List<Map<String, dynamic>> get activities; String? get matchReason;
+ String get id; String get destination;@JsonKey(name: 'destinationCountry') String get destinationCountry;@JsonKey(name: 'durationDays') int get durationDays;@JsonKey(name: 'budgetEur') int get priceEur; String get description; List<Map<String, dynamic>> get activities;@JsonKey(name: 'matchReason') String? get matchReason;
 /// Create a copy of AiTripProposal
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $AiTripProposalCopyWith<$Res>  {
   factory $AiTripProposalCopyWith(AiTripProposal value, $Res Function(AiTripProposal) _then) = _$AiTripProposalCopyWithImpl;
 @useResult
 $Res call({
- String id, String destination, String destinationCountry, int durationDays,@JsonKey(name: 'budgetEur') int priceEur, String description, List<Map<String, dynamic>> activities, String? matchReason
+ String id, String destination,@JsonKey(name: 'destinationCountry') String destinationCountry,@JsonKey(name: 'durationDays') int durationDays,@JsonKey(name: 'budgetEur') int priceEur, String description, List<Map<String, dynamic>> activities,@JsonKey(name: 'matchReason') String? matchReason
 });
 
 
@@ -160,7 +160,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String destination,  String destinationCountry,  int durationDays, @JsonKey(name: 'budgetEur')  int priceEur,  String description,  List<Map<String, dynamic>> activities,  String? matchReason)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String destination, @JsonKey(name: 'destinationCountry')  String destinationCountry, @JsonKey(name: 'durationDays')  int durationDays, @JsonKey(name: 'budgetEur')  int priceEur,  String description,  List<Map<String, dynamic>> activities, @JsonKey(name: 'matchReason')  String? matchReason)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AiTripProposal() when $default != null:
 return $default(_that.id,_that.destination,_that.destinationCountry,_that.durationDays,_that.priceEur,_that.description,_that.activities,_that.matchReason);case _:
@@ -181,7 +181,7 @@ return $default(_that.id,_that.destination,_that.destinationCountry,_that.durati
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String destination,  String destinationCountry,  int durationDays, @JsonKey(name: 'budgetEur')  int priceEur,  String description,  List<Map<String, dynamic>> activities,  String? matchReason)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String destination, @JsonKey(name: 'destinationCountry')  String destinationCountry, @JsonKey(name: 'durationDays')  int durationDays, @JsonKey(name: 'budgetEur')  int priceEur,  String description,  List<Map<String, dynamic>> activities, @JsonKey(name: 'matchReason')  String? matchReason)  $default,) {final _that = this;
 switch (_that) {
 case _AiTripProposal():
 return $default(_that.id,_that.destination,_that.destinationCountry,_that.durationDays,_that.priceEur,_that.description,_that.activities,_that.matchReason);case _:
@@ -201,7 +201,7 @@ return $default(_that.id,_that.destination,_that.destinationCountry,_that.durati
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String destination,  String destinationCountry,  int durationDays, @JsonKey(name: 'budgetEur')  int priceEur,  String description,  List<Map<String, dynamic>> activities,  String? matchReason)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String destination, @JsonKey(name: 'destinationCountry')  String destinationCountry, @JsonKey(name: 'durationDays')  int durationDays, @JsonKey(name: 'budgetEur')  int priceEur,  String description,  List<Map<String, dynamic>> activities, @JsonKey(name: 'matchReason')  String? matchReason)?  $default,) {final _that = this;
 switch (_that) {
 case _AiTripProposal() when $default != null:
 return $default(_that.id,_that.destination,_that.destinationCountry,_that.durationDays,_that.priceEur,_that.description,_that.activities,_that.matchReason);case _:
@@ -216,13 +216,13 @@ return $default(_that.id,_that.destination,_that.destinationCountry,_that.durati
 @JsonSerializable()
 
 class _AiTripProposal implements AiTripProposal {
-  const _AiTripProposal({this.id = '', this.destination = '', this.destinationCountry = '', this.durationDays = 0, @JsonKey(name: 'budgetEur') this.priceEur = 0, this.description = '', final  List<Map<String, dynamic>> activities = const [], this.matchReason}): _activities = activities;
+  const _AiTripProposal({this.id = '', this.destination = '', @JsonKey(name: 'destinationCountry') this.destinationCountry = '', @JsonKey(name: 'durationDays') this.durationDays = 0, @JsonKey(name: 'budgetEur') this.priceEur = 0, this.description = '', final  List<Map<String, dynamic>> activities = const [], @JsonKey(name: 'matchReason') this.matchReason}): _activities = activities;
   factory _AiTripProposal.fromJson(Map<String, dynamic> json) => _$AiTripProposalFromJson(json);
 
 @override@JsonKey() final  String id;
 @override@JsonKey() final  String destination;
-@override@JsonKey() final  String destinationCountry;
-@override@JsonKey() final  int durationDays;
+@override@JsonKey(name: 'destinationCountry') final  String destinationCountry;
+@override@JsonKey(name: 'durationDays') final  int durationDays;
 @override@JsonKey(name: 'budgetEur') final  int priceEur;
 @override@JsonKey() final  String description;
  final  List<Map<String, dynamic>> _activities;
@@ -232,7 +232,7 @@ class _AiTripProposal implements AiTripProposal {
   return EqualUnmodifiableListView(_activities);
 }
 
-@override final  String? matchReason;
+@override@JsonKey(name: 'matchReason') final  String? matchReason;
 
 /// Create a copy of AiTripProposal
 /// with the given fields replaced by the non-null parameter values.
@@ -267,7 +267,7 @@ abstract mixin class _$AiTripProposalCopyWith<$Res> implements $AiTripProposalCo
   factory _$AiTripProposalCopyWith(_AiTripProposal value, $Res Function(_AiTripProposal) _then) = __$AiTripProposalCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String destination, String destinationCountry, int durationDays,@JsonKey(name: 'budgetEur') int priceEur, String description, List<Map<String, dynamic>> activities, String? matchReason
+ String id, String destination,@JsonKey(name: 'destinationCountry') String destinationCountry,@JsonKey(name: 'durationDays') int durationDays,@JsonKey(name: 'budgetEur') int priceEur, String description, List<Map<String, dynamic>> activities,@JsonKey(name: 'matchReason') String? matchReason
 });
 
 

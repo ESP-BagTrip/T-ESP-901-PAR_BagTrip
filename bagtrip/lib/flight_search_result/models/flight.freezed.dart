@@ -15,9 +15,9 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Flight {
 
- String get id; String get departureTime; String get arrivalTime; String get departureAirport; String get departureCode; String get arrivalAirport; String get arrivalCode; String get duration; String? get airline; String? get aircraftType; double get price; List<String> get amenities; DateTime? get departureDateTime; DateTime? get arrivalDateTime; int get outboundStops;// Return flight details (nullable)
- String? get returnDepartureTime; String? get returnArrivalTime; String? get returnDepartureCode; String? get returnArrivalCode; String? get returnDuration; String? get returnAirline; String? get returnAircraftType; DateTime? get returnDepartureDateTime; DateTime? get returnArrivalDateTime; int? get returnStops;// Extra details
- int get numberOfBookableSeats; String get lastTicketingDate; double get basePrice; String get cabinClass; String get bookingClass; String get fareBasis; BaggageInfo? get checkedBags; BaggageInfo? get cabinBags;
+ String get id;@JsonKey(name: 'departureTime') String get departureTime;@JsonKey(name: 'arrivalTime') String get arrivalTime;@JsonKey(name: 'departureAirport') String get departureAirport;@JsonKey(name: 'departureCode') String get departureCode;@JsonKey(name: 'arrivalAirport') String get arrivalAirport;@JsonKey(name: 'arrivalCode') String get arrivalCode; String get duration; String? get airline;@JsonKey(name: 'aircraftType') String? get aircraftType; double get price; List<String> get amenities;@JsonKey(name: 'departureDateTime') DateTime? get departureDateTime;@JsonKey(name: 'arrivalDateTime') DateTime? get arrivalDateTime;@JsonKey(name: 'outboundStops') int get outboundStops;// Return flight details (nullable)
+@JsonKey(name: 'returnDepartureTime') String? get returnDepartureTime;@JsonKey(name: 'returnArrivalTime') String? get returnArrivalTime;@JsonKey(name: 'returnDepartureCode') String? get returnDepartureCode;@JsonKey(name: 'returnArrivalCode') String? get returnArrivalCode;@JsonKey(name: 'returnDuration') String? get returnDuration;@JsonKey(name: 'returnAirline') String? get returnAirline;@JsonKey(name: 'returnAircraftType') String? get returnAircraftType;@JsonKey(name: 'returnDepartureDateTime') DateTime? get returnDepartureDateTime;@JsonKey(name: 'returnArrivalDateTime') DateTime? get returnArrivalDateTime;@JsonKey(name: 'returnStops') int? get returnStops;// Extra details
+@JsonKey(name: 'numberOfBookableSeats') int get numberOfBookableSeats;@JsonKey(name: 'lastTicketingDate') String get lastTicketingDate;@JsonKey(name: 'basePrice') double get basePrice;@JsonKey(name: 'cabinClass') String get cabinClass;@JsonKey(name: 'bookingClass') String get bookingClass;@JsonKey(name: 'fareBasis') String get fareBasis;@JsonKey(name: 'checkedBags') BaggageInfo? get checkedBags;@JsonKey(name: 'cabinBags') BaggageInfo? get cabinBags;
 /// Create a copy of Flight
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -50,7 +50,7 @@ abstract mixin class $FlightCopyWith<$Res>  {
   factory $FlightCopyWith(Flight value, $Res Function(Flight) _then) = _$FlightCopyWithImpl;
 @useResult
 $Res call({
- String id, String departureTime, String arrivalTime, String departureAirport, String departureCode, String arrivalAirport, String arrivalCode, String duration, String? airline, String? aircraftType, double price, List<String> amenities, DateTime? departureDateTime, DateTime? arrivalDateTime, int outboundStops, String? returnDepartureTime, String? returnArrivalTime, String? returnDepartureCode, String? returnArrivalCode, String? returnDuration, String? returnAirline, String? returnAircraftType, DateTime? returnDepartureDateTime, DateTime? returnArrivalDateTime, int? returnStops, int numberOfBookableSeats, String lastTicketingDate, double basePrice, String cabinClass, String bookingClass, String fareBasis, BaggageInfo? checkedBags, BaggageInfo? cabinBags
+ String id,@JsonKey(name: 'departureTime') String departureTime,@JsonKey(name: 'arrivalTime') String arrivalTime,@JsonKey(name: 'departureAirport') String departureAirport,@JsonKey(name: 'departureCode') String departureCode,@JsonKey(name: 'arrivalAirport') String arrivalAirport,@JsonKey(name: 'arrivalCode') String arrivalCode, String duration, String? airline,@JsonKey(name: 'aircraftType') String? aircraftType, double price, List<String> amenities,@JsonKey(name: 'departureDateTime') DateTime? departureDateTime,@JsonKey(name: 'arrivalDateTime') DateTime? arrivalDateTime,@JsonKey(name: 'outboundStops') int outboundStops,@JsonKey(name: 'returnDepartureTime') String? returnDepartureTime,@JsonKey(name: 'returnArrivalTime') String? returnArrivalTime,@JsonKey(name: 'returnDepartureCode') String? returnDepartureCode,@JsonKey(name: 'returnArrivalCode') String? returnArrivalCode,@JsonKey(name: 'returnDuration') String? returnDuration,@JsonKey(name: 'returnAirline') String? returnAirline,@JsonKey(name: 'returnAircraftType') String? returnAircraftType,@JsonKey(name: 'returnDepartureDateTime') DateTime? returnDepartureDateTime,@JsonKey(name: 'returnArrivalDateTime') DateTime? returnArrivalDateTime,@JsonKey(name: 'returnStops') int? returnStops,@JsonKey(name: 'numberOfBookableSeats') int numberOfBookableSeats,@JsonKey(name: 'lastTicketingDate') String lastTicketingDate,@JsonKey(name: 'basePrice') double basePrice,@JsonKey(name: 'cabinClass') String cabinClass,@JsonKey(name: 'bookingClass') String bookingClass,@JsonKey(name: 'fareBasis') String fareBasis,@JsonKey(name: 'checkedBags') BaggageInfo? checkedBags,@JsonKey(name: 'cabinBags') BaggageInfo? cabinBags
 });
 
 
@@ -211,7 +211,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String departureTime,  String arrivalTime,  String departureAirport,  String departureCode,  String arrivalAirport,  String arrivalCode,  String duration,  String? airline,  String? aircraftType,  double price,  List<String> amenities,  DateTime? departureDateTime,  DateTime? arrivalDateTime,  int outboundStops,  String? returnDepartureTime,  String? returnArrivalTime,  String? returnDepartureCode,  String? returnArrivalCode,  String? returnDuration,  String? returnAirline,  String? returnAircraftType,  DateTime? returnDepartureDateTime,  DateTime? returnArrivalDateTime,  int? returnStops,  int numberOfBookableSeats,  String lastTicketingDate,  double basePrice,  String cabinClass,  String bookingClass,  String fareBasis,  BaggageInfo? checkedBags,  BaggageInfo? cabinBags)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'departureTime')  String departureTime, @JsonKey(name: 'arrivalTime')  String arrivalTime, @JsonKey(name: 'departureAirport')  String departureAirport, @JsonKey(name: 'departureCode')  String departureCode, @JsonKey(name: 'arrivalAirport')  String arrivalAirport, @JsonKey(name: 'arrivalCode')  String arrivalCode,  String duration,  String? airline, @JsonKey(name: 'aircraftType')  String? aircraftType,  double price,  List<String> amenities, @JsonKey(name: 'departureDateTime')  DateTime? departureDateTime, @JsonKey(name: 'arrivalDateTime')  DateTime? arrivalDateTime, @JsonKey(name: 'outboundStops')  int outboundStops, @JsonKey(name: 'returnDepartureTime')  String? returnDepartureTime, @JsonKey(name: 'returnArrivalTime')  String? returnArrivalTime, @JsonKey(name: 'returnDepartureCode')  String? returnDepartureCode, @JsonKey(name: 'returnArrivalCode')  String? returnArrivalCode, @JsonKey(name: 'returnDuration')  String? returnDuration, @JsonKey(name: 'returnAirline')  String? returnAirline, @JsonKey(name: 'returnAircraftType')  String? returnAircraftType, @JsonKey(name: 'returnDepartureDateTime')  DateTime? returnDepartureDateTime, @JsonKey(name: 'returnArrivalDateTime')  DateTime? returnArrivalDateTime, @JsonKey(name: 'returnStops')  int? returnStops, @JsonKey(name: 'numberOfBookableSeats')  int numberOfBookableSeats, @JsonKey(name: 'lastTicketingDate')  String lastTicketingDate, @JsonKey(name: 'basePrice')  double basePrice, @JsonKey(name: 'cabinClass')  String cabinClass, @JsonKey(name: 'bookingClass')  String bookingClass, @JsonKey(name: 'fareBasis')  String fareBasis, @JsonKey(name: 'checkedBags')  BaggageInfo? checkedBags, @JsonKey(name: 'cabinBags')  BaggageInfo? cabinBags)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Flight() when $default != null:
 return $default(_that.id,_that.departureTime,_that.arrivalTime,_that.departureAirport,_that.departureCode,_that.arrivalAirport,_that.arrivalCode,_that.duration,_that.airline,_that.aircraftType,_that.price,_that.amenities,_that.departureDateTime,_that.arrivalDateTime,_that.outboundStops,_that.returnDepartureTime,_that.returnArrivalTime,_that.returnDepartureCode,_that.returnArrivalCode,_that.returnDuration,_that.returnAirline,_that.returnAircraftType,_that.returnDepartureDateTime,_that.returnArrivalDateTime,_that.returnStops,_that.numberOfBookableSeats,_that.lastTicketingDate,_that.basePrice,_that.cabinClass,_that.bookingClass,_that.fareBasis,_that.checkedBags,_that.cabinBags);case _:
@@ -232,7 +232,7 @@ return $default(_that.id,_that.departureTime,_that.arrivalTime,_that.departureAi
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String departureTime,  String arrivalTime,  String departureAirport,  String departureCode,  String arrivalAirport,  String arrivalCode,  String duration,  String? airline,  String? aircraftType,  double price,  List<String> amenities,  DateTime? departureDateTime,  DateTime? arrivalDateTime,  int outboundStops,  String? returnDepartureTime,  String? returnArrivalTime,  String? returnDepartureCode,  String? returnArrivalCode,  String? returnDuration,  String? returnAirline,  String? returnAircraftType,  DateTime? returnDepartureDateTime,  DateTime? returnArrivalDateTime,  int? returnStops,  int numberOfBookableSeats,  String lastTicketingDate,  double basePrice,  String cabinClass,  String bookingClass,  String fareBasis,  BaggageInfo? checkedBags,  BaggageInfo? cabinBags)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'departureTime')  String departureTime, @JsonKey(name: 'arrivalTime')  String arrivalTime, @JsonKey(name: 'departureAirport')  String departureAirport, @JsonKey(name: 'departureCode')  String departureCode, @JsonKey(name: 'arrivalAirport')  String arrivalAirport, @JsonKey(name: 'arrivalCode')  String arrivalCode,  String duration,  String? airline, @JsonKey(name: 'aircraftType')  String? aircraftType,  double price,  List<String> amenities, @JsonKey(name: 'departureDateTime')  DateTime? departureDateTime, @JsonKey(name: 'arrivalDateTime')  DateTime? arrivalDateTime, @JsonKey(name: 'outboundStops')  int outboundStops, @JsonKey(name: 'returnDepartureTime')  String? returnDepartureTime, @JsonKey(name: 'returnArrivalTime')  String? returnArrivalTime, @JsonKey(name: 'returnDepartureCode')  String? returnDepartureCode, @JsonKey(name: 'returnArrivalCode')  String? returnArrivalCode, @JsonKey(name: 'returnDuration')  String? returnDuration, @JsonKey(name: 'returnAirline')  String? returnAirline, @JsonKey(name: 'returnAircraftType')  String? returnAircraftType, @JsonKey(name: 'returnDepartureDateTime')  DateTime? returnDepartureDateTime, @JsonKey(name: 'returnArrivalDateTime')  DateTime? returnArrivalDateTime, @JsonKey(name: 'returnStops')  int? returnStops, @JsonKey(name: 'numberOfBookableSeats')  int numberOfBookableSeats, @JsonKey(name: 'lastTicketingDate')  String lastTicketingDate, @JsonKey(name: 'basePrice')  double basePrice, @JsonKey(name: 'cabinClass')  String cabinClass, @JsonKey(name: 'bookingClass')  String bookingClass, @JsonKey(name: 'fareBasis')  String fareBasis, @JsonKey(name: 'checkedBags')  BaggageInfo? checkedBags, @JsonKey(name: 'cabinBags')  BaggageInfo? cabinBags)  $default,) {final _that = this;
 switch (_that) {
 case _Flight():
 return $default(_that.id,_that.departureTime,_that.arrivalTime,_that.departureAirport,_that.departureCode,_that.arrivalAirport,_that.arrivalCode,_that.duration,_that.airline,_that.aircraftType,_that.price,_that.amenities,_that.departureDateTime,_that.arrivalDateTime,_that.outboundStops,_that.returnDepartureTime,_that.returnArrivalTime,_that.returnDepartureCode,_that.returnArrivalCode,_that.returnDuration,_that.returnAirline,_that.returnAircraftType,_that.returnDepartureDateTime,_that.returnArrivalDateTime,_that.returnStops,_that.numberOfBookableSeats,_that.lastTicketingDate,_that.basePrice,_that.cabinClass,_that.bookingClass,_that.fareBasis,_that.checkedBags,_that.cabinBags);case _:
@@ -252,7 +252,7 @@ return $default(_that.id,_that.departureTime,_that.arrivalTime,_that.departureAi
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String departureTime,  String arrivalTime,  String departureAirport,  String departureCode,  String arrivalAirport,  String arrivalCode,  String duration,  String? airline,  String? aircraftType,  double price,  List<String> amenities,  DateTime? departureDateTime,  DateTime? arrivalDateTime,  int outboundStops,  String? returnDepartureTime,  String? returnArrivalTime,  String? returnDepartureCode,  String? returnArrivalCode,  String? returnDuration,  String? returnAirline,  String? returnAircraftType,  DateTime? returnDepartureDateTime,  DateTime? returnArrivalDateTime,  int? returnStops,  int numberOfBookableSeats,  String lastTicketingDate,  double basePrice,  String cabinClass,  String bookingClass,  String fareBasis,  BaggageInfo? checkedBags,  BaggageInfo? cabinBags)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'departureTime')  String departureTime, @JsonKey(name: 'arrivalTime')  String arrivalTime, @JsonKey(name: 'departureAirport')  String departureAirport, @JsonKey(name: 'departureCode')  String departureCode, @JsonKey(name: 'arrivalAirport')  String arrivalAirport, @JsonKey(name: 'arrivalCode')  String arrivalCode,  String duration,  String? airline, @JsonKey(name: 'aircraftType')  String? aircraftType,  double price,  List<String> amenities, @JsonKey(name: 'departureDateTime')  DateTime? departureDateTime, @JsonKey(name: 'arrivalDateTime')  DateTime? arrivalDateTime, @JsonKey(name: 'outboundStops')  int outboundStops, @JsonKey(name: 'returnDepartureTime')  String? returnDepartureTime, @JsonKey(name: 'returnArrivalTime')  String? returnArrivalTime, @JsonKey(name: 'returnDepartureCode')  String? returnDepartureCode, @JsonKey(name: 'returnArrivalCode')  String? returnArrivalCode, @JsonKey(name: 'returnDuration')  String? returnDuration, @JsonKey(name: 'returnAirline')  String? returnAirline, @JsonKey(name: 'returnAircraftType')  String? returnAircraftType, @JsonKey(name: 'returnDepartureDateTime')  DateTime? returnDepartureDateTime, @JsonKey(name: 'returnArrivalDateTime')  DateTime? returnArrivalDateTime, @JsonKey(name: 'returnStops')  int? returnStops, @JsonKey(name: 'numberOfBookableSeats')  int numberOfBookableSeats, @JsonKey(name: 'lastTicketingDate')  String lastTicketingDate, @JsonKey(name: 'basePrice')  double basePrice, @JsonKey(name: 'cabinClass')  String cabinClass, @JsonKey(name: 'bookingClass')  String bookingClass, @JsonKey(name: 'fareBasis')  String fareBasis, @JsonKey(name: 'checkedBags')  BaggageInfo? checkedBags, @JsonKey(name: 'cabinBags')  BaggageInfo? cabinBags)?  $default,) {final _that = this;
 switch (_that) {
 case _Flight() when $default != null:
 return $default(_that.id,_that.departureTime,_that.arrivalTime,_that.departureAirport,_that.departureCode,_that.arrivalAirport,_that.arrivalCode,_that.duration,_that.airline,_that.aircraftType,_that.price,_that.amenities,_that.departureDateTime,_that.arrivalDateTime,_that.outboundStops,_that.returnDepartureTime,_that.returnArrivalTime,_that.returnDepartureCode,_that.returnArrivalCode,_that.returnDuration,_that.returnAirline,_that.returnAircraftType,_that.returnDepartureDateTime,_that.returnArrivalDateTime,_that.returnStops,_that.numberOfBookableSeats,_that.lastTicketingDate,_that.basePrice,_that.cabinClass,_that.bookingClass,_that.fareBasis,_that.checkedBags,_that.cabinBags);case _:
@@ -267,19 +267,19 @@ return $default(_that.id,_that.departureTime,_that.arrivalTime,_that.departureAi
 @JsonSerializable()
 
 class _Flight extends Flight {
-  const _Flight({required this.id, required this.departureTime, required this.arrivalTime, required this.departureAirport, required this.departureCode, required this.arrivalAirport, required this.arrivalCode, required this.duration, this.airline, this.aircraftType, required this.price, final  List<String> amenities = const [], this.departureDateTime, this.arrivalDateTime, this.outboundStops = 0, this.returnDepartureTime, this.returnArrivalTime, this.returnDepartureCode, this.returnArrivalCode, this.returnDuration, this.returnAirline, this.returnAircraftType, this.returnDepartureDateTime, this.returnArrivalDateTime, this.returnStops, this.numberOfBookableSeats = 0, this.lastTicketingDate = '', this.basePrice = 0, this.cabinClass = 'Unknown', this.bookingClass = 'Unknown', this.fareBasis = 'Unknown', this.checkedBags, this.cabinBags}): _amenities = amenities,super._();
+  const _Flight({required this.id, @JsonKey(name: 'departureTime') required this.departureTime, @JsonKey(name: 'arrivalTime') required this.arrivalTime, @JsonKey(name: 'departureAirport') required this.departureAirport, @JsonKey(name: 'departureCode') required this.departureCode, @JsonKey(name: 'arrivalAirport') required this.arrivalAirport, @JsonKey(name: 'arrivalCode') required this.arrivalCode, required this.duration, this.airline, @JsonKey(name: 'aircraftType') this.aircraftType, required this.price, final  List<String> amenities = const [], @JsonKey(name: 'departureDateTime') this.departureDateTime, @JsonKey(name: 'arrivalDateTime') this.arrivalDateTime, @JsonKey(name: 'outboundStops') this.outboundStops = 0, @JsonKey(name: 'returnDepartureTime') this.returnDepartureTime, @JsonKey(name: 'returnArrivalTime') this.returnArrivalTime, @JsonKey(name: 'returnDepartureCode') this.returnDepartureCode, @JsonKey(name: 'returnArrivalCode') this.returnArrivalCode, @JsonKey(name: 'returnDuration') this.returnDuration, @JsonKey(name: 'returnAirline') this.returnAirline, @JsonKey(name: 'returnAircraftType') this.returnAircraftType, @JsonKey(name: 'returnDepartureDateTime') this.returnDepartureDateTime, @JsonKey(name: 'returnArrivalDateTime') this.returnArrivalDateTime, @JsonKey(name: 'returnStops') this.returnStops, @JsonKey(name: 'numberOfBookableSeats') this.numberOfBookableSeats = 0, @JsonKey(name: 'lastTicketingDate') this.lastTicketingDate = '', @JsonKey(name: 'basePrice') this.basePrice = 0, @JsonKey(name: 'cabinClass') this.cabinClass = 'Unknown', @JsonKey(name: 'bookingClass') this.bookingClass = 'Unknown', @JsonKey(name: 'fareBasis') this.fareBasis = 'Unknown', @JsonKey(name: 'checkedBags') this.checkedBags, @JsonKey(name: 'cabinBags') this.cabinBags}): _amenities = amenities,super._();
   factory _Flight.fromJson(Map<String, dynamic> json) => _$FlightFromJson(json);
 
 @override final  String id;
-@override final  String departureTime;
-@override final  String arrivalTime;
-@override final  String departureAirport;
-@override final  String departureCode;
-@override final  String arrivalAirport;
-@override final  String arrivalCode;
+@override@JsonKey(name: 'departureTime') final  String departureTime;
+@override@JsonKey(name: 'arrivalTime') final  String arrivalTime;
+@override@JsonKey(name: 'departureAirport') final  String departureAirport;
+@override@JsonKey(name: 'departureCode') final  String departureCode;
+@override@JsonKey(name: 'arrivalAirport') final  String arrivalAirport;
+@override@JsonKey(name: 'arrivalCode') final  String arrivalCode;
 @override final  String duration;
 @override final  String? airline;
-@override final  String? aircraftType;
+@override@JsonKey(name: 'aircraftType') final  String? aircraftType;
 @override final  double price;
  final  List<String> _amenities;
 @override@JsonKey() List<String> get amenities {
@@ -288,29 +288,29 @@ class _Flight extends Flight {
   return EqualUnmodifiableListView(_amenities);
 }
 
-@override final  DateTime? departureDateTime;
-@override final  DateTime? arrivalDateTime;
-@override@JsonKey() final  int outboundStops;
+@override@JsonKey(name: 'departureDateTime') final  DateTime? departureDateTime;
+@override@JsonKey(name: 'arrivalDateTime') final  DateTime? arrivalDateTime;
+@override@JsonKey(name: 'outboundStops') final  int outboundStops;
 // Return flight details (nullable)
-@override final  String? returnDepartureTime;
-@override final  String? returnArrivalTime;
-@override final  String? returnDepartureCode;
-@override final  String? returnArrivalCode;
-@override final  String? returnDuration;
-@override final  String? returnAirline;
-@override final  String? returnAircraftType;
-@override final  DateTime? returnDepartureDateTime;
-@override final  DateTime? returnArrivalDateTime;
-@override final  int? returnStops;
+@override@JsonKey(name: 'returnDepartureTime') final  String? returnDepartureTime;
+@override@JsonKey(name: 'returnArrivalTime') final  String? returnArrivalTime;
+@override@JsonKey(name: 'returnDepartureCode') final  String? returnDepartureCode;
+@override@JsonKey(name: 'returnArrivalCode') final  String? returnArrivalCode;
+@override@JsonKey(name: 'returnDuration') final  String? returnDuration;
+@override@JsonKey(name: 'returnAirline') final  String? returnAirline;
+@override@JsonKey(name: 'returnAircraftType') final  String? returnAircraftType;
+@override@JsonKey(name: 'returnDepartureDateTime') final  DateTime? returnDepartureDateTime;
+@override@JsonKey(name: 'returnArrivalDateTime') final  DateTime? returnArrivalDateTime;
+@override@JsonKey(name: 'returnStops') final  int? returnStops;
 // Extra details
-@override@JsonKey() final  int numberOfBookableSeats;
-@override@JsonKey() final  String lastTicketingDate;
-@override@JsonKey() final  double basePrice;
-@override@JsonKey() final  String cabinClass;
-@override@JsonKey() final  String bookingClass;
-@override@JsonKey() final  String fareBasis;
-@override final  BaggageInfo? checkedBags;
-@override final  BaggageInfo? cabinBags;
+@override@JsonKey(name: 'numberOfBookableSeats') final  int numberOfBookableSeats;
+@override@JsonKey(name: 'lastTicketingDate') final  String lastTicketingDate;
+@override@JsonKey(name: 'basePrice') final  double basePrice;
+@override@JsonKey(name: 'cabinClass') final  String cabinClass;
+@override@JsonKey(name: 'bookingClass') final  String bookingClass;
+@override@JsonKey(name: 'fareBasis') final  String fareBasis;
+@override@JsonKey(name: 'checkedBags') final  BaggageInfo? checkedBags;
+@override@JsonKey(name: 'cabinBags') final  BaggageInfo? cabinBags;
 
 /// Create a copy of Flight
 /// with the given fields replaced by the non-null parameter values.
@@ -345,7 +345,7 @@ abstract mixin class _$FlightCopyWith<$Res> implements $FlightCopyWith<$Res> {
   factory _$FlightCopyWith(_Flight value, $Res Function(_Flight) _then) = __$FlightCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String departureTime, String arrivalTime, String departureAirport, String departureCode, String arrivalAirport, String arrivalCode, String duration, String? airline, String? aircraftType, double price, List<String> amenities, DateTime? departureDateTime, DateTime? arrivalDateTime, int outboundStops, String? returnDepartureTime, String? returnArrivalTime, String? returnDepartureCode, String? returnArrivalCode, String? returnDuration, String? returnAirline, String? returnAircraftType, DateTime? returnDepartureDateTime, DateTime? returnArrivalDateTime, int? returnStops, int numberOfBookableSeats, String lastTicketingDate, double basePrice, String cabinClass, String bookingClass, String fareBasis, BaggageInfo? checkedBags, BaggageInfo? cabinBags
+ String id,@JsonKey(name: 'departureTime') String departureTime,@JsonKey(name: 'arrivalTime') String arrivalTime,@JsonKey(name: 'departureAirport') String departureAirport,@JsonKey(name: 'departureCode') String departureCode,@JsonKey(name: 'arrivalAirport') String arrivalAirport,@JsonKey(name: 'arrivalCode') String arrivalCode, String duration, String? airline,@JsonKey(name: 'aircraftType') String? aircraftType, double price, List<String> amenities,@JsonKey(name: 'departureDateTime') DateTime? departureDateTime,@JsonKey(name: 'arrivalDateTime') DateTime? arrivalDateTime,@JsonKey(name: 'outboundStops') int outboundStops,@JsonKey(name: 'returnDepartureTime') String? returnDepartureTime,@JsonKey(name: 'returnArrivalTime') String? returnArrivalTime,@JsonKey(name: 'returnDepartureCode') String? returnDepartureCode,@JsonKey(name: 'returnArrivalCode') String? returnArrivalCode,@JsonKey(name: 'returnDuration') String? returnDuration,@JsonKey(name: 'returnAirline') String? returnAirline,@JsonKey(name: 'returnAircraftType') String? returnAircraftType,@JsonKey(name: 'returnDepartureDateTime') DateTime? returnDepartureDateTime,@JsonKey(name: 'returnArrivalDateTime') DateTime? returnArrivalDateTime,@JsonKey(name: 'returnStops') int? returnStops,@JsonKey(name: 'numberOfBookableSeats') int numberOfBookableSeats,@JsonKey(name: 'lastTicketingDate') String lastTicketingDate,@JsonKey(name: 'basePrice') double basePrice,@JsonKey(name: 'cabinClass') String cabinClass,@JsonKey(name: 'bookingClass') String bookingClass,@JsonKey(name: 'fareBasis') String fareBasis,@JsonKey(name: 'checkedBags') BaggageInfo? checkedBags,@JsonKey(name: 'cabinBags') BaggageInfo? cabinBags
 });
 
 

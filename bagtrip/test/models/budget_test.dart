@@ -6,7 +6,7 @@ void main() {
     test('JSON values are mapped correctly via BudgetItem fromJson', () {
       BudgetItem fromCategory(String category) => BudgetItem.fromJson({
         'id': 'b1',
-        'tripId': 't1',
+        'trip_id': 't1',
         'label': 'Test',
         'amount': 100.0,
         'category': category,
@@ -26,7 +26,7 @@ void main() {
     test('null category defaults to other', () {
       final item = BudgetItem.fromJson({
         'id': 'b1',
-        'tripId': 't1',
+        'trip_id': 't1',
         'label': 'Test',
         'amount': 50.0,
       });
@@ -39,14 +39,14 @@ void main() {
       test('parses all fields correctly', () {
         final json = <String, dynamic>{
           'id': 'budget-1',
-          'tripId': 'trip-1',
+          'trip_id': 'trip-1',
           'label': 'Flight to Paris',
           'amount': 450.99,
           'category': 'FLIGHT',
           'date': '2024-06-01T00:00:00.000',
-          'isPlanned': false,
-          'createdAt': '2024-01-15T10:30:00.000',
-          'updatedAt': '2024-02-20T14:00:00.000',
+          'is_planned': false,
+          'created_at': '2024-01-15T10:30:00.000',
+          'updated_at': '2024-02-20T14:00:00.000',
         };
 
         final item = BudgetItem.fromJson(json);
@@ -65,7 +65,7 @@ void main() {
       test('parses with only required fields and applies defaults', () {
         final json = <String, dynamic>{
           'id': 'budget-2',
-          'tripId': 'trip-2',
+          'trip_id': 'trip-2',
           'label': 'Miscellaneous',
           'amount': 25.0,
         };

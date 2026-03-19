@@ -9,31 +9,45 @@ part 'trip_summary.g.dart';
 abstract class TripSummary with _$TripSummary {
   const factory TripSummary({
     @Default('') String destination,
-    @Default('') String destinationCountry,
-    @Default(0) int durationDays,
-    @Default(0) int budgetEur,
+    @JsonKey(name: 'destinationCountry') @Default('') String destinationCountry,
+    @JsonKey(name: 'durationDays') @Default(0) int durationDays,
+    @JsonKey(name: 'budgetEur') @Default(0) int budgetEur,
     @Default([]) List<String> highlights,
     @Default('') String accommodation,
-    @Default([]) List<String> dayByDayProgram,
-    @Default([]) List<String> essentialItems,
+    @JsonKey(name: 'dayByDayProgram') @Default([]) List<String> dayByDayProgram,
+    @JsonKey(name: 'essentialItems') @Default([]) List<String> essentialItems,
     // Accommodation details (real data from Amadeus)
-    @Default('') String accommodationSubtitle,
-    @Default(0.0) double accommodationPrice,
-    @Default('estimated') String accommodationSource,
+    @JsonKey(name: 'accommodationSubtitle')
+    @Default('')
+    String accommodationSubtitle,
+    @JsonKey(name: 'accommodationPrice')
+    @Default(0.0)
+    double accommodationPrice,
+    @JsonKey(name: 'accommodationSource')
+    @Default('estimated')
+    String accommodationSource,
     // Flight details (real data from Amadeus)
-    @Default('') String flightRoute,
-    @Default('') String flightDetails,
-    @Default(0.0) double flightPrice,
-    @Default('estimated') String flightSource,
+    @JsonKey(name: 'flightRoute') @Default('') String flightRoute,
+    @JsonKey(name: 'flightDetails') @Default('') String flightDetails,
+    @JsonKey(name: 'flightPrice') @Default(0.0) double flightPrice,
+    @JsonKey(name: 'flightSource') @Default('estimated') String flightSource,
     // Day-by-day descriptions and categories from activities
-    @Default([]) List<String> dayByDayDescriptions,
-    @Default([]) List<String> dayByDayCategories,
+    @JsonKey(name: 'dayByDayDescriptions')
+    @Default([])
+    List<String> dayByDayDescriptions,
+    @JsonKey(name: 'dayByDayCategories')
+    @Default([])
+    List<String> dayByDayCategories,
     // Baggage reasons
-    @Default([]) List<String> essentialReasons,
+    @JsonKey(name: 'essentialReasons')
+    @Default([])
+    List<String> essentialReasons,
     // Budget breakdown
-    @Default({}) Map<String, dynamic> budgetBreakdown,
+    @JsonKey(name: 'budgetBreakdown')
+    @Default({})
+    Map<String, dynamic> budgetBreakdown,
     // Weather data
-    @Default({}) Map<String, dynamic> weatherData,
+    @JsonKey(name: 'weatherData') @Default({}) Map<String, dynamic> weatherData,
   }) = _TripSummary;
 
   factory TripSummary.fromJson(Map<String, dynamic> json) =>

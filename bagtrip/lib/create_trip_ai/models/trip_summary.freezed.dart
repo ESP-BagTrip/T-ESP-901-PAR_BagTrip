@@ -15,13 +15,13 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TripSummary {
 
- String get destination; String get destinationCountry; int get durationDays; int get budgetEur; List<String> get highlights; String get accommodation; List<String> get dayByDayProgram; List<String> get essentialItems;// Accommodation details (real data from Amadeus)
- String get accommodationSubtitle; double get accommodationPrice; String get accommodationSource;// Flight details (real data from Amadeus)
- String get flightRoute; String get flightDetails; double get flightPrice; String get flightSource;// Day-by-day descriptions and categories from activities
- List<String> get dayByDayDescriptions; List<String> get dayByDayCategories;// Baggage reasons
- List<String> get essentialReasons;// Budget breakdown
- Map<String, dynamic> get budgetBreakdown;// Weather data
- Map<String, dynamic> get weatherData;
+ String get destination;@JsonKey(name: 'destinationCountry') String get destinationCountry;@JsonKey(name: 'durationDays') int get durationDays;@JsonKey(name: 'budgetEur') int get budgetEur; List<String> get highlights; String get accommodation;@JsonKey(name: 'dayByDayProgram') List<String> get dayByDayProgram;@JsonKey(name: 'essentialItems') List<String> get essentialItems;// Accommodation details (real data from Amadeus)
+@JsonKey(name: 'accommodationSubtitle') String get accommodationSubtitle;@JsonKey(name: 'accommodationPrice') double get accommodationPrice;@JsonKey(name: 'accommodationSource') String get accommodationSource;// Flight details (real data from Amadeus)
+@JsonKey(name: 'flightRoute') String get flightRoute;@JsonKey(name: 'flightDetails') String get flightDetails;@JsonKey(name: 'flightPrice') double get flightPrice;@JsonKey(name: 'flightSource') String get flightSource;// Day-by-day descriptions and categories from activities
+@JsonKey(name: 'dayByDayDescriptions') List<String> get dayByDayDescriptions;@JsonKey(name: 'dayByDayCategories') List<String> get dayByDayCategories;// Baggage reasons
+@JsonKey(name: 'essentialReasons') List<String> get essentialReasons;// Budget breakdown
+@JsonKey(name: 'budgetBreakdown') Map<String, dynamic> get budgetBreakdown;// Weather data
+@JsonKey(name: 'weatherData') Map<String, dynamic> get weatherData;
 /// Create a copy of TripSummary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -54,7 +54,7 @@ abstract mixin class $TripSummaryCopyWith<$Res>  {
   factory $TripSummaryCopyWith(TripSummary value, $Res Function(TripSummary) _then) = _$TripSummaryCopyWithImpl;
 @useResult
 $Res call({
- String destination, String destinationCountry, int durationDays, int budgetEur, List<String> highlights, String accommodation, List<String> dayByDayProgram, List<String> essentialItems, String accommodationSubtitle, double accommodationPrice, String accommodationSource, String flightRoute, String flightDetails, double flightPrice, String flightSource, List<String> dayByDayDescriptions, List<String> dayByDayCategories, List<String> essentialReasons, Map<String, dynamic> budgetBreakdown, Map<String, dynamic> weatherData
+ String destination,@JsonKey(name: 'destinationCountry') String destinationCountry,@JsonKey(name: 'durationDays') int durationDays,@JsonKey(name: 'budgetEur') int budgetEur, List<String> highlights, String accommodation,@JsonKey(name: 'dayByDayProgram') List<String> dayByDayProgram,@JsonKey(name: 'essentialItems') List<String> essentialItems,@JsonKey(name: 'accommodationSubtitle') String accommodationSubtitle,@JsonKey(name: 'accommodationPrice') double accommodationPrice,@JsonKey(name: 'accommodationSource') String accommodationSource,@JsonKey(name: 'flightRoute') String flightRoute,@JsonKey(name: 'flightDetails') String flightDetails,@JsonKey(name: 'flightPrice') double flightPrice,@JsonKey(name: 'flightSource') String flightSource,@JsonKey(name: 'dayByDayDescriptions') List<String> dayByDayDescriptions,@JsonKey(name: 'dayByDayCategories') List<String> dayByDayCategories,@JsonKey(name: 'essentialReasons') List<String> essentialReasons,@JsonKey(name: 'budgetBreakdown') Map<String, dynamic> budgetBreakdown,@JsonKey(name: 'weatherData') Map<String, dynamic> weatherData
 });
 
 
@@ -178,7 +178,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String destination,  String destinationCountry,  int durationDays,  int budgetEur,  List<String> highlights,  String accommodation,  List<String> dayByDayProgram,  List<String> essentialItems,  String accommodationSubtitle,  double accommodationPrice,  String accommodationSource,  String flightRoute,  String flightDetails,  double flightPrice,  String flightSource,  List<String> dayByDayDescriptions,  List<String> dayByDayCategories,  List<String> essentialReasons,  Map<String, dynamic> budgetBreakdown,  Map<String, dynamic> weatherData)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String destination, @JsonKey(name: 'destinationCountry')  String destinationCountry, @JsonKey(name: 'durationDays')  int durationDays, @JsonKey(name: 'budgetEur')  int budgetEur,  List<String> highlights,  String accommodation, @JsonKey(name: 'dayByDayProgram')  List<String> dayByDayProgram, @JsonKey(name: 'essentialItems')  List<String> essentialItems, @JsonKey(name: 'accommodationSubtitle')  String accommodationSubtitle, @JsonKey(name: 'accommodationPrice')  double accommodationPrice, @JsonKey(name: 'accommodationSource')  String accommodationSource, @JsonKey(name: 'flightRoute')  String flightRoute, @JsonKey(name: 'flightDetails')  String flightDetails, @JsonKey(name: 'flightPrice')  double flightPrice, @JsonKey(name: 'flightSource')  String flightSource, @JsonKey(name: 'dayByDayDescriptions')  List<String> dayByDayDescriptions, @JsonKey(name: 'dayByDayCategories')  List<String> dayByDayCategories, @JsonKey(name: 'essentialReasons')  List<String> essentialReasons, @JsonKey(name: 'budgetBreakdown')  Map<String, dynamic> budgetBreakdown, @JsonKey(name: 'weatherData')  Map<String, dynamic> weatherData)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TripSummary() when $default != null:
 return $default(_that.destination,_that.destinationCountry,_that.durationDays,_that.budgetEur,_that.highlights,_that.accommodation,_that.dayByDayProgram,_that.essentialItems,_that.accommodationSubtitle,_that.accommodationPrice,_that.accommodationSource,_that.flightRoute,_that.flightDetails,_that.flightPrice,_that.flightSource,_that.dayByDayDescriptions,_that.dayByDayCategories,_that.essentialReasons,_that.budgetBreakdown,_that.weatherData);case _:
@@ -199,7 +199,7 @@ return $default(_that.destination,_that.destinationCountry,_that.durationDays,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String destination,  String destinationCountry,  int durationDays,  int budgetEur,  List<String> highlights,  String accommodation,  List<String> dayByDayProgram,  List<String> essentialItems,  String accommodationSubtitle,  double accommodationPrice,  String accommodationSource,  String flightRoute,  String flightDetails,  double flightPrice,  String flightSource,  List<String> dayByDayDescriptions,  List<String> dayByDayCategories,  List<String> essentialReasons,  Map<String, dynamic> budgetBreakdown,  Map<String, dynamic> weatherData)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String destination, @JsonKey(name: 'destinationCountry')  String destinationCountry, @JsonKey(name: 'durationDays')  int durationDays, @JsonKey(name: 'budgetEur')  int budgetEur,  List<String> highlights,  String accommodation, @JsonKey(name: 'dayByDayProgram')  List<String> dayByDayProgram, @JsonKey(name: 'essentialItems')  List<String> essentialItems, @JsonKey(name: 'accommodationSubtitle')  String accommodationSubtitle, @JsonKey(name: 'accommodationPrice')  double accommodationPrice, @JsonKey(name: 'accommodationSource')  String accommodationSource, @JsonKey(name: 'flightRoute')  String flightRoute, @JsonKey(name: 'flightDetails')  String flightDetails, @JsonKey(name: 'flightPrice')  double flightPrice, @JsonKey(name: 'flightSource')  String flightSource, @JsonKey(name: 'dayByDayDescriptions')  List<String> dayByDayDescriptions, @JsonKey(name: 'dayByDayCategories')  List<String> dayByDayCategories, @JsonKey(name: 'essentialReasons')  List<String> essentialReasons, @JsonKey(name: 'budgetBreakdown')  Map<String, dynamic> budgetBreakdown, @JsonKey(name: 'weatherData')  Map<String, dynamic> weatherData)  $default,) {final _that = this;
 switch (_that) {
 case _TripSummary():
 return $default(_that.destination,_that.destinationCountry,_that.durationDays,_that.budgetEur,_that.highlights,_that.accommodation,_that.dayByDayProgram,_that.essentialItems,_that.accommodationSubtitle,_that.accommodationPrice,_that.accommodationSource,_that.flightRoute,_that.flightDetails,_that.flightPrice,_that.flightSource,_that.dayByDayDescriptions,_that.dayByDayCategories,_that.essentialReasons,_that.budgetBreakdown,_that.weatherData);case _:
@@ -219,7 +219,7 @@ return $default(_that.destination,_that.destinationCountry,_that.durationDays,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String destination,  String destinationCountry,  int durationDays,  int budgetEur,  List<String> highlights,  String accommodation,  List<String> dayByDayProgram,  List<String> essentialItems,  String accommodationSubtitle,  double accommodationPrice,  String accommodationSource,  String flightRoute,  String flightDetails,  double flightPrice,  String flightSource,  List<String> dayByDayDescriptions,  List<String> dayByDayCategories,  List<String> essentialReasons,  Map<String, dynamic> budgetBreakdown,  Map<String, dynamic> weatherData)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String destination, @JsonKey(name: 'destinationCountry')  String destinationCountry, @JsonKey(name: 'durationDays')  int durationDays, @JsonKey(name: 'budgetEur')  int budgetEur,  List<String> highlights,  String accommodation, @JsonKey(name: 'dayByDayProgram')  List<String> dayByDayProgram, @JsonKey(name: 'essentialItems')  List<String> essentialItems, @JsonKey(name: 'accommodationSubtitle')  String accommodationSubtitle, @JsonKey(name: 'accommodationPrice')  double accommodationPrice, @JsonKey(name: 'accommodationSource')  String accommodationSource, @JsonKey(name: 'flightRoute')  String flightRoute, @JsonKey(name: 'flightDetails')  String flightDetails, @JsonKey(name: 'flightPrice')  double flightPrice, @JsonKey(name: 'flightSource')  String flightSource, @JsonKey(name: 'dayByDayDescriptions')  List<String> dayByDayDescriptions, @JsonKey(name: 'dayByDayCategories')  List<String> dayByDayCategories, @JsonKey(name: 'essentialReasons')  List<String> essentialReasons, @JsonKey(name: 'budgetBreakdown')  Map<String, dynamic> budgetBreakdown, @JsonKey(name: 'weatherData')  Map<String, dynamic> weatherData)?  $default,) {final _that = this;
 switch (_that) {
 case _TripSummary() when $default != null:
 return $default(_that.destination,_that.destinationCountry,_that.durationDays,_that.budgetEur,_that.highlights,_that.accommodation,_that.dayByDayProgram,_that.essentialItems,_that.accommodationSubtitle,_that.accommodationPrice,_that.accommodationSource,_that.flightRoute,_that.flightDetails,_that.flightPrice,_that.flightSource,_that.dayByDayDescriptions,_that.dayByDayCategories,_that.essentialReasons,_that.budgetBreakdown,_that.weatherData);case _:
@@ -234,13 +234,13 @@ return $default(_that.destination,_that.destinationCountry,_that.durationDays,_t
 @JsonSerializable()
 
 class _TripSummary implements TripSummary {
-  const _TripSummary({this.destination = '', this.destinationCountry = '', this.durationDays = 0, this.budgetEur = 0, final  List<String> highlights = const [], this.accommodation = '', final  List<String> dayByDayProgram = const [], final  List<String> essentialItems = const [], this.accommodationSubtitle = '', this.accommodationPrice = 0.0, this.accommodationSource = 'estimated', this.flightRoute = '', this.flightDetails = '', this.flightPrice = 0.0, this.flightSource = 'estimated', final  List<String> dayByDayDescriptions = const [], final  List<String> dayByDayCategories = const [], final  List<String> essentialReasons = const [], final  Map<String, dynamic> budgetBreakdown = const {}, final  Map<String, dynamic> weatherData = const {}}): _highlights = highlights,_dayByDayProgram = dayByDayProgram,_essentialItems = essentialItems,_dayByDayDescriptions = dayByDayDescriptions,_dayByDayCategories = dayByDayCategories,_essentialReasons = essentialReasons,_budgetBreakdown = budgetBreakdown,_weatherData = weatherData;
+  const _TripSummary({this.destination = '', @JsonKey(name: 'destinationCountry') this.destinationCountry = '', @JsonKey(name: 'durationDays') this.durationDays = 0, @JsonKey(name: 'budgetEur') this.budgetEur = 0, final  List<String> highlights = const [], this.accommodation = '', @JsonKey(name: 'dayByDayProgram') final  List<String> dayByDayProgram = const [], @JsonKey(name: 'essentialItems') final  List<String> essentialItems = const [], @JsonKey(name: 'accommodationSubtitle') this.accommodationSubtitle = '', @JsonKey(name: 'accommodationPrice') this.accommodationPrice = 0.0, @JsonKey(name: 'accommodationSource') this.accommodationSource = 'estimated', @JsonKey(name: 'flightRoute') this.flightRoute = '', @JsonKey(name: 'flightDetails') this.flightDetails = '', @JsonKey(name: 'flightPrice') this.flightPrice = 0.0, @JsonKey(name: 'flightSource') this.flightSource = 'estimated', @JsonKey(name: 'dayByDayDescriptions') final  List<String> dayByDayDescriptions = const [], @JsonKey(name: 'dayByDayCategories') final  List<String> dayByDayCategories = const [], @JsonKey(name: 'essentialReasons') final  List<String> essentialReasons = const [], @JsonKey(name: 'budgetBreakdown') final  Map<String, dynamic> budgetBreakdown = const {}, @JsonKey(name: 'weatherData') final  Map<String, dynamic> weatherData = const {}}): _highlights = highlights,_dayByDayProgram = dayByDayProgram,_essentialItems = essentialItems,_dayByDayDescriptions = dayByDayDescriptions,_dayByDayCategories = dayByDayCategories,_essentialReasons = essentialReasons,_budgetBreakdown = budgetBreakdown,_weatherData = weatherData;
   factory _TripSummary.fromJson(Map<String, dynamic> json) => _$TripSummaryFromJson(json);
 
 @override@JsonKey() final  String destination;
-@override@JsonKey() final  String destinationCountry;
-@override@JsonKey() final  int durationDays;
-@override@JsonKey() final  int budgetEur;
+@override@JsonKey(name: 'destinationCountry') final  String destinationCountry;
+@override@JsonKey(name: 'durationDays') final  int durationDays;
+@override@JsonKey(name: 'budgetEur') final  int budgetEur;
  final  List<String> _highlights;
 @override@JsonKey() List<String> get highlights {
   if (_highlights is EqualUnmodifiableListView) return _highlights;
@@ -250,39 +250,39 @@ class _TripSummary implements TripSummary {
 
 @override@JsonKey() final  String accommodation;
  final  List<String> _dayByDayProgram;
-@override@JsonKey() List<String> get dayByDayProgram {
+@override@JsonKey(name: 'dayByDayProgram') List<String> get dayByDayProgram {
   if (_dayByDayProgram is EqualUnmodifiableListView) return _dayByDayProgram;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_dayByDayProgram);
 }
 
  final  List<String> _essentialItems;
-@override@JsonKey() List<String> get essentialItems {
+@override@JsonKey(name: 'essentialItems') List<String> get essentialItems {
   if (_essentialItems is EqualUnmodifiableListView) return _essentialItems;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_essentialItems);
 }
 
 // Accommodation details (real data from Amadeus)
-@override@JsonKey() final  String accommodationSubtitle;
-@override@JsonKey() final  double accommodationPrice;
-@override@JsonKey() final  String accommodationSource;
+@override@JsonKey(name: 'accommodationSubtitle') final  String accommodationSubtitle;
+@override@JsonKey(name: 'accommodationPrice') final  double accommodationPrice;
+@override@JsonKey(name: 'accommodationSource') final  String accommodationSource;
 // Flight details (real data from Amadeus)
-@override@JsonKey() final  String flightRoute;
-@override@JsonKey() final  String flightDetails;
-@override@JsonKey() final  double flightPrice;
-@override@JsonKey() final  String flightSource;
+@override@JsonKey(name: 'flightRoute') final  String flightRoute;
+@override@JsonKey(name: 'flightDetails') final  String flightDetails;
+@override@JsonKey(name: 'flightPrice') final  double flightPrice;
+@override@JsonKey(name: 'flightSource') final  String flightSource;
 // Day-by-day descriptions and categories from activities
  final  List<String> _dayByDayDescriptions;
 // Day-by-day descriptions and categories from activities
-@override@JsonKey() List<String> get dayByDayDescriptions {
+@override@JsonKey(name: 'dayByDayDescriptions') List<String> get dayByDayDescriptions {
   if (_dayByDayDescriptions is EqualUnmodifiableListView) return _dayByDayDescriptions;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_dayByDayDescriptions);
 }
 
  final  List<String> _dayByDayCategories;
-@override@JsonKey() List<String> get dayByDayCategories {
+@override@JsonKey(name: 'dayByDayCategories') List<String> get dayByDayCategories {
   if (_dayByDayCategories is EqualUnmodifiableListView) return _dayByDayCategories;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_dayByDayCategories);
@@ -291,7 +291,7 @@ class _TripSummary implements TripSummary {
 // Baggage reasons
  final  List<String> _essentialReasons;
 // Baggage reasons
-@override@JsonKey() List<String> get essentialReasons {
+@override@JsonKey(name: 'essentialReasons') List<String> get essentialReasons {
   if (_essentialReasons is EqualUnmodifiableListView) return _essentialReasons;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_essentialReasons);
@@ -300,7 +300,7 @@ class _TripSummary implements TripSummary {
 // Budget breakdown
  final  Map<String, dynamic> _budgetBreakdown;
 // Budget breakdown
-@override@JsonKey() Map<String, dynamic> get budgetBreakdown {
+@override@JsonKey(name: 'budgetBreakdown') Map<String, dynamic> get budgetBreakdown {
   if (_budgetBreakdown is EqualUnmodifiableMapView) return _budgetBreakdown;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableMapView(_budgetBreakdown);
@@ -309,7 +309,7 @@ class _TripSummary implements TripSummary {
 // Weather data
  final  Map<String, dynamic> _weatherData;
 // Weather data
-@override@JsonKey() Map<String, dynamic> get weatherData {
+@override@JsonKey(name: 'weatherData') Map<String, dynamic> get weatherData {
   if (_weatherData is EqualUnmodifiableMapView) return _weatherData;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableMapView(_weatherData);
@@ -349,7 +349,7 @@ abstract mixin class _$TripSummaryCopyWith<$Res> implements $TripSummaryCopyWith
   factory _$TripSummaryCopyWith(_TripSummary value, $Res Function(_TripSummary) _then) = __$TripSummaryCopyWithImpl;
 @override @useResult
 $Res call({
- String destination, String destinationCountry, int durationDays, int budgetEur, List<String> highlights, String accommodation, List<String> dayByDayProgram, List<String> essentialItems, String accommodationSubtitle, double accommodationPrice, String accommodationSource, String flightRoute, String flightDetails, double flightPrice, String flightSource, List<String> dayByDayDescriptions, List<String> dayByDayCategories, List<String> essentialReasons, Map<String, dynamic> budgetBreakdown, Map<String, dynamic> weatherData
+ String destination,@JsonKey(name: 'destinationCountry') String destinationCountry,@JsonKey(name: 'durationDays') int durationDays,@JsonKey(name: 'budgetEur') int budgetEur, List<String> highlights, String accommodation,@JsonKey(name: 'dayByDayProgram') List<String> dayByDayProgram,@JsonKey(name: 'essentialItems') List<String> essentialItems,@JsonKey(name: 'accommodationSubtitle') String accommodationSubtitle,@JsonKey(name: 'accommodationPrice') double accommodationPrice,@JsonKey(name: 'accommodationSource') String accommodationSource,@JsonKey(name: 'flightRoute') String flightRoute,@JsonKey(name: 'flightDetails') String flightDetails,@JsonKey(name: 'flightPrice') double flightPrice,@JsonKey(name: 'flightSource') String flightSource,@JsonKey(name: 'dayByDayDescriptions') List<String> dayByDayDescriptions,@JsonKey(name: 'dayByDayCategories') List<String> dayByDayCategories,@JsonKey(name: 'essentialReasons') List<String> essentialReasons,@JsonKey(name: 'budgetBreakdown') Map<String, dynamic> budgetBreakdown,@JsonKey(name: 'weatherData') Map<String, dynamic> weatherData
 });
 
 

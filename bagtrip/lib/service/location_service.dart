@@ -1,4 +1,7 @@
 import 'package:bagtrip/config/app_config.dart';
+import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/logged_failure.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/flight_search_result/models/flight.dart';
 import 'package:bagtrip/flight_search/models/flight_segment.dart';
 import 'package:dio/dio.dart';
@@ -9,7 +12,7 @@ class LocationService {
 
   LocationService({Dio? dio}) : _dio = dio ?? Dio();
 
-  Future<List<Flight>> searchFlights({
+  Future<Result<List<Flight>>> searchFlights({
     required String departureCode,
     required String arrivalCode,
     required String departureDate,
@@ -71,11 +74,22 @@ class LocationService {
             )
             .toList();
 
-        return flights;
+        return Success(flights);
       }
-      throw Exception('Failed to fetch flights: HTTP ${response.statusCode}');
+      return loggedFailure(
+        ServerError(
+          'Failed to fetch flights: HTTP ${response.statusCode}',
+          statusCode: response.statusCode,
+        ),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(
+        NetworkError('Error searching flights: ${e.message}'),
+      );
     } catch (e) {
-      throw Exception('Error searching flights: $e');
+      return loggedFailure(
+        UnknownError('Error searching flights: $e', originalError: e),
+      );
     }
   }
 
@@ -89,7 +103,7 @@ class LocationService {
     return loc;
   }
 
-  Future<List<Map<String, dynamic>>> searchLocationsByKeyword(
+  Future<Result<List<Map<String, dynamic>>>> searchLocationsByKeyword(
     String keyword,
     String subType,
   ) async {
@@ -136,15 +150,24 @@ class LocationService {
 
       // Return valid results even when status code is not 200.
       if (results != null && results.isNotEmpty) {
-        return results;
+        return Success(results);
       }
 
       // No results with 200 means invalid response format.
       if (response.statusCode == 200) {
-        throw Exception('Unexpected response shape when fetching locations');
+        return loggedFailure(
+          const ServerError(
+            'Unexpected response shape when fetching locations',
+          ),
+        );
       }
 
-      throw Exception('Failed to fetch locations: HTTP ${response.statusCode}');
+      return loggedFailure(
+        ServerError(
+          'Failed to fetch locations: HTTP ${response.statusCode}',
+          statusCode: response.statusCode,
+        ),
+      );
     } on DioException catch (e) {
       // For Dio errors, check if response body contains usable data.
       if (e.response?.data != null) {
@@ -176,16 +199,20 @@ class LocationService {
 
           // Return valid results even when status code indicates an error.
           if (results != null && results.isNotEmpty) {
-            return results;
+            return Success(results);
           }
         } catch (_) {
-          // If parsing fails, fall through to rethrow original error.
+          // If parsing fails, fall through to return network error.
         }
       }
 
-      throw Exception('Error searching locations: ${e.message}');
+      return loggedFailure(
+        NetworkError('Error searching locations: ${e.message}'),
+      );
     } catch (e) {
-      throw Exception('Error searching locations: $e');
+      return loggedFailure(
+        UnknownError('Error searching locations: $e', originalError: e),
+      );
     }
   }
 }

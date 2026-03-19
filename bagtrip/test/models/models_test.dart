@@ -20,17 +20,17 @@ void main() {
       test('parses all fields correctly', () {
         final json = <String, dynamic>{
           'id': 'acc-1',
-          'tripId': 'trip-1',
+          'trip_id': 'trip-1',
           'name': 'Hotel Le Marais',
           'address': '12 Rue de Rivoli, Paris',
-          'checkIn': '2024-06-01T14:00:00.000',
-          'checkOut': '2024-06-05T11:00:00.000',
-          'pricePerNight': 150.0,
+          'check_in': '2024-06-01T14:00:00.000',
+          'check_out': '2024-06-05T11:00:00.000',
+          'price_per_night': 150.0,
           'currency': 'EUR',
-          'bookingReference': 'BK-123456',
+          'booking_reference': 'BK-123456',
           'notes': 'Near metro station',
-          'createdAt': '2024-01-15T10:30:00.000',
-          'updatedAt': '2024-02-20T14:00:00.000',
+          'created_at': '2024-01-15T10:30:00.000',
+          'updated_at': '2024-02-20T14:00:00.000',
         };
 
         final acc = Accommodation.fromJson(json);
@@ -52,7 +52,7 @@ void main() {
       test('parses with only required fields', () {
         final json = <String, dynamic>{
           'id': 'acc-2',
-          'tripId': 'trip-2',
+          'trip_id': 'trip-2',
           'name': 'Airbnb Studio',
         };
 
@@ -135,14 +135,14 @@ void main() {
       test('parses all fields correctly', () {
         final json = <String, dynamic>{
           'id': 'bag-1',
-          'tripId': 'trip-1',
+          'trip_id': 'trip-1',
           'name': 'Passport',
           'quantity': 1,
-          'isPacked': true,
+          'is_packed': true,
           'category': 'documents',
           'notes': 'Check expiry',
-          'createdAt': '2024-01-15T10:30:00.000',
-          'updatedAt': '2024-02-20T14:00:00.000',
+          'created_at': '2024-01-15T10:30:00.000',
+          'updated_at': '2024-02-20T14:00:00.000',
         };
 
         final item = BaggageItem.fromJson(json);
@@ -161,7 +161,7 @@ void main() {
       test('parses with only required fields and applies defaults', () {
         final json = <String, dynamic>{
           'id': 'bag-2',
-          'tripId': 'trip-2',
+          'trip_id': 'trip-2',
           'name': 'Sunglasses',
         };
 
@@ -234,19 +234,19 @@ void main() {
       test('parses all fields correctly', () {
         final json = <String, dynamic>{
           'id': 'trav-1',
-          'tripId': 'trip-1',
-          'amadeusTravelerRef': 'AMX-001',
-          'travelerType': 'CHILD',
-          'firstName': 'Alice',
-          'lastName': 'Smith',
-          'dateOfBirth': '2015-03-20T00:00:00.000',
+          'trip_id': 'trip-1',
+          'amadeus_traveler_ref': 'AMX-001',
+          'traveler_type': 'CHILD',
+          'first_name': 'Alice',
+          'last_name': 'Smith',
+          'date_of_birth': '2015-03-20T00:00:00.000',
           'gender': 'F',
           'documents': [
             {'type': 'PASSPORT', 'number': 'AB123456'},
           ],
           'contacts': {'email': 'parent@example.com', 'phone': '+33600000000'},
-          'createdAt': '2024-01-15T10:30:00.000',
-          'updatedAt': '2024-02-20T14:00:00.000',
+          'created_at': '2024-01-15T10:30:00.000',
+          'updated_at': '2024-02-20T14:00:00.000',
         };
 
         final traveler = Traveler.fromJson(json);
@@ -273,9 +273,9 @@ void main() {
       test('parses with only required fields and applies defaults', () {
         final json = <String, dynamic>{
           'id': 'trav-2',
-          'tripId': 'trip-2',
-          'firstName': 'Bob',
-          'lastName': 'Jones',
+          'trip_id': 'trip-2',
+          'first_name': 'Bob',
+          'last_name': 'Jones',
         };
 
         final traveler = Traveler.fromJson(json);
@@ -544,10 +544,10 @@ void main() {
           'title': 'Trip Updated',
           'body': 'Your trip to Paris has been updated',
           'data': {'tripId': 'trip-1', 'action': 'status_change'},
-          'isRead': true,
-          'tripId': 'trip-1',
-          'sentAt': '2024-01-15T10:30:00.000',
-          'createdAt': '2024-01-15T10:30:00.000',
+          'is_read': true,
+          'trip_id': 'trip-1',
+          'sent_at': '2024-01-15T10:30:00.000',
+          'created_at': '2024-01-15T10:30:00.000',
         };
 
         final notif = AppNotification.fromJson(json);
@@ -665,13 +665,13 @@ void main() {
       test('parses all fields correctly', () {
         final json = <String, dynamic>{
           'id': 'fb-1',
-          'tripId': 'trip-1',
-          'userId': 'user-1',
-          'overallRating': 5,
+          'trip_id': 'trip-1',
+          'user_id': 'user-1',
+          'overall_rating': 5,
           'highlights': 'Amazing food and culture',
           'lowlights': 'Rainy weather',
-          'wouldRecommend': true,
-          'createdAt': '2024-01-15T10:30:00.000',
+          'would_recommend': true,
+          'created_at': '2024-01-15T10:30:00.000',
         };
 
         final feedback = TripFeedback.fromJson(json);
@@ -689,9 +689,9 @@ void main() {
       test('parses with only required fields and applies defaults', () {
         final json = <String, dynamic>{
           'id': 'fb-2',
-          'tripId': 'trip-2',
-          'userId': 'user-2',
-          'overallRating': 3,
+          'trip_id': 'trip-2',
+          'user_id': 'user-2',
+          'overall_rating': 3,
         };
 
         final feedback = TripFeedback.fromJson(json);
@@ -791,12 +791,12 @@ void main() {
       test('parses all fields correctly', () {
         final json = <String, dynamic>{
           'id': 'share-1',
-          'tripId': 'trip-1',
-          'userId': 'user-2',
+          'trip_id': 'trip-1',
+          'user_id': 'user-2',
           'role': 'EDITOR',
-          'invitedAt': '2024-01-15T10:30:00.000',
-          'userEmail': 'bob@example.com',
-          'userFullName': 'Bob Jones',
+          'invited_at': '2024-01-15T10:30:00.000',
+          'user_email': 'bob@example.com',
+          'user_full_name': 'Bob Jones',
         };
 
         final share = TripShare.fromJson(json);
@@ -813,9 +813,9 @@ void main() {
       test('parses with only required fields and applies defaults', () {
         final json = <String, dynamic>{
           'id': 'share-2',
-          'tripId': 'trip-2',
-          'userId': 'user-3',
-          'userEmail': 'carol@example.com',
+          'trip_id': 'trip-2',
+          'user_id': 'user-3',
+          'user_email': 'carol@example.com',
         };
 
         final share = TripShare.fromJson(json);
@@ -1047,13 +1047,13 @@ void main() {
       test('parses all fields correctly', () {
         final json = <String, dynamic>{
           'ongoing': [
-            {'id': 'trip-1', 'userId': 'user-1', 'status': 'ongoing'},
+            {'id': 'trip-1', 'user_id': 'user-1', 'status': 'ongoing'},
           ],
           'planned': [
-            {'id': 'trip-2', 'userId': 'user-1', 'status': 'planned'},
+            {'id': 'trip-2', 'user_id': 'user-1', 'status': 'planned'},
           ],
           'completed': [
-            {'id': 'trip-3', 'userId': 'user-1', 'status': 'completed'},
+            {'id': 'trip-3', 'user_id': 'user-1', 'status': 'completed'},
           ],
         };
 
@@ -1080,7 +1080,7 @@ void main() {
       test('handles partial data', () {
         final json = <String, dynamic>{
           'ongoing': [
-            {'id': 'trip-1', 'userId': 'user-1'},
+            {'id': 'trip-1', 'user_id': 'user-1'},
           ],
         };
 
@@ -1331,7 +1331,7 @@ void main() {
         final json = <String, dynamic>{
           'trip': {
             'id': 'trip-1',
-            'userId': 'user-1',
+            'user_id': 'user-1',
             'title': 'Paris Trip',
             'status': 'ongoing',
           },

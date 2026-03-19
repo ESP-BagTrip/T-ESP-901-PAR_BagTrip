@@ -15,7 +15,13 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
   Future<Result<String>> getCheckoutUrl() async {
     try {
       final response = await _apiClient.post('/subscription/checkout');
-      return Success(response.data['url'] as String);
+      final data = response.data;
+      if (data is Map && data['url'] is String) {
+        return Success(data['url'] as String);
+      }
+      return loggedFailure(
+        const ServerError('Invalid checkout response: missing url'),
+      );
     } on DioException catch (e) {
       return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
@@ -27,7 +33,13 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
   Future<Result<String>> getPortalUrl() async {
     try {
       final response = await _apiClient.post('/subscription/portal');
-      return Success(response.data['url'] as String);
+      final data = response.data;
+      if (data is Map && data['url'] is String) {
+        return Success(data['url'] as String);
+      }
+      return loggedFailure(
+        const ServerError('Invalid portal response: missing url'),
+      );
     } on DioException catch (e) {
       return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
@@ -39,7 +51,11 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
   Future<Result<Map<String, dynamic>>> getStatus() async {
     try {
       final response = await _apiClient.get('/subscription/status');
-      return Success(response.data as Map<String, dynamic>);
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        return Success(data);
+      }
+      return loggedFailure(const ServerError('Invalid status response format'));
     } on DioException catch (e) {
       return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {

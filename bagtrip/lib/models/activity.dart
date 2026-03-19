@@ -35,24 +35,22 @@ enum ValidationStatus {
 abstract class Activity with _$Activity {
   const factory Activity({
     required String id,
-    @JsonKey(name: 'trip_id') required String tripId,
+    required String tripId,
     required String title,
     String? description,
     required DateTime date,
-    @JsonKey(name: 'start_time') String? startTime,
-    @JsonKey(name: 'end_time') String? endTime,
+    String? startTime,
+    String? endTime,
     String? location,
     @JsonKey(unknownEnumValue: ActivityCategory.other)
     @Default(ActivityCategory.other)
     ActivityCategory category,
-    @JsonKey(name: 'estimated_cost') double? estimatedCost,
-    @JsonKey(name: 'is_booked') @Default(false) bool isBooked,
-    @JsonKey(name: 'validation_status')
-    @Default(ValidationStatus.manual)
-    ValidationStatus validationStatus,
+    double? estimatedCost,
+    @Default(false) bool isBooked,
+    @Default(ValidationStatus.manual) ValidationStatus validationStatus,
     int? suggestedDay,
-    @JsonKey(name: 'created_at') DateTime? createdAt,
-    @JsonKey(name: 'updated_at') DateTime? updatedAt,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) = _Activity;
 
   factory Activity.fromJson(Map<String, dynamic> json) =>

@@ -308,7 +308,7 @@ as DateTime?,
 /// @nodoc
 mixin _$BudgetSummary {
 
- double get totalBudget; double get totalSpent; double get remaining; Map<String, double> get byCategory; double get confirmedTotal; double get forecastedTotal; double? get percentConsumed; String? get alertLevel; String? get alertMessage;
+@JsonKey(name: 'totalBudget') double get totalBudget;@JsonKey(name: 'totalSpent') double get totalSpent; double get remaining;@JsonKey(name: 'byCategory') Map<String, double> get byCategory;@JsonKey(name: 'confirmedTotal') double get confirmedTotal;@JsonKey(name: 'forecastedTotal') double get forecastedTotal;@JsonKey(name: 'percentConsumed') double? get percentConsumed;@JsonKey(name: 'alertLevel') String? get alertLevel;@JsonKey(name: 'alertMessage') String? get alertMessage;
 /// Create a copy of BudgetSummary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -341,7 +341,7 @@ abstract mixin class $BudgetSummaryCopyWith<$Res>  {
   factory $BudgetSummaryCopyWith(BudgetSummary value, $Res Function(BudgetSummary) _then) = _$BudgetSummaryCopyWithImpl;
 @useResult
 $Res call({
- double totalBudget, double totalSpent, double remaining, Map<String, double> byCategory, double confirmedTotal, double forecastedTotal, double? percentConsumed, String? alertLevel, String? alertMessage
+@JsonKey(name: 'totalBudget') double totalBudget,@JsonKey(name: 'totalSpent') double totalSpent, double remaining,@JsonKey(name: 'byCategory') Map<String, double> byCategory,@JsonKey(name: 'confirmedTotal') double confirmedTotal,@JsonKey(name: 'forecastedTotal') double forecastedTotal,@JsonKey(name: 'percentConsumed') double? percentConsumed,@JsonKey(name: 'alertLevel') String? alertLevel,@JsonKey(name: 'alertMessage') String? alertMessage
 });
 
 
@@ -454,7 +454,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double totalBudget,  double totalSpent,  double remaining,  Map<String, double> byCategory,  double confirmedTotal,  double forecastedTotal,  double? percentConsumed,  String? alertLevel,  String? alertMessage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'totalBudget')  double totalBudget, @JsonKey(name: 'totalSpent')  double totalSpent,  double remaining, @JsonKey(name: 'byCategory')  Map<String, double> byCategory, @JsonKey(name: 'confirmedTotal')  double confirmedTotal, @JsonKey(name: 'forecastedTotal')  double forecastedTotal, @JsonKey(name: 'percentConsumed')  double? percentConsumed, @JsonKey(name: 'alertLevel')  String? alertLevel, @JsonKey(name: 'alertMessage')  String? alertMessage)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BudgetSummary() when $default != null:
 return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCategory,_that.confirmedTotal,_that.forecastedTotal,_that.percentConsumed,_that.alertLevel,_that.alertMessage);case _:
@@ -475,7 +475,7 @@ return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCateg
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double totalBudget,  double totalSpent,  double remaining,  Map<String, double> byCategory,  double confirmedTotal,  double forecastedTotal,  double? percentConsumed,  String? alertLevel,  String? alertMessage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'totalBudget')  double totalBudget, @JsonKey(name: 'totalSpent')  double totalSpent,  double remaining, @JsonKey(name: 'byCategory')  Map<String, double> byCategory, @JsonKey(name: 'confirmedTotal')  double confirmedTotal, @JsonKey(name: 'forecastedTotal')  double forecastedTotal, @JsonKey(name: 'percentConsumed')  double? percentConsumed, @JsonKey(name: 'alertLevel')  String? alertLevel, @JsonKey(name: 'alertMessage')  String? alertMessage)  $default,) {final _that = this;
 switch (_that) {
 case _BudgetSummary():
 return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCategory,_that.confirmedTotal,_that.forecastedTotal,_that.percentConsumed,_that.alertLevel,_that.alertMessage);case _:
@@ -495,7 +495,7 @@ return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCateg
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double totalBudget,  double totalSpent,  double remaining,  Map<String, double> byCategory,  double confirmedTotal,  double forecastedTotal,  double? percentConsumed,  String? alertLevel,  String? alertMessage)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'totalBudget')  double totalBudget, @JsonKey(name: 'totalSpent')  double totalSpent,  double remaining, @JsonKey(name: 'byCategory')  Map<String, double> byCategory, @JsonKey(name: 'confirmedTotal')  double confirmedTotal, @JsonKey(name: 'forecastedTotal')  double forecastedTotal, @JsonKey(name: 'percentConsumed')  double? percentConsumed, @JsonKey(name: 'alertLevel')  String? alertLevel, @JsonKey(name: 'alertMessage')  String? alertMessage)?  $default,) {final _that = this;
 switch (_that) {
 case _BudgetSummary() when $default != null:
 return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCategory,_that.confirmedTotal,_that.forecastedTotal,_that.percentConsumed,_that.alertLevel,_that.alertMessage);case _:
@@ -510,24 +510,24 @@ return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCateg
 @JsonSerializable()
 
 class _BudgetSummary implements BudgetSummary {
-  const _BudgetSummary({this.totalBudget = 0, this.totalSpent = 0, this.remaining = 0, final  Map<String, double> byCategory = const {}, this.confirmedTotal = 0, this.forecastedTotal = 0, this.percentConsumed, this.alertLevel, this.alertMessage}): _byCategory = byCategory;
+  const _BudgetSummary({@JsonKey(name: 'totalBudget') this.totalBudget = 0, @JsonKey(name: 'totalSpent') this.totalSpent = 0, this.remaining = 0, @JsonKey(name: 'byCategory') final  Map<String, double> byCategory = const {}, @JsonKey(name: 'confirmedTotal') this.confirmedTotal = 0, @JsonKey(name: 'forecastedTotal') this.forecastedTotal = 0, @JsonKey(name: 'percentConsumed') this.percentConsumed, @JsonKey(name: 'alertLevel') this.alertLevel, @JsonKey(name: 'alertMessage') this.alertMessage}): _byCategory = byCategory;
   factory _BudgetSummary.fromJson(Map<String, dynamic> json) => _$BudgetSummaryFromJson(json);
 
-@override@JsonKey() final  double totalBudget;
-@override@JsonKey() final  double totalSpent;
+@override@JsonKey(name: 'totalBudget') final  double totalBudget;
+@override@JsonKey(name: 'totalSpent') final  double totalSpent;
 @override@JsonKey() final  double remaining;
  final  Map<String, double> _byCategory;
-@override@JsonKey() Map<String, double> get byCategory {
+@override@JsonKey(name: 'byCategory') Map<String, double> get byCategory {
   if (_byCategory is EqualUnmodifiableMapView) return _byCategory;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableMapView(_byCategory);
 }
 
-@override@JsonKey() final  double confirmedTotal;
-@override@JsonKey() final  double forecastedTotal;
-@override final  double? percentConsumed;
-@override final  String? alertLevel;
-@override final  String? alertMessage;
+@override@JsonKey(name: 'confirmedTotal') final  double confirmedTotal;
+@override@JsonKey(name: 'forecastedTotal') final  double forecastedTotal;
+@override@JsonKey(name: 'percentConsumed') final  double? percentConsumed;
+@override@JsonKey(name: 'alertLevel') final  String? alertLevel;
+@override@JsonKey(name: 'alertMessage') final  String? alertMessage;
 
 /// Create a copy of BudgetSummary
 /// with the given fields replaced by the non-null parameter values.
@@ -562,7 +562,7 @@ abstract mixin class _$BudgetSummaryCopyWith<$Res> implements $BudgetSummaryCopy
   factory _$BudgetSummaryCopyWith(_BudgetSummary value, $Res Function(_BudgetSummary) _then) = __$BudgetSummaryCopyWithImpl;
 @override @useResult
 $Res call({
- double totalBudget, double totalSpent, double remaining, Map<String, double> byCategory, double confirmedTotal, double forecastedTotal, double? percentConsumed, String? alertLevel, String? alertMessage
+@JsonKey(name: 'totalBudget') double totalBudget,@JsonKey(name: 'totalSpent') double totalSpent, double remaining,@JsonKey(name: 'byCategory') Map<String, double> byCategory,@JsonKey(name: 'confirmedTotal') double confirmedTotal,@JsonKey(name: 'forecastedTotal') double forecastedTotal,@JsonKey(name: 'percentConsumed') double? percentConsumed,@JsonKey(name: 'alertLevel') String? alertLevel,@JsonKey(name: 'alertMessage') String? alertMessage
 });
 
 

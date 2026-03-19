@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TravelerProfile {
 
- String get id; List<String> get travelTypes; String? get travelStyle; String? get budget; String? get companions; bool get isCompleted; DateTime? get createdAt; DateTime? get updatedAt;
+ String get id;@JsonKey(name: 'travelTypes') List<String> get travelTypes;@JsonKey(name: 'travelStyle') String? get travelStyle; String? get budget; String? get companions;@JsonKey(name: 'isCompleted') bool get isCompleted;@JsonKey(name: 'createdAt') DateTime? get createdAt;@JsonKey(name: 'updatedAt') DateTime? get updatedAt;
 /// Create a copy of TravelerProfile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $TravelerProfileCopyWith<$Res>  {
   factory $TravelerProfileCopyWith(TravelerProfile value, $Res Function(TravelerProfile) _then) = _$TravelerProfileCopyWithImpl;
 @useResult
 $Res call({
- String id, List<String> travelTypes, String? travelStyle, String? budget, String? companions, bool isCompleted, DateTime? createdAt, DateTime? updatedAt
+ String id,@JsonKey(name: 'travelTypes') List<String> travelTypes,@JsonKey(name: 'travelStyle') String? travelStyle, String? budget, String? companions,@JsonKey(name: 'isCompleted') bool isCompleted,@JsonKey(name: 'createdAt') DateTime? createdAt,@JsonKey(name: 'updatedAt') DateTime? updatedAt
 });
 
 
@@ -160,7 +160,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  List<String> travelTypes,  String? travelStyle,  String? budget,  String? companions,  bool isCompleted,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'travelTypes')  List<String> travelTypes, @JsonKey(name: 'travelStyle')  String? travelStyle,  String? budget,  String? companions, @JsonKey(name: 'isCompleted')  bool isCompleted, @JsonKey(name: 'createdAt')  DateTime? createdAt, @JsonKey(name: 'updatedAt')  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TravelerProfile() when $default != null:
 return $default(_that.id,_that.travelTypes,_that.travelStyle,_that.budget,_that.companions,_that.isCompleted,_that.createdAt,_that.updatedAt);case _:
@@ -181,7 +181,7 @@ return $default(_that.id,_that.travelTypes,_that.travelStyle,_that.budget,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  List<String> travelTypes,  String? travelStyle,  String? budget,  String? companions,  bool isCompleted,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'travelTypes')  List<String> travelTypes, @JsonKey(name: 'travelStyle')  String? travelStyle,  String? budget,  String? companions, @JsonKey(name: 'isCompleted')  bool isCompleted, @JsonKey(name: 'createdAt')  DateTime? createdAt, @JsonKey(name: 'updatedAt')  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _TravelerProfile():
 return $default(_that.id,_that.travelTypes,_that.travelStyle,_that.budget,_that.companions,_that.isCompleted,_that.createdAt,_that.updatedAt);case _:
@@ -201,7 +201,7 @@ return $default(_that.id,_that.travelTypes,_that.travelStyle,_that.budget,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  List<String> travelTypes,  String? travelStyle,  String? budget,  String? companions,  bool isCompleted,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'travelTypes')  List<String> travelTypes, @JsonKey(name: 'travelStyle')  String? travelStyle,  String? budget,  String? companions, @JsonKey(name: 'isCompleted')  bool isCompleted, @JsonKey(name: 'createdAt')  DateTime? createdAt, @JsonKey(name: 'updatedAt')  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _TravelerProfile() when $default != null:
 return $default(_that.id,_that.travelTypes,_that.travelStyle,_that.budget,_that.companions,_that.isCompleted,_that.createdAt,_that.updatedAt);case _:
@@ -216,23 +216,23 @@ return $default(_that.id,_that.travelTypes,_that.travelStyle,_that.budget,_that.
 @JsonSerializable()
 
 class _TravelerProfile implements TravelerProfile {
-  const _TravelerProfile({required this.id, final  List<String> travelTypes = const [], this.travelStyle, this.budget, this.companions, this.isCompleted = false, this.createdAt, this.updatedAt}): _travelTypes = travelTypes;
+  const _TravelerProfile({required this.id, @JsonKey(name: 'travelTypes') final  List<String> travelTypes = const [], @JsonKey(name: 'travelStyle') this.travelStyle, this.budget, this.companions, @JsonKey(name: 'isCompleted') this.isCompleted = false, @JsonKey(name: 'createdAt') this.createdAt, @JsonKey(name: 'updatedAt') this.updatedAt}): _travelTypes = travelTypes;
   factory _TravelerProfile.fromJson(Map<String, dynamic> json) => _$TravelerProfileFromJson(json);
 
 @override final  String id;
  final  List<String> _travelTypes;
-@override@JsonKey() List<String> get travelTypes {
+@override@JsonKey(name: 'travelTypes') List<String> get travelTypes {
   if (_travelTypes is EqualUnmodifiableListView) return _travelTypes;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_travelTypes);
 }
 
-@override final  String? travelStyle;
+@override@JsonKey(name: 'travelStyle') final  String? travelStyle;
 @override final  String? budget;
 @override final  String? companions;
-@override@JsonKey() final  bool isCompleted;
-@override final  DateTime? createdAt;
-@override final  DateTime? updatedAt;
+@override@JsonKey(name: 'isCompleted') final  bool isCompleted;
+@override@JsonKey(name: 'createdAt') final  DateTime? createdAt;
+@override@JsonKey(name: 'updatedAt') final  DateTime? updatedAt;
 
 /// Create a copy of TravelerProfile
 /// with the given fields replaced by the non-null parameter values.
@@ -267,7 +267,7 @@ abstract mixin class _$TravelerProfileCopyWith<$Res> implements $TravelerProfile
   factory _$TravelerProfileCopyWith(_TravelerProfile value, $Res Function(_TravelerProfile) _then) = __$TravelerProfileCopyWithImpl;
 @override @useResult
 $Res call({
- String id, List<String> travelTypes, String? travelStyle, String? budget, String? companions, bool isCompleted, DateTime? createdAt, DateTime? updatedAt
+ String id,@JsonKey(name: 'travelTypes') List<String> travelTypes,@JsonKey(name: 'travelStyle') String? travelStyle, String? budget, String? companions,@JsonKey(name: 'isCompleted') bool isCompleted,@JsonKey(name: 'createdAt') DateTime? createdAt,@JsonKey(name: 'updatedAt') DateTime? updatedAt
 });
 
 
@@ -305,7 +305,7 @@ as DateTime?,
 /// @nodoc
 mixin _$ProfileCompletion {
 
- bool get isCompleted; List<String> get missingFields;
+@JsonKey(name: 'isCompleted') bool get isCompleted;@JsonKey(name: 'missingFields') List<String> get missingFields;
 /// Create a copy of ProfileCompletion
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -338,7 +338,7 @@ abstract mixin class $ProfileCompletionCopyWith<$Res>  {
   factory $ProfileCompletionCopyWith(ProfileCompletion value, $Res Function(ProfileCompletion) _then) = _$ProfileCompletionCopyWithImpl;
 @useResult
 $Res call({
- bool isCompleted, List<String> missingFields
+@JsonKey(name: 'isCompleted') bool isCompleted,@JsonKey(name: 'missingFields') List<String> missingFields
 });
 
 
@@ -444,7 +444,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isCompleted,  List<String> missingFields)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'isCompleted')  bool isCompleted, @JsonKey(name: 'missingFields')  List<String> missingFields)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProfileCompletion() when $default != null:
 return $default(_that.isCompleted,_that.missingFields);case _:
@@ -465,7 +465,7 @@ return $default(_that.isCompleted,_that.missingFields);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isCompleted,  List<String> missingFields)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'isCompleted')  bool isCompleted, @JsonKey(name: 'missingFields')  List<String> missingFields)  $default,) {final _that = this;
 switch (_that) {
 case _ProfileCompletion():
 return $default(_that.isCompleted,_that.missingFields);case _:
@@ -485,7 +485,7 @@ return $default(_that.isCompleted,_that.missingFields);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isCompleted,  List<String> missingFields)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'isCompleted')  bool isCompleted, @JsonKey(name: 'missingFields')  List<String> missingFields)?  $default,) {final _that = this;
 switch (_that) {
 case _ProfileCompletion() when $default != null:
 return $default(_that.isCompleted,_that.missingFields);case _:
@@ -500,12 +500,12 @@ return $default(_that.isCompleted,_that.missingFields);case _:
 @JsonSerializable()
 
 class _ProfileCompletion implements ProfileCompletion {
-  const _ProfileCompletion({this.isCompleted = false, final  List<String> missingFields = const []}): _missingFields = missingFields;
+  const _ProfileCompletion({@JsonKey(name: 'isCompleted') this.isCompleted = false, @JsonKey(name: 'missingFields') final  List<String> missingFields = const []}): _missingFields = missingFields;
   factory _ProfileCompletion.fromJson(Map<String, dynamic> json) => _$ProfileCompletionFromJson(json);
 
-@override@JsonKey() final  bool isCompleted;
+@override@JsonKey(name: 'isCompleted') final  bool isCompleted;
  final  List<String> _missingFields;
-@override@JsonKey() List<String> get missingFields {
+@override@JsonKey(name: 'missingFields') List<String> get missingFields {
   if (_missingFields is EqualUnmodifiableListView) return _missingFields;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_missingFields);
@@ -545,7 +545,7 @@ abstract mixin class _$ProfileCompletionCopyWith<$Res> implements $ProfileComple
   factory _$ProfileCompletionCopyWith(_ProfileCompletion value, $Res Function(_ProfileCompletion) _then) = __$ProfileCompletionCopyWithImpl;
 @override @useResult
 $Res call({
- bool isCompleted, List<String> missingFields
+@JsonKey(name: 'isCompleted') bool isCompleted,@JsonKey(name: 'missingFields') List<String> missingFields
 });
 
 

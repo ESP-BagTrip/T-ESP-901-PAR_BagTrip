@@ -6,7 +6,7 @@ void main() {
     test('JSON values are mapped correctly via Activity fromJson', () {
       Activity fromCategory(String category) => Activity.fromJson({
         'id': 'a1',
-        'tripId': 't1',
+        'trip_id': 't1',
         'title': 'Test',
         'date': '2024-01-15T10:30:00.000',
         'category': category,
@@ -22,7 +22,7 @@ void main() {
     test('null category defaults to other', () {
       final activity = Activity.fromJson({
         'id': 'a1',
-        'tripId': 't1',
+        'trip_id': 't1',
         'title': 'Test',
         'date': '2024-01-15T10:30:00.000',
       });
@@ -35,18 +35,18 @@ void main() {
       test('parses all fields correctly', () {
         final json = <String, dynamic>{
           'id': 'act-1',
-          'tripId': 'trip-1',
+          'trip_id': 'trip-1',
           'title': 'Visit Eiffel Tower',
           'description': 'Iconic landmark visit',
           'date': '2024-06-02T09:00:00.000',
-          'startTime': '09:00',
-          'endTime': '12:00',
+          'start_time': '09:00',
+          'end_time': '12:00',
           'location': 'Champ de Mars, Paris',
           'category': 'VISIT',
-          'estimatedCost': 25.50,
-          'isBooked': true,
-          'createdAt': '2024-01-15T10:30:00.000',
-          'updatedAt': '2024-02-20T14:00:00.000',
+          'estimated_cost': 25.50,
+          'is_booked': true,
+          'created_at': '2024-01-15T10:30:00.000',
+          'updated_at': '2024-02-20T14:00:00.000',
         };
 
         final activity = Activity.fromJson(json);
@@ -69,7 +69,7 @@ void main() {
       test('parses with only required fields and applies defaults', () {
         final json = <String, dynamic>{
           'id': 'act-2',
-          'tripId': 'trip-2',
+          'trip_id': 'trip-2',
           'title': 'Free Walking Tour',
           'date': '2024-06-03T14:00:00.000',
         };

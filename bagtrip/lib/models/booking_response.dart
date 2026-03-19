@@ -8,11 +8,11 @@ part 'booking_response.g.dart';
 abstract class BookingResponse with _$BookingResponse {
   const factory BookingResponse({
     required String id,
-    required String amadeusOrderId,
+    @JsonKey(name: 'amadeusOrderId') required String amadeusOrderId,
     required String status,
-    required double priceTotal,
+    @JsonKey(name: 'priceTotal') required double priceTotal,
     required String currency,
-    DateTime? createdAt,
+    @JsonKey(name: 'createdAt') DateTime? createdAt,
   }) = _BookingResponse;
 
   factory BookingResponse.fromJson(Map<String, dynamic> json) =>

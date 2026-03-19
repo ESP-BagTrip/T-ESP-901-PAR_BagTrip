@@ -8,11 +8,11 @@ part 'trip_home.g.dart';
 @freezed
 abstract class TripHomeStats with _$TripHomeStats {
   const factory TripHomeStats({
-    @Default(0) int baggageCount,
-    @Default(0.0) double totalExpenses,
-    @Default(1) int nbTravelers,
-    int? daysUntilTrip,
-    int? tripDuration,
+    @JsonKey(name: 'baggageCount') @Default(0) int baggageCount,
+    @JsonKey(name: 'totalExpenses') @Default(0.0) double totalExpenses,
+    @JsonKey(name: 'nbTravelers') @Default(1) int nbTravelers,
+    @JsonKey(name: 'daysUntilTrip') int? daysUntilTrip,
+    @JsonKey(name: 'tripDuration') int? tripDuration,
   }) = _TripHomeStats;
 
   factory TripHomeStats.fromJson(Map<String, dynamic> json) =>
@@ -36,9 +36,9 @@ abstract class TripFeatureTile with _$TripFeatureTile {
 @freezed
 abstract class TripSectionSummary with _$TripSectionSummary {
   const factory TripSectionSummary({
-    required String sectionId,
+    @JsonKey(name: 'sectionId') required String sectionId,
     @Default(0) int count,
-    @Default([]) List<String> previewItems,
+    @JsonKey(name: 'previewItems') @Default([]) List<String> previewItems,
   }) = _TripSectionSummary;
 
   factory TripSectionSummary.fromJson(Map<String, dynamic> json) =>

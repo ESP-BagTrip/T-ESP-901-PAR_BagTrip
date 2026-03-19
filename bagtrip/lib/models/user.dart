@@ -10,15 +10,17 @@ abstract class User with _$User {
   const factory User({
     required String id,
     required String email,
-    String? fullName,
+    @JsonKey(name: 'fullName') String? fullName,
     String? phone,
-    String? stripeCustomerId,
-    @Default(false) bool isProfileCompleted,
-    DateTime? createdAt,
-    DateTime? updatedAt,
+    @JsonKey(name: 'stripeCustomerId') String? stripeCustomerId,
+    @JsonKey(name: 'isProfileCompleted')
+    @Default(false)
+    bool isProfileCompleted,
+    @JsonKey(name: 'createdAt') DateTime? createdAt,
+    @JsonKey(name: 'updatedAt') DateTime? updatedAt,
     @Default('FREE') String plan,
-    int? aiGenerationsRemaining,
-    DateTime? planExpiresAt,
+    @JsonKey(name: 'aiGenerationsRemaining') int? aiGenerationsRemaining,
+    @JsonKey(name: 'planExpiresAt') DateTime? planExpiresAt,
   }) = _User;
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);

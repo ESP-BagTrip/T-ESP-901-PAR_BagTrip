@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BaggageInfo {
 
- int? get quantity; int? get weight; String? get weightUnit;
+ int? get quantity; int? get weight;@JsonKey(name: 'weightUnit') String? get weightUnit;
 /// Create a copy of BaggageInfo
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $BaggageInfoCopyWith<$Res>  {
   factory $BaggageInfoCopyWith(BaggageInfo value, $Res Function(BaggageInfo) _then) = _$BaggageInfoCopyWithImpl;
 @useResult
 $Res call({
- int? quantity, int? weight, String? weightUnit
+ int? quantity, int? weight,@JsonKey(name: 'weightUnit') String? weightUnit
 });
 
 
@@ -155,7 +155,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? quantity,  int? weight,  String? weightUnit)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? quantity,  int? weight, @JsonKey(name: 'weightUnit')  String? weightUnit)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BaggageInfo() when $default != null:
 return $default(_that.quantity,_that.weight,_that.weightUnit);case _:
@@ -176,7 +176,7 @@ return $default(_that.quantity,_that.weight,_that.weightUnit);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? quantity,  int? weight,  String? weightUnit)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? quantity,  int? weight, @JsonKey(name: 'weightUnit')  String? weightUnit)  $default,) {final _that = this;
 switch (_that) {
 case _BaggageInfo():
 return $default(_that.quantity,_that.weight,_that.weightUnit);case _:
@@ -196,7 +196,7 @@ return $default(_that.quantity,_that.weight,_that.weightUnit);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? quantity,  int? weight,  String? weightUnit)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? quantity,  int? weight, @JsonKey(name: 'weightUnit')  String? weightUnit)?  $default,) {final _that = this;
 switch (_that) {
 case _BaggageInfo() when $default != null:
 return $default(_that.quantity,_that.weight,_that.weightUnit);case _:
@@ -211,12 +211,12 @@ return $default(_that.quantity,_that.weight,_that.weightUnit);case _:
 @JsonSerializable()
 
 class _BaggageInfo implements BaggageInfo {
-  const _BaggageInfo({this.quantity, this.weight, this.weightUnit});
+  const _BaggageInfo({this.quantity, this.weight, @JsonKey(name: 'weightUnit') this.weightUnit});
   factory _BaggageInfo.fromJson(Map<String, dynamic> json) => _$BaggageInfoFromJson(json);
 
 @override final  int? quantity;
 @override final  int? weight;
-@override final  String? weightUnit;
+@override@JsonKey(name: 'weightUnit') final  String? weightUnit;
 
 /// Create a copy of BaggageInfo
 /// with the given fields replaced by the non-null parameter values.
@@ -251,7 +251,7 @@ abstract mixin class _$BaggageInfoCopyWith<$Res> implements $BaggageInfoCopyWith
   factory _$BaggageInfoCopyWith(_BaggageInfo value, $Res Function(_BaggageInfo) _then) = __$BaggageInfoCopyWithImpl;
 @override @useResult
 $Res call({
- int? quantity, int? weight, String? weightUnit
+ int? quantity, int? weight,@JsonKey(name: 'weightUnit') String? weightUnit
 });
 
 

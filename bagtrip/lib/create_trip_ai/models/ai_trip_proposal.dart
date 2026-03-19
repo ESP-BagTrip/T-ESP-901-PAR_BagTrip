@@ -9,12 +9,12 @@ abstract class AiTripProposal with _$AiTripProposal {
   const factory AiTripProposal({
     @Default('') String id,
     @Default('') String destination,
-    @Default('') String destinationCountry,
-    @Default(0) int durationDays,
+    @JsonKey(name: 'destinationCountry') @Default('') String destinationCountry,
+    @JsonKey(name: 'durationDays') @Default(0) int durationDays,
     @JsonKey(name: 'budgetEur') @Default(0) int priceEur,
     @Default('') String description,
     @Default([]) List<Map<String, dynamic>> activities,
-    String? matchReason,
+    @JsonKey(name: 'matchReason') String? matchReason,
   }) = _AiTripProposal;
 
   factory AiTripProposal.fromJson(Map<String, dynamic> json) =>

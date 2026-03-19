@@ -8,37 +8,37 @@ part of 'budget_item.dart';
 
 _BudgetItem _$BudgetItemFromJson(Map<String, dynamic> json) => _BudgetItem(
   id: json['id'] as String,
-  tripId: json['tripId'] as String,
+  tripId: json['trip_id'] as String,
   label: json['label'] as String,
   amount: (json['amount'] as num).toDouble(),
   category:
       $enumDecodeNullable(_$BudgetCategoryEnumMap, json['category']) ??
       BudgetCategory.other,
   date: json['date'] == null ? null : DateTime.parse(json['date'] as String),
-  isPlanned: json['isPlanned'] as bool? ?? true,
-  sourceType: json['sourceType'] as String?,
-  sourceId: json['sourceId'] as String?,
-  createdAt: json['createdAt'] == null
+  isPlanned: json['is_planned'] as bool? ?? true,
+  sourceType: json['source_type'] as String?,
+  sourceId: json['source_id'] as String?,
+  createdAt: json['created_at'] == null
       ? null
-      : DateTime.parse(json['createdAt'] as String),
-  updatedAt: json['updatedAt'] == null
+      : DateTime.parse(json['created_at'] as String),
+  updatedAt: json['updated_at'] == null
       ? null
-      : DateTime.parse(json['updatedAt'] as String),
+      : DateTime.parse(json['updated_at'] as String),
 );
 
 Map<String, dynamic> _$BudgetItemToJson(_BudgetItem instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'tripId': instance.tripId,
+      'trip_id': instance.tripId,
       'label': instance.label,
       'amount': instance.amount,
       'category': _$BudgetCategoryEnumMap[instance.category]!,
       'date': instance.date?.toIso8601String(),
-      'isPlanned': instance.isPlanned,
-      'sourceType': instance.sourceType,
-      'sourceId': instance.sourceId,
-      'createdAt': instance.createdAt?.toIso8601String(),
-      'updatedAt': instance.updatedAt?.toIso8601String(),
+      'is_planned': instance.isPlanned,
+      'source_type': instance.sourceType,
+      'source_id': instance.sourceId,
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
     };
 
 const _$BudgetCategoryEnumMap = {

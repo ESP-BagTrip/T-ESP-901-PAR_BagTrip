@@ -77,22 +77,22 @@ void main() {
       test('parses all fields correctly', () {
         final json = <String, dynamic>{
           'id': 'trip-1',
-          'userId': 'user-1',
+          'user_id': 'user-1',
           'title': 'Paris Vacation',
-          'originIata': 'JFK',
-          'destinationIata': 'CDG',
-          'startDate': '2024-06-01T00:00:00.000',
-          'endDate': '2024-06-10T00:00:00.000',
+          'origin_iata': 'JFK',
+          'destination_iata': 'CDG',
+          'start_date': '2024-06-01T00:00:00.000',
+          'end_date': '2024-06-10T00:00:00.000',
           'status': 'ongoing',
           'description': 'A lovely trip to Paris',
           'destinationName': 'Paris',
-          'nbTravelers': 2,
-          'coverImageUrl': 'https://example.com/img.jpg',
-          'budgetTotal': 3000.50,
+          'nb_travelers': 2,
+          'cover_image_url': 'https://example.com/img.jpg',
+          'budget_total': 3000.50,
           'origin': 'New York',
           'role': 'OWNER',
-          'createdAt': '2024-01-15T10:30:00.000',
-          'updatedAt': '2024-02-20T14:00:00.000',
+          'created_at': '2024-01-15T10:30:00.000',
+          'updated_at': '2024-02-20T14:00:00.000',
         };
 
         final trip = Trip.fromJson(json);
@@ -117,7 +117,7 @@ void main() {
       });
 
       test('parses with only required fields and applies defaults', () {
-        final json = <String, dynamic>{'id': 'trip-2', 'userId': 'user-2'};
+        final json = <String, dynamic>{'id': 'trip-2', 'user_id': 'user-2'};
 
         final trip = Trip.fromJson(json);
 
@@ -143,7 +143,7 @@ void main() {
       test('status defaults to draft when status is null', () {
         final json = <String, dynamic>{
           'id': 'trip-3',
-          'userId': 'user-3',
+          'user_id': 'user-3',
           'status': null,
         };
 
@@ -154,21 +154,21 @@ void main() {
       test('parses alias statuses correctly via converter', () {
         final planning = Trip.fromJson({
           'id': 't1',
-          'userId': 'u1',
+          'user_id': 'u1',
           'status': 'planning',
         });
         expect(planning.status, TripStatus.planned);
 
         final active = Trip.fromJson({
           'id': 't2',
-          'userId': 'u2',
+          'user_id': 'u2',
           'status': 'active',
         });
         expect(active.status, TripStatus.ongoing);
 
         final archived = Trip.fromJson({
           'id': 't3',
-          'userId': 'u3',
+          'user_id': 'u3',
           'status': 'archived',
         });
         expect(archived.status, TripStatus.completed);
@@ -222,7 +222,7 @@ void main() {
         );
 
         final json = trip.toJson();
-        expect(json['startDate'], '2024-06-01T00:00:00.000');
+        expect(json['start_date'], '2024-06-01T00:00:00.000');
       });
     });
 

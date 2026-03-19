@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BookingResponse {
 
- String get id; String get amadeusOrderId; String get status; double get priceTotal; String get currency; DateTime? get createdAt;
+ String get id;@JsonKey(name: 'amadeusOrderId') String get amadeusOrderId; String get status;@JsonKey(name: 'priceTotal') double get priceTotal; String get currency;@JsonKey(name: 'createdAt') DateTime? get createdAt;
 /// Create a copy of BookingResponse
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $BookingResponseCopyWith<$Res>  {
   factory $BookingResponseCopyWith(BookingResponse value, $Res Function(BookingResponse) _then) = _$BookingResponseCopyWithImpl;
 @useResult
 $Res call({
- String id, String amadeusOrderId, String status, double priceTotal, String currency, DateTime? createdAt
+ String id,@JsonKey(name: 'amadeusOrderId') String amadeusOrderId, String status,@JsonKey(name: 'priceTotal') double priceTotal, String currency,@JsonKey(name: 'createdAt') DateTime? createdAt
 });
 
 
@@ -158,7 +158,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String amadeusOrderId,  String status,  double priceTotal,  String currency,  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'amadeusOrderId')  String amadeusOrderId,  String status, @JsonKey(name: 'priceTotal')  double priceTotal,  String currency, @JsonKey(name: 'createdAt')  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BookingResponse() when $default != null:
 return $default(_that.id,_that.amadeusOrderId,_that.status,_that.priceTotal,_that.currency,_that.createdAt);case _:
@@ -179,7 +179,7 @@ return $default(_that.id,_that.amadeusOrderId,_that.status,_that.priceTotal,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String amadeusOrderId,  String status,  double priceTotal,  String currency,  DateTime? createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'amadeusOrderId')  String amadeusOrderId,  String status, @JsonKey(name: 'priceTotal')  double priceTotal,  String currency, @JsonKey(name: 'createdAt')  DateTime? createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _BookingResponse():
 return $default(_that.id,_that.amadeusOrderId,_that.status,_that.priceTotal,_that.currency,_that.createdAt);case _:
@@ -199,7 +199,7 @@ return $default(_that.id,_that.amadeusOrderId,_that.status,_that.priceTotal,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String amadeusOrderId,  String status,  double priceTotal,  String currency,  DateTime? createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'amadeusOrderId')  String amadeusOrderId,  String status, @JsonKey(name: 'priceTotal')  double priceTotal,  String currency, @JsonKey(name: 'createdAt')  DateTime? createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _BookingResponse() when $default != null:
 return $default(_that.id,_that.amadeusOrderId,_that.status,_that.priceTotal,_that.currency,_that.createdAt);case _:
@@ -214,15 +214,15 @@ return $default(_that.id,_that.amadeusOrderId,_that.status,_that.priceTotal,_tha
 @JsonSerializable()
 
 class _BookingResponse implements BookingResponse {
-  const _BookingResponse({required this.id, required this.amadeusOrderId, required this.status, required this.priceTotal, required this.currency, this.createdAt});
+  const _BookingResponse({required this.id, @JsonKey(name: 'amadeusOrderId') required this.amadeusOrderId, required this.status, @JsonKey(name: 'priceTotal') required this.priceTotal, required this.currency, @JsonKey(name: 'createdAt') this.createdAt});
   factory _BookingResponse.fromJson(Map<String, dynamic> json) => _$BookingResponseFromJson(json);
 
 @override final  String id;
-@override final  String amadeusOrderId;
+@override@JsonKey(name: 'amadeusOrderId') final  String amadeusOrderId;
 @override final  String status;
-@override final  double priceTotal;
+@override@JsonKey(name: 'priceTotal') final  double priceTotal;
 @override final  String currency;
-@override final  DateTime? createdAt;
+@override@JsonKey(name: 'createdAt') final  DateTime? createdAt;
 
 /// Create a copy of BookingResponse
 /// with the given fields replaced by the non-null parameter values.
@@ -257,7 +257,7 @@ abstract mixin class _$BookingResponseCopyWith<$Res> implements $BookingResponse
   factory _$BookingResponseCopyWith(_BookingResponse value, $Res Function(_BookingResponse) _then) = __$BookingResponseCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String amadeusOrderId, String status, double priceTotal, String currency, DateTime? createdAt
+ String id,@JsonKey(name: 'amadeusOrderId') String amadeusOrderId, String status,@JsonKey(name: 'priceTotal') double priceTotal, String currency,@JsonKey(name: 'createdAt') DateTime? createdAt
 });
 
 

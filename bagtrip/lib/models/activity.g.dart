@@ -30,7 +30,7 @@ _Activity _$ActivityFromJson(Map<String, dynamic> json) => _Activity(
         json['validation_status'],
       ) ??
       ValidationStatus.manual,
-  suggestedDay: (json['suggestedDay'] as num?)?.toInt(),
+  suggestedDay: (json['suggested_day'] as num?)?.toInt(),
   createdAt: json['created_at'] == null
       ? null
       : DateTime.parse(json['created_at'] as String),
@@ -52,7 +52,7 @@ Map<String, dynamic> _$ActivityToJson(_Activity instance) => <String, dynamic>{
   'estimated_cost': instance.estimatedCost,
   'is_booked': instance.isBooked,
   'validation_status': _$ValidationStatusEnumMap[instance.validationStatus]!,
-  'suggestedDay': instance.suggestedDay,
+  'suggested_day': instance.suggestedDay,
   'created_at': instance.createdAt?.toIso8601String(),
   'updated_at': instance.updatedAt?.toIso8601String(),
 };

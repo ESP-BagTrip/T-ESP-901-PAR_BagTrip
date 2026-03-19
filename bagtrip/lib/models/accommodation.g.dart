@@ -9,39 +9,39 @@ part of 'accommodation.dart';
 _Accommodation _$AccommodationFromJson(Map<String, dynamic> json) =>
     _Accommodation(
       id: json['id'] as String,
-      tripId: json['tripId'] as String,
+      tripId: json['trip_id'] as String,
       name: json['name'] as String,
       address: json['address'] as String?,
-      checkIn: json['checkIn'] == null
+      checkIn: json['check_in'] == null
           ? null
-          : DateTime.parse(json['checkIn'] as String),
-      checkOut: json['checkOut'] == null
+          : DateTime.parse(json['check_in'] as String),
+      checkOut: json['check_out'] == null
           ? null
-          : DateTime.parse(json['checkOut'] as String),
-      pricePerNight: (json['pricePerNight'] as num?)?.toDouble(),
+          : DateTime.parse(json['check_out'] as String),
+      pricePerNight: (json['price_per_night'] as num?)?.toDouble(),
       currency: json['currency'] as String?,
-      bookingReference: json['bookingReference'] as String?,
+      bookingReference: json['booking_reference'] as String?,
       notes: json['notes'] as String?,
-      createdAt: json['createdAt'] == null
+      createdAt: json['created_at'] == null
           ? null
-          : DateTime.parse(json['createdAt'] as String),
-      updatedAt: json['updatedAt'] == null
+          : DateTime.parse(json['created_at'] as String),
+      updatedAt: json['updated_at'] == null
           ? null
-          : DateTime.parse(json['updatedAt'] as String),
+          : DateTime.parse(json['updated_at'] as String),
     );
 
 Map<String, dynamic> _$AccommodationToJson(_Accommodation instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'tripId': instance.tripId,
+      'trip_id': instance.tripId,
       'name': instance.name,
       'address': instance.address,
-      'checkIn': instance.checkIn?.toIso8601String(),
-      'checkOut': instance.checkOut?.toIso8601String(),
-      'pricePerNight': instance.pricePerNight,
+      'check_in': instance.checkIn?.toIso8601String(),
+      'check_out': instance.checkOut?.toIso8601String(),
+      'price_per_night': instance.pricePerNight,
       'currency': instance.currency,
-      'bookingReference': instance.bookingReference,
+      'booking_reference': instance.bookingReference,
       'notes': instance.notes,
-      'createdAt': instance.createdAt?.toIso8601String(),
-      'updatedAt': instance.updatedAt?.toIso8601String(),
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
     };

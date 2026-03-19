@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BudgetEstimation {
 
- double? get accommodationPerNight; double? get mealsPerDayPerPerson; double? get localTransportPerDay; double? get activitiesTotal; double? get totalMin; double? get totalMax; String get currency; String? get breakdownNotes;
+@JsonKey(name: 'accommodationPerNight') double? get accommodationPerNight;@JsonKey(name: 'mealsPerDayPerPerson') double? get mealsPerDayPerPerson;@JsonKey(name: 'localTransportPerDay') double? get localTransportPerDay;@JsonKey(name: 'activitiesTotal') double? get activitiesTotal;@JsonKey(name: 'totalMin') double? get totalMin;@JsonKey(name: 'totalMax') double? get totalMax; String get currency;@JsonKey(name: 'breakdownNotes') String? get breakdownNotes;
 /// Create a copy of BudgetEstimation
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $BudgetEstimationCopyWith<$Res>  {
   factory $BudgetEstimationCopyWith(BudgetEstimation value, $Res Function(BudgetEstimation) _then) = _$BudgetEstimationCopyWithImpl;
 @useResult
 $Res call({
- double? accommodationPerNight, double? mealsPerDayPerPerson, double? localTransportPerDay, double? activitiesTotal, double? totalMin, double? totalMax, String currency, String? breakdownNotes
+@JsonKey(name: 'accommodationPerNight') double? accommodationPerNight,@JsonKey(name: 'mealsPerDayPerPerson') double? mealsPerDayPerPerson,@JsonKey(name: 'localTransportPerDay') double? localTransportPerDay,@JsonKey(name: 'activitiesTotal') double? activitiesTotal,@JsonKey(name: 'totalMin') double? totalMin,@JsonKey(name: 'totalMax') double? totalMax, String currency,@JsonKey(name: 'breakdownNotes') String? breakdownNotes
 });
 
 
@@ -160,7 +160,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double? accommodationPerNight,  double? mealsPerDayPerPerson,  double? localTransportPerDay,  double? activitiesTotal,  double? totalMin,  double? totalMax,  String currency,  String? breakdownNotes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'accommodationPerNight')  double? accommodationPerNight, @JsonKey(name: 'mealsPerDayPerPerson')  double? mealsPerDayPerPerson, @JsonKey(name: 'localTransportPerDay')  double? localTransportPerDay, @JsonKey(name: 'activitiesTotal')  double? activitiesTotal, @JsonKey(name: 'totalMin')  double? totalMin, @JsonKey(name: 'totalMax')  double? totalMax,  String currency, @JsonKey(name: 'breakdownNotes')  String? breakdownNotes)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BudgetEstimation() when $default != null:
 return $default(_that.accommodationPerNight,_that.mealsPerDayPerPerson,_that.localTransportPerDay,_that.activitiesTotal,_that.totalMin,_that.totalMax,_that.currency,_that.breakdownNotes);case _:
@@ -181,7 +181,7 @@ return $default(_that.accommodationPerNight,_that.mealsPerDayPerPerson,_that.loc
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double? accommodationPerNight,  double? mealsPerDayPerPerson,  double? localTransportPerDay,  double? activitiesTotal,  double? totalMin,  double? totalMax,  String currency,  String? breakdownNotes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'accommodationPerNight')  double? accommodationPerNight, @JsonKey(name: 'mealsPerDayPerPerson')  double? mealsPerDayPerPerson, @JsonKey(name: 'localTransportPerDay')  double? localTransportPerDay, @JsonKey(name: 'activitiesTotal')  double? activitiesTotal, @JsonKey(name: 'totalMin')  double? totalMin, @JsonKey(name: 'totalMax')  double? totalMax,  String currency, @JsonKey(name: 'breakdownNotes')  String? breakdownNotes)  $default,) {final _that = this;
 switch (_that) {
 case _BudgetEstimation():
 return $default(_that.accommodationPerNight,_that.mealsPerDayPerPerson,_that.localTransportPerDay,_that.activitiesTotal,_that.totalMin,_that.totalMax,_that.currency,_that.breakdownNotes);case _:
@@ -201,7 +201,7 @@ return $default(_that.accommodationPerNight,_that.mealsPerDayPerPerson,_that.loc
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double? accommodationPerNight,  double? mealsPerDayPerPerson,  double? localTransportPerDay,  double? activitiesTotal,  double? totalMin,  double? totalMax,  String currency,  String? breakdownNotes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'accommodationPerNight')  double? accommodationPerNight, @JsonKey(name: 'mealsPerDayPerPerson')  double? mealsPerDayPerPerson, @JsonKey(name: 'localTransportPerDay')  double? localTransportPerDay, @JsonKey(name: 'activitiesTotal')  double? activitiesTotal, @JsonKey(name: 'totalMin')  double? totalMin, @JsonKey(name: 'totalMax')  double? totalMax,  String currency, @JsonKey(name: 'breakdownNotes')  String? breakdownNotes)?  $default,) {final _that = this;
 switch (_that) {
 case _BudgetEstimation() when $default != null:
 return $default(_that.accommodationPerNight,_that.mealsPerDayPerPerson,_that.localTransportPerDay,_that.activitiesTotal,_that.totalMin,_that.totalMax,_that.currency,_that.breakdownNotes);case _:
@@ -216,17 +216,17 @@ return $default(_that.accommodationPerNight,_that.mealsPerDayPerPerson,_that.loc
 @JsonSerializable()
 
 class _BudgetEstimation implements BudgetEstimation {
-  const _BudgetEstimation({this.accommodationPerNight, this.mealsPerDayPerPerson, this.localTransportPerDay, this.activitiesTotal, this.totalMin, this.totalMax, this.currency = 'EUR', this.breakdownNotes});
+  const _BudgetEstimation({@JsonKey(name: 'accommodationPerNight') this.accommodationPerNight, @JsonKey(name: 'mealsPerDayPerPerson') this.mealsPerDayPerPerson, @JsonKey(name: 'localTransportPerDay') this.localTransportPerDay, @JsonKey(name: 'activitiesTotal') this.activitiesTotal, @JsonKey(name: 'totalMin') this.totalMin, @JsonKey(name: 'totalMax') this.totalMax, this.currency = 'EUR', @JsonKey(name: 'breakdownNotes') this.breakdownNotes});
   factory _BudgetEstimation.fromJson(Map<String, dynamic> json) => _$BudgetEstimationFromJson(json);
 
-@override final  double? accommodationPerNight;
-@override final  double? mealsPerDayPerPerson;
-@override final  double? localTransportPerDay;
-@override final  double? activitiesTotal;
-@override final  double? totalMin;
-@override final  double? totalMax;
+@override@JsonKey(name: 'accommodationPerNight') final  double? accommodationPerNight;
+@override@JsonKey(name: 'mealsPerDayPerPerson') final  double? mealsPerDayPerPerson;
+@override@JsonKey(name: 'localTransportPerDay') final  double? localTransportPerDay;
+@override@JsonKey(name: 'activitiesTotal') final  double? activitiesTotal;
+@override@JsonKey(name: 'totalMin') final  double? totalMin;
+@override@JsonKey(name: 'totalMax') final  double? totalMax;
 @override@JsonKey() final  String currency;
-@override final  String? breakdownNotes;
+@override@JsonKey(name: 'breakdownNotes') final  String? breakdownNotes;
 
 /// Create a copy of BudgetEstimation
 /// with the given fields replaced by the non-null parameter values.
@@ -261,7 +261,7 @@ abstract mixin class _$BudgetEstimationCopyWith<$Res> implements $BudgetEstimati
   factory _$BudgetEstimationCopyWith(_BudgetEstimation value, $Res Function(_BudgetEstimation) _then) = __$BudgetEstimationCopyWithImpl;
 @override @useResult
 $Res call({
- double? accommodationPerNight, double? mealsPerDayPerPerson, double? localTransportPerDay, double? activitiesTotal, double? totalMin, double? totalMax, String currency, String? breakdownNotes
+@JsonKey(name: 'accommodationPerNight') double? accommodationPerNight,@JsonKey(name: 'mealsPerDayPerPerson') double? mealsPerDayPerPerson,@JsonKey(name: 'localTransportPerDay') double? localTransportPerDay,@JsonKey(name: 'activitiesTotal') double? activitiesTotal,@JsonKey(name: 'totalMin') double? totalMin,@JsonKey(name: 'totalMax') double? totalMax, String currency,@JsonKey(name: 'breakdownNotes') String? breakdownNotes
 });
 
 

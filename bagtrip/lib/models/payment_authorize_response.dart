@@ -6,8 +6,9 @@ part 'payment_authorize_response.g.dart';
 @freezed
 abstract class PaymentAuthorizeResponse with _$PaymentAuthorizeResponse {
   const factory PaymentAuthorizeResponse({
+    @JsonKey(name: 'stripePaymentIntentId')
     required String stripePaymentIntentId,
-    required String clientSecret,
+    @JsonKey(name: 'clientSecret') required String clientSecret,
     required String status,
   }) = _PaymentAuthorizeResponse;
 

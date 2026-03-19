@@ -19,7 +19,7 @@ void main() {
 
   final tripJson = {
     'id': 'trip-1',
-    'userId': 'u1',
+    'user_id': 'u1',
     'title': 'Paris',
     'status': 'draft',
   };
@@ -116,7 +116,7 @@ void main() {
             'planned': [
               {
                 'id': 'trip-2',
-                'userId': 'u1',
+                'user_id': 'u1',
                 'title': 'Tokyo',
                 'status': 'planned',
               },

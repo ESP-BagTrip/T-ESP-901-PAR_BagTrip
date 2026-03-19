@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PaymentAuthorizeResponse {
 
- String get stripePaymentIntentId; String get clientSecret; String get status;
+@JsonKey(name: 'stripePaymentIntentId') String get stripePaymentIntentId;@JsonKey(name: 'clientSecret') String get clientSecret; String get status;
 /// Create a copy of PaymentAuthorizeResponse
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $PaymentAuthorizeResponseCopyWith<$Res>  {
   factory $PaymentAuthorizeResponseCopyWith(PaymentAuthorizeResponse value, $Res Function(PaymentAuthorizeResponse) _then) = _$PaymentAuthorizeResponseCopyWithImpl;
 @useResult
 $Res call({
- String stripePaymentIntentId, String clientSecret, String status
+@JsonKey(name: 'stripePaymentIntentId') String stripePaymentIntentId,@JsonKey(name: 'clientSecret') String clientSecret, String status
 });
 
 
@@ -155,7 +155,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String stripePaymentIntentId,  String clientSecret,  String status)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'stripePaymentIntentId')  String stripePaymentIntentId, @JsonKey(name: 'clientSecret')  String clientSecret,  String status)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PaymentAuthorizeResponse() when $default != null:
 return $default(_that.stripePaymentIntentId,_that.clientSecret,_that.status);case _:
@@ -176,7 +176,7 @@ return $default(_that.stripePaymentIntentId,_that.clientSecret,_that.status);cas
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String stripePaymentIntentId,  String clientSecret,  String status)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'stripePaymentIntentId')  String stripePaymentIntentId, @JsonKey(name: 'clientSecret')  String clientSecret,  String status)  $default,) {final _that = this;
 switch (_that) {
 case _PaymentAuthorizeResponse():
 return $default(_that.stripePaymentIntentId,_that.clientSecret,_that.status);case _:
@@ -196,7 +196,7 @@ return $default(_that.stripePaymentIntentId,_that.clientSecret,_that.status);cas
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String stripePaymentIntentId,  String clientSecret,  String status)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'stripePaymentIntentId')  String stripePaymentIntentId, @JsonKey(name: 'clientSecret')  String clientSecret,  String status)?  $default,) {final _that = this;
 switch (_that) {
 case _PaymentAuthorizeResponse() when $default != null:
 return $default(_that.stripePaymentIntentId,_that.clientSecret,_that.status);case _:
@@ -211,11 +211,11 @@ return $default(_that.stripePaymentIntentId,_that.clientSecret,_that.status);cas
 @JsonSerializable()
 
 class _PaymentAuthorizeResponse implements PaymentAuthorizeResponse {
-  const _PaymentAuthorizeResponse({required this.stripePaymentIntentId, required this.clientSecret, required this.status});
+  const _PaymentAuthorizeResponse({@JsonKey(name: 'stripePaymentIntentId') required this.stripePaymentIntentId, @JsonKey(name: 'clientSecret') required this.clientSecret, required this.status});
   factory _PaymentAuthorizeResponse.fromJson(Map<String, dynamic> json) => _$PaymentAuthorizeResponseFromJson(json);
 
-@override final  String stripePaymentIntentId;
-@override final  String clientSecret;
+@override@JsonKey(name: 'stripePaymentIntentId') final  String stripePaymentIntentId;
+@override@JsonKey(name: 'clientSecret') final  String clientSecret;
 @override final  String status;
 
 /// Create a copy of PaymentAuthorizeResponse
@@ -251,7 +251,7 @@ abstract mixin class _$PaymentAuthorizeResponseCopyWith<$Res> implements $Paymen
   factory _$PaymentAuthorizeResponseCopyWith(_PaymentAuthorizeResponse value, $Res Function(_PaymentAuthorizeResponse) _then) = __$PaymentAuthorizeResponseCopyWithImpl;
 @override @useResult
 $Res call({
- String stripePaymentIntentId, String clientSecret, String status
+@JsonKey(name: 'stripePaymentIntentId') String stripePaymentIntentId,@JsonKey(name: 'clientSecret') String clientSecret, String status
 });
 
 

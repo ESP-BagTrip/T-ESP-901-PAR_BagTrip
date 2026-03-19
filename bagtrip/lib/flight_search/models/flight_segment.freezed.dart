@@ -11,16 +11,19 @@ part of 'flight_segment.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
+
 /// @nodoc
 mixin _$FlightSegment {
 
- Map<String, dynamic>? get departureAirport; Map<String, dynamic>? get arrivalAirport; DateTime? get departureDate;
+@JsonKey(name: 'departureAirport') Map<String, dynamic>? get departureAirport;@JsonKey(name: 'arrivalAirport') Map<String, dynamic>? get arrivalAirport;@JsonKey(name: 'departureDate') DateTime? get departureDate;
 /// Create a copy of FlightSegment
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $FlightSegmentCopyWith<FlightSegment> get copyWith => _$FlightSegmentCopyWithImpl<FlightSegment>(this as FlightSegment, _$identity);
 
+  /// Serializes this FlightSegment to a JSON map.
+  Map<String, dynamic> toJson();
 
 
 @override
@@ -28,7 +31,7 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is FlightSegment&&const DeepCollectionEquality().equals(other.departureAirport, departureAirport)&&const DeepCollectionEquality().equals(other.arrivalAirport, arrivalAirport)&&(identical(other.departureDate, departureDate) || other.departureDate == departureDate));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(departureAirport),const DeepCollectionEquality().hash(arrivalAirport),departureDate);
 
@@ -45,7 +48,7 @@ abstract mixin class $FlightSegmentCopyWith<$Res>  {
   factory $FlightSegmentCopyWith(FlightSegment value, $Res Function(FlightSegment) _then) = _$FlightSegmentCopyWithImpl;
 @useResult
 $Res call({
- Map<String, dynamic>? departureAirport, Map<String, dynamic>? arrivalAirport, DateTime? departureDate
+@JsonKey(name: 'departureAirport') Map<String, dynamic>? departureAirport,@JsonKey(name: 'arrivalAirport') Map<String, dynamic>? arrivalAirport,@JsonKey(name: 'departureDate') DateTime? departureDate
 });
 
 
@@ -152,7 +155,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Map<String, dynamic>? departureAirport,  Map<String, dynamic>? arrivalAirport,  DateTime? departureDate)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'departureAirport')  Map<String, dynamic>? departureAirport, @JsonKey(name: 'arrivalAirport')  Map<String, dynamic>? arrivalAirport, @JsonKey(name: 'departureDate')  DateTime? departureDate)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _FlightSegment() when $default != null:
 return $default(_that.departureAirport,_that.arrivalAirport,_that.departureDate);case _:
@@ -173,7 +176,7 @@ return $default(_that.departureAirport,_that.arrivalAirport,_that.departureDate)
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Map<String, dynamic>? departureAirport,  Map<String, dynamic>? arrivalAirport,  DateTime? departureDate)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'departureAirport')  Map<String, dynamic>? departureAirport, @JsonKey(name: 'arrivalAirport')  Map<String, dynamic>? arrivalAirport, @JsonKey(name: 'departureDate')  DateTime? departureDate)  $default,) {final _that = this;
 switch (_that) {
 case _FlightSegment():
 return $default(_that.departureAirport,_that.arrivalAirport,_that.departureDate);case _:
@@ -193,7 +196,7 @@ return $default(_that.departureAirport,_that.arrivalAirport,_that.departureDate)
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Map<String, dynamic>? departureAirport,  Map<String, dynamic>? arrivalAirport,  DateTime? departureDate)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'departureAirport')  Map<String, dynamic>? departureAirport, @JsonKey(name: 'arrivalAirport')  Map<String, dynamic>? arrivalAirport, @JsonKey(name: 'departureDate')  DateTime? departureDate)?  $default,) {final _that = this;
 switch (_that) {
 case _FlightSegment() when $default != null:
 return $default(_that.departureAirport,_that.arrivalAirport,_that.departureDate);case _:
@@ -205,14 +208,14 @@ return $default(_that.departureAirport,_that.arrivalAirport,_that.departureDate)
 }
 
 /// @nodoc
-
+@JsonSerializable()
 
 class _FlightSegment implements FlightSegment {
-  const _FlightSegment({final  Map<String, dynamic>? departureAirport, final  Map<String, dynamic>? arrivalAirport, this.departureDate}): _departureAirport = departureAirport,_arrivalAirport = arrivalAirport;
-  
+  const _FlightSegment({@JsonKey(name: 'departureAirport') final  Map<String, dynamic>? departureAirport, @JsonKey(name: 'arrivalAirport') final  Map<String, dynamic>? arrivalAirport, @JsonKey(name: 'departureDate') this.departureDate}): _departureAirport = departureAirport,_arrivalAirport = arrivalAirport;
+  factory _FlightSegment.fromJson(Map<String, dynamic> json) => _$FlightSegmentFromJson(json);
 
  final  Map<String, dynamic>? _departureAirport;
-@override Map<String, dynamic>? get departureAirport {
+@override@JsonKey(name: 'departureAirport') Map<String, dynamic>? get departureAirport {
   final value = _departureAirport;
   if (value == null) return null;
   if (_departureAirport is EqualUnmodifiableMapView) return _departureAirport;
@@ -221,7 +224,7 @@ class _FlightSegment implements FlightSegment {
 }
 
  final  Map<String, dynamic>? _arrivalAirport;
-@override Map<String, dynamic>? get arrivalAirport {
+@override@JsonKey(name: 'arrivalAirport') Map<String, dynamic>? get arrivalAirport {
   final value = _arrivalAirport;
   if (value == null) return null;
   if (_arrivalAirport is EqualUnmodifiableMapView) return _arrivalAirport;
@@ -229,7 +232,7 @@ class _FlightSegment implements FlightSegment {
   return EqualUnmodifiableMapView(value);
 }
 
-@override final  DateTime? departureDate;
+@override@JsonKey(name: 'departureDate') final  DateTime? departureDate;
 
 /// Create a copy of FlightSegment
 /// with the given fields replaced by the non-null parameter values.
@@ -237,14 +240,17 @@ class _FlightSegment implements FlightSegment {
 @pragma('vm:prefer-inline')
 _$FlightSegmentCopyWith<_FlightSegment> get copyWith => __$FlightSegmentCopyWithImpl<_FlightSegment>(this, _$identity);
 
-
+@override
+Map<String, dynamic> toJson() {
+  return _$FlightSegmentToJson(this, );
+}
 
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _FlightSegment&&const DeepCollectionEquality().equals(other._departureAirport, _departureAirport)&&const DeepCollectionEquality().equals(other._arrivalAirport, _arrivalAirport)&&(identical(other.departureDate, departureDate) || other.departureDate == departureDate));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_departureAirport),const DeepCollectionEquality().hash(_arrivalAirport),departureDate);
 
@@ -261,7 +267,7 @@ abstract mixin class _$FlightSegmentCopyWith<$Res> implements $FlightSegmentCopy
   factory _$FlightSegmentCopyWith(_FlightSegment value, $Res Function(_FlightSegment) _then) = __$FlightSegmentCopyWithImpl;
 @override @useResult
 $Res call({
- Map<String, dynamic>? departureAirport, Map<String, dynamic>? arrivalAirport, DateTime? departureDate
+@JsonKey(name: 'departureAirport') Map<String, dynamic>? departureAirport,@JsonKey(name: 'arrivalAirport') Map<String, dynamic>? arrivalAirport,@JsonKey(name: 'departureDate') DateTime? departureDate
 });
 
 

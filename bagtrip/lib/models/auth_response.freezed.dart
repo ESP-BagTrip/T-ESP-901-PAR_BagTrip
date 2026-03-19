@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AuthResponse {
 
-@JsonKey(name: 'access_token') String get accessToken;@JsonKey(name: 'refresh_token') String get refreshToken;@JsonKey(name: 'expires_in') int get expiresIn; User get user;
+ String get accessToken; String get refreshToken; int get expiresIn; User get user;
 /// Create a copy of AuthResponse
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $AuthResponseCopyWith<$Res>  {
   factory $AuthResponseCopyWith(AuthResponse value, $Res Function(AuthResponse) _then) = _$AuthResponseCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'access_token') String accessToken,@JsonKey(name: 'refresh_token') String refreshToken,@JsonKey(name: 'expires_in') int expiresIn, User user
+ String accessToken, String refreshToken, int expiresIn, User user
 });
 
 
@@ -165,7 +165,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'access_token')  String accessToken, @JsonKey(name: 'refresh_token')  String refreshToken, @JsonKey(name: 'expires_in')  int expiresIn,  User user)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String accessToken,  String refreshToken,  int expiresIn,  User user)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AuthResponse() when $default != null:
 return $default(_that.accessToken,_that.refreshToken,_that.expiresIn,_that.user);case _:
@@ -186,7 +186,7 @@ return $default(_that.accessToken,_that.refreshToken,_that.expiresIn,_that.user)
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'access_token')  String accessToken, @JsonKey(name: 'refresh_token')  String refreshToken, @JsonKey(name: 'expires_in')  int expiresIn,  User user)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String accessToken,  String refreshToken,  int expiresIn,  User user)  $default,) {final _that = this;
 switch (_that) {
 case _AuthResponse():
 return $default(_that.accessToken,_that.refreshToken,_that.expiresIn,_that.user);case _:
@@ -206,7 +206,7 @@ return $default(_that.accessToken,_that.refreshToken,_that.expiresIn,_that.user)
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'access_token')  String accessToken, @JsonKey(name: 'refresh_token')  String refreshToken, @JsonKey(name: 'expires_in')  int expiresIn,  User user)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String accessToken,  String refreshToken,  int expiresIn,  User user)?  $default,) {final _that = this;
 switch (_that) {
 case _AuthResponse() when $default != null:
 return $default(_that.accessToken,_that.refreshToken,_that.expiresIn,_that.user);case _:
@@ -221,12 +221,12 @@ return $default(_that.accessToken,_that.refreshToken,_that.expiresIn,_that.user)
 @JsonSerializable()
 
 class _AuthResponse implements AuthResponse {
-  const _AuthResponse({@JsonKey(name: 'access_token') required this.accessToken, @JsonKey(name: 'refresh_token') this.refreshToken = '', @JsonKey(name: 'expires_in') this.expiresIn = 3600, required this.user});
+  const _AuthResponse({required this.accessToken, this.refreshToken = '', this.expiresIn = 3600, required this.user});
   factory _AuthResponse.fromJson(Map<String, dynamic> json) => _$AuthResponseFromJson(json);
 
-@override@JsonKey(name: 'access_token') final  String accessToken;
-@override@JsonKey(name: 'refresh_token') final  String refreshToken;
-@override@JsonKey(name: 'expires_in') final  int expiresIn;
+@override final  String accessToken;
+@override@JsonKey() final  String refreshToken;
+@override@JsonKey() final  int expiresIn;
 @override final  User user;
 
 /// Create a copy of AuthResponse
@@ -262,7 +262,7 @@ abstract mixin class _$AuthResponseCopyWith<$Res> implements $AuthResponseCopyWi
   factory _$AuthResponseCopyWith(_AuthResponse value, $Res Function(_AuthResponse) _then) = __$AuthResponseCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'access_token') String accessToken,@JsonKey(name: 'refresh_token') String refreshToken,@JsonKey(name: 'expires_in') int expiresIn, User user
+ String accessToken, String refreshToken, int expiresIn, User user
 });
 
 
