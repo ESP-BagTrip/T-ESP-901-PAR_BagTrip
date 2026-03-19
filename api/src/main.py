@@ -175,6 +175,10 @@ from src.api.ai.budget_estimate_routes import router as ai_budget_estimate_route
 
 app.include_router(ai_budget_estimate_router)
 
+from src.api.ai.plan_trip_routes import router as ai_plan_trip_router
+
+app.include_router(ai_plan_trip_router)
+
 from src.api.hotels.routes import router as hotel_search_router
 
 app.include_router(hotel_search_router)

@@ -68,6 +68,7 @@ dependencies:
   connectivity_plus: ^6.1.1
   url_launcher: ^6.3.2
   flutter_stripe: ^12.4.0
+  flutter_client_sse: ^2.0.0
 
   # Liquid Glass (iOS 26+ look)
   liquid_glass_renderer: ^0.2.0-dev.4

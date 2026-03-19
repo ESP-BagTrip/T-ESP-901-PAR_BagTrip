@@ -15,4 +15,17 @@ abstract class AiRepository {
     String? endDate,
   });
   Future<Result<Map<String, dynamic>>> getPostTripSuggestion();
+
+  /// Stream trip planning events via SSE from the multi-agent pipeline.
+  /// Each emitted map has: {"event": "...", "data": {...}}
+  Stream<Map<String, dynamic>> planTripStream({
+    String? travelTypes,
+    String? budgetRange,
+    int? durationDays,
+    String? companions,
+    String? constraints,
+    String? departureDate,
+    String? returnDate,
+    String? originCity,
+  });
 }

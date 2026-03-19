@@ -67,6 +67,9 @@ class Settings(BaseSettings):
     # AirLabs (flight info)
     AIRLABS_API_KEY: str | None = None
 
+    # Open-Meteo (weather — free, no key required)
+    OPEN_METEO_BASE_URL: str = "https://api.open-meteo.com"
+
     @field_validator("AMADEUS_CLIENT_ID", "AMADEUS_CLIENT_SECRET", "LLM_API_KEY")
     @classmethod
     def validate_required_strings(cls, v: str) -> str:

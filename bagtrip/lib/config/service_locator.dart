@@ -103,7 +103,10 @@ void setupServiceLocator() {
     () => SubscriptionRepositoryImpl(apiClient: getIt<ApiClient>()),
   );
   getIt.registerLazySingleton<AiRepository>(
-    () => AiRepositoryImpl(apiClient: getIt<ApiClient>()),
+    () => AiRepositoryImpl(
+      apiClient: getIt<ApiClient>(),
+      storageService: getIt<StorageService>(),
+    ),
   );
   getIt.registerLazySingleton<TransportRepository>(
     () => TransportRepositoryImpl(apiClient: getIt<ApiClient>()),

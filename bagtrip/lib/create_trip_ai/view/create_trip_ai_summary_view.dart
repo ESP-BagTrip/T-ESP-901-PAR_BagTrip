@@ -9,19 +9,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-/// Mock: category labels for day-by-day timeline (index 0..4).
-const List<String> _mockDayCategoryKeys = [
-  'summaryCategoryTravelDay',
-  'summaryCategoryCulture',
-  'summaryCategoryCuisine',
-  'summaryCategoryDayTrip',
-  'summaryCategoryDeparture',
-];
-
-/// Mock: accommodation subtitle (not in TripSummary).
-const String _mockAccommodationSubtitle = 'Le Marais, Paris · 4-star boutique';
-
-/// Mock flight content uses L10n: summaryFlightRouteMock, summaryFlightDetailsMock.
+/// Category icon mapping for activity categories.
+IconData _categoryIcon(String category) {
+  return switch (category.toUpperCase()) {
+    'CULTURE' => Icons.museum,
+    'NATURE' => Icons.park,
+    'FOOD' => Icons.restaurant,
+    'SPORT' => Icons.fitness_center,
+    'SHOPPING' => Icons.shopping_bag,
+    'NIGHTLIFE' => Icons.nightlife,
+    'RELAXATION' => Icons.spa,
+    _ => Icons.place,
+  };
+}
 
 class CreateTripAiSummaryView extends StatefulWidget {
   const CreateTripAiSummaryView({super.key});
@@ -35,87 +35,6 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
   /// Local state for essentials checklist (checked indices).
   final Set<int> _essentialChecked = {};
 
-  String _getCategoryLabel(AppLocalizations l10n, int index) {
-    if (index >= _mockDayCategoryKeys.length) return '';
-    switch (_mockDayCategoryKeys[index]) {
-      case 'summaryCategoryTravelDay':
-        return l10n.summaryCategoryTravelDay;
-      case 'summaryCategoryCulture':
-        return l10n.summaryCategoryCulture;
-      case 'summaryCategoryCuisine':
-        return l10n.summaryCategoryCuisine;
-      case 'summaryCategoryDayTrip':
-        return l10n.summaryCategoryDayTrip;
-      case 'summaryCategoryDeparture':
-        return l10n.summaryCategoryDeparture;
-      default:
-        return '';
-    }
-  }
-
-  IconData _getCategoryIcon(int index) {
-    if (index >= _mockDayCategoryKeys.length) return Icons.circle;
-    switch (_mockDayCategoryKeys[index]) {
-      case 'summaryCategoryTravelDay':
-        return Icons.train;
-      case 'summaryCategoryCulture':
-        return Icons.museum;
-      case 'summaryCategoryCuisine':
-        return Icons.restaurant;
-      case 'summaryCategoryDayTrip':
-        return Icons.castle;
-      case 'summaryCategoryDeparture':
-        return Icons.flight_takeoff;
-      default:
-        return Icons.circle;
-    }
-  }
-
-  IconData _getEssentialIcon(int index) {
-    const icons = [
-      Icons.public,
-      Icons.power,
-      Icons.wb_sunny,
-      Icons.medical_services,
-      Icons.directions_walk,
-    ];
-    return index < icons.length ? icons[index] : Icons.checklist;
-  }
-
-  String _getDayDate(AppLocalizations l10n, int index) {
-    switch (index) {
-      case 0:
-        return l10n.summaryDay1Date;
-      case 1:
-        return l10n.summaryDay2Date;
-      case 2:
-        return l10n.summaryDay3Date;
-      case 3:
-        return l10n.summaryDay4Date;
-      case 4:
-        return l10n.summaryDay5Date;
-      default:
-        return '${l10n.summaryDayPrefix}${index + 1}';
-    }
-  }
-
-  String _getDayDescription(AppLocalizations l10n, int index) {
-    switch (index) {
-      case 0:
-        return l10n.summaryDay1Description;
-      case 1:
-        return l10n.summaryDay2Description;
-      case 2:
-        return l10n.summaryDay3Description;
-      case 3:
-        return l10n.summaryDay4Description;
-      case 4:
-        return l10n.summaryDay5Description;
-      default:
-        return '';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<CreateTripAiBloc, CreateTripAiState>(
@@ -124,6 +43,9 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator.adaptive()),
           );
+        }
+        if (state is CreateTripAiStreaming) {
+          return _buildStreamingView(context, state);
         }
         if (state is CreateTripAiSummaryLoaded) {
           return _buildSummary(context, state.summary);
@@ -135,28 +57,129 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
     );
   }
 
-  Widget _buildSummary(BuildContext context, TripSummary s) {
+  // ---------------------------------------------------------------------------
+  // Streaming progress view
+  // ---------------------------------------------------------------------------
+
+  Widget _buildStreamingView(
+    BuildContext context,
+    CreateTripAiStreaming state,
+  ) {
     final l10n = AppLocalizations.of(context)!;
+    return Scaffold(
+      backgroundColor: ColorName.surfaceLight,
+      body: SafeArea(
+        child: Padding(
+          padding: AppSpacing.allEdgeInsetSpace24,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator.adaptive(),
+              const SizedBox(height: AppSpacing.space24),
+              Text(
+                state.message.isNotEmpty ? state.message : l10n.summarySaveTrip,
+                style: const TextStyle(
+                  fontFamily: FontFamily.b612,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: ColorName.primaryTrueDark,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.space16),
+              // Show what data has arrived
+              _buildStreamingProgress(state),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStreamingProgress(CreateTripAiStreaming state) {
+    return Column(
+      children: [
+        _streamingStep(
+          'Destinations',
+          Icons.flight_takeoff,
+          state.destinations != null,
+        ),
+        _streamingStep(
+          'Activities',
+          Icons.local_activity,
+          state.activities != null,
+        ),
+        _streamingStep(
+          'Accommodation',
+          Icons.hotel,
+          state.accommodations != null,
+        ),
+        _streamingStep(
+          'Packing list',
+          Icons.luggage,
+          state.baggageItems != null,
+        ),
+        _streamingStep(
+          'Budget',
+          Icons.account_balance_wallet,
+          state.budgetEstimation != null,
+        ),
+      ],
+    );
+  }
+
+  Widget _streamingStep(String label, IconData icon, bool done) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Icon(
+            done ? Icons.check_circle : Icons.radio_button_unchecked,
+            color: done ? ColorName.success : ColorName.hint,
+            size: 20,
+          ),
+          const SizedBox(width: AppSpacing.space8),
+          Icon(
+            icon,
+            color: done ? ColorName.primary : ColorName.hint,
+            size: 20,
+          ),
+          const SizedBox(width: AppSpacing.space8),
+          Text(
+            label,
+            style: TextStyle(
+              fontFamily: FontFamily.b612,
+              fontSize: 14,
+              color: done ? ColorName.primaryTrueDark : ColorName.hint,
+              fontWeight: done ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Full summary view (after streaming completes)
+  // ---------------------------------------------------------------------------
+
+  Widget _buildSummary(BuildContext context, TripSummary s) {
     return Scaffold(
       backgroundColor: ColorName.surfaceLight,
       body: SafeArea(
         top: false,
         child: CustomScrollView(
           slivers: [
-            _buildUpcomingJourney(context, l10n, s),
-            SliverToBoxAdapter(child: _buildWhiteSheet(context, l10n, s)),
+            _buildUpcomingJourney(context, s),
+            SliverToBoxAdapter(child: _buildWhiteSheet(context, s)),
           ],
         ),
       ),
     );
   }
 
-  /// [1] Upcoming Journey block (image background, extends under top safe area).
-  Widget _buildUpcomingJourney(
-    BuildContext context,
-    AppLocalizations l10n,
-    TripSummary s,
-  ) {
+  Widget _buildUpcomingJourney(BuildContext context, TripSummary s) {
+    final l10n = AppLocalizations.of(context)!;
     final topPadding = MediaQuery.paddingOf(context).top;
 
     return SliverToBoxAdapter(
@@ -250,11 +273,14 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
                               _formatBudget(s.budgetEur),
                             ),
                           ),
-                          const SizedBox(width: AppSpacing.space8),
-                          _upcomingChip(
-                            icon: Icons.person_outline,
-                            label: l10n.summarySolo,
-                          ),
+                          if (s.weatherData.isNotEmpty) ...[
+                            const SizedBox(width: AppSpacing.space8),
+                            _upcomingChip(
+                              icon: Icons.thermostat,
+                              label:
+                                  '${(s.weatherData['avg_temp_c'] ?? '').toString()}°C',
+                            ),
+                          ],
                         ],
                       ),
                     ],
@@ -300,12 +326,8 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
     );
   }
 
-  /// [3] White sheet: highlights, accommodation, timeline, essentials, buttons.
-  Widget _buildWhiteSheet(
-    BuildContext context,
-    AppLocalizations l10n,
-    TripSummary s,
-  ) {
+  Widget _buildWhiteSheet(BuildContext context, TripSummary s) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -348,7 +370,7 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
               ),
             ),
             const SizedBox(height: AppSpacing.space8),
-            _buildAccommodationCard(context, l10n, s.accommodation),
+            _buildAccommodationCard(context, l10n, s),
             const SizedBox(height: AppSpacing.space24),
             _sheetSectionLabel(l10n.summarySectionFlight),
             const SizedBox(height: 4),
@@ -362,7 +384,7 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
               ),
             ),
             const SizedBox(height: AppSpacing.space8),
-            _buildFlightCard(context, l10n),
+            _buildFlightCard(context, l10n, s),
             const SizedBox(height: AppSpacing.space24),
             _sheetSectionLabel(l10n.summarySectionYourJourney),
             const SizedBox(height: 4),
@@ -376,7 +398,7 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
               ),
             ),
             const SizedBox(height: AppSpacing.space16),
-            _buildDayByDayTimeline(context, l10n, s.dayByDayProgram),
+            _buildDayByDayTimeline(context, l10n, s),
             const SizedBox(height: AppSpacing.space24),
             _sheetSectionLabel(l10n.summarySectionEssentials),
             const SizedBox(height: 4),
@@ -390,7 +412,7 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
               ),
             ),
             const SizedBox(height: AppSpacing.space8),
-            _buildEssentialsList(context, l10n, s.essentialItems),
+            _buildEssentialsList(context, l10n, s),
             const SizedBox(height: AppSpacing.space32),
             _buildSaveButton(context, l10n),
             const SizedBox(height: AppSpacing.space8),
@@ -447,11 +469,38 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
     );
   }
 
+  /// Source badge — "Amadeus" (verified) or "Estimated".
+  Widget _sourceBadge(String source) {
+    final isVerified = source.toLowerCase() == 'amadeus';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: isVerified
+            ? ColorName.success.withValues(alpha: 0.2)
+            : ColorName.warning.withValues(alpha: 0.2),
+        borderRadius: AppRadius.pill,
+      ),
+      child: Text(
+        isVerified ? 'Verified' : 'Estimated',
+        style: TextStyle(
+          fontFamily: FontFamily.b612,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: isVerified ? ColorName.success : ColorName.warning,
+        ),
+      ),
+    );
+  }
+
   Widget _buildAccommodationCard(
     BuildContext context,
     AppLocalizations l10n,
-    String accommodationName,
+    TripSummary s,
   ) {
+    final subtitle = s.accommodationSubtitle.isNotEmpty
+        ? s.accommodationSubtitle
+        : '${s.destination} · ${s.accommodationPrice.toStringAsFixed(0)} EUR';
+
     return Container(
       padding: const EdgeInsets.all(AppSpacing.space16),
       decoration: BoxDecoration(
@@ -502,7 +551,7 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
                   children: [
                     Expanded(
                       child: Text(
-                        accommodationName,
+                        s.accommodation,
                         style: const TextStyle(
                           fontFamily: FontFamily.b612,
                           fontSize: 16,
@@ -514,46 +563,30 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: ColorName.success.withValues(alpha: 0.2),
-                        borderRadius: AppRadius.pill,
-                      ),
-                      child: Text(
-                        l10n.summaryBestPick,
-                        style: const TextStyle(
-                          fontFamily: FontFamily.b612,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: ColorName.success,
-                        ),
-                      ),
-                    ),
+                    _sourceBadge(s.accommodationSource),
                   ],
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  _mockAccommodationSubtitle,
-                  style: TextStyle(
+                Text(
+                  subtitle,
+                  style: const TextStyle(
                     fontFamily: FontFamily.b612,
                     fontSize: 13,
                     color: ColorName.textMutedLight,
                   ),
                 ),
-                const SizedBox(height: 6),
-                Row(
-                  children: List.generate(5, (i) {
-                    return Icon(
-                      i < 4 ? Icons.star_rounded : Icons.star_outline_rounded,
-                      size: 18,
-                      color: i < 4 ? ColorName.warning : ColorName.hint,
-                    );
-                  }),
-                ),
+                if (s.accommodationPrice > 0) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    '${s.accommodationPrice.toStringAsFixed(0)} EUR total',
+                    style: const TextStyle(
+                      fontFamily: FontFamily.b612,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: ColorName.primary,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -562,7 +595,18 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
     );
   }
 
-  Widget _buildFlightCard(BuildContext context, AppLocalizations l10n) {
+  Widget _buildFlightCard(
+    BuildContext context,
+    AppLocalizations l10n,
+    TripSummary s,
+  ) {
+    final route = s.flightRoute.isNotEmpty
+        ? s.flightRoute
+        : l10n.summaryFlightRouteMock;
+    final details = s.flightDetails.isNotEmpty
+        ? s.flightDetails
+        : l10n.summaryFlightDetailsMock;
+
     return Container(
       padding: const EdgeInsets.all(AppSpacing.space16),
       decoration: BoxDecoration(
@@ -608,26 +652,47 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  l10n.summaryFlightRouteMock,
-                  style: const TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: ColorName.primaryTrueDark,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        route,
+                        style: const TextStyle(
+                          fontFamily: FontFamily.b612,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: ColorName.primaryTrueDark,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    _sourceBadge(s.flightSource),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  l10n.summaryFlightDetailsMock,
+                  details,
                   style: const TextStyle(
                     fontFamily: FontFamily.b612,
                     fontSize: 13,
                     color: ColorName.textMutedLight,
                   ),
                 ),
+                if (s.flightPrice > 0) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    '${s.flightPrice.toStringAsFixed(0)} EUR',
+                    style: const TextStyle(
+                      fontFamily: FontFamily.b612,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: ColorName.primary,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -639,14 +704,24 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
   Widget _buildDayByDayTimeline(
     BuildContext context,
     AppLocalizations l10n,
-    List<String> dayByDayProgram,
+    TripSummary s,
   ) {
-    final count = dayByDayProgram.length;
+    final count = s.dayByDayProgram.length;
+    if (count == 0) {
+      return const SizedBox.shrink();
+    }
     return Padding(
       padding: const EdgeInsets.only(left: AppSpacing.space8),
       child: Column(
         children: List.generate(count, (i) {
           final isLast = i == count - 1;
+          final description = i < s.dayByDayDescriptions.length
+              ? s.dayByDayDescriptions[i]
+              : '';
+          final category = i < s.dayByDayCategories.length
+              ? s.dayByDayCategories[i]
+              : '';
+
           return IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -691,18 +766,7 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _getDayDate(l10n, i),
-                          style: const TextStyle(
-                            fontFamily: FontFamily.b612,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: ColorName.primary,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          dayByDayProgram[i],
+                          s.dayByDayProgram[i],
                           style: const TextStyle(
                             fontFamily: FontFamily.b612,
                             fontSize: 16,
@@ -710,46 +774,50 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
                             color: ColorName.primaryTrueDark,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _getDayDescription(l10n, i),
-                          style: const TextStyle(
-                            fontFamily: FontFamily.b612,
-                            fontSize: 13,
-                            color: ColorName.textMutedLight,
-                            height: 1.35,
+                        if (description.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            description,
+                            style: const TextStyle(
+                              fontFamily: FontFamily.b612,
+                              fontSize: 13,
+                              color: ColorName.textMutedLight,
+                              height: 1.35,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: const BoxDecoration(
-                            color: ColorName.surfaceVariant,
-                            borderRadius: AppRadius.pill,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _getCategoryIcon(i),
-                                size: 14,
-                                color: ColorName.textMutedLight,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                _getCategoryLabel(l10n, i),
-                                style: const TextStyle(
-                                  fontFamily: FontFamily.b612,
-                                  fontSize: 12,
+                        ],
+                        if (category.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: const BoxDecoration(
+                              color: ColorName.surfaceVariant,
+                              borderRadius: AppRadius.pill,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _categoryIcon(category),
+                                  size: 14,
                                   color: ColorName.textMutedLight,
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 6),
+                                Text(
+                                  category,
+                                  style: const TextStyle(
+                                    fontFamily: FontFamily.b612,
+                                    fontSize: 12,
+                                    color: ColorName.textMutedLight,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ),
@@ -765,8 +833,12 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
   Widget _buildEssentialsList(
     BuildContext context,
     AppLocalizations l10n,
-    List<String> essentialItems,
+    TripSummary s,
   ) {
+    if (s.essentialItems.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: ColorName.surface,
@@ -776,8 +848,12 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
       child: ClipRRect(
         borderRadius: AppRadius.large16,
         child: Column(
-          children: List.generate(essentialItems.length, (i) {
+          children: List.generate(s.essentialItems.length, (i) {
             final checked = _essentialChecked.contains(i);
+            final reason = i < s.essentialReasons.length
+                ? s.essentialReasons[i]
+                : '';
+
             return InkWell(
               onTap: () {
                 setState(() {
@@ -794,7 +870,7 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
                   vertical: 14,
                 ),
                 decoration: BoxDecoration(
-                  border: i < essentialItems.length - 1
+                  border: i < s.essentialItems.length - 1
                       ? const Border(
                           bottom: BorderSide(color: ColorName.primarySoftLight),
                         )
@@ -824,19 +900,28 @@ class _CreateTripAiSummaryViewState extends State<CreateTripAiSummaryView> {
                     ),
                     const SizedBox(width: AppSpacing.space8),
                     Expanded(
-                      child: Text(
-                        essentialItems[i],
-                        style: const TextStyle(
-                          fontFamily: FontFamily.b612,
-                          fontSize: 14,
-                          color: ColorName.primaryTrueDark,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            s.essentialItems[i],
+                            style: const TextStyle(
+                              fontFamily: FontFamily.b612,
+                              fontSize: 14,
+                              color: ColorName.primaryTrueDark,
+                            ),
+                          ),
+                          if (reason.isNotEmpty)
+                            Text(
+                              reason,
+                              style: const TextStyle(
+                                fontFamily: FontFamily.b612,
+                                fontSize: 12,
+                                color: ColorName.textMutedLight,
+                              ),
+                            ),
+                        ],
                       ),
-                    ),
-                    Icon(
-                      _getEssentialIcon(i),
-                      size: 20,
-                      color: ColorName.textMutedLight,
                     ),
                   ],
                 ),

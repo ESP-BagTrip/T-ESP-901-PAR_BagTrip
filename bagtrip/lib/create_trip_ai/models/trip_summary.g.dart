@@ -27,6 +27,30 @@ _TripSummary _$TripSummaryFromJson(Map<String, dynamic> json) => _TripSummary(
           ?.map((e) => e as String)
           .toList() ??
       const [],
+  accommodationSubtitle: json['accommodationSubtitle'] as String? ?? '',
+  accommodationPrice: (json['accommodationPrice'] as num?)?.toDouble() ?? 0.0,
+  accommodationSource: json['accommodationSource'] as String? ?? 'estimated',
+  flightRoute: json['flightRoute'] as String? ?? '',
+  flightDetails: json['flightDetails'] as String? ?? '',
+  flightPrice: (json['flightPrice'] as num?)?.toDouble() ?? 0.0,
+  flightSource: json['flightSource'] as String? ?? 'estimated',
+  dayByDayDescriptions:
+      (json['dayByDayDescriptions'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
+  dayByDayCategories:
+      (json['dayByDayCategories'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
+  essentialReasons:
+      (json['essentialReasons'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
+  budgetBreakdown: json['budgetBreakdown'] as Map<String, dynamic>? ?? const {},
+  weatherData: json['weatherData'] as Map<String, dynamic>? ?? const {},
 );
 
 Map<String, dynamic> _$TripSummaryToJson(_TripSummary instance) =>
@@ -39,4 +63,16 @@ Map<String, dynamic> _$TripSummaryToJson(_TripSummary instance) =>
       'accommodation': instance.accommodation,
       'dayByDayProgram': instance.dayByDayProgram,
       'essentialItems': instance.essentialItems,
+      'accommodationSubtitle': instance.accommodationSubtitle,
+      'accommodationPrice': instance.accommodationPrice,
+      'accommodationSource': instance.accommodationSource,
+      'flightRoute': instance.flightRoute,
+      'flightDetails': instance.flightDetails,
+      'flightPrice': instance.flightPrice,
+      'flightSource': instance.flightSource,
+      'dayByDayDescriptions': instance.dayByDayDescriptions,
+      'dayByDayCategories': instance.dayByDayCategories,
+      'essentialReasons': instance.essentialReasons,
+      'budgetBreakdown': instance.budgetBreakdown,
+      'weatherData': instance.weatherData,
     };

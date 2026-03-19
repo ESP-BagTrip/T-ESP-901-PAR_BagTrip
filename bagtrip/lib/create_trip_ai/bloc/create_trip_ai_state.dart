@@ -52,6 +52,47 @@ final class CreateTripAiResultsLoaded extends CreateTripAiState {
   final List<AiTripProposal> proposals;
 }
 
+/// Progressive streaming state — accumulates data as SSE events arrive.
+final class CreateTripAiStreaming extends CreateTripAiState {
+  CreateTripAiStreaming({
+    this.phase = 'starting',
+    this.message = '',
+    this.destinations,
+    this.activities,
+    this.accommodations,
+    this.baggageItems,
+    this.budgetEstimation,
+  });
+
+  final String phase;
+  final String message;
+  final List<Map<String, dynamic>>? destinations;
+  final List<Map<String, dynamic>>? activities;
+  final List<Map<String, dynamic>>? accommodations;
+  final List<Map<String, dynamic>>? baggageItems;
+  final Map<String, dynamic>? budgetEstimation;
+
+  CreateTripAiStreaming copyWith({
+    String? phase,
+    String? message,
+    List<Map<String, dynamic>>? destinations,
+    List<Map<String, dynamic>>? activities,
+    List<Map<String, dynamic>>? accommodations,
+    List<Map<String, dynamic>>? baggageItems,
+    Map<String, dynamic>? budgetEstimation,
+  }) {
+    return CreateTripAiStreaming(
+      phase: phase ?? this.phase,
+      message: message ?? this.message,
+      destinations: destinations ?? this.destinations,
+      activities: activities ?? this.activities,
+      accommodations: accommodations ?? this.accommodations,
+      baggageItems: baggageItems ?? this.baggageItems,
+      budgetEstimation: budgetEstimation ?? this.budgetEstimation,
+    );
+  }
+}
+
 final class CreateTripAiSummaryLoaded extends CreateTripAiState {
   CreateTripAiSummaryLoaded(this.summary);
   final TripSummary summary;

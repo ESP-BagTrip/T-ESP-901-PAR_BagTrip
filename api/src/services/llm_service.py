@@ -3,7 +3,7 @@
 import json
 import re
 
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
 from src.config.env import settings
@@ -40,7 +40,7 @@ class LLMService:
         return text.strip()
 
     def call_llm(self, system_prompt: str, user_prompt: str) -> dict:
-        """Appelle le LLM et retourne le JSON parsé."""
+        """Appelle le LLM et retourne le JSON parsé (synchrone)."""
         try:
             llm = self._get_llm()
             response = llm.invoke([
@@ -60,3 +60,37 @@ class LLMService:
                 502,
                 f"LLM returned invalid JSON: {e}",
             ) from e
+
+    async def acall_llm(self, system_prompt: str, user_prompt: str) -> dict:
+        """Appelle le LLM de manière asynchrone et retourne le JSON parsé."""
+        try:
+            llm = self._get_llm()
+            response = await llm.ainvoke([
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=user_prompt),
+            ])
+            raw = response.content
+        except Exception as e:
+            raise AppError("LLM_ERROR", 502, f"LLM call failed: {e}") from e
+
+        try:
+            cleaned = self._strip_markdown_fences(raw)
+            return json.loads(cleaned)
+        except (json.JSONDecodeError, TypeError) as e:
+            raise AppError(
+                "LLM_INVALID_RESPONSE",
+                502,
+                f"LLM returned invalid JSON: {e}",
+            ) from e
+
+    async def acall_llm_messages(self, messages: list[BaseMessage]) -> str:
+        """Appelle le LLM avec une liste de messages et retourne le contenu brut.
+
+        Utilisé par le ReAct executor pour la boucle conversationnelle.
+        """
+        try:
+            llm = self._get_llm()
+            response = await llm.ainvoke(messages)
+            return response.content
+        except Exception as e:
+            raise AppError("LLM_ERROR", 502, f"LLM call failed: {e}") from e

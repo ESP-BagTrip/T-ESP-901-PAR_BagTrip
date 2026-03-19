@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/create_trip_ai/models/ai_trip_proposal.dart';
@@ -44,6 +46,9 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
 
   // Store the selected proposal (with activities) for save
   AiTripProposal? _selectedProposal;
+
+  // Store the trip plan from streaming for accept
+  Map<String, dynamic>? _lastTripPlan;
 
   Future<void> _onLoadRecap(
     CreateTripAiLoadRecap event,
@@ -129,8 +134,6 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
     CreateTripAiLaunchSearch event,
     Emitter<CreateTripAiState> emit,
   ) async {
-    emit(CreateTripAiSearchLoading());
-
     // Check AI quota
     final userResult = await _authRepository.getCurrentUser();
     if (isClosed) return;
@@ -146,42 +149,120 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
     if (_lastDepartureDate != null && _lastReturnDate != null) {
       durationDays = _lastReturnDate!.difference(_lastDepartureDate!).inDays;
     }
-    // Guess season from departure date
-    String? season;
+
+    String? departureStr;
+    String? returnStr;
     if (_lastDepartureDate != null) {
-      final month = _lastDepartureDate!.month;
-      if (month >= 3 && month <= 5) {
-        season = 'printemps';
-      } else if (month >= 6 && month <= 8) {
-        season = 'été';
-      } else if (month >= 9 && month <= 11) {
-        season = 'automne';
-      } else {
-        season = 'hiver';
-      }
+      departureStr = _lastDepartureDate!.toIso8601String().split('T')[0];
+    }
+    if (_lastReturnDate != null) {
+      returnStr = _lastReturnDate!.toIso8601String().split('T')[0];
     }
 
-    final result = await _aiRepository.getInspiration(
-      travelTypes: _lastTravelTypes.isNotEmpty ? _lastTravelTypes : null,
-      budgetRange: _lastBudget,
-      durationDays: durationDays,
-      companions: _lastCompanions,
-      season: season,
-      constraints: _lastConstraints,
+    // Start SSE streaming
+    var streaming = CreateTripAiStreaming(
+      message: 'Préparation de votre voyage...',
     );
-    if (isClosed) return;
-    switch (result) {
-      case Success(:final data):
-        final proposals = data.asMap().entries.map((entry) {
-          return AiTripProposal.fromJsonWithId(entry.value, id: '${entry.key}');
-        }).toList();
-        emit(CreateTripAiResultsLoaded(proposals));
-      case Failure(:final error):
-        if (error is QuotaExceededError) {
-          emit(CreateTripAiQuotaExceeded());
-        } else {
-          emit(CreateTripAiError(error));
-        }
+    emit(streaming);
+
+    // Track whether we've already emitted the final summary
+    CreateTripAiState? finalState;
+
+    try {
+      await emit.forEach<Map<String, dynamic>>(
+        _aiRepository.planTripStream(
+          travelTypes: _lastTravelTypes.isNotEmpty ? _lastTravelTypes : null,
+          budgetRange: _lastBudget,
+          durationDays: durationDays,
+          companions: _lastCompanions,
+          constraints: _lastConstraints,
+          departureDate: departureStr,
+          returnDate: returnStr,
+        ),
+        onData: (sseEvent) {
+          if (finalState != null) return finalState!;
+
+          final eventType = sseEvent['event'] as String? ?? 'message';
+          final data = sseEvent['data'] as Map<String, dynamic>? ?? {};
+
+          switch (eventType) {
+            case 'progress':
+              streaming = streaming.copyWith(
+                phase: data['phase'] as String? ?? streaming.phase,
+                message: data['message'] as String? ?? streaming.message,
+              );
+              return streaming;
+
+            case 'destinations':
+              final destinations = (data['destinations'] as List?)
+                  ?.map((d) => Map<String, dynamic>.from(d as Map))
+                  .toList();
+              streaming = streaming.copyWith(destinations: destinations);
+              return streaming;
+
+            case 'activities':
+              final activities = (data['activities'] as List?)
+                  ?.map((a) => Map<String, dynamic>.from(a as Map))
+                  .toList();
+              streaming = streaming.copyWith(activities: activities);
+              return streaming;
+
+            case 'accommodations':
+              final accommodations = (data['accommodations'] as List?)
+                  ?.map((a) => Map<String, dynamic>.from(a as Map))
+                  .toList();
+              streaming = streaming.copyWith(accommodations: accommodations);
+              return streaming;
+
+            case 'baggage':
+              final items = (data['items'] as List?)
+                  ?.map((i) => Map<String, dynamic>.from(i as Map))
+                  .toList();
+              streaming = streaming.copyWith(baggageItems: items);
+              return streaming;
+
+            case 'budget':
+              final estimation = data['estimation'] as Map<String, dynamic>?;
+              streaming = streaming.copyWith(budgetEstimation: estimation);
+              return streaming;
+
+            case 'complete':
+              final tripPlan = data['tripPlan'] as Map<String, dynamic>?;
+              if (tripPlan != null) {
+                _lastTripPlan = tripPlan;
+                final summary = _tripPlanToSummary(tripPlan);
+                finalState = CreateTripAiSummaryLoaded(summary);
+                return finalState!;
+              }
+              return streaming;
+
+            case 'error':
+              finalState = CreateTripAiError(
+                UnknownError(data['message'] as String? ?? 'Stream error'),
+              );
+              return finalState!;
+
+            case 'done':
+              // If we haven't received a 'complete' event, build summary
+              // from accumulated streaming data
+              if (finalState == null) {
+                final summary = _streamingToSummary(streaming);
+                finalState = CreateTripAiSummaryLoaded(summary);
+                return finalState!;
+              }
+              return finalState!;
+
+            default:
+              return streaming;
+          }
+        },
+        onError: (error, stackTrace) {
+          return CreateTripAiError(UnknownError(error.toString()));
+        },
+      );
+    } catch (e) {
+      if (isClosed) return;
+      emit(CreateTripAiError(UnknownError(e.toString())));
     }
   }
 
@@ -224,7 +305,8 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
     CreateTripAiRegenerate event,
     Emitter<CreateTripAiState> emit,
   ) async {
-    // Re-run the same search
+    _lastTripPlan = null;
+    _selectedProposal = null;
     add(CreateTripAiLaunchSearch());
   }
 
@@ -232,7 +314,15 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
     CreateTripAiAcceptSuggestion event,
     Emitter<CreateTripAiState> emit,
   ) async {
-    if (_selectedProposal == null) {
+    emit(CreateTripAiSearchLoading());
+
+    // Build suggestion from trip plan or selected proposal
+    Map<String, dynamic> suggestion;
+    if (_lastTripPlan != null) {
+      suggestion = _tripPlanToSuggestion(_lastTripPlan!);
+    } else if (_selectedProposal != null) {
+      suggestion = _selectedProposal!.toJson();
+    } else {
       emit(
         CreateTripAiError(
           const UnknownError('Aucune proposition sélectionnée.'),
@@ -240,7 +330,6 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
       );
       return;
     }
-    emit(CreateTripAiSearchLoading());
 
     String? startDateStr;
     String? endDateStr;
@@ -252,7 +341,7 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
     }
 
     final result = await _aiRepository.acceptInspiration(
-      _selectedProposal!.toJson(),
+      suggestion,
       startDate: startDateStr,
       endDate: endDateStr,
     );
@@ -267,5 +356,158 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
           emit(CreateTripAiError(error));
         }
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
+  /// Convert a complete trip plan (from SSE 'complete' event) to TripSummary.
+  TripSummary _tripPlanToSummary(Map<String, dynamic> tripPlan) {
+    final dest = tripPlan['destination'] as Map<String, dynamic>? ?? {};
+    final weather = tripPlan['weather'] as Map<String, dynamic>? ?? {};
+    final activities =
+        (tripPlan['activities'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final accommodations =
+        (tripPlan['accommodations'] as List?)?.cast<Map<String, dynamic>>() ??
+        [];
+    final baggage =
+        (tripPlan['baggage'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final budget = tripPlan['budget'] as Map<String, dynamic>? ?? {};
+
+    // Highlights from top activities
+    final highlights = activities
+        .take(4)
+        .map((a) => (a['title'] ?? '') as String)
+        .toList();
+
+    // Best accommodation
+    String accommodationName = 'À déterminer';
+    String accommodationSubtitle = '';
+    double accommodationPrice = 0;
+    String accommodationSource = 'estimated';
+    if (accommodations.isNotEmpty) {
+      final best = accommodations.first;
+      accommodationName = best['name'] as String? ?? 'Hôtel';
+      accommodationPrice =
+          (best['price_total'] as num?)?.toDouble() ??
+          (best['price_per_night'] as num?)?.toDouble() ??
+          0;
+      accommodationSource = best['source'] as String? ?? 'estimated';
+      final currency = best['currency'] as String? ?? 'EUR';
+      accommodationSubtitle =
+          '${dest['city'] ?? ''} · ${accommodationPrice.toStringAsFixed(0)} $currency';
+    }
+
+    // Flight info from budget
+    String flightRoute = '';
+    String flightDetails = '';
+    double flightPrice = 0;
+    String flightSource = 'estimated';
+    final flightBudget = budget['flights'] as Map<String, dynamic>?;
+    if (flightBudget != null) {
+      flightPrice = (flightBudget['amount'] as num?)?.toDouble() ?? 0;
+      flightSource = flightBudget['source'] as String? ?? 'estimated';
+      flightDetails = flightBudget['details'] as String? ?? '';
+      flightRoute = '${flightBudget['details'] ?? ''}';
+    }
+
+    // Day-by-day from activities
+    final dayByDay = activities
+        .map((a) => (a['title'] ?? '') as String)
+        .toList();
+    final dayDescriptions = activities
+        .map((a) => (a['description'] ?? '') as String)
+        .toList();
+    final dayCategories = activities
+        .map((a) => (a['category'] ?? 'OTHER') as String)
+        .toList();
+
+    // Essential items from baggage
+    final essentials = baggage.map((b) => (b['name'] ?? '') as String).toList();
+    final essentialReasons = baggage
+        .map((b) => (b['reason'] ?? '') as String)
+        .toList();
+
+    // Budget total
+    final totalMin = (budget['total_min'] as num?)?.toInt() ?? 0;
+    final totalMax = (budget['total_max'] as num?)?.toInt() ?? 0;
+    final budgetEur = totalMax > 0 ? totalMax : totalMin;
+
+    return TripSummary(
+      destination: dest['city'] as String? ?? '',
+      destinationCountry: dest['country'] as String? ?? '',
+      durationDays: tripPlan['duration_days'] as int? ?? 7,
+      budgetEur: budgetEur,
+      highlights: highlights,
+      accommodation: accommodationName,
+      accommodationSubtitle: accommodationSubtitle,
+      accommodationPrice: accommodationPrice,
+      accommodationSource: accommodationSource,
+      flightRoute: flightRoute,
+      flightDetails: flightDetails,
+      flightPrice: flightPrice,
+      flightSource: flightSource,
+      dayByDayProgram: dayByDay,
+      dayByDayDescriptions: dayDescriptions,
+      dayByDayCategories: dayCategories,
+      essentialItems: essentials,
+      essentialReasons: essentialReasons,
+      budgetBreakdown: budget,
+      weatherData: weather,
+    );
+  }
+
+  /// Build summary from accumulated streaming state (fallback if no 'complete').
+  TripSummary _streamingToSummary(CreateTripAiStreaming streaming) {
+    final dest = streaming.destinations?.isNotEmpty == true
+        ? streaming.destinations!.first
+        : <String, dynamic>{};
+
+    return _tripPlanToSummary({
+      'destination': {
+        'city': dest['city'] ?? '',
+        'country': dest['country'] ?? '',
+        'iata': dest['iata'] ?? '',
+      },
+      'weather': dest['weather'] ?? {},
+      'activities': streaming.activities ?? [],
+      'accommodations': streaming.accommodations ?? [],
+      'baggage': streaming.baggageItems ?? [],
+      'budget': streaming.budgetEstimation ?? {},
+      'duration_days': _lastReturnDate != null && _lastDepartureDate != null
+          ? _lastReturnDate!.difference(_lastDepartureDate!).inDays
+          : 7,
+    });
+  }
+
+  /// Convert trip plan to a suggestion format compatible with /ai/inspire/accept.
+  Map<String, dynamic> _tripPlanToSuggestion(Map<String, dynamic> tripPlan) {
+    final dest = tripPlan['destination'] as Map<String, dynamic>? ?? {};
+    final activities =
+        (tripPlan['activities'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final budget = tripPlan['budget'] as Map<String, dynamic>? ?? {};
+
+    final totalMax = (budget['total_max'] as num?)?.toInt() ?? 0;
+    final totalMin = (budget['total_min'] as num?)?.toInt() ?? 0;
+
+    return {
+      'destination': dest['city'] ?? '',
+      'destinationCountry': dest['country'] ?? '',
+      'durationDays': tripPlan['duration_days'] ?? 7,
+      'budgetEur': totalMax > 0 ? totalMax : totalMin,
+      'description': 'AI-planned trip to ${dest['city'] ?? 'destination'}',
+      'activities': activities
+          .map(
+            (a) => {
+              'title': a['title'] ?? '',
+              'description': a['description'] ?? '',
+              'category': a['category'] ?? 'OTHER',
+              'estimatedCost': a['estimated_cost'] ?? 0,
+            },
+          )
+          .toList(),
+      'matchReason': 'Planned with real-time data',
+    };
   }
 }
