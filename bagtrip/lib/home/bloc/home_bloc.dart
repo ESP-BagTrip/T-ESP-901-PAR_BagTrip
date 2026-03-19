@@ -1,4 +1,6 @@
 import 'package:bagtrip/config/service_locator.dart';
+import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/paginated_response.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/models/user.dart';
@@ -23,39 +25,52 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> _onLoadHome(LoadHome event, Emitter<HomeState> emit) async {
     emit(HomeLoading());
 
-    // Fetch user
-    User? user;
-    final userResult = await _authRepository.getCurrentUser();
-    if (isClosed) return;
-    user = userResult.dataOrNull;
+    final results = await Future.wait([
+      _authRepository.getCurrentUser(),
+      _tripRepository.getTripsPaginated(status: 'ongoing', limit: 1),
+      _tripRepository.getTripsPaginated(status: 'planned', limit: 1),
+      _tripRepository.getTripsPaginated(status: 'completed', limit: 1),
+    ]);
 
-    // Count total trips across all statuses
-    int totalTrips = 0;
-    for (final status in ['ongoing', 'planned', 'completed']) {
-      final result = await _tripRepository.getTripsPaginated(
-        status: status,
-        limit: 1,
-      );
-      if (isClosed) return;
-      if (result case Success(:final data)) {
-        totalTrips += data.total;
+    if (isClosed) return;
+
+    final userResult = results[0] as Result<User?>;
+    final ongoingResult = results[1] as Result<PaginatedResponse<Trip>>;
+    final plannedResult = results[2] as Result<PaginatedResponse<Trip>>;
+    final completedResult = results[3] as Result<PaginatedResponse<Trip>>;
+
+    // Auth failure → HomeError
+    if (userResult is Failure<User?>) {
+      final error = userResult.error;
+      if (error is AuthenticationError) {
+        emit(HomeError(error: error));
+        return;
       }
     }
 
-    // Find next trip
+    // All trip calls failed → HomeError
+    if (ongoingResult is Failure &&
+        plannedResult is Failure &&
+        completedResult is Failure) {
+      emit(HomeError(error: (ongoingResult as Failure).error));
+      return;
+    }
+
+    final user = userResult.dataOrNull;
+
+    // Count totals from same responses (no extra API calls)
+    int totalTrips = 0;
+    if (ongoingResult case Success(:final data)) totalTrips += data.total;
+    if (plannedResult case Success(:final data)) totalTrips += data.total;
+    if (completedResult case Success(:final data)) totalTrips += data.total;
+
+    // Extract next trip from ongoing then planned (reuse same data)
     Trip? nextTrip;
     int? daysUntil;
-
-    for (final status in ['ongoing', 'planned']) {
-      final result = await _tripRepository.getTripsPaginated(
-        status: status,
-        limit: 1,
-      );
-      if (isClosed) return;
+    for (final result in [ongoingResult, plannedResult]) {
       if (result case Success(:final data)) {
-        final trips = data.items;
-        if (trips.isNotEmpty) {
-          final sorted = [...trips]
+        if (data.items.isNotEmpty) {
+          final sorted = [...data.items]
             ..sort((a, b) {
               final aDate = a.startDate;
               final bDate = b.startDate;

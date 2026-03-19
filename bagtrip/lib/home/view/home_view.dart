@@ -1,4 +1,5 @@
 import 'package:bagtrip/components/elegant_empty_state.dart';
+import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/components/paginated_list.dart';
@@ -11,6 +12,7 @@ import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bagtrip/trips/widgets/trip_card.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -25,6 +27,16 @@ class HomeView extends StatelessWidget {
           builder: (context, homeState) {
             if (homeState is HomeLoading || homeState is HomeInitial) {
               return const LoadingView();
+            }
+
+            if (homeState is HomeError) {
+              return ErrorView(
+                message: toUserFriendlyMessage(
+                  homeState.error,
+                  AppLocalizations.of(context)!,
+                ),
+                onRetry: () => context.read<HomeBloc>().add(LoadHome()),
+              );
             }
 
             if (homeState is! HomeLoaded) {

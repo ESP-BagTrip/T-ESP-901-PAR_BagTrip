@@ -86,6 +86,23 @@ class PersonalizationRoute extends GoRouteData with $PersonalizationRoute {
 }
 
 // ---------------------------------------------------------------------------
+// Deep link — direct trip access
+// ---------------------------------------------------------------------------
+
+@TypedGoRoute<DeepLinkTripRoute>(path: '/trip/:tripId')
+class DeepLinkTripRoute extends GoRouteData with $DeepLinkTripRoute {
+  const DeepLinkTripRoute({required this.tripId});
+  final String tripId;
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      buildSlideTransitionPage<void>(
+        state: state,
+        child: TripHomePage(tripId: tripId),
+      );
+}
+
+// ---------------------------------------------------------------------------
 // Branch 0 — Home (replaces Explorer + Trips)
 // ---------------------------------------------------------------------------
 
@@ -93,7 +110,9 @@ class PersonalizationRoute extends GoRouteData with $PersonalizationRoute {
   path: '/home',
   routes: [
     TypedGoRoute<TripCreationRoute>(path: 'create'),
+    TypedGoRoute<PlanTripRoute>(path: 'plan'),
     TypedGoRoute<TripFlightSearchRoute>(path: 'flight-search'),
+    TypedGoRoute<TripDetailRoute>(path: 'trip/:tripId'),
     TypedGoRoute<TripHomeRoute>(
       path: ':tripId',
       routes: [
@@ -128,6 +147,17 @@ class TripCreationRoute extends GoRouteData with $TripCreationRoute {
       );
 }
 
+class PlanTripRoute extends GoRouteData with $PlanTripRoute {
+  const PlanTripRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      buildWizardTransitionPage<void>(
+        state: state,
+        child: const TripCreationFlowPage(),
+      );
+}
+
 class TripFlightSearchRoute extends GoRouteData with $TripFlightSearchRoute {
   const TripFlightSearchRoute();
 
@@ -136,6 +166,18 @@ class TripFlightSearchRoute extends GoRouteData with $TripFlightSearchRoute {
       buildSlideTransitionPage<void>(
         state: state,
         child: const PlanifierManualFlightPage(),
+      );
+}
+
+class TripDetailRoute extends GoRouteData with $TripDetailRoute {
+  const TripDetailRoute({required this.tripId});
+  final String tripId;
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      buildHeroTransitionPage<void>(
+        state: state,
+        child: TripHomePage(tripId: tripId),
       );
 }
 

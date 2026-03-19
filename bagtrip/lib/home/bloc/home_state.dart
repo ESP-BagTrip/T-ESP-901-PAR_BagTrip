@@ -6,6 +6,11 @@ class HomeInitial extends HomeState {}
 
 class HomeLoading extends HomeState {}
 
+class HomeError extends HomeState {
+  final AppError error;
+  HomeError({required this.error});
+}
+
 class HomeLoaded extends HomeState {
   final User? user;
   final Trip? nextTrip;

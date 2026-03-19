@@ -22,10 +22,21 @@ final GoRouter appRouter = GoRouter(
     final isOnboardingPage = path == '/onboarding';
 
     if (!isAuthenticated && !isLoginPage && !isOnboardingPage) {
+      final intended = state.uri.toString();
+      if (intended != '/' && intended != '/login') {
+        return '/login?redirect=${Uri.encodeComponent(intended)}';
+      }
       return '/login';
     }
 
     if (isAuthenticated && isLoginPage) {
+      final redirect = state.uri.queryParameters['redirect'];
+      if (redirect != null && redirect.isNotEmpty) {
+        final decoded = Uri.decodeComponent(redirect);
+        if (decoded != '/login' && decoded != '/') {
+          return decoded;
+        }
+      }
       return null;
     }
 
@@ -50,6 +61,7 @@ final GoRouter appRouter = GoRouter(
       ],
     ),
     $notificationsRoute,
+    $deepLinkTripRoute,
     $flightSearchResultRoute,
     $flightResultDetailsRoute,
     $subscriptionSuccessRoute,

@@ -11,6 +11,7 @@ List<RouteBase> get $appRoutes => [
   $loginRoute,
   $onboardingRoute,
   $personalizationRoute,
+  $deepLinkTripRoute,
   $homeRoute,
   $activityRoute,
   $profileRoute,
@@ -128,14 +129,48 @@ mixin $PersonalizationRoute on GoRouteData {
   void replace(BuildContext context) => context.replace(location);
 }
 
+RouteBase get $deepLinkTripRoute => GoRouteData.$route(
+  path: '/trip/:tripId',
+  factory: $DeepLinkTripRoute._fromState,
+);
+
+mixin $DeepLinkTripRoute on GoRouteData {
+  static DeepLinkTripRoute _fromState(GoRouterState state) =>
+      DeepLinkTripRoute(tripId: state.pathParameters['tripId']!);
+
+  DeepLinkTripRoute get _self => this as DeepLinkTripRoute;
+
+  @override
+  String get location =>
+      GoRouteData.$location('/trip/${Uri.encodeComponent(_self.tripId)}');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
 RouteBase get $homeRoute => GoRouteData.$route(
   path: '/home',
   factory: $HomeRoute._fromState,
   routes: [
     GoRouteData.$route(path: 'create', factory: $TripCreationRoute._fromState),
+    GoRouteData.$route(path: 'plan', factory: $PlanTripRoute._fromState),
     GoRouteData.$route(
       path: 'flight-search',
       factory: $TripFlightSearchRoute._fromState,
+    ),
+    GoRouteData.$route(
+      path: 'trip/:tripId',
+      factory: $TripDetailRoute._fromState,
     ),
     GoRouteData.$route(
       path: ':tripId',
@@ -207,12 +242,56 @@ mixin $TripCreationRoute on GoRouteData {
   void replace(BuildContext context) => context.replace(location);
 }
 
+mixin $PlanTripRoute on GoRouteData {
+  static PlanTripRoute _fromState(GoRouterState state) => const PlanTripRoute();
+
+  @override
+  String get location => GoRouteData.$location('/home/plan');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
 mixin $TripFlightSearchRoute on GoRouteData {
   static TripFlightSearchRoute _fromState(GoRouterState state) =>
       const TripFlightSearchRoute();
 
   @override
   String get location => GoRouteData.$location('/home/flight-search');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $TripDetailRoute on GoRouteData {
+  static TripDetailRoute _fromState(GoRouterState state) =>
+      TripDetailRoute(tripId: state.pathParameters['tripId']!);
+
+  TripDetailRoute get _self => this as TripDetailRoute;
+
+  @override
+  String get location =>
+      GoRouteData.$location('/home/trip/${Uri.encodeComponent(_self.tripId)}');
 
   @override
   void go(BuildContext context) => context.go(location);
