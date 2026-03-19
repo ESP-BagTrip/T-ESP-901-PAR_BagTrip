@@ -27,12 +27,14 @@ class ProfileHeaderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final initials = _getInitials(name);
+    final theme = Theme.of(context);
+    final onSurface = theme.colorScheme.onSurface;
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.cardTheme.color ?? theme.colorScheme.surface,
         borderRadius: AppRadius.large16,
-        border: Border.all(color: ColorName.primarySoftLight),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
             color: ColorName.primary.withValues(alpha: 0.08),
@@ -105,10 +107,10 @@ class ProfileHeaderCard extends StatelessWidget {
               children: [
                 Text(
                   name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: ColorName.primaryTrueDark,
+                    color: onSurface,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.space4),
@@ -116,7 +118,7 @@ class ProfileHeaderCard extends StatelessWidget {
                   AppLocalizations.of(context)!.memberSinceText(memberSince),
                   style: TextStyle(
                     fontSize: 14,
-                    color: ColorName.primaryTrueDark.withValues(alpha: 0.6),
+                    color: onSurface.withValues(alpha: 0.6),
                   ),
                 ),
               ],
