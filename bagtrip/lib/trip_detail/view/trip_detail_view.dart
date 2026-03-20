@@ -12,8 +12,8 @@ import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_detail_shimmer.dart';
+import 'package:bagtrip/trip_detail/widgets/trip_hero_header.dart';
 import 'package:bagtrip/trips/widgets/trip_section_card.dart';
-import 'package:bagtrip/trips/widgets/trip_status_badge.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -142,10 +142,14 @@ class _LoadedContent extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              background: _HeroBackground(
+              background: TripHeroHeader(
                 trip: trip,
                 dateRange: dateRange,
                 daysUntilTrip: state.daysUntilTrip,
+                currentDay: state.currentDay,
+                totalDays: state.totalDays,
+                isCompleted: state.isCompleted,
+                isOngoing: state.isOngoing,
               ),
             ),
           ),
@@ -484,117 +488,6 @@ class _LoadedContent extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ── Hero Background ──────────────────────────────────────────────────────────
-
-class _HeroBackground extends StatelessWidget {
-  final Trip trip;
-  final String dateRange;
-  final int? daysUntilTrip;
-
-  const _HeroBackground({
-    required this.trip,
-    required this.dateRange,
-    this.daysUntilTrip,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            theme.colorScheme.primary,
-            theme.colorScheme.primary.withValues(alpha: 0.85),
-            theme.colorScheme.primary.withValues(alpha: 0.65),
-          ],
-          stops: const [0.0, 0.6, 1.0],
-        ),
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 64, 24, 56),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Row(
-                children: [
-                  if (trip.destinationName != null) ...[
-                    const Icon(
-                      Icons.location_on,
-                      color: Colors.white70,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      trip.destinationName!,
-                      style: const TextStyle(
-                        fontFamily: FontFamily.b612,
-                        color: Colors.white70,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ],
-                  const Spacer(),
-                  TripStatusBadge(status: trip.status),
-                ],
-              ),
-              if (dateRange.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.calendar_today,
-                      color: Colors.white70,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      dateRange,
-                      style: const TextStyle(
-                        fontFamily: FontFamily.b612,
-                        color: Colors.white70,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-              if (daysUntilTrip != null) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: AppRadius.large16,
-                  ),
-                  child: Text(
-                    'J-$daysUntilTrip',
-                    style: const TextStyle(
-                      fontFamily: FontFamily.b612,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
       ),
     );
   }

@@ -55,6 +55,36 @@ final class TripDetailLoaded extends TripDetailState {
     return diff > 0 ? diff : null;
   }
 
+  int? get currentDay {
+    if (trip.startDate == null) return null;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final start = DateTime(
+      trip.startDate!.year,
+      trip.startDate!.month,
+      trip.startDate!.day,
+    );
+    final diff = today.difference(start).inDays;
+    return diff < 0 ? null : diff + 1;
+  }
+
+  bool get isOngoing {
+    if (trip.startDate == null || trip.endDate == null) return false;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final start = DateTime(
+      trip.startDate!.year,
+      trip.startDate!.month,
+      trip.startDate!.day,
+    );
+    final end = DateTime(
+      trip.endDate!.year,
+      trip.endDate!.month,
+      trip.endDate!.day,
+    );
+    return !today.isBefore(start) && !today.isAfter(end);
+  }
+
   int get baggagePackedCount => baggageItems.where((b) => b.isPacked).length;
 
   TripDetailLoaded copyWith({
