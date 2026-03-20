@@ -1,5 +1,6 @@
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
+import 'package:bagtrip/design/app_animations.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/view/active_trip_home_view.dart';
 import 'package:bagtrip/home/view/onboarding_home_view.dart';
@@ -19,39 +20,63 @@ class HomeView extends StatelessWidget {
       body: SafeArea(
         child: BlocBuilder<HomeBloc, HomeState>(
           builder: (context, homeState) {
-            if (homeState is HomeLoading || homeState is HomeInitial) {
-              return const LoadingView();
-            }
-
-            if (homeState is HomeError) {
-              return ErrorView(
-                message: toUserFriendlyMessage(
-                  homeState.error,
-                  AppLocalizations.of(context)!,
-                ),
-                onRetry: () => context.read<HomeBloc>().add(LoadHome()),
-              );
-            }
-
-            return RefreshIndicator(
-              onRefresh: () async {
-                context.read<HomeBloc>().add(RefreshHome());
-                for (final s in ['ongoing', 'planned', 'completed']) {
-                  context.read<TripManagementBloc>().add(
-                    LoadTripsByStatus(status: s),
-                  );
-                }
-              },
-              child: switch (homeState) {
-                HomeNewUser() => OnboardingHomeView(state: homeState),
-                HomeActiveTrip() => ActiveTripHomeView(state: homeState),
-                HomeTripManager() => TripManagerHomeView(state: homeState),
-                _ => const LoadingView(),
-              },
+            return AnimatedSwitcher(
+              duration: const Duration(milliseconds: 500),
+              switchInCurve: AppAnimations.springCurve,
+              switchOutCurve: Curves.easeIn,
+              transitionBuilder: _buildTransition,
+              child: _buildContent(context, homeState),
             );
           },
         ),
       ),
     );
+  }
+
+  Widget _buildTransition(Widget child, Animation<double> animation) {
+    return FadeTransition(
+      opacity: animation,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.05),
+          end: Offset.zero,
+        ).animate(animation),
+        child: child,
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, HomeState state) {
+    return switch (state) {
+      HomeLoading() ||
+      HomeInitial() => const LoadingView(key: ValueKey('home-loading')),
+      HomeError(:final error) => ErrorView(
+        key: const ValueKey('home-error'),
+        message: toUserFriendlyMessage(error, AppLocalizations.of(context)!),
+        onRetry: () => context.read<HomeBloc>().add(LoadHome()),
+      ),
+      HomeNewUser() => RefreshIndicator(
+        key: const ValueKey('home-new-user'),
+        onRefresh: () => _refresh(context),
+        child: OnboardingHomeView(state: state),
+      ),
+      HomeActiveTrip() => RefreshIndicator(
+        key: const ValueKey('home-active-trip'),
+        onRefresh: () => _refresh(context),
+        child: ActiveTripHomeView(state: state),
+      ),
+      HomeTripManager() => RefreshIndicator(
+        key: const ValueKey('home-trip-manager'),
+        onRefresh: () => _refresh(context),
+        child: TripManagerHomeView(state: state),
+      ),
+    };
+  }
+
+  Future<void> _refresh(BuildContext context) async {
+    context.read<HomeBloc>().add(RefreshHome());
+    for (final s in ['ongoing', 'planned', 'completed']) {
+      context.read<TripManagementBloc>().add(LoadTripsByStatus(status: s));
+    }
   }
 }
