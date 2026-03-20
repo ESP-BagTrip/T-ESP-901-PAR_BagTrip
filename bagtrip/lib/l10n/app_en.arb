@@ -928,5 +928,13 @@
   "tripDetailQuickExpense": "Expense",
   "tripDetailQuickBaggage": "Baggage",
   "tripDetailQuickMemories": "Memories",
-  "tripDetailQuickNavigate": "Navigate"
+  "tripDetailQuickNavigate": "Navigate",
+  "timelineSectionTitle": "Itinerary",
+  "timelineMorning": "Morning",
+  "timelineAfternoon": "Afternoon",
+  "timelineEvening": "Evening",
+  "timelineEmptyDayTitle": "No activities yet",
+  "timelineEmptyDaySubtitle": "Add some or ask the AI to suggest ideas",
+  "timelineValidate": "Validate",
+  "timelineReject": "Reject"
 }

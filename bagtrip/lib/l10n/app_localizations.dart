@@ -4375,6 +4375,54 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Naviguer'**
   String get tripDetailQuickNavigate;
+
+  /// No description provided for @timelineSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Itinéraire'**
+  String get timelineSectionTitle;
+
+  /// No description provided for @timelineMorning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Matin'**
+  String get timelineMorning;
+
+  /// No description provided for @timelineAfternoon.
+  ///
+  /// In fr, this message translates to:
+  /// **'Après-midi'**
+  String get timelineAfternoon;
+
+  /// No description provided for @timelineEvening.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soirée'**
+  String get timelineEvening;
+
+  /// No description provided for @timelineEmptyDayTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune activité'**
+  String get timelineEmptyDayTitle;
+
+  /// No description provided for @timelineEmptyDaySubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez-en ou demandez à l\'IA de vous suggérer des idées'**
+  String get timelineEmptyDaySubtitle;
+
+  /// No description provided for @timelineValidate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valider'**
+  String get timelineValidate;
+
+  /// No description provided for @timelineReject.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rejeter'**
+  String get timelineReject;
 }
 
 class _AppLocalizationsDelegate

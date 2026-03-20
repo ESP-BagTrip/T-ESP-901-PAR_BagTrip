@@ -2307,4 +2307,29 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tripDetailQuickNavigate => 'Naviguer';
+
+  @override
+  String get timelineSectionTitle => 'Itinéraire';
+
+  @override
+  String get timelineMorning => 'Matin';
+
+  @override
+  String get timelineAfternoon => 'Après-midi';
+
+  @override
+  String get timelineEvening => 'Soirée';
+
+  @override
+  String get timelineEmptyDayTitle => 'Aucune activité';
+
+  @override
+  String get timelineEmptyDaySubtitle =>
+      'Ajoutez-en ou demandez à l\'IA de vous suggérer des idées';
+
+  @override
+  String get timelineValidate => 'Valider';
+
+  @override
+  String get timelineReject => 'Rejeter';
 }

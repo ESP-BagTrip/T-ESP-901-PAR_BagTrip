@@ -928,5 +928,13 @@
   "tripDetailQuickExpense": "Dépense",
   "tripDetailQuickBaggage": "Bagages",
   "tripDetailQuickMemories": "Souvenirs",
-  "tripDetailQuickNavigate": "Naviguer"
+  "tripDetailQuickNavigate": "Naviguer",
+  "timelineSectionTitle": "Itinéraire",
+  "timelineMorning": "Matin",
+  "timelineAfternoon": "Après-midi",
+  "timelineEvening": "Soirée",
+  "timelineEmptyDayTitle": "Aucune activité",
+  "timelineEmptyDaySubtitle": "Ajoutez-en ou demandez à l'IA de vous suggérer des idées",
+  "timelineValidate": "Valider",
+  "timelineReject": "Rejeter"
 }

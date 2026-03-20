@@ -17,6 +17,7 @@ import 'package:bagtrip/trip_detail/widgets/trip_completion_bar.dart';
 import 'package:bagtrip/trip_detail/widgets/quick_actions_row.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_detail_shimmer.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_hero_header.dart';
+import 'package:bagtrip/trip_detail/widgets/trip_timeline_section.dart';
 import 'package:bagtrip/trips/widgets/trip_section_card.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/cupertino.dart';
@@ -294,6 +295,27 @@ class _LoadedContentState extends State<_LoadedContent> {
             ),
           ),
 
+          // ── Timeline section ────────────────────────────────────
+          if (state.totalDays > 0)
+            SliverToBoxAdapter(
+              key: _sectionKeys[CompletionSegmentType.activities],
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.space24,
+                  vertical: AppSpacing.space8,
+                ),
+                child: TripTimelineSection(
+                  trip: trip,
+                  activities: state.activities,
+                  selectedDayIndex: state.selectedDayIndex,
+                  totalDays: state.totalDays,
+                  isOwner: state.isOwner,
+                  isCompleted: state.isCompleted,
+                  tripId: tripId,
+                ),
+              ),
+            ),
+
           // ── Section cards ───────────────────────────────────────
           SliverPadding(
             padding: AppSpacing.horizontalSpace24,
@@ -351,7 +373,6 @@ class _LoadedContentState extends State<_LoadedContent> {
                 ),
                 const SizedBox(height: AppSpacing.space12),
                 StaggeredFadeIn(
-                  key: _sectionKeys[CompletionSegmentType.activities],
                   index: 2,
                   child: TripSectionCard(
                     icon: Icons.hiking_rounded,
