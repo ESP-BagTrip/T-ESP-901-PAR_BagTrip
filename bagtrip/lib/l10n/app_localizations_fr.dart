@@ -2280,4 +2280,31 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get completionBudget => 'Budget';
+
+  @override
+  String get tripDetailQuickFlights => 'Vols';
+
+  @override
+  String get tripDetailQuickActivities => 'Activités';
+
+  @override
+  String get tripDetailQuickAddFlight => 'Ajouter vol';
+
+  @override
+  String get tripDetailQuickAddHotel => 'Ajouter hôtel';
+
+  @override
+  String get tripDetailQuickAddActivity => 'Ajouter activité';
+
+  @override
+  String get tripDetailQuickExpense => 'Dépense';
+
+  @override
+  String get tripDetailQuickBaggage => 'Bagages';
+
+  @override
+  String get tripDetailQuickMemories => 'Souvenirs';
+
+  @override
+  String get tripDetailQuickNavigate => 'Naviguer';
 }

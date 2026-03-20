@@ -919,5 +919,14 @@
   "completionAccommodation": "H\u00f4tels",
   "completionActivities": "Activit\u00e9s",
   "completionBaggage": "Bagages",
-  "completionBudget": "Budget"
+  "completionBudget": "Budget",
+  "tripDetailQuickFlights": "Vols",
+  "tripDetailQuickActivities": "Activités",
+  "tripDetailQuickAddFlight": "Ajouter vol",
+  "tripDetailQuickAddHotel": "Ajouter hôtel",
+  "tripDetailQuickAddActivity": "Ajouter activité",
+  "tripDetailQuickExpense": "Dépense",
+  "tripDetailQuickBaggage": "Bagages",
+  "tripDetailQuickMemories": "Souvenirs",
+  "tripDetailQuickNavigate": "Naviguer"
 }

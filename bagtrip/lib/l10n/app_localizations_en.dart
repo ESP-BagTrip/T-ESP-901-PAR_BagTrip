@@ -2258,4 +2258,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get completionBudget => 'Budget';
+
+  @override
+  String get tripDetailQuickFlights => 'Flights';
+
+  @override
+  String get tripDetailQuickActivities => 'Activities';
+
+  @override
+  String get tripDetailQuickAddFlight => 'Add flight';
+
+  @override
+  String get tripDetailQuickAddHotel => 'Add hotel';
+
+  @override
+  String get tripDetailQuickAddActivity => 'Add activity';
+
+  @override
+  String get tripDetailQuickExpense => 'Expense';
+
+  @override
+  String get tripDetailQuickBaggage => 'Baggage';
+
+  @override
+  String get tripDetailQuickMemories => 'Memories';
+
+  @override
+  String get tripDetailQuickNavigate => 'Navigate';
 }

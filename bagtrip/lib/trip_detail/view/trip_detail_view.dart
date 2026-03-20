@@ -14,6 +14,7 @@ import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_completion_bar.dart';
+import 'package:bagtrip/trip_detail/widgets/quick_actions_row.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_detail_shimmer.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_hero_header.dart';
 import 'package:bagtrip/trips/widgets/trip_section_card.dart';
@@ -284,10 +285,12 @@ class _LoadedContentState extends State<_LoadedContent> {
 
           // ── Quick actions ───────────────────────────────────────
           SliverToBoxAdapter(
-            child: _QuickActions(
+            child: QuickActionsRow(
               trip: trip,
-              isViewer: state.isViewer,
               tripId: tripId,
+              isViewer: state.isViewer,
+              isCompleted: state.isCompleted,
+              onReturnFromAction: () => _refreshAfterReturn(context),
             ),
           ),
 
@@ -537,212 +540,6 @@ class _LoadedContentState extends State<_LoadedContent> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ── Quick Actions ────────────────────────────────────────────────────────────
-
-class _QuickActions extends StatelessWidget {
-  final Trip trip;
-  final bool isViewer;
-  final String tripId;
-
-  const _QuickActions({
-    required this.trip,
-    required this.isViewer,
-    required this.tripId,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final actions = _buildActions(context);
-    if (actions.isEmpty) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.space24,
-        vertical: AppSpacing.space8,
-      ),
-      child: SizedBox(
-        height: 80,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: actions.length,
-          separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.space12),
-          itemBuilder: (_, i) => actions[i],
-        ),
-      ),
-    );
-  }
-
-  List<Widget> _buildActions(BuildContext context) {
-    final theme = Theme.of(context);
-
-    if (isViewer) {
-      return [
-        _QuickActionChip(
-          icon: Icons.flight_rounded,
-          label: 'Flights',
-          theme: theme,
-          onTap: () => TransportsRoute(
-            tripId: tripId,
-            role: 'VIEWER',
-            isCompleted: trip.status == TripStatus.completed,
-          ).push(context),
-        ),
-        _QuickActionChip(
-          icon: Icons.hiking_rounded,
-          label: 'Activities',
-          theme: theme,
-          onTap: () => ActivitiesRoute(
-            tripId: tripId,
-            role: 'VIEWER',
-            isCompleted: trip.status == TripStatus.completed,
-          ).push(context),
-        ),
-      ];
-    }
-
-    return switch (trip.status) {
-      TripStatus.draft || TripStatus.planned => [
-        _QuickActionChip(
-          icon: Icons.flight_rounded,
-          label: 'Add flight',
-          theme: theme,
-          onTap: () async {
-            await TransportsRoute(
-              tripId: tripId,
-              role: trip.role ?? 'OWNER',
-            ).push(context);
-            if (context.mounted) {
-              context.read<TripDetailBloc>().add(RefreshTripDetail());
-            }
-          },
-        ),
-        _QuickActionChip(
-          icon: Icons.hotel_rounded,
-          label: 'Add hotel',
-          theme: theme,
-          onTap: () async {
-            await AccommodationsRoute(
-              tripId: tripId,
-              role: trip.role ?? 'OWNER',
-              tripStartDate: trip.startDate?.toIso8601String(),
-              tripEndDate: trip.endDate?.toIso8601String(),
-            ).push(context);
-            if (context.mounted) {
-              context.read<TripDetailBloc>().add(RefreshTripDetail());
-            }
-          },
-        ),
-        _QuickActionChip(
-          icon: Icons.hiking_rounded,
-          label: 'Add activity',
-          theme: theme,
-          onTap: () async {
-            await ActivitiesRoute(
-              tripId: tripId,
-              role: trip.role ?? 'OWNER',
-            ).push(context);
-            if (context.mounted) {
-              context.read<TripDetailBloc>().add(RefreshTripDetail());
-            }
-          },
-        ),
-      ],
-      TripStatus.ongoing => [
-        _QuickActionChip(
-          icon: Icons.wallet_rounded,
-          label: 'Expense',
-          theme: theme,
-          onTap: () async {
-            await BudgetRoute(
-              tripId: tripId,
-              role: trip.role ?? 'OWNER',
-            ).push(context);
-            if (context.mounted) {
-              context.read<TripDetailBloc>().add(RefreshTripDetail());
-            }
-          },
-        ),
-        _QuickActionChip(
-          icon: Icons.hiking_rounded,
-          label: 'Activities',
-          theme: theme,
-          onTap: () async {
-            await ActivitiesRoute(
-              tripId: tripId,
-              role: trip.role ?? 'OWNER',
-            ).push(context);
-            if (context.mounted) {
-              context.read<TripDetailBloc>().add(RefreshTripDetail());
-            }
-          },
-        ),
-      ],
-      TripStatus.completed => [
-        _QuickActionChip(
-          icon: Icons.rate_review_outlined,
-          label: 'Memories',
-          theme: theme,
-          onTap: () => FeedbackRoute(tripId: tripId).go(context),
-        ),
-      ],
-    };
-  }
-}
-
-class _QuickActionChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final ThemeData theme;
-  final VoidCallback onTap;
-
-  const _QuickActionChip({
-    required this.icon,
-    required this.label,
-    required this.theme,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 80,
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.space8),
-        decoration: BoxDecoration(
-          color: theme.cardTheme.color ?? theme.colorScheme.surface,
-          borderRadius: AppRadius.large16,
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadowLight,
-              offset: const Offset(0, 1),
-              blurRadius: 6,
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: ColorName.primary, size: 24),
-            const SizedBox(height: AppSpacing.space4),
-            Text(
-              label,
-              style: const TextStyle(
-                fontFamily: FontFamily.b612,
-                fontSize: 11,
-                color: ColorName.textMutedLight,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
       ),
     );
   }

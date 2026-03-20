@@ -4321,6 +4321,60 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Budget'**
   String get completionBudget;
+
+  /// No description provided for @tripDetailQuickFlights.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vols'**
+  String get tripDetailQuickFlights;
+
+  /// No description provided for @tripDetailQuickActivities.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activités'**
+  String get tripDetailQuickActivities;
+
+  /// No description provided for @tripDetailQuickAddFlight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter vol'**
+  String get tripDetailQuickAddFlight;
+
+  /// No description provided for @tripDetailQuickAddHotel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter hôtel'**
+  String get tripDetailQuickAddHotel;
+
+  /// No description provided for @tripDetailQuickAddActivity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter activité'**
+  String get tripDetailQuickAddActivity;
+
+  /// No description provided for @tripDetailQuickExpense.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dépense'**
+  String get tripDetailQuickExpense;
+
+  /// No description provided for @tripDetailQuickBaggage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bagages'**
+  String get tripDetailQuickBaggage;
+
+  /// No description provided for @tripDetailQuickMemories.
+  ///
+  /// In fr, this message translates to:
+  /// **'Souvenirs'**
+  String get tripDetailQuickMemories;
+
+  /// No description provided for @tripDetailQuickNavigate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Naviguer'**
+  String get tripDetailQuickNavigate;
 }
 
 class _AppLocalizationsDelegate
