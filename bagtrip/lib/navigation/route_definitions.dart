@@ -27,7 +27,7 @@ import 'package:bagtrip/pages/profile_page.dart';
 import 'package:bagtrip/pages/splash_page.dart';
 import 'package:bagtrip/pages/subscription/subscription_cancel_page.dart';
 import 'package:bagtrip/pages/subscription/subscription_success_page.dart';
-import 'package:bagtrip/pages/trip_home_page.dart';
+import 'package:bagtrip/trip_detail/view/trip_detail_page.dart';
 import 'package:bagtrip/pages/trip_shares_page.dart';
 import 'package:bagtrip/plan_trip/models/location_result.dart';
 import 'package:bagtrip/plan_trip/view/plan_trip_flow_page.dart';
@@ -100,7 +100,7 @@ class DeepLinkTripRoute extends GoRouteData with $DeepLinkTripRoute {
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       buildSlideTransitionPage<void>(
         state: state,
-        child: TripHomePage(tripId: tripId),
+        child: TripDetailPage(tripId: tripId),
       );
 }
 
@@ -181,7 +181,7 @@ class TripDetailRoute extends GoRouteData with $TripDetailRoute {
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       buildHeroTransitionPage<void>(
         state: state,
-        child: TripHomePage(tripId: tripId),
+        child: TripDetailPage(tripId: tripId),
       );
 }
 
@@ -194,7 +194,7 @@ class TripHomeRoute extends GoRouteData with $TripHomeRoute {
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       buildSlideTransitionPage<void>(
         state: state,
-        child: TripHomePage(tripId: tripId),
+        child: TripDetailPage(tripId: tripId),
       );
 }
 

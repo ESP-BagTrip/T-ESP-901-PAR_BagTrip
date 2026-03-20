@@ -14,6 +14,7 @@ import 'package:bagtrip/models/notification.dart';
 import 'package:bagtrip/models/feedback.dart';
 import 'package:bagtrip/models/trip_share.dart';
 import 'package:bagtrip/models/booking_response.dart';
+import 'package:bagtrip/models/manual_flight.dart';
 
 User makeUser({
   String id = 'user-1',
@@ -271,6 +272,28 @@ BookingResponse makeBookingResponse({
     priceTotal: priceTotal,
     currency: currency,
     createdAt: createdAt ?? DateTime(2024, 5),
+  );
+}
+
+ManualFlight makeManualFlight({
+  String id = 'flight-1',
+  String tripId = 'trip-1',
+  String flightNumber = 'AF123',
+  String? airline = 'Air France',
+  String? departureAirport = 'CDG',
+  String? arrivalAirport = 'JFK',
+  DateTime? departureDate,
+  DateTime? arrivalDate,
+}) {
+  return ManualFlight(
+    id: id,
+    tripId: tripId,
+    flightNumber: flightNumber,
+    airline: airline,
+    departureAirport: departureAirport,
+    arrivalAirport: arrivalAirport,
+    departureDate: departureDate ?? DateTime(2024, 6),
+    arrivalDate: arrivalDate ?? DateTime(2024, 6),
   );
 }
 

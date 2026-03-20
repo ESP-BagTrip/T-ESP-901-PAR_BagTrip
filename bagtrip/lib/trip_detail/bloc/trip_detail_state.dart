@@ -1,0 +1,97 @@
+part of 'trip_detail_bloc.dart';
+
+sealed class TripDetailState {}
+
+final class TripDetailInitial extends TripDetailState {}
+
+final class TripDetailLoading extends TripDetailState {}
+
+final class TripDetailLoaded extends TripDetailState {
+  final Trip trip;
+  final List<Activity> activities;
+  final List<ManualFlight> flights;
+  final List<Accommodation> accommodations;
+  final List<BaggageItem> baggageItems;
+  final BudgetSummary? budgetSummary;
+  final List<TripShare> shares;
+  final int selectedDayIndex;
+  final String userRole;
+  final int completionPercentage;
+  final Set<String> collapsedSections;
+
+  TripDetailLoaded({
+    required this.trip,
+    required this.activities,
+    required this.flights,
+    required this.accommodations,
+    required this.baggageItems,
+    this.budgetSummary,
+    required this.shares,
+    this.selectedDayIndex = 0,
+    this.userRole = 'OWNER',
+    required this.completionPercentage,
+    this.collapsedSections = const {},
+  });
+
+  bool get isViewer => userRole == 'VIEWER';
+  bool get isOwner => userRole == 'OWNER';
+  bool get isCompleted => trip.status == TripStatus.completed;
+
+  int get totalDays {
+    if (trip.startDate == null || trip.endDate == null) return 0;
+    return trip.endDate!.difference(trip.startDate!).inDays + 1;
+  }
+
+  int? get daysUntilTrip {
+    if (trip.startDate == null) return null;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final start = DateTime(
+      trip.startDate!.year,
+      trip.startDate!.month,
+      trip.startDate!.day,
+    );
+    final diff = start.difference(today).inDays;
+    return diff > 0 ? diff : null;
+  }
+
+  int get baggagePackedCount => baggageItems.where((b) => b.isPacked).length;
+
+  TripDetailLoaded copyWith({
+    Trip? trip,
+    List<Activity>? activities,
+    List<ManualFlight>? flights,
+    List<Accommodation>? accommodations,
+    List<BaggageItem>? baggageItems,
+    BudgetSummary? budgetSummary,
+    bool clearBudgetSummary = false,
+    List<TripShare>? shares,
+    int? selectedDayIndex,
+    String? userRole,
+    int? completionPercentage,
+    Set<String>? collapsedSections,
+  }) {
+    return TripDetailLoaded(
+      trip: trip ?? this.trip,
+      activities: activities ?? this.activities,
+      flights: flights ?? this.flights,
+      accommodations: accommodations ?? this.accommodations,
+      baggageItems: baggageItems ?? this.baggageItems,
+      budgetSummary: clearBudgetSummary
+          ? null
+          : (budgetSummary ?? this.budgetSummary),
+      shares: shares ?? this.shares,
+      selectedDayIndex: selectedDayIndex ?? this.selectedDayIndex,
+      userRole: userRole ?? this.userRole,
+      completionPercentage: completionPercentage ?? this.completionPercentage,
+      collapsedSections: collapsedSections ?? this.collapsedSections,
+    );
+  }
+}
+
+final class TripDetailError extends TripDetailState {
+  final AppError error;
+  TripDetailError({required this.error});
+}
+
+final class TripDetailDeleted extends TripDetailState {}

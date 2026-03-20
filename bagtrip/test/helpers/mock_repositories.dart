@@ -13,6 +13,7 @@ import 'package:bagtrip/repositories/trip_share_repository.dart';
 import 'package:bagtrip/repositories/feedback_repository.dart';
 import 'package:bagtrip/repositories/subscription_repository.dart';
 import 'package:bagtrip/repositories/ai_repository.dart';
+import 'package:bagtrip/repositories/transport_repository.dart';
 import 'package:bagtrip/core/cache/cache_service.dart';
 import 'package:bagtrip/core/cache/connectivity_service.dart';
 import 'package:mocktail/mocktail.dart';
@@ -53,3 +54,5 @@ class MockCrashlyticsService extends Mock implements CrashlyticsService {}
 class MockCacheService extends Mock implements CacheService {}
 
 class MockConnectivityService extends Mock implements ConnectivityService {}
+
+class MockTransportRepository extends Mock implements TransportRepository {}
