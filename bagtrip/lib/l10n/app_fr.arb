@@ -913,5 +913,11 @@
   "activeTripsActivities": "Activités",
   "activeTripsBudget": "Budget",
   "activeTripsBaggage": "Bagages",
-  "activeTripsShare": "Partager"
+  "activeTripsShare": "Partager",
+  "completionDates": "Dates",
+  "completionFlights": "Vols",
+  "completionAccommodation": "H\u00f4tels",
+  "completionActivities": "Activit\u00e9s",
+  "completionBaggage": "Bagages",
+  "completionBudget": "Budget"
 }

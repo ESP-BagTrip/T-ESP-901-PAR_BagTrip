@@ -2,6 +2,7 @@ import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
+import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -76,7 +77,7 @@ void main() {
         isA<TripDetailLoading>(),
         isA<TripDetailLoaded>()
             .having((s) => s.trip.id, 'trip.id', 'trip-1')
-            .having((s) => s.completionPercentage, 'completion', 20),
+            .having((s) => s.completionPercentage, 'completion', 33),
       ],
     );
 
@@ -220,7 +221,17 @@ void main() {
         accommodations: [],
         baggageItems: [],
         shares: [],
-        completionPercentage: 20,
+        completionResult: const CompletionResult(
+          percentage: 20,
+          segments: {
+            CompletionSegmentType.dates: true,
+            CompletionSegmentType.flights: false,
+            CompletionSegmentType.accommodation: false,
+            CompletionSegmentType.activities: false,
+            CompletionSegmentType.baggage: false,
+            CompletionSegmentType.budget: false,
+          },
+        ),
       ),
       act: (bloc) => bloc.add(SelectDay(dayIndex: 5)),
       expect: () => [
@@ -251,7 +262,17 @@ void main() {
         accommodations: [],
         baggageItems: [],
         shares: [],
-        completionPercentage: 20,
+        completionResult: const CompletionResult(
+          percentage: 20,
+          segments: {
+            CompletionSegmentType.dates: true,
+            CompletionSegmentType.flights: false,
+            CompletionSegmentType.accommodation: false,
+            CompletionSegmentType.activities: false,
+            CompletionSegmentType.baggage: false,
+            CompletionSegmentType.budget: false,
+          },
+        ),
       ),
       act: (bloc) {
         bloc.add(ToggleSection(sectionId: 'activities'));

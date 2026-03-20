@@ -3,6 +3,7 @@ import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/staggered_fade_in.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
+import 'package:bagtrip/design/app_animations.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -11,6 +12,8 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
+import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
+import 'package:bagtrip/trip_detail/widgets/trip_completion_bar.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_detail_shimmer.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_hero_header.dart';
 import 'package:bagtrip/trips/widgets/trip_section_card.dart';
@@ -70,11 +73,27 @@ class TripDetailView extends StatelessWidget {
   }
 }
 
-class _LoadedContent extends StatelessWidget {
+class _LoadedContent extends StatefulWidget {
   final String tripId;
   final TripDetailLoaded state;
 
   const _LoadedContent({required this.tripId, required this.state});
+
+  @override
+  State<_LoadedContent> createState() => _LoadedContentState();
+}
+
+class _LoadedContentState extends State<_LoadedContent> {
+  final _sectionKeys = <CompletionSegmentType, GlobalKey>{
+    CompletionSegmentType.flights: GlobalKey(),
+    CompletionSegmentType.accommodation: GlobalKey(),
+    CompletionSegmentType.activities: GlobalKey(),
+    CompletionSegmentType.baggage: GlobalKey(),
+    CompletionSegmentType.budget: GlobalKey(),
+  };
+
+  String get tripId => widget.tripId;
+  TripDetailLoaded get state => widget.state;
 
   String _formatDate(DateTime? date) {
     if (date == null) return '';
@@ -84,6 +103,26 @@ class _LoadedContent extends StatelessWidget {
   void _refreshAfterReturn(BuildContext context) {
     if (context.mounted) {
       context.read<TripDetailBloc>().add(RefreshTripDetail());
+    }
+  }
+
+  void _scrollToSection(CompletionSegmentType type) {
+    if (type == CompletionSegmentType.dates) {
+      // Scroll to top (hero area)
+      Scrollable.ensureVisible(
+        context,
+        duration: AppAnimations.cardTransition,
+        curve: AppAnimations.standardCurve,
+      );
+      return;
+    }
+    final key = _sectionKeys[type];
+    if (key?.currentContext != null) {
+      Scrollable.ensureVisible(
+        key!.currentContext!,
+        duration: AppAnimations.cardTransition,
+        curve: AppAnimations.standardCurve,
+      );
     }
   }
 
@@ -228,15 +267,20 @@ class _LoadedContent extends StatelessWidget {
           ),
 
           // ── Completion bar ──────────────────────────────────────
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.space24,
-                vertical: AppSpacing.space8,
+          if (!state.isViewer)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.space24,
+                  vertical: AppSpacing.space8,
+                ),
+                child: TripCompletionBar(
+                  percentage: state.completionResult.percentage,
+                  segments: state.completionResult.segments,
+                  onSegmentTap: _scrollToSection,
+                ),
               ),
-              child: _CompletionBar(percentage: state.completionPercentage),
             ),
-          ),
 
           // ── Quick actions ───────────────────────────────────────
           SliverToBoxAdapter(
@@ -254,6 +298,7 @@ class _LoadedContent extends StatelessWidget {
               delegate: SliverChildListDelegate([
                 const SizedBox(height: AppSpacing.space8),
                 StaggeredFadeIn(
+                  key: _sectionKeys[CompletionSegmentType.flights],
                   index: 0,
                   child: TripSectionCard(
                     icon: Icons.flight_rounded,
@@ -277,6 +322,7 @@ class _LoadedContent extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.space12),
                 StaggeredFadeIn(
+                  key: _sectionKeys[CompletionSegmentType.accommodation],
                   index: 1,
                   child: TripSectionCard(
                     icon: Icons.hotel_rounded,
@@ -302,6 +348,7 @@ class _LoadedContent extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.space12),
                 StaggeredFadeIn(
+                  key: _sectionKeys[CompletionSegmentType.activities],
                   index: 2,
                   child: TripSectionCard(
                     icon: Icons.hiking_rounded,
@@ -325,6 +372,7 @@ class _LoadedContent extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.space12),
                 StaggeredFadeIn(
+                  key: _sectionKeys[CompletionSegmentType.baggage],
                   index: 3,
                   child: TripSectionCard(
                     icon: Icons.luggage_rounded,
@@ -349,6 +397,7 @@ class _LoadedContent extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.space12),
                 StaggeredFadeIn(
+                  key: _sectionKeys[CompletionSegmentType.budget],
                   index: 4,
                   child: TripSectionCard(
                     icon: Icons.wallet_rounded,
@@ -489,60 +538,6 @@ class _LoadedContent extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-// ── Completion Bar ───────────────────────────────────────────────────────────
-
-class _CompletionBar extends StatelessWidget {
-  final int percentage;
-
-  const _CompletionBar({required this.percentage});
-
-  @override
-  Widget build(BuildContext context) {
-    final segments = percentage ~/ 20;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              '$percentage%',
-              style: const TextStyle(
-                fontFamily: FontFamily.b612,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: ColorName.primary,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.space8),
-            Expanded(
-              child: Row(
-                children: List.generate(5, (i) {
-                  final isFilled = i < segments;
-                  return Expanded(
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeOutCubic,
-                      height: 6,
-                      margin: EdgeInsets.only(right: i < 4 ? 3 : 0),
-                      decoration: BoxDecoration(
-                        color: isFilled
-                            ? ColorName.primary
-                            : ColorName.shimmerBase,
-                        borderRadius: AppRadius.pill,
-                      ),
-                    ),
-                  );
-                }),
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }

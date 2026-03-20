@@ -2240,4 +2240,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activeTripsShare => 'Share';
+
+  @override
+  String get completionDates => 'Dates';
+
+  @override
+  String get completionFlights => 'Flights';
+
+  @override
+  String get completionAccommodation => 'Hotels';
+
+  @override
+  String get completionActivities => 'Activities';
+
+  @override
+  String get completionBaggage => 'Luggage';
+
+  @override
+  String get completionBudget => 'Budget';
 }

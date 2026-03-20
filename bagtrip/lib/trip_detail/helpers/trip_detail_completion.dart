@@ -1,30 +1,58 @@
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/models/baggage_item.dart';
+import 'package:bagtrip/models/budget_item.dart';
 import 'package:bagtrip/models/manual_flight.dart';
 import 'package:bagtrip/models/accommodation.dart';
 import 'package:bagtrip/models/trip.dart';
 
+/// The 6 completion segments displayed in the trip completion bar.
+enum CompletionSegmentType {
+  dates,
+  flights,
+  accommodation,
+  activities,
+  baggage,
+  budget,
+}
+
+/// Structured result from [tripDetailCompletion].
+class CompletionResult {
+  final int percentage;
+  final Map<CompletionSegmentType, bool> segments;
+
+  const CompletionResult({required this.percentage, required this.segments});
+}
+
 /// Calculates trip detail completion percentage (0-100) using Kanban formula.
 ///
-/// 5 segments, 20% each:
-/// - Dates set (both startDate AND endDate) → 20%
-/// - At least 1 flight → 20%
-/// - At least 1 accommodation → 20%
-/// - 3+ activities → 20%
-/// - 5+ baggage items → 20%
-int tripDetailCompletion({
+/// 6 segments, ~16.67% each:
+/// - Dates set (both startDate AND endDate)
+/// - At least 1 flight
+/// - At least 1 accommodation
+/// - 3+ activities
+/// - 5+ baggage items
+/// - Budget summary exists
+CompletionResult tripDetailCompletion({
   required Trip trip,
   required List<ManualFlight> flights,
   required List<Accommodation> accommodations,
   required List<Activity> activities,
   required List<BaggageItem> baggageItems,
+  BudgetSummary? budgetSummary,
 }) {
-  int filled = 0;
-  if (trip.startDate != null && trip.endDate != null) filled++;
-  if (flights.isNotEmpty) filled++;
-  if (accommodations.isNotEmpty) filled++;
-  if (activities.length >= 3) filled++;
-  if (baggageItems.length >= 5) filled++;
+  final segments = <CompletionSegmentType, bool>{
+    CompletionSegmentType.dates: trip.startDate != null && trip.endDate != null,
+    CompletionSegmentType.flights: flights.isNotEmpty,
+    CompletionSegmentType.accommodation: accommodations.isNotEmpty,
+    CompletionSegmentType.activities: activities.length >= 3,
+    CompletionSegmentType.baggage: baggageItems.length >= 5,
+    CompletionSegmentType.budget: budgetSummary != null,
+  };
 
-  return (filled / 5 * 100).round();
+  final filled = segments.values.where((v) => v).length;
+
+  return CompletionResult(
+    percentage: (filled / 6 * 100).round(),
+    segments: segments,
+  );
 }

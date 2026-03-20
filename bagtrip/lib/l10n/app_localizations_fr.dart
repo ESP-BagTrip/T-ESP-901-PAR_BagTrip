@@ -2262,4 +2262,22 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get activeTripsShare => 'Partager';
+
+  @override
+  String get completionDates => 'Dates';
+
+  @override
+  String get completionFlights => 'Vols';
+
+  @override
+  String get completionAccommodation => 'Hôtels';
+
+  @override
+  String get completionActivities => 'Activités';
+
+  @override
+  String get completionBaggage => 'Bagages';
+
+  @override
+  String get completionBudget => 'Budget';
 }

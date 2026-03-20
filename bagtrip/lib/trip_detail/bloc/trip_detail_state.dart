@@ -16,7 +16,7 @@ final class TripDetailLoaded extends TripDetailState {
   final List<TripShare> shares;
   final int selectedDayIndex;
   final String userRole;
-  final int completionPercentage;
+  final CompletionResult completionResult;
   final Set<String> collapsedSections;
 
   TripDetailLoaded({
@@ -29,9 +29,11 @@ final class TripDetailLoaded extends TripDetailState {
     required this.shares,
     this.selectedDayIndex = 0,
     this.userRole = 'OWNER',
-    required this.completionPercentage,
+    required this.completionResult,
     this.collapsedSections = const {},
   });
+
+  int get completionPercentage => completionResult.percentage;
 
   bool get isViewer => userRole == 'VIEWER';
   bool get isOwner => userRole == 'OWNER';
@@ -98,7 +100,7 @@ final class TripDetailLoaded extends TripDetailState {
     List<TripShare>? shares,
     int? selectedDayIndex,
     String? userRole,
-    int? completionPercentage,
+    CompletionResult? completionResult,
     Set<String>? collapsedSections,
   }) {
     return TripDetailLoaded(
@@ -113,7 +115,7 @@ final class TripDetailLoaded extends TripDetailState {
       shares: shares ?? this.shares,
       selectedDayIndex: selectedDayIndex ?? this.selectedDayIndex,
       userRole: userRole ?? this.userRole,
-      completionPercentage: completionPercentage ?? this.completionPercentage,
+      completionResult: completionResult ?? this.completionResult,
       collapsedSections: collapsedSections ?? this.collapsedSections,
     );
   }

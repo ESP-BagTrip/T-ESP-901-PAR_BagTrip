@@ -137,6 +137,7 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
       accommodations: accommodations,
       activities: activities,
       baggageItems: baggageItems,
+      budgetSummary: budgetSummary,
     );
 
     emit(
@@ -150,7 +151,7 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
         shares: shares,
         selectedDayIndex: prevSelectedDay,
         userRole: trip.role ?? 'OWNER',
-        completionPercentage: completion,
+        completionResult: completion,
         collapsedSections: prevCollapsedSections,
       ),
     );

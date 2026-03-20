@@ -4285,6 +4285,42 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Partager'**
   String get activeTripsShare;
+
+  /// No description provided for @completionDates.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dates'**
+  String get completionDates;
+
+  /// No description provided for @completionFlights.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vols'**
+  String get completionFlights;
+
+  /// No description provided for @completionAccommodation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hôtels'**
+  String get completionAccommodation;
+
+  /// No description provided for @completionActivities.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activités'**
+  String get completionActivities;
+
+  /// No description provided for @completionBaggage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bagages'**
+  String get completionBaggage;
+
+  /// No description provided for @completionBudget.
+  ///
+  /// In fr, this message translates to:
+  /// **'Budget'**
+  String get completionBudget;
 }
 
 class _AppLocalizationsDelegate
