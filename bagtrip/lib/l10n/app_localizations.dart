@@ -3985,6 +3985,78 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'IA'**
   String get aiBadgeLabel;
+
+  /// No description provided for @stepGeneration.
+  ///
+  /// In fr, this message translates to:
+  /// **'Génération...'**
+  String get stepGeneration;
+
+  /// No description provided for @generationTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'GÉNÉRATION IA'**
+  String get generationTitle;
+
+  /// No description provided for @generationStepDestinations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Destinations'**
+  String get generationStepDestinations;
+
+  /// No description provided for @generationStepActivities.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activités'**
+  String get generationStepActivities;
+
+  /// No description provided for @generationStepAccommodations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hébergements'**
+  String get generationStepAccommodations;
+
+  /// No description provided for @generationStepBaggage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bagages'**
+  String get generationStepBaggage;
+
+  /// No description provided for @generationStepBudget.
+  ///
+  /// In fr, this message translates to:
+  /// **'Budget'**
+  String get generationStepBudget;
+
+  /// No description provided for @generationErrorTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la génération'**
+  String get generationErrorTitle;
+
+  /// No description provided for @generationErrorSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une erreur est survenue. Veuillez réessayer.'**
+  String get generationErrorSubtitle;
+
+  /// No description provided for @generationTimeoutTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Temps dépassé'**
+  String get generationTimeoutTitle;
+
+  /// No description provided for @generationTimeoutSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'La génération prend plus de temps que prévu. Veuillez réessayer.'**
+  String get generationTimeoutSubtitle;
+
+  /// No description provided for @generationProgressLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'{percent}%'**
+  String generationProgressLabel(int percent);
 }
 
 class _AppLocalizationsDelegate

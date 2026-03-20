@@ -11,6 +11,7 @@ import 'package:bagtrip/plan_trip/models/budget_preset.dart';
 import 'package:bagtrip/plan_trip/view/step_dates_view.dart';
 import 'package:bagtrip/plan_trip/view/step_destination_view.dart';
 import 'package:bagtrip/plan_trip/view/step_ai_proposals_view.dart';
+import 'package:bagtrip/plan_trip/view/step_generation_view.dart';
 import 'package:bagtrip/plan_trip/view/step_travelers_budget_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -57,6 +58,13 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
             );
           }
 
+          // Auto-fire generation when entering step 4
+          if (state.currentStep == 4 && state.generationSteps.isEmpty) {
+            context.read<PlanTripBloc>().add(
+              const PlanTripEvent.startGeneration(),
+            );
+          }
+
           if (state.createdTripId != null && state.createdTripId!.isNotEmpty) {
             ScaffoldMessenger.of(
               context,
@@ -99,7 +107,7 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
                       total: state.totalSteps,
                     ),
                   ),
-                  if (state.currentStep > 0)
+                  if (state.currentStep > 0 && state.currentStep < 4)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: StepHeader(items: _buildSummaryItems(state, l10n)),
@@ -113,7 +121,7 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
                         StepTravelersBudgetView(),
                         StepDestinationView(),
                         StepAiProposalsView(),
-                        Center(child: Text('Step 4')),
+                        StepGenerationView(),
                         Center(child: Text('Step 5')),
                       ],
                     ),
@@ -133,7 +141,8 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
       1 => l10n.stepTravelers,
       2 => l10n.stepDestination,
       3 => l10n.stepAiProposals,
-      4 => l10n.stepReview,
+      4 => l10n.stepGeneration,
+      5 => l10n.stepReview,
       _ => '',
     };
   }

@@ -2088,4 +2088,44 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get aiBadgeLabel => 'IA';
+
+  @override
+  String get stepGeneration => 'Génération...';
+
+  @override
+  String get generationTitle => 'GÉNÉRATION IA';
+
+  @override
+  String get generationStepDestinations => 'Destinations';
+
+  @override
+  String get generationStepActivities => 'Activités';
+
+  @override
+  String get generationStepAccommodations => 'Hébergements';
+
+  @override
+  String get generationStepBaggage => 'Bagages';
+
+  @override
+  String get generationStepBudget => 'Budget';
+
+  @override
+  String get generationErrorTitle => 'Échec de la génération';
+
+  @override
+  String get generationErrorSubtitle =>
+      'Une erreur est survenue. Veuillez réessayer.';
+
+  @override
+  String get generationTimeoutTitle => 'Temps dépassé';
+
+  @override
+  String get generationTimeoutSubtitle =>
+      'La génération prend plus de temps que prévu. Veuillez réessayer.';
+
+  @override
+  String generationProgressLabel(int percent) {
+    return '$percent%';
+  }
 }

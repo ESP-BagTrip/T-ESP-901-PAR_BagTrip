@@ -806,5 +806,24 @@
   "swipeToDiscover": "Glissez pour découvrir →",
   "aiProposalsEmpty": "Aucune suggestion disponible",
   "aiProposalsEmptySubtitle": "Retournez en arrière et réessayez",
-  "aiBadgeLabel": "IA"
+  "aiBadgeLabel": "IA",
+  "stepGeneration": "Génération...",
+  "generationTitle": "GÉNÉRATION IA",
+  "generationStepDestinations": "Destinations",
+  "generationStepActivities": "Activités",
+  "generationStepAccommodations": "Hébergements",
+  "generationStepBaggage": "Bagages",
+  "generationStepBudget": "Budget",
+  "generationErrorTitle": "Échec de la génération",
+  "generationErrorSubtitle": "Une erreur est survenue. Veuillez réessayer.",
+  "generationTimeoutTitle": "Temps dépassé",
+  "generationTimeoutSubtitle": "La génération prend plus de temps que prévu. Veuillez réessayer.",
+  "generationProgressLabel": "{percent}%",
+  "@generationProgressLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  }
 }

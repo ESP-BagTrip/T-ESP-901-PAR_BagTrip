@@ -806,5 +806,24 @@
   "swipeToDiscover": "Swipe to discover →",
   "aiProposalsEmpty": "No suggestions available",
   "aiProposalsEmptySubtitle": "Go back and try again",
-  "aiBadgeLabel": "AI"
+  "aiBadgeLabel": "AI",
+  "stepGeneration": "Generating...",
+  "generationTitle": "AI GENERATION",
+  "generationStepDestinations": "Destinations",
+  "generationStepActivities": "Activities",
+  "generationStepAccommodations": "Accommodations",
+  "generationStepBaggage": "Luggage",
+  "generationStepBudget": "Budget",
+  "generationErrorTitle": "Generation failed",
+  "generationErrorSubtitle": "Something went wrong. Please try again.",
+  "generationTimeoutTitle": "Taking too long",
+  "generationTimeoutSubtitle": "The generation is taking longer than expected. Please try again.",
+  "generationProgressLabel": "{percent}%",
+  "@generationProgressLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  }
 }
