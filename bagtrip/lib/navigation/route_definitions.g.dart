@@ -243,23 +243,28 @@ mixin $TripCreationRoute on GoRouteData {
 }
 
 mixin $PlanTripRoute on GoRouteData {
-  static PlanTripRoute _fromState(GoRouterState state) => const PlanTripRoute();
+  static PlanTripRoute _fromState(GoRouterState state) =>
+      PlanTripRoute($extra: state.extra as LocationResult?);
+
+  PlanTripRoute get _self => this as PlanTripRoute;
 
   @override
   String get location => GoRouteData.$location('/home/plan');
 
   @override
-  void go(BuildContext context) => context.go(location);
+  void go(BuildContext context) => context.go(location, extra: _self.$extra);
 
   @override
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+  Future<T?> push<T>(BuildContext context) =>
+      context.push<T>(location, extra: _self.$extra);
 
   @override
   void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
+      context.pushReplacement(location, extra: _self.$extra);
 
   @override
-  void replace(BuildContext context) => context.replace(location);
+  void replace(BuildContext context) =>
+      context.replace(location, extra: _self.$extra);
 }
 
 mixin $TripFlightSearchRoute on GoRouteData {

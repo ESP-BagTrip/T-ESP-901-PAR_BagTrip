@@ -893,5 +893,7 @@
         "type": "int"
       }
     }
-  }
+  },
+  "onboardingInspirationTitle": "Inspirez-vous",
+  "onboardingInspirationSubtitle": "Destinations populaires"
 }

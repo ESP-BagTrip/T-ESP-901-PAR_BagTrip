@@ -8,6 +8,7 @@ import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
+import 'package:bagtrip/home/view/onboarding_home_view.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/models/trip.dart';
@@ -51,167 +52,13 @@ class HomeView extends StatelessWidget {
                 }
               },
               child: switch (homeState) {
-                HomeNewUser() => _NewUserHome(state: homeState),
+                HomeNewUser() => OnboardingHomeView(state: homeState),
                 HomeActiveTrip() => _ActiveTripHome(state: homeState),
                 HomeTripManager() => _TripManagerHome(state: homeState),
                 _ => const LoadingView(),
               },
             );
           },
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// New user — immersive welcome, single CTA, no empty lists
-// ---------------------------------------------------------------------------
-
-class _NewUserHome extends StatelessWidget {
-  final HomeNewUser state;
-
-  const _NewUserHome({required this.state});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final name = state.displayName;
-
-    return CustomScrollView(
-      slivers: [
-        SliverFillRemaining(
-          hasScrollBody: false,
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal:
-                  MediaQuery.paddingOf(context).left + AppSpacing.space24,
-            ),
-            child: Column(
-              children: [
-                const Spacer(flex: 2),
-
-                // Welcome icon
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [ColorName.primary, ColorName.secondary],
-                    ),
-                    borderRadius: AppRadius.large24,
-                    boxShadow: [
-                      BoxShadow(
-                        color: ColorName.primary.withValues(alpha: 0.3),
-                        offset: const Offset(0, 8),
-                        blurRadius: 24,
-                      ),
-                    ],
-                  ),
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.flight_takeoff_rounded,
-                    color: ColorName.surface,
-                    size: 36,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.space32),
-
-                // Greeting
-                Text(
-                  name.isNotEmpty
-                      ? l10n.homeGreeting(name)
-                      : l10n.homeWelcomeTitle,
-                  style: TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    color: Theme.of(context).colorScheme.onSurface,
-                    letterSpacing: 0.3,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppSpacing.space8),
-
-                // Subtitle
-                Text(
-                  l10n.homeWelcomeSubtitle,
-                  style: TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 16,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    height: 1.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppSpacing.space48),
-
-                // Primary CTA — large
-                _WelcomeCta(l10n: l10n),
-
-                const Spacer(flex: 3),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _WelcomeCta extends StatelessWidget {
-  final AppLocalizations l10n;
-
-  const _WelcomeCta({required this.l10n});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => const PlanTripRoute().go(context),
-        borderRadius: AppRadius.large24,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [ColorName.primary, ColorName.secondary],
-            ),
-            borderRadius: AppRadius.large24,
-            boxShadow: [
-              BoxShadow(
-                color: ColorName.primary.withValues(alpha: 0.35),
-                offset: const Offset(0, 8),
-                blurRadius: 24,
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.auto_awesome,
-                color: ColorName.surface,
-                size: 22,
-              ),
-              const SizedBox(width: 10),
-              Text(
-                l10n.homeCreateFirstTrip,
-                style: const TextStyle(
-                  fontFamily: FontFamily.b612,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: ColorName.surface,
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

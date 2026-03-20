@@ -4195,6 +4195,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{percent}% prêt'**
   String homeTripCompletion(int percent);
+
+  /// No description provided for @onboardingInspirationTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inspirez-vous'**
+  String get onboardingInspirationTitle;
+
+  /// No description provided for @onboardingInspirationSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Destinations populaires'**
+  String get onboardingInspirationSubtitle;
 }
 
 class _AppLocalizationsDelegate

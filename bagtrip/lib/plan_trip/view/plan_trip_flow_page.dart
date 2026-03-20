@@ -6,6 +6,7 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
+import 'package:bagtrip/plan_trip/models/location_result.dart';
 import 'package:bagtrip/plan_trip/models/duration_preset.dart';
 import 'package:bagtrip/plan_trip/models/budget_preset.dart';
 import 'package:bagtrip/plan_trip/view/step_dates_view.dart';
@@ -19,7 +20,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PlanTripFlowPage extends StatefulWidget {
-  const PlanTripFlowPage({super.key});
+  const PlanTripFlowPage({super.key, this.initialDestination});
+
+  final LocationResult? initialDestination;
 
   @override
   State<PlanTripFlowPage> createState() => _PlanTripFlowPageState();
@@ -45,7 +48,15 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
     final l10n = AppLocalizations.of(context)!;
 
     return BlocProvider(
-      create: (_) => PlanTripBloc(),
+      create: (_) {
+        final bloc = PlanTripBloc();
+        if (widget.initialDestination != null) {
+          bloc.add(
+            PlanTripEvent.selectManualDestination(widget.initialDestination!),
+          );
+        }
+        return bloc;
+      },
       child: BlocConsumer<PlanTripBloc, PlanTripState>(
         listenWhen: (prev, curr) =>
             prev.currentStep != curr.currentStep ||

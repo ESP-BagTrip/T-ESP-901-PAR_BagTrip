@@ -2187,4 +2187,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String homeTripCompletion(int percent) {
     return '$percent% ready';
   }
+
+  @override
+  String get onboardingInspirationTitle => 'Get inspired';
+
+  @override
+  String get onboardingInspirationSubtitle => 'Popular destinations';
 }

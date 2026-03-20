@@ -2209,4 +2209,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String homeTripCompletion(int percent) {
     return '$percent% prêt';
   }
+
+  @override
+  String get onboardingInspirationTitle => 'Inspirez-vous';
+
+  @override
+  String get onboardingInspirationSubtitle => 'Destinations populaires';
 }

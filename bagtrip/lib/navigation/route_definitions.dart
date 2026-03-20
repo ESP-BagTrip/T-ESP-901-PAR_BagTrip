@@ -29,6 +29,7 @@ import 'package:bagtrip/pages/subscription/subscription_cancel_page.dart';
 import 'package:bagtrip/pages/subscription/subscription_success_page.dart';
 import 'package:bagtrip/pages/trip_home_page.dart';
 import 'package:bagtrip/pages/trip_shares_page.dart';
+import 'package:bagtrip/plan_trip/models/location_result.dart';
 import 'package:bagtrip/plan_trip/view/plan_trip_flow_page.dart';
 import 'package:bagtrip/trip_creation/view/trip_creation_flow_page.dart';
 import 'package:flutter/material.dart';
@@ -149,13 +150,15 @@ class TripCreationRoute extends GoRouteData with $TripCreationRoute {
 }
 
 class PlanTripRoute extends GoRouteData with $PlanTripRoute {
-  const PlanTripRoute();
+  const PlanTripRoute({this.$extra});
+
+  final LocationResult? $extra;
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       buildWizardTransitionPage<void>(
         state: state,
-        child: const PlanTripFlowPage(),
+        child: PlanTripFlowPage(initialDestination: $extra),
       );
 }
 
