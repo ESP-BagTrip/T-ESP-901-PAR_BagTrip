@@ -895,5 +895,8 @@
     }
   },
   "onboardingInspirationTitle": "Get inspired",
-  "onboardingInspirationSubtitle": "Popular destinations"
+  "onboardingInspirationSubtitle": "Popular destinations",
+  "tripManagerCompletedSection": "Past adventures",
+  "tripCardNoDestination": "No destination",
+  "tripCardNoTitle": "Untitled trip"
 }

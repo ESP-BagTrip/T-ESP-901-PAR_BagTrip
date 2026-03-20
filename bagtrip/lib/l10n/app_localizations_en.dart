@@ -2193,4 +2193,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingInspirationSubtitle => 'Popular destinations';
+
+  @override
+  String get tripManagerCompletedSection => 'Past adventures';
+
+  @override
+  String get tripCardNoDestination => 'No destination';
+
+  @override
+  String get tripCardNoTitle => 'Untitled trip';
 }

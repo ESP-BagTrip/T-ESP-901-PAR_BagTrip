@@ -2215,4 +2215,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingInspirationSubtitle => 'Destinations populaires';
+
+  @override
+  String get tripManagerCompletedSection => 'Voyages passés';
+
+  @override
+  String get tripCardNoDestination => 'Pas de destination';
+
+  @override
+  String get tripCardNoTitle => 'Voyage sans titre';
 }

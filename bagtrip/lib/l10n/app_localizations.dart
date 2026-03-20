@@ -4207,6 +4207,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Destinations populaires'**
   String get onboardingInspirationSubtitle;
+
+  /// No description provided for @tripManagerCompletedSection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voyages passés'**
+  String get tripManagerCompletedSection;
+
+  /// No description provided for @tripCardNoDestination.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas de destination'**
+  String get tripCardNoDestination;
+
+  /// No description provided for @tripCardNoTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voyage sans titre'**
+  String get tripCardNoTitle;
 }
 
 class _AppLocalizationsDelegate

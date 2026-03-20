@@ -895,5 +895,8 @@
     }
   },
   "onboardingInspirationTitle": "Inspirez-vous",
-  "onboardingInspirationSubtitle": "Destinations populaires"
+  "onboardingInspirationSubtitle": "Destinations populaires",
+  "tripManagerCompletedSection": "Voyages passés",
+  "tripCardNoDestination": "Pas de destination",
+  "tripCardNoTitle": "Voyage sans titre"
 }
