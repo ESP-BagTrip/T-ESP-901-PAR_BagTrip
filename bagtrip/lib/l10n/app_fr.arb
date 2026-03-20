@@ -825,5 +825,44 @@
         "type": "int"
       }
     }
-  }
+  },
+  "reviewCreateTrip": "Créer mon voyage",
+  "reviewSeeOtherDestinations": "Voir d'autres destinations",
+  "reviewCreatingTrip": "Création en cours...",
+  "reviewSectionBudget": "RÉPARTITION DU BUDGET",
+  "reviewBudgetFlights": "Vols",
+  "reviewBudgetAccommodation": "Hébergement",
+  "reviewBudgetMeals": "Repas",
+  "reviewBudgetTransport": "Transport",
+  "reviewBudgetActivities": "Activités",
+  "reviewBudgetOther": "Autre",
+  "reviewBudgetTotal": "Total",
+  "reviewSourceVerified": "Vérifié",
+  "reviewSourceEstimated": "Estimé",
+  "reviewDayLabel": "Jour {day}",
+  "@reviewDayLabel": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewPriceEur": "{amount} EUR",
+  "@reviewPriceEur": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewHighlightsLabel": "TEMPS FORTS",
+  "reviewEssentialReason": "Pourquoi : {reason}",
+  "@reviewEssentialReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewNoActivities": "Aucune activité prévue"
 }

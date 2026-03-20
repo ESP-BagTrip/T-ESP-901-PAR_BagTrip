@@ -12,7 +12,9 @@ import 'package:bagtrip/plan_trip/view/step_dates_view.dart';
 import 'package:bagtrip/plan_trip/view/step_destination_view.dart';
 import 'package:bagtrip/plan_trip/view/step_ai_proposals_view.dart';
 import 'package:bagtrip/plan_trip/view/step_generation_view.dart';
+import 'package:bagtrip/plan_trip/view/step_review_view.dart';
 import 'package:bagtrip/plan_trip/view/step_travelers_budget_view.dart';
+import 'package:bagtrip/design/app_haptics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -66,6 +68,7 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
           }
 
           if (state.createdTripId != null && state.createdTripId!.isNotEmpty) {
+            AppHaptics.success();
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text(l10n.tripCreatedSuccess)));
@@ -122,7 +125,7 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
                         StepDestinationView(),
                         StepAiProposalsView(),
                         StepGenerationView(),
-                        Center(child: Text('Step 5')),
+                        StepReviewView(),
                       ],
                     ),
                   ),

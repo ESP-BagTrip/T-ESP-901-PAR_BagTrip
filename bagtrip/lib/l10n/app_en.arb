@@ -825,5 +825,44 @@
         "type": "int"
       }
     }
-  }
+  },
+  "reviewCreateTrip": "Create my trip",
+  "reviewSeeOtherDestinations": "See other destinations",
+  "reviewCreatingTrip": "Creating your trip...",
+  "reviewSectionBudget": "BUDGET BREAKDOWN",
+  "reviewBudgetFlights": "Flights",
+  "reviewBudgetAccommodation": "Accommodation",
+  "reviewBudgetMeals": "Meals",
+  "reviewBudgetTransport": "Transport",
+  "reviewBudgetActivities": "Activities",
+  "reviewBudgetOther": "Other",
+  "reviewBudgetTotal": "Total",
+  "reviewSourceVerified": "Verified",
+  "reviewSourceEstimated": "Estimated",
+  "reviewDayLabel": "Day {day}",
+  "@reviewDayLabel": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewPriceEur": "{amount} EUR",
+  "@reviewPriceEur": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewHighlightsLabel": "HIGHLIGHTS",
+  "reviewEssentialReason": "Why: {reason}",
+  "@reviewEssentialReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewNoActivities": "No activities planned"
 }

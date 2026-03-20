@@ -4057,6 +4057,114 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{percent}%'**
   String generationProgressLabel(int percent);
+
+  /// No description provided for @reviewCreateTrip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer mon voyage'**
+  String get reviewCreateTrip;
+
+  /// No description provided for @reviewSeeOtherDestinations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir d\'autres destinations'**
+  String get reviewSeeOtherDestinations;
+
+  /// No description provided for @reviewCreatingTrip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Création en cours...'**
+  String get reviewCreatingTrip;
+
+  /// No description provided for @reviewSectionBudget.
+  ///
+  /// In fr, this message translates to:
+  /// **'RÉPARTITION DU BUDGET'**
+  String get reviewSectionBudget;
+
+  /// No description provided for @reviewBudgetFlights.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vols'**
+  String get reviewBudgetFlights;
+
+  /// No description provided for @reviewBudgetAccommodation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hébergement'**
+  String get reviewBudgetAccommodation;
+
+  /// No description provided for @reviewBudgetMeals.
+  ///
+  /// In fr, this message translates to:
+  /// **'Repas'**
+  String get reviewBudgetMeals;
+
+  /// No description provided for @reviewBudgetTransport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transport'**
+  String get reviewBudgetTransport;
+
+  /// No description provided for @reviewBudgetActivities.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activités'**
+  String get reviewBudgetActivities;
+
+  /// No description provided for @reviewBudgetOther.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autre'**
+  String get reviewBudgetOther;
+
+  /// No description provided for @reviewBudgetTotal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Total'**
+  String get reviewBudgetTotal;
+
+  /// No description provided for @reviewSourceVerified.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifié'**
+  String get reviewSourceVerified;
+
+  /// No description provided for @reviewSourceEstimated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Estimé'**
+  String get reviewSourceEstimated;
+
+  /// No description provided for @reviewDayLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jour {day}'**
+  String reviewDayLabel(int day);
+
+  /// No description provided for @reviewPriceEur.
+  ///
+  /// In fr, this message translates to:
+  /// **'{amount} EUR'**
+  String reviewPriceEur(String amount);
+
+  /// No description provided for @reviewHighlightsLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'TEMPS FORTS'**
+  String get reviewHighlightsLabel;
+
+  /// No description provided for @reviewEssentialReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pourquoi : {reason}'**
+  String reviewEssentialReason(String reason);
+
+  /// No description provided for @reviewNoActivities.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune activité prévue'**
+  String get reviewNoActivities;
 }
 
 class _AppLocalizationsDelegate

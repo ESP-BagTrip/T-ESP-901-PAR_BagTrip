@@ -2128,4 +2128,64 @@ class AppLocalizationsFr extends AppLocalizations {
   String generationProgressLabel(int percent) {
     return '$percent%';
   }
+
+  @override
+  String get reviewCreateTrip => 'Créer mon voyage';
+
+  @override
+  String get reviewSeeOtherDestinations => 'Voir d\'autres destinations';
+
+  @override
+  String get reviewCreatingTrip => 'Création en cours...';
+
+  @override
+  String get reviewSectionBudget => 'RÉPARTITION DU BUDGET';
+
+  @override
+  String get reviewBudgetFlights => 'Vols';
+
+  @override
+  String get reviewBudgetAccommodation => 'Hébergement';
+
+  @override
+  String get reviewBudgetMeals => 'Repas';
+
+  @override
+  String get reviewBudgetTransport => 'Transport';
+
+  @override
+  String get reviewBudgetActivities => 'Activités';
+
+  @override
+  String get reviewBudgetOther => 'Autre';
+
+  @override
+  String get reviewBudgetTotal => 'Total';
+
+  @override
+  String get reviewSourceVerified => 'Vérifié';
+
+  @override
+  String get reviewSourceEstimated => 'Estimé';
+
+  @override
+  String reviewDayLabel(int day) {
+    return 'Jour $day';
+  }
+
+  @override
+  String reviewPriceEur(String amount) {
+    return '$amount EUR';
+  }
+
+  @override
+  String get reviewHighlightsLabel => 'TEMPS FORTS';
+
+  @override
+  String reviewEssentialReason(String reason) {
+    return 'Pourquoi : $reason';
+  }
+
+  @override
+  String get reviewNoActivities => 'Aucune activité prévue';
 }
