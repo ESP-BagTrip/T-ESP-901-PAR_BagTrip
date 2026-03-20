@@ -22,8 +22,14 @@ class TripPlanState(TypedDict, total=False):
     departure_date: str  # YYYY-MM-DD
     return_date: str  # YYYY-MM-DD
     origin_city: str
+    travel_style: str
+    season: str
+    nb_travelers: int
+    budget_preset: str
+    date_mode: str
 
     # === Destination research output ===
+    origin_iata: str  # Resolved IATA for user's origin city
     destinations: list[dict]
     selected_destination: dict  # {city, country, iata, lat, lon}
     weather_data: dict  # {avg_temp_c, min_temp_c, max_temp_c, rain_probability, description}

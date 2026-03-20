@@ -27,6 +27,12 @@ ACTIVITY_PLANNER_PROMPT = """You are a travel activity planner. Based on the des
 
 Ground your suggestions in the real weather conditions provided. For example, don't suggest outdoor hiking if it's rainy season.
 
+Assign each activity to a specific day (1-based) and time of day.
+- "morning": 9:00-12:00 — museums, cultural visits, markets
+- "afternoon": 13:00-17:00 — outdoor activities, tours, sports
+- "evening": 18:00-22:00 — restaurants, nightlife, shows
+Distribute evenly. Max 3 activities per day (one per slot).
+
 Your Final Answer must be a JSON object:
 {
   "activities": [
@@ -36,6 +42,7 @@ Your Final Answer must be a JSON object:
       "category": "CULTURE|NATURE|FOOD|SPORT|SHOPPING|NIGHTLIFE|RELAXATION|OTHER",
       "estimated_cost": 25.0,
       "suggested_day": 1,
+      "time_of_day": "morning|afternoon|evening",
       "location": "Specific area/neighborhood"
     }
   ]

@@ -94,6 +94,13 @@ class DateMode(StrEnum):
     FLEXIBLE = "FLEXIBLE"
 
 
+class BudgetPreset(StrEnum):
+    BACKPACKER = "BACKPACKER"
+    COMFORTABLE = "COMFORTABLE"
+    PREMIUM = "PREMIUM"
+    NO_LIMIT = "NO_LIMIT"
+
+
 class FlightType(StrEnum):
     MAIN = "MAIN"
     INTERNAL = "INTERNAL"

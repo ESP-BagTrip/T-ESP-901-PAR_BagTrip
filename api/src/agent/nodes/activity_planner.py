@@ -33,6 +33,12 @@ async def activity_planner_node(state: TripPlanState) -> dict:
         parts.append(f"Traveling with: {state['companions']}")
     if state.get("constraints"):
         parts.append(f"Constraints: {state['constraints']}")
+    if state.get("travel_style"):
+        parts.append(f"Travel style: {state['travel_style']}")
+    if state.get("budget_preset"):
+        from src.api.ai.plan_trip_schemas import BUDGET_PRESET_RANGES
+        label = BUDGET_PRESET_RANGES.get(state["budget_preset"], {}).get("label", state["budget_preset"])
+        parts.append(f"Budget level: {label}")
 
     user_prompt = "\n".join(parts)
 

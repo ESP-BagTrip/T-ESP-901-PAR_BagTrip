@@ -31,6 +31,16 @@ async def destination_research_node(state: TripPlanState) -> dict:
         parts.append(f"Return: {state['return_date']}")
     if state.get("constraints"):
         parts.append(f"Constraints: {state['constraints']}")
+    if state.get("travel_style"):
+        parts.append(f"Travel style: {state['travel_style']}")
+    if state.get("season"):
+        parts.append(f"Preferred season: {state['season']}")
+    if state.get("budget_preset"):
+        from src.api.ai.plan_trip_schemas import BUDGET_PRESET_RANGES
+        label = BUDGET_PRESET_RANGES.get(state["budget_preset"], {}).get("label", state["budget_preset"])
+        parts.append(f"Budget level: {label}")
+    if state.get("nb_travelers"):
+        parts.append(f"Number of travelers: {state['nb_travelers']}")
 
     if not parts:
         parts.append("Suggest diverse and inspiring travel destinations.")
@@ -70,6 +80,7 @@ async def destination_research_node(state: TripPlanState) -> dict:
 
     return {
         "destinations": destinations,
+        "origin_iata": origin_iata or "",
         "selected_destination": {
             "city": selected.get("city", ""),
             "country": selected.get("country", ""),

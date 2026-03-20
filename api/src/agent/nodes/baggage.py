@@ -36,6 +36,8 @@ async def baggage_node(state: TripPlanState) -> dict:
         parts.append(f"Traveling with: {state['companions']}")
     if state.get("constraints"):
         parts.append(f"Constraints: {state['constraints']}")
+    if state.get("travel_style"):
+        parts.append(f"Travel style: {state['travel_style']}")
 
     user_prompt = "\n".join(parts)
 
