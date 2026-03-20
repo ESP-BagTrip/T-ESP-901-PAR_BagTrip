@@ -4165,6 +4165,36 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Aucune activité prévue'**
   String get reviewNoActivities;
+
+  /// No description provided for @homeActiveTripTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre voyage à {destination}'**
+  String homeActiveTripTitle(String destination);
+
+  /// No description provided for @homeActiveTripDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jour {current} sur {total}'**
+  String homeActiveTripDay(int current, int total);
+
+  /// No description provided for @homeTodayActivities.
+  ///
+  /// In fr, this message translates to:
+  /// **'Programme du jour'**
+  String get homeTodayActivities;
+
+  /// No description provided for @homeNoActivitiesToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune activité prévue aujourd\'hui'**
+  String get homeNoActivitiesToday;
+
+  /// No description provided for @homeTripCompletion.
+  ///
+  /// In fr, this message translates to:
+  /// **'{percent}% prêt'**
+  String homeTripCompletion(int percent);
 }
 
 class _AppLocalizationsDelegate

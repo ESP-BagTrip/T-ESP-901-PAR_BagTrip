@@ -2166,4 +2166,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reviewNoActivities => 'No activities planned';
+
+  @override
+  String homeActiveTripTitle(String destination) {
+    return 'Your trip to $destination';
+  }
+
+  @override
+  String homeActiveTripDay(int current, int total) {
+    return 'Day $current of $total';
+  }
+
+  @override
+  String get homeTodayActivities => 'Today\'s schedule';
+
+  @override
+  String get homeNoActivitiesToday => 'No activities planned today';
+
+  @override
+  String homeTripCompletion(int percent) {
+    return '$percent% ready';
+  }
 }

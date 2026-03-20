@@ -2188,4 +2188,25 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get reviewNoActivities => 'Aucune activité prévue';
+
+  @override
+  String homeActiveTripTitle(String destination) {
+    return 'Votre voyage à $destination';
+  }
+
+  @override
+  String homeActiveTripDay(int current, int total) {
+    return 'Jour $current sur $total';
+  }
+
+  @override
+  String get homeTodayActivities => 'Programme du jour';
+
+  @override
+  String get homeNoActivitiesToday => 'Aucune activité prévue aujourd\'hui';
+
+  @override
+  String homeTripCompletion(int percent) {
+    return '$percent% prêt';
+  }
 }

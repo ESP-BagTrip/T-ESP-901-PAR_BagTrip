@@ -864,5 +864,34 @@
       }
     }
   },
-  "reviewNoActivities": "Aucune activité prévue"
+  "reviewNoActivities": "Aucune activité prévue",
+  "homeActiveTripTitle": "Votre voyage à {destination}",
+  "@homeActiveTripTitle": {
+    "placeholders": {
+      "destination": {
+        "type": "String"
+      }
+    }
+  },
+  "homeActiveTripDay": "Jour {current} sur {total}",
+  "@homeActiveTripDay": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "homeTodayActivities": "Programme du jour",
+  "homeNoActivitiesToday": "Aucune activité prévue aujourd'hui",
+  "homeTripCompletion": "{percent}% prêt",
+  "@homeTripCompletion": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -13,10 +13,12 @@ import '../helpers/test_fixtures.dart';
 void main() {
   late MockTripRepository mockTripRepo;
   late MockAuthRepository mockAuthRepo;
+  late MockActivityRepository mockActivityRepo;
 
   setUp(() {
     mockTripRepo = MockTripRepository();
     mockAuthRepo = MockAuthRepository();
+    mockActivityRepo = MockActivityRepository();
   });
 
   void stubTrips({
@@ -25,19 +27,19 @@ void main() {
     PaginatedResponse<Trip>? completed,
   }) {
     when(
-      () => mockTripRepo.getTripsPaginated(status: 'ongoing', limit: 1),
+      () => mockTripRepo.getTripsPaginated(status: 'ongoing', limit: 5),
     ).thenAnswer(
       (_) async =>
           Success(ongoing ?? makePaginatedResponse<Trip>(items: [], total: 0)),
     );
     when(
-      () => mockTripRepo.getTripsPaginated(status: 'planned', limit: 1),
+      () => mockTripRepo.getTripsPaginated(status: 'planned', limit: 5),
     ).thenAnswer(
       (_) async =>
           Success(planned ?? makePaginatedResponse<Trip>(items: [], total: 0)),
     );
     when(
-      () => mockTripRepo.getTripsPaginated(status: 'completed', limit: 1),
+      () => mockTripRepo.getTripsPaginated(status: 'completed', limit: 5),
     ).thenAnswer(
       (_) async => Success(
         completed ?? makePaginatedResponse<Trip>(items: [], total: 0),
@@ -51,36 +53,43 @@ void main() {
     ).thenAnswer((_) async => Success(makeUser()));
   }
 
+  void stubActivities() {
+    when(
+      () => mockActivityRepo.getActivities(any()),
+    ).thenAnswer((_) async => const Success([]));
+  }
+
+  HomeBloc buildBloc() => HomeBloc(
+    tripRepository: mockTripRepo,
+    authRepository: mockAuthRepo,
+    activityRepository: mockActivityRepo,
+  );
+
   group('HomeBloc parallel loading', () {
     blocTest<HomeBloc, HomeState>(
-      'HomeLoaded contains user, nextTrip, daysUntilNextTrip, and totalTrips',
+      'HomeActiveTrip contains user, activeTrip when ongoing trip exists',
       build: () {
         stubUserSuccess();
         final ongoingTrip = makeTrip(
           id: 'trip-ongoing-1',
           status: TripStatus.ongoing,
-          startDate: DateTime.now().add(const Duration(days: 7)),
+          startDate: DateTime.now().subtract(const Duration(days: 1)),
+          endDate: DateTime.now().add(const Duration(days: 7)),
         );
         stubTrips(
           ongoing: makePaginatedResponse(items: [ongoingTrip]),
           planned: makePaginatedResponse<Trip>(items: [], total: 5),
           completed: makePaginatedResponse<Trip>(items: [], total: 10),
         );
-        return HomeBloc(
-          tripRepository: mockTripRepo,
-          authRepository: mockAuthRepo,
-        );
+        stubActivities();
+        return buildBloc();
       },
       act: (bloc) => bloc.add(LoadHome()),
       expect: () => [
         isA<HomeLoading>(),
-        isA<HomeLoaded>()
-            .having((s) => s.user, 'user is present', isNotNull)
-            .having((s) => s.user!.email, 'user email', 'test@example.com')
-            .having((s) => s.nextTrip, 'nextTrip is present', isNotNull)
-            .having((s) => s.nextTrip!.id, 'nextTrip.id', 'trip-ongoing-1')
-            .having((s) => s.daysUntilNextTrip, 'daysUntilNextTrip', isNotNull)
-            .having((s) => s.totalTrips, 'totalTrips', 16),
+        isA<HomeActiveTrip>()
+            .having((s) => s.user.email, 'user email', 'test@example.com')
+            .having((s) => s.activeTrip.id, 'activeTrip.id', 'trip-ongoing-1'),
       ],
     );
 
@@ -89,45 +98,33 @@ void main() {
       build: () {
         stubUserSuccess();
         stubTrips();
-        return HomeBloc(
-          tripRepository: mockTripRepo,
-          authRepository: mockAuthRepo,
-        );
+        return buildBloc();
       },
       act: (bloc) => bloc.add(LoadHome()),
       verify: (_) {
         verify(() => mockAuthRepo.getCurrentUser()).called(1);
         verify(
-          () => mockTripRepo.getTripsPaginated(status: 'ongoing', limit: 1),
+          () => mockTripRepo.getTripsPaginated(status: 'ongoing', limit: 5),
         ).called(1);
         verify(
-          () => mockTripRepo.getTripsPaginated(status: 'planned', limit: 1),
+          () => mockTripRepo.getTripsPaginated(status: 'planned', limit: 5),
         ).called(1);
         verify(
-          () => mockTripRepo.getTripsPaginated(status: 'completed', limit: 1),
+          () => mockTripRepo.getTripsPaginated(status: 'completed', limit: 5),
         ).called(1);
         verifyNoMoreInteractions(mockTripRepo);
       },
     );
 
     blocTest<HomeBloc, HomeState>(
-      'isNewUser is true when totalTrips is 0',
+      'HomeNewUser is emitted when totalTrips is 0',
       build: () {
         stubUserSuccess();
         stubTrips();
-        return HomeBloc(
-          tripRepository: mockTripRepo,
-          authRepository: mockAuthRepo,
-        );
+        return buildBloc();
       },
       act: (bloc) => bloc.add(LoadHome()),
-      expect: () => [
-        isA<HomeLoading>(),
-        isA<HomeLoaded>()
-            .having((s) => s.totalTrips, 'totalTrips', 0)
-            .having((s) => s.isNewUser, 'isNewUser', true)
-            .having((s) => s.hasNextTrip, 'hasNextTrip', false),
-      ],
+      expect: () => [isA<HomeLoading>(), isA<HomeNewUser>()],
     );
 
     blocTest<HomeBloc, HomeState>(
@@ -137,15 +134,12 @@ void main() {
           (_) async => Success(makeUser(fullName: 'Jean Pierre Dupont')),
         );
         stubTrips();
-        return HomeBloc(
-          tripRepository: mockTripRepo,
-          authRepository: mockAuthRepo,
-        );
+        return buildBloc();
       },
       act: (bloc) => bloc.add(LoadHome()),
       expect: () => [
         isA<HomeLoading>(),
-        isA<HomeLoaded>().having((s) => s.displayName, 'displayName', 'Jean'),
+        isA<HomeNewUser>().having((s) => s.displayName, 'displayName', 'Jean'),
       ],
     );
   });
@@ -158,10 +152,7 @@ void main() {
           (_) async => const Failure(AuthenticationError('Token expired')),
         );
         stubTrips();
-        return HomeBloc(
-          tripRepository: mockTripRepo,
-          authRepository: mockAuthRepo,
-        );
+        return buildBloc();
       },
       act: (bloc) => bloc.add(LoadHome()),
       expect: () => [
@@ -179,18 +170,15 @@ void main() {
       build: () {
         stubUserSuccess();
         when(
-          () => mockTripRepo.getTripsPaginated(status: 'ongoing', limit: 1),
+          () => mockTripRepo.getTripsPaginated(status: 'ongoing', limit: 5),
         ).thenAnswer((_) async => const Failure(ServerError('Server down')));
         when(
-          () => mockTripRepo.getTripsPaginated(status: 'planned', limit: 1),
+          () => mockTripRepo.getTripsPaginated(status: 'planned', limit: 5),
         ).thenAnswer((_) async => const Failure(ServerError('Server down')));
         when(
-          () => mockTripRepo.getTripsPaginated(status: 'completed', limit: 1),
+          () => mockTripRepo.getTripsPaginated(status: 'completed', limit: 5),
         ).thenAnswer((_) async => const Failure(ServerError('Server down')));
-        return HomeBloc(
-          tripRepository: mockTripRepo,
-          authRepository: mockAuthRepo,
-        );
+        return buildBloc();
       },
       act: (bloc) => bloc.add(LoadHome()),
       expect: () => [
@@ -200,30 +188,30 @@ void main() {
     );
 
     blocTest<HomeBloc, HomeState>(
-      'non-auth user failure still loads with partial data',
+      'non-auth user failure still loads with fallback user',
       build: () {
         when(
           () => mockAuthRepo.getCurrentUser(),
         ).thenAnswer((_) async => const Failure(NetworkError('No connection')));
         stubTrips(ongoing: makePaginatedResponse<Trip>(items: [], total: 2));
-        return HomeBloc(
-          tripRepository: mockTripRepo,
-          authRepository: mockAuthRepo,
-        );
+        stubActivities();
+        return buildBloc();
       },
       act: (bloc) => bloc.add(LoadHome()),
       expect: () => [
         isA<HomeLoading>(),
-        isA<HomeLoaded>()
-            .having((s) => s.user, 'user is null', isNull)
-            .having((s) => s.totalTrips, 'totalTrips', 2),
+        isA<HomeTripManager>().having(
+          (s) => s.user.id,
+          'user.id (fallback)',
+          '',
+        ),
       ],
     );
   });
 
   group('HomeBloc retry mechanism', () {
     blocTest<HomeBloc, HomeState>(
-      'retry after HomeError recovers to HomeLoaded',
+      'retry after HomeError recovers to loaded state',
       build: () {
         var callCount = 0;
         when(() => mockAuthRepo.getCurrentUser()).thenAnswer((_) async {
@@ -234,10 +222,8 @@ void main() {
           return Success(makeUser());
         });
         stubTrips(planned: makePaginatedResponse(items: [makeTrip()]));
-        return HomeBloc(
-          tripRepository: mockTripRepo,
-          authRepository: mockAuthRepo,
-        );
+        stubActivities();
+        return buildBloc();
       },
       act: (bloc) async {
         bloc.add(LoadHome());
@@ -248,7 +234,11 @@ void main() {
         isA<HomeLoading>(),
         isA<HomeError>(),
         isA<HomeLoading>(),
-        isA<HomeLoaded>().having((s) => s.user, 'user after retry', isNotNull),
+        isA<HomeTripManager>().having(
+          (s) => s.user.email,
+          'user after retry',
+          'test@example.com',
+        ),
       ],
     );
 
@@ -257,17 +247,14 @@ void main() {
       build: () {
         stubUserSuccess();
         stubTrips();
-        return HomeBloc(
-          tripRepository: mockTripRepo,
-          authRepository: mockAuthRepo,
-        );
+        return buildBloc();
       },
       act: (bloc) {
         bloc.add(LoadHome());
         bloc.add(LoadHome());
       },
-      skip: 2, // skip first HomeLoading + HomeLoaded
-      expect: () => [isA<HomeLoading>(), isA<HomeLoaded>()],
+      skip: 2, // skip first HomeLoading + HomeNewUser
+      expect: () => [isA<HomeLoading>(), isA<HomeNewUser>()],
     );
   });
 }
