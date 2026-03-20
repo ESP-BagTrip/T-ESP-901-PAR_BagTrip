@@ -171,7 +171,7 @@ class _WelcomeCta extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => const TripCreationRoute().go(context),
+        onTap: () => const PlanTripRoute().go(context),
         borderRadius: AppRadius.large24,
         child: Container(
           width: double.infinity,
@@ -433,7 +433,7 @@ class _PlanTripCta extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => const TripCreationRoute().go(context),
+        onTap: () => const PlanTripRoute().go(context),
         borderRadius: AppRadius.large16,
         child: Container(
           width: double.infinity,
