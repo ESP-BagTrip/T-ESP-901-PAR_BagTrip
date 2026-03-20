@@ -898,5 +898,20 @@
   "onboardingInspirationSubtitle": "Destinations populaires",
   "tripManagerCompletedSection": "Voyages passés",
   "tripCardNoDestination": "Pas de destination",
-  "tripCardNoTitle": "Voyage sans titre"
+  "tripCardNoTitle": "Voyage sans titre",
+  "activeTripsViewTrip": "Voir le voyage",
+  "activeTripsNextUp": "Prochainement",
+  "activeTripsAllDay": "Toute la journée",
+  "activeTripsTomorrow": "Demain",
+  "activeTripsTomorrowCount": "{count, plural, =1{1 activité} other{{count} activités}}",
+  "@activeTripsTomorrowCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "activeTripsQuickActions": "Actions rapides",
+  "activeTripsActivities": "Activités",
+  "activeTripsBudget": "Budget",
+  "activeTripsBaggage": "Bagages",
+  "activeTripsShare": "Partager"
 }

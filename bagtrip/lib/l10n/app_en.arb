@@ -898,5 +898,20 @@
   "onboardingInspirationSubtitle": "Popular destinations",
   "tripManagerCompletedSection": "Past adventures",
   "tripCardNoDestination": "No destination",
-  "tripCardNoTitle": "Untitled trip"
+  "tripCardNoTitle": "Untitled trip",
+  "activeTripsViewTrip": "View trip",
+  "activeTripsNextUp": "Next up",
+  "activeTripsAllDay": "All day",
+  "activeTripsTomorrow": "Tomorrow",
+  "activeTripsTomorrowCount": "{count, plural, =1{1 activity} other{{count} activities}}",
+  "@activeTripsTomorrowCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "activeTripsQuickActions": "Quick actions",
+  "activeTripsActivities": "Activities",
+  "activeTripsBudget": "Budget",
+  "activeTripsBaggage": "Baggage",
+  "activeTripsShare": "Share"
 }

@@ -32,12 +32,14 @@ class HomeActiveTrip extends HomeState {
   final Trip activeTrip;
   final List<Activity> todayActivities;
   final String? weatherSummary;
+  final List<Activity> allActivities;
 
   HomeActiveTrip({
     required this.user,
     required this.activeTrip,
     this.todayActivities = const [],
     this.weatherSummary,
+    this.allActivities = const [],
   });
 
   String get displayName {

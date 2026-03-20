@@ -2202,4 +2202,42 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tripCardNoTitle => 'Untitled trip';
+
+  @override
+  String get activeTripsViewTrip => 'View trip';
+
+  @override
+  String get activeTripsNextUp => 'Next up';
+
+  @override
+  String get activeTripsAllDay => 'All day';
+
+  @override
+  String get activeTripsTomorrow => 'Tomorrow';
+
+  @override
+  String activeTripsTomorrowCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count activities',
+      one: '1 activity',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get activeTripsQuickActions => 'Quick actions';
+
+  @override
+  String get activeTripsActivities => 'Activities';
+
+  @override
+  String get activeTripsBudget => 'Budget';
+
+  @override
+  String get activeTripsBaggage => 'Baggage';
+
+  @override
+  String get activeTripsShare => 'Share';
 }

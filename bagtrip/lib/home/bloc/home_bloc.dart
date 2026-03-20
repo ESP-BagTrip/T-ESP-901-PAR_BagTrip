@@ -130,6 +130,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           user: user,
           activeTrip: activeTrip,
           todayActivities: todayActivities,
+          allActivities: activitiesResult is Success<List<Activity>>
+              ? activitiesResult.data
+              : [],
         ),
       );
       return;

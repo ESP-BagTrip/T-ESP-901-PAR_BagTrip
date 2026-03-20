@@ -4225,6 +4225,66 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Voyage sans titre'**
   String get tripCardNoTitle;
+
+  /// No description provided for @activeTripsViewTrip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir le voyage'**
+  String get activeTripsViewTrip;
+
+  /// No description provided for @activeTripsNextUp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prochainement'**
+  String get activeTripsNextUp;
+
+  /// No description provided for @activeTripsAllDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toute la journée'**
+  String get activeTripsAllDay;
+
+  /// No description provided for @activeTripsTomorrow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demain'**
+  String get activeTripsTomorrow;
+
+  /// No description provided for @activeTripsTomorrowCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 activité} other{{count} activités}}'**
+  String activeTripsTomorrowCount(int count);
+
+  /// No description provided for @activeTripsQuickActions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Actions rapides'**
+  String get activeTripsQuickActions;
+
+  /// No description provided for @activeTripsActivities.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activités'**
+  String get activeTripsActivities;
+
+  /// No description provided for @activeTripsBudget.
+  ///
+  /// In fr, this message translates to:
+  /// **'Budget'**
+  String get activeTripsBudget;
+
+  /// No description provided for @activeTripsBaggage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bagages'**
+  String get activeTripsBaggage;
+
+  /// No description provided for @activeTripsShare.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partager'**
+  String get activeTripsShare;
 }
 
 class _AppLocalizationsDelegate
