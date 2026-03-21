@@ -19,6 +19,7 @@ import 'package:bagtrip/trip_detail/widgets/trip_detail_shimmer.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_hero_header.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_timeline_section.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_flights_section.dart';
+import 'package:bagtrip/trip_detail/widgets/trip_accommodation_section.dart';
 import 'package:bagtrip/trips/widgets/trip_section_card.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/cupertino.dart';
@@ -338,26 +339,12 @@ class _LoadedContentState extends State<_LoadedContent> {
                 StaggeredFadeIn(
                   key: _sectionKeys[CompletionSegmentType.accommodation],
                   index: 1,
-                  child: TripSectionCard(
-                    icon: Icons.hotel_rounded,
-                    title: l10n.accommodationsTitle,
-                    itemCount: state.accommodations.length,
-                    previewItems: state.accommodations
-                        .take(3)
-                        .map((a) => a.name)
-                        .toList(),
-                    emptyLabel: l10n.addFirstAccommodation,
-                    onTap: () async {
-                      await AccommodationsRoute(
-                        tripId: tripId,
-                        role: trip.role ?? 'OWNER',
-                        isCompleted: state.isCompleted,
-                        tripStartDate: trip.startDate?.toIso8601String(),
-                        tripEndDate: trip.endDate?.toIso8601String(),
-                      ).push(context);
-                      if (!context.mounted) return;
-                      _refreshAfterReturn(context);
-                    },
+                  child: TripAccommodationSection(
+                    accommodations: state.accommodations,
+                    tripId: tripId,
+                    trip: trip,
+                    isOwner: state.isOwner,
+                    isCompleted: state.isCompleted,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.space12),

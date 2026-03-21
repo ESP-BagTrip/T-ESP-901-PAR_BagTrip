@@ -2331,4 +2331,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get flightsSectionTitle => 'Flights';
+
+  @override
+  String accommodationSectionSeeAll(int count) {
+    return 'See all accommodations ($count)';
+  }
+
+  @override
+  String get accommodationStatusConfirmed => 'Confirmed';
+
+  @override
+  String get accommodationStatusPending => 'Pending';
 }

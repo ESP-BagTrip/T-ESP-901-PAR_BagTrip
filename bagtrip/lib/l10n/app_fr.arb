@@ -943,5 +943,9 @@
   "flightsSectionEmptySubtitle": "Ajoutez vos vols pour organiser votre voyage",
   "flightsSectionSeeAll": "Voir tous les vols ({count})",
   "@flightsSectionSeeAll": { "placeholders": { "count": { "type": "int" } } },
-  "flightsSectionTitle": "Vols"
+  "flightsSectionTitle": "Vols",
+  "accommodationSectionSeeAll": "Voir tous les hébergements ({count})",
+  "@accommodationSectionSeeAll": { "placeholders": { "count": { "type": "int" } } },
+  "accommodationStatusConfirmed": "Confirmé",
+  "accommodationStatusPending": "En attente"
 }

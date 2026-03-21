@@ -943,5 +943,9 @@
   "flightsSectionEmptySubtitle": "Add your flights to start organizing your trip",
   "flightsSectionSeeAll": "See all flights ({count})",
   "@flightsSectionSeeAll": { "placeholders": { "count": { "type": "int" } } },
-  "flightsSectionTitle": "Flights"
+  "flightsSectionTitle": "Flights",
+  "accommodationSectionSeeAll": "See all accommodations ({count})",
+  "@accommodationSectionSeeAll": { "placeholders": { "count": { "type": "int" } } },
+  "accommodationStatusConfirmed": "Confirmed",
+  "accommodationStatusPending": "Pending"
 }

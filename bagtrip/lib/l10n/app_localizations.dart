@@ -4459,6 +4459,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Vols'**
   String get flightsSectionTitle;
+
+  /// No description provided for @accommodationSectionSeeAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir tous les hébergements ({count})'**
+  String accommodationSectionSeeAll(int count);
+
+  /// No description provided for @accommodationStatusConfirmed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmé'**
+  String get accommodationStatusConfirmed;
+
+  /// No description provided for @accommodationStatusPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente'**
+  String get accommodationStatusPending;
 }
 
 class _AppLocalizationsDelegate

@@ -156,8 +156,26 @@ Accommodation makeAccommodation({
   String id = 'acc-1',
   String tripId = 'trip-1',
   String name = 'Hotel Paris',
+  String? address,
+  DateTime? checkIn,
+  DateTime? checkOut,
+  double? pricePerNight,
+  String? currency,
+  String? bookingReference,
+  String? notes,
 }) {
-  return Accommodation(id: id, tripId: tripId, name: name);
+  return Accommodation(
+    id: id,
+    tripId: tripId,
+    name: name,
+    address: address,
+    checkIn: checkIn,
+    checkOut: checkOut,
+    pricePerNight: pricePerNight,
+    currency: currency,
+    bookingReference: bookingReference,
+    notes: notes,
+  );
 }
 
 BaggageItem makeBaggageItem({

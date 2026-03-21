@@ -2353,4 +2353,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get flightsSectionTitle => 'Vols';
+
+  @override
+  String accommodationSectionSeeAll(int count) {
+    return 'Voir tous les hébergements ($count)';
+  }
+
+  @override
+  String get accommodationStatusConfirmed => 'Confirmé';
+
+  @override
+  String get accommodationStatusPending => 'En attente';
 }
