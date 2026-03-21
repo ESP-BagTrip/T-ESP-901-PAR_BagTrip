@@ -67,6 +67,9 @@ class Settings(BaseSettings):
     # AirLabs (flight info)
     AIRLABS_API_KEY: str | None = None
 
+    # Unsplash (cover images)
+    UNSPLASH_ACCESS_KEY: str | None = None
+
     # Open-Meteo (weather — free, no key required)
     OPEN_METEO_BASE_URL: str = "https://api.open-meteo.com"
 

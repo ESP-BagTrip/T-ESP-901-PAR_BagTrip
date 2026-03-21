@@ -241,7 +241,7 @@ async def get_weather(
 
         if response.status_code != 200:
             logger.error("Open-Meteo API failed", {"status": response.status_code})
-            return _fallback_weather(start_date)
+            return _fallback_weather(start_date, latitude=latitude)
 
         data = response.json()
         daily = data.get("daily", {})
@@ -277,23 +277,80 @@ async def get_weather(
         return result
     except Exception as e:
         logger.error("get_weather failed", {"error": str(e)})
-        return _fallback_weather(start_date)
+        return _fallback_weather(start_date, latitude=latitude)
 
 
-def _fallback_weather(start_date: str) -> dict:
-    """Guess weather from month when Open-Meteo is unavailable."""
+def _fallback_weather(start_date: str, latitude: float | None = None) -> dict:
+    """Estimate weather from latitude (climate zone) + month when Open-Meteo is unavailable.
+
+    Climate zones by absolute latitude:
+    - 55°+      subarctic   : summer 18°C / winter -5°C
+    - 35-55°    temperate   : summer 25°C / winter  8°C
+    - 23-35°    subtropical : summer 30°C / winter 18°C
+    - <23°      tropical    : stable 28°C year-round
+    """
     try:
         month = int(start_date.split("-")[1])
     except (IndexError, ValueError):
         month = 6
 
-    if month in (6, 7, 8):
-        return {"avg_temp_c": 25, "min_temp_c": 18, "max_temp_c": 32, "rain_probability": 15, "description": "Summer estimate", "source": "estimated"}
-    if month in (12, 1, 2):
-        return {"avg_temp_c": 5, "min_temp_c": -2, "max_temp_c": 10, "rain_probability": 40, "description": "Winter estimate", "source": "estimated"}
-    if month in (3, 4, 5):
-        return {"avg_temp_c": 15, "min_temp_c": 8, "max_temp_c": 22, "rain_probability": 30, "description": "Spring estimate", "source": "estimated"}
-    return {"avg_temp_c": 18, "min_temp_c": 10, "max_temp_c": 25, "rain_probability": 25, "description": "Autumn estimate", "source": "estimated"}
+    # No latitude → original month-only fallback
+    if latitude is None:
+        if month in (6, 7, 8):
+            return {"avg_temp_c": 25, "min_temp_c": 18, "max_temp_c": 32, "rain_probability": 15, "description": "Summer estimate", "source": "estimated"}
+        if month in (12, 1, 2):
+            return {"avg_temp_c": 5, "min_temp_c": -2, "max_temp_c": 10, "rain_probability": 40, "description": "Winter estimate", "source": "estimated"}
+        if month in (3, 4, 5):
+            return {"avg_temp_c": 15, "min_temp_c": 8, "max_temp_c": 22, "rain_probability": 30, "description": "Spring estimate", "source": "estimated"}
+        return {"avg_temp_c": 18, "min_temp_c": 10, "max_temp_c": 25, "rain_probability": 25, "description": "Autumn estimate", "source": "estimated"}
+
+    # Latitude-aware estimation
+    abs_lat = abs(latitude)
+
+    # Determine if it's summer in the relevant hemisphere
+    # Northern hemisphere: summer = months 5-9, Southern: summer = months 11-3
+    is_summer = month in (5, 6, 7, 8, 9) if latitude >= 0 else month in (11, 12, 1, 2, 3)
+
+    # Climate zone temperatures
+    if abs_lat < 23:
+        # Tropical — stable year-round
+        avg = 28
+        temp_min, temp_max = 24, 32
+        rain = 60 if is_summer else 30  # wet/dry season
+        desc = "Tropical — warm and humid" if is_summer else "Tropical — warm and dry"
+    elif abs_lat < 35:
+        # Subtropical
+        if is_summer:
+            avg, temp_min, temp_max, rain = 30, 24, 36, 25
+            desc = "Subtropical summer — hot"
+        else:
+            avg, temp_min, temp_max, rain = 18, 12, 24, 35
+            desc = "Subtropical winter — mild"
+    elif abs_lat < 55:
+        # Temperate
+        if is_summer:
+            avg, temp_min, temp_max, rain = 25, 18, 32, 20
+            desc = "Temperate summer — warm"
+        else:
+            avg, temp_min, temp_max, rain = 8, 2, 14, 40
+            desc = "Temperate winter — cool"
+    else:
+        # Subarctic
+        if is_summer:
+            avg, temp_min, temp_max, rain = 18, 12, 24, 30
+            desc = "Subarctic summer — mild"
+        else:
+            avg, temp_min, temp_max, rain = -5, -12, 2, 35
+            desc = "Subarctic winter — cold"
+
+    return {
+        "avg_temp_c": avg,
+        "min_temp_c": temp_min,
+        "max_temp_c": temp_max,
+        "rain_probability": rain,
+        "description": desc,
+        "source": "estimated_climate_zone",
+    }
 
 
 # ---------------------------------------------------------------------------

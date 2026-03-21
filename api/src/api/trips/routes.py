@@ -41,6 +41,15 @@ async def create_trip(
 ):
     """Créer un nouveau trip."""
     try:
+        # Auto-fetch cover image from Unsplash if not provided
+        cover_url = request.coverImageUrl
+        if not cover_url and request.destinationName:
+            from src.integrations.unsplash import unsplash_client
+
+            cover_url = await unsplash_client.fetch_cover_image(request.destinationName)
+            if not cover_url:
+                cover_url = unsplash_client.get_fallback_url(request.destinationName)
+
         trip = TripsService.create_trip(
             db=db,
             user_id=current_user.id,
@@ -52,7 +61,7 @@ async def create_trip(
             description=request.description,
             destination_name=request.destinationName,
             nb_travelers=request.nbTravelers,
-            cover_image_url=request.coverImageUrl,
+            cover_image_url=cover_url,
             budget_total=request.budgetTotal,
             origin=request.origin,
             date_mode=request.dateMode,

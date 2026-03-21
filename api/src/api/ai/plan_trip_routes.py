@@ -231,6 +231,13 @@ async def accept_plan(
                 destination_name = f"{dest_city}, {dest_country}" if dest_country else dest_city
                 destination_iata_value = chosen.get("iata")
 
+        # Auto-fetch cover image from Unsplash
+        from src.integrations.unsplash import unsplash_client
+
+        cover_image_url = await unsplash_client.fetch_cover_image(destination_name)
+        if not cover_image_url:
+            cover_image_url = unsplash_client.get_fallback_url(destination_name)
+
         trip = TripsService.create_trip(
             db=db,
             user_id=current_user.id,
@@ -243,6 +250,7 @@ async def accept_plan(
             start_date=request.startDate,
             end_date=request.endDate,
             origin="AI",
+            cover_image_url=cover_image_url,
         )
 
         # --- Create activities with intelligent scheduling ---
