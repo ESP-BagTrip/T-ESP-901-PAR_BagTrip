@@ -195,6 +195,10 @@ RouteBase get $homeRoute => GoRouteData.$route(
           path: 'feedback',
           factory: $FeedbackRoute._fromState,
         ),
+        GoRouteData.$route(
+          path: 'post-trip',
+          factory: $PostTripRoute._fromState,
+        ),
         GoRouteData.$route(path: 'map', factory: $MapRoute._fromState),
       ],
     ),
@@ -575,6 +579,31 @@ mixin $FeedbackRoute on GoRouteData {
   @override
   String get location => GoRouteData.$location(
     '/home/${Uri.encodeComponent(_self.tripId)}/feedback',
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $PostTripRoute on GoRouteData {
+  static PostTripRoute _fromState(GoRouterState state) =>
+      PostTripRoute(tripId: state.pathParameters['tripId']!);
+
+  PostTripRoute get _self => this as PostTripRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/home/${Uri.encodeComponent(_self.tripId)}/post-trip',
   );
 
   @override

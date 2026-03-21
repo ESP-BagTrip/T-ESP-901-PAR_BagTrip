@@ -6,6 +6,8 @@ import 'package:bagtrip/feedback/view/feedback_list_view.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/models/activity.dart';
+import 'package:bagtrip/repositories/activity_repository.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
@@ -36,11 +38,13 @@ class _FeedbackPageContent extends StatefulWidget {
 
 class _FeedbackPageContentState extends State<_FeedbackPageContent> {
   String? _currentUserId;
+  bool _hasAiActivities = false;
 
   @override
   void initState() {
     super.initState();
     _loadCurrentUser();
+    _checkAiActivities();
   }
 
   Future<void> _loadCurrentUser() async {
@@ -49,6 +53,19 @@ class _FeedbackPageContentState extends State<_FeedbackPageContent> {
     if (mounted && user != null) {
       setState(() {
         _currentUserId = user.id;
+      });
+    }
+  }
+
+  Future<void> _checkAiActivities() async {
+    final result = await getIt<ActivityRepository>().getActivities(
+      widget.tripId,
+    );
+    if (result is Success<List<Activity>> && mounted) {
+      setState(() {
+        _hasAiActivities = result.data.any(
+          (a) => a.validationStatus == ValidationStatus.suggested,
+        );
       });
     }
   }
@@ -97,6 +114,7 @@ class _FeedbackPageContentState extends State<_FeedbackPageContent> {
                         tripId: widget.tripId,
                         currentUserId: _currentUserId,
                         feedbacks: feedbacks.cast(),
+                        showAiRating: _hasAiActivities,
                       ),
                 isLoading
                     ? const LoadingView()

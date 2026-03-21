@@ -1051,5 +1051,45 @@
       "count": {"type": "int"},
       "destination": {"type": "String"}
     }
-  }
+  },
+
+  "postTripDetectionTitle": "Voyage terminé !",
+  "postTripDetectionMessage": "Votre voyage à {destination} est terminé. Voulez-vous le marquer comme complété ?",
+  "@postTripDetectionMessage": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "postTripDetectionConfirm": "Oui, terminer",
+  "postTripDetectionRemindLater": "Me rappeler plus tard",
+  "postTripSouvenirsTitle": "Souvenirs",
+  "postTripDaysCount": "{count} jours d'aventure",
+  "@postTripDaysCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "postTripActivitiesCompleted": "{completed} sur {total} activités",
+  "@postTripActivitiesCompleted": {
+    "placeholders": {
+      "completed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "postTripBudgetSpent": "{amount} dépensés",
+  "@postTripBudgetSpent": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "postTripCategoriesExplored": "{count} catégories explorées",
+  "@postTripCategoriesExplored": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "postTripGiveReview": "Partagez votre expérience",
+  "postTripPlanNext": "Planifier votre prochain voyage",
+  "feedbackAiRatingLabel": "Notez l'expérience de planification IA",
+  "feedbackAiRatingHint": "Les suggestions IA vous ont-elles été utiles ?"
 }

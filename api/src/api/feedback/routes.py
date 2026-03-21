@@ -41,6 +41,7 @@ async def create_feedback(
             highlights=request.highlights,
             lowlights=request.lowlights,
             would_recommend=request.wouldRecommend,
+            ai_experience_rating=request.aiExperienceRating,
         )
         return FeedbackResponse.model_validate(feedback)
     except AppError as e:

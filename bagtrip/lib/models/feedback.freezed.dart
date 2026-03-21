@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TripFeedback {
 
- String get id; String get tripId; String get userId; int get overallRating; String? get highlights; String? get lowlights; bool get wouldRecommend; DateTime? get createdAt;
+ String get id; String get tripId; String get userId; int get overallRating; String? get highlights; String? get lowlights; bool get wouldRecommend; int? get aiExperienceRating; DateTime? get createdAt;
 /// Create a copy of TripFeedback
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $TripFeedbackCopyWith<TripFeedback> get copyWith => _$TripFeedbackCopyWithImpl<T
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TripFeedback&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.overallRating, overallRating) || other.overallRating == overallRating)&&(identical(other.highlights, highlights) || other.highlights == highlights)&&(identical(other.lowlights, lowlights) || other.lowlights == lowlights)&&(identical(other.wouldRecommend, wouldRecommend) || other.wouldRecommend == wouldRecommend)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TripFeedback&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.overallRating, overallRating) || other.overallRating == overallRating)&&(identical(other.highlights, highlights) || other.highlights == highlights)&&(identical(other.lowlights, lowlights) || other.lowlights == lowlights)&&(identical(other.wouldRecommend, wouldRecommend) || other.wouldRecommend == wouldRecommend)&&(identical(other.aiExperienceRating, aiExperienceRating) || other.aiExperienceRating == aiExperienceRating)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,tripId,userId,overallRating,highlights,lowlights,wouldRecommend,createdAt);
+int get hashCode => Object.hash(runtimeType,id,tripId,userId,overallRating,highlights,lowlights,wouldRecommend,aiExperienceRating,createdAt);
 
 @override
 String toString() {
-  return 'TripFeedback(id: $id, tripId: $tripId, userId: $userId, overallRating: $overallRating, highlights: $highlights, lowlights: $lowlights, wouldRecommend: $wouldRecommend, createdAt: $createdAt)';
+  return 'TripFeedback(id: $id, tripId: $tripId, userId: $userId, overallRating: $overallRating, highlights: $highlights, lowlights: $lowlights, wouldRecommend: $wouldRecommend, aiExperienceRating: $aiExperienceRating, createdAt: $createdAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $TripFeedbackCopyWith<$Res>  {
   factory $TripFeedbackCopyWith(TripFeedback value, $Res Function(TripFeedback) _then) = _$TripFeedbackCopyWithImpl;
 @useResult
 $Res call({
- String id, String tripId, String userId, int overallRating, String? highlights, String? lowlights, bool wouldRecommend, DateTime? createdAt
+ String id, String tripId, String userId, int overallRating, String? highlights, String? lowlights, bool wouldRecommend, int? aiExperienceRating, DateTime? createdAt
 });
 
 
@@ -65,7 +65,7 @@ class _$TripFeedbackCopyWithImpl<$Res>
 
 /// Create a copy of TripFeedback
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? tripId = null,Object? userId = null,Object? overallRating = null,Object? highlights = freezed,Object? lowlights = freezed,Object? wouldRecommend = null,Object? createdAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? tripId = null,Object? userId = null,Object? overallRating = null,Object? highlights = freezed,Object? lowlights = freezed,Object? wouldRecommend = null,Object? aiExperienceRating = freezed,Object? createdAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,tripId: null == tripId ? _self.tripId : tripId // ignore: cast_nullable_to_non_nullable
@@ -74,7 +74,8 @@ as String,overallRating: null == overallRating ? _self.overallRating : overallRa
 as int,highlights: freezed == highlights ? _self.highlights : highlights // ignore: cast_nullable_to_non_nullable
 as String?,lowlights: freezed == lowlights ? _self.lowlights : lowlights // ignore: cast_nullable_to_non_nullable
 as String?,wouldRecommend: null == wouldRecommend ? _self.wouldRecommend : wouldRecommend // ignore: cast_nullable_to_non_nullable
-as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as bool,aiExperienceRating: freezed == aiExperienceRating ? _self.aiExperienceRating : aiExperienceRating // ignore: cast_nullable_to_non_nullable
+as int?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
@@ -160,10 +161,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String tripId,  String userId,  int overallRating,  String? highlights,  String? lowlights,  bool wouldRecommend,  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String tripId,  String userId,  int overallRating,  String? highlights,  String? lowlights,  bool wouldRecommend,  int? aiExperienceRating,  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TripFeedback() when $default != null:
-return $default(_that.id,_that.tripId,_that.userId,_that.overallRating,_that.highlights,_that.lowlights,_that.wouldRecommend,_that.createdAt);case _:
+return $default(_that.id,_that.tripId,_that.userId,_that.overallRating,_that.highlights,_that.lowlights,_that.wouldRecommend,_that.aiExperienceRating,_that.createdAt);case _:
   return orElse();
 
 }
@@ -181,10 +182,10 @@ return $default(_that.id,_that.tripId,_that.userId,_that.overallRating,_that.hig
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String tripId,  String userId,  int overallRating,  String? highlights,  String? lowlights,  bool wouldRecommend,  DateTime? createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String tripId,  String userId,  int overallRating,  String? highlights,  String? lowlights,  bool wouldRecommend,  int? aiExperienceRating,  DateTime? createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _TripFeedback():
-return $default(_that.id,_that.tripId,_that.userId,_that.overallRating,_that.highlights,_that.lowlights,_that.wouldRecommend,_that.createdAt);case _:
+return $default(_that.id,_that.tripId,_that.userId,_that.overallRating,_that.highlights,_that.lowlights,_that.wouldRecommend,_that.aiExperienceRating,_that.createdAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,10 +202,10 @@ return $default(_that.id,_that.tripId,_that.userId,_that.overallRating,_that.hig
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String tripId,  String userId,  int overallRating,  String? highlights,  String? lowlights,  bool wouldRecommend,  DateTime? createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String tripId,  String userId,  int overallRating,  String? highlights,  String? lowlights,  bool wouldRecommend,  int? aiExperienceRating,  DateTime? createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _TripFeedback() when $default != null:
-return $default(_that.id,_that.tripId,_that.userId,_that.overallRating,_that.highlights,_that.lowlights,_that.wouldRecommend,_that.createdAt);case _:
+return $default(_that.id,_that.tripId,_that.userId,_that.overallRating,_that.highlights,_that.lowlights,_that.wouldRecommend,_that.aiExperienceRating,_that.createdAt);case _:
   return null;
 
 }
@@ -216,7 +217,7 @@ return $default(_that.id,_that.tripId,_that.userId,_that.overallRating,_that.hig
 @JsonSerializable()
 
 class _TripFeedback implements TripFeedback {
-  const _TripFeedback({required this.id, required this.tripId, required this.userId, required this.overallRating, this.highlights, this.lowlights, this.wouldRecommend = false, this.createdAt});
+  const _TripFeedback({required this.id, required this.tripId, required this.userId, required this.overallRating, this.highlights, this.lowlights, this.wouldRecommend = false, this.aiExperienceRating, this.createdAt});
   factory _TripFeedback.fromJson(Map<String, dynamic> json) => _$TripFeedbackFromJson(json);
 
 @override final  String id;
@@ -226,6 +227,7 @@ class _TripFeedback implements TripFeedback {
 @override final  String? highlights;
 @override final  String? lowlights;
 @override@JsonKey() final  bool wouldRecommend;
+@override final  int? aiExperienceRating;
 @override final  DateTime? createdAt;
 
 /// Create a copy of TripFeedback
@@ -241,16 +243,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TripFeedback&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.overallRating, overallRating) || other.overallRating == overallRating)&&(identical(other.highlights, highlights) || other.highlights == highlights)&&(identical(other.lowlights, lowlights) || other.lowlights == lowlights)&&(identical(other.wouldRecommend, wouldRecommend) || other.wouldRecommend == wouldRecommend)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TripFeedback&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.overallRating, overallRating) || other.overallRating == overallRating)&&(identical(other.highlights, highlights) || other.highlights == highlights)&&(identical(other.lowlights, lowlights) || other.lowlights == lowlights)&&(identical(other.wouldRecommend, wouldRecommend) || other.wouldRecommend == wouldRecommend)&&(identical(other.aiExperienceRating, aiExperienceRating) || other.aiExperienceRating == aiExperienceRating)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,tripId,userId,overallRating,highlights,lowlights,wouldRecommend,createdAt);
+int get hashCode => Object.hash(runtimeType,id,tripId,userId,overallRating,highlights,lowlights,wouldRecommend,aiExperienceRating,createdAt);
 
 @override
 String toString() {
-  return 'TripFeedback(id: $id, tripId: $tripId, userId: $userId, overallRating: $overallRating, highlights: $highlights, lowlights: $lowlights, wouldRecommend: $wouldRecommend, createdAt: $createdAt)';
+  return 'TripFeedback(id: $id, tripId: $tripId, userId: $userId, overallRating: $overallRating, highlights: $highlights, lowlights: $lowlights, wouldRecommend: $wouldRecommend, aiExperienceRating: $aiExperienceRating, createdAt: $createdAt)';
 }
 
 
@@ -261,7 +263,7 @@ abstract mixin class _$TripFeedbackCopyWith<$Res> implements $TripFeedbackCopyWi
   factory _$TripFeedbackCopyWith(_TripFeedback value, $Res Function(_TripFeedback) _then) = __$TripFeedbackCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String tripId, String userId, int overallRating, String? highlights, String? lowlights, bool wouldRecommend, DateTime? createdAt
+ String id, String tripId, String userId, int overallRating, String? highlights, String? lowlights, bool wouldRecommend, int? aiExperienceRating, DateTime? createdAt
 });
 
 
@@ -278,7 +280,7 @@ class __$TripFeedbackCopyWithImpl<$Res>
 
 /// Create a copy of TripFeedback
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? tripId = null,Object? userId = null,Object? overallRating = null,Object? highlights = freezed,Object? lowlights = freezed,Object? wouldRecommend = null,Object? createdAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? tripId = null,Object? userId = null,Object? overallRating = null,Object? highlights = freezed,Object? lowlights = freezed,Object? wouldRecommend = null,Object? aiExperienceRating = freezed,Object? createdAt = freezed,}) {
   return _then(_TripFeedback(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,tripId: null == tripId ? _self.tripId : tripId // ignore: cast_nullable_to_non_nullable
@@ -287,7 +289,8 @@ as String,overallRating: null == overallRating ? _self.overallRating : overallRa
 as int,highlights: freezed == highlights ? _self.highlights : highlights // ignore: cast_nullable_to_non_nullable
 as String?,lowlights: freezed == lowlights ? _self.lowlights : lowlights // ignore: cast_nullable_to_non_nullable
 as String?,wouldRecommend: null == wouldRecommend ? _self.wouldRecommend : wouldRecommend // ignore: cast_nullable_to_non_nullable
-as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as bool,aiExperienceRating: freezed == aiExperienceRating ? _self.aiExperienceRating : aiExperienceRating // ignore: cast_nullable_to_non_nullable
+as int?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }

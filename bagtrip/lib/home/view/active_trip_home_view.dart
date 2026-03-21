@@ -6,6 +6,7 @@ import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
+import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/home/cubit/today_tick_cubit.dart';
 import 'package:bagtrip/home/cubit/quick_expense_cubit.dart';
 import 'package:bagtrip/home/helpers/contextual_actions_helper.dart';
@@ -17,6 +18,7 @@ import 'package:bagtrip/home/widgets/now_indicator_row.dart';
 import 'package:bagtrip/home/widgets/quick_actions_bar.dart';
 import 'package:bagtrip/home/widgets/shared_home_widgets.dart';
 import 'package:bagtrip/home/widgets/timeline_activity_row.dart';
+import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -32,6 +34,56 @@ class ActiveTripHomeView extends StatefulWidget {
 
 class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
   String? _previousCurrentActivityId;
+  bool _completionDialogShown = false;
+
+  @override
+  void didUpdateWidget(covariant ActiveTripHomeView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final pending = widget.state.pendingCompletionTrip;
+    final oldPending = oldWidget.state.pendingCompletionTrip;
+    if (pending != null && pending.id != oldPending?.id) {
+      _completionDialogShown = false;
+    }
+    if (pending != null && !_completionDialogShown) {
+      _completionDialogShown = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _showCompletionDialog(pending);
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final pending = widget.state.pendingCompletionTrip;
+      if (pending != null && !_completionDialogShown) {
+        _completionDialogShown = true;
+        _showCompletionDialog(pending);
+      }
+    });
+  }
+
+  void _showCompletionDialog(Trip trip) {
+    final l10n = AppLocalizations.of(context)!;
+    showAdaptiveAlertDialog(
+      context: context,
+      title: l10n.postTripDetectionTitle,
+      content: l10n.postTripDetectionMessage(
+        trip.destinationName ?? trip.title ?? '',
+      ),
+      confirmLabel: l10n.postTripDetectionConfirm,
+      cancelLabel: l10n.postTripDetectionRemindLater,
+      onConfirm: () {
+        context.read<HomeBloc>().add(ConfirmTripCompletion(tripId: trip.id));
+      },
+      onCancel: () {
+        context.read<HomeBloc>().add(DismissTripCompletion(tripId: trip.id));
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

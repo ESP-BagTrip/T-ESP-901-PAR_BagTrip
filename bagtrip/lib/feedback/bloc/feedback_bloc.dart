@@ -50,6 +50,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
       highlights: event.highlights,
       lowlights: event.lowlights,
       wouldRecommend: event.wouldRecommend,
+      aiExperienceRating: event.aiExperienceRating,
     );
     if (isClosed) return;
     switch (result) {

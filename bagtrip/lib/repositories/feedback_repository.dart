@@ -8,6 +8,7 @@ abstract class FeedbackRepository {
     String? highlights,
     String? lowlights,
     required bool wouldRecommend,
+    int? aiExperienceRating,
   });
   Future<Result<List<TripFeedback>>> getFeedbacks(String tripId);
 }

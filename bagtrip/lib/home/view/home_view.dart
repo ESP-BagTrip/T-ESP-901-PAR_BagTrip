@@ -7,6 +7,7 @@ import 'package:bagtrip/home/view/active_trip_home_view.dart';
 import 'package:bagtrip/home/view/onboarding_home_view.dart';
 import 'package:bagtrip/home/view/trip_manager_home_view.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
@@ -19,10 +20,28 @@ class HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: BlocListener<HomeBloc, HomeState>(
-          listenWhen: (prev, curr) =>
-              prev is HomeTripManager && curr is HomeActiveTrip,
-          listener: (context, state) => AppHaptics.success(),
+        child: MultiBlocListener(
+          listeners: [
+            BlocListener<HomeBloc, HomeState>(
+              listenWhen: (prev, curr) =>
+                  prev is HomeTripManager && curr is HomeActiveTrip,
+              listener: (context, state) => AppHaptics.success(),
+            ),
+            BlocListener<HomeBloc, HomeState>(
+              listenWhen: (prev, curr) {
+                if (curr is HomeActiveTrip && curr.completedTripId != null) {
+                  return true;
+                }
+                return false;
+              },
+              listener: (context, state) {
+                if (state is HomeActiveTrip && state.completedTripId != null) {
+                  AppHaptics.success();
+                  PostTripRoute(tripId: state.completedTripId!).push(context);
+                }
+              },
+            ),
+          ],
           child: BlocBuilder<HomeBloc, HomeState>(
             builder: (context, homeState) {
               return AnimatedSwitcher(

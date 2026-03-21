@@ -1051,5 +1051,45 @@
       "count": {"type": "int"},
       "destination": {"type": "String"}
     }
-  }
+  },
+
+  "postTripDetectionTitle": "Trip completed!",
+  "postTripDetectionMessage": "Your trip to {destination} has ended. Would you like to mark it as completed?",
+  "@postTripDetectionMessage": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "postTripDetectionConfirm": "Yes, complete",
+  "postTripDetectionRemindLater": "Remind me later",
+  "postTripSouvenirsTitle": "Memories",
+  "postTripDaysCount": "{count} days of adventure",
+  "@postTripDaysCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "postTripActivitiesCompleted": "{completed} of {total} activities",
+  "@postTripActivitiesCompleted": {
+    "placeholders": {
+      "completed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "postTripBudgetSpent": "{amount} spent",
+  "@postTripBudgetSpent": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "postTripCategoriesExplored": "{count} categories explored",
+  "@postTripCategoriesExplored": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "postTripGiveReview": "Share your experience",
+  "postTripPlanNext": "Plan your next trip",
+  "feedbackAiRatingLabel": "Rate the AI planning experience",
+  "feedbackAiRatingHint": "How helpful were the AI suggestions?"
 }

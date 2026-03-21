@@ -23,6 +23,7 @@ class FeedbackService:
         highlights: str | None,
         lowlights: str | None,
         would_recommend: bool,
+        ai_experience_rating: int | None = None,
     ) -> Feedback:
         """Créer un feedback pour un trip terminé."""
         # Check trip is COMPLETED
@@ -52,6 +53,7 @@ class FeedbackService:
             highlights=highlights,
             lowlights=lowlights,
             would_recommend=would_recommend,
+            ai_experience_rating=ai_experience_rating,
         )
         db.add(feedback)
         try:

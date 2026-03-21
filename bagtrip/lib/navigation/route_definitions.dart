@@ -12,6 +12,7 @@ import 'package:bagtrip/notifications/view/notifications_page.dart';
 import 'package:bagtrip/accommodations/view/accommodations_page.dart';
 import 'package:bagtrip/baggage/view/baggage_page.dart';
 import 'package:bagtrip/pages/feedback_page.dart';
+import 'package:bagtrip/post_trip/view/post_trip_page.dart';
 import 'package:bagtrip/pages/flight_search_result_page.dart';
 import 'package:bagtrip/pages/create_trip_ai_flow_page.dart';
 import 'package:bagtrip/pages/login_page.dart';
@@ -125,6 +126,7 @@ class DeepLinkTripRoute extends GoRouteData with $DeepLinkTripRoute {
         TypedGoRoute<TransportsRoute>(path: 'transports'),
         TypedGoRoute<SharesRoute>(path: 'shares'),
         TypedGoRoute<FeedbackRoute>(path: 'feedback'),
+        TypedGoRoute<PostTripRoute>(path: 'post-trip'),
         TypedGoRoute<MapRoute>(path: 'map'),
       ],
     ),
@@ -361,6 +363,19 @@ class FeedbackRoute extends GoRouteData with $FeedbackRoute {
       buildSlideTransitionPage<void>(
         state: state,
         child: FeedbackPage(tripId: tripId),
+      );
+}
+
+class PostTripRoute extends GoRouteData with $PostTripRoute {
+  const PostTripRoute({required this.tripId});
+
+  final String tripId;
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      buildSlideTransitionPage<void>(
+        state: state,
+        child: PostTripPage(tripId: tripId),
       );
 }
 

@@ -25,6 +25,7 @@ class Feedback(Base):
     highlights = Column(Text, nullable=True)
     lowlights = Column(Text, nullable=True)
     would_recommend = Column(Boolean, nullable=False)
+    ai_experience_rating = Column(Integer, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     # Relationships

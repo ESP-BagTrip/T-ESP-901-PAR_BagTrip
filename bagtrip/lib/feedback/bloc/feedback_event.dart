@@ -13,6 +13,7 @@ class SubmitFeedback extends FeedbackEvent {
   final String? highlights;
   final String? lowlights;
   final bool wouldRecommend;
+  final int? aiExperienceRating;
 
   SubmitFeedback({
     required this.tripId,
@@ -20,6 +21,7 @@ class SubmitFeedback extends FeedbackEvent {
     this.highlights,
     this.lowlights,
     this.wouldRecommend = true,
+    this.aiExperienceRating,
   });
 }
 

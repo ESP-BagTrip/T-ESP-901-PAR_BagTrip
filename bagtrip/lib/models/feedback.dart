@@ -13,6 +13,7 @@ abstract class TripFeedback with _$TripFeedback {
     String? highlights,
     String? lowlights,
     @Default(false) bool wouldRecommend,
+    int? aiExperienceRating,
     DateTime? createdAt,
   }) = _TripFeedback;
 

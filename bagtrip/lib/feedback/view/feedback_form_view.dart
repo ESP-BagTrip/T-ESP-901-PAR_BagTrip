@@ -16,12 +16,14 @@ class FeedbackFormView extends StatefulWidget {
   final String tripId;
   final String? currentUserId;
   final List<TripFeedback> feedbacks;
+  final bool showAiRating;
 
   const FeedbackFormView({
     super.key,
     required this.tripId,
     this.currentUserId,
     this.feedbacks = const [],
+    this.showAiRating = false,
   });
 
   @override
@@ -33,6 +35,7 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
   final _highlightsController = TextEditingController();
   final _lowlightsController = TextEditingController();
   bool _wouldRecommend = true;
+  int _aiRating = 3;
 
   @override
   void dispose() {
@@ -117,6 +120,34 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
                 });
               },
             ),
+            if (widget.showAiRating) ...[
+              const SizedBox(height: AppSpacing.space16),
+              Text(
+                AppLocalizations.of(context)!.feedbackAiRatingLabel,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.space8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (index) {
+                  return IconButton(
+                    icon: Icon(
+                      index < _aiRating ? Icons.star : Icons.star_border,
+                      color: AppColors.starRating,
+                      size: 36,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _aiRating = index + 1;
+                      });
+                    },
+                  );
+                }),
+              ),
+            ],
             const SizedBox(height: AppSpacing.space24),
             BlocConsumer<FeedbackBloc, FeedbackState>(
               listener: (context, state) {
@@ -154,6 +185,9 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
                             ? _lowlightsController.text
                             : null,
                         wouldRecommend: _wouldRecommend,
+                        aiExperienceRating: widget.showAiRating
+                            ? _aiRating
+                            : null,
                       ),
                     );
                   },
@@ -263,6 +297,25 @@ class _ReadOnlyFeedbackView extends StatelessWidget {
                       ),
                     ],
                   ),
+                  if (feedback.aiExperienceRating != null) ...[
+                    const SizedBox(height: AppSpacing.space12),
+                    Text(
+                      AppLocalizations.of(context)!.feedbackAiRatingLabel,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: AppSpacing.space4),
+                    Row(
+                      children: List.generate(5, (index) {
+                        return Icon(
+                          index < feedback.aiExperienceRating!
+                              ? Icons.star
+                              : Icons.star_border,
+                          color: AppColors.starRating,
+                          size: 28,
+                        );
+                      }),
+                    ),
+                  ],
                 ],
               ),
             ),

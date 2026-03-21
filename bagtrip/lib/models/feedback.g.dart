@@ -15,6 +15,7 @@ _TripFeedback _$TripFeedbackFromJson(Map<String, dynamic> json) =>
       highlights: json['highlights'] as String?,
       lowlights: json['lowlights'] as String?,
       wouldRecommend: json['would_recommend'] as bool? ?? false,
+      aiExperienceRating: (json['ai_experience_rating'] as num?)?.toInt(),
       createdAt: json['created_at'] == null
           ? null
           : DateTime.parse(json['created_at'] as String),
@@ -29,5 +30,6 @@ Map<String, dynamic> _$TripFeedbackToJson(_TripFeedback instance) =>
       'highlights': instance.highlights,
       'lowlights': instance.lowlights,
       'would_recommend': instance.wouldRecommend,
+      'ai_experience_rating': instance.aiExperienceRating,
       'created_at': instance.createdAt?.toIso8601String(),
     };

@@ -7,7 +7,9 @@ import 'package:bagtrip/core/cache/connectivity_service.dart';
 import 'package:bagtrip/core/paginated_response.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/home/helpers/trip_completion.dart';
+import 'package:bagtrip/home/helpers/trip_end_detector.dart';
 import 'package:bagtrip/home/helpers/trip_mode_detector.dart';
+import 'package:bagtrip/service/post_trip_dismissal_storage.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/models/user.dart';
@@ -29,6 +31,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final ConnectivityService _connectivityService;
   final WeatherRepository _weatherRepository;
   final TripNotificationScheduler _scheduler;
+  final PostTripDismissalStorage _dismissalStorage;
 
   HomeBloc({
     TripRepository? tripRepository,
@@ -37,6 +40,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     ConnectivityService? connectivityService,
     WeatherRepository? weatherRepository,
     TripNotificationScheduler? scheduler,
+    PostTripDismissalStorage? dismissalStorage,
   }) : _tripRepository = tripRepository ?? getIt<TripRepository>(),
        _authRepository = authRepository ?? getIt<AuthRepository>(),
        _activityRepository = activityRepository ?? getIt<ActivityRepository>(),
@@ -44,9 +48,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
            connectivityService ?? getIt<ConnectivityService>(),
        _weatherRepository = weatherRepository ?? getIt<WeatherRepository>(),
        _scheduler = scheduler ?? getIt<TripNotificationScheduler>(),
+       _dismissalStorage =
+           dismissalStorage ?? getIt<PostTripDismissalStorage>(),
        super(HomeInitial()) {
     on<LoadHome>(_onLoadHome);
     on<RefreshHome>(_onRefreshHome);
+    on<ConfirmTripCompletion>(_onConfirmTripCompletion);
+    on<DismissTripCompletion>(_onDismissTripCompletion);
   }
 
   Future<void> _onLoadHome(LoadHome event, Emitter<HomeState> emit) async {
@@ -145,6 +153,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       );
     }
 
+    // ── Auto-detect ongoing → completed (endDate < today) ──
+    final endResult = await detectEndedTrips(
+      ongoingTrips: mutableOngoing,
+      dismissalStorage: _dismissalStorage,
+    );
+    if (isClosed) return;
+
+    Trip? pendingCompletionTrip;
+    if (endResult.endedTrips.isNotEmpty) {
+      pendingCompletionTrip = endResult.endedTrips.first;
+    }
+
     // ── Decision tree ──────────────────────────────────────────────
     if (totalTrips == 0 && mutableOngoing.isEmpty) {
       emit(HomeNewUser(user: user));
@@ -200,6 +220,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           allActivities: activitiesResult is Success<List<Activity>>
               ? activitiesResult.data
               : [],
+          pendingCompletionTrip: pendingCompletionTrip,
         ),
       );
       return;
@@ -228,6 +249,59 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         completedTrips: completedTrips,
       ),
     );
+  }
+
+  Future<void> _onConfirmTripCompletion(
+    ConfirmTripCompletion event,
+    Emitter<HomeState> emit,
+  ) async {
+    await _tripRepository.updateTripStatus(event.tripId, 'completed');
+    // Find the trip to cancel notifications
+    if (state is HomeActiveTrip) {
+      final trip = (state as HomeActiveTrip).pendingCompletionTrip;
+      if (trip != null) {
+        unawaited(
+          _scheduler
+              .cancelTripNotifications(trip)
+              .catchError((e) => dev.log('Cancel notif error: $e')),
+        );
+      }
+    }
+    await _dismissalStorage.clearDismissal(event.tripId);
+    // Emit intermediate state with completedTripId for navigation
+    if (state is HomeActiveTrip) {
+      final s = state as HomeActiveTrip;
+      emit(
+        HomeActiveTrip(
+          user: s.user,
+          activeTrip: s.activeTrip,
+          todayActivities: s.todayActivities,
+          weatherSummary: s.weatherSummary,
+          allActivities: s.allActivities,
+          completedTripId: event.tripId,
+        ),
+      );
+    }
+    add(RefreshHome());
+  }
+
+  Future<void> _onDismissTripCompletion(
+    DismissTripCompletion event,
+    Emitter<HomeState> emit,
+  ) async {
+    await _dismissalStorage.recordDismissal(event.tripId);
+    // Schedule a 24h reminder notification
+    if (state is HomeActiveTrip) {
+      final trip = (state as HomeActiveTrip).pendingCompletionTrip;
+      if (trip != null) {
+        unawaited(
+          _scheduler
+              .scheduleCompletionReminder(trip)
+              .catchError((e) => dev.log('Scheduler error: $e')),
+        );
+      }
+    }
+    add(RefreshHome());
   }
 
   Trip _pickEarliestTrip(List<Trip> trips) {

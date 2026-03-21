@@ -4837,6 +4837,84 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{count} articles restants à emballer pour {destination}'**
   String notifPackingReminderBody(int count, String destination);
+
+  /// No description provided for @postTripDetectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voyage terminé !'**
+  String get postTripDetectionTitle;
+
+  /// No description provided for @postTripDetectionMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre voyage à {destination} est terminé. Voulez-vous le marquer comme complété ?'**
+  String postTripDetectionMessage(String destination);
+
+  /// No description provided for @postTripDetectionConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Oui, terminer'**
+  String get postTripDetectionConfirm;
+
+  /// No description provided for @postTripDetectionRemindLater.
+  ///
+  /// In fr, this message translates to:
+  /// **'Me rappeler plus tard'**
+  String get postTripDetectionRemindLater;
+
+  /// No description provided for @postTripSouvenirsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Souvenirs'**
+  String get postTripSouvenirsTitle;
+
+  /// No description provided for @postTripDaysCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} jours d\'aventure'**
+  String postTripDaysCount(int count);
+
+  /// No description provided for @postTripActivitiesCompleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'{completed} sur {total} activités'**
+  String postTripActivitiesCompleted(int completed, int total);
+
+  /// No description provided for @postTripBudgetSpent.
+  ///
+  /// In fr, this message translates to:
+  /// **'{amount} dépensés'**
+  String postTripBudgetSpent(String amount);
+
+  /// No description provided for @postTripCategoriesExplored.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} catégories explorées'**
+  String postTripCategoriesExplored(int count);
+
+  /// No description provided for @postTripGiveReview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partagez votre expérience'**
+  String get postTripGiveReview;
+
+  /// No description provided for @postTripPlanNext.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planifier votre prochain voyage'**
+  String get postTripPlanNext;
+
+  /// No description provided for @feedbackAiRatingLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notez l\'expérience de planification IA'**
+  String get feedbackAiRatingLabel;
+
+  /// No description provided for @feedbackAiRatingHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les suggestions IA vous ont-elles été utiles ?'**
+  String get feedbackAiRatingHint;
 }
 
 class _AppLocalizationsDelegate

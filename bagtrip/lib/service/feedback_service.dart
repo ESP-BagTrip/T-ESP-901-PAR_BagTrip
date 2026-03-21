@@ -19,6 +19,7 @@ class FeedbackRepositoryImpl implements FeedbackRepository {
     String? highlights,
     String? lowlights,
     required bool wouldRecommend,
+    int? aiExperienceRating,
   }) async {
     try {
       final response = await _apiClient.post(
@@ -28,6 +29,8 @@ class FeedbackRepositoryImpl implements FeedbackRepository {
           if (highlights != null) 'highlights': highlights,
           if (lowlights != null) 'lowlights': lowlights,
           'wouldRecommend': wouldRecommend,
+          if (aiExperienceRating != null)
+            'aiExperienceRating': aiExperienceRating,
         },
       );
       if (response.statusCode == 201 || response.statusCode == 200) {

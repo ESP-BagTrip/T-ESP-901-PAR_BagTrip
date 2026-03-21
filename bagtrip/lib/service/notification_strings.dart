@@ -48,4 +48,13 @@ class NotificationStrings {
   static String packingReminderBody(int count, String destination) => _isFrench
       ? '$count articles restants à emballer pour $destination'
       : '$count items left to pack for $destination';
+
+  // ── Completion reminder ──────────────────────────────────────
+
+  static String completionReminderTitle() =>
+      _isFrench ? 'Voyage terminé ?' : 'Trip over?';
+
+  static String completionReminderBody(String destination) => _isFrench
+      ? 'Votre voyage à $destination semble terminé. Voulez-vous le clôturer ?'
+      : 'Your trip to $destination seems over. Want to wrap it up?';
 }

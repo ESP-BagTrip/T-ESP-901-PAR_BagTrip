@@ -180,11 +180,19 @@ class QuickActionsRow extends StatelessWidget {
       ],
       TripStatus.completed => [
         QuickActionItem(
+          icon: Icons.auto_awesome,
+          label: l10n.postTripSouvenirsTitle,
+          onTap: () {
+            AppHaptics.light();
+            PostTripRoute(tripId: tripId).push(context);
+          },
+        ),
+        QuickActionItem(
           icon: Icons.rate_review_outlined,
           label: l10n.tripDetailQuickMemories,
           onTap: () {
             AppHaptics.light();
-            FeedbackRoute(tripId: tripId).go(context);
+            FeedbackRoute(tripId: tripId).push(context);
           },
         ),
       ],

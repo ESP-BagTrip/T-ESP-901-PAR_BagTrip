@@ -21,6 +21,7 @@ import 'package:bagtrip/service/ai_service.dart';
 import 'package:bagtrip/service/location_service.dart';
 import 'package:bagtrip/service/transport_service.dart';
 import 'package:bagtrip/service/onboarding_storage.dart';
+import 'package:bagtrip/service/post_trip_dismissal_storage.dart';
 import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:bagtrip/service/cached_trip_repository.dart';
@@ -38,6 +39,9 @@ void setupServiceLocator() {
   // 1. Leaf services (no API dependency)
   getIt.registerLazySingleton<StorageService>(() => StorageService());
   getIt.registerLazySingleton<OnboardingStorage>(() => OnboardingStorage());
+  getIt.registerLazySingleton<PostTripDismissalStorage>(
+    () => PostTripDismissalStorage(),
+  );
   getIt.registerLazySingleton<PersonalizationStorage>(
     () => PersonalizationStorage(),
   );

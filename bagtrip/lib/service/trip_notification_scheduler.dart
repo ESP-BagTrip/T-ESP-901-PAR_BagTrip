@@ -224,6 +224,26 @@ class TripNotificationScheduler {
     }
   }
 
+  /// Schedule a completion reminder notification 24h from now.
+  Future<void> scheduleCompletionReminder(Trip trip) async {
+    try {
+      final scheduledDate = tz.TZDateTime.now(
+        tz.local,
+      ).add(const Duration(hours: 24));
+      final destination = trip.destinationName ?? trip.title ?? '';
+
+      await _notificationService.zonedSchedule(
+        id: stableId('completion_${trip.id}'),
+        title: NotificationStrings.completionReminderTitle(),
+        body: NotificationStrings.completionReminderBody(destination),
+        scheduledDate: scheduledDate,
+        payload: _tripPayload(trip.id, 'tripHome'),
+      );
+    } catch (e) {
+      dev.log('TripNotificationScheduler.scheduleCompletionReminder error: $e');
+    }
+  }
+
   /// Cancel all local notifications for a specific trip.
   /// Recomputes all possible IDs to avoid persisting ID lists.
   Future<void> cancelTripNotifications(Trip trip) async {
@@ -233,6 +253,9 @@ class TripNotificationScheduler {
 
       // Cancel packing reminder
       await _notificationService.cancel(stableId('packing_${trip.id}'));
+
+      // Cancel completion reminder
+      await _notificationService.cancel(stableId('completion_${trip.id}'));
 
       // Cancel daily summaries
       if (startDate != null && endDate != null) {

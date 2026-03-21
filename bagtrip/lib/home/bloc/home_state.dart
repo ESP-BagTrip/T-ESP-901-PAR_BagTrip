@@ -33,6 +33,8 @@ class HomeActiveTrip extends HomeState {
   final List<Activity> todayActivities;
   final String? weatherSummary;
   final List<Activity> allActivities;
+  final Trip? pendingCompletionTrip;
+  final String? completedTripId;
 
   HomeActiveTrip({
     required this.user,
@@ -40,6 +42,8 @@ class HomeActiveTrip extends HomeState {
     this.todayActivities = const [],
     this.weatherSummary,
     this.allActivities = const [],
+    this.pendingCompletionTrip,
+    this.completedTripId,
   });
 
   String get displayName {

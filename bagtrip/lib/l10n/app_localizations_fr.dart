@@ -2568,4 +2568,54 @@ class AppLocalizationsFr extends AppLocalizations {
   String notifPackingReminderBody(int count, String destination) {
     return '$count articles restants à emballer pour $destination';
   }
+
+  @override
+  String get postTripDetectionTitle => 'Voyage terminé !';
+
+  @override
+  String postTripDetectionMessage(String destination) {
+    return 'Votre voyage à $destination est terminé. Voulez-vous le marquer comme complété ?';
+  }
+
+  @override
+  String get postTripDetectionConfirm => 'Oui, terminer';
+
+  @override
+  String get postTripDetectionRemindLater => 'Me rappeler plus tard';
+
+  @override
+  String get postTripSouvenirsTitle => 'Souvenirs';
+
+  @override
+  String postTripDaysCount(int count) {
+    return '$count jours d\'aventure';
+  }
+
+  @override
+  String postTripActivitiesCompleted(int completed, int total) {
+    return '$completed sur $total activités';
+  }
+
+  @override
+  String postTripBudgetSpent(String amount) {
+    return '$amount dépensés';
+  }
+
+  @override
+  String postTripCategoriesExplored(int count) {
+    return '$count catégories explorées';
+  }
+
+  @override
+  String get postTripGiveReview => 'Partagez votre expérience';
+
+  @override
+  String get postTripPlanNext => 'Planifier votre prochain voyage';
+
+  @override
+  String get feedbackAiRatingLabel => 'Notez l\'expérience de planification IA';
+
+  @override
+  String get feedbackAiRatingHint =>
+      'Les suggestions IA vous ont-elles été utiles ?';
 }

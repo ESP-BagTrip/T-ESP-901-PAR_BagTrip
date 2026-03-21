@@ -68,6 +68,7 @@ void main() {
             highlights: any(named: 'highlights'),
             lowlights: any(named: 'lowlights'),
             wouldRecommend: any(named: 'wouldRecommend'),
+            aiExperienceRating: any(named: 'aiExperienceRating'),
           ),
         ).thenAnswer((_) async => Success(makeTripFeedback()));
         when(
@@ -99,6 +100,94 @@ void main() {
           ),
         ).called(1);
         verify(() => mockFeedbackRepo.getFeedbacks('trip-1')).called(1);
+      },
+    );
+
+    blocTest<FeedbackBloc, FeedbackState>(
+      'SubmitFeedback with aiExperienceRating passes param to repository',
+      build: () {
+        when(
+          () => mockFeedbackRepo.submitFeedback(
+            any(),
+            overallRating: any(named: 'overallRating'),
+            highlights: any(named: 'highlights'),
+            lowlights: any(named: 'lowlights'),
+            wouldRecommend: any(named: 'wouldRecommend'),
+            aiExperienceRating: any(named: 'aiExperienceRating'),
+          ),
+        ).thenAnswer((_) async => Success(makeTripFeedback()));
+        when(
+          () => mockFeedbackRepo.getFeedbacks(any()),
+        ).thenAnswer((_) async => Success([makeTripFeedback()]));
+        return FeedbackBloc(
+          feedbackRepository: mockFeedbackRepo,
+          aiRepository: mockAiRepo,
+        );
+      },
+      act: (bloc) => bloc.add(
+        SubmitFeedback(
+          tripId: 'trip-1',
+          overallRating: 5,
+          aiExperienceRating: 4,
+        ),
+      ),
+      wait: const Duration(milliseconds: 100),
+      expect: () => [
+        isA<FeedbackLoading>(),
+        isA<FeedbackSubmitted>(),
+        isA<FeedbackLoading>(),
+        isA<FeedbackLoaded>(),
+      ],
+      verify: (_) {
+        verify(
+          () => mockFeedbackRepo.submitFeedback(
+            'trip-1',
+            overallRating: 5,
+            wouldRecommend: true,
+            aiExperienceRating: 4,
+          ),
+        ).called(1);
+      },
+    );
+
+    blocTest<FeedbackBloc, FeedbackState>(
+      'SubmitFeedback without aiExperienceRating works as before',
+      build: () {
+        when(
+          () => mockFeedbackRepo.submitFeedback(
+            any(),
+            overallRating: any(named: 'overallRating'),
+            highlights: any(named: 'highlights'),
+            lowlights: any(named: 'lowlights'),
+            wouldRecommend: any(named: 'wouldRecommend'),
+            aiExperienceRating: any(named: 'aiExperienceRating'),
+          ),
+        ).thenAnswer((_) async => Success(makeTripFeedback()));
+        when(
+          () => mockFeedbackRepo.getFeedbacks(any()),
+        ).thenAnswer((_) async => Success([makeTripFeedback()]));
+        return FeedbackBloc(
+          feedbackRepository: mockFeedbackRepo,
+          aiRepository: mockAiRepo,
+        );
+      },
+      act: (bloc) =>
+          bloc.add(SubmitFeedback(tripId: 'trip-1', overallRating: 3)),
+      wait: const Duration(milliseconds: 100),
+      expect: () => [
+        isA<FeedbackLoading>(),
+        isA<FeedbackSubmitted>(),
+        isA<FeedbackLoading>(),
+        isA<FeedbackLoaded>(),
+      ],
+      verify: (_) {
+        verify(
+          () => mockFeedbackRepo.submitFeedback(
+            'trip-1',
+            overallRating: 3,
+            wouldRecommend: true,
+          ),
+        ).called(1);
       },
     );
 

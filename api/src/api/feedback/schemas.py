@@ -13,6 +13,7 @@ class FeedbackCreateRequest(BaseModel):
     highlights: str | None = None
     lowlights: str | None = None
     wouldRecommend: bool
+    aiExperienceRating: int | None = Field(None, ge=1, le=5)
 
 
 class FeedbackResponse(BaseModel):
@@ -25,6 +26,7 @@ class FeedbackResponse(BaseModel):
     highlights: str | None = None
     lowlights: str | None = None
     wouldRecommend: bool = Field(..., alias="would_recommend")
+    aiExperienceRating: int | None = Field(None, alias="ai_experience_rating")
     createdAt: datetime = Field(..., alias="created_at")
 
     class Config:
