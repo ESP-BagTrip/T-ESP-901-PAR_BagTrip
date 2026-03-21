@@ -1016,5 +1016,40 @@
   "qaCategoryTransport": "Transport",
   "qaCategoryActivity": "Activite",
   "qaCategoryShopping": "Shopping",
-  "qaCategoryOther": "Autre"
+  "qaCategoryOther": "Autre",
+  "notifDailySummaryTitle": "Bonjour !",
+  "notifDailySummaryBody": "Jour {day} à {destination} — consultez le programme du jour",
+  "@notifDailySummaryBody": {
+    "placeholders": {
+      "day": {"type": "int"},
+      "destination": {"type": "String"}
+    }
+  },
+  "notifActivityReminderTitle": "Bientôt : {title}",
+  "@notifActivityReminderTitle": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
+  },
+  "notifActivityReminderBody": "Dans 30 minutes à {location}",
+  "@notifActivityReminderBody": {
+    "placeholders": {
+      "location": {"type": "String"}
+    }
+  },
+  "notifCheckoutReminderTitle": "Rappel check-out",
+  "notifCheckoutReminderBody": "N'oubliez pas de quitter {name}",
+  "@notifCheckoutReminderBody": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "notifPackingReminderTitle": "C'est l'heure de faire les valises !",
+  "notifPackingReminderBody": "{count} articles restants à emballer pour {destination}",
+  "@notifPackingReminderBody": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "destination": {"type": "String"}
+    }
+  }
 }

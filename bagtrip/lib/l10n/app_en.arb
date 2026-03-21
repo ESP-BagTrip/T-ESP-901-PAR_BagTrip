@@ -1016,5 +1016,40 @@
   "qaCategoryTransport": "Transport",
   "qaCategoryActivity": "Activity",
   "qaCategoryShopping": "Shopping",
-  "qaCategoryOther": "Other"
+  "qaCategoryOther": "Other",
+  "notifDailySummaryTitle": "Good morning!",
+  "notifDailySummaryBody": "Day {day} in {destination} — check today's schedule",
+  "@notifDailySummaryBody": {
+    "placeholders": {
+      "day": {"type": "int"},
+      "destination": {"type": "String"}
+    }
+  },
+  "notifActivityReminderTitle": "Coming up: {title}",
+  "@notifActivityReminderTitle": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
+  },
+  "notifActivityReminderBody": "Starting in 30 minutes at {location}",
+  "@notifActivityReminderBody": {
+    "placeholders": {
+      "location": {"type": "String"}
+    }
+  },
+  "notifCheckoutReminderTitle": "Checkout reminder",
+  "notifCheckoutReminderBody": "Don't forget to check out from {name}",
+  "@notifCheckoutReminderBody": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "notifPackingReminderTitle": "Time to pack!",
+  "notifPackingReminderBody": "{count} items left to pack for {destination}",
+  "@notifPackingReminderBody": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "destination": {"type": "String"}
+    }
+  }
 }

@@ -2510,4 +2510,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get qaCategoryOther => 'Other';
+
+  @override
+  String get notifDailySummaryTitle => 'Good morning!';
+
+  @override
+  String notifDailySummaryBody(int day, String destination) {
+    return 'Day $day in $destination — check today\'s schedule';
+  }
+
+  @override
+  String notifActivityReminderTitle(String title) {
+    return 'Coming up: $title';
+  }
+
+  @override
+  String notifActivityReminderBody(String location) {
+    return 'Starting in 30 minutes at $location';
+  }
+
+  @override
+  String get notifCheckoutReminderTitle => 'Checkout reminder';
+
+  @override
+  String notifCheckoutReminderBody(String name) {
+    return 'Don\'t forget to check out from $name';
+  }
+
+  @override
+  String get notifPackingReminderTitle => 'Time to pack!';
+
+  @override
+  String notifPackingReminderBody(int count, String destination) {
+    return '$count items left to pack for $destination';
+  }
 }

@@ -4789,6 +4789,54 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Autre'**
   String get qaCategoryOther;
+
+  /// No description provided for @notifDailySummaryTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bonjour !'**
+  String get notifDailySummaryTitle;
+
+  /// No description provided for @notifDailySummaryBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jour {day} à {destination} — consultez le programme du jour'**
+  String notifDailySummaryBody(int day, String destination);
+
+  /// No description provided for @notifActivityReminderTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bientôt : {title}'**
+  String notifActivityReminderTitle(String title);
+
+  /// No description provided for @notifActivityReminderBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dans 30 minutes à {location}'**
+  String notifActivityReminderBody(String location);
+
+  /// No description provided for @notifCheckoutReminderTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappel check-out'**
+  String get notifCheckoutReminderTitle;
+
+  /// No description provided for @notifCheckoutReminderBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'N\'oubliez pas de quitter {name}'**
+  String notifCheckoutReminderBody(String name);
+
+  /// No description provided for @notifPackingReminderTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'C\'est l\'heure de faire les valises !'**
+  String get notifPackingReminderTitle;
+
+  /// No description provided for @notifPackingReminderBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} articles restants à emballer pour {destination}'**
+  String notifPackingReminderBody(int count, String destination);
 }
 
 class _AppLocalizationsDelegate

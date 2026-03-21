@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:developer' as dev;
+
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/cache/connectivity_service.dart';
@@ -13,6 +16,7 @@ import 'package:bagtrip/repositories/activity_repository.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/repositories/trip_repository.dart';
 import 'package:bagtrip/repositories/weather_repository.dart';
+import 'package:bagtrip/service/trip_notification_scheduler.dart';
 import 'package:bloc/bloc.dart';
 
 part 'home_event.dart';
@@ -24,6 +28,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final ActivityRepository _activityRepository;
   final ConnectivityService _connectivityService;
   final WeatherRepository _weatherRepository;
+  final TripNotificationScheduler _scheduler;
 
   HomeBloc({
     TripRepository? tripRepository,
@@ -31,12 +36,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     ActivityRepository? activityRepository,
     ConnectivityService? connectivityService,
     WeatherRepository? weatherRepository,
+    TripNotificationScheduler? scheduler,
   }) : _tripRepository = tripRepository ?? getIt<TripRepository>(),
        _authRepository = authRepository ?? getIt<AuthRepository>(),
        _activityRepository = activityRepository ?? getIt<ActivityRepository>(),
        _connectivityService =
            connectivityService ?? getIt<ConnectivityService>(),
        _weatherRepository = weatherRepository ?? getIt<WeatherRepository>(),
+       _scheduler = scheduler ?? getIt<TripNotificationScheduler>(),
        super(HomeInitial()) {
     on<LoadHome>(_onLoadHome);
     on<RefreshHome>(_onRefreshHome);
@@ -127,6 +134,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       }
     }
 
+    // Schedule notifications for newly transitioned trips (fire-and-forget)
+    for (final trip in detectionResult.transitionedTrips) {
+      unawaited(
+        _scheduler
+            .scheduleOngoingNotifications(
+              trip.copyWith(status: TripStatus.ongoing),
+            )
+            .catchError((e) => dev.log('Scheduler error: $e')),
+      );
+    }
+
     // ── Decision tree ──────────────────────────────────────────────
     if (totalTrips == 0 && mutableOngoing.isEmpty) {
       emit(HomeNewUser(user: user));
@@ -166,6 +184,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         weatherSummary = '${w.avgTempC.round()}°C · ${w.description}';
       }
 
+      // Schedule ongoing trip notifications (idempotent, fire-and-forget)
+      unawaited(
+        _scheduler
+            .scheduleOngoingNotifications(activeTrip)
+            .catchError((e) => dev.log('Scheduler error: $e')),
+      );
+
       emit(
         HomeActiveTrip(
           user: user,
@@ -181,6 +206,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     }
 
     // Trip manager: has trips but none ongoing
+    // Schedule packing reminders for planned trips (fire-and-forget)
+    for (final trip in mutablePlanned) {
+      unawaited(
+        _scheduler
+            .schedulePackingReminder(trip)
+            .catchError((e) => dev.log('Scheduler error: $e')),
+      );
+    }
+
     final nextTrip = mutablePlanned.isNotEmpty
         ? _pickEarliestTrip(mutablePlanned)
         : null;

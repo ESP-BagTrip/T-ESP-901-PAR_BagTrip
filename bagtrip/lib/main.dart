@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:developer' as dev;
 import 'dart:ui';
 
 import 'package:bagtrip/auth/bloc/auth_bloc.dart';
@@ -61,14 +63,36 @@ void main() async {
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   await FirebaseMessaging.instance.requestPermission();
 
-  // Local notifications for foreground display
-  await LocalNotificationService.initialize();
+  // Local notifications for foreground display + deep link handler
+  await LocalNotificationService.initialize(
+    onNotificationTap: _handleLocalNotificationTap,
+  );
 
   // Offline cache
   await CacheService.initialize();
   await getIt<ConnectivityService>().initialize();
 
   runApp(const MyApp());
+}
+
+void _handleLocalNotificationTap(String? payload) {
+  if (payload == null) return;
+  try {
+    final data = jsonDecode(payload) as Map<String, dynamic>;
+    final screen = data['screen'] as String?;
+    final tripId = data['tripId'] as String?;
+    if (tripId == null) return;
+
+    final path = switch (screen) {
+      'activities' => '/home/$tripId/activities',
+      'baggage' => '/home/$tripId/baggage',
+      'budget' => '/home/$tripId/budget',
+      _ => '/home/$tripId',
+    };
+    appRouter.go(path);
+  } catch (e) {
+    dev.log('Local notification tap handler error: $e');
+  }
 }
 
 class MyApp extends StatefulWidget {
