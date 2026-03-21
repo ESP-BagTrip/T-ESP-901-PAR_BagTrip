@@ -4,11 +4,12 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from src.enums import ShareRole, TripStatus
+from src.enums import NotificationType, ShareRole, TripStatus
 from src.models.trip import Trip
 from src.models.trip_share import TripShare
 from src.models.user import User
 from src.utils.errors import AppError
+from src.utils.logger import logger
 
 
 class TripShareService:
@@ -64,6 +65,23 @@ class TripShareService:
         db.add(share)
         db.commit()
         db.refresh(share)
+
+        # Best-effort push notification to the invited user
+        try:
+            from src.services.notification_service import NotificationService
+
+            trip = db.query(Trip).filter(Trip.id == trip_id).first()
+            NotificationService.create_and_send(
+                db=db,
+                user_id=user.id,
+                trip_id=trip_id,
+                notif_type=NotificationType.TRIP_SHARED,
+                title="Nouveau voyage partagé !",
+                body=f"{owner.full_name or owner.email} vous a invité à « {trip.title or 'un voyage'} »",
+                data={"screen": "tripHome", "tripId": str(trip_id)},
+            )
+        except Exception as e:
+            logger.error(f"[SHARE] Failed to send TRIP_SHARED notification: {e}")
 
         return {
             "id": share.id,
