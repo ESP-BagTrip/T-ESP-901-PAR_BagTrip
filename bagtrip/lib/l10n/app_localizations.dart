@@ -4915,6 +4915,72 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Les suggestions IA vous ont-elles été utiles ?'**
   String get feedbackAiRatingHint;
+
+  /// No description provided for @editTripTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le nom du voyage'**
+  String get editTripTitle;
+
+  /// No description provided for @editTripDates.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dates du voyage'**
+  String get editTripDates;
+
+  /// No description provided for @editTripStartDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date de début'**
+  String get editTripStartDate;
+
+  /// No description provided for @editTripEndDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date de fin'**
+  String get editTripEndDate;
+
+  /// No description provided for @editTripTravelers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voyageurs'**
+  String get editTripTravelers;
+
+  /// No description provided for @activitiesOutOfRangeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activités hors période'**
+  String get activitiesOutOfRangeTitle;
+
+  /// No description provided for @activitiesOutOfRangeMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} activités sont hors de la nouvelle période'**
+  String activitiesOutOfRangeMessage(int count);
+
+  /// No description provided for @cannotFinalizeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de finaliser'**
+  String get cannotFinalizeTitle;
+
+  /// No description provided for @cannotFinalizeMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez une destination et des dates'**
+  String get cannotFinalizeMessage;
+
+  /// No description provided for @finalizeMissingDestination.
+  ///
+  /// In fr, this message translates to:
+  /// **'Destination manquante'**
+  String get finalizeMissingDestination;
+
+  /// No description provided for @finalizeMissingDates.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dates manquantes'**
+  String get finalizeMissingDates;
 }
 
 class _AppLocalizationsDelegate

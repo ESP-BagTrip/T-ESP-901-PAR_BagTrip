@@ -16,6 +16,8 @@ class TripHeroHeader extends StatelessWidget {
   final int totalDays;
   final bool isCompleted;
   final bool isOngoing;
+  final VoidCallback? onTapDates;
+  final bool isEditable;
 
   const TripHeroHeader({
     super.key,
@@ -26,6 +28,8 @@ class TripHeroHeader extends StatelessWidget {
     required this.totalDays,
     required this.isCompleted,
     required this.isOngoing,
+    this.onTapDates,
+    this.isEditable = false,
   });
 
   TripHeroState get _state {
@@ -84,6 +88,8 @@ class TripHeroHeader extends StatelessWidget {
                 daysUntilTrip: daysUntilTrip,
                 currentDay: currentDay,
                 totalDays: totalDays,
+                onTapDates: onTapDates,
+                isEditable: isEditable,
               ),
             ),
           ],
@@ -100,6 +106,8 @@ class _HeroContent extends StatelessWidget {
   final int? daysUntilTrip;
   final int? currentDay;
   final int totalDays;
+  final VoidCallback? onTapDates;
+  final bool isEditable;
 
   const _HeroContent({
     required this.trip,
@@ -108,6 +116,8 @@ class _HeroContent extends StatelessWidget {
     this.daysUntilTrip,
     this.currentDay,
     required this.totalDays,
+    this.onTapDates,
+    this.isEditable = false,
   });
 
   @override
@@ -143,19 +153,34 @@ class _HeroContent extends StatelessWidget {
         // Date range
         if (dateRange.isNotEmpty) ...[
           const SizedBox(height: 4),
-          Row(
-            children: [
-              const Icon(Icons.calendar_today, color: Colors.white70, size: 18),
-              const SizedBox(width: 4),
-              Text(
-                dateRange,
-                style: const TextStyle(
-                  fontFamily: FontFamily.b612,
+          GestureDetector(
+            onTap: onTapDates,
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.calendar_today,
                   color: Colors.white70,
-                  fontSize: 15,
+                  size: 18,
                 ),
-              ),
-            ],
+                const SizedBox(width: 4),
+                Text(
+                  dateRange,
+                  style: const TextStyle(
+                    fontFamily: FontFamily.b612,
+                    color: Colors.white70,
+                    fontSize: 15,
+                  ),
+                ),
+                if (isEditable) ...[
+                  const SizedBox(width: 6),
+                  Icon(
+                    Icons.edit,
+                    size: 14,
+                    color: Colors.white.withValues(alpha: 0.5),
+                  ),
+                ],
+              ],
+            ),
           ),
         ],
 

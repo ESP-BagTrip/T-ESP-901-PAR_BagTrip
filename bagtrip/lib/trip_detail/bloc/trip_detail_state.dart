@@ -18,6 +18,7 @@ final class TripDetailLoaded extends TripDetailState {
   final String userRole;
   final CompletionResult completionResult;
   final Set<String> collapsedSections;
+  final String? validationError;
 
   TripDetailLoaded({
     required this.trip,
@@ -31,6 +32,7 @@ final class TripDetailLoaded extends TripDetailState {
     this.userRole = 'OWNER',
     required this.completionResult,
     this.collapsedSections = const {},
+    this.validationError,
   });
 
   int get completionPercentage => completionResult.percentage;
@@ -102,6 +104,8 @@ final class TripDetailLoaded extends TripDetailState {
     String? userRole,
     CompletionResult? completionResult,
     Set<String>? collapsedSections,
+    String? validationError,
+    bool clearValidationError = false,
   }) {
     return TripDetailLoaded(
       trip: trip ?? this.trip,
@@ -117,6 +121,9 @@ final class TripDetailLoaded extends TripDetailState {
       userRole: userRole ?? this.userRole,
       completionResult: completionResult ?? this.completionResult,
       collapsedSections: collapsedSections ?? this.collapsedSections,
+      validationError: clearValidationError
+          ? null
+          : (validationError ?? this.validationError),
     );
   }
 }

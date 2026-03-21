@@ -64,6 +64,9 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     on<ToggleBaggagePackedFromDetail>(_onToggleBaggagePacked);
     on<DeleteBaggageItemFromDetail>(_onDeleteBaggageItem);
     on<DeleteShareFromDetail>(_onDeleteShare);
+    on<UpdateTripTitle>(_onUpdateTripTitle);
+    on<UpdateTripDates>(_onUpdateTripDates);
+    on<UpdateTripTravelers>(_onUpdateTripTravelers);
   }
 
   Future<void> _onLoadTripDetail(
@@ -259,6 +262,21 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
   ) async {
     if (_tripId == null) return;
 
+    // Validate DRAFT → PLANNED transition
+    if (event.status == 'PLANNED' && state is TripDetailLoaded) {
+      final loaded = state as TripDetailLoaded;
+      final trip = loaded.trip;
+      final hasDestination =
+          trip.destinationName != null && trip.destinationName!.isNotEmpty;
+      final hasDates = trip.startDate != null && trip.endDate != null;
+
+      if (!hasDestination || !hasDates) {
+        emit(loaded.copyWith(validationError: 'finalize_conditions_not_met'));
+        emit(loaded.copyWith(clearValidationError: true));
+        return;
+      }
+    }
+
     final result = await _tripRepository.updateTripStatus(
       _tripId!,
       event.status,
@@ -267,6 +285,86 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     if (isClosed) return;
 
     if (result is Success) {
+      add(RefreshTripDetail());
+    }
+  }
+
+  Future<void> _onUpdateTripTitle(
+    UpdateTripTitle event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+
+    // Optimistic update
+    final updatedTrip = loaded.trip.copyWith(title: event.title);
+    emit(loaded.copyWith(trip: updatedTrip));
+
+    final result = await _tripRepository.updateTrip(_tripId!, {
+      'title': event.title,
+    });
+
+    if (isClosed) return;
+
+    if (result is Failure) {
+      emit(loaded);
+    }
+  }
+
+  Future<void> _onUpdateTripDates(
+    UpdateTripDates event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+
+    // Optimistic update
+    final updatedTrip = loaded.trip.copyWith(
+      startDate: event.startDate,
+      endDate: event.endDate,
+    );
+    final completion = tripDetailCompletion(
+      trip: updatedTrip,
+      flights: loaded.flights,
+      accommodations: loaded.accommodations,
+      activities: loaded.activities,
+      baggageItems: loaded.baggageItems,
+      budgetSummary: loaded.budgetSummary,
+    );
+    emit(loaded.copyWith(trip: updatedTrip, completionResult: completion));
+
+    final result = await _tripRepository.updateTrip(_tripId!, {
+      'startDate': event.startDate.toIso8601String(),
+      'endDate': event.endDate.toIso8601String(),
+    });
+
+    if (isClosed) return;
+
+    if (result is Failure) {
+      emit(loaded);
+    }
+  }
+
+  Future<void> _onUpdateTripTravelers(
+    UpdateTripTravelers event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+
+    // Optimistic update
+    final updatedTrip = loaded.trip.copyWith(nbTravelers: event.nbTravelers);
+    emit(loaded.copyWith(trip: updatedTrip));
+
+    final result = await _tripRepository.updateTrip(_tripId!, {
+      'nbTravelers': event.nbTravelers,
+    });
+
+    if (isClosed) return;
+
+    if (result is Failure) {
+      emit(loaded);
+    } else {
       add(RefreshTripDetail());
     }
   }

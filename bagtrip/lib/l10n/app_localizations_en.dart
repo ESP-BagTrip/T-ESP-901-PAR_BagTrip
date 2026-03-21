@@ -2593,4 +2593,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feedbackAiRatingHint => 'How helpful were the AI suggestions?';
+
+  @override
+  String get editTripTitle => 'Edit trip name';
+
+  @override
+  String get editTripDates => 'Trip dates';
+
+  @override
+  String get editTripStartDate => 'Start date';
+
+  @override
+  String get editTripEndDate => 'End date';
+
+  @override
+  String get editTripTravelers => 'Travelers';
+
+  @override
+  String get activitiesOutOfRangeTitle => 'Activities out of range';
+
+  @override
+  String activitiesOutOfRangeMessage(int count) {
+    return '$count activities fall outside the new dates';
+  }
+
+  @override
+  String get cannotFinalizeTitle => 'Cannot finalize trip';
+
+  @override
+  String get cannotFinalizeMessage => 'Add a destination and dates first';
+
+  @override
+  String get finalizeMissingDestination => 'Missing destination';
+
+  @override
+  String get finalizeMissingDates => 'Missing travel dates';
 }

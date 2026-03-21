@@ -1091,5 +1091,22 @@
   "postTripGiveReview": "Share your experience",
   "postTripPlanNext": "Plan your next trip",
   "feedbackAiRatingLabel": "Rate the AI planning experience",
-  "feedbackAiRatingHint": "How helpful were the AI suggestions?"
+  "feedbackAiRatingHint": "How helpful were the AI suggestions?",
+
+  "editTripTitle": "Edit trip name",
+  "editTripDates": "Trip dates",
+  "editTripStartDate": "Start date",
+  "editTripEndDate": "End date",
+  "editTripTravelers": "Travelers",
+  "activitiesOutOfRangeTitle": "Activities out of range",
+  "activitiesOutOfRangeMessage": "{count} activities fall outside the new dates",
+  "@activitiesOutOfRangeMessage": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "cannotFinalizeTitle": "Cannot finalize trip",
+  "cannotFinalizeMessage": "Add a destination and dates first",
+  "finalizeMissingDestination": "Missing destination",
+  "finalizeMissingDates": "Missing travel dates"
 }
