@@ -4423,6 +4423,42 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Rejeter'**
   String get timelineReject;
+
+  /// No description provided for @flightStatusConfirmed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmé'**
+  String get flightStatusConfirmed;
+
+  /// No description provided for @flightStatusPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente'**
+  String get flightStatusPending;
+
+  /// No description provided for @flightsSectionEmptyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Où allez-vous ?'**
+  String get flightsSectionEmptyTitle;
+
+  /// No description provided for @flightsSectionEmptySubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez vos vols pour organiser votre voyage'**
+  String get flightsSectionEmptySubtitle;
+
+  /// No description provided for @flightsSectionSeeAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir tous les vols ({count})'**
+  String flightsSectionSeeAll(int count);
+
+  /// No description provided for @flightsSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vols'**
+  String get flightsSectionTitle;
 }
 
 class _AppLocalizationsDelegate

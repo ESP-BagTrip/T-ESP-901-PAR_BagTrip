@@ -936,5 +936,12 @@
   "timelineEmptyDayTitle": "Aucune activité",
   "timelineEmptyDaySubtitle": "Ajoutez-en ou demandez à l'IA de vous suggérer des idées",
   "timelineValidate": "Valider",
-  "timelineReject": "Rejeter"
+  "timelineReject": "Rejeter",
+  "flightStatusConfirmed": "Confirmé",
+  "flightStatusPending": "En attente",
+  "flightsSectionEmptyTitle": "Où allez-vous ?",
+  "flightsSectionEmptySubtitle": "Ajoutez vos vols pour organiser votre voyage",
+  "flightsSectionSeeAll": "Voir tous les vols ({count})",
+  "@flightsSectionSeeAll": { "placeholders": { "count": { "type": "int" } } },
+  "flightsSectionTitle": "Vols"
 }

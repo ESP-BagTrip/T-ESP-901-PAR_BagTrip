@@ -2332,4 +2332,25 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get timelineReject => 'Rejeter';
+
+  @override
+  String get flightStatusConfirmed => 'Confirmé';
+
+  @override
+  String get flightStatusPending => 'En attente';
+
+  @override
+  String get flightsSectionEmptyTitle => 'Où allez-vous ?';
+
+  @override
+  String get flightsSectionEmptySubtitle =>
+      'Ajoutez vos vols pour organiser votre voyage';
+
+  @override
+  String flightsSectionSeeAll(int count) {
+    return 'Voir tous les vols ($count)';
+  }
+
+  @override
+  String get flightsSectionTitle => 'Vols';
 }

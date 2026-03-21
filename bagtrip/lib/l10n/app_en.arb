@@ -936,5 +936,12 @@
   "timelineEmptyDayTitle": "No activities yet",
   "timelineEmptyDaySubtitle": "Add some or ask the AI to suggest ideas",
   "timelineValidate": "Validate",
-  "timelineReject": "Reject"
+  "timelineReject": "Reject",
+  "flightStatusConfirmed": "Confirmed",
+  "flightStatusPending": "Pending",
+  "flightsSectionEmptyTitle": "Where are you flying?",
+  "flightsSectionEmptySubtitle": "Add your flights to start organizing your trip",
+  "flightsSectionSeeAll": "See all flights ({count})",
+  "@flightsSectionSeeAll": { "placeholders": { "count": { "type": "int" } } },
+  "flightsSectionTitle": "Flights"
 }

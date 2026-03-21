@@ -18,6 +18,7 @@ import 'package:bagtrip/trip_detail/widgets/quick_actions_row.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_detail_shimmer.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_hero_header.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_timeline_section.dart';
+import 'package:bagtrip/trip_detail/widgets/trip_flights_section.dart';
 import 'package:bagtrip/trips/widgets/trip_section_card.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/cupertino.dart';
@@ -325,24 +326,12 @@ class _LoadedContentState extends State<_LoadedContent> {
                 StaggeredFadeIn(
                   key: _sectionKeys[CompletionSegmentType.flights],
                   index: 0,
-                  child: TripSectionCard(
-                    icon: Icons.flight_rounded,
-                    title: l10n.transportsTitle,
-                    itemCount: state.flights.length,
-                    previewItems: state.flights
-                        .take(3)
-                        .map((f) => f.flightNumber)
-                        .toList(),
-                    emptyLabel: l10n.addFirstTransport,
-                    onTap: () async {
-                      await TransportsRoute(
-                        tripId: tripId,
-                        role: trip.role ?? 'OWNER',
-                        isCompleted: state.isCompleted,
-                      ).push(context);
-                      if (!context.mounted) return;
-                      _refreshAfterReturn(context);
-                    },
+                  child: TripFlightsSection(
+                    flights: state.flights,
+                    tripId: tripId,
+                    trip: trip,
+                    isOwner: state.isOwner,
+                    isCompleted: state.isCompleted,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.space12),

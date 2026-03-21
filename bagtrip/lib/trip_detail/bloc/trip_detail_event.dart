@@ -35,3 +35,8 @@ final class UpdateTripStatus extends TripDetailEvent {
 }
 
 final class DeleteTripDetail extends TripDetailEvent {}
+
+final class DeleteFlightFromDetail extends TripDetailEvent {
+  final String flightId;
+  DeleteFlightFromDetail({required this.flightId});
+}

@@ -2310,4 +2310,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get timelineReject => 'Reject';
+
+  @override
+  String get flightStatusConfirmed => 'Confirmed';
+
+  @override
+  String get flightStatusPending => 'Pending';
+
+  @override
+  String get flightsSectionEmptyTitle => 'Where are you flying?';
+
+  @override
+  String get flightsSectionEmptySubtitle =>
+      'Add your flights to start organizing your trip';
+
+  @override
+  String flightsSectionSeeAll(int count) {
+    return 'See all flights ($count)';
+  }
+
+  @override
+  String get flightsSectionTitle => 'Flights';
 }

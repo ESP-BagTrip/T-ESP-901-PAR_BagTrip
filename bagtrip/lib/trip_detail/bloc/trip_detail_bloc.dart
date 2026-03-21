@@ -59,6 +59,7 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     on<RejectActivity>(_onRejectActivity);
     on<UpdateTripStatus>(_onUpdateTripStatus);
     on<DeleteTripDetail>(_onDeleteTrip);
+    on<DeleteFlightFromDetail>(_onDeleteFlight);
   }
 
   Future<void> _onLoadTripDetail(
@@ -263,6 +264,42 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
 
     if (result is Success) {
       add(RefreshTripDetail());
+    }
+  }
+
+  Future<void> _onDeleteFlight(
+    DeleteFlightFromDetail event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+
+    // Optimistic removal
+    final updatedFlights = loaded.flights
+        .where((f) => f.id != event.flightId)
+        .toList();
+    final completion = tripDetailCompletion(
+      trip: loaded.trip,
+      flights: updatedFlights,
+      accommodations: loaded.accommodations,
+      activities: loaded.activities,
+      baggageItems: loaded.baggageItems,
+      budgetSummary: loaded.budgetSummary,
+    );
+    emit(
+      loaded.copyWith(flights: updatedFlights, completionResult: completion),
+    );
+
+    final result = await _transportRepository.deleteManualFlight(
+      _tripId!,
+      event.flightId,
+    );
+
+    if (isClosed) return;
+
+    if (result is Failure) {
+      // Rollback
+      emit(loaded);
     }
   }
 
