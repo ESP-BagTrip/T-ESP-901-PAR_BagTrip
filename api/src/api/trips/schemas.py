@@ -156,3 +156,12 @@ class TripGroupedResponse(BaseModel):
     ongoing: list[TripResponse] = []
     planned: list[TripResponse] = []
     completed: list[TripResponse] = []
+
+
+class WeatherResponse(BaseModel):
+    """Réponse météo pour un trip."""
+
+    avg_temp_c: float
+    description: str
+    rain_probability: int = 0
+    source: str = "unknown"

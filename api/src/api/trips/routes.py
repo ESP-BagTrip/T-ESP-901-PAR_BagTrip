@@ -15,6 +15,7 @@ from src.api.trips.schemas import (
     TripResponse,
     TripStatusUpdateRequest,
     TripUpdateRequest,
+    WeatherResponse,
 )
 from src.config.database import get_db
 from src.enums import NotificationType, TripStatus
@@ -268,6 +269,55 @@ async def update_trip_status(
         return resp
     except AppError as e:
         raise create_http_exception(e) from e
+
+
+@router.get(
+    "/{tripId}/weather",
+    response_model=WeatherResponse,
+    summary="Get current weather for trip destination",
+    description="Resolve trip destination coordinates and return weather data",
+)
+async def get_trip_weather(
+    access: TripAccess = Depends(get_trip_access),
+):
+    """Récupérer la météo pour la destination du trip."""
+    from datetime import date, timedelta
+
+    from src.agent.tools import get_weather, resolve_iata_code
+
+    trip = access.trip
+
+    destination = trip.destination_name
+    if not destination:
+        raise create_http_exception(
+            AppError("No destination set for this trip", status_code=404),
+        )
+
+    # Resolve coordinates via Amadeus location search
+    location_data = await resolve_iata_code(destination)
+    if "error" in location_data or "lat" not in location_data:
+        raise create_http_exception(
+            AppError(f"Could not resolve coordinates for '{destination}'", status_code=404),
+        )
+
+    lat = location_data["lat"]
+    lon = location_data["lon"]
+
+    # Date range: max(start_date, today) to min(end_date, today + 7 days)
+    today = date.today()
+    start = max(trip.start_date, today) if trip.start_date else today
+    end = min(trip.end_date, today + timedelta(days=7)) if trip.end_date else today + timedelta(days=7)
+    if end < start:
+        end = start
+
+    weather = await get_weather(lat, lon, start.isoformat(), end.isoformat())
+
+    return WeatherResponse(
+        avg_temp_c=weather.get("avg_temp_c", 20),
+        description=weather.get("description", "Unknown"),
+        rain_probability=weather.get("rain_probability", 0),
+        source=weather.get("source", "unknown"),
+    )
 
 
 @router.delete(

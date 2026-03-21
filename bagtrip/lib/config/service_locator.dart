@@ -24,6 +24,8 @@ import 'package:bagtrip/service/onboarding_storage.dart';
 import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:bagtrip/service/cached_trip_repository.dart';
+import 'package:bagtrip/service/cached_weather_repository.dart';
+import 'package:bagtrip/service/weather_service.dart';
 import 'package:bagtrip/core/cache/cache_service.dart';
 import 'package:bagtrip/core/cache/connectivity_service.dart';
 
@@ -110,6 +112,13 @@ void setupServiceLocator() {
   );
   getIt.registerLazySingleton<TransportRepository>(
     () => TransportRepositoryImpl(apiClient: getIt<ApiClient>()),
+  );
+  getIt.registerLazySingleton<WeatherRepository>(
+    () => CachedWeatherRepository(
+      remote: WeatherRepositoryImpl(apiClient: getIt<ApiClient>()),
+      cache: getIt<CacheService>(),
+      connectivity: getIt<ConnectivityService>(),
+    ),
   );
 
   // 5. LocationService (uses Dio directly, not ApiClient)

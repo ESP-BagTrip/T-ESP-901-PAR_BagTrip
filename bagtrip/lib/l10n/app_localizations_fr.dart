@@ -2425,4 +2425,43 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sharingSectionYou => 'Vous';
+
+  @override
+  String timelineInMinutes(int minutes) {
+    return 'Dans $minutes min';
+  }
+
+  @override
+  String get timelineNow => 'Maintenant';
+
+  @override
+  String get timelineInProgress => 'En cours';
+
+  @override
+  String timelineRemainingMinutes(int minutes) {
+    return '$minutes min restantes';
+  }
+
+  @override
+  String get timelineNavigate => 'Naviguer';
+
+  @override
+  String get timelineChooseMapApp => 'Choisir l\'application';
+
+  @override
+  String get timelineAppleMaps => 'Apple Plans';
+
+  @override
+  String get timelineGoogleMaps => 'Google Maps';
+
+  @override
+  String get activeTripsTomorrowLastDay => 'Dernier jour de voyage';
+
+  @override
+  String activeTripsTomorrowShowAll(int count) {
+    return 'Voir tout ($count)';
+  }
+
+  @override
+  String get activeTripsTomorrowCollapse => 'Voir moins';
 }

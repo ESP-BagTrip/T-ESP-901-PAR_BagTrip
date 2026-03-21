@@ -17,6 +17,10 @@ void main() {
       expect(result.timedActivities, isEmpty);
       expect(result.nextActivity, isNull);
       expect(result.tomorrowActivities, isEmpty);
+      expect(result.currentActivity, isNull);
+      expect(result.nowIndicatorIndex, isNull);
+      expect(result.minutesUntilNext, isNull);
+      expect(result.isTomorrowLastDay, false);
     });
 
     test('filters today only — ignores yesterday and tomorrow', () {
@@ -185,6 +189,210 @@ void main() {
       );
 
       expect(result.tomorrowActivities, isEmpty);
+    });
+  });
+
+  group('nowIndicatorIndex', () {
+    final todayDate = DateTime(2024, 6, 15);
+
+    test('at beginning when all activities are future', () {
+      final earlyMorning = DateTime(2024, 6, 15, 7);
+      final activities = [
+        makeActivity(id: '1', date: todayDate, title: 'A'),
+        makeActivity(id: '2', date: todayDate, startTime: '12:00', title: 'B'),
+      ];
+
+      final result = classifyTodayActivities(
+        allActivities: activities,
+        now: earlyMorning,
+      );
+
+      expect(result.nowIndicatorIndex, 0);
+    });
+
+    test('in middle when some past some future', () {
+      final midDay = DateTime(2024, 6, 15, 13);
+      final activities = [
+        makeActivity(
+          id: '1',
+          date: todayDate,
+          startTime: '10:00',
+          title: 'Past',
+        ),
+        makeActivity(
+          id: '2',
+          date: todayDate,
+          startTime: '15:00',
+          title: 'Future',
+        ),
+      ];
+
+      final result = classifyTodayActivities(
+        allActivities: activities,
+        now: midDay,
+      );
+
+      expect(result.nowIndicatorIndex, 1);
+    });
+
+    test('at end when all activities are past', () {
+      final lateNight = DateTime(2024, 6, 15, 23);
+      final activities = [
+        makeActivity(id: '1', date: todayDate, startTime: '10:00', title: 'A'),
+        makeActivity(id: '2', date: todayDate, startTime: '14:00', title: 'B'),
+      ];
+
+      final result = classifyTodayActivities(
+        allActivities: activities,
+        now: lateNight,
+      );
+
+      expect(result.nowIndicatorIndex, 2);
+    });
+
+    test('null when no timed activities', () {
+      final activities = [
+        makeActivity(
+          id: '1',
+          date: todayDate,
+          startTime: null,
+          title: 'AllDay',
+        ),
+      ];
+
+      final result = classifyTodayActivities(
+        allActivities: activities,
+        now: DateTime(2024, 6, 15, 14),
+      );
+
+      expect(result.nowIndicatorIndex, isNull);
+    });
+  });
+
+  group('currentActivity', () {
+    final todayDate = DateTime(2024, 6, 15);
+
+    test('detects activity in time window', () {
+      final now = DateTime(2024, 6, 15, 14, 30);
+      final activities = [
+        makeActivity(
+          id: 'past',
+          date: todayDate,
+          startTime: '10:00',
+          title: 'Past',
+        ),
+        makeActivity(
+          id: 'current',
+          date: todayDate,
+          startTime: '14:00',
+          title: 'Current',
+        ),
+      ];
+
+      final result = classifyTodayActivities(
+        allActivities: activities,
+        now: now,
+      );
+
+      // Without endTime, the latest started activity before now is current
+      expect(result.currentActivity, isNotNull);
+      expect(result.currentActivity!.title, 'Current');
+    });
+
+    test('null when all activities are in the future', () {
+      final earlyMorning = DateTime(2024, 6, 15, 7);
+      final activities = [
+        makeActivity(id: '1', date: todayDate, title: 'Future'),
+      ];
+
+      final result = classifyTodayActivities(
+        allActivities: activities,
+        now: earlyMorning,
+      );
+
+      expect(result.currentActivity, isNull);
+    });
+  });
+
+  group('minutesUntilNext', () {
+    final todayDate = DateTime(2024, 6, 15);
+
+    test('calculates minutes correctly', () {
+      final now = DateTime(2024, 6, 15, 14, 30);
+      final activities = [
+        makeActivity(
+          id: '1',
+          date: todayDate,
+          startTime: '15:00',
+          title: 'Next',
+        ),
+      ];
+
+      final result = classifyTodayActivities(
+        allActivities: activities,
+        now: now,
+      );
+
+      expect(result.minutesUntilNext, 30);
+    });
+
+    test('null when no next activity', () {
+      final lateNight = DateTime(2024, 6, 15, 23);
+      final activities = [
+        makeActivity(
+          id: '1',
+          date: todayDate,
+          startTime: '10:00',
+          title: 'Past',
+        ),
+      ];
+
+      final result = classifyTodayActivities(
+        allActivities: activities,
+        now: lateNight,
+      );
+
+      expect(result.minutesUntilNext, isNull);
+    });
+  });
+
+  group('isTomorrowLastDay', () {
+    final now = DateTime(2024, 6, 15, 14);
+
+    test('true when tomorrow equals trip end date', () {
+      final result = classifyTodayActivities(
+        allActivities: [],
+        now: now,
+        tripEndDate: DateTime(2024, 6, 16),
+      );
+
+      expect(result.isTomorrowLastDay, true);
+    });
+
+    test('false when trip end date is after tomorrow', () {
+      final result = classifyTodayActivities(
+        allActivities: [],
+        now: now,
+        tripEndDate: DateTime(2024, 6, 20),
+      );
+
+      expect(result.isTomorrowLastDay, false);
+    });
+
+    test('false when tripEndDate is null', () {
+      final result = classifyTodayActivities(allActivities: [], now: now);
+
+      expect(result.isTomorrowLastDay, false);
+    });
+
+    test('false when trip ends today (before tomorrow)', () {
+      final result = classifyTodayActivities(
+        allActivities: [],
+        now: now,
+        tripEndDate: DateTime(2024, 6, 15),
+      );
+
+      expect(result.isTomorrowLastDay, false);
     });
   });
 }

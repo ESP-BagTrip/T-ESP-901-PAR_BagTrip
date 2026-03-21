@@ -4585,6 +4585,72 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Vous'**
   String get sharingSectionYou;
+
+  /// No description provided for @timelineInMinutes.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dans {minutes} min'**
+  String timelineInMinutes(int minutes);
+
+  /// No description provided for @timelineNow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Maintenant'**
+  String get timelineNow;
+
+  /// No description provided for @timelineInProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get timelineInProgress;
+
+  /// No description provided for @timelineRemainingMinutes.
+  ///
+  /// In fr, this message translates to:
+  /// **'{minutes} min restantes'**
+  String timelineRemainingMinutes(int minutes);
+
+  /// No description provided for @timelineNavigate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Naviguer'**
+  String get timelineNavigate;
+
+  /// No description provided for @timelineChooseMapApp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir l\'application'**
+  String get timelineChooseMapApp;
+
+  /// No description provided for @timelineAppleMaps.
+  ///
+  /// In fr, this message translates to:
+  /// **'Apple Plans'**
+  String get timelineAppleMaps;
+
+  /// No description provided for @timelineGoogleMaps.
+  ///
+  /// In fr, this message translates to:
+  /// **'Google Maps'**
+  String get timelineGoogleMaps;
+
+  /// No description provided for @activeTripsTomorrowLastDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernier jour de voyage'**
+  String get activeTripsTomorrowLastDay;
+
+  /// No description provided for @activeTripsTomorrowShowAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir tout ({count})'**
+  String activeTripsTomorrowShowAll(int count);
+
+  /// No description provided for @activeTripsTomorrowCollapse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir moins'**
+  String get activeTripsTomorrowCollapse;
 }
 
 class _AppLocalizationsDelegate

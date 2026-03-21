@@ -8,9 +8,11 @@ import 'package:bagtrip/home/helpers/trip_mode_detector.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/models/user.dart';
+import 'package:bagtrip/models/weather_summary.dart';
 import 'package:bagtrip/repositories/activity_repository.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/repositories/trip_repository.dart';
+import 'package:bagtrip/repositories/weather_repository.dart';
 import 'package:bloc/bloc.dart';
 
 part 'home_event.dart';
@@ -21,17 +23,20 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final AuthRepository _authRepository;
   final ActivityRepository _activityRepository;
   final ConnectivityService _connectivityService;
+  final WeatherRepository _weatherRepository;
 
   HomeBloc({
     TripRepository? tripRepository,
     AuthRepository? authRepository,
     ActivityRepository? activityRepository,
     ConnectivityService? connectivityService,
+    WeatherRepository? weatherRepository,
   }) : _tripRepository = tripRepository ?? getIt<TripRepository>(),
        _authRepository = authRepository ?? getIt<AuthRepository>(),
        _activityRepository = activityRepository ?? getIt<ActivityRepository>(),
        _connectivityService =
            connectivityService ?? getIt<ConnectivityService>(),
+       _weatherRepository = weatherRepository ?? getIt<WeatherRepository>(),
        super(HomeInitial()) {
     on<LoadHome>(_onLoadHome);
     on<RefreshHome>(_onRefreshHome);
@@ -152,11 +157,21 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
             });
       }
 
+      // Fetch weather summary
+      String? weatherSummary;
+      final weatherResult = await _weatherRepository.getWeather(activeTrip.id);
+      if (isClosed) return;
+      if (weatherResult is Success<WeatherSummary>) {
+        final w = weatherResult.data;
+        weatherSummary = '${w.avgTempC.round()}°C · ${w.description}';
+      }
+
       emit(
         HomeActiveTrip(
           user: user,
           activeTrip: activeTrip,
           todayActivities: todayActivities,
+          weatherSummary: weatherSummary,
           allActivities: activitiesResult is Success<List<Activity>>
               ? activitiesResult.data
               : [],

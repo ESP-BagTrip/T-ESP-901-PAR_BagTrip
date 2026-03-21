@@ -967,5 +967,31 @@
   "@sharingSectionSeeAll": { "placeholders": { "count": { "type": "int" } } },
   "sharingSectionOwner": "Proprietaire",
   "sharingSectionViewer": "Lecteur",
-  "sharingSectionYou": "Vous"
+  "sharingSectionYou": "Vous",
+  "timelineInMinutes": "Dans {minutes} min",
+  "@timelineInMinutes": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "timelineNow": "Maintenant",
+  "timelineInProgress": "En cours",
+  "timelineRemainingMinutes": "{minutes} min restantes",
+  "@timelineRemainingMinutes": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "timelineNavigate": "Naviguer",
+  "timelineChooseMapApp": "Choisir l'application",
+  "timelineAppleMaps": "Apple Plans",
+  "timelineGoogleMaps": "Google Maps",
+  "activeTripsTomorrowLastDay": "Dernier jour de voyage",
+  "activeTripsTomorrowShowAll": "Voir tout ({count})",
+  "@activeTripsTomorrowShowAll": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "activeTripsTomorrowCollapse": "Voir moins"
 }

@@ -13,3 +13,4 @@ export 'traveler_repository.dart';
 export 'trip_repository.dart';
 export 'transport_repository.dart';
 export 'trip_share_repository.dart';
+export 'weather_repository.dart';

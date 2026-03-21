@@ -21,6 +21,20 @@ class ActiveTripHero extends StatelessWidget {
     this.weatherSummary,
   });
 
+  IconData _weatherIcon(String? summary) {
+    if (summary == null) return Icons.wb_sunny_outlined;
+    final lower = summary.toLowerCase();
+    if (lower.contains('rain') || lower.contains('shower')) {
+      return Icons.water_drop_outlined;
+    }
+    if (lower.contains('snow')) return Icons.ac_unit_outlined;
+    if (lower.contains('cloud')) return Icons.cloud_outlined;
+    if (lower.contains('sunny') || lower.contains('clear')) {
+      return Icons.wb_sunny_outlined;
+    }
+    return Icons.thermostat_outlined;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -126,18 +140,31 @@ class ActiveTripHero extends StatelessWidget {
                             ),
                             if (weatherSummary != null) ...[
                               const SizedBox(width: AppSpacing.space12),
-                              Icon(
-                                Icons.wb_sunny_outlined,
-                                color: Colors.white.withValues(alpha: 0.8),
-                                size: 16,
-                              ),
-                              const SizedBox(width: AppSpacing.space4),
-                              Text(
-                                weatherSummary!,
-                                style: TextStyle(
-                                  fontFamily: FontFamily.b612,
-                                  fontSize: 12,
-                                  color: Colors.white.withValues(alpha: 0.8),
+                              AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 300),
+                                child: Row(
+                                  key: ValueKey(weatherSummary),
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      _weatherIcon(weatherSummary),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.8,
+                                      ),
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: AppSpacing.space4),
+                                    Text(
+                                      weatherSummary!,
+                                      style: TextStyle(
+                                        fontFamily: FontFamily.b612,
+                                        fontSize: 12,
+                                        color: Colors.white.withValues(
+                                          alpha: 0.8,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
