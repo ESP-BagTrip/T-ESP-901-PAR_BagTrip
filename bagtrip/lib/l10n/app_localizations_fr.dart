@@ -2394,4 +2394,35 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get budgetCategoryBreakdown => 'Repartition';
+
+  @override
+  String get sharingSectionTitle => 'Partage';
+
+  @override
+  String get sharingSectionEmptyTitle => 'Partagez votre voyage';
+
+  @override
+  String get sharingSectionEmptySubtitle =>
+      'Invitez vos proches a suivre votre voyage';
+
+  @override
+  String get sharingSectionInvite => 'Inviter quelqu\'un';
+
+  @override
+  String get sharingSectionInviteSubtitle =>
+      'Partagez votre voyage avec d\'autres';
+
+  @override
+  String sharingSectionSeeAll(int count) {
+    return 'Voir tous les membres ($count)';
+  }
+
+  @override
+  String get sharingSectionOwner => 'Proprietaire';
+
+  @override
+  String get sharingSectionViewer => 'Lecteur';
+
+  @override
+  String get sharingSectionYou => 'Vous';
 }

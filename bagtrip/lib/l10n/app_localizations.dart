@@ -4531,6 +4531,60 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Repartition'**
   String get budgetCategoryBreakdown;
+
+  /// No description provided for @sharingSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partage'**
+  String get sharingSectionTitle;
+
+  /// No description provided for @sharingSectionEmptyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partagez votre voyage'**
+  String get sharingSectionEmptyTitle;
+
+  /// No description provided for @sharingSectionEmptySubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Invitez vos proches a suivre votre voyage'**
+  String get sharingSectionEmptySubtitle;
+
+  /// No description provided for @sharingSectionInvite.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inviter quelqu\'un'**
+  String get sharingSectionInvite;
+
+  /// No description provided for @sharingSectionInviteSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partagez votre voyage avec d\'autres'**
+  String get sharingSectionInviteSubtitle;
+
+  /// No description provided for @sharingSectionSeeAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir tous les membres ({count})'**
+  String sharingSectionSeeAll(int count);
+
+  /// No description provided for @sharingSectionOwner.
+  ///
+  /// In fr, this message translates to:
+  /// **'Proprietaire'**
+  String get sharingSectionOwner;
+
+  /// No description provided for @sharingSectionViewer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lecteur'**
+  String get sharingSectionViewer;
+
+  /// No description provided for @sharingSectionYou.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous'**
+  String get sharingSectionYou;
 }
 
 class _AppLocalizationsDelegate

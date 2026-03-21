@@ -2372,4 +2372,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get budgetCategoryBreakdown => 'Breakdown';
+
+  @override
+  String get sharingSectionTitle => 'Sharing';
+
+  @override
+  String get sharingSectionEmptyTitle => 'Share your trip';
+
+  @override
+  String get sharingSectionEmptySubtitle =>
+      'Invite friends and family to follow along';
+
+  @override
+  String get sharingSectionInvite => 'Invite someone';
+
+  @override
+  String get sharingSectionInviteSubtitle => 'Share your trip with others';
+
+  @override
+  String sharingSectionSeeAll(int count) {
+    return 'See all members ($count)';
+  }
+
+  @override
+  String get sharingSectionOwner => 'Owner';
+
+  @override
+  String get sharingSectionViewer => 'Viewer';
+
+  @override
+  String get sharingSectionYou => 'You';
 }

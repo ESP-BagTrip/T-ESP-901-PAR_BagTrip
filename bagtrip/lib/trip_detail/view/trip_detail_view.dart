@@ -22,6 +22,7 @@ import 'package:bagtrip/trip_detail/widgets/trip_flights_section.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_accommodation_section.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_baggage_section.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_budget_section.dart';
+import 'package:bagtrip/trip_detail/widgets/trip_sharing_section.dart';
 import 'package:bagtrip/trips/widgets/trip_section_card.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/cupertino.dart';
@@ -399,6 +400,17 @@ class _LoadedContentState extends State<_LoadedContent> {
                 const SizedBox(height: AppSpacing.space12),
                 StaggeredFadeIn(
                   index: 5,
+                  child: TripSharingSection(
+                    shares: state.shares,
+                    tripId: tripId,
+                    trip: trip,
+                    isOwner: state.isOwner,
+                    isCompleted: state.isCompleted,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.space12),
+                StaggeredFadeIn(
+                  index: 6,
                   child: TripSectionCard(
                     icon: Icons.map_rounded,
                     title: l10n.mapTitle,

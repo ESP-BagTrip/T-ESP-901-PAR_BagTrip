@@ -55,3 +55,8 @@ final class DeleteBaggageItemFromDetail extends TripDetailEvent {
   final String baggageItemId;
   DeleteBaggageItemFromDetail({required this.baggageItemId});
 }
+
+final class DeleteShareFromDetail extends TripDetailEvent {
+  final String shareId;
+  DeleteShareFromDetail({required this.shareId});
+}

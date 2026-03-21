@@ -957,5 +957,15 @@
   "budgetEstimateOptionSubtitle": "Laissez l'IA vous suggerer un budget",
   "budgetAddExpenseSubtitle": "Suivez une depense prevue ou reelle",
   "budgetManageAll": "Gerer le budget",
-  "budgetCategoryBreakdown": "Repartition"
+  "budgetCategoryBreakdown": "Repartition",
+  "sharingSectionTitle": "Partage",
+  "sharingSectionEmptyTitle": "Partagez votre voyage",
+  "sharingSectionEmptySubtitle": "Invitez vos proches a suivre votre voyage",
+  "sharingSectionInvite": "Inviter quelqu'un",
+  "sharingSectionInviteSubtitle": "Partagez votre voyage avec d'autres",
+  "sharingSectionSeeAll": "Voir tous les membres ({count})",
+  "@sharingSectionSeeAll": { "placeholders": { "count": { "type": "int" } } },
+  "sharingSectionOwner": "Proprietaire",
+  "sharingSectionViewer": "Lecteur",
+  "sharingSectionYou": "Vous"
 }

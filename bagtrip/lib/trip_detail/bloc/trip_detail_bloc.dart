@@ -63,6 +63,7 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     on<DeleteAccommodationFromDetail>(_onDeleteAccommodation);
     on<ToggleBaggagePackedFromDetail>(_onToggleBaggagePacked);
     on<DeleteBaggageItemFromDetail>(_onDeleteBaggageItem);
+    on<DeleteShareFromDetail>(_onDeleteShare);
   }
 
   Future<void> _onLoadTripDetail(
@@ -416,6 +417,32 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     final result = await _baggageRepository.deleteBaggageItem(
       _tripId!,
       event.baggageItemId,
+    );
+
+    if (isClosed) return;
+
+    if (result is Failure) {
+      // Rollback
+      emit(loaded);
+    }
+  }
+
+  Future<void> _onDeleteShare(
+    DeleteShareFromDetail event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+
+    // Optimistic removal
+    final updatedShares = loaded.shares
+        .where((s) => s.id != event.shareId)
+        .toList();
+    emit(loaded.copyWith(shares: updatedShares));
+
+    final result = await _tripShareRepository.deleteShare(
+      _tripId!,
+      event.shareId,
     );
 
     if (isClosed) return;

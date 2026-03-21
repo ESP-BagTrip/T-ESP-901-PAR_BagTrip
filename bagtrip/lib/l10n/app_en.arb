@@ -957,5 +957,15 @@
   "budgetEstimateOptionSubtitle": "Let AI suggest a budget for your trip",
   "budgetAddExpenseSubtitle": "Track a planned or actual expense",
   "budgetManageAll": "Manage budget",
-  "budgetCategoryBreakdown": "Breakdown"
+  "budgetCategoryBreakdown": "Breakdown",
+  "sharingSectionTitle": "Sharing",
+  "sharingSectionEmptyTitle": "Share your trip",
+  "sharingSectionEmptySubtitle": "Invite friends and family to follow along",
+  "sharingSectionInvite": "Invite someone",
+  "sharingSectionInviteSubtitle": "Share your trip with others",
+  "sharingSectionSeeAll": "See all members ({count})",
+  "@sharingSectionSeeAll": { "placeholders": { "count": { "type": "int" } } },
+  "sharingSectionOwner": "Owner",
+  "sharingSectionViewer": "Viewer",
+  "sharingSectionYou": "You"
 }
