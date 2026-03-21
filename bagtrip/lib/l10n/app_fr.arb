@@ -993,5 +993,28 @@
       "count": {"type": "int"}
     }
   },
-  "activeTripsTomorrowCollapse": "Voir moins"
+  "activeTripsTomorrowCollapse": "Voir moins",
+  "qaSchedule": "Programme",
+  "qaWeather": "Meteo",
+  "qaCheckOut": "Check-out",
+  "qaNavigate": "Naviguer",
+  "qaExpense": "Depense",
+  "qaPhoto": "Photo",
+  "qaNextActivity": "Prochaine",
+  "qaAiSuggestion": "Idee IA",
+  "qaMap": "Plan",
+  "qaTodayExpenses": "Aujourd'hui",
+  "qaTomorrow": "Demain",
+  "qaBudget": "Budget",
+  "qaQuickExpenseTitle": "Depense rapide",
+  "qaQuickExpenseNote": "Note (optionnel)",
+  "qaQuickExpenseSaved": "Depense enregistree !",
+  "qaQuickExpenseAmount": "Montant",
+  "qaQuickExpenseAmountRequired": "Montant requis",
+  "qaQuickExpenseInvalidAmount": "Montant invalide",
+  "qaCategoryFood": "Repas",
+  "qaCategoryTransport": "Transport",
+  "qaCategoryActivity": "Activite",
+  "qaCategoryShopping": "Shopping",
+  "qaCategoryOther": "Autre"
 }

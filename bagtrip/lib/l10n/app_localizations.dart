@@ -4651,6 +4651,144 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Voir moins'**
   String get activeTripsTomorrowCollapse;
+
+  /// No description provided for @qaSchedule.
+  ///
+  /// In fr, this message translates to:
+  /// **'Programme'**
+  String get qaSchedule;
+
+  /// No description provided for @qaWeather.
+  ///
+  /// In fr, this message translates to:
+  /// **'Meteo'**
+  String get qaWeather;
+
+  /// No description provided for @qaCheckOut.
+  ///
+  /// In fr, this message translates to:
+  /// **'Check-out'**
+  String get qaCheckOut;
+
+  /// No description provided for @qaNavigate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Naviguer'**
+  String get qaNavigate;
+
+  /// No description provided for @qaExpense.
+  ///
+  /// In fr, this message translates to:
+  /// **'Depense'**
+  String get qaExpense;
+
+  /// No description provided for @qaPhoto.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo'**
+  String get qaPhoto;
+
+  /// No description provided for @qaNextActivity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prochaine'**
+  String get qaNextActivity;
+
+  /// No description provided for @qaAiSuggestion.
+  ///
+  /// In fr, this message translates to:
+  /// **'Idee IA'**
+  String get qaAiSuggestion;
+
+  /// No description provided for @qaMap.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plan'**
+  String get qaMap;
+
+  /// No description provided for @qaTodayExpenses.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aujourd\'hui'**
+  String get qaTodayExpenses;
+
+  /// No description provided for @qaTomorrow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demain'**
+  String get qaTomorrow;
+
+  /// No description provided for @qaBudget.
+  ///
+  /// In fr, this message translates to:
+  /// **'Budget'**
+  String get qaBudget;
+
+  /// No description provided for @qaQuickExpenseTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Depense rapide'**
+  String get qaQuickExpenseTitle;
+
+  /// No description provided for @qaQuickExpenseNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Note (optionnel)'**
+  String get qaQuickExpenseNote;
+
+  /// No description provided for @qaQuickExpenseSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Depense enregistree !'**
+  String get qaQuickExpenseSaved;
+
+  /// No description provided for @qaQuickExpenseAmount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant'**
+  String get qaQuickExpenseAmount;
+
+  /// No description provided for @qaQuickExpenseAmountRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant requis'**
+  String get qaQuickExpenseAmountRequired;
+
+  /// No description provided for @qaQuickExpenseInvalidAmount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant invalide'**
+  String get qaQuickExpenseInvalidAmount;
+
+  /// No description provided for @qaCategoryFood.
+  ///
+  /// In fr, this message translates to:
+  /// **'Repas'**
+  String get qaCategoryFood;
+
+  /// No description provided for @qaCategoryTransport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transport'**
+  String get qaCategoryTransport;
+
+  /// No description provided for @qaCategoryActivity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activite'**
+  String get qaCategoryActivity;
+
+  /// No description provided for @qaCategoryShopping.
+  ///
+  /// In fr, this message translates to:
+  /// **'Shopping'**
+  String get qaCategoryShopping;
+
+  /// No description provided for @qaCategoryOther.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autre'**
+  String get qaCategoryOther;
 }
 
 class _AppLocalizationsDelegate

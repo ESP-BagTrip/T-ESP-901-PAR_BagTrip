@@ -993,5 +993,28 @@
       "count": {"type": "int"}
     }
   },
-  "activeTripsTomorrowCollapse": "Show less"
+  "activeTripsTomorrowCollapse": "Show less",
+  "qaSchedule": "Schedule",
+  "qaWeather": "Weather",
+  "qaCheckOut": "Check-out",
+  "qaNavigate": "Navigate",
+  "qaExpense": "Expense",
+  "qaPhoto": "Photo",
+  "qaNextActivity": "Next up",
+  "qaAiSuggestion": "AI Idea",
+  "qaMap": "Map",
+  "qaTodayExpenses": "Today",
+  "qaTomorrow": "Tomorrow",
+  "qaBudget": "Budget",
+  "qaQuickExpenseTitle": "Quick expense",
+  "qaQuickExpenseNote": "Note (optional)",
+  "qaQuickExpenseSaved": "Expense saved!",
+  "qaQuickExpenseAmount": "Amount",
+  "qaQuickExpenseAmountRequired": "Amount is required",
+  "qaQuickExpenseInvalidAmount": "Invalid amount",
+  "qaCategoryFood": "Food",
+  "qaCategoryTransport": "Transport",
+  "qaCategoryActivity": "Activity",
+  "qaCategoryShopping": "Shopping",
+  "qaCategoryOther": "Other"
 }

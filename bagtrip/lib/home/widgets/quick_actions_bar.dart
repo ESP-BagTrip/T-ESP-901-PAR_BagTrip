@@ -2,58 +2,113 @@ import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
+import 'package:bagtrip/home/helpers/contextual_actions_helper.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:flutter/material.dart';
 
 class QuickActionsBar extends StatelessWidget {
   final String tripId;
+  final List<QuickActionType> actions;
+  final VoidCallback? onNavigateTap;
+  final VoidCallback? onExpenseTap;
 
-  const QuickActionsBar({super.key, required this.tripId});
+  const QuickActionsBar({
+    super.key,
+    required this.tripId,
+    required this.actions,
+    this.onNavigateTap,
+    this.onExpenseTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    final actions = [
-      _QuickAction(
-        icon: Icons.event_note_outlined,
-        label: l10n.activeTripsActivities,
-        onTap: () {
-          AppHaptics.light();
-          TripHomeRoute(tripId: tripId).go(context);
-        },
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      switchInCurve: Curves.easeOut,
+      child: Row(
+        key: ValueKey(actions.map((a) => a.name).join(',')),
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: actions.map((type) {
+          final resolved = _resolve(type, l10n, context);
+          return _QuickAction(
+            icon: resolved.$1,
+            label: resolved.$2,
+            onTap: () {
+              AppHaptics.light();
+              resolved.$3();
+            },
+          );
+        }).toList(),
       ),
-      _QuickAction(
-        icon: Icons.account_balance_wallet_outlined,
-        label: l10n.activeTripsBudget,
-        onTap: () {
-          AppHaptics.light();
-          BudgetRoute(tripId: tripId).go(context);
-        },
-      ),
-      _QuickAction(
-        icon: Icons.luggage_outlined,
-        label: l10n.activeTripsBaggage,
-        onTap: () {
-          AppHaptics.light();
-          BaggageRoute(tripId: tripId).go(context);
-        },
-      ),
-      _QuickAction(
-        icon: Icons.share_outlined,
-        label: l10n.activeTripsShare,
-        onTap: () {
-          AppHaptics.light();
-          SharesRoute(tripId: tripId).go(context);
-        },
-      ),
-    ];
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: actions,
     );
+  }
+
+  (IconData, String, VoidCallback) _resolve(
+    QuickActionType type,
+    AppLocalizations l10n,
+    BuildContext context,
+  ) {
+    return switch (type) {
+      QuickActionType.todaySchedule => (
+        Icons.event_note_outlined,
+        l10n.qaSchedule,
+        () => TripHomeRoute(tripId: tripId).go(context),
+      ),
+      QuickActionType.weather => (
+        Icons.wb_sunny_outlined,
+        l10n.qaWeather,
+        () {},
+      ),
+      QuickActionType.checkOut => (
+        Icons.hotel_outlined,
+        l10n.qaCheckOut,
+        () => AccommodationsRoute(tripId: tripId).go(context),
+      ),
+      QuickActionType.navigate => (
+        Icons.navigation_outlined,
+        l10n.qaNavigate,
+        () => onNavigateTap?.call(),
+      ),
+      QuickActionType.expense => (
+        Icons.receipt_long_outlined,
+        l10n.qaExpense,
+        () => onExpenseTap?.call(),
+      ),
+      QuickActionType.photo => (Icons.camera_alt_outlined, l10n.qaPhoto, () {}),
+      QuickActionType.nextActivity => (
+        Icons.skip_next_outlined,
+        l10n.qaNextActivity,
+        () => TripHomeRoute(tripId: tripId).go(context),
+      ),
+      QuickActionType.aiSuggestion => (
+        Icons.auto_awesome_outlined,
+        l10n.qaAiSuggestion,
+        () {},
+      ),
+      QuickActionType.map => (
+        Icons.map_outlined,
+        l10n.qaMap,
+        () => MapRoute(tripId: tripId).go(context),
+      ),
+      QuickActionType.todayExpenses => (
+        Icons.receipt_outlined,
+        l10n.qaTodayExpenses,
+        () => BudgetRoute(tripId: tripId).go(context),
+      ),
+      QuickActionType.tomorrow => (
+        Icons.calendar_today_outlined,
+        l10n.qaTomorrow,
+        () {},
+      ),
+      QuickActionType.budget => (
+        Icons.account_balance_wallet_outlined,
+        l10n.qaBudget,
+        () => BudgetRoute(tripId: tripId).go(context),
+      ),
+    };
   }
 }
 

@@ -2464,4 +2464,73 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get activeTripsTomorrowCollapse => 'Voir moins';
+
+  @override
+  String get qaSchedule => 'Programme';
+
+  @override
+  String get qaWeather => 'Meteo';
+
+  @override
+  String get qaCheckOut => 'Check-out';
+
+  @override
+  String get qaNavigate => 'Naviguer';
+
+  @override
+  String get qaExpense => 'Depense';
+
+  @override
+  String get qaPhoto => 'Photo';
+
+  @override
+  String get qaNextActivity => 'Prochaine';
+
+  @override
+  String get qaAiSuggestion => 'Idee IA';
+
+  @override
+  String get qaMap => 'Plan';
+
+  @override
+  String get qaTodayExpenses => 'Aujourd\'hui';
+
+  @override
+  String get qaTomorrow => 'Demain';
+
+  @override
+  String get qaBudget => 'Budget';
+
+  @override
+  String get qaQuickExpenseTitle => 'Depense rapide';
+
+  @override
+  String get qaQuickExpenseNote => 'Note (optionnel)';
+
+  @override
+  String get qaQuickExpenseSaved => 'Depense enregistree !';
+
+  @override
+  String get qaQuickExpenseAmount => 'Montant';
+
+  @override
+  String get qaQuickExpenseAmountRequired => 'Montant requis';
+
+  @override
+  String get qaQuickExpenseInvalidAmount => 'Montant invalide';
+
+  @override
+  String get qaCategoryFood => 'Repas';
+
+  @override
+  String get qaCategoryTransport => 'Transport';
+
+  @override
+  String get qaCategoryActivity => 'Activite';
+
+  @override
+  String get qaCategoryShopping => 'Shopping';
+
+  @override
+  String get qaCategoryOther => 'Autre';
 }

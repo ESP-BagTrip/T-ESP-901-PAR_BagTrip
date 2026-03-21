@@ -7,8 +7,11 @@ import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/cubit/today_tick_cubit.dart';
+import 'package:bagtrip/home/cubit/quick_expense_cubit.dart';
+import 'package:bagtrip/home/helpers/contextual_actions_helper.dart';
 import 'package:bagtrip/home/helpers/map_launcher.dart';
 import 'package:bagtrip/home/helpers/today_activities.dart';
+import 'package:bagtrip/home/widgets/quick_expense_sheet.dart';
 import 'package:bagtrip/home/widgets/active_trip_hero.dart';
 import 'package:bagtrip/home/widgets/now_indicator_row.dart';
 import 'package:bagtrip/home/widgets/quick_actions_bar.dart';
@@ -296,7 +299,22 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
                         ),
                       ),
                       const SizedBox(height: AppSpacing.space16),
-                      QuickActionsBar(tripId: trip.id),
+                      QuickActionsBar(
+                        tripId: trip.id,
+                        actions: resolveContextualActions(
+                          hour: tickNow.hour,
+                          hasCurrentActivity: result.currentActivity != null,
+                          hasNextActivity: result.nextActivity != null,
+                        ),
+                        onNavigateTap: _resolveNavigateTarget(result) != null
+                            ? () => launchMapNavigation(
+                                context,
+                                _resolveNavigateTarget(result)!,
+                              )
+                            : null,
+                        onExpenseTap: () =>
+                            _showQuickExpenseSheet(context, trip.id),
+                      ),
                     ],
                   ),
                 ),
@@ -320,6 +338,24 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
           ),
         ),
       ],
+    );
+  }
+
+  String? _resolveNavigateTarget(TodayActivitiesResult result) {
+    final loc =
+        result.currentActivity?.location ?? result.nextActivity?.location;
+    return (loc != null && loc.isNotEmpty) ? loc : null;
+  }
+
+  void _showQuickExpenseSheet(BuildContext context, String tripId) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => BlocProvider(
+        create: (_) => QuickExpenseCubit(),
+        child: QuickExpenseSheet(tripId: tripId),
+      ),
     );
   }
 
