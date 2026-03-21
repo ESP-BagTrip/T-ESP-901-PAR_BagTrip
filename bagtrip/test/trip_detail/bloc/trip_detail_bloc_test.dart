@@ -473,6 +473,273 @@ void main() {
       ],
     );
 
+    // ── UpdateTripTitle ────────────────────────────────────────────
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'UpdateTripTitle performs optimistic update then API call',
+      build: () {
+        stubAllSuccess();
+        when(
+          () => mockTripRepo.updateTrip(any(), any()),
+        ).thenAnswer((_) async => Success(makeTrip(title: 'New Title')));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        bloc.add(UpdateTripTitle(title: 'New Title'));
+      },
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        // Optimistic update
+        isA<TripDetailLoaded>().having(
+          (s) => s.trip.title,
+          'trip.title',
+          'New Title',
+        ),
+      ],
+      verify: (_) {
+        verify(
+          () => mockTripRepo.updateTrip('trip-1', {'title': 'New Title'}),
+        ).called(1);
+      },
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'UpdateTripTitle rolls back on API failure',
+      build: () {
+        stubAllSuccess();
+        when(
+          () => mockTripRepo.updateTrip(any(), any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('timeout')));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        bloc.add(UpdateTripTitle(title: 'New Title'));
+      },
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>().having(
+          (s) => s.trip.title,
+          'trip.title',
+          'Paris Trip',
+        ),
+        // Optimistic update
+        isA<TripDetailLoaded>().having(
+          (s) => s.trip.title,
+          'trip.title',
+          'New Title',
+        ),
+        // Rollback
+        isA<TripDetailLoaded>().having(
+          (s) => s.trip.title,
+          'trip.title',
+          'Paris Trip',
+        ),
+      ],
+    );
+
+    // ── UpdateTripDates ──────────────────────────────────────────
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'UpdateTripDates performs optimistic update and recomputes completion',
+      build: () {
+        stubAllSuccess();
+        when(
+          () => mockTripRepo.updateTrip(any(), any()),
+        ).thenAnswer((_) async => Success(makeTrip()));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        bloc.add(
+          UpdateTripDates(
+            startDate: DateTime(2024, 7),
+            endDate: DateTime(2024, 7, 10),
+          ),
+        );
+      },
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        // Optimistic update with new dates
+        isA<TripDetailLoaded>()
+            .having(
+              (s) => s.trip.startDate,
+              'trip.startDate',
+              DateTime(2024, 7),
+            )
+            .having(
+              (s) => s.trip.endDate,
+              'trip.endDate',
+              DateTime(2024, 7, 10),
+            ),
+      ],
+      verify: (_) {
+        verify(() => mockTripRepo.updateTrip('trip-1', any())).called(1);
+      },
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'UpdateTripDates rolls back on failure',
+      build: () {
+        stubAllSuccess();
+        when(
+          () => mockTripRepo.updateTrip(any(), any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('timeout')));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        bloc.add(
+          UpdateTripDates(
+            startDate: DateTime(2024, 7),
+            endDate: DateTime(2024, 7, 10),
+          ),
+        );
+      },
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        // Optimistic
+        isA<TripDetailLoaded>().having(
+          (s) => s.trip.startDate,
+          'trip.startDate',
+          DateTime(2024, 7),
+        ),
+        // Rollback
+        isA<TripDetailLoaded>().having(
+          (s) => s.trip.startDate,
+          'trip.startDate',
+          DateTime(2024, 6),
+        ),
+      ],
+    );
+
+    // ── UpdateTripTravelers ──────────────────────────────────────
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'UpdateTripTravelers performs optimistic update and refreshes on success',
+      build: () {
+        stubAllSuccess();
+        when(
+          () => mockTripRepo.updateTrip(any(), any()),
+        ).thenAnswer((_) async => Success(makeTrip(nbTravelers: 5)));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        bloc.add(UpdateTripTravelers(nbTravelers: 5));
+      },
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        // Optimistic update
+        isA<TripDetailLoaded>().having(
+          (s) => s.trip.nbTravelers,
+          'trip.nbTravelers',
+          5,
+        ),
+        // RefreshTripDetail emits new Loaded
+        isA<TripDetailLoaded>(),
+      ],
+    );
+
+    // ── UpdateTripStatus validation ──────────────────────────────
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'UpdateTripStatus PLANNED without destination emits validationError',
+      build: () {
+        stubAllSuccess(trip: makeTrip(destinationName: null));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        bloc.add(UpdateTripStatus(status: 'PLANNED'));
+      },
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        // validationError emitted
+        isA<TripDetailLoaded>().having(
+          (s) => s.validationError,
+          'validationError',
+          'finalize_conditions_not_met',
+        ),
+        // validationError cleared
+        isA<TripDetailLoaded>().having(
+          (s) => s.validationError,
+          'validationError',
+          isNull,
+        ),
+      ],
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'UpdateTripStatus PLANNED without dates emits validationError',
+      build: () {
+        stubAllSuccess(
+          trip: const Trip(id: 'trip-1', destinationName: 'Paris'),
+        );
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        bloc.add(UpdateTripStatus(status: 'PLANNED'));
+      },
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        // validationError emitted
+        isA<TripDetailLoaded>().having(
+          (s) => s.validationError,
+          'validationError',
+          'finalize_conditions_not_met',
+        ),
+        // validationError cleared
+        isA<TripDetailLoaded>().having(
+          (s) => s.validationError,
+          'validationError',
+          isNull,
+        ),
+      ],
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'UpdateTripStatus PLANNED with destination and dates calls API',
+      build: () {
+        stubAllSuccess();
+        when(() => mockTripRepo.updateTripStatus(any(), any())).thenAnswer(
+          (_) async => Success(makeTrip(status: TripStatus.planned)),
+        );
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        bloc.add(UpdateTripStatus(status: 'PLANNED'));
+      },
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        // After updateTripStatus succeeds → RefreshTripDetail
+        isA<TripDetailLoaded>(),
+      ],
+      verify: (_) {
+        verify(
+          () => mockTripRepo.updateTripStatus('trip-1', 'PLANNED'),
+        ).called(1);
+      },
+    );
+
     // ── DeleteTrip ─────────────────────────────────────────────────
 
     blocTest<TripDetailBloc, TripDetailState>(

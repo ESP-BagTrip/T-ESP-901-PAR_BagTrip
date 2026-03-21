@@ -1091,5 +1091,22 @@
   "postTripGiveReview": "Partagez votre expérience",
   "postTripPlanNext": "Planifier votre prochain voyage",
   "feedbackAiRatingLabel": "Notez l'expérience de planification IA",
-  "feedbackAiRatingHint": "Les suggestions IA vous ont-elles été utiles ?"
+  "feedbackAiRatingHint": "Les suggestions IA vous ont-elles été utiles ?",
+
+  "editTripTitle": "Modifier le nom du voyage",
+  "editTripDates": "Dates du voyage",
+  "editTripStartDate": "Date de début",
+  "editTripEndDate": "Date de fin",
+  "editTripTravelers": "Voyageurs",
+  "activitiesOutOfRangeTitle": "Activités hors période",
+  "activitiesOutOfRangeMessage": "{count} activités sont hors de la nouvelle période",
+  "@activitiesOutOfRangeMessage": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "cannotFinalizeTitle": "Impossible de finaliser",
+  "cannotFinalizeMessage": "Ajoutez une destination et des dates",
+  "finalizeMissingDestination": "Destination manquante",
+  "finalizeMissingDates": "Dates manquantes"
 }

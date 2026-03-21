@@ -60,3 +60,19 @@ final class DeleteShareFromDetail extends TripDetailEvent {
   final String shareId;
   DeleteShareFromDetail({required this.shareId});
 }
+
+final class UpdateTripTitle extends TripDetailEvent {
+  final String title;
+  UpdateTripTitle({required this.title});
+}
+
+final class UpdateTripDates extends TripDetailEvent {
+  final DateTime startDate;
+  final DateTime endDate;
+  UpdateTripDates({required this.startDate, required this.endDate});
+}
+
+final class UpdateTripTravelers extends TripDetailEvent {
+  final int nbTravelers;
+  UpdateTripTravelers({required this.nbTravelers});
+}

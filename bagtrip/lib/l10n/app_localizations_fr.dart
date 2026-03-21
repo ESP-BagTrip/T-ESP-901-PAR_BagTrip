@@ -2618,4 +2618,39 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get feedbackAiRatingHint =>
       'Les suggestions IA vous ont-elles été utiles ?';
+
+  @override
+  String get editTripTitle => 'Modifier le nom du voyage';
+
+  @override
+  String get editTripDates => 'Dates du voyage';
+
+  @override
+  String get editTripStartDate => 'Date de début';
+
+  @override
+  String get editTripEndDate => 'Date de fin';
+
+  @override
+  String get editTripTravelers => 'Voyageurs';
+
+  @override
+  String get activitiesOutOfRangeTitle => 'Activités hors période';
+
+  @override
+  String activitiesOutOfRangeMessage(int count) {
+    return '$count activités sont hors de la nouvelle période';
+  }
+
+  @override
+  String get cannotFinalizeTitle => 'Impossible de finaliser';
+
+  @override
+  String get cannotFinalizeMessage => 'Ajoutez une destination et des dates';
+
+  @override
+  String get finalizeMissingDestination => 'Destination manquante';
+
+  @override
+  String get finalizeMissingDates => 'Dates manquantes';
 }

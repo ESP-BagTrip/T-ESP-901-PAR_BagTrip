@@ -1,10 +1,12 @@
 import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
+import 'package:bagtrip/components/adaptive/adaptive_edit_dialog.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/staggered_fade_in.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/design/app_animations.dart';
 import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -13,6 +15,7 @@ import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
+import 'package:bagtrip/trip_detail/widgets/date_range_picker_sheet.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_completion_bar.dart';
 import 'package:bagtrip/trip_detail/widgets/quick_actions_row.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_detail_shimmer.dart';
@@ -23,6 +26,7 @@ import 'package:bagtrip/trip_detail/widgets/trip_accommodation_section.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_baggage_section.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_budget_section.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_sharing_section.dart';
+import 'package:bagtrip/trip_detail/widgets/travelers_edit_sheet.dart';
 import 'package:bagtrip/trips/widgets/trip_section_card.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/cupertino.dart';
@@ -50,6 +54,10 @@ class TripDetailView extends StatelessWidget {
                 AppLocalizations.of(context)!,
               ),
             );
+          }
+          if (state is TripDetailLoaded && state.validationError != null) {
+            final l10n = AppLocalizations.of(context)!;
+            AppSnackBar.showError(context, message: l10n.cannotFinalizeMessage);
           }
         },
         builder: (context, state) {
@@ -102,6 +110,8 @@ class _LoadedContentState extends State<_LoadedContent> {
   String get tripId => widget.tripId;
   TripDetailLoaded get state => widget.state;
 
+  bool get _canEdit => state.isOwner && !state.isCompleted;
+
   String _formatDate(DateTime? date) {
     if (date == null) return '';
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
@@ -110,6 +120,75 @@ class _LoadedContentState extends State<_LoadedContent> {
   void _refreshAfterReturn(BuildContext context) {
     if (context.mounted) {
       context.read<TripDetailBloc>().add(RefreshTripDetail());
+    }
+  }
+
+  Future<void> _showTitleEditor(BuildContext context, Trip trip) async {
+    final l10n = AppLocalizations.of(context)!;
+    final newTitle = await showAdaptiveEditDialog(
+      context: context,
+      title: l10n.editTripTitle,
+      currentValue: trip.title ?? '',
+      confirmLabel: l10n.saveButton,
+      cancelLabel: l10n.cancelButton,
+    );
+    if (newTitle != null && newTitle.isNotEmpty && context.mounted) {
+      context.read<TripDetailBloc>().add(UpdateTripTitle(title: newTitle));
+    }
+  }
+
+  Future<void> _showDateRangePicker(
+    BuildContext context,
+    TripDetailLoaded state,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final bloc = context.read<TripDetailBloc>();
+    final result = await showTripDateRangePicker(
+      context: context,
+      currentStart: state.trip.startDate,
+      currentEnd: state.trip.endDate,
+    );
+
+    if (result == null || !context.mounted) return;
+
+    final newStart = result.start;
+    final newEnd = result.end;
+
+    // Check for activities out of range
+    final outOfRange = state.activities.where((a) {
+      final d = DateTime(a.date.year, a.date.month, a.date.day);
+      final s = DateTime(newStart.year, newStart.month, newStart.day);
+      final e = DateTime(newEnd.year, newEnd.month, newEnd.day);
+      return d.isBefore(s) || d.isAfter(e);
+    }).toList();
+
+    if (outOfRange.isNotEmpty && context.mounted) {
+      showAdaptiveAlertDialog(
+        context: context,
+        title: l10n.activitiesOutOfRangeTitle,
+        content: l10n.activitiesOutOfRangeMessage(outOfRange.length),
+        confirmLabel: l10n.continueButton,
+        cancelLabel: l10n.cancelButton,
+        isDestructive: true,
+        onConfirm: () {
+          bloc.add(UpdateTripDates(startDate: newStart, endDate: newEnd));
+        },
+      );
+      return;
+    }
+
+    bloc.add(UpdateTripDates(startDate: newStart, endDate: newEnd));
+  }
+
+  Future<void> _showTravelersEditor(BuildContext context, Trip trip) async {
+    final newCount = await showTravelersEditSheet(
+      context: context,
+      currentValue: trip.nbTravelers ?? 1,
+    );
+    if (newCount != null && context.mounted) {
+      context.read<TripDetailBloc>().add(
+        UpdateTripTravelers(nbTravelers: newCount),
+      );
     }
   }
 
@@ -178,15 +257,33 @@ class _LoadedContentState extends State<_LoadedContent> {
                 bottom: 16,
                 right: 56,
               ),
-              title: Text(
-                trip.title ?? 'Mon voyage',
-                style: const TextStyle(
-                  fontFamily: FontFamily.b612,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+              title: GestureDetector(
+                onTap: _canEdit ? () => _showTitleEditor(context, trip) : null,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        trip.title ?? 'Mon voyage',
+                        style: const TextStyle(
+                          fontFamily: FontFamily.b612,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (_canEdit) ...[
+                      const SizedBox(width: 6),
+                      Icon(
+                        Icons.edit,
+                        size: 14,
+                        color: Colors.white.withValues(alpha: 0.7),
+                      ),
+                    ],
+                  ],
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
               background: TripHeroHeader(
                 trip: trip,
@@ -196,6 +293,10 @@ class _LoadedContentState extends State<_LoadedContent> {
                 totalDays: state.totalDays,
                 isCompleted: state.isCompleted,
                 isOngoing: state.isOngoing,
+                isEditable: _canEdit,
+                onTapDates: _canEdit
+                    ? () => _showDateRangePicker(context, state)
+                    : null,
               ),
             ),
           ),
@@ -250,10 +351,15 @@ class _LoadedContentState extends State<_LoadedContent> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _StatItem(
-                      icon: Icons.people_rounded,
-                      value: '${trip.nbTravelers ?? 0}',
-                      label: l10n.tripTravelers,
+                    GestureDetector(
+                      onTap: _canEdit
+                          ? () => _showTravelersEditor(context, trip)
+                          : null,
+                      child: _StatItem(
+                        icon: Icons.people_rounded,
+                        value: '${trip.nbTravelers ?? 0}',
+                        label: l10n.tripTravelers,
+                      ),
                     ),
                     if (state.daysUntilTrip != null)
                       _StatItem(
@@ -434,6 +540,31 @@ class _LoadedContentState extends State<_LoadedContent> {
                 ),
                 child: FilledButton.icon(
                   onPressed: () {
+                    final hasDestination =
+                        trip.destinationName != null &&
+                        trip.destinationName!.isNotEmpty;
+                    final hasDates =
+                        trip.startDate != null && trip.endDate != null;
+
+                    if (!hasDestination || !hasDates) {
+                      final missing = <String>[];
+                      if (!hasDestination) {
+                        missing.add(l10n.finalizeMissingDestination);
+                      }
+                      if (!hasDates) {
+                        missing.add(l10n.finalizeMissingDates);
+                      }
+                      showAdaptiveAlertDialog(
+                        context: context,
+                        title: l10n.cannotFinalizeTitle,
+                        content: missing.join('\n'),
+                        confirmLabel: 'OK',
+                        cancelLabel: l10n.cancelButton,
+                      );
+                      return;
+                    }
+
+                    AppHaptics.medium();
                     context.read<TripDetailBloc>().add(
                       UpdateTripStatus(status: 'PLANNED'),
                     );
