@@ -183,8 +183,17 @@ BaggageItem makeBaggageItem({
   String tripId = 'trip-1',
   String name = 'Passport',
   bool isPacked = false,
+  String? category,
+  int? quantity,
 }) {
-  return BaggageItem(id: id, tripId: tripId, name: name, isPacked: isPacked);
+  return BaggageItem(
+    id: id,
+    tripId: tripId,
+    name: name,
+    isPacked: isPacked,
+    category: category,
+    quantity: quantity,
+  );
 }
 
 Traveler makeTraveler({

@@ -2342,4 +2342,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accommodationStatusPending => 'Pending';
+
+  @override
+  String baggageSectionSeeAll(int count) {
+    return 'See all items ($count)';
+  }
+
+  @override
+  String get baggageSectionAddItem => 'Add an item';
+
+  @override
+  String get baggageSectionAddItemSubtitle => 'Create your packing list';
+
+  @override
+  String get baggageSectionAiSuggest => 'Get AI suggestions';
+
+  @override
+  String get baggageSectionAiSuggestSubtitle => 'Let AI help you pack';
 }

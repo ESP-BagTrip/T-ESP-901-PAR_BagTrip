@@ -45,3 +45,13 @@ final class DeleteAccommodationFromDetail extends TripDetailEvent {
   final String accommodationId;
   DeleteAccommodationFromDetail({required this.accommodationId});
 }
+
+final class ToggleBaggagePackedFromDetail extends TripDetailEvent {
+  final String baggageItemId;
+  ToggleBaggagePackedFromDetail({required this.baggageItemId});
+}
+
+final class DeleteBaggageItemFromDetail extends TripDetailEvent {
+  final String baggageItemId;
+  DeleteBaggageItemFromDetail({required this.baggageItemId});
+}

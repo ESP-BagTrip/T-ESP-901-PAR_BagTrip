@@ -947,5 +947,11 @@
   "accommodationSectionSeeAll": "See all accommodations ({count})",
   "@accommodationSectionSeeAll": { "placeholders": { "count": { "type": "int" } } },
   "accommodationStatusConfirmed": "Confirmed",
-  "accommodationStatusPending": "Pending"
+  "accommodationStatusPending": "Pending",
+  "baggageSectionSeeAll": "See all items ({count})",
+  "@baggageSectionSeeAll": { "placeholders": { "count": { "type": "int" } } },
+  "baggageSectionAddItem": "Add an item",
+  "baggageSectionAddItemSubtitle": "Create your packing list",
+  "baggageSectionAiSuggest": "Get AI suggestions",
+  "baggageSectionAiSuggestSubtitle": "Let AI help you pack"
 }

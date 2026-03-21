@@ -947,5 +947,11 @@
   "accommodationSectionSeeAll": "Voir tous les hébergements ({count})",
   "@accommodationSectionSeeAll": { "placeholders": { "count": { "type": "int" } } },
   "accommodationStatusConfirmed": "Confirmé",
-  "accommodationStatusPending": "En attente"
+  "accommodationStatusPending": "En attente",
+  "baggageSectionSeeAll": "Voir tous les éléments ({count})",
+  "@baggageSectionSeeAll": { "placeholders": { "count": { "type": "int" } } },
+  "baggageSectionAddItem": "Ajouter un élément",
+  "baggageSectionAddItemSubtitle": "Créez votre liste",
+  "baggageSectionAiSuggest": "Suggestions IA",
+  "baggageSectionAiSuggestSubtitle": "Laissez l'IA vous aider"
 }

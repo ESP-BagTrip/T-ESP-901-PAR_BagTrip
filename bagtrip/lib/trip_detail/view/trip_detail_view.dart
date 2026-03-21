@@ -20,6 +20,7 @@ import 'package:bagtrip/trip_detail/widgets/trip_hero_header.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_timeline_section.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_flights_section.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_accommodation_section.dart';
+import 'package:bagtrip/trip_detail/widgets/trip_baggage_section.dart';
 import 'package:bagtrip/trips/widgets/trip_section_card.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/cupertino.dart';
@@ -374,25 +375,12 @@ class _LoadedContentState extends State<_LoadedContent> {
                 StaggeredFadeIn(
                   key: _sectionKeys[CompletionSegmentType.baggage],
                   index: 3,
-                  child: TripSectionCard(
-                    icon: Icons.luggage_rounded,
-                    title: l10n.baggageTitle,
-                    itemCount: state.baggageItems.length,
-                    previewItems: state.baggageItems.isNotEmpty
-                        ? [
-                            '${state.baggagePackedCount}/${state.baggageItems.length} packed',
-                          ]
-                        : const [],
-                    emptyLabel: l10n.addFirstBaggage,
-                    onTap: () async {
-                      await BaggageRoute(
-                        tripId: tripId,
-                        role: trip.role ?? 'OWNER',
-                        isCompleted: state.isCompleted,
-                      ).push(context);
-                      if (!context.mounted) return;
-                      _refreshAfterReturn(context);
-                    },
+                  child: TripBaggageSection(
+                    baggageItems: state.baggageItems,
+                    tripId: tripId,
+                    trip: trip,
+                    isOwner: state.isOwner,
+                    isCompleted: state.isCompleted,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.space12),

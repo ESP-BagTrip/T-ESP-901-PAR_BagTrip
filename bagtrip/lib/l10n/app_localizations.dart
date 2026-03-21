@@ -4477,6 +4477,36 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'En attente'**
   String get accommodationStatusPending;
+
+  /// No description provided for @baggageSectionSeeAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir tous les éléments ({count})'**
+  String baggageSectionSeeAll(int count);
+
+  /// No description provided for @baggageSectionAddItem.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un élément'**
+  String get baggageSectionAddItem;
+
+  /// No description provided for @baggageSectionAddItemSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créez votre liste'**
+  String get baggageSectionAddItemSubtitle;
+
+  /// No description provided for @baggageSectionAiSuggest.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suggestions IA'**
+  String get baggageSectionAiSuggest;
+
+  /// No description provided for @baggageSectionAiSuggestSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Laissez l\'IA vous aider'**
+  String get baggageSectionAiSuggestSubtitle;
 }
 
 class _AppLocalizationsDelegate

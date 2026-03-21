@@ -61,6 +61,8 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     on<DeleteTripDetail>(_onDeleteTrip);
     on<DeleteFlightFromDetail>(_onDeleteFlight);
     on<DeleteAccommodationFromDetail>(_onDeleteAccommodation);
+    on<ToggleBaggagePackedFromDetail>(_onToggleBaggagePacked);
+    on<DeleteBaggageItemFromDetail>(_onDeleteBaggageItem);
   }
 
   Future<void> _onLoadTripDetail(
@@ -333,6 +335,87 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     final result = await _accommodationRepository.deleteAccommodation(
       _tripId!,
       event.accommodationId,
+    );
+
+    if (isClosed) return;
+
+    if (result is Failure) {
+      // Rollback
+      emit(loaded);
+    }
+  }
+
+  Future<void> _onToggleBaggagePacked(
+    ToggleBaggagePackedFromDetail event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+
+    final item = loaded.baggageItems
+        .where((b) => b.id == event.baggageItemId)
+        .firstOrNull;
+    if (item == null) return;
+
+    // Optimistic toggle
+    final updatedItems = loaded.baggageItems.map((b) {
+      if (b.id == event.baggageItemId) {
+        return b.copyWith(isPacked: !b.isPacked);
+      }
+      return b;
+    }).toList();
+    final completion = tripDetailCompletion(
+      trip: loaded.trip,
+      flights: loaded.flights,
+      accommodations: loaded.accommodations,
+      activities: loaded.activities,
+      baggageItems: updatedItems,
+      budgetSummary: loaded.budgetSummary,
+    );
+    emit(
+      loaded.copyWith(baggageItems: updatedItems, completionResult: completion),
+    );
+
+    final result = await _baggageRepository.updateBaggageItem(
+      _tripId!,
+      event.baggageItemId,
+      {'isPacked': !item.isPacked},
+    );
+
+    if (isClosed) return;
+
+    if (result is Failure) {
+      // Rollback
+      emit(loaded);
+    }
+  }
+
+  Future<void> _onDeleteBaggageItem(
+    DeleteBaggageItemFromDetail event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+
+    // Optimistic removal
+    final updatedItems = loaded.baggageItems
+        .where((b) => b.id != event.baggageItemId)
+        .toList();
+    final completion = tripDetailCompletion(
+      trip: loaded.trip,
+      flights: loaded.flights,
+      accommodations: loaded.accommodations,
+      activities: loaded.activities,
+      baggageItems: updatedItems,
+      budgetSummary: loaded.budgetSummary,
+    );
+    emit(
+      loaded.copyWith(baggageItems: updatedItems, completionResult: completion),
+    );
+
+    final result = await _baggageRepository.deleteBaggageItem(
+      _tripId!,
+      event.baggageItemId,
     );
 
     if (isClosed) return;

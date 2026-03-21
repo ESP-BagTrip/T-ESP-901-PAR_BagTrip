@@ -2364,4 +2364,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get accommodationStatusPending => 'En attente';
+
+  @override
+  String baggageSectionSeeAll(int count) {
+    return 'Voir tous les éléments ($count)';
+  }
+
+  @override
+  String get baggageSectionAddItem => 'Ajouter un élément';
+
+  @override
+  String get baggageSectionAddItemSubtitle => 'Créez votre liste';
+
+  @override
+  String get baggageSectionAiSuggest => 'Suggestions IA';
+
+  @override
+  String get baggageSectionAiSuggestSubtitle => 'Laissez l\'IA vous aider';
 }
