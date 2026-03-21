@@ -142,6 +142,10 @@ BudgetSummary makeBudgetSummary({
   double remaining = 600,
   double? percentConsumed = 40.0,
   String? alertLevel,
+  String? alertMessage,
+  Map<String, double> byCategory = const {},
+  double confirmedTotal = 300,
+  double forecastedTotal = 100,
 }) {
   return BudgetSummary(
     totalBudget: totalBudget,
@@ -149,6 +153,10 @@ BudgetSummary makeBudgetSummary({
     remaining: remaining,
     percentConsumed: percentConsumed,
     alertLevel: alertLevel,
+    alertMessage: alertMessage,
+    byCategory: byCategory,
+    confirmedTotal: confirmedTotal,
+    forecastedTotal: forecastedTotal,
   );
 }
 

@@ -953,5 +953,9 @@
   "baggageSectionAddItem": "Ajouter un élément",
   "baggageSectionAddItemSubtitle": "Créez votre liste",
   "baggageSectionAiSuggest": "Suggestions IA",
-  "baggageSectionAiSuggestSubtitle": "Laissez l'IA vous aider"
+  "baggageSectionAiSuggestSubtitle": "Laissez l'IA vous aider",
+  "budgetEstimateOptionSubtitle": "Laissez l'IA vous suggerer un budget",
+  "budgetAddExpenseSubtitle": "Suivez une depense prevue ou reelle",
+  "budgetManageAll": "Gerer le budget",
+  "budgetCategoryBreakdown": "Repartition"
 }

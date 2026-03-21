@@ -953,5 +953,9 @@
   "baggageSectionAddItem": "Add an item",
   "baggageSectionAddItemSubtitle": "Create your packing list",
   "baggageSectionAiSuggest": "Get AI suggestions",
-  "baggageSectionAiSuggestSubtitle": "Let AI help you pack"
+  "baggageSectionAiSuggestSubtitle": "Let AI help you pack",
+  "budgetEstimateOptionSubtitle": "Let AI suggest a budget for your trip",
+  "budgetAddExpenseSubtitle": "Track a planned or actual expense",
+  "budgetManageAll": "Manage budget",
+  "budgetCategoryBreakdown": "Breakdown"
 }

@@ -4507,6 +4507,30 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Laissez l\'IA vous aider'**
   String get baggageSectionAiSuggestSubtitle;
+
+  /// No description provided for @budgetEstimateOptionSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Laissez l\'IA vous suggerer un budget'**
+  String get budgetEstimateOptionSubtitle;
+
+  /// No description provided for @budgetAddExpenseSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivez une depense prevue ou reelle'**
+  String get budgetAddExpenseSubtitle;
+
+  /// No description provided for @budgetManageAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gerer le budget'**
+  String get budgetManageAll;
+
+  /// No description provided for @budgetCategoryBreakdown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Repartition'**
+  String get budgetCategoryBreakdown;
 }
 
 class _AppLocalizationsDelegate

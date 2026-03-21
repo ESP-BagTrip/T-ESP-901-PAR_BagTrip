@@ -2359,4 +2359,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get baggageSectionAiSuggestSubtitle => 'Let AI help you pack';
+
+  @override
+  String get budgetEstimateOptionSubtitle =>
+      'Let AI suggest a budget for your trip';
+
+  @override
+  String get budgetAddExpenseSubtitle => 'Track a planned or actual expense';
+
+  @override
+  String get budgetManageAll => 'Manage budget';
+
+  @override
+  String get budgetCategoryBreakdown => 'Breakdown';
 }

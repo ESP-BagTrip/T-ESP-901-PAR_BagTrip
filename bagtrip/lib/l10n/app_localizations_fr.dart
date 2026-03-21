@@ -2381,4 +2381,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get baggageSectionAiSuggestSubtitle => 'Laissez l\'IA vous aider';
+
+  @override
+  String get budgetEstimateOptionSubtitle =>
+      'Laissez l\'IA vous suggerer un budget';
+
+  @override
+  String get budgetAddExpenseSubtitle => 'Suivez une depense prevue ou reelle';
+
+  @override
+  String get budgetManageAll => 'Gerer le budget';
+
+  @override
+  String get budgetCategoryBreakdown => 'Repartition';
 }

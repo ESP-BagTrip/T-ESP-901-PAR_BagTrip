@@ -21,6 +21,7 @@ import 'package:bagtrip/trip_detail/widgets/trip_timeline_section.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_flights_section.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_accommodation_section.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_baggage_section.dart';
+import 'package:bagtrip/trip_detail/widgets/trip_budget_section.dart';
 import 'package:bagtrip/trips/widgets/trip_section_card.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/cupertino.dart';
@@ -387,27 +388,12 @@ class _LoadedContentState extends State<_LoadedContent> {
                 StaggeredFadeIn(
                   key: _sectionKeys[CompletionSegmentType.budget],
                   index: 4,
-                  child: TripSectionCard(
-                    icon: Icons.wallet_rounded,
-                    title: l10n.budgetTitle,
-                    itemCount: state.budgetSummary != null ? 1 : 0,
-                    previewItems: state.budgetSummary != null
-                        ? [
-                            '${state.budgetSummary!.totalSpent.toStringAsFixed(0)} spent',
-                            if (state.budgetSummary!.alertLevel != null)
-                              state.budgetSummary!.alertLevel!,
-                          ]
-                        : const [],
-                    emptyLabel: l10n.addFirstBudget,
-                    onTap: () async {
-                      await BudgetRoute(
-                        tripId: tripId,
-                        role: trip.role ?? 'OWNER',
-                        isCompleted: state.isCompleted,
-                      ).push(context);
-                      if (!context.mounted) return;
-                      _refreshAfterReturn(context);
-                    },
+                  child: TripBudgetSection(
+                    budgetSummary: state.budgetSummary,
+                    tripId: tripId,
+                    trip: trip,
+                    isOwner: state.isOwner,
+                    isCompleted: state.isCompleted,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.space12),
