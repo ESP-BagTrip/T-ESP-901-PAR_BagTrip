@@ -1,6 +1,7 @@
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/design/app_animations.dart';
+import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/view/active_trip_home_view.dart';
 import 'package:bagtrip/home/view/onboarding_home_view.dart';
@@ -18,16 +19,21 @@ class HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: BlocBuilder<HomeBloc, HomeState>(
-          builder: (context, homeState) {
-            return AnimatedSwitcher(
-              duration: const Duration(milliseconds: 500),
-              switchInCurve: AppAnimations.springCurve,
-              switchOutCurve: Curves.easeIn,
-              transitionBuilder: _buildTransition,
-              child: _buildContent(context, homeState),
-            );
-          },
+        child: BlocListener<HomeBloc, HomeState>(
+          listenWhen: (prev, curr) =>
+              prev is HomeTripManager && curr is HomeActiveTrip,
+          listener: (context, state) => AppHaptics.success(),
+          child: BlocBuilder<HomeBloc, HomeState>(
+            builder: (context, homeState) {
+              return AnimatedSwitcher(
+                duration: const Duration(milliseconds: 500),
+                switchInCurve: AppAnimations.springCurve,
+                switchOutCurve: Curves.easeIn,
+                transitionBuilder: _buildTransition,
+                child: _buildContent(context, homeState),
+              );
+            },
+          ),
         ),
       ),
     );

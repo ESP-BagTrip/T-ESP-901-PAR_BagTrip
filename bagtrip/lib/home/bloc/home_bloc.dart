@@ -1,8 +1,10 @@
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/cache/connectivity_service.dart';
 import 'package:bagtrip/core/paginated_response.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/home/helpers/trip_completion.dart';
+import 'package:bagtrip/home/helpers/trip_mode_detector.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/models/user.dart';
@@ -18,14 +20,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final TripRepository _tripRepository;
   final AuthRepository _authRepository;
   final ActivityRepository _activityRepository;
+  final ConnectivityService _connectivityService;
 
   HomeBloc({
     TripRepository? tripRepository,
     AuthRepository? authRepository,
     ActivityRepository? activityRepository,
+    ConnectivityService? connectivityService,
   }) : _tripRepository = tripRepository ?? getIt<TripRepository>(),
        _authRepository = authRepository ?? getIt<AuthRepository>(),
        _activityRepository = activityRepository ?? getIt<ActivityRepository>(),
+       _connectivityService =
+           connectivityService ?? getIt<ConnectivityService>(),
        super(HomeInitial()) {
     on<LoadHome>(_onLoadHome);
     on<RefreshHome>(_onRefreshHome);
@@ -95,14 +101,35 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         ? completedResult.data.items
         : <Trip>[];
 
+    // ── Auto-detect planned → ongoing ──
+    final detectionResult = await detectAndTransitionTrips(
+      plannedTrips: plannedTrips,
+      tripRepository: _tripRepository,
+      isOnline: _connectivityService.isOnline,
+    );
+    if (isClosed) return;
+
+    final mutableOngoing = [...ongoingTrips];
+    final mutablePlanned = [...plannedTrips];
+
+    for (final trip in [
+      ...detectionResult.transitionedTrips,
+      ...detectionResult.failedTrips,
+    ]) {
+      mutablePlanned.removeWhere((t) => t.id == trip.id);
+      if (!mutableOngoing.any((t) => t.id == trip.id)) {
+        mutableOngoing.add(trip.copyWith(status: TripStatus.ongoing));
+      }
+    }
+
     // ── Decision tree ──────────────────────────────────────────────
-    if (totalTrips == 0) {
+    if (totalTrips == 0 && mutableOngoing.isEmpty) {
       emit(HomeNewUser(user: user));
       return;
     }
 
-    if (ongoingTrips.isNotEmpty) {
-      final activeTrip = _pickEarliestTrip(ongoingTrips);
+    if (mutableOngoing.isNotEmpty) {
+      final activeTrip = _pickEarliestTrip(mutableOngoing);
 
       // Fetch today's activities
       List<Activity> todayActivities = [];
@@ -139,8 +166,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     }
 
     // Trip manager: has trips but none ongoing
-    final nextTrip = plannedTrips.isNotEmpty
-        ? _pickEarliestTrip(plannedTrips)
+    final nextTrip = mutablePlanned.isNotEmpty
+        ? _pickEarliestTrip(mutablePlanned)
         : null;
 
     emit(
@@ -148,7 +175,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         user: user,
         nextTrip: nextTrip,
         nextTripCompletion: tripCompletion(nextTrip),
-        upcomingTrips: plannedTrips,
+        upcomingTrips: mutablePlanned,
         completedTrips: completedTrips,
       ),
     );

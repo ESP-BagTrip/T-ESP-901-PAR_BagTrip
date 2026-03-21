@@ -23,6 +23,7 @@ import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bagtrip/core/cache/cache_service.dart';
 import 'package:bagtrip/core/cache/connectivity_service.dart';
 import 'package:bagtrip/core/cache/connectivity_bloc.dart';
+import 'package:bagtrip/core/app_lifecycle_observer.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -80,15 +81,28 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   late final StreamSubscription<RemoteMessage> _onMessageSub;
   late final StreamSubscription<String> _onTokenRefreshSub;
+  late final HomeBloc _homeBloc;
+  late final AppLifecycleObserver _lifecycleObserver;
 
   @override
   void initState() {
     super.initState();
+    _homeBloc = HomeBloc();
+    _lifecycleObserver = AppLifecycleObserver(
+      onResumed: () {
+        if (_homeBloc.state is! HomeInitial && !_homeBloc.isClosed) {
+          _homeBloc.add(RefreshHome());
+        }
+      },
+    );
+    _lifecycleObserver.initialize();
     _setupFCMListeners();
   }
 
   @override
   void dispose() {
+    _lifecycleObserver.dispose();
+    _homeBloc.close();
     _onMessageSub.cancel();
     _onTokenRefreshSub.cancel();
     super.dispose();
@@ -128,7 +142,7 @@ class _MyAppState extends State<MyApp> {
         BlocProvider(create: (context) => BookingBloc()),
         BlocProvider(create: (context) => AuthBloc()),
         BlocProvider(create: (context) => TripManagementBloc()),
-        BlocProvider(create: (context) => HomeBloc()),
+        BlocProvider.value(value: _homeBloc),
         BlocProvider(create: (context) => NotificationBloc()),
         BlocProvider(create: (context) => ConnectivityBloc()),
       ],
