@@ -10,6 +10,7 @@ class ShareCreateRequest(BaseModel):
     """Requête d'invitation de partage par email."""
 
     email: EmailStr
+    message: str | None = None
 
 
 class ShareResponse(BaseModel):

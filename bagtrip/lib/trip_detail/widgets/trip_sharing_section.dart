@@ -1,4 +1,6 @@
+import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
 import 'package:bagtrip/components/staggered_fade_in.dart';
+import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -151,8 +153,22 @@ class _ParticipantsList extends StatelessWidget {
                 isOwnerTile: false,
                 onRemove: isOwner && !isCompleted
                     ? () {
-                        context.read<TripDetailBloc>().add(
-                          DeleteShareFromDetail(shareId: share.id),
+                        final l10n = AppLocalizations.of(context)!;
+                        AppHaptics.medium();
+                        showAdaptiveAlertDialog(
+                          context: context,
+                          title: l10n.shareRevokeConfirmTitle,
+                          content: l10n.shareRevokeConfirmMessage(
+                            share.userFullName ?? share.userEmail,
+                          ),
+                          confirmLabel: l10n.sharesRevokeButton,
+                          cancelLabel: l10n.cancelButton,
+                          isDestructive: true,
+                          onConfirm: () {
+                            context.read<TripDetailBloc>().add(
+                              DeleteShareFromDetail(shareId: share.id),
+                            );
+                          },
                         );
                       }
                     : null,

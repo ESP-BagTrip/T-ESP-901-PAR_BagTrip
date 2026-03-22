@@ -2742,4 +2742,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addActivityManually => 'Add manually';
+
+  @override
+  String get shareInviteTitle => 'Invite to trip';
+
+  @override
+  String get shareInviteEmailLabel => 'Email address';
+
+  @override
+  String get shareInviteEmailHint => 'user@example.com';
+
+  @override
+  String get shareInviteEmailRequired => 'Email is required';
+
+  @override
+  String get shareInviteEmailInvalid => 'Invalid email format';
+
+  @override
+  String get shareInviteMessageLabel => 'Message (optional)';
+
+  @override
+  String get shareInviteMessageHint => 'Add a personal note...';
+
+  @override
+  String get shareInviteSendButton => 'Send invite';
+
+  @override
+  String get shareErrorUserNotFound =>
+      'This person must create an account first';
+
+  @override
+  String get shareErrorAlreadyShared => 'Already shared with this person';
+
+  @override
+  String get shareErrorSelfShare => 'You can\'t share a trip with yourself';
+
+  @override
+  String get shareRevokeConfirmTitle => 'Remove access';
+
+  @override
+  String shareRevokeConfirmMessage(String name) {
+    return 'Remove access for $name?';
+  }
+
+  @override
+  String get viewerBadgeReadOnly => 'Read only';
+
+  @override
+  String get shareInviteSuccess => 'Invitation sent';
+
+  @override
+  String get shareRevokeSuccess => 'Access revoked';
 }

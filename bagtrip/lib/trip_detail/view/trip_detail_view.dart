@@ -301,6 +301,43 @@ class _LoadedContentState extends State<_LoadedContent> {
             ),
           ),
 
+          // ── Viewer read-only banner ─────────────────────────────
+          if (state.isViewer)
+            SliverToBoxAdapter(
+              child: Container(
+                margin: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.space16,
+                  vertical: AppSpacing.space8,
+                ),
+                padding: AppSpacing.allEdgeInsetSpace12,
+                decoration: BoxDecoration(
+                  color: ColorName.primary.withValues(alpha: 0.08),
+                  borderRadius: AppRadius.medium8,
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.visibility_outlined,
+                      color: ColorName.primary,
+                      size: 20,
+                    ),
+                    const SizedBox(width: AppSpacing.space8),
+                    Expanded(
+                      child: Text(
+                        l10n.viewerBadgeReadOnly,
+                        style: const TextStyle(
+                          fontFamily: FontFamily.b612,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: ColorName.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
           // ── Read-only banner ────────────────────────────────────
           if (state.isCompleted)
             SliverToBoxAdapter(

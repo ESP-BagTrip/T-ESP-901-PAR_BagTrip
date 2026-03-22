@@ -16,11 +16,12 @@ class TripShareRepositoryImpl implements TripShareRepository {
   Future<Result<TripShare>> createShare(
     String tripId, {
     required String email,
+    String? message,
   }) async {
     try {
       final response = await _apiClient.post(
         '/trips/$tripId/shares',
-        data: {'email': email},
+        data: {'email': email, if (message != null) 'message': message},
       );
       if (response.statusCode == 201 || response.statusCode == 200) {
         return Success(TripShare.fromJson(response.data));

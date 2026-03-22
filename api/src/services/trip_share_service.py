@@ -26,7 +26,7 @@ class TripShareService:
             )
 
     @staticmethod
-    def create_share(db: Session, trip_id: UUID, owner_user_id: UUID, email: str) -> dict:
+    def create_share(db: Session, trip_id: UUID, owner_user_id: UUID, email: str, message: str | None = None) -> dict:
         """Inviter un utilisateur par email à rejoindre un trip."""
         TripShareService._check_trip_not_completed(db, trip_id)
         # Resolve user by email
@@ -77,7 +77,9 @@ class TripShareService:
                 trip_id=trip_id,
                 notif_type=NotificationType.TRIP_SHARED,
                 title="Nouveau voyage partagé !",
-                body=f"{owner.full_name or owner.email} vous a invité à « {trip.title or 'un voyage'} »",
+                body=f"{owner.full_name or owner.email} vous a invité : {message}"
+                if message
+                else f"{owner.full_name or owner.email} vous a invité à « {trip.title or 'un voyage'} »",
                 data={"screen": "tripHome", "tripId": str(trip_id)},
             )
         except Exception as e:

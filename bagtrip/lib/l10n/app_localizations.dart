@@ -5197,6 +5197,102 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Ajouter manuellement'**
   String get addActivityManually;
+
+  /// No description provided for @shareInviteTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inviter au voyage'**
+  String get shareInviteTitle;
+
+  /// No description provided for @shareInviteEmailLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse email'**
+  String get shareInviteEmailLabel;
+
+  /// No description provided for @shareInviteEmailHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'utilisateur@exemple.com'**
+  String get shareInviteEmailHint;
+
+  /// No description provided for @shareInviteEmailRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'email est requis'**
+  String get shareInviteEmailRequired;
+
+  /// No description provided for @shareInviteEmailInvalid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Format d\'email invalide'**
+  String get shareInviteEmailInvalid;
+
+  /// No description provided for @shareInviteMessageLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Message (optionnel)'**
+  String get shareInviteMessageLabel;
+
+  /// No description provided for @shareInviteMessageHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un message personnel...'**
+  String get shareInviteMessageHint;
+
+  /// No description provided for @shareInviteSendButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer l\'invitation'**
+  String get shareInviteSendButton;
+
+  /// No description provided for @shareErrorUserNotFound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette personne doit d\'abord créer un compte'**
+  String get shareErrorUserNotFound;
+
+  /// No description provided for @shareErrorAlreadyShared.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déjà partagé avec cette personne'**
+  String get shareErrorAlreadyShared;
+
+  /// No description provided for @shareErrorSelfShare.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous ne pouvez pas partager un voyage avec vous-même'**
+  String get shareErrorSelfShare;
+
+  /// No description provided for @shareRevokeConfirmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer l\'accès'**
+  String get shareRevokeConfirmTitle;
+
+  /// No description provided for @shareRevokeConfirmMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer l\'accès de {name} ?'**
+  String shareRevokeConfirmMessage(String name);
+
+  /// No description provided for @viewerBadgeReadOnly.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lecture seule'**
+  String get viewerBadgeReadOnly;
+
+  /// No description provided for @shareInviteSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Invitation envoyée'**
+  String get shareInviteSuccess;
+
+  /// No description provided for @shareRevokeSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accès révoqué'**
+  String get shareRevokeSuccess;
 }
 
 class _AppLocalizationsDelegate
