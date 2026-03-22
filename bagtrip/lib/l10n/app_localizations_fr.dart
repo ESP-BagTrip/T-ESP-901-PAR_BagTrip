@@ -2670,4 +2670,38 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get arrivalMustBeAfterDeparture =>
       'L\'arrivée doit être après le départ';
+
+  @override
+  String get accommodationEditTitle => 'Modifier l\'hébergement';
+
+  @override
+  String get accommodationSaveButton => 'Enregistrer';
+
+  @override
+  String get accommodationAddressLabel => 'Adresse';
+
+  @override
+  String get accommodationReferenceLabel => 'Référence de réservation';
+
+  @override
+  String get accommodationCheckOutBeforeCheckIn =>
+      'Le check-out doit être après le check-in';
+
+  @override
+  String get accommodationCheckInTimeLabel => 'Heure d\'arrivée';
+
+  @override
+  String get accommodationCheckOutTimeLabel => 'Heure de départ';
+
+  @override
+  String get accommodationGetPrices => 'Voir les prix';
+
+  @override
+  String get accommodationSelectHotel => 'Sélectionner';
+
+  @override
+  String get accommodationPerNight => '/nuit';
+
+  @override
+  String get accommodationNoResults => 'Aucun hôtel trouvé';
 }

@@ -358,6 +358,7 @@ mixin $AccommodationsRoute on GoRouteData {
             false,
         tripStartDate: state.uri.queryParameters['trip-start-date'],
         tripEndDate: state.uri.queryParameters['trip-end-date'],
+        destinationIata: state.uri.queryParameters['destination-iata'],
       );
 
   AccommodationsRoute get _self => this as AccommodationsRoute;
@@ -371,6 +372,8 @@ mixin $AccommodationsRoute on GoRouteData {
         'is-completed': _self.isCompleted.toString(),
       if (_self.tripStartDate != null) 'trip-start-date': _self.tripStartDate,
       if (_self.tripEndDate != null) 'trip-end-date': _self.tripEndDate,
+      if (_self.destinationIata != null)
+        'destination-iata': _self.destinationIata,
     },
   );
 

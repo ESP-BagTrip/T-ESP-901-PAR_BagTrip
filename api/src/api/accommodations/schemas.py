@@ -1,6 +1,6 @@
 """Schémas Pydantic pour les accommodations."""
 
-from datetime import date, datetime
+from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
 
@@ -12,8 +12,8 @@ class AccommodationCreateRequest(BaseModel):
 
     name: str
     address: str | None = None
-    checkIn: date | None = None
-    checkOut: date | None = None
+    checkIn: datetime | None = None
+    checkOut: datetime | None = None
     pricePerNight: Decimal | None = None
     currency: str | None = None
     bookingReference: str | None = None
@@ -25,8 +25,8 @@ class AccommodationUpdateRequest(BaseModel):
 
     name: str | None = None
     address: str | None = None
-    checkIn: date | None = None
-    checkOut: date | None = None
+    checkIn: datetime | None = None
+    checkOut: datetime | None = None
     pricePerNight: Decimal | None = None
     currency: str | None = None
     bookingReference: str | None = None
@@ -40,8 +40,8 @@ class AccommodationResponse(BaseModel):
     tripId: UUID = Field(..., alias="trip_id")
     name: str
     address: str | None = None
-    checkIn: date | None = Field(None, alias="check_in")
-    checkOut: date | None = Field(None, alias="check_out")
+    checkIn: datetime | None = Field(None, alias="check_in")
+    checkOut: datetime | None = Field(None, alias="check_out")
     pricePerNight: Decimal | None = Field(None, alias="price_per_night")
     currency: str | None = None
     bookingReference: str | None = Field(None, alias="booking_reference")

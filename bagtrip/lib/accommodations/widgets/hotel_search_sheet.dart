@@ -10,11 +10,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class HotelSearchSheet extends StatefulWidget {
   final String tripId;
   final String? initialCityCode;
+  final DateTime? tripStartDate;
+  final DateTime? tripEndDate;
 
   const HotelSearchSheet({
     super.key,
     required this.tripId,
     this.initialCityCode,
+    this.tripStartDate,
+    this.tripEndDate,
   });
 
   @override
@@ -27,8 +31,9 @@ class _HotelSearchSheetState extends State<HotelSearchSheet> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialCityCode != null) {
+    if (widget.initialCityCode != null && widget.initialCityCode!.isNotEmpty) {
       _searchCtrl.text = widget.initialCityCode!;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _search());
     }
   }
 
@@ -45,23 +50,35 @@ class _HotelSearchSheetState extends State<HotelSearchSheet> {
     }
   }
 
+  String _buildAddress(Map<String, dynamic> hotel) {
+    final address = hotel['address'];
+    if (address is! Map) return '';
+    final parts = <String>[];
+    if (address['cityName'] != null) parts.add(address['cityName'] as String);
+    if (address['countryCode'] != null) {
+      parts.add(address['countryCode'] as String);
+    }
+    return parts.join(', ');
+  }
+
   void _selectHotel(Map<String, dynamic> hotel) {
+    final bloc = context.read<AccommodationBloc>();
     Navigator.of(context).pop();
     final name = hotel['name'] as String? ?? '';
-    final address = hotel['address'] is Map
-        ? (hotel['address'] as Map)['countryCode'] as String? ?? ''
-        : '';
+    final address = _buildAddress(hotel);
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => BlocProvider.value(
-        value: context.read<AccommodationBloc>(),
+        value: bloc,
         child: ManualAccommodationForm(
           tripId: widget.tripId,
           isEstimatedPrice: true,
-          prefill: {'name': name, 'address': address},
+          tripStartDate: widget.tripStartDate,
+          tripEndDate: widget.tripEndDate,
+          prefill: {'name': name, if (address.isNotEmpty) 'address': address},
         ),
       ),
     );
@@ -149,8 +166,9 @@ class _HotelSearchSheetState extends State<HotelSearchSheet> {
                     if (hotels.isEmpty) {
                       return Center(
                         child: Text(
-                          l10n.accommodationEmptyTitle,
+                          l10n.accommodationNoResults,
                           style: TextStyle(
+                            fontFamily: FontFamily.b612,
                             color: Theme.of(context).colorScheme.outline,
                           ),
                         ),
@@ -163,7 +181,7 @@ class _HotelSearchSheetState extends State<HotelSearchSheet> {
                       itemBuilder: (_, index) {
                         final hotel = hotels[index];
                         final name = hotel['name'] as String? ?? 'Hotel';
-                        final hotelId = hotel['hotelId'] as String? ?? '';
+                        final address = _buildAddress(hotel);
                         return Card(
                           margin: const EdgeInsets.only(bottom: 8),
                           shape: const RoundedRectangleBorder(
@@ -181,19 +199,32 @@ class _HotelSearchSheetState extends State<HotelSearchSheet> {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            subtitle: Text(
-                              hotelId,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
+                            subtitle: address.isNotEmpty
+                                ? Text(
+                                    address,
+                                    style: TextStyle(
+                                      fontFamily: FontFamily.b612,
+                                      fontSize: 12,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                                  )
+                                : null,
+                            trailing: FilledButton.tonal(
+                              onPressed: () => _selectHotel(hotel),
+                              style: FilledButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
                               ),
-                            ),
-                            trailing: Icon(
-                              Icons.arrow_forward_ios,
-                              size: 16,
-                              color: Theme.of(context).colorScheme.outline,
+                              child: Text(
+                                l10n.accommodationSelectHotel,
+                                style: const TextStyle(
+                                  fontFamily: FontFamily.b612,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ),
                             onTap: () => _selectHotel(hotel),
                           ),

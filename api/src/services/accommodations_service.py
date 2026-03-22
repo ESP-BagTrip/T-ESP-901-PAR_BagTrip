@@ -1,6 +1,6 @@
 """Service pour la gestion des accommodations."""
 
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID
 
@@ -27,10 +27,13 @@ class AccommodationsService:
             )
 
     @staticmethod
-    def _calc_nights(check_in: date | None, check_out: date | None) -> int:
+    def _calc_nights(check_in: datetime | date | None, check_out: datetime | date | None) -> int:
         """Calculate number of nights between check_in and check_out."""
-        if check_in and check_out and check_out > check_in:
-            return (check_out - check_in).days
+        if check_in and check_out:
+            d1 = check_in.date() if isinstance(check_in, datetime) else check_in
+            d2 = check_out.date() if isinstance(check_out, datetime) else check_out
+            if d2 > d1:
+                return (d2 - d1).days
         return 1
 
     @staticmethod
@@ -39,8 +42,8 @@ class AccommodationsService:
         trip: Trip,
         name: str,
         address: str | None = None,
-        check_in: date | None = None,
-        check_out: date | None = None,
+        check_in: datetime | None = None,
+        check_out: datetime | None = None,
         price_per_night: Decimal | None = None,
         currency: str | None = None,
         booking_reference: str | None = None,
@@ -102,8 +105,8 @@ class AccommodationsService:
         trip: Trip,
         name: str | None = None,
         address: str | None = None,
-        check_in: date | None = None,
-        check_out: date | None = None,
+        check_in: datetime | None = None,
+        check_out: datetime | None = None,
         price_per_night: Decimal | None = None,
         currency: str | None = None,
         booking_reference: str | None = None,

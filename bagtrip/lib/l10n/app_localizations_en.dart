@@ -2644,4 +2644,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get arrivalMustBeAfterDeparture => 'Arrival must be after departure';
+
+  @override
+  String get accommodationEditTitle => 'Edit Accommodation';
+
+  @override
+  String get accommodationSaveButton => 'Save';
+
+  @override
+  String get accommodationAddressLabel => 'Address';
+
+  @override
+  String get accommodationReferenceLabel => 'Booking reference';
+
+  @override
+  String get accommodationCheckOutBeforeCheckIn =>
+      'Check-out must be after check-in';
+
+  @override
+  String get accommodationCheckInTimeLabel => 'Check-in time';
+
+  @override
+  String get accommodationCheckOutTimeLabel => 'Check-out time';
+
+  @override
+  String get accommodationGetPrices => 'See prices';
+
+  @override
+  String get accommodationSelectHotel => 'Select';
+
+  @override
+  String get accommodationPerNight => '/night';
+
+  @override
+  String get accommodationNoResults => 'No hotels found';
 }

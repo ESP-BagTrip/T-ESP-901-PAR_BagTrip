@@ -1,6 +1,7 @@
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
+import 'package:bagtrip/home/helpers/map_launcher.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/accommodation.dart';
 import 'package:flutter/material.dart';
@@ -10,12 +11,14 @@ class AccommodationCard extends StatefulWidget {
   final Accommodation accommodation;
   final bool isViewer;
   final VoidCallback? onDelete;
+  final VoidCallback? onEdit;
 
   const AccommodationCard({
     super.key,
     required this.accommodation,
     this.isViewer = false,
     this.onDelete,
+    this.onEdit,
   });
 
   @override
@@ -57,7 +60,10 @@ class _AccommodationCardState extends State<AccommodationCard> {
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _scale = 0.98),
-      onTapUp: (_) => setState(() => _scale = 1.0),
+      onTapUp: (_) {
+        setState(() => _scale = 1.0);
+        widget.onEdit?.call();
+      },
       onTapCancel: () => setState(() => _scale = 1.0),
       onLongPress: widget.onDelete,
       child: AnimatedScale(
@@ -117,18 +123,34 @@ class _AccommodationCardState extends State<AccommodationCard> {
                 ],
               ),
 
-              // Line 2: Address
+              // Line 2: Address (tappable → maps)
               if (a.address != null) ...[
                 const SizedBox(height: 4),
-                Text(
-                  a.address!,
-                  style: TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 13,
-                    color: theme.colorScheme.onSurfaceVariant,
+                GestureDetector(
+                  onTap: () => launchMapNavigation(context, a.address!),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.place_outlined,
+                        size: 14,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          a.address!,
+                          style: TextStyle(
+                            fontFamily: FontFamily.b612,
+                            fontSize: 13,
+                            color: theme.colorScheme.onSurfaceVariant,
+                            decoration: TextDecoration.underline,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
 

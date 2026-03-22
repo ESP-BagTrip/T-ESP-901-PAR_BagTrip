@@ -3,6 +3,7 @@ import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
+import 'package:bagtrip/home/helpers/map_launcher.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/accommodation.dart';
 import 'package:bagtrip/trip_detail/helpers/accommodation_status.dart';
@@ -281,41 +282,87 @@ class _AccommodationBookingCardState extends State<AccommodationBookingCard> {
               // ── Zone 3: Details ───────────────────────────────
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (a.address != null && a.address!.isNotEmpty)
-                      Expanded(
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (a.address != null && a.address!.isNotEmpty)
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () =>
+                                  launchMapNavigation(context, a.address!),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.place_outlined,
+                                    size: 14,
+                                    color: ColorName.textMutedLight,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      a.address!,
+                                      style: const TextStyle(
+                                        fontFamily: FontFamily.b612,
+                                        fontSize: 12,
+                                        color: ColorName.textMutedLight,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        else if (a.checkIn != null)
+                          Text(
+                            DateFormat('d MMM yyyy').format(a.checkIn!),
+                            style: const TextStyle(
+                              fontFamily: FontFamily.b612,
+                              fontSize: 12,
+                              color: ColorName.textMutedLight,
+                            ),
+                          ),
+                        if (totalPrice != null)
+                          Text(
+                            '${totalPrice.toStringAsFixed(0)} ${a.currency ?? '€'}',
+                            style: const TextStyle(
+                              fontFamily: FontFamily.b612,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: ColorName.primary,
+                            ),
+                          ),
+                      ],
+                    ),
+                    if (a.bookingReference != null &&
+                        a.bookingReference!.isNotEmpty &&
+                        widget.isOwner) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: ColorName.primary.withValues(alpha: 0.08),
+                          borderRadius: AppRadius.medium8,
+                        ),
                         child: Text(
-                          a.address!,
+                          a.bookingReference!,
                           style: const TextStyle(
                             fontFamily: FontFamily.b612,
-                            fontSize: 12,
-                            color: ColorName.textMutedLight,
+                            fontSize: 11,
+                            color: ColorName.primary,
+                            fontWeight: FontWeight.w600,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      )
-                    else if (a.checkIn != null)
-                      Text(
-                        DateFormat('d MMM yyyy').format(a.checkIn!),
-                        style: const TextStyle(
-                          fontFamily: FontFamily.b612,
-                          fontSize: 12,
-                          color: ColorName.textMutedLight,
                         ),
                       ),
-                    if (totalPrice != null)
-                      Text(
-                        '${totalPrice.toStringAsFixed(0)} ${a.currency ?? '€'}',
-                        style: const TextStyle(
-                          fontFamily: FontFamily.b612,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: ColorName.primary,
-                        ),
-                      ),
+                    ],
                   ],
                 ),
               ),
