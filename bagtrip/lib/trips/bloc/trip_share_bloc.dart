@@ -43,6 +43,7 @@ class TripShareBloc extends Bloc<TripShareEvent, TripShareState> {
     final result = await _tripShareRepository.createShare(
       event.tripId,
       email: event.email,
+      message: event.message,
     );
     if (isClosed) return;
     switch (result) {

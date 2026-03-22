@@ -202,7 +202,7 @@ void main() {
       expect(find.text('Invite someone'), findsNothing);
     });
 
-    testWidgets('remove button tap → fires DeleteShareFromDetail', (
+    testWidgets('remove button tap → shows confirmation dialog', (
       tester,
     ) async {
       final shares = [makeTripShare(id: 's-del', userFullName: 'Alice')];
@@ -222,6 +222,37 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.remove_circle_outline));
+      await tester.pumpAndSettle();
+
+      // Confirmation dialog should appear
+      expect(find.text('Remove access'), findsOneWidget);
+      expect(find.textContaining('Alice'), findsWidgets);
+    });
+
+    testWidgets('confirming revoke dialog → fires DeleteShareFromDetail', (
+      tester,
+    ) async {
+      final shares = [makeTripShare(id: 's-del', userFullName: 'Alice')];
+
+      await tester.pumpWidget(
+        _buildApp(
+          bloc: mockBloc,
+          child: TripSharingSection(
+            shares: shares,
+            tripId: 'trip-1',
+            trip: makeTrip(),
+            isOwner: true,
+            isCompleted: false,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.remove_circle_outline));
+      await tester.pumpAndSettle();
+
+      // Confirm in the dialog
+      await tester.tap(find.text('Revoke'));
       await tester.pumpAndSettle();
 
       verify(

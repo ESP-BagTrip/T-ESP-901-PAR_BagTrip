@@ -37,6 +37,7 @@ async def create_share(
             trip_id=access.trip.id,
             owner_user_id=access.trip.user_id,
             email=request.email,
+            message=request.message,
         )
         return ShareResponse(**share)
     except AppError as e:

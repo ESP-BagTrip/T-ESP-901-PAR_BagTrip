@@ -1157,5 +1157,27 @@
   "timelineGetSuggestions": "Obtenir des suggestions IA",
   "timelineSuggestionsForDay": "Suggestions pour cette journée",
   "timelineAddSuggestion": "Ajouter à l'itinéraire",
-  "addActivityManually": "Ajouter manuellement"
+  "addActivityManually": "Ajouter manuellement",
+
+  "shareInviteTitle": "Inviter au voyage",
+  "shareInviteEmailLabel": "Adresse email",
+  "shareInviteEmailHint": "utilisateur@exemple.com",
+  "shareInviteEmailRequired": "L'email est requis",
+  "shareInviteEmailInvalid": "Format d'email invalide",
+  "shareInviteMessageLabel": "Message (optionnel)",
+  "shareInviteMessageHint": "Ajouter un message personnel...",
+  "shareInviteSendButton": "Envoyer l'invitation",
+  "shareErrorUserNotFound": "Cette personne doit d'abord créer un compte",
+  "shareErrorAlreadyShared": "Déjà partagé avec cette personne",
+  "shareErrorSelfShare": "Vous ne pouvez pas partager un voyage avec vous-même",
+  "shareRevokeConfirmTitle": "Retirer l'accès",
+  "shareRevokeConfirmMessage": "Retirer l'accès de {name} ?",
+  "@shareRevokeConfirmMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "viewerBadgeReadOnly": "Lecture seule",
+  "shareInviteSuccess": "Invitation envoyée",
+  "shareRevokeSuccess": "Accès révoqué"
 }

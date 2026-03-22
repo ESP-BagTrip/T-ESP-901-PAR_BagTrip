@@ -1157,5 +1157,27 @@
   "timelineGetSuggestions": "Get AI suggestions",
   "timelineSuggestionsForDay": "Suggestions for this day",
   "timelineAddSuggestion": "Add to itinerary",
-  "addActivityManually": "Add manually"
+  "addActivityManually": "Add manually",
+
+  "shareInviteTitle": "Invite to trip",
+  "shareInviteEmailLabel": "Email address",
+  "shareInviteEmailHint": "user@example.com",
+  "shareInviteEmailRequired": "Email is required",
+  "shareInviteEmailInvalid": "Invalid email format",
+  "shareInviteMessageLabel": "Message (optional)",
+  "shareInviteMessageHint": "Add a personal note...",
+  "shareInviteSendButton": "Send invite",
+  "shareErrorUserNotFound": "This person must create an account first",
+  "shareErrorAlreadyShared": "Already shared with this person",
+  "shareErrorSelfShare": "You can't share a trip with yourself",
+  "shareRevokeConfirmTitle": "Remove access",
+  "shareRevokeConfirmMessage": "Remove access for {name}?",
+  "@shareRevokeConfirmMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "viewerBadgeReadOnly": "Read only",
+  "shareInviteSuccess": "Invitation sent",
+  "shareRevokeSuccess": "Access revoked"
 }

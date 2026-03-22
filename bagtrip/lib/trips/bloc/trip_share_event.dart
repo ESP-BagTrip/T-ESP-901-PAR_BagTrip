@@ -10,7 +10,8 @@ class LoadShares extends TripShareEvent {
 class CreateShare extends TripShareEvent {
   final String tripId;
   final String email;
-  CreateShare({required this.tripId, required this.email});
+  final String? message;
+  CreateShare({required this.tripId, required this.email, this.message});
 }
 
 class DeleteShare extends TripShareEvent {
