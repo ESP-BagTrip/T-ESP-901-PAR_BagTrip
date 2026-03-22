@@ -240,5 +240,273 @@ void main() {
       ),
       expect: () => [isA<BaggageError>()],
     );
+
+    // ── SuggestBaggage ──────────────────────────────────────────────────
+
+    blocTest<BaggageBloc, BaggageState>(
+      'SuggestBaggage success from loaded state',
+      build: () {
+        when(
+          () => mockBaggageRepo.suggestBaggage(any()),
+        ).thenAnswer((_) async => Success([makeSuggestedBaggageItem()]));
+        return BaggageBloc(baggageRepository: mockBaggageRepo);
+      },
+      seed: () => BaggageLoaded(
+        items: [makeBaggageItem()],
+        packedCount: 0,
+        totalCount: 1,
+      ),
+      act: (bloc) => bloc.add(SuggestBaggage(tripId: 'trip-1')),
+      expect: () => [isA<BaggageSuggestionsLoading>(), isA<BaggageLoaded>()],
+      verify: (bloc) {
+        final state = bloc.state as BaggageLoaded;
+        expect(state.suggestions.length, 1);
+        expect(state.suggestions.first.name, 'Sunscreen');
+      },
+    );
+
+    blocTest<BaggageBloc, BaggageState>(
+      'SuggestBaggage emits BaggageQuotaExceeded on QuotaExceededError',
+      build: () {
+        when(
+          () => mockBaggageRepo.suggestBaggage(any()),
+        ).thenAnswer((_) async => const Failure(QuotaExceededError('quota')));
+        return BaggageBloc(baggageRepository: mockBaggageRepo);
+      },
+      seed: () => BaggageLoaded(
+        items: [makeBaggageItem()],
+        packedCount: 0,
+        totalCount: 1,
+      ),
+      act: (bloc) => bloc.add(SuggestBaggage(tripId: 'trip-1')),
+      expect: () => [
+        isA<BaggageSuggestionsLoading>(),
+        isA<BaggageQuotaExceeded>(),
+      ],
+    );
+
+    blocTest<BaggageBloc, BaggageState>(
+      'SuggestBaggage emits BaggageError on generic error',
+      build: () {
+        when(
+          () => mockBaggageRepo.suggestBaggage(any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('err')));
+        return BaggageBloc(baggageRepository: mockBaggageRepo);
+      },
+      act: (bloc) => bloc.add(SuggestBaggage(tripId: 'trip-1')),
+      expect: () => [isA<BaggageLoading>(), isA<BaggageError>()],
+    );
+
+    // ── AcceptSuggestion ────────────────────────────────────────────────
+
+    blocTest<BaggageBloc, BaggageState>(
+      'AcceptSuggestion creates item, removes from suggestions, reloads',
+      build: () {
+        when(
+          () => mockBaggageRepo.createBaggageItem(
+            any(),
+            name: any(named: 'name'),
+            quantity: any(named: 'quantity'),
+            category: any(named: 'category'),
+          ),
+        ).thenAnswer(
+          (_) async =>
+              Success(makeBaggageItem(id: 'bag-new', name: 'Sunscreen')),
+        );
+        when(() => mockBaggageRepo.getByTrip(any())).thenAnswer(
+          (_) async => Success([
+            makeBaggageItem(),
+            makeBaggageItem(id: 'bag-new', name: 'Sunscreen'),
+          ]),
+        );
+        return BaggageBloc(baggageRepository: mockBaggageRepo);
+      },
+      seed: () => BaggageLoaded(
+        items: [makeBaggageItem()],
+        packedCount: 0,
+        totalCount: 1,
+        suggestions: [makeSuggestedBaggageItem()],
+      ),
+      act: (bloc) => bloc.add(
+        AcceptSuggestion(
+          tripId: 'trip-1',
+          suggestion: makeSuggestedBaggageItem(),
+        ),
+      ),
+      expect: () => [isA<BaggageLoaded>()],
+      verify: (bloc) {
+        final state = bloc.state as BaggageLoaded;
+        expect(state.items.length, 2);
+        expect(state.suggestions.isEmpty, true);
+      },
+    );
+
+    blocTest<BaggageBloc, BaggageState>(
+      'AcceptSuggestion emits BaggageError on API failure',
+      build: () {
+        when(
+          () => mockBaggageRepo.createBaggageItem(
+            any(),
+            name: any(named: 'name'),
+            quantity: any(named: 'quantity'),
+            category: any(named: 'category'),
+          ),
+        ).thenAnswer((_) async => const Failure(NetworkError('err')));
+        return BaggageBloc(baggageRepository: mockBaggageRepo);
+      },
+      seed: () => BaggageLoaded(
+        items: [makeBaggageItem()],
+        packedCount: 0,
+        totalCount: 1,
+        suggestions: [makeSuggestedBaggageItem()],
+      ),
+      act: (bloc) => bloc.add(
+        AcceptSuggestion(
+          tripId: 'trip-1',
+          suggestion: makeSuggestedBaggageItem(),
+        ),
+      ),
+      expect: () => [isA<BaggageError>()],
+    );
+
+    // ── DismissSuggestion ───────────────────────────────────────────────
+
+    blocTest<BaggageBloc, BaggageState>(
+      'DismissSuggestion removes from list locally',
+      build: () => BaggageBloc(baggageRepository: mockBaggageRepo),
+      seed: () => BaggageLoaded(
+        items: [makeBaggageItem()],
+        packedCount: 0,
+        totalCount: 1,
+        suggestions: [
+          makeSuggestedBaggageItem(),
+          makeSuggestedBaggageItem(name: 'Hat'),
+        ],
+      ),
+      act: (bloc) =>
+          bloc.add(DismissSuggestion(suggestion: makeSuggestedBaggageItem())),
+      expect: () => [isA<BaggageLoaded>()],
+      verify: (bloc) {
+        final state = bloc.state as BaggageLoaded;
+        expect(state.suggestions.length, 1);
+        expect(state.suggestions.first.name, 'Hat');
+      },
+    );
+
+    blocTest<BaggageBloc, BaggageState>(
+      'DismissSuggestion no-op when not BaggageLoaded',
+      build: () => BaggageBloc(baggageRepository: mockBaggageRepo),
+      act: (bloc) =>
+          bloc.add(DismissSuggestion(suggestion: makeSuggestedBaggageItem())),
+      expect: () => <BaggageState>[],
+    );
+
+    // ── ReorderBaggageItem ──────────────────────────────────────────────
+
+    blocTest<BaggageBloc, BaggageState>(
+      'ReorderBaggageItem reorders unpacked items correctly',
+      build: () => BaggageBloc(baggageRepository: mockBaggageRepo),
+      seed: () => BaggageLoaded(
+        items: [
+          makeBaggageItem(id: 'a', name: 'A'),
+          makeBaggageItem(id: 'b', name: 'B'),
+          makeBaggageItem(id: 'c', name: 'C'),
+        ],
+        packedCount: 0,
+        totalCount: 3,
+      ),
+      act: (bloc) => bloc.add(ReorderBaggageItem(oldIndex: 0, newIndex: 2)),
+      expect: () => [isA<BaggageLoaded>()],
+      verify: (bloc) {
+        final state = bloc.state as BaggageLoaded;
+        expect(state.items[0].id, 'b');
+        expect(state.items[1].id, 'a');
+        expect(state.items[2].id, 'c');
+      },
+    );
+
+    blocTest<BaggageBloc, BaggageState>(
+      'ReorderBaggageItem adjusts newIndex when moving downward',
+      build: () => BaggageBloc(baggageRepository: mockBaggageRepo),
+      seed: () => BaggageLoaded(
+        items: [
+          makeBaggageItem(id: 'a', name: 'A'),
+          makeBaggageItem(id: 'b', name: 'B'),
+          makeBaggageItem(id: 'c', name: 'C'),
+        ],
+        packedCount: 0,
+        totalCount: 3,
+      ),
+      act: (bloc) => bloc.add(ReorderBaggageItem(oldIndex: 2, newIndex: 0)),
+      expect: () => [isA<BaggageLoaded>()],
+      verify: (bloc) {
+        final state = bloc.state as BaggageLoaded;
+        expect(state.items[0].id, 'c');
+        expect(state.items[1].id, 'a');
+        expect(state.items[2].id, 'b');
+      },
+    );
+
+    blocTest<BaggageBloc, BaggageState>(
+      'ReorderBaggageItem no-op when not BaggageLoaded',
+      build: () => BaggageBloc(baggageRepository: mockBaggageRepo),
+      act: (bloc) => bloc.add(ReorderBaggageItem(oldIndex: 0, newIndex: 1)),
+      expect: () => <BaggageState>[],
+    );
+
+    // ── TogglePacked celebration ────────────────────────────────────────
+
+    blocTest<BaggageBloc, BaggageState>(
+      'TogglePacked celebrationTriggered=true when all items become packed',
+      build: () {
+        when(
+          () => mockBaggageRepo.updateBaggageItem(any(), any(), any()),
+        ).thenAnswer((_) async => Success(makeBaggageItem(isPacked: true)));
+        return BaggageBloc(baggageRepository: mockBaggageRepo);
+      },
+      seed: () => BaggageLoaded(
+        items: [
+          makeBaggageItem(),
+          makeBaggageItem(id: 'bag-2', name: 'Charger', isPacked: true),
+        ],
+        packedCount: 1,
+        totalCount: 2,
+      ),
+      act: (bloc) =>
+          bloc.add(TogglePacked(tripId: 'trip-1', item: makeBaggageItem())),
+      expect: () => [isA<BaggageLoaded>()],
+      verify: (bloc) {
+        final state = bloc.state as BaggageLoaded;
+        expect(state.celebrationTriggered, true);
+        expect(state.packedCount, 2);
+      },
+    );
+
+    blocTest<BaggageBloc, BaggageState>(
+      'TogglePacked celebrationTriggered=false when unpacking from 100%',
+      build: () {
+        when(
+          () => mockBaggageRepo.updateBaggageItem(any(), any(), any()),
+        ).thenAnswer((_) async => Success(makeBaggageItem()));
+        return BaggageBloc(baggageRepository: mockBaggageRepo);
+      },
+      seed: () => BaggageLoaded(
+        items: [
+          makeBaggageItem(isPacked: true),
+          makeBaggageItem(id: 'bag-2', name: 'Charger', isPacked: true),
+        ],
+        packedCount: 2,
+        totalCount: 2,
+      ),
+      act: (bloc) => bloc.add(
+        TogglePacked(tripId: 'trip-1', item: makeBaggageItem(isPacked: true)),
+      ),
+      expect: () => [isA<BaggageLoaded>()],
+      verify: (bloc) {
+        final state = bloc.state as BaggageLoaded;
+        expect(state.celebrationTriggered, false);
+        expect(state.packedCount, 1);
+      },
+    );
   });
 }

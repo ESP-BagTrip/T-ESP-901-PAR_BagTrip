@@ -196,5 +196,138 @@ void main() {
           bloc.add(DeleteBudgetItem(tripId: 'trip-1', itemId: 'budget-1')),
       expect: () => [isA<BudgetError>()],
     );
+
+    // ── EstimateBudget ────────────────────────────────────────────────
+
+    blocTest<BudgetBloc, BudgetState>(
+      'emits [BudgetEstimating, BudgetEstimated] when EstimateBudget succeeds from BudgetLoaded',
+      build: () {
+        when(
+          () => mockBudgetRepo.estimateBudget(any()),
+        ).thenAnswer((_) async => Success(makeBudgetEstimation()));
+        return BudgetBloc(budgetRepository: mockBudgetRepo);
+      },
+      seed: () =>
+          BudgetLoaded(items: [makeBudgetItem()], summary: makeBudgetSummary()),
+      act: (bloc) => bloc.add(EstimateBudget(tripId: 'trip-1')),
+      expect: () => [isA<BudgetEstimating>(), isA<BudgetEstimated>()],
+      verify: (bloc) {
+        final state = bloc.state as BudgetEstimated;
+        expect(state.items.length, 1);
+        expect(state.summary.totalBudget, 1000);
+      },
+    );
+
+    blocTest<BudgetBloc, BudgetState>(
+      'emits [BudgetEstimating, BudgetEstimated] when EstimateBudget succeeds from initial state',
+      build: () {
+        when(
+          () => mockBudgetRepo.estimateBudget(any()),
+        ).thenAnswer((_) async => Success(makeBudgetEstimation()));
+        return BudgetBloc(budgetRepository: mockBudgetRepo);
+      },
+      act: (bloc) => bloc.add(EstimateBudget(tripId: 'trip-1')),
+      expect: () => [isA<BudgetEstimating>(), isA<BudgetEstimated>()],
+      verify: (bloc) {
+        final state = bloc.state as BudgetEstimated;
+        expect(state.items.isEmpty, true);
+        expect(state.summary.totalBudget, 0);
+      },
+    );
+
+    blocTest<BudgetBloc, BudgetState>(
+      'emits [BudgetEstimating, BudgetQuotaExceeded] when EstimateBudget fails with QuotaExceededError',
+      build: () {
+        when(
+          () => mockBudgetRepo.estimateBudget(any()),
+        ).thenAnswer((_) async => const Failure(QuotaExceededError('quota')));
+        return BudgetBloc(budgetRepository: mockBudgetRepo);
+      },
+      act: (bloc) => bloc.add(EstimateBudget(tripId: 'trip-1')),
+      expect: () => [isA<BudgetEstimating>(), isA<BudgetQuotaExceeded>()],
+    );
+
+    blocTest<BudgetBloc, BudgetState>(
+      'emits [BudgetEstimating, BudgetError] when EstimateBudget fails with generic error',
+      build: () {
+        when(
+          () => mockBudgetRepo.estimateBudget(any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('err')));
+        return BudgetBloc(budgetRepository: mockBudgetRepo);
+      },
+      act: (bloc) => bloc.add(EstimateBudget(tripId: 'trip-1')),
+      expect: () => [isA<BudgetEstimating>(), isA<BudgetError>()],
+    );
+
+    // ── AcceptBudgetEstimate ──────────────────────────────────────────
+
+    blocTest<BudgetBloc, BudgetState>(
+      'emits [BudgetLoading, BudgetLoaded] when AcceptBudgetEstimate succeeds and triggers LoadBudget',
+      build: () {
+        when(
+          () => mockBudgetRepo.acceptBudgetEstimate(any(), any()),
+        ).thenAnswer((_) async => const Success(null));
+        stubLoadBudgetSuccess();
+        return BudgetBloc(budgetRepository: mockBudgetRepo);
+      },
+      act: (bloc) =>
+          bloc.add(AcceptBudgetEstimate(tripId: 'trip-1', budgetTotal: 1500.0)),
+      wait: const Duration(milliseconds: 100),
+      expect: () => [isA<BudgetLoading>(), isA<BudgetLoaded>()],
+    );
+
+    blocTest<BudgetBloc, BudgetState>(
+      'emits [BudgetError] when AcceptBudgetEstimate fails',
+      build: () {
+        when(
+          () => mockBudgetRepo.acceptBudgetEstimate(any(), any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('err')));
+        return BudgetBloc(budgetRepository: mockBudgetRepo);
+      },
+      act: (bloc) =>
+          bloc.add(AcceptBudgetEstimate(tripId: 'trip-1', budgetTotal: 1500.0)),
+      expect: () => [isA<BudgetError>()],
+    );
+
+    // ── CreateBudgetItem failure ──────────────────────────────────────
+
+    blocTest<BudgetBloc, BudgetState>(
+      'emits [BudgetError] when CreateBudgetItem API fails',
+      build: () {
+        when(
+          () => mockBudgetRepo.createBudgetItem(any(), any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('err')));
+        return BudgetBloc(budgetRepository: mockBudgetRepo);
+      },
+      act: (bloc) => bloc.add(
+        CreateBudgetItem(
+          tripId: 'trip-1',
+          data: {'label': 'Taxi', 'amount': 30.0},
+        ),
+      ),
+      expect: () => [isA<BudgetError>()],
+    );
+
+    // ── UpdateBudgetItem fallback ─────────────────────────────────────
+
+    blocTest<BudgetBloc, BudgetState>(
+      'UpdateBudgetItem falls back to LoadBudget when state is not BudgetLoaded',
+      build: () {
+        when(
+          () => mockBudgetRepo.updateBudgetItem(any(), any(), any()),
+        ).thenAnswer((_) async => Success(makeBudgetItem(label: 'Updated')));
+        stubLoadBudgetSuccess();
+        return BudgetBloc(budgetRepository: mockBudgetRepo);
+      },
+      act: (bloc) => bloc.add(
+        UpdateBudgetItem(
+          tripId: 'trip-1',
+          itemId: 'budget-1',
+          data: {'label': 'Updated'},
+        ),
+      ),
+      wait: const Duration(milliseconds: 100),
+      expect: () => [isA<BudgetLoading>(), isA<BudgetLoaded>()],
+    );
   });
 }

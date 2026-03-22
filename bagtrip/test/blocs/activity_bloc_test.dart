@@ -334,5 +334,148 @@ void main() {
         isA<ActivityQuotaExceeded>(),
       ],
     );
+
+    // ── UpdateActivity ──────────────────────────────────────────────────
+
+    blocTest<ActivityBloc, ActivityState>(
+      'UpdateActivity replaces activity in state and regroups by day',
+      build: () {
+        when(
+          () => mockActivityRepo.updateActivity(any(), any(), any()),
+        ).thenAnswer(
+          (_) async => Success(makeActivity(title: 'Updated Title')),
+        );
+        return ActivityBloc(activityRepository: mockActivityRepo);
+      },
+      seed: () => ActivitiesLoaded(
+        activities: [makeActivity()],
+        groupedByDay: {
+          '2024-06-01': [makeActivity()],
+        },
+      ),
+      act: (bloc) => bloc.add(
+        UpdateActivity(
+          tripId: 'trip-1',
+          activityId: 'act-1',
+          data: {'title': 'Updated Title'},
+        ),
+      ),
+      expect: () => [isA<ActivitiesLoaded>()],
+      verify: (bloc) {
+        final state = bloc.state as ActivitiesLoaded;
+        expect(state.activities.first.title, 'Updated Title');
+      },
+    );
+
+    blocTest<ActivityBloc, ActivityState>(
+      'UpdateActivity falls back to LoadActivities when not loaded',
+      build: () {
+        when(
+          () => mockActivityRepo.updateActivity(any(), any(), any()),
+        ).thenAnswer((_) async => Success(makeActivity()));
+        when(
+          () => mockActivityRepo.getActivitiesPaginated(
+            any(),
+            page: any(named: 'page'),
+            limit: any(named: 'limit'),
+          ),
+        ).thenAnswer(
+          (_) async => Success(makePaginatedResponse(items: [makeActivity()])),
+        );
+        return ActivityBloc(activityRepository: mockActivityRepo);
+      },
+      act: (bloc) => bloc.add(
+        UpdateActivity(
+          tripId: 'trip-1',
+          activityId: 'act-1',
+          data: {'title': 'Updated'},
+        ),
+      ),
+      wait: const Duration(milliseconds: 100),
+      expect: () => [isA<ActivityLoading>(), isA<ActivitiesLoaded>()],
+    );
+
+    blocTest<ActivityBloc, ActivityState>(
+      'UpdateActivity emits ActivityError on API failure',
+      build: () {
+        when(
+          () => mockActivityRepo.updateActivity(any(), any(), any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('err')));
+        return ActivityBloc(activityRepository: mockActivityRepo);
+      },
+      act: (bloc) => bloc.add(
+        UpdateActivity(
+          tripId: 'trip-1',
+          activityId: 'act-1',
+          data: {'title': 'X'},
+        ),
+      ),
+      expect: () => [isA<ActivityError>()],
+    );
+
+    // ── AddSuggestedActivity ────────────────────────────────────────────
+
+    blocTest<ActivityBloc, ActivityState>(
+      'AddSuggestedActivity appends activity and regroups',
+      build: () {
+        when(() => mockActivityRepo.createActivity(any(), any())).thenAnswer(
+          (_) async => Success(makeActivity(id: 'act-new', title: 'Suggested')),
+        );
+        return ActivityBloc(activityRepository: mockActivityRepo);
+      },
+      seed: () => ActivitiesLoaded(
+        activities: [makeActivity()],
+        groupedByDay: {
+          '2024-06-01': [makeActivity()],
+        },
+      ),
+      act: (bloc) => bloc.add(
+        AddSuggestedActivity(tripId: 'trip-1', data: {'title': 'Suggested'}),
+      ),
+      expect: () => [isA<ActivitiesLoaded>()],
+      verify: (bloc) {
+        final state = bloc.state as ActivitiesLoaded;
+        expect(state.activities.length, 2);
+        expect(state.activities.last.id, 'act-new');
+      },
+    );
+
+    blocTest<ActivityBloc, ActivityState>(
+      'AddSuggestedActivity falls back to LoadActivities when not loaded',
+      build: () {
+        when(
+          () => mockActivityRepo.createActivity(any(), any()),
+        ).thenAnswer((_) async => Success(makeActivity()));
+        when(
+          () => mockActivityRepo.getActivitiesPaginated(
+            any(),
+            page: any(named: 'page'),
+            limit: any(named: 'limit'),
+          ),
+        ).thenAnswer(
+          (_) async => Success(makePaginatedResponse(items: [makeActivity()])),
+        );
+        return ActivityBloc(activityRepository: mockActivityRepo);
+      },
+      act: (bloc) => bloc.add(
+        AddSuggestedActivity(tripId: 'trip-1', data: {'title': 'X'}),
+      ),
+      wait: const Duration(milliseconds: 100),
+      expect: () => [isA<ActivityLoading>(), isA<ActivitiesLoaded>()],
+    );
+
+    // ── SuggestActivities generic failure ───────────────────────────────
+
+    blocTest<ActivityBloc, ActivityState>(
+      'SuggestActivities emits ActivityError on generic failure',
+      build: () {
+        when(
+          () => mockActivityRepo.suggestActivities(any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('err')));
+        return ActivityBloc(activityRepository: mockActivityRepo);
+      },
+      act: (bloc) => bloc.add(SuggestActivities(tripId: 'trip-1')),
+      expect: () => [isA<ActivitySuggestionsLoading>(), isA<ActivityError>()],
+    );
   });
 }

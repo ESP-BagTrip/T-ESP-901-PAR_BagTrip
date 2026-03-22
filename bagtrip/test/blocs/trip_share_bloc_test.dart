@@ -46,6 +46,21 @@ void main() {
         act: (bloc) => bloc.add(LoadShares(tripId: 'trip-1')),
         expect: () => [isA<TripShareLoading>(), isA<TripShareError>()],
       );
+
+      blocTest<TripShareBloc, TripShareState>(
+        'emits [TripShareLoading, TripShareLoaded] with empty list when getSharesByTrip returns no shares',
+        build: () {
+          when(
+            () => mockRepo.getSharesByTrip(any()),
+          ).thenAnswer((_) async => const Success(<TripShare>[]));
+          return TripShareBloc(tripShareRepository: mockRepo);
+        },
+        act: (bloc) => bloc.add(LoadShares(tripId: 'trip-1')),
+        expect: () => [isA<TripShareLoading>(), isA<TripShareLoaded>()],
+        verify: (bloc) {
+          expect((bloc.state as TripShareLoaded).shares.isEmpty, true);
+        },
+      );
     });
 
     // ── CreateShare ────────────────────────────────────────────────────
@@ -109,6 +124,38 @@ void main() {
         ),
         expect: () => [isA<TripShareLoading>(), isA<TripShareError>()],
       );
+
+      blocTest<TripShareBloc, TripShareState>(
+        'emits [TripShareLoading, TripShareError] when createShare fails with ServerError (already shared)',
+        build: () {
+          when(
+            () => mockRepo.createShare(any(), email: any(named: 'email')),
+          ).thenAnswer(
+            (_) async => const Failure(ServerError('already shared')),
+          );
+          return TripShareBloc(tripShareRepository: mockRepo);
+        },
+        act: (bloc) => bloc.add(
+          CreateShare(tripId: 'trip-1', email: 'viewer@example.com'),
+        ),
+        expect: () => [isA<TripShareLoading>(), isA<TripShareError>()],
+      );
+
+      blocTest<TripShareBloc, TripShareState>(
+        'emits [TripShareLoading, TripShareError] when createShare fails with NotFoundError (user not found)',
+        build: () {
+          when(
+            () => mockRepo.createShare(any(), email: any(named: 'email')),
+          ).thenAnswer(
+            (_) async => const Failure(NotFoundError('user not found')),
+          );
+          return TripShareBloc(tripShareRepository: mockRepo);
+        },
+        act: (bloc) => bloc.add(
+          CreateShare(tripId: 'trip-1', email: 'viewer@example.com'),
+        ),
+        expect: () => [isA<TripShareLoading>(), isA<TripShareError>()],
+      );
     });
 
     // ── DeleteShare ────────────────────────────────────────────────────
@@ -144,6 +191,19 @@ void main() {
           when(
             () => mockRepo.deleteShare(any(), any()),
           ).thenAnswer((_) async => const Failure(ServerError('err')));
+          return TripShareBloc(tripShareRepository: mockRepo);
+        },
+        act: (bloc) =>
+            bloc.add(DeleteShare(tripId: 'trip-1', shareId: 'share-1')),
+        expect: () => [isA<TripShareLoading>(), isA<TripShareError>()],
+      );
+
+      blocTest<TripShareBloc, TripShareState>(
+        'emits [TripShareLoading, TripShareError] when deleteShare fails with NetworkError',
+        build: () {
+          when(
+            () => mockRepo.deleteShare(any(), any()),
+          ).thenAnswer((_) async => const Failure(NetworkError('err')));
           return TripShareBloc(tripShareRepository: mockRepo);
         },
         act: (bloc) =>

@@ -6,8 +6,10 @@ import 'package:bagtrip/models/trip_grouped.dart';
 import 'package:bagtrip/models/trip_home.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/models/budget_item.dart';
+import 'package:bagtrip/models/budget_estimation.dart';
 import 'package:bagtrip/models/accommodation.dart';
 import 'package:bagtrip/models/baggage_item.dart';
+import 'package:bagtrip/models/suggested_baggage_item.dart';
 import 'package:bagtrip/models/traveler.dart';
 import 'package:bagtrip/models/traveler_profile.dart';
 import 'package:bagtrip/models/notification.dart';
@@ -15,6 +17,7 @@ import 'package:bagtrip/models/feedback.dart';
 import 'package:bagtrip/models/trip_share.dart';
 import 'package:bagtrip/models/booking_response.dart';
 import 'package:bagtrip/models/manual_flight.dart';
+import 'package:bagtrip/models/flight_info.dart';
 
 User makeUser({
   String id = 'user-1',
@@ -109,6 +112,7 @@ Activity makeActivity({
   DateTime? date,
   String? startTime = '09:00',
   ActivityCategory category = ActivityCategory.culture,
+  ValidationStatus validationStatus = ValidationStatus.manual,
 }) {
   return Activity(
     id: id,
@@ -117,6 +121,7 @@ Activity makeActivity({
     date: date ?? DateTime(2024, 6),
     startTime: startTime,
     category: category,
+    validationStatus: validationStatus,
   );
 }
 
@@ -329,6 +334,72 @@ ManualFlight makeManualFlight({
     arrivalAirport: arrivalAirport,
     departureDate: departureDate ?? DateTime(2024, 6),
     arrivalDate: arrivalDate ?? DateTime(2024, 6),
+  );
+}
+
+BudgetEstimation makeBudgetEstimation({
+  double? accommodationPerNight = 120.0,
+  double? mealsPerDayPerPerson = 40.0,
+  double? localTransportPerDay = 15.0,
+  double? activitiesTotal = 200.0,
+  double? totalMin = 800.0,
+  double? totalMax = 1200.0,
+  String currency = 'EUR',
+  String? breakdownNotes,
+}) {
+  return BudgetEstimation(
+    accommodationPerNight: accommodationPerNight,
+    mealsPerDayPerPerson: mealsPerDayPerPerson,
+    localTransportPerDay: localTransportPerDay,
+    activitiesTotal: activitiesTotal,
+    totalMin: totalMin,
+    totalMax: totalMax,
+    currency: currency,
+    breakdownNotes: breakdownNotes,
+  );
+}
+
+SuggestedBaggageItem makeSuggestedBaggageItem({
+  String name = 'Sunscreen',
+  int quantity = 1,
+  String category = 'Toiletries',
+  String? reason = 'Essential for sunny destination',
+}) {
+  return SuggestedBaggageItem(
+    name: name,
+    quantity: quantity,
+    category: category,
+    reason: reason,
+  );
+}
+
+FlightInfo makeFlightInfo({
+  String? flightIata = 'AF123',
+  String? airlineIata = 'AF',
+  String? airlineName = 'Air France',
+  String? status = 'active',
+  String? departureIata = 'CDG',
+  String? departureTerminal = '2E',
+  String? departureGate = 'K45',
+  String? departureTime = '2024-06-01T08:00:00',
+  String? arrivalIata = 'JFK',
+  String? arrivalTerminal = '1',
+  String? arrivalGate = 'B22',
+  String? arrivalTime = '2024-06-01T11:00:00',
+}) {
+  return FlightInfo(
+    flightIata: flightIata,
+    airlineIata: airlineIata,
+    airlineName: airlineName,
+    status: status,
+    departureIata: departureIata,
+    departureTerminal: departureTerminal,
+    departureGate: departureGate,
+    departureTime: departureTime,
+    arrivalIata: arrivalIata,
+    arrivalTerminal: arrivalTerminal,
+    arrivalGate: arrivalGate,
+    arrivalTime: arrivalTime,
   );
 }
 
