@@ -1,4 +1,5 @@
 import 'package:bagtrip/budget/widgets/budget_alert_banner.dart';
+import 'package:bagtrip/budget/widgets/budget_item_form.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_budget_section.dart';
@@ -235,6 +236,52 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Manage budget'), findsNothing);
+    });
+
+    testWidgets('empty state "Add expense" CTA opens bottom sheet', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildApp(
+          bloc: mockBloc,
+          child: TripBudgetSection(
+            budgetSummary: null,
+            tripId: 'trip-1',
+            trip: makeTrip(),
+            isOwner: true,
+            isCompleted: false,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Add expense'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BudgetItemForm), findsOneWidget);
+    });
+
+    testWidgets('dashboard "Add expense" button opens bottom sheet', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildApp(
+          bloc: mockBloc,
+          child: TripBudgetSection(
+            budgetSummary: makeBudgetSummary(),
+            tripId: 'trip-1',
+            trip: makeTrip(),
+            isOwner: true,
+            isCompleted: false,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Add expense'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BudgetItemForm), findsOneWidget);
     });
   });
 }

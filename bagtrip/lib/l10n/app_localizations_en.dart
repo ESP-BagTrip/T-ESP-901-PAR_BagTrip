@@ -263,9 +263,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Track your expenses and plan your trip according to your budget';
 
   @override
-  String get addExpense => 'Add expense';
-
-  @override
   String get myProfile => 'My profile';
 
   @override
@@ -1042,6 +1039,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budgetItems => 'Budget';
 
   @override
+  String get addExpense => 'Add expense';
+
+  @override
   String get editExpense => 'Edit expense';
 
   @override
@@ -1064,6 +1064,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get expenseReal => 'Real';
+
+  @override
+  String get expenseLabelRequired => 'Label is required';
 
   @override
   String get budgetTotal => 'Total budget';
