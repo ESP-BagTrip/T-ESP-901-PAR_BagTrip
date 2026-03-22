@@ -2,7 +2,7 @@
 
 import uuid
 
-from sqlalchemy import Column, Date, DateTime, ForeignKey, Numeric, String
+from sqlalchemy import Column, DateTime, ForeignKey, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -19,8 +19,8 @@ class Accommodation(Base):
     trip_id = Column(UUID(as_uuid=True), ForeignKey("trips.id"), nullable=False, index=True)
     name = Column(String, nullable=False)
     address = Column(String, nullable=True)
-    check_in = Column(Date, nullable=True)
-    check_out = Column(Date, nullable=True)
+    check_in = Column(DateTime(timezone=True), nullable=True)
+    check_out = Column(DateTime(timezone=True), nullable=True)
     price_per_night = Column(Numeric(12, 2), nullable=True)
     currency = Column(String(3), nullable=True, default="EUR")
     booking_reference = Column(String, nullable=True)

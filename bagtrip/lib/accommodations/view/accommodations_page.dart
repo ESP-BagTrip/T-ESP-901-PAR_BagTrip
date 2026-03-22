@@ -9,6 +9,7 @@ class AccommodationsPage extends StatelessWidget {
   final bool isCompleted;
   final DateTime? tripStartDate;
   final DateTime? tripEndDate;
+  final String? destinationIata;
 
   const AccommodationsPage({
     super.key,
@@ -17,6 +18,7 @@ class AccommodationsPage extends StatelessWidget {
     this.isCompleted = false,
     this.tripStartDate,
     this.tripEndDate,
+    this.destinationIata,
   });
 
   @override
@@ -30,6 +32,7 @@ class AccommodationsPage extends StatelessWidget {
         isCompleted: isCompleted,
         tripStartDate: tripStartDate,
         tripEndDate: tripEndDate,
+        destinationIata: destinationIata,
       ),
     );
   }

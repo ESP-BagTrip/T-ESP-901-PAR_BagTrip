@@ -5011,6 +5011,72 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'L\'arrivée doit être après le départ'**
   String get arrivalMustBeAfterDeparture;
+
+  /// No description provided for @accommodationEditTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier l\'hébergement'**
+  String get accommodationEditTitle;
+
+  /// No description provided for @accommodationSaveButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer'**
+  String get accommodationSaveButton;
+
+  /// No description provided for @accommodationAddressLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse'**
+  String get accommodationAddressLabel;
+
+  /// No description provided for @accommodationReferenceLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Référence de réservation'**
+  String get accommodationReferenceLabel;
+
+  /// No description provided for @accommodationCheckOutBeforeCheckIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le check-out doit être après le check-in'**
+  String get accommodationCheckOutBeforeCheckIn;
+
+  /// No description provided for @accommodationCheckInTimeLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heure d\'arrivée'**
+  String get accommodationCheckInTimeLabel;
+
+  /// No description provided for @accommodationCheckOutTimeLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heure de départ'**
+  String get accommodationCheckOutTimeLabel;
+
+  /// No description provided for @accommodationGetPrices.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir les prix'**
+  String get accommodationGetPrices;
+
+  /// No description provided for @accommodationSelectHotel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sélectionner'**
+  String get accommodationSelectHotel;
+
+  /// No description provided for @accommodationPerNight.
+  ///
+  /// In fr, this message translates to:
+  /// **'/nuit'**
+  String get accommodationPerNight;
+
+  /// No description provided for @accommodationNoResults.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun hôtel trouvé'**
+  String get accommodationNoResults;
 }
 
 class _AppLocalizationsDelegate

@@ -12,12 +12,14 @@ class AddAccommodationSheet extends StatelessWidget {
   final String tripId;
   final DateTime? tripStartDate;
   final DateTime? tripEndDate;
+  final String? destinationIata;
 
   const AddAccommodationSheet({
     super.key,
     required this.tripId,
     this.tripStartDate,
     this.tripEndDate,
+    this.destinationIata,
   });
 
   @override
@@ -96,7 +98,12 @@ class AddAccommodationSheet extends StatelessWidget {
                 backgroundColor: Colors.transparent,
                 builder: (_) => BlocProvider.value(
                   value: context.read<AccommodationBloc>(),
-                  child: HotelSearchSheet(tripId: tripId),
+                  child: HotelSearchSheet(
+                    tripId: tripId,
+                    initialCityCode: destinationIata,
+                    tripStartDate: tripStartDate,
+                    tripEndDate: tripEndDate,
+                  ),
                 ),
               );
             },

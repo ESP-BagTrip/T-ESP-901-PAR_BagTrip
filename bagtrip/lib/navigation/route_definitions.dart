@@ -210,6 +210,7 @@ class AccommodationsRoute extends GoRouteData with $AccommodationsRoute {
     this.isCompleted = false,
     this.tripStartDate,
     this.tripEndDate,
+    this.destinationIata,
   });
 
   final String tripId;
@@ -217,6 +218,7 @@ class AccommodationsRoute extends GoRouteData with $AccommodationsRoute {
   final bool isCompleted;
   final String? tripStartDate;
   final String? tripEndDate;
+  final String? destinationIata;
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
@@ -232,6 +234,7 @@ class AccommodationsRoute extends GoRouteData with $AccommodationsRoute {
           tripEndDate: tripEndDate != null
               ? DateTime.tryParse(tripEndDate!)
               : null,
+          destinationIata: destinationIata,
         ),
       );
 }

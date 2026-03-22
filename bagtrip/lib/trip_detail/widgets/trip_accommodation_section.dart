@@ -155,6 +155,7 @@ class _AccommodationsList extends StatelessWidget {
                     isCompleted: isCompleted,
                     tripStartDate: trip.startDate?.toIso8601String(),
                     tripEndDate: trip.endDate?.toIso8601String(),
+                    destinationIata: trip.destinationIata,
                   ).push(context);
                   if (!context.mounted) return;
                   context.read<TripDetailBloc>().add(RefreshTripDetail());
@@ -300,6 +301,7 @@ class _EmptyState extends StatelessWidget {
                     isCompleted: isCompleted,
                     tripStartDate: trip.startDate?.toIso8601String(),
                     tripEndDate: trip.endDate?.toIso8601String(),
+                    destinationIata: trip.destinationIata,
                   ).push(context);
                   if (!context.mounted) return;
                   context.read<TripDetailBloc>().add(RefreshTripDetail());
@@ -317,6 +319,7 @@ class _EmptyState extends StatelessWidget {
                     isCompleted: isCompleted,
                     tripStartDate: trip.startDate?.toIso8601String(),
                     tripEndDate: trip.endDate?.toIso8601String(),
+                    destinationIata: trip.destinationIata,
                   ).push(context);
                   if (!context.mounted) return;
                   context.read<TripDetailBloc>().add(RefreshTripDetail());

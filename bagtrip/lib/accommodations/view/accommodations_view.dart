@@ -3,6 +3,7 @@ import 'package:bagtrip/accommodations/bloc/accommodation_bloc.dart';
 import 'package:bagtrip/accommodations/widgets/accommodation_card.dart';
 import 'package:bagtrip/accommodations/widgets/add_accommodation_sheet.dart';
 import 'package:bagtrip/accommodations/widgets/ai_suggestions_sheet.dart';
+import 'package:bagtrip/accommodations/widgets/manual_accommodation_form.dart';
 import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
@@ -20,6 +21,7 @@ class AccommodationsView extends StatelessWidget {
   final bool isCompleted;
   final DateTime? tripStartDate;
   final DateTime? tripEndDate;
+  final String? destinationIata;
 
   const AccommodationsView({
     super.key,
@@ -28,6 +30,7 @@ class AccommodationsView extends StatelessWidget {
     this.isCompleted = false,
     this.tripStartDate,
     this.tripEndDate,
+    this.destinationIata,
   });
 
   @override
@@ -119,6 +122,26 @@ class AccommodationsView extends StatelessWidget {
                           child: AccommodationCard(
                             accommodation: accommodation,
                             isViewer: !canEdit,
+                            onEdit: canEdit
+                                ? () {
+                                    final bloc = context
+                                        .read<AccommodationBloc>();
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      backgroundColor: Colors.transparent,
+                                      builder: (_) => BlocProvider.value(
+                                        value: bloc,
+                                        child: ManualAccommodationForm(
+                                          tripId: tripId,
+                                          existing: accommodation,
+                                          tripStartDate: tripStartDate,
+                                          tripEndDate: tripEndDate,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                : null,
                             onDelete: canEdit
                                 ? () {
                                     context.read<AccommodationBloc>().add(
@@ -162,6 +185,7 @@ class AccommodationsView extends StatelessWidget {
           tripId: tripId,
           tripStartDate: tripStartDate,
           tripEndDate: tripEndDate,
+          destinationIata: destinationIata,
         ),
       ),
     );

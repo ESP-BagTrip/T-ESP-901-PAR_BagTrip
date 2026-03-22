@@ -1114,5 +1114,17 @@
   "scheduleSectionLabel": "Schedule",
   "detailsSectionLabel": "Details",
   "airportsMustDiffer": "Departure and arrival airports must be different",
-  "arrivalMustBeAfterDeparture": "Arrival must be after departure"
+  "arrivalMustBeAfterDeparture": "Arrival must be after departure",
+
+  "accommodationEditTitle": "Edit Accommodation",
+  "accommodationSaveButton": "Save",
+  "accommodationAddressLabel": "Address",
+  "accommodationReferenceLabel": "Booking reference",
+  "accommodationCheckOutBeforeCheckIn": "Check-out must be after check-in",
+  "accommodationCheckInTimeLabel": "Check-in time",
+  "accommodationCheckOutTimeLabel": "Check-out time",
+  "accommodationGetPrices": "See prices",
+  "accommodationSelectHotel": "Select",
+  "accommodationPerNight": "/night",
+  "accommodationNoResults": "No hotels found"
 }
