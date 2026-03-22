@@ -5095,6 +5095,108 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Supprimer'**
   String get baggageSwipeToDelete;
+
+  /// No description provided for @activityBatchCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} à valider'**
+  String activityBatchCount(int count);
+
+  /// No description provided for @activityValidateAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout valider'**
+  String get activityValidateAll;
+
+  /// No description provided for @activityReviewOneByOne.
+  ///
+  /// In fr, this message translates to:
+  /// **'Revoir un par un'**
+  String get activityReviewOneByOne;
+
+  /// No description provided for @activityBatchValidated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes les activités validées !'**
+  String get activityBatchValidated;
+
+  /// No description provided for @categoryCulture.
+  ///
+  /// In fr, this message translates to:
+  /// **'Culture'**
+  String get categoryCulture;
+
+  /// No description provided for @categoryNature.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nature'**
+  String get categoryNature;
+
+  /// No description provided for @categoryFoodDrink.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gastronomie'**
+  String get categoryFoodDrink;
+
+  /// No description provided for @categorySport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sport'**
+  String get categorySport;
+
+  /// No description provided for @categoryShopping.
+  ///
+  /// In fr, this message translates to:
+  /// **'Shopping'**
+  String get categoryShopping;
+
+  /// No description provided for @categoryNightlife.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vie nocturne'**
+  String get categoryNightlife;
+
+  /// No description provided for @categoryRelaxation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Détente'**
+  String get categoryRelaxation;
+
+  /// No description provided for @categoryOtherActivity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autre'**
+  String get categoryOtherActivity;
+
+  /// No description provided for @activityMovedToDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activité déplacée au jour {day}'**
+  String activityMovedToDay(int day);
+
+  /// No description provided for @timelineGetSuggestions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Obtenir des suggestions IA'**
+  String get timelineGetSuggestions;
+
+  /// No description provided for @timelineSuggestionsForDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suggestions pour cette journée'**
+  String get timelineSuggestionsForDay;
+
+  /// No description provided for @timelineAddSuggestion.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter à l\'itinéraire'**
+  String get timelineAddSuggestion;
+
+  /// No description provided for @addActivityManually.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter manuellement'**
+  String get addActivityManually;
 }
 
 class _AppLocalizationsDelegate

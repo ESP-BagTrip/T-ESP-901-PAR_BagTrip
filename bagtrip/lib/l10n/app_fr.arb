@@ -1129,5 +1129,33 @@
   "accommodationNoResults": "Aucun hôtel trouvé",
   "baggageAllPacked": "Tout est prêt !",
   "baggageAllPackedSubtitle": "Vous êtes prêt pour votre voyage !",
-  "baggageSwipeToDelete": "Supprimer"
+  "baggageSwipeToDelete": "Supprimer",
+
+  "activityBatchCount": "{count} à valider",
+  "@activityBatchCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "activityValidateAll": "Tout valider",
+  "activityReviewOneByOne": "Revoir un par un",
+  "activityBatchValidated": "Toutes les activités validées !",
+  "categoryCulture": "Culture",
+  "categoryNature": "Nature",
+  "categoryFoodDrink": "Gastronomie",
+  "categorySport": "Sport",
+  "categoryShopping": "Shopping",
+  "categoryNightlife": "Vie nocturne",
+  "categoryRelaxation": "Détente",
+  "categoryOtherActivity": "Autre",
+  "activityMovedToDay": "Activité déplacée au jour {day}",
+  "@activityMovedToDay": {
+    "placeholders": {
+      "day": {"type": "int"}
+    }
+  },
+  "timelineGetSuggestions": "Obtenir des suggestions IA",
+  "timelineSuggestionsForDay": "Suggestions pour cette journée",
+  "timelineAddSuggestion": "Ajouter à l'itinéraire",
+  "addActivityManually": "Ajouter manuellement"
 }

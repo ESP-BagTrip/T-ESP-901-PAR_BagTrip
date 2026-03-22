@@ -19,6 +19,9 @@ final class TripDetailLoaded extends TripDetailState {
   final CompletionResult completionResult;
   final Set<String> collapsedSections;
   final String? validationError;
+  final int? suggestingForDay;
+  final List<Map<String, dynamic>>? daySuggestions;
+  final int? suggestionsForDay;
 
   TripDetailLoaded({
     required this.trip,
@@ -33,6 +36,9 @@ final class TripDetailLoaded extends TripDetailState {
     required this.completionResult,
     this.collapsedSections = const {},
     this.validationError,
+    this.suggestingForDay,
+    this.daySuggestions,
+    this.suggestionsForDay,
   });
 
   int get completionPercentage => completionResult.percentage;
@@ -106,6 +112,12 @@ final class TripDetailLoaded extends TripDetailState {
     Set<String>? collapsedSections,
     String? validationError,
     bool clearValidationError = false,
+    int? suggestingForDay,
+    bool clearSuggestingForDay = false,
+    List<Map<String, dynamic>>? daySuggestions,
+    bool clearDaySuggestions = false,
+    int? suggestionsForDay,
+    bool clearSuggestionsForDay = false,
   }) {
     return TripDetailLoaded(
       trip: trip ?? this.trip,
@@ -124,6 +136,15 @@ final class TripDetailLoaded extends TripDetailState {
       validationError: clearValidationError
           ? null
           : (validationError ?? this.validationError),
+      suggestingForDay: clearSuggestingForDay
+          ? null
+          : (suggestingForDay ?? this.suggestingForDay),
+      daySuggestions: clearDaySuggestions
+          ? null
+          : (daySuggestions ?? this.daySuggestions),
+      suggestionsForDay: clearSuggestionsForDay
+          ? null
+          : (suggestionsForDay ?? this.suggestionsForDay),
     );
   }
 }

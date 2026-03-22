@@ -19,5 +19,13 @@ abstract class ActivityRepository {
     Map<String, dynamic> updates,
   );
   Future<Result<void>> deleteActivity(String tripId, String activityId);
-  Future<Result<List<Map<String, dynamic>>>> suggestActivities(String tripId);
+  Future<Result<List<Map<String, dynamic>>>> suggestActivities(
+    String tripId, {
+    int? day,
+  });
+  Future<Result<List<Activity>>> batchUpdateActivities(
+    String tripId,
+    List<String> activityIds,
+    Map<String, dynamic> updates,
+  );
 }

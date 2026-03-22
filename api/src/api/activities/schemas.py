@@ -6,7 +6,6 @@ from pydantic import BaseModel, Field
 from src.enums import ActivityCategory
 
 
-
 class ActivityCreateRequest(BaseModel):
     title: str
     date: dt.date
@@ -67,3 +66,12 @@ class ActivityPaginatedResponse(BaseModel):
 
     class Config:
         populate_by_name = True
+
+
+class ActivityBatchUpdateRequest(BaseModel):
+    activityIds: list[UUID]
+    updates: ActivityUpdateRequest
+
+
+class ActivitySuggestResponse(BaseModel):
+    activities: list[dict]

@@ -7,7 +7,10 @@ class ElegantEmptyState extends StatelessWidget {
   final String title;
   final String? subtitle;
   final String? ctaLabel;
+  final IconData? ctaIcon;
   final VoidCallback? onCta;
+  final String? secondaryCtaLabel;
+  final VoidCallback? onSecondaryCta;
 
   const ElegantEmptyState({
     super.key,
@@ -15,7 +18,10 @@ class ElegantEmptyState extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.ctaLabel,
+    this.ctaIcon,
     this.onCta,
+    this.secondaryCtaLabel,
+    this.onSecondaryCta,
   });
 
   @override
@@ -94,14 +100,24 @@ class ElegantEmptyState extends StatelessWidget {
               ],
               if (ctaLabel != null && onCta != null) ...[
                 const SizedBox(height: AppSpacing.space24),
-                FilledButton(
+                FilledButton.icon(
                   onPressed: onCta,
+                  icon: ctaIcon != null
+                      ? Icon(ctaIcon, size: 18)
+                      : const SizedBox.shrink(),
+                  label: Text(ctaLabel!),
                   style: FilledButton.styleFrom(
                     shape: const RoundedRectangleBorder(
                       borderRadius: AppRadius.pill,
                     ),
                   ),
-                  child: Text(ctaLabel!),
+                ),
+              ],
+              if (secondaryCtaLabel != null && onSecondaryCta != null) ...[
+                const SizedBox(height: AppSpacing.space8),
+                TextButton(
+                  onPressed: onSecondaryCta,
+                  child: Text(secondaryCtaLabel!),
                 ),
               ],
             ],

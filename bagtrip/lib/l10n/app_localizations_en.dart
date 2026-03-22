@@ -2687,4 +2687,59 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get baggageSwipeToDelete => 'Delete';
+
+  @override
+  String activityBatchCount(int count) {
+    return '$count to validate';
+  }
+
+  @override
+  String get activityValidateAll => 'Validate all';
+
+  @override
+  String get activityReviewOneByOne => 'Review one by one';
+
+  @override
+  String get activityBatchValidated => 'All activities validated!';
+
+  @override
+  String get categoryCulture => 'Culture';
+
+  @override
+  String get categoryNature => 'Nature';
+
+  @override
+  String get categoryFoodDrink => 'Food & Drink';
+
+  @override
+  String get categorySport => 'Sport';
+
+  @override
+  String get categoryShopping => 'Shopping';
+
+  @override
+  String get categoryNightlife => 'Nightlife';
+
+  @override
+  String get categoryRelaxation => 'Relaxation';
+
+  @override
+  String get categoryOtherActivity => 'Other';
+
+  @override
+  String activityMovedToDay(int day) {
+    return 'Activity moved to day $day';
+  }
+
+  @override
+  String get timelineGetSuggestions => 'Get AI suggestions';
+
+  @override
+  String get timelineSuggestionsForDay => 'Suggestions for this day';
+
+  @override
+  String get timelineAddSuggestion => 'Add to itinerary';
+
+  @override
+  String get addActivityManually => 'Add manually';
 }
