@@ -1,9 +1,12 @@
+import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/status_badge.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class ActivityCard extends StatelessWidget {
@@ -43,10 +46,36 @@ class ActivityCard extends StatelessWidget {
     }
   }
 
+  List<AdaptiveContextAction> _buildContextActions(AppLocalizations l10n) {
+    final actions = <AdaptiveContextAction>[
+      AdaptiveContextAction(
+        label: l10n.contextMenuEdit,
+        icon: CupertinoIcons.pencil,
+        onPressed: onEdit,
+      ),
+      if (activity.validationStatus == ValidationStatus.suggested &&
+          onValidate != null)
+        AdaptiveContextAction(
+          label: l10n.contextMenuValidate,
+          icon: CupertinoIcons.checkmark_circle,
+          onPressed: onValidate!,
+        ),
+      AdaptiveContextAction(
+        label: l10n.contextMenuDelete,
+        icon: CupertinoIcons.delete,
+        onPressed: onDelete,
+        isDestructive: true,
+      ),
+    ];
+    return actions;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Container(
+    final useContextMenu = AdaptivePlatform.isIOS && !isViewer;
+
+    final cardContent = Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -113,7 +142,7 @@ class ActivityCard extends StatelessWidget {
               ],
             ),
           ),
-          if (!isViewer)
+          if (!isViewer && !useContextMenu)
             PopupMenuButton<String>(
               onSelected: (value) {
                 if (value == 'edit') onEdit();
@@ -133,5 +162,14 @@ class ActivityCard extends StatelessWidget {
         ],
       ),
     );
+
+    if (useContextMenu) {
+      return AdaptiveContextMenu(
+        actions: _buildContextActions(l10n),
+        child: cardContent,
+      );
+    }
+
+    return cardContent;
   }
 }

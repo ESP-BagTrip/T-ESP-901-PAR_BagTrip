@@ -3,6 +3,7 @@ import 'package:bagtrip/components/paginated_list.dart';
 import 'package:bagtrip/components/staggered_fade_in.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -327,6 +328,17 @@ class _TripListContent extends StatelessWidget {
       itemBuilder: (context, trip, _) => TripCard(
         trip: trip,
         onTap: () => TripHomeRoute(tripId: trip.id).go(context),
+        onShare: () => SharesRoute(
+          tripId: trip.id,
+          role: trip.role ?? 'OWNER',
+        ).push(context),
+        onArchive: () {
+          context.read<TripManagementBloc>().add(
+            UpdateTripStatus(tripId: trip.id, status: 'completed'),
+          );
+          AppHaptics.success();
+        },
+        role: trip.role,
       ),
     );
   }
@@ -356,6 +368,17 @@ class _LegacyTripList extends StatelessWidget {
         return TripCard(
           trip: trip,
           onTap: () => TripHomeRoute(tripId: trip.id).go(context),
+          onShare: () => SharesRoute(
+            tripId: trip.id,
+            role: trip.role ?? 'OWNER',
+          ).push(context),
+          onArchive: () {
+            context.read<TripManagementBloc>().add(
+              UpdateTripStatus(tripId: trip.id, status: 'completed'),
+            );
+            AppHaptics.success();
+          },
+          role: trip.role,
         );
       },
     );

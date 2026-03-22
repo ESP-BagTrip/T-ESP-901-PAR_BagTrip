@@ -79,7 +79,15 @@ class _CompletedTripsCarouselState extends State<CompletedTripsCarousel> {
                       0.2126, 0.7152, 0.0722, 0, 0,
                       0, 0, 0, 1, 0,
                     ]),
-                    child: TripCard.large(trip: trip),
+                    child: TripCard.large(
+                      trip: trip,
+                      onTap: () => TripHomeRoute(tripId: trip.id).go(context),
+                      onShare: () => SharesRoute(
+                        tripId: trip.id,
+                        role: trip.role ?? 'OWNER',
+                      ).push(context),
+                      role: trip.role,
+                    ),
                   ),
                 ),
               );

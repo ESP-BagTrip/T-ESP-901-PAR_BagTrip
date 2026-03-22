@@ -528,6 +528,19 @@ class _DayContent extends StatelessWidget {
               activity: activities[i],
               isOwner: isOwner,
               isCompleted: isCompleted,
+              totalDays: trip.startDate != null && trip.endDate != null
+                  ? trip.endDate!.difference(trip.startDate!).inDays + 1
+                  : 1,
+              tripStartDate: trip.startDate,
+              onMoveToDay: (dayIndex) {
+                context.read<TripDetailBloc>().add(
+                  MoveActivityToDay(
+                    activityId: activities[i].id,
+                    targetDayIndex: dayIndex,
+                  ),
+                );
+                AppHaptics.medium();
+              },
               onValidate: () => context.read<TripDetailBloc>().add(
                 ValidateActivity(activityId: activities[i].id),
               ),

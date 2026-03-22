@@ -1,9 +1,12 @@
+import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
 import 'package:bagtrip/components/optimized_image.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/trips/widgets/trip_status_badge.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 enum TripCardVariant { large, compact }
@@ -11,6 +14,9 @@ enum TripCardVariant { large, compact }
 class TripCard extends StatelessWidget {
   final Trip trip;
   final VoidCallback? onTap;
+  final VoidCallback? onShare;
+  final VoidCallback? onArchive;
+  final String? role;
   final TripCardVariant _variant;
   final int completionPercent;
 
@@ -18,6 +24,9 @@ class TripCard extends StatelessWidget {
     super.key,
     required this.trip,
     this.onTap,
+    this.onShare,
+    this.onArchive,
+    this.role,
     this.completionPercent = 0,
   }) : _variant = TripCardVariant.compact;
 
@@ -25,6 +34,9 @@ class TripCard extends StatelessWidget {
     super.key,
     required this.trip,
     this.onTap,
+    this.onShare,
+    this.onArchive,
+    this.role,
     this.completionPercent = 0,
   }) : _variant = TripCardVariant.large;
 
@@ -32,6 +44,9 @@ class TripCard extends StatelessWidget {
     super.key,
     required this.trip,
     this.onTap,
+    this.onShare,
+    this.onArchive,
+    this.role,
     this.completionPercent = 0,
   }) : _variant = TripCardVariant.compact;
 
@@ -47,9 +62,46 @@ class TripCard extends StatelessWidget {
     ].join(' - ');
   }
 
+  List<AdaptiveContextAction> _buildContextActions(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final actions = <AdaptiveContextAction>[];
+
+    if (onTap != null) {
+      actions.add(
+        AdaptiveContextAction(
+          label: l10n.contextMenuView,
+          icon: CupertinoIcons.eye,
+          onPressed: onTap!,
+        ),
+      );
+    }
+    if (onShare != null) {
+      actions.add(
+        AdaptiveContextAction(
+          label: l10n.contextMenuShare,
+          icon: CupertinoIcons.share,
+          onPressed: onShare!,
+        ),
+      );
+    }
+    if (onArchive != null &&
+        role == 'OWNER' &&
+        trip.status != TripStatus.completed) {
+      actions.add(
+        AdaptiveContextAction(
+          label: l10n.contextMenuArchive,
+          icon: CupertinoIcons.archivebox,
+          onPressed: onArchive!,
+        ),
+      );
+    }
+
+    return actions;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Hero(
+    final hero = Hero(
       tag: 'trip-${trip.id}',
       child: Material(
         type: MaterialType.transparency,
@@ -67,6 +119,31 @@ class TripCard extends StatelessWidget {
           ),
         },
       ),
+    );
+
+    return AdaptiveContextMenu(
+      actions: _buildContextActions(context),
+      previewBuilder: _variant == TripCardVariant.compact
+          ? (ctx, animation, child) {
+              if (animation.value < CupertinoContextMenu.animationOpensAt) {
+                return child;
+              }
+              return Center(
+                child: SizedBox(
+                  width: MediaQuery.of(ctx).size.width * 0.9,
+                  child: ClipRRect(
+                    borderRadius: AppRadius.large16,
+                    child: Material(
+                      elevation: 4,
+                      borderRadius: AppRadius.large16,
+                      child: child,
+                    ),
+                  ),
+                ),
+              );
+            }
+          : null,
+      child: hero,
     );
   }
 }

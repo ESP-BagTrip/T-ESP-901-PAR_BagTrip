@@ -1,10 +1,14 @@
+import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class TimelineActivityCard extends StatelessWidget {
   final Activity activity;
@@ -14,6 +18,9 @@ class TimelineActivityCard extends StatelessWidget {
   final VoidCallback? onReject;
   final VoidCallback? onDelete;
   final VoidCallback? onEdit;
+  final int totalDays;
+  final DateTime? tripStartDate;
+  final void Function(int dayIndex)? onMoveToDay;
 
   const TimelineActivityCard({
     super.key,
@@ -24,6 +31,9 @@ class TimelineActivityCard extends StatelessWidget {
     this.onReject,
     this.onDelete,
     this.onEdit,
+    this.totalDays = 1,
+    this.tripStartDate,
+    this.onMoveToDay,
   });
 
   @override
@@ -207,27 +217,103 @@ class TimelineActivityCard extends StatelessWidget {
       );
     }
 
-    // Wrap in LongPressDraggable for drag & drop
+    // Wrap in gesture handler for owners
     if (isOwner && !isCompleted) {
-      final screenWidth = MediaQuery.of(context).size.width;
-      return LongPressDraggable<Activity>(
-        data: activity,
-        delay: const Duration(milliseconds: 300),
-        // haptics handled by the framework on long press start
-        feedback: Material(
-          elevation: 8,
-          borderRadius: AppRadius.large16,
-          child: SizedBox(
-            width: screenWidth - 64,
-            child: Opacity(opacity: 0.9, child: card),
+      if (AdaptivePlatform.isIOS) {
+        // iOS: CupertinoContextMenu replaces LongPressDraggable
+        final l10n = AppLocalizations.of(context)!;
+        final actions = <AdaptiveContextAction>[
+          if (onEdit != null)
+            AdaptiveContextAction(
+              label: l10n.contextMenuEdit,
+              icon: CupertinoIcons.pencil,
+              onPressed: onEdit!,
+            ),
+          if (activity.validationStatus == ValidationStatus.suggested &&
+              onValidate != null)
+            AdaptiveContextAction(
+              label: l10n.contextMenuValidate,
+              icon: CupertinoIcons.checkmark_circle,
+              onPressed: onValidate!,
+            ),
+          if (totalDays > 1 && onMoveToDay != null)
+            AdaptiveContextAction(
+              label: l10n.contextMenuMoveToDay,
+              icon: CupertinoIcons.calendar,
+              onPressed: () => _showDayPicker(context),
+            ),
+          if (onDelete != null)
+            AdaptiveContextAction(
+              label: l10n.contextMenuDelete,
+              icon: CupertinoIcons.delete,
+              onPressed: onDelete!,
+              isDestructive: true,
+            ),
+        ];
+        return AdaptiveContextMenu(actions: actions, child: dismissibleCard);
+      } else {
+        // Android: keep LongPressDraggable as-is
+        final screenWidth = MediaQuery.of(context).size.width;
+        return LongPressDraggable<Activity>(
+          data: activity,
+          delay: const Duration(milliseconds: 300),
+          feedback: Material(
+            elevation: 8,
+            borderRadius: AppRadius.large16,
+            child: SizedBox(
+              width: screenWidth - 64,
+              child: Opacity(opacity: 0.9, child: card),
+            ),
           ),
-        ),
-        childWhenDragging: Opacity(opacity: 0.3, child: dismissibleCard),
-        child: dismissibleCard,
-      );
+          childWhenDragging: Opacity(opacity: 0.3, child: dismissibleCard),
+          child: dismissibleCard,
+        );
+      }
     }
 
     return dismissibleCard;
+  }
+
+  int get _currentDayIndex {
+    if (tripStartDate == null) return 0;
+    return DateTime(activity.date.year, activity.date.month, activity.date.day)
+        .difference(
+          DateTime(
+            tripStartDate!.year,
+            tripStartDate!.month,
+            tripStartDate!.day,
+          ),
+        )
+        .inDays;
+  }
+
+  void _showDayPicker(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final dateFormat = DateFormat('dd/MM');
+
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (ctx) => CupertinoActionSheet(
+        title: Text(l10n.contextMenuMoveToDay),
+        actions: List.generate(totalDays, (i) {
+          if (i == _currentDayIndex) return null;
+          final date = tripStartDate!.add(Duration(days: i));
+          return CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              onMoveToDay?.call(i);
+            },
+            child: Text(
+              '${l10n.contextMenuDayLabel(i + 1)} — ${dateFormat.format(date)}',
+            ),
+          );
+        }).whereType<CupertinoActionSheetAction>().toList(),
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.of(ctx).pop(),
+          child: Text(l10n.cancelButton),
+        ),
+      ),
+    );
   }
 }
 

@@ -2835,4 +2835,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get doneButton => 'Done';
+
+  @override
+  String get contextMenuView => 'View';
+
+  @override
+  String get contextMenuShare => 'Share';
+
+  @override
+  String get contextMenuArchive => 'Archive';
+
+  @override
+  String get contextMenuEdit => 'Edit';
+
+  @override
+  String get contextMenuValidate => 'Validate';
+
+  @override
+  String get contextMenuDelete => 'Delete';
+
+  @override
+  String get contextMenuMoveToDay => 'Move to another day';
+
+  @override
+  String contextMenuDayLabel(int day) {
+    return 'Day $day';
+  }
 }

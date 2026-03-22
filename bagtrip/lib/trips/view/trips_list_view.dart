@@ -4,14 +4,15 @@ import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/components/paginated_list.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
+import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bagtrip/trips/widgets/trip_card.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:bagtrip/navigation/route_definitions.dart';
 
 class TripsListView extends StatefulWidget {
   const TripsListView({super.key});
@@ -178,6 +179,17 @@ class _TripListTab extends StatelessWidget {
       itemBuilder: (context, trip, _) => TripCard(
         trip: trip,
         onTap: () => TripHomeRoute(tripId: trip.id).go(context),
+        onShare: () => SharesRoute(
+          tripId: trip.id,
+          role: trip.role ?? 'OWNER',
+        ).push(context),
+        onArchive: () {
+          context.read<TripManagementBloc>().add(
+            UpdateTripStatus(tripId: trip.id, status: 'completed'),
+          );
+          AppHaptics.success();
+        },
+        role: trip.role,
       ),
     );
   }
@@ -216,6 +228,17 @@ class _LegacyTripListTab extends StatelessWidget {
           return TripCard(
             trip: trip,
             onTap: () => TripHomeRoute(tripId: trip.id).go(context),
+            onShare: () => SharesRoute(
+              tripId: trip.id,
+              role: trip.role ?? 'OWNER',
+            ).push(context),
+            onArchive: () {
+              context.read<TripManagementBloc>().add(
+                UpdateTripStatus(tripId: trip.id, status: 'completed'),
+              );
+              AppHaptics.success();
+            },
+            role: trip.role,
           );
         },
       ),

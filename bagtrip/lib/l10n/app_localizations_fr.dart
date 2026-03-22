@@ -2862,4 +2862,30 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get doneButton => 'Terminé';
+
+  @override
+  String get contextMenuView => 'Voir';
+
+  @override
+  String get contextMenuShare => 'Partager';
+
+  @override
+  String get contextMenuArchive => 'Archiver';
+
+  @override
+  String get contextMenuEdit => 'Modifier';
+
+  @override
+  String get contextMenuValidate => 'Valider';
+
+  @override
+  String get contextMenuDelete => 'Supprimer';
+
+  @override
+  String get contextMenuMoveToDay => 'Déplacer vers un autre jour';
+
+  @override
+  String contextMenuDayLabel(int day) {
+    return 'Jour $day';
+  }
 }

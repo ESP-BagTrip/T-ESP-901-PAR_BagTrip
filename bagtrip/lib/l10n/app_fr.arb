@@ -1193,5 +1193,20 @@
   "filterBefore": "Avant",
   "filterAfter": "Après",
   "filterApply": "Appliquer",
-  "doneButton": "Terminé"
+  "doneButton": "Terminé",
+  "contextMenuView": "Voir",
+  "contextMenuShare": "Partager",
+  "contextMenuArchive": "Archiver",
+  "contextMenuEdit": "Modifier",
+  "contextMenuValidate": "Valider",
+  "contextMenuDelete": "Supprimer",
+  "contextMenuMoveToDay": "Déplacer vers un autre jour",
+  "contextMenuDayLabel": "Jour {day}",
+  "@contextMenuDayLabel": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  }
 }

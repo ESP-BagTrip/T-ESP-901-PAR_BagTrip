@@ -5377,6 +5377,54 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Terminé'**
   String get doneButton;
+
+  /// No description provided for @contextMenuView.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir'**
+  String get contextMenuView;
+
+  /// No description provided for @contextMenuShare.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partager'**
+  String get contextMenuShare;
+
+  /// No description provided for @contextMenuArchive.
+  ///
+  /// In fr, this message translates to:
+  /// **'Archiver'**
+  String get contextMenuArchive;
+
+  /// No description provided for @contextMenuEdit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get contextMenuEdit;
+
+  /// No description provided for @contextMenuValidate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valider'**
+  String get contextMenuValidate;
+
+  /// No description provided for @contextMenuDelete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer'**
+  String get contextMenuDelete;
+
+  /// No description provided for @contextMenuMoveToDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déplacer vers un autre jour'**
+  String get contextMenuMoveToDay;
+
+  /// No description provided for @contextMenuDayLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jour {day}'**
+  String contextMenuDayLabel(int day);
 }
 
 class _AppLocalizationsDelegate
