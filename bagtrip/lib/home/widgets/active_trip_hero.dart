@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/optimized_image.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -61,10 +62,9 @@ class ActiveTripHero extends StatelessWidget {
                 children: [
                   // Background
                   if (hasCover)
-                    Image.network(
+                    OptimizedImage.tripCover(
                       trip.coverImageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => const _GradientPlaceholder(),
+                      errorWidget: const _GradientPlaceholder(),
                     )
                   else
                     const _GradientPlaceholder(),

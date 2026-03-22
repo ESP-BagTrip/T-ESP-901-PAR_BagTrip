@@ -75,10 +75,4 @@ class TripShareBloc extends Bloc<TripShareEvent, TripShareState> {
         emit(TripShareError(error: error));
     }
   }
-
-  @override
-  // ignore: unnecessary_overrides
-  Future<void> close() {
-    return super.close();
-  }
 }

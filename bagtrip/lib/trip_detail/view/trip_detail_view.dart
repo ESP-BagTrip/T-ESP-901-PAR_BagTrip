@@ -32,6 +32,7 @@ import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shimmer/shimmer.dart';
 
 class TripDetailView extends StatelessWidget {
   final String tripId;
@@ -473,25 +474,29 @@ class _LoadedContentState extends State<_LoadedContent> {
                 StaggeredFadeIn(
                   key: _sectionKeys[CompletionSegmentType.flights],
                   index: 0,
-                  child: TripFlightsSection(
-                    flights: state.flights,
-                    tripId: tripId,
-                    trip: trip,
-                    isOwner: state.isOwner,
-                    isCompleted: state.isCompleted,
-                  ),
+                  child: state.deferredLoaded
+                      ? TripFlightsSection(
+                          flights: state.flights,
+                          tripId: tripId,
+                          trip: trip,
+                          isOwner: state.isOwner,
+                          isCompleted: state.isCompleted,
+                        )
+                      : const _DeferredSectionShimmer(),
                 ),
                 const SizedBox(height: AppSpacing.space12),
                 StaggeredFadeIn(
                   key: _sectionKeys[CompletionSegmentType.accommodation],
                   index: 1,
-                  child: TripAccommodationSection(
-                    accommodations: state.accommodations,
-                    tripId: tripId,
-                    trip: trip,
-                    isOwner: state.isOwner,
-                    isCompleted: state.isCompleted,
-                  ),
+                  child: state.deferredLoaded
+                      ? TripAccommodationSection(
+                          accommodations: state.accommodations,
+                          tripId: tripId,
+                          trip: trip,
+                          isOwner: state.isOwner,
+                          isCompleted: state.isCompleted,
+                        )
+                      : const _DeferredSectionShimmer(),
                 ),
                 const SizedBox(height: AppSpacing.space12),
                 StaggeredFadeIn(
@@ -520,36 +525,42 @@ class _LoadedContentState extends State<_LoadedContent> {
                 StaggeredFadeIn(
                   key: _sectionKeys[CompletionSegmentType.baggage],
                   index: 3,
-                  child: TripBaggageSection(
-                    baggageItems: state.baggageItems,
-                    tripId: tripId,
-                    trip: trip,
-                    isOwner: state.isOwner,
-                    isCompleted: state.isCompleted,
-                  ),
+                  child: state.deferredLoaded
+                      ? TripBaggageSection(
+                          baggageItems: state.baggageItems,
+                          tripId: tripId,
+                          trip: trip,
+                          isOwner: state.isOwner,
+                          isCompleted: state.isCompleted,
+                        )
+                      : const _DeferredSectionShimmer(),
                 ),
                 const SizedBox(height: AppSpacing.space12),
                 StaggeredFadeIn(
                   key: _sectionKeys[CompletionSegmentType.budget],
                   index: 4,
-                  child: TripBudgetSection(
-                    budgetSummary: state.budgetSummary,
-                    tripId: tripId,
-                    trip: trip,
-                    isOwner: state.isOwner,
-                    isCompleted: state.isCompleted,
-                  ),
+                  child: state.deferredLoaded
+                      ? TripBudgetSection(
+                          budgetSummary: state.budgetSummary,
+                          tripId: tripId,
+                          trip: trip,
+                          isOwner: state.isOwner,
+                          isCompleted: state.isCompleted,
+                        )
+                      : const _DeferredSectionShimmer(),
                 ),
                 const SizedBox(height: AppSpacing.space12),
                 StaggeredFadeIn(
                   index: 5,
-                  child: TripSharingSection(
-                    shares: state.shares,
-                    tripId: tripId,
-                    trip: trip,
-                    isOwner: state.isOwner,
-                    isCompleted: state.isCompleted,
-                  ),
+                  child: state.deferredLoaded
+                      ? TripSharingSection(
+                          shares: state.shares,
+                          tripId: tripId,
+                          trip: trip,
+                          isOwner: state.isOwner,
+                          isCompleted: state.isCompleted,
+                        )
+                      : const _DeferredSectionShimmer(),
                 ),
                 const SizedBox(height: AppSpacing.space12),
                 StaggeredFadeIn(
@@ -697,6 +708,25 @@ class _LoadedContentState extends State<_LoadedContent> {
 }
 
 // ── Stat Item ────────────────────────────────────────────────────────────────
+
+class _DeferredSectionShimmer extends StatelessWidget {
+  const _DeferredSectionShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade200,
+      highlightColor: Colors.grey.shade100,
+      child: Container(
+        height: 72,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: AppRadius.large16,
+        ),
+      ),
+    );
+  }
+}
 
 class _StatItem extends StatelessWidget {
   final IconData icon;

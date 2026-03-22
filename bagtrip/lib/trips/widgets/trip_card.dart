@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/optimized_image.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -99,11 +100,9 @@ class _LargeCard extends StatelessWidget {
             children: [
               // Background: image or gradient placeholder
               if (trip.coverImageUrl != null && trip.coverImageUrl!.isNotEmpty)
-                Image.network(
+                OptimizedImage.tripCover(
                   trip.coverImageUrl!,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const _GradientPlaceholder(),
+                  errorWidget: const _GradientPlaceholder(),
                 )
               else
                 const _GradientPlaceholder(),
@@ -253,11 +252,9 @@ class _CompactCard extends StatelessWidget {
                   child:
                       trip.coverImageUrl != null &&
                           trip.coverImageUrl!.isNotEmpty
-                      ? Image.network(
+                      ? OptimizedImage.activityImage(
                           trip.coverImageUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const _GradientPlaceholder(),
+                          errorWidget: const _GradientPlaceholder(),
                         )
                       : const _GradientPlaceholder(),
                 ),

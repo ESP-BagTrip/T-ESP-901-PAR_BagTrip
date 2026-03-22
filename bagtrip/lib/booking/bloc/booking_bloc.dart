@@ -117,10 +117,4 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
       status: b.status,
     );
   }
-
-  @override
-  // ignore: unnecessary_overrides
-  Future<void> close() {
-    return super.close();
-  }
 }

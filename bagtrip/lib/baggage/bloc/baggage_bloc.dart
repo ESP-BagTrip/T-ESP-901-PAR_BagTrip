@@ -285,10 +285,4 @@ class BaggageBloc extends Bloc<BaggageEvent, BaggageState> {
     final reordered = [...unpackedItems, ...packedItems];
     emit(_rebuildLoaded(reordered, suggestions: current.suggestions));
   }
-
-  @override
-  // ignore: unnecessary_overrides
-  Future<void> close() {
-    return super.close();
-  }
 }

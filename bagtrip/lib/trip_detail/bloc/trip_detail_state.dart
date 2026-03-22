@@ -22,6 +22,7 @@ final class TripDetailLoaded extends TripDetailState {
   final int? suggestingForDay;
   final List<Map<String, dynamic>>? daySuggestions;
   final int? suggestionsForDay;
+  final bool deferredLoaded;
 
   TripDetailLoaded({
     required this.trip,
@@ -39,6 +40,7 @@ final class TripDetailLoaded extends TripDetailState {
     this.suggestingForDay,
     this.daySuggestions,
     this.suggestionsForDay,
+    this.deferredLoaded = false,
   });
 
   int get completionPercentage => completionResult.percentage;
@@ -118,6 +120,7 @@ final class TripDetailLoaded extends TripDetailState {
     bool clearDaySuggestions = false,
     int? suggestionsForDay,
     bool clearSuggestionsForDay = false,
+    bool? deferredLoaded,
   }) {
     return TripDetailLoaded(
       trip: trip ?? this.trip,
@@ -145,6 +148,7 @@ final class TripDetailLoaded extends TripDetailState {
       suggestionsForDay: clearSuggestionsForDay
           ? null
           : (suggestionsForDay ?? this.suggestionsForDay),
+      deferredLoaded: deferredLoaded ?? this.deferredLoaded,
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
+import 'package:bagtrip/components/optimized_image.dart';
 import 'package:bagtrip/components/staggered_fade_in.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/design/app_haptics.dart';
@@ -69,11 +70,10 @@ class _PostTripContent extends StatelessWidget {
               ),
             ),
             background: state.trip.coverImageUrl != null
-                ? Image.network(
+                ? OptimizedImage.tripCover(
                     state.trip.coverImageUrl!,
-                    fit: BoxFit.cover,
-                    colorBlendMode: BlendMode.darken,
-                    color: Colors.black.withValues(alpha: 0.3),
+                    colorBlendMode: Colors.black.withValues(alpha: 0.3),
+                    blendMode: BlendMode.darken,
                   )
                 : ColoredBox(color: theme.colorScheme.primaryContainer),
           ),

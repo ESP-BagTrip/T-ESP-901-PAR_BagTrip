@@ -9,6 +9,8 @@ final class LoadTripDetail extends TripDetailEvent {
 
 final class RefreshTripDetail extends TripDetailEvent {}
 
+final class LoadDeferredSections extends TripDetailEvent {}
+
 final class SelectDay extends TripDetailEvent {
   final int dayIndex;
   SelectDay({required this.dayIndex});

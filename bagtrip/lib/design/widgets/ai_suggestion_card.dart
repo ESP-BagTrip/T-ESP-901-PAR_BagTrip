@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/optimized_image.dart';
 import 'package:bagtrip/design/app_animations.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
@@ -72,10 +73,9 @@ class AiSuggestionCard extends StatelessWidget {
                 height: 140,
                 width: double.infinity,
                 child: imageUrl != null
-                    ? Image.network(
+                    ? OptimizedImage.activityImage(
                         imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => _imagePlaceholder(),
+                        errorWidget: _imagePlaceholder(),
                       )
                     : _imagePlaceholder(),
               ),

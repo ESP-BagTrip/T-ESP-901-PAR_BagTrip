@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/optimized_image.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -52,10 +53,9 @@ class TripHeroHeader extends StatelessWidget {
           children: [
             // Layer 1 — Background image or gradient placeholder
             if (hasCover)
-              Image.network(
+              OptimizedImage.tripCover(
                 trip.coverImageUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => const _GradientPlaceholder(),
+                errorWidget: const _GradientPlaceholder(),
               )
             else
               const _GradientPlaceholder(),

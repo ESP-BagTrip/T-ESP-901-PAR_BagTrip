@@ -16,10 +16,4 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   void _onChangeLanguage(ChangeLanguage event, Emitter<SettingsState> emit) {
     emit(state.copyWith(selectedLanguage: event.language));
   }
-
-  @override
-  // ignore: unnecessary_overrides
-  Future<void> close() {
-    return super.close();
-  }
 }

@@ -186,10 +186,4 @@ class TripManagementBloc
         emit(TripError(error: error));
     }
   }
-
-  @override
-  // ignore: unnecessary_overrides
-  Future<void> close() {
-    return super.close();
-  }
 }

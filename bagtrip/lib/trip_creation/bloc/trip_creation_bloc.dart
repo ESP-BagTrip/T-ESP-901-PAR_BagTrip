@@ -271,10 +271,4 @@ class TripCreationBloc extends Bloc<TripCreationEvent, TripCreationState> {
         emit(state.copyWith(isCreating: false, error: error.toString()));
     }
   }
-
-  @override
-  // ignore: unnecessary_overrides
-  Future<void> close() {
-    return super.close();
-  }
 }

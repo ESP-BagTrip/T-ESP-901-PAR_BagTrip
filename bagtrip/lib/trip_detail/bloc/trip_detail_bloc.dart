@@ -53,6 +53,7 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
        super(TripDetailInitial()) {
     on<LoadTripDetail>(_onLoadTripDetail);
     on<RefreshTripDetail>(_onRefreshTripDetail);
+    on<LoadDeferredSections>(_onLoadDeferredSections);
     on<SelectDay>(_onSelectDay);
     on<ToggleSection>(_onToggleSection);
     on<ValidateActivity>(_onValidateActivity);
@@ -83,7 +84,7 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
   ) async {
     _tripId = event.tripId;
     emit(TripDetailLoading());
-    await _fetchAll(event.tripId, emit);
+    await _fetchCore(event.tripId, emit);
   }
 
   Future<void> _onRefreshTripDetail(
@@ -91,18 +92,114 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     Emitter<TripDetailState> emit,
   ) async {
     if (_tripId == null) return;
-    await _fetchAll(_tripId!, emit, preserveUiState: true);
+    await _fetchAllForRefresh(_tripId!, emit);
   }
 
-  Future<void> _fetchAll(
+  Future<void> _onLoadDeferredSections(
+    LoadDeferredSections event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+    if (loaded.deferredLoaded) return;
+
+    final results = await Future.wait([
+      _transportRepository.getManualFlights(_tripId!),
+      _accommodationRepository.getByTrip(_tripId!),
+      _baggageRepository.getByTrip(_tripId!),
+      _budgetRepository.getBudgetSummary(_tripId!),
+      _tripShareRepository.getSharesByTrip(_tripId!),
+    ]);
+
+    if (isClosed) return;
+    if (state is! TripDetailLoaded) return;
+    final current = state as TripDetailLoaded;
+
+    final flights = (results[0] as Result<List<ManualFlight>>).dataOrNull ?? [];
+    final accommodations =
+        (results[1] as Result<List<Accommodation>>).dataOrNull ?? [];
+    final baggageItems =
+        (results[2] as Result<List<BaggageItem>>).dataOrNull ?? [];
+    final budgetSummary = (results[3] as Result<BudgetSummary>).dataOrNull;
+    final shares = (results[4] as Result<List<TripShare>>).dataOrNull ?? [];
+
+    final completion = tripDetailCompletion(
+      trip: current.trip,
+      flights: flights,
+      accommodations: accommodations,
+      activities: current.activities,
+      baggageItems: baggageItems,
+      budgetSummary: budgetSummary,
+    );
+
+    emit(
+      current.copyWith(
+        flights: flights,
+        accommodations: accommodations,
+        baggageItems: baggageItems,
+        budgetSummary: budgetSummary,
+        shares: shares,
+        completionResult: completion,
+        deferredLoaded: true,
+      ),
+    );
+  }
+
+  /// Tier 1 — Trip + Activities only. Schedules deferred load after emit.
+  Future<void> _fetchCore(String tripId, Emitter<TripDetailState> emit) async {
+    final results = await Future.wait([
+      _tripRepository.getTripById(tripId),
+      _activityRepository.getActivities(tripId),
+    ]);
+
+    if (isClosed) return;
+
+    final tripResult = results[0] as Result<Trip>;
+    final activitiesResult = results[1] as Result<List<Activity>>;
+
+    if (tripResult is Failure<Trip>) {
+      emit(TripDetailError(error: tripResult.error));
+      return;
+    }
+
+    final trip = (tripResult as Success<Trip>).data;
+    final activities = activitiesResult.dataOrNull ?? [];
+
+    final completion = tripDetailCompletion(
+      trip: trip,
+      flights: const [],
+      accommodations: const [],
+      activities: activities,
+      baggageItems: const [],
+    );
+
+    emit(
+      TripDetailLoaded(
+        trip: trip,
+        activities: activities,
+        flights: const [],
+        accommodations: const [],
+        baggageItems: const [],
+        shares: const [],
+        userRole: trip.role ?? 'OWNER',
+        completionResult: completion,
+      ),
+    );
+
+    // Schedule deferred sections load
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (!isClosed) add(LoadDeferredSections());
+    });
+  }
+
+  /// Full fetch for refresh — all 7 calls in parallel, deferredLoaded = true.
+  Future<void> _fetchAllForRefresh(
     String tripId,
-    Emitter<TripDetailState> emit, {
-    bool preserveUiState = false,
-  }) async {
-    // Preserve UI state from current loaded state if requested
+    Emitter<TripDetailState> emit,
+  ) async {
     final int prevSelectedDay;
     final Set<String> prevCollapsedSections;
-    if (preserveUiState && state is TripDetailLoaded) {
+    if (state is TripDetailLoaded) {
       final loaded = state as TripDetailLoaded;
       prevSelectedDay = loaded.selectedDayIndex;
       prevCollapsedSections = loaded.collapsedSections;
@@ -112,13 +209,13 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     }
 
     final results = await Future.wait([
-      _tripRepository.getTripById(tripId), // 0 — mandatory
-      _activityRepository.getActivities(tripId), // 1
-      _transportRepository.getManualFlights(tripId), // 2
-      _accommodationRepository.getByTrip(tripId), // 3
-      _baggageRepository.getByTrip(tripId), // 4
-      _budgetRepository.getBudgetSummary(tripId), // 5
-      _tripShareRepository.getSharesByTrip(tripId), // 6
+      _tripRepository.getTripById(tripId),
+      _activityRepository.getActivities(tripId),
+      _transportRepository.getManualFlights(tripId),
+      _accommodationRepository.getByTrip(tripId),
+      _baggageRepository.getByTrip(tripId),
+      _budgetRepository.getBudgetSummary(tripId),
+      _tripShareRepository.getSharesByTrip(tripId),
     ]);
 
     if (isClosed) return;
@@ -131,15 +228,12 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     final budgetResult = results[5] as Result<BudgetSummary>;
     final sharesResult = results[6] as Result<List<TripShare>>;
 
-    // Trip is mandatory — failure → error
     if (tripResult is Failure<Trip>) {
       emit(TripDetailError(error: tripResult.error));
       return;
     }
 
     final trip = (tripResult as Success<Trip>).data;
-
-    // Optional data — fallback to empty on failure
     final activities = activitiesResult.dataOrNull ?? [];
     final flights = flightsResult.dataOrNull ?? [];
     final accommodations = accommodationsResult.dataOrNull ?? [];
@@ -169,6 +263,7 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
         userRole: trip.role ?? 'OWNER',
         completionResult: completion,
         collapsedSections: prevCollapsedSections,
+        deferredLoaded: true,
       ),
     );
   }
@@ -829,11 +924,5 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
       // Rollback
       emit(loaded);
     }
-  }
-
-  @override
-  // ignore: unnecessary_overrides
-  Future<void> close() {
-    return super.close();
   }
 }

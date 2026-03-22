@@ -14,10 +14,4 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
   ) async {
     emit(state.copyWith(activeTab: event.tab));
   }
-
-  @override
-  // ignore: unnecessary_overrides
-  Future<void> close() {
-    return super.close();
-  }
 }

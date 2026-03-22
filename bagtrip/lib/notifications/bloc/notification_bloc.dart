@@ -189,10 +189,4 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     // Refresh unread count when a new notification arrives
     add(LoadUnreadCount());
   }
-
-  @override
-  // ignore: unnecessary_overrides
-  Future<void> close() {
-    return super.close();
-  }
 }

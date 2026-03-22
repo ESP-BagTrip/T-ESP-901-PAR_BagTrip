@@ -129,6 +129,7 @@ class _MyAppState extends State<MyApp> {
     _homeBloc.close();
     _onMessageSub.cancel();
     _onTokenRefreshSub.cancel();
+    getIt<ConnectivityService>().dispose();
     super.dispose();
   }
 

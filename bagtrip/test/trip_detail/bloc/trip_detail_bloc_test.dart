@@ -68,16 +68,20 @@ void main() {
     // ── LoadTripDetail ─────────────────────────────────────────────
 
     blocTest<TripDetailBloc, TripDetailState>(
-      'emits [Loading, Loaded] on successful load',
+      'emits [Loading, Loaded(deferred:false), Loaded(deferred:true)] on successful load',
       build: () {
         stubAllSuccess();
         return buildBloc();
       },
       act: (bloc) => bloc.add(LoadTripDetail(tripId: 'trip-1')),
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
         isA<TripDetailLoaded>()
             .having((s) => s.trip.id, 'trip.id', 'trip-1')
+            .having((s) => s.deferredLoaded, 'deferredLoaded', false),
+        isA<TripDetailLoaded>()
+            .having((s) => s.deferredLoaded, 'deferredLoaded', true)
             .having((s) => s.completionPercentage, 'completion', 33),
       ],
     );
@@ -139,36 +143,85 @@ void main() {
         return buildBloc();
       },
       act: (bloc) => bloc.add(LoadTripDetail(tripId: 'trip-1')),
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        // Core load — activities failed → empty
         isA<TripDetailLoaded>()
             .having((s) => s.activities, 'activities', isEmpty)
+            .having((s) => s.deferredLoaded, 'deferredLoaded', false),
+        // Deferred load — all failed → empty
+        isA<TripDetailLoaded>()
             .having((s) => s.flights, 'flights', isEmpty)
             .having((s) => s.accommodations, 'accommodations', isEmpty)
             .having((s) => s.baggageItems, 'baggageItems', isEmpty)
             .having((s) => s.budgetSummary, 'budgetSummary', isNull)
-            .having((s) => s.shares, 'shares', isEmpty),
+            .having((s) => s.shares, 'shares', isEmpty)
+            .having((s) => s.deferredLoaded, 'deferredLoaded', true),
       ],
+    );
+
+    // ── LoadDeferredSections ──────────────────────────────────────
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'LoadDeferredSections is no-op when deferredLoaded is already true',
+      build: () => buildBloc(),
+      seed: () => TripDetailLoaded(
+        trip: makeTrip(),
+        activities: [],
+        flights: [],
+        accommodations: [],
+        baggageItems: [],
+        shares: [],
+        completionResult: const CompletionResult(
+          percentage: 20,
+          segments: {
+            CompletionSegmentType.dates: true,
+            CompletionSegmentType.flights: false,
+            CompletionSegmentType.accommodation: false,
+            CompletionSegmentType.activities: false,
+            CompletionSegmentType.baggage: false,
+            CompletionSegmentType.budget: false,
+          },
+        ),
+        deferredLoaded: true,
+      ),
+      act: (bloc) => bloc.add(LoadDeferredSections()),
+      expect: () => <TripDetailState>[],
     );
 
     // ── RefreshTripDetail ──────────────────────────────────────────
 
     blocTest<TripDetailBloc, TripDetailState>(
-      'RefreshTripDetail does not emit Loading',
+      'RefreshTripDetail loads all data at once with deferredLoaded true',
       build: () {
         stubAllSuccess();
         return buildBloc();
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(RefreshTripDetail());
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
-        isA<TripDetailLoaded>(),
-        // Refresh emits Loaded directly, no Loading
-        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>().having(
+          (s) => s.deferredLoaded,
+          'deferredLoaded',
+          false,
+        ),
+        isA<TripDetailLoaded>().having(
+          (s) => s.deferredLoaded,
+          'deferredLoaded',
+          true,
+        ),
+        // Refresh emits Loaded directly with deferredLoaded=true
+        isA<TripDetailLoaded>().having(
+          (s) => s.deferredLoaded,
+          'deferredLoaded',
+          true,
+        ),
       ],
     );
 
@@ -180,15 +233,17 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(SelectDay(dayIndex: 2));
         await Future<void>.delayed(const Duration(milliseconds: 50));
         bloc.add(ToggleSection(sectionId: 'transports'));
         await Future<void>.delayed(const Duration(milliseconds: 50));
         bloc.add(RefreshTripDetail());
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>().having(
           (s) => s.selectedDayIndex,
@@ -298,27 +353,10 @@ void main() {
     blocTest<TripDetailBloc, TripDetailState>(
       'ValidateActivity performs optimistic update then API call',
       build: () {
-        when(
-          () => mockTripRepo.getTripById(any()),
-        ).thenAnswer((_) async => Success(makeTrip()));
+        stubAllSuccess();
         when(
           () => mockActivityRepo.getActivities(any()),
         ).thenAnswer((_) async => Success([makeActivity()]));
-        when(
-          () => mockTransportRepo.getManualFlights(any()),
-        ).thenAnswer((_) async => const Success([]));
-        when(
-          () => mockAccommodationRepo.getByTrip(any()),
-        ).thenAnswer((_) async => const Success([]));
-        when(
-          () => mockBaggageRepo.getByTrip(any()),
-        ).thenAnswer((_) async => const Success([]));
-        when(
-          () => mockBudgetRepo.getBudgetSummary(any()),
-        ).thenAnswer((_) async => Success(makeBudgetSummary()));
-        when(
-          () => mockTripShareRepo.getSharesByTrip(any()),
-        ).thenAnswer((_) async => const Success([]));
         when(
           () => mockActivityRepo.updateActivity(any(), any(), any()),
         ).thenAnswer((_) async => Success(makeActivity()));
@@ -326,9 +364,10 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(ValidateActivity(activityId: 'act-1'));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
         isA<TripDetailLoaded>().having(
@@ -336,6 +375,7 @@ void main() {
           'activities.length',
           1,
         ),
+        isA<TripDetailLoaded>(),
         // Optimistic update
         isA<TripDetailLoaded>(),
       ],
@@ -351,27 +391,10 @@ void main() {
     blocTest<TripDetailBloc, TripDetailState>(
       'ValidateActivity rolls back on API failure',
       build: () {
-        when(
-          () => mockTripRepo.getTripById(any()),
-        ).thenAnswer((_) async => Success(makeTrip()));
+        stubAllSuccess();
         when(
           () => mockActivityRepo.getActivities(any()),
         ).thenAnswer((_) async => Success([makeActivity()]));
-        when(
-          () => mockTransportRepo.getManualFlights(any()),
-        ).thenAnswer((_) async => const Success([]));
-        when(
-          () => mockAccommodationRepo.getByTrip(any()),
-        ).thenAnswer((_) async => const Success([]));
-        when(
-          () => mockBaggageRepo.getByTrip(any()),
-        ).thenAnswer((_) async => const Success([]));
-        when(
-          () => mockBudgetRepo.getBudgetSummary(any()),
-        ).thenAnswer((_) async => Success(makeBudgetSummary()));
-        when(
-          () => mockTripShareRepo.getSharesByTrip(any()),
-        ).thenAnswer((_) async => const Success([]));
         when(
           () => mockActivityRepo.updateActivity(any(), any(), any()),
         ).thenAnswer((_) async => const Failure(NetworkError('timeout')));
@@ -379,11 +402,13 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(ValidateActivity(activityId: 'act-1'));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>(),
         // Optimistic update
         isA<TripDetailLoaded>(),
@@ -397,27 +422,10 @@ void main() {
     blocTest<TripDetailBloc, TripDetailState>(
       'RejectActivity removes activity optimistically and rolls back on failure',
       build: () {
-        when(
-          () => mockTripRepo.getTripById(any()),
-        ).thenAnswer((_) async => Success(makeTrip()));
+        stubAllSuccess();
         when(
           () => mockActivityRepo.getActivities(any()),
         ).thenAnswer((_) async => Success([makeActivity()]));
-        when(
-          () => mockTransportRepo.getManualFlights(any()),
-        ).thenAnswer((_) async => const Success([]));
-        when(
-          () => mockAccommodationRepo.getByTrip(any()),
-        ).thenAnswer((_) async => const Success([]));
-        when(
-          () => mockBaggageRepo.getByTrip(any()),
-        ).thenAnswer((_) async => const Success([]));
-        when(
-          () => mockBudgetRepo.getBudgetSummary(any()),
-        ).thenAnswer((_) async => Success(makeBudgetSummary()));
-        when(
-          () => mockTripShareRepo.getSharesByTrip(any()),
-        ).thenAnswer((_) async => const Success([]));
         when(
           () => mockActivityRepo.deleteActivity(any(), any()),
         ).thenAnswer((_) async => const Failure(NetworkError('timeout')));
@@ -425,9 +433,10 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(RejectActivity(activityId: 'act-1'));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
         isA<TripDetailLoaded>().having(
@@ -435,6 +444,7 @@ void main() {
           'activities.length',
           1,
         ),
+        isA<TripDetailLoaded>(),
         // Optimistic removal
         isA<TripDetailLoaded>().having(
           (s) => s.activities.length,
@@ -463,11 +473,13 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(UpdateTripStatus(status: 'PLANNED'));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>(),
         // After updateTripStatus succeeds → RefreshTripDetail
         isA<TripDetailLoaded>(),
@@ -487,11 +499,13 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(UpdateTripTitle(title: 'New Title'));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>(),
         // Optimistic update
         isA<TripDetailLoaded>().having(
@@ -518,9 +532,10 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(UpdateTripTitle(title: 'New Title'));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
         isA<TripDetailLoaded>().having(
@@ -528,6 +543,7 @@ void main() {
           'trip.title',
           'Paris Trip',
         ),
+        isA<TripDetailLoaded>(),
         // Optimistic update
         isA<TripDetailLoaded>().having(
           (s) => s.trip.title,
@@ -556,7 +572,7 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(
           UpdateTripDates(
             startDate: DateTime(2024, 7),
@@ -564,8 +580,10 @@ void main() {
           ),
         );
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>(),
         // Optimistic update with new dates
         isA<TripDetailLoaded>()
@@ -596,7 +614,7 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(
           UpdateTripDates(
             startDate: DateTime(2024, 7),
@@ -604,8 +622,10 @@ void main() {
           ),
         );
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>(),
         // Optimistic
         isA<TripDetailLoaded>().having(
@@ -635,11 +655,13 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(UpdateTripTravelers(nbTravelers: 5));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>(),
         // Optimistic update
         isA<TripDetailLoaded>().having(
@@ -662,11 +684,13 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(UpdateTripStatus(status: 'PLANNED'));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>(),
         // validationError emitted
         isA<TripDetailLoaded>().having(
@@ -693,11 +717,13 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(UpdateTripStatus(status: 'PLANNED'));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>(),
         // validationError emitted
         isA<TripDetailLoaded>().having(
@@ -773,11 +799,13 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(UpdateTripStatus(status: 'PLANNED'));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>(),
         // After updateTripStatus succeeds → RefreshTripDetail
         isA<TripDetailLoaded>(),
@@ -802,11 +830,13 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(DeleteTripDetail());
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>(),
         isA<TripDetailDeleted>(),
       ],
@@ -840,13 +870,15 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(
           BatchValidateActivitiesFromDetail(activityIds: ['act-1', 'act-2']),
         );
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>(),
         // Optimistic update — both activities validated
         isA<TripDetailLoaded>().having(
@@ -880,13 +912,15 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(
           BatchValidateActivitiesFromDetail(activityIds: ['act-1', 'act-2']),
         );
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>(),
         // Optimistic update
         isA<TripDetailLoaded>(),
@@ -917,9 +951,10 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(CreateActivityFromDetail(data: {'title': 'New'}));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
         isA<TripDetailLoaded>().having(
@@ -927,6 +962,7 @@ void main() {
           'activities.length',
           1,
         ),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>().having(
           (s) => s.activities.length,
           'activities.length',
@@ -965,11 +1001,13 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(MoveActivityToDay(activityId: 'act-1', targetDayIndex: 2));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>(),
         // Optimistic update — date changed to day index 2
         isA<TripDetailLoaded>().having(
@@ -999,11 +1037,13 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(MoveActivityToDay(activityId: 'act-1', targetDayIndex: 2));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>(),
         // Optimistic update
         isA<TripDetailLoaded>().having(
@@ -1033,11 +1073,13 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(MoveActivityToDay(activityId: 'act-1', targetDayIndex: 2));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>(),
         // No additional emissions — no-op
       ],
@@ -1061,11 +1103,13 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(SuggestActivitiesForDay(dayNumber: 1));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>(),
         // suggestingForDay set
         isA<TripDetailLoaded>().having(
@@ -1093,11 +1137,13 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(SuggestActivitiesForDay(dayNumber: 1));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>(),
         // suggestingForDay set
         isA<TripDetailLoaded>().having(
@@ -1163,13 +1209,15 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(
           CreateBudgetItemFromDetail(data: {'amount': 100, 'label': 'Taxi'}),
         );
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>(),
         // Optimistic update — totalSpent increased by 100
         isA<TripDetailLoaded>().having(
@@ -1202,13 +1250,15 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(
           CreateBudgetItemFromDetail(data: {'amount': 100, 'label': 'Taxi'}),
         );
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>(),
         // Optimistic update — 1050/1000 = 105% → DANGER
         isA<TripDetailLoaded>().having(
@@ -1241,13 +1291,15 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(
           CreateBudgetItemFromDetail(data: {'amount': 150, 'label': 'Taxi'}),
         );
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>(),
         // Optimistic update — 850/1000 = 85% → WARNING
         isA<TripDetailLoaded>().having(
@@ -1271,13 +1323,19 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(
           CreateBudgetItemFromDetail(data: {'amount': 100, 'label': 'Taxi'}),
         );
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>().having(
+          (s) => s.budgetSummary?.totalSpent,
+          'totalSpent',
+          isNull,
+        ),
         isA<TripDetailLoaded>().having(
           (s) => s.budgetSummary?.totalSpent,
           'totalSpent',
@@ -1314,11 +1372,13 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(ToggleBaggagePackedFromDetail(baggageItemId: 'bag-1'));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>().having(
           (s) => s.baggageItems.first.isPacked,
           'isPacked',
@@ -1347,11 +1407,13 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(ToggleBaggagePackedFromDetail(baggageItemId: 'bag-1'));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>().having(
           (s) => s.baggageItems.first.isPacked,
           'isPacked',
@@ -1388,11 +1450,13 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(DeleteFlightFromDetail(flightId: 'flight-1'));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>().having(
           (s) => s.flights.length,
           'flights.length',
@@ -1425,11 +1489,13 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(DeleteAccommodationFromDetail(accommodationId: 'acc-1'));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>().having(
           (s) => s.accommodations.length,
           'accommodations.length',
@@ -1464,11 +1530,13 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(DeleteBaggageItemFromDetail(baggageItemId: 'bag-1'));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>().having(
           (s) => s.baggageItems.length,
           'baggageItems.length',
@@ -1501,11 +1569,13 @@ void main() {
       },
       act: (bloc) async {
         bloc.add(LoadTripDetail(tripId: 'trip-1'));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
         bloc.add(DeleteShareFromDetail(shareId: 'share-1'));
       },
+      wait: const Duration(milliseconds: 300),
       expect: () => [
         isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>().having(
           (s) => s.shares.length,
           'shares.length',

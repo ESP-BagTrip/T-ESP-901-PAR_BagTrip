@@ -374,10 +374,4 @@ class FlightSearchResultBloc
       ),
     );
   }
-
-  @override
-  // ignore: unnecessary_overrides
-  Future<void> close() {
-    return super.close();
-  }
 }

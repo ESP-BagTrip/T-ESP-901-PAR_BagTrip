@@ -179,10 +179,4 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
         emit(BudgetError(error: error));
     }
   }
-
-  @override
-  // ignore: unnecessary_overrides
-  Future<void> close() {
-    return super.close();
-  }
 }

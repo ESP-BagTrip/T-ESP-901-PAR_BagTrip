@@ -174,13 +174,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     if (mutableOngoing.isNotEmpty) {
       final activeTrip = _pickEarliestTrip(mutableOngoing);
 
-      // Fetch today's activities
-      List<Activity> todayActivities = [];
-      final activitiesResult = await _activityRepository.getActivities(
-        activeTrip.id,
-      );
+      // Fetch today's activities + weather in parallel
+      final contextualResults = await Future.wait([
+        _activityRepository.getActivities(activeTrip.id),
+        _weatherRepository.getWeather(activeTrip.id),
+      ]);
       if (isClosed) return;
 
+      final activitiesResult = contextualResults[0] as Result<List<Activity>>;
+      final weatherResult = contextualResults[1] as Result<WeatherSummary>;
+
+      List<Activity> todayActivities = [];
       if (activitiesResult is Success<List<Activity>>) {
         final now = DateTime.now();
         final today = DateTime(now.year, now.month, now.day);
@@ -195,10 +199,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
             });
       }
 
-      // Fetch weather summary
       String? weatherSummary;
-      final weatherResult = await _weatherRepository.getWeather(activeTrip.id);
-      if (isClosed) return;
       if (weatherResult is Success<WeatherSummary>) {
         final w = weatherResult.data;
         weatherSummary = '${w.avgTempC.round()}°C · ${w.description}';
@@ -315,11 +316,5 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         return aDate.compareTo(bDate);
       });
     return sorted.first;
-  }
-
-  @override
-  // ignore: unnecessary_overrides
-  Future<void> close() {
-    return super.close();
   }
 }

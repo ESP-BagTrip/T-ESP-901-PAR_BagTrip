@@ -465,10 +465,4 @@ class CreateTripAiBloc extends Bloc<CreateTripAiEvent, CreateTripAiState> {
       'matchReason': 'Planned with real-time data',
     };
   }
-
-  @override
-  // ignore: unnecessary_overrides
-  Future<void> close() {
-    return super.close();
-  }
 }

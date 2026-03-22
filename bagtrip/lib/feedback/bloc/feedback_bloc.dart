@@ -76,10 +76,4 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
         emit(PostTripSuggestionError(error: error));
     }
   }
-
-  @override
-  // ignore: unnecessary_overrides
-  Future<void> close() {
-    return super.close();
-  }
 }

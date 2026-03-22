@@ -145,10 +145,4 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthModeChangedState(isLoginMode: event.isLoginMode));
     }
   }
-
-  @override
-  // ignore: unnecessary_overrides
-  Future<void> close() {
-    return super.close();
-  }
 }

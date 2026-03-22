@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/optimized_image.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -50,10 +51,9 @@ class AiDestinationCard extends StatelessWidget {
               children: [
                 // Image
                 if (destination.imageUrl != null)
-                  Image.network(
+                  OptimizedImage.activityImage(
                     destination.imageUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => _imagePlaceholder(),
+                    errorWidget: _imagePlaceholder(),
                   )
                 else
                   _imagePlaceholder(),
