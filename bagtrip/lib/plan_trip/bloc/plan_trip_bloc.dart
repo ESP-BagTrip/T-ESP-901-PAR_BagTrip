@@ -597,7 +597,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
 
   /// Convert SSE 'complete' tripPlan data to [TripPlan].
   ///
-  /// Ported from [CreateTripAiBloc._tripPlanToSummary], adapted to produce
+  /// Ported from the legacy CreateTripAiBloc._tripPlanToSummary method, adapted to produce
   /// [TripPlan] instead of [TripSummary].
   TripPlan _tripPlanFromSseData(Map<String, dynamic> tripPlan) {
     final dest = tripPlan['destination'] as Map<String, dynamic>? ?? {};

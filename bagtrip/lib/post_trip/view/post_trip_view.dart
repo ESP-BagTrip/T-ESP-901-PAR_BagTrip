@@ -233,7 +233,7 @@ class _PostTripContent extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: () {
                   AppHaptics.light();
-                  const TripCreationRoute().push(context);
+                  const PlanTripRoute().push(context);
                 },
                 icon: const Icon(Icons.add),
                 label: Text(l10n.postTripPlanNext),

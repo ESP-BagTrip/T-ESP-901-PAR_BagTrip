@@ -38,7 +38,7 @@ class PersonalizationView extends StatelessWidget {
           final from = GoRouterState.of(context).uri.queryParameters['from'];
           switch (from) {
             case 'createTripAi':
-              const TripCreationRoute().go(context);
+              const PlanTripRoute().go(context);
             case 'profile':
               const ProfileRoute().go(context);
             default:

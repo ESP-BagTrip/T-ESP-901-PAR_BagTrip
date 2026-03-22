@@ -15,10 +15,6 @@ void main() {
       expect(const DeepLinkTripRoute(tripId: 'xyz').location, '/trip/xyz');
     });
 
-    test('existing TripCreationRoute unchanged', () {
-      expect(const TripCreationRoute().location, '/home/create');
-    });
-
     test('existing TripHomeRoute unchanged', () {
       expect(const TripHomeRoute(tripId: 'x').location, '/home/x');
     });

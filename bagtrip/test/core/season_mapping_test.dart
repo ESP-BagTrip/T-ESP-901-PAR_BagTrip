@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-/// Mirrors the season mapping logic found in
-/// `lib/trip_creation/bloc/trip_creation_bloc.dart` (_onGenerateInspiration).
+/// Mirrors the season mapping logic originally from the legacy trip creation flow.
 ///
 /// The mapping uses French season names:
 ///   months 3-5  → 'printemps'  (spring)

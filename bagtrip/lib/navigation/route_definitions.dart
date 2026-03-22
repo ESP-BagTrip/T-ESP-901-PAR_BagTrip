@@ -15,7 +15,6 @@ import 'package:bagtrip/baggage/view/baggage_page.dart';
 import 'package:bagtrip/pages/feedback_page.dart';
 import 'package:bagtrip/post_trip/view/post_trip_page.dart';
 import 'package:bagtrip/pages/flight_search_result_page.dart';
-import 'package:bagtrip/pages/create_trip_ai_flow_page.dart';
 import 'package:bagtrip/pages/login_page.dart';
 import 'package:bagtrip/pages/onboarding_page.dart';
 import 'package:bagtrip/pages/payment/payment_cancel_page.dart';
@@ -33,7 +32,6 @@ import 'package:bagtrip/trip_detail/view/trip_detail_page.dart';
 import 'package:bagtrip/pages/trip_shares_page.dart';
 import 'package:bagtrip/plan_trip/models/location_result.dart';
 import 'package:bagtrip/plan_trip/view/plan_trip_flow_page.dart';
-import 'package:bagtrip/trip_creation/view/trip_creation_flow_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -113,7 +111,6 @@ class DeepLinkTripRoute extends GoRouteData with $DeepLinkTripRoute {
 @TypedGoRoute<HomeRoute>(
   path: '/home',
   routes: [
-    TypedGoRoute<TripCreationRoute>(path: 'create'),
     TypedGoRoute<PlanTripRoute>(path: 'plan'),
     TypedGoRoute<TripFlightSearchRoute>(path: 'flight-search'),
     TypedGoRoute<TripDetailRoute>(path: 'trip/:tripId'),
@@ -139,17 +136,6 @@ class HomeRoute extends GoRouteData with $HomeRoute {
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       const NoTransitionPage(child: HomePage());
-}
-
-class TripCreationRoute extends GoRouteData with $TripCreationRoute {
-  const TripCreationRoute();
-
-  @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      buildSlideTransitionPage<void>(
-        state: state,
-        child: const TripCreationFlowPage(),
-      );
 }
 
 class PlanTripRoute extends GoRouteData with $PlanTripRoute {
@@ -519,22 +505,6 @@ class SubscriptionCancelRoute extends GoRouteData
       buildSlideTransitionPage<void>(
         state: state,
         child: const SubscriptionCancelPage(),
-      );
-}
-
-// ---------------------------------------------------------------------------
-// AI trip creation (outside shell)
-// ---------------------------------------------------------------------------
-
-@TypedGoRoute<CreateTripAiFlowRoute>(path: '/create-trip-ai')
-class CreateTripAiFlowRoute extends GoRouteData with $CreateTripAiFlowRoute {
-  const CreateTripAiFlowRoute();
-
-  @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      buildSlideTransitionPage<void>(
-        state: state,
-        child: const CreateTripAiFlowPage(),
       );
 }
 

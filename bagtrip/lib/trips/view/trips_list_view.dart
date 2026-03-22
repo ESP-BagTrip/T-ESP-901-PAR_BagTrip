@@ -41,7 +41,7 @@ class _TripsListViewState extends State<TripsListView> {
           title: AppLocalizations.of(context)!.tripsMyTrips,
           actions: [
             IconButton(
-              onPressed: () => const TripCreationRoute().go(context),
+              onPressed: () => const PlanTripRoute().go(context),
               icon: const Icon(Icons.add),
             ),
           ],

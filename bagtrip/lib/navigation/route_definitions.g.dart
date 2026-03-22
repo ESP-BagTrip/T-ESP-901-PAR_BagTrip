@@ -20,7 +20,6 @@ List<RouteBase> get $appRoutes => [
   $flightResultDetailsRoute,
   $subscriptionSuccessRoute,
   $subscriptionCancelRoute,
-  $createTripAiFlowRoute,
   $paymentSuccessRoute,
   $paymentCancelRoute,
   $paymentResultRoute,
@@ -162,7 +161,6 @@ RouteBase get $homeRoute => GoRouteData.$route(
   path: '/home',
   factory: $HomeRoute._fromState,
   routes: [
-    GoRouteData.$route(path: 'create', factory: $TripCreationRoute._fromState),
     GoRouteData.$route(path: 'plan', factory: $PlanTripRoute._fromState),
     GoRouteData.$route(
       path: 'flight-search',
@@ -210,27 +208,6 @@ mixin $HomeRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/home');
-
-  @override
-  void go(BuildContext context) => context.go(location);
-
-  @override
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
-
-  @override
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
-
-  @override
-  void replace(BuildContext context) => context.replace(location);
-}
-
-mixin $TripCreationRoute on GoRouteData {
-  static TripCreationRoute _fromState(GoRouterState state) =>
-      const TripCreationRoute();
-
-  @override
-  String get location => GoRouteData.$location('/home/create');
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -897,32 +874,6 @@ mixin $SubscriptionCancelRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/subscription/cancel');
-
-  @override
-  void go(BuildContext context) => context.go(location);
-
-  @override
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
-
-  @override
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
-
-  @override
-  void replace(BuildContext context) => context.replace(location);
-}
-
-RouteBase get $createTripAiFlowRoute => GoRouteData.$route(
-  path: '/create-trip-ai',
-  factory: $CreateTripAiFlowRoute._fromState,
-);
-
-mixin $CreateTripAiFlowRoute on GoRouteData {
-  static CreateTripAiFlowRoute _fromState(GoRouterState state) =>
-      const CreateTripAiFlowRoute();
-
-  @override
-  String get location => GoRouteData.$location('/create-trip-ai');
 
   @override
   void go(BuildContext context) => context.go(location);
