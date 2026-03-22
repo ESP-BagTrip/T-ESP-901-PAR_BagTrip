@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -15,6 +16,7 @@ Future<DateTime?> showAdaptiveDatePicker({
 }) async {
   if (AdaptivePlatform.isIOS) {
     DateTime? selected;
+    final l10n = AppLocalizations.of(context)!;
     await showCupertinoModalPopup<void>(
       context: context,
       builder: (ctx) => Container(
@@ -29,14 +31,14 @@ Future<DateTime?> showAdaptiveDatePicker({
                 children: [
                   CupertinoButton(
                     onPressed: () => Navigator.of(ctx).pop(),
-                    child: const Text('Cancel'),
+                    child: Text(l10n.cancelButton),
                   ),
                   CupertinoButton(
                     onPressed: () {
                       selected ??= initialDate;
                       Navigator.of(ctx).pop();
                     },
-                    child: const Text('Done'),
+                    child: Text(l10n.doneButton),
                   ),
                 ],
               ),

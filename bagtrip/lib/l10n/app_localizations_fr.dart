@@ -2823,4 +2823,43 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get shareRevokeSuccess => 'Accès révoqué';
+
+  @override
+  String get filterTitle => 'Filtres';
+
+  @override
+  String get filterPrice => 'Prix';
+
+  @override
+  String get filterPriceLowest => 'Prix le plus bas';
+
+  @override
+  String get filterPriceHighest => 'Prix le plus haut';
+
+  @override
+  String get filterAirline => 'Compagnie aérienne';
+
+  @override
+  String get filterNoAirlines => 'Aucune compagnie disponible';
+
+  @override
+  String get filterAllAirlines => 'Toutes';
+
+  @override
+  String get filterBaggage => 'Bagages';
+
+  @override
+  String get filterDepartureTime => 'Heure de départ';
+
+  @override
+  String get filterBefore => 'Avant';
+
+  @override
+  String get filterAfter => 'Après';
+
+  @override
+  String get filterApply => 'Appliquer';
+
+  @override
+  String get doneButton => 'Terminé';
 }

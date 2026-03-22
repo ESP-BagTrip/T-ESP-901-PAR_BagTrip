@@ -18,9 +18,7 @@ class PremiumPaywall extends StatefulWidget {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (_) => const PremiumPaywall(),
     );
   }
@@ -51,49 +49,58 @@ class _PremiumPaywallState extends State<PremiumPaywall> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.border,
-              borderRadius: BorderRadius.circular(2),
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.3,
+                ),
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
-          const Icon(
-            Icons.workspace_premium,
-            size: 48,
-            color: Color(0xFFFFB800),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Passez \u00e0 Premium',
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          _buildFeature(
-            AppLocalizations.of(context)!.premiumFeatureAiUnlimited,
-          ),
-          _buildFeature(AppLocalizations.of(context)!.premiumFeatureViewers),
-          _buildFeature(
-            AppLocalizations.of(context)!.premiumFeatureOfflineNotifs,
-          ),
-          _buildFeature(AppLocalizations.of(context)!.premiumFeaturePostTrip),
-          const SizedBox(height: 24),
-          PremiumCtaButton(
-            label: AppLocalizations.of(context)!.premiumCtaButton,
-            onPressed: _handleUpgrade,
-            isLoading: _isLoading,
-          ),
-          const SizedBox(height: 16),
-        ],
+            const SizedBox(height: 24),
+            const Icon(
+              Icons.workspace_premium,
+              size: 48,
+              color: Color(0xFFFFB800),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Passez \u00e0 Premium',
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            _buildFeature(
+              AppLocalizations.of(context)!.premiumFeatureAiUnlimited,
+            ),
+            _buildFeature(AppLocalizations.of(context)!.premiumFeatureViewers),
+            _buildFeature(
+              AppLocalizations.of(context)!.premiumFeatureOfflineNotifs,
+            ),
+            _buildFeature(AppLocalizations.of(context)!.premiumFeaturePostTrip),
+            const SizedBox(height: 24),
+            PremiumCtaButton(
+              label: AppLocalizations.of(context)!.premiumCtaButton,
+              onPressed: _handleUpgrade,
+              isLoading: _isLoading,
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }

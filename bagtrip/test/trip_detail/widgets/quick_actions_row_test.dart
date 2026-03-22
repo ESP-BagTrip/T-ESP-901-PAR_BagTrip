@@ -88,7 +88,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Memories'), findsOneWidget);
+      expect(find.text('Souvenirs'), findsOneWidget);
     });
 
     testWidgets('viewer role shows only read-only actions', (tester) async {

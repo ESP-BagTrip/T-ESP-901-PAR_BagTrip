@@ -5299,6 +5299,84 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Accès révoqué'**
   String get shareRevokeSuccess;
+
+  /// No description provided for @filterTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Filtres'**
+  String get filterTitle;
+
+  /// No description provided for @filterPrice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prix'**
+  String get filterPrice;
+
+  /// No description provided for @filterPriceLowest.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prix le plus bas'**
+  String get filterPriceLowest;
+
+  /// No description provided for @filterPriceHighest.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prix le plus haut'**
+  String get filterPriceHighest;
+
+  /// No description provided for @filterAirline.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compagnie aérienne'**
+  String get filterAirline;
+
+  /// No description provided for @filterNoAirlines.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune compagnie disponible'**
+  String get filterNoAirlines;
+
+  /// No description provided for @filterAllAirlines.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes'**
+  String get filterAllAirlines;
+
+  /// No description provided for @filterBaggage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bagages'**
+  String get filterBaggage;
+
+  /// No description provided for @filterDepartureTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heure de départ'**
+  String get filterDepartureTime;
+
+  /// No description provided for @filterBefore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avant'**
+  String get filterBefore;
+
+  /// No description provided for @filterAfter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Après'**
+  String get filterAfter;
+
+  /// No description provided for @filterApply.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appliquer'**
+  String get filterApply;
+
+  /// No description provided for @doneButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminé'**
+  String get doneButton;
 }
 
 class _AppLocalizationsDelegate

@@ -89,11 +89,11 @@ void main() {
       expect(find.textContaining('Retry'), findsOneWidget);
     });
 
-    testWidgets('shows "Memories" title in app bar', (tester) async {
+    testWidgets('shows "Souvenirs" title in app bar', (tester) async {
       await tester.pumpWidget(buildApp(makeLoadedState()));
       await tester.pumpAndSettle();
 
-      expect(find.text('Memories'), findsOneWidget);
+      expect(find.text('Souvenirs'), findsOneWidget);
     });
 
     testWidgets('shows trip title', (tester) async {

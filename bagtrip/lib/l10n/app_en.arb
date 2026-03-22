@@ -1062,7 +1062,7 @@
   },
   "postTripDetectionConfirm": "Yes, complete",
   "postTripDetectionRemindLater": "Remind me later",
-  "postTripSouvenirsTitle": "Memories",
+  "postTripSouvenirsTitle": "Souvenirs",
   "postTripDaysCount": "{count} days of adventure",
   "@postTripDaysCount": {
     "placeholders": {
@@ -1179,5 +1179,19 @@
   },
   "viewerBadgeReadOnly": "Read only",
   "shareInviteSuccess": "Invitation sent",
-  "shareRevokeSuccess": "Access revoked"
+  "shareRevokeSuccess": "Access revoked",
+
+  "filterTitle": "Filters",
+  "filterPrice": "Price",
+  "filterPriceLowest": "Lowest price",
+  "filterPriceHighest": "Highest price",
+  "filterAirline": "Airline",
+  "filterNoAirlines": "No airlines available",
+  "filterAllAirlines": "All",
+  "filterBaggage": "Baggage",
+  "filterDepartureTime": "Departure time",
+  "filterBefore": "Before",
+  "filterAfter": "After",
+  "filterApply": "Apply",
+  "doneButton": "Done"
 }

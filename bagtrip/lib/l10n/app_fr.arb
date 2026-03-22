@@ -1179,5 +1179,19 @@
   },
   "viewerBadgeReadOnly": "Lecture seule",
   "shareInviteSuccess": "Invitation envoyée",
-  "shareRevokeSuccess": "Accès révoqué"
+  "shareRevokeSuccess": "Accès révoqué",
+
+  "filterTitle": "Filtres",
+  "filterPrice": "Prix",
+  "filterPriceLowest": "Prix le plus bas",
+  "filterPriceHighest": "Prix le plus haut",
+  "filterAirline": "Compagnie aérienne",
+  "filterNoAirlines": "Aucune compagnie disponible",
+  "filterAllAirlines": "Toutes",
+  "filterBaggage": "Bagages",
+  "filterDepartureTime": "Heure de départ",
+  "filterBefore": "Avant",
+  "filterAfter": "Après",
+  "filterApply": "Appliquer",
+  "doneButton": "Terminé"
 }

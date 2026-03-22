@@ -2563,7 +2563,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postTripDetectionRemindLater => 'Remind me later';
 
   @override
-  String get postTripSouvenirsTitle => 'Memories';
+  String get postTripSouvenirsTitle => 'Souvenirs';
 
   @override
   String postTripDaysCount(int count) {
@@ -2796,4 +2796,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shareRevokeSuccess => 'Access revoked';
+
+  @override
+  String get filterTitle => 'Filters';
+
+  @override
+  String get filterPrice => 'Price';
+
+  @override
+  String get filterPriceLowest => 'Lowest price';
+
+  @override
+  String get filterPriceHighest => 'Highest price';
+
+  @override
+  String get filterAirline => 'Airline';
+
+  @override
+  String get filterNoAirlines => 'No airlines available';
+
+  @override
+  String get filterAllAirlines => 'All';
+
+  @override
+  String get filterBaggage => 'Baggage';
+
+  @override
+  String get filterDepartureTime => 'Departure time';
+
+  @override
+  String get filterBefore => 'Before';
+
+  @override
+  String get filterAfter => 'After';
+
+  @override
+  String get filterApply => 'Apply';
+
+  @override
+  String get doneButton => 'Done';
 }

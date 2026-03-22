@@ -48,6 +48,7 @@ class _FilterDialogState extends State<FilterDialog> {
   @override
   Widget build(BuildContext context) {
     final availableAirlines = _getAvailableAirlines();
+    final l10n = AppLocalizations.of(context)!;
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -61,9 +62,9 @@ class _FilterDialogState extends State<FilterDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Filtres',
-                  style: TextStyle(
+                Text(
+                  l10n.filterTitle,
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                     color: ColorName.primary,
@@ -82,9 +83,9 @@ class _FilterDialogState extends State<FilterDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Price sort
-                    const Text(
-                      'Prix',
-                      style: TextStyle(
+                    Text(
+                      l10n.filterPrice,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: ColorName.primary,
@@ -96,14 +97,14 @@ class _FilterDialogState extends State<FilterDialog> {
                         Expanded(
                           child: _buildPriceOption(
                             'lowest',
-                            'Prix le plus bas',
+                            l10n.filterPriceLowest,
                           ),
                         ),
                         const SizedBox(width: AppSpacing.space8),
                         Expanded(
                           child: _buildPriceOption(
                             'highest',
-                            'Prix le plus haut',
+                            l10n.filterPriceHighest,
                           ),
                         ),
                       ],
@@ -111,9 +112,9 @@ class _FilterDialogState extends State<FilterDialog> {
                     const SizedBox(height: AppSpacing.space24),
 
                     // Airline filter
-                    const Text(
-                      'Compagnie aérienne',
-                      style: TextStyle(
+                    Text(
+                      l10n.filterAirline,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: ColorName.primary,
@@ -121,9 +122,12 @@ class _FilterDialogState extends State<FilterDialog> {
                     ),
                     const SizedBox(height: AppSpacing.space8),
                     if (availableAirlines.isEmpty)
-                      const Text(
-                        'Aucune compagnie disponible',
-                        style: TextStyle(fontSize: 14, color: AppColors.hint),
+                      Text(
+                        l10n.filterNoAirlines,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.hint,
+                        ),
                       )
                     else
                       DropdownButtonFormField<String>(
@@ -138,7 +142,9 @@ class _FilterDialogState extends State<FilterDialog> {
                           ),
                         ),
                         items: [
-                          const DropdownMenuItem<String>(child: Text('Toutes')),
+                          DropdownMenuItem<String>(
+                            child: Text(l10n.filterAllAirlines),
+                          ),
                           ...availableAirlines.map(
                             (airline) => DropdownMenuItem<String>(
                               value: airline,
@@ -155,9 +161,9 @@ class _FilterDialogState extends State<FilterDialog> {
                     const SizedBox(height: AppSpacing.space24),
 
                     // Baggage filters
-                    const Text(
-                      'Bagages',
-                      style: TextStyle(
+                    Text(
+                      l10n.filterBaggage,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: ColorName.primary,
@@ -191,9 +197,9 @@ class _FilterDialogState extends State<FilterDialog> {
                     const SizedBox(height: AppSpacing.space24),
 
                     // Departure time filters
-                    const Text(
-                      'Heure de départ',
-                      style: TextStyle(
+                    Text(
+                      l10n.filterDepartureTime,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: ColorName.primary,
@@ -204,7 +210,7 @@ class _FilterDialogState extends State<FilterDialog> {
                       children: [
                         Expanded(
                           child: _buildTimeButton(
-                            'Avant',
+                            l10n.filterBefore,
                             _departureTimeBefore,
                             (time) =>
                                 setState(() => _departureTimeBefore = time),
@@ -213,7 +219,7 @@ class _FilterDialogState extends State<FilterDialog> {
                         const SizedBox(width: AppSpacing.space8),
                         Expanded(
                           child: _buildTimeButton(
-                            'Après',
+                            l10n.filterAfter,
                             _departureTimeAfter,
                             (time) =>
                                 setState(() => _departureTimeAfter = time),
@@ -277,9 +283,9 @@ class _FilterDialogState extends State<FilterDialog> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      'Appliquer',
-                      style: TextStyle(color: AppColors.surface),
+                    child: Text(
+                      l10n.filterApply,
+                      style: const TextStyle(color: AppColors.surface),
                     ),
                   ),
                 ),

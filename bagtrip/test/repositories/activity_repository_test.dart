@@ -126,6 +126,7 @@ void main() {
         () => mockApiClient.post(
           any(),
           data: any(named: 'data'),
+          queryParameters: any(named: 'queryParameters'),
           options: any(named: 'options'),
         ),
       ).thenAnswer(
@@ -155,6 +156,7 @@ void main() {
         () => mockApiClient.post(
           any(),
           data: any(named: 'data'),
+          queryParameters: any(named: 'queryParameters'),
           options: any(named: 'options'),
         ),
       ).thenThrow(

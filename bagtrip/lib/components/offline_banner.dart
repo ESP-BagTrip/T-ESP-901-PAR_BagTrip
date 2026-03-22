@@ -22,10 +22,10 @@ class OfflineBanner extends StatelessWidget {
                   child: Text(
                     AppLocalizations.of(context)!.offlineMode,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: Colors.black87,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 )

@@ -57,34 +57,52 @@ Future<void> showAdaptiveActionSheet({
 
   await showModalBottomSheet<void>(
     context: context,
-    builder: (ctx) => SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (title != null)
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                title,
-                style: Theme.of(context).textTheme.titleMedium,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) => Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
-          ...actions.map(
-            (a) => ListTile(
-              leading: a.icon != null ? Icon(a.icon) : null,
-              title: Text(
-                a.label,
-                style: a.isDestructive
-                    ? TextStyle(color: Theme.of(context).colorScheme.error)
-                    : null,
+            if (title != null)
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ),
-              onTap: () {
-                Navigator.of(ctx).pop();
-                a.onPressed();
-              },
+            ...actions.map(
+              (a) => ListTile(
+                leading: a.icon != null ? Icon(a.icon) : null,
+                title: Text(
+                  a.label,
+                  style: a.isDestructive
+                      ? TextStyle(color: Theme.of(context).colorScheme.error)
+                      : null,
+                ),
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  a.onPressed();
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     ),
   );

@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -20,6 +21,7 @@ Future<TimeOfDay?> showAdaptiveTimePicker({
       initialTime.hour,
       initialTime.minute,
     );
+    final l10n = AppLocalizations.of(context)!;
 
     await showCupertinoModalPopup<void>(
       context: context,
@@ -37,14 +39,14 @@ Future<TimeOfDay?> showAdaptiveTimePicker({
                   children: [
                     CupertinoButton(
                       onPressed: () => Navigator.of(ctx).pop(),
-                      child: const Text('Cancel'),
+                      child: Text(l10n.cancelButton),
                     ),
                     CupertinoButton(
                       onPressed: () {
                         selected ??= initialTime;
                         Navigator.of(ctx).pop();
                       },
-                      child: const Text('Done'),
+                      child: Text(l10n.doneButton),
                     ),
                   ],
                 ),

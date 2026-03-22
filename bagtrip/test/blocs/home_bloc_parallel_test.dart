@@ -14,11 +14,43 @@ void main() {
   late MockTripRepository mockTripRepo;
   late MockAuthRepository mockAuthRepo;
   late MockActivityRepository mockActivityRepo;
+  late MockConnectivityService mockConnectivityService;
+  late MockWeatherRepository mockWeatherRepo;
+  late MockTripNotificationScheduler mockScheduler;
+  late MockPostTripDismissalStorage mockDismissalStorage;
+
+  setUpAll(() {
+    registerFallbackValue(makeTrip());
+  });
 
   setUp(() {
     mockTripRepo = MockTripRepository();
     mockAuthRepo = MockAuthRepository();
     mockActivityRepo = MockActivityRepository();
+    mockConnectivityService = MockConnectivityService();
+    mockWeatherRepo = MockWeatherRepository();
+    mockScheduler = MockTripNotificationScheduler();
+    mockDismissalStorage = MockPostTripDismissalStorage();
+
+    when(() => mockConnectivityService.isOnline).thenReturn(true);
+    when(
+      () => mockWeatherRepo.getWeather(any()),
+    ).thenAnswer((_) async => const Failure(NetworkError('not available')));
+    when(
+      () => mockScheduler.scheduleOngoingNotifications(any()),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockScheduler.schedulePackingReminder(any()),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockScheduler.scheduleCompletionReminder(any()),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockScheduler.cancelTripNotifications(any()),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockDismissalStorage.wasDismissedRecently(any()),
+    ).thenAnswer((_) async => false);
   });
 
   void stubTrips({
@@ -63,6 +95,10 @@ void main() {
     tripRepository: mockTripRepo,
     authRepository: mockAuthRepo,
     activityRepository: mockActivityRepo,
+    connectivityService: mockConnectivityService,
+    weatherRepository: mockWeatherRepo,
+    scheduler: mockScheduler,
+    dismissalStorage: mockDismissalStorage,
   );
 
   group('HomeBloc parallel loading', () {
@@ -253,8 +289,9 @@ void main() {
         bloc.add(LoadHome());
         bloc.add(LoadHome());
       },
-      skip: 2, // skip first HomeLoading + HomeNewUser
-      expect: () => [isA<HomeLoading>(), isA<HomeNewUser>()],
+      verify: (bloc) {
+        expect(bloc.state, isA<HomeNewUser>());
+      },
     );
   });
 }

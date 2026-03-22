@@ -1,6 +1,7 @@
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
+import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_timeline_section.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,16 @@ Widget _buildApp({required Widget child, required TripDetailBloc bloc}) {
   );
 }
 
+TripDetailLoaded _defaultLoadedState({Trip? trip}) => TripDetailLoaded(
+  trip: trip ?? makeTrip(),
+  activities: const [],
+  flights: const [],
+  accommodations: const [],
+  baggageItems: const [],
+  shares: const [],
+  completionResult: const CompletionResult(percentage: 0, segments: {}),
+);
+
 void main() {
   late MockTripDetailBloc mockBloc;
 
@@ -37,6 +48,7 @@ void main() {
 
   setUp(() {
     mockBloc = MockTripDetailBloc();
+    when(() => mockBloc.state).thenReturn(_defaultLoadedState());
   });
 
   Trip buildTrip({DateTime? start, DateTime? end}) => makeTrip(
@@ -166,7 +178,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('Add Activity'), findsOneWidget);
+      expect(find.text('Add manually'), findsOneWidget);
 
       // Viewer
       await tester.pumpWidget(
@@ -184,7 +196,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('Add Activity'), findsNothing);
+      expect(find.text('Add manually'), findsNothing);
     });
 
     testWidgets('stagger animation renders without crash', (tester) async {
