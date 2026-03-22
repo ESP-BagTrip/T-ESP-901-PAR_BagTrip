@@ -63,6 +63,7 @@ class ActivitiesView extends StatelessWidget {
             if (canEdit && AdaptivePlatform.isIOS)
               IconButton(
                 icon: const Icon(CupertinoIcons.add),
+                tooltip: AppLocalizations.of(context)!.addActivityTooltip,
                 onPressed: () => _showForm(context, tripId),
               ),
           ],

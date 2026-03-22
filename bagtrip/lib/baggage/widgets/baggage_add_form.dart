@@ -133,6 +133,7 @@ class _BaggageAddFormState extends State<BaggageAddForm> {
                       children: [
                         IconButton(
                           icon: const Icon(Icons.remove, size: 18),
+                          tooltip: l10n.decreaseQuantityTooltip,
                           onPressed: _quantity > 1
                               ? () => setState(() => _quantity--)
                               : null,
@@ -148,6 +149,7 @@ class _BaggageAddFormState extends State<BaggageAddForm> {
                         ),
                         IconButton(
                           icon: const Icon(Icons.add, size: 18),
+                          tooltip: l10n.increaseQuantityTooltip,
                           onPressed: () => setState(() => _quantity++),
                           visualDensity: VisualDensity.compact,
                         ),

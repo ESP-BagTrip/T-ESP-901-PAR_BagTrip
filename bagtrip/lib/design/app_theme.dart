@@ -58,10 +58,9 @@ class AppTheme {
           shape: const RoundedRectangleBorder(borderRadius: AppRadius.large16),
         ),
       ),
-      inputDecorationTheme: const InputDecorationTheme(
+      inputDecorationTheme: InputDecorationTheme(
         border: InputBorder.none,
-        hintStyle: TextStyle(
-          fontSize: 13,
+        hintStyle: base.textTheme.bodySmall?.copyWith(
           fontFamily: FontFamily.b612,
           color: ColorName.primary,
         ),
@@ -128,8 +127,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         border: InputBorder.none,
-        hintStyle: TextStyle(
-          fontSize: 13,
+        hintStyle: base.textTheme.bodySmall?.copyWith(
           fontFamily: FontFamily.b612,
           color: ColorName.surface.withValues(alpha: 0.7),
         ),

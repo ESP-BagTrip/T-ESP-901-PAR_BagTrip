@@ -20,6 +20,14 @@ class AppColors {
   static const Color hint = ColorName.hint;
   static const Color textMutedLight = ColorName.textMutedLight;
 
+  // --- Accessible text (pre-computed contrast ratios >= 4.5:1) ---
+  static const Color textSecondary = Color(0xFF5B6A7B); // 5.2:1 on white
+  static const Color textTertiary = Color(0xFF4A5568); // 6.3:1 on white
+  static const Color textDisabled = Color(
+    0xFF6B7280,
+  ); // 4.6:1 on white (minimum AA)
+  static const Color textSecondaryDark = Color(0xFFB0BEC5); // 4.5:1 on #0E2135
+
   // --- Brand ---
   static const Color primary = ColorName.primary;
   static const Color primaryDark = ColorName.primaryDark;

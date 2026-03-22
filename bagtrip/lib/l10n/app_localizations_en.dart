@@ -2861,4 +2861,101 @@ class AppLocalizationsEn extends AppLocalizations {
   String contextMenuDayLabel(int day) {
     return 'Day $day';
   }
+
+  @override
+  String tripCardSemanticLabel(
+    String destination,
+    String dateRange,
+    String status,
+  ) {
+    return '$destination, $dateRange, $status';
+  }
+
+  @override
+  String tripCoverImageLabel(String destination) {
+    return 'Cover photo of $destination';
+  }
+
+  @override
+  String activityCardSemanticLabel(
+    String title,
+    String time,
+    String location,
+    String status,
+  ) {
+    return '$title, $time, $location, $status';
+  }
+
+  @override
+  String timelineActivitySemanticLabel(
+    String title,
+    String time,
+    String location,
+  ) {
+    return '$title, $time, $location';
+  }
+
+  @override
+  String get addTripTooltip => 'Add a trip';
+
+  @override
+  String get addActivityTooltip => 'Add an activity';
+
+  @override
+  String get addAccommodationTooltip => 'Add an accommodation';
+
+  @override
+  String get addTransportTooltip => 'Add a transport';
+
+  @override
+  String get addExpenseTooltip => 'Add an expense';
+
+  @override
+  String get addBaggageItemTooltip => 'Add an item';
+
+  @override
+  String get shareTooltip => 'Share';
+
+  @override
+  String get backTooltip => 'Back';
+
+  @override
+  String get closeTooltip => 'Close';
+
+  @override
+  String get deleteFlightTooltip => 'Delete flight';
+
+  @override
+  String get deleteAccommodationTooltip => 'Delete accommodation';
+
+  @override
+  String get removeAccessTooltip => 'Remove access';
+
+  @override
+  String get inviteTooltip => 'Invite';
+
+  @override
+  String get acceptSuggestionTooltip => 'Accept suggestion';
+
+  @override
+  String get dismissSuggestionTooltip => 'Dismiss suggestion';
+
+  @override
+  String get decreaseQuantityTooltip => 'Decrease quantity';
+
+  @override
+  String get increaseQuantityTooltip => 'Increase quantity';
+
+  @override
+  String starRatingTooltip(int current, int total) {
+    return '$current of $total stars';
+  }
+
+  @override
+  String tabActivityWithBadge(int count) {
+    return 'Activity, $count notifications';
+  }
+
+  @override
+  String get loadingButton => 'Loading';
 }

@@ -5425,6 +5425,163 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Jour {day}'**
   String contextMenuDayLabel(int day);
+
+  /// No description provided for @tripCardSemanticLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'{destination}, {dateRange}, {status}'**
+  String tripCardSemanticLabel(
+    String destination,
+    String dateRange,
+    String status,
+  );
+
+  /// No description provided for @tripCoverImageLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo de couverture de {destination}'**
+  String tripCoverImageLabel(String destination);
+
+  /// No description provided for @activityCardSemanticLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'{title}, {time}, {location}, {status}'**
+  String activityCardSemanticLabel(
+    String title,
+    String time,
+    String location,
+    String status,
+  );
+
+  /// No description provided for @timelineActivitySemanticLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'{title}, {time}, {location}'**
+  String timelineActivitySemanticLabel(
+    String title,
+    String time,
+    String location,
+  );
+
+  /// No description provided for @addTripTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un voyage'**
+  String get addTripTooltip;
+
+  /// No description provided for @addActivityTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une activite'**
+  String get addActivityTooltip;
+
+  /// No description provided for @addAccommodationTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un hebergement'**
+  String get addAccommodationTooltip;
+
+  /// No description provided for @addTransportTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un transport'**
+  String get addTransportTooltip;
+
+  /// No description provided for @addExpenseTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une depense'**
+  String get addExpenseTooltip;
+
+  /// No description provided for @addBaggageItemTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un element'**
+  String get addBaggageItemTooltip;
+
+  /// No description provided for @shareTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partager'**
+  String get shareTooltip;
+
+  /// No description provided for @backTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour'**
+  String get backTooltip;
+
+  /// No description provided for @closeTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer'**
+  String get closeTooltip;
+
+  /// No description provided for @deleteFlightTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer le vol'**
+  String get deleteFlightTooltip;
+
+  /// No description provided for @deleteAccommodationTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer l\'hebergement'**
+  String get deleteAccommodationTooltip;
+
+  /// No description provided for @removeAccessTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer l\'acces'**
+  String get removeAccessTooltip;
+
+  /// No description provided for @inviteTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inviter'**
+  String get inviteTooltip;
+
+  /// No description provided for @acceptSuggestionTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accepter la suggestion'**
+  String get acceptSuggestionTooltip;
+
+  /// No description provided for @dismissSuggestionTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ignorer la suggestion'**
+  String get dismissSuggestionTooltip;
+
+  /// No description provided for @decreaseQuantityTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Diminuer la quantite'**
+  String get decreaseQuantityTooltip;
+
+  /// No description provided for @increaseQuantityTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Augmenter la quantite'**
+  String get increaseQuantityTooltip;
+
+  /// No description provided for @starRatingTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'{current} sur {total} etoiles'**
+  String starRatingTooltip(int current, int total);
+
+  /// No description provided for @tabActivityWithBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activite, {count} notifications'**
+  String tabActivityWithBadge(int count);
+
+  /// No description provided for @loadingButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement'**
+  String get loadingButton;
 }
 
 class _AppLocalizationsDelegate

@@ -238,6 +238,7 @@ class _LoadedContentState extends State<_LoadedContent> {
               icon: Icon(
                 AdaptivePlatform.isIOS ? CupertinoIcons.back : Icons.arrow_back,
               ),
+              tooltip: l10n.backTooltip,
               onPressed: () => const HomeRoute().go(context),
             ),
             actions: [
@@ -246,6 +247,7 @@ class _LoadedContentState extends State<_LoadedContent> {
                   icon: Icon(
                     AdaptivePlatform.isIOS ? CupertinoIcons.share : Icons.share,
                   ),
+                  tooltip: l10n.shareTooltip,
                   onPressed: () => SharesRoute(
                     tripId: tripId,
                     role: trip.role ?? 'OWNER',

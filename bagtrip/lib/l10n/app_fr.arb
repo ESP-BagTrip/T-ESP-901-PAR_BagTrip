@@ -1208,5 +1208,68 @@
         "type": "int"
       }
     }
-  }
+  },
+
+  "tripCardSemanticLabel": "{destination}, {dateRange}, {status}",
+  "@tripCardSemanticLabel": {
+    "placeholders": {
+      "destination": {"type": "String"},
+      "dateRange": {"type": "String"},
+      "status": {"type": "String"}
+    }
+  },
+  "tripCoverImageLabel": "Photo de couverture de {destination}",
+  "@tripCoverImageLabel": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "activityCardSemanticLabel": "{title}, {time}, {location}, {status}",
+  "@activityCardSemanticLabel": {
+    "placeholders": {
+      "title": {"type": "String"},
+      "time": {"type": "String"},
+      "location": {"type": "String"},
+      "status": {"type": "String"}
+    }
+  },
+  "timelineActivitySemanticLabel": "{title}, {time}, {location}",
+  "@timelineActivitySemanticLabel": {
+    "placeholders": {
+      "title": {"type": "String"},
+      "time": {"type": "String"},
+      "location": {"type": "String"}
+    }
+  },
+  "addTripTooltip": "Ajouter un voyage",
+  "addActivityTooltip": "Ajouter une activite",
+  "addAccommodationTooltip": "Ajouter un hebergement",
+  "addTransportTooltip": "Ajouter un transport",
+  "addExpenseTooltip": "Ajouter une depense",
+  "addBaggageItemTooltip": "Ajouter un element",
+  "shareTooltip": "Partager",
+  "backTooltip": "Retour",
+  "closeTooltip": "Fermer",
+  "deleteFlightTooltip": "Supprimer le vol",
+  "deleteAccommodationTooltip": "Supprimer l'hebergement",
+  "removeAccessTooltip": "Retirer l'acces",
+  "inviteTooltip": "Inviter",
+  "acceptSuggestionTooltip": "Accepter la suggestion",
+  "dismissSuggestionTooltip": "Ignorer la suggestion",
+  "decreaseQuantityTooltip": "Diminuer la quantite",
+  "increaseQuantityTooltip": "Augmenter la quantite",
+  "starRatingTooltip": "{current} sur {total} etoiles",
+  "@starRatingTooltip": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "tabActivityWithBadge": "Activite, {count} notifications",
+  "@tabActivityWithBadge": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "loadingButton": "Chargement"
 }

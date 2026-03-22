@@ -1,5 +1,6 @@
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/models/manual_flight.dart';
@@ -97,6 +98,9 @@ class _FlightCardState extends State<FlightCard> {
                   if (widget.onDelete != null)
                     IconButton(
                       icon: const Icon(Icons.delete_outline, size: 20),
+                      tooltip: AppLocalizations.of(
+                        context,
+                      )!.deleteFlightTooltip,
                       color: ColorName.hint,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),

@@ -2888,4 +2888,101 @@ class AppLocalizationsFr extends AppLocalizations {
   String contextMenuDayLabel(int day) {
     return 'Jour $day';
   }
+
+  @override
+  String tripCardSemanticLabel(
+    String destination,
+    String dateRange,
+    String status,
+  ) {
+    return '$destination, $dateRange, $status';
+  }
+
+  @override
+  String tripCoverImageLabel(String destination) {
+    return 'Photo de couverture de $destination';
+  }
+
+  @override
+  String activityCardSemanticLabel(
+    String title,
+    String time,
+    String location,
+    String status,
+  ) {
+    return '$title, $time, $location, $status';
+  }
+
+  @override
+  String timelineActivitySemanticLabel(
+    String title,
+    String time,
+    String location,
+  ) {
+    return '$title, $time, $location';
+  }
+
+  @override
+  String get addTripTooltip => 'Ajouter un voyage';
+
+  @override
+  String get addActivityTooltip => 'Ajouter une activite';
+
+  @override
+  String get addAccommodationTooltip => 'Ajouter un hebergement';
+
+  @override
+  String get addTransportTooltip => 'Ajouter un transport';
+
+  @override
+  String get addExpenseTooltip => 'Ajouter une depense';
+
+  @override
+  String get addBaggageItemTooltip => 'Ajouter un element';
+
+  @override
+  String get shareTooltip => 'Partager';
+
+  @override
+  String get backTooltip => 'Retour';
+
+  @override
+  String get closeTooltip => 'Fermer';
+
+  @override
+  String get deleteFlightTooltip => 'Supprimer le vol';
+
+  @override
+  String get deleteAccommodationTooltip => 'Supprimer l\'hebergement';
+
+  @override
+  String get removeAccessTooltip => 'Retirer l\'acces';
+
+  @override
+  String get inviteTooltip => 'Inviter';
+
+  @override
+  String get acceptSuggestionTooltip => 'Accepter la suggestion';
+
+  @override
+  String get dismissSuggestionTooltip => 'Ignorer la suggestion';
+
+  @override
+  String get decreaseQuantityTooltip => 'Diminuer la quantite';
+
+  @override
+  String get increaseQuantityTooltip => 'Augmenter la quantite';
+
+  @override
+  String starRatingTooltip(int current, int total) {
+    return '$current sur $total etoiles';
+  }
+
+  @override
+  String tabActivityWithBadge(int count) {
+    return 'Activite, $count notifications';
+  }
+
+  @override
+  String get loadingButton => 'Chargement';
 }

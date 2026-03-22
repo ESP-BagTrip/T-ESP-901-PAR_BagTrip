@@ -81,6 +81,7 @@ class AccommodationsView extends StatelessWidget {
             if (canEdit && AdaptivePlatform.isIOS)
               IconButton(
                 icon: const Icon(CupertinoIcons.add),
+                tooltip: l10n.addAccommodationTooltip,
                 onPressed: () => _showAddSheet(context),
               ),
           ],

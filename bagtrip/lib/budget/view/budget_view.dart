@@ -41,6 +41,7 @@ class BudgetView extends StatelessWidget {
           if (canEdit && AdaptivePlatform.isIOS)
             IconButton(
               icon: const Icon(CupertinoIcons.add),
+              tooltip: AppLocalizations.of(context)!.addExpenseTooltip,
               onPressed: () => _showForm(context, tripId),
             ),
         ],

@@ -82,6 +82,9 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
                     color: AppColors.starRating,
                     size: 36,
                   ),
+                  tooltip: AppLocalizations.of(
+                    context,
+                  )!.starRatingTooltip(index + 1, 5),
                   onPressed: () {
                     setState(() {
                       _rating = index + 1;
@@ -139,6 +142,9 @@ class _FeedbackFormViewState extends State<FeedbackFormView> {
                       color: AppColors.starRating,
                       size: 36,
                     ),
+                    tooltip: AppLocalizations.of(
+                      context,
+                    )!.starRatingTooltip(index + 1, 5),
                     onPressed: () {
                       setState(() {
                         _aiRating = index + 1;

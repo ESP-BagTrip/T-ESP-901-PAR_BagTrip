@@ -42,85 +42,91 @@ class ElegantEmptyState extends StatelessWidget {
         },
         child: Padding(
           padding: AppSpacing.allEdgeInsetSpace24,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Halo + icon container
-              SizedBox(
-                width: 120,
-                height: 120,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Halo gradient
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          colors: [
-                            AppColors.primary.withValues(alpha: 0.08),
-                            AppColors.primary.withValues(alpha: 0),
-                          ],
-                        ),
-                      ),
-                    ),
-                    // Icon container
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        shape: BoxShape.circle,
-                      ),
+          child: MergeSemantics(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Halo + icon container
+                ExcludeSemantics(
+                  child: SizedBox(
+                    width: 120,
+                    height: 120,
+                    child: Stack(
                       alignment: Alignment.center,
-                      child: Icon(icon, size: 48, color: AppColors.primary),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppSpacing.space16),
-              Text(
-                title,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-                textAlign: TextAlign.center,
-              ),
-              if (subtitle != null) ...[
-                const SizedBox(height: AppSpacing.space8),
-                Text(
-                  subtitle!,
-                  style: Theme.of(context).textTheme.bodySmall,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-              if (ctaLabel != null && onCta != null) ...[
-                const SizedBox(height: AppSpacing.space24),
-                FilledButton.icon(
-                  onPressed: onCta,
-                  icon: ctaIcon != null
-                      ? Icon(ctaIcon, size: 18)
-                      : const SizedBox.shrink(),
-                  label: Text(ctaLabel!),
-                  style: FilledButton.styleFrom(
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: AppRadius.pill,
+                      children: [
+                        // Halo gradient
+                        Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              colors: [
+                                AppColors.primary.withValues(alpha: 0.08),
+                                AppColors.primary.withValues(alpha: 0),
+                              ],
+                            ),
+                          ),
+                        ),
+                        // Icon container
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer,
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: Icon(icon, size: 48, color: AppColors.primary),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ],
-              if (secondaryCtaLabel != null && onSecondaryCta != null) ...[
-                const SizedBox(height: AppSpacing.space8),
-                TextButton(
-                  onPressed: onSecondaryCta,
-                  child: Text(secondaryCtaLabel!),
+                const SizedBox(height: AppSpacing.space16),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: AppSpacing.space8),
+                  Text(
+                    subtitle!,
+                    style: Theme.of(context).textTheme.bodySmall,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                if (ctaLabel != null && onCta != null) ...[
+                  const SizedBox(height: AppSpacing.space24),
+                  FilledButton.icon(
+                    onPressed: onCta,
+                    icon: ctaIcon != null
+                        ? Icon(ctaIcon, size: 18)
+                        : const SizedBox.shrink(),
+                    label: Text(ctaLabel!),
+                    style: FilledButton.styleFrom(
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: AppRadius.pill,
+                      ),
+                    ),
+                  ),
+                ],
+                if (secondaryCtaLabel != null && onSecondaryCta != null) ...[
+                  const SizedBox(height: AppSpacing.space8),
+                  TextButton(
+                    onPressed: onSecondaryCta,
+                    child: Text(secondaryCtaLabel!),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

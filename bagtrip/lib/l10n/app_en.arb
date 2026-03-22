@@ -1208,5 +1208,68 @@
         "type": "int"
       }
     }
-  }
+  },
+
+  "tripCardSemanticLabel": "{destination}, {dateRange}, {status}",
+  "@tripCardSemanticLabel": {
+    "placeholders": {
+      "destination": {"type": "String"},
+      "dateRange": {"type": "String"},
+      "status": {"type": "String"}
+    }
+  },
+  "tripCoverImageLabel": "Cover photo of {destination}",
+  "@tripCoverImageLabel": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "activityCardSemanticLabel": "{title}, {time}, {location}, {status}",
+  "@activityCardSemanticLabel": {
+    "placeholders": {
+      "title": {"type": "String"},
+      "time": {"type": "String"},
+      "location": {"type": "String"},
+      "status": {"type": "String"}
+    }
+  },
+  "timelineActivitySemanticLabel": "{title}, {time}, {location}",
+  "@timelineActivitySemanticLabel": {
+    "placeholders": {
+      "title": {"type": "String"},
+      "time": {"type": "String"},
+      "location": {"type": "String"}
+    }
+  },
+  "addTripTooltip": "Add a trip",
+  "addActivityTooltip": "Add an activity",
+  "addAccommodationTooltip": "Add an accommodation",
+  "addTransportTooltip": "Add a transport",
+  "addExpenseTooltip": "Add an expense",
+  "addBaggageItemTooltip": "Add an item",
+  "shareTooltip": "Share",
+  "backTooltip": "Back",
+  "closeTooltip": "Close",
+  "deleteFlightTooltip": "Delete flight",
+  "deleteAccommodationTooltip": "Delete accommodation",
+  "removeAccessTooltip": "Remove access",
+  "inviteTooltip": "Invite",
+  "acceptSuggestionTooltip": "Accept suggestion",
+  "dismissSuggestionTooltip": "Dismiss suggestion",
+  "decreaseQuantityTooltip": "Decrease quantity",
+  "increaseQuantityTooltip": "Increase quantity",
+  "starRatingTooltip": "{current} of {total} stars",
+  "@starRatingTooltip": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "tabActivityWithBadge": "Activity, {count} notifications",
+  "@tabActivityWithBadge": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "loadingButton": "Loading"
 }

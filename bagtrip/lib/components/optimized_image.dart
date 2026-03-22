@@ -10,6 +10,7 @@ class OptimizedImage extends StatelessWidget {
   final Widget? errorWidget;
   final Color? colorBlendMode;
   final BlendMode? blendMode;
+  final String? semanticLabel;
 
   const OptimizedImage.tripCover(
     this.imageUrl, {
@@ -18,6 +19,7 @@ class OptimizedImage extends StatelessWidget {
     this.errorWidget,
     this.colorBlendMode,
     this.blendMode,
+    this.semanticLabel,
   }) : memCacheWidth = 800;
 
   const OptimizedImage.activityImage(
@@ -27,24 +29,30 @@ class OptimizedImage extends StatelessWidget {
     this.errorWidget,
     this.colorBlendMode,
     this.blendMode,
+    this.semanticLabel,
   }) : memCacheWidth = 400;
 
   @override
   Widget build(BuildContext context) {
-    return CachedNetworkImage(
-      imageUrl: imageUrl,
-      fit: fit,
-      memCacheWidth: memCacheWidth,
-      maxWidthDiskCache: memCacheWidth,
-      color: colorBlendMode,
-      colorBlendMode: blendMode,
-      placeholder: (_, _) => Shimmer.fromColors(
-        baseColor: ColorName.primaryLight,
-        highlightColor: ColorName.surface,
-        child: Container(color: ColorName.primaryLight),
+    return Semantics(
+      image: true,
+      label: semanticLabel ?? '',
+      excludeSemantics: true,
+      child: CachedNetworkImage(
+        imageUrl: imageUrl,
+        fit: fit,
+        memCacheWidth: memCacheWidth,
+        maxWidthDiskCache: memCacheWidth,
+        color: colorBlendMode,
+        colorBlendMode: blendMode,
+        placeholder: (_, _) => Shimmer.fromColors(
+          baseColor: ColorName.primaryLight,
+          highlightColor: ColorName.surface,
+          child: Container(color: ColorName.primaryLight),
+        ),
+        errorWidget: (_, _, _) =>
+            errorWidget ?? const _DefaultGradientPlaceholder(),
       ),
-      errorWidget: (_, _, _) =>
-          errorWidget ?? const _DefaultGradientPlaceholder(),
     );
   }
 }

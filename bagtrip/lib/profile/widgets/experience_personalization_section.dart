@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -53,9 +54,9 @@ class ExperiencePersonalizationSection extends StatelessWidget {
                   ),
                 ),
               ),
-              Icon(
+              const Icon(
                 Icons.chevron_right,
-                color: ColorName.primaryTrueDark.withValues(alpha: 0.4),
+                color: AppColors.textDisabled,
                 size: 20,
               ),
             ],
@@ -64,9 +65,9 @@ class ExperiencePersonalizationSection extends StatelessWidget {
             const SizedBox(height: AppSpacing.space8),
             Text(
               l10n.profileConfigurePreferences,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 13,
-                color: ColorName.primaryTrueDark.withValues(alpha: 0.5),
+                color: AppColors.textSecondary,
               ),
             ),
           ],
@@ -80,8 +81,6 @@ class ExperiencePersonalizationSection extends StatelessWidget {
                     .map(
                       (type) => Chip(
                         label: Text(type, style: const TextStyle(fontSize: 12)),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: VisualDensity.compact,
                         backgroundColor: ColorName.secondary.withValues(
                           alpha: 0.1,
                         ),
@@ -94,9 +93,9 @@ class ExperiencePersonalizationSection extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 l10n.profileStyleLabel(travelStyle!),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 13,
-                  color: ColorName.primaryTrueDark.withValues(alpha: 0.7),
+                  color: AppColors.textTertiary,
                 ),
               ),
             ],
@@ -104,9 +103,9 @@ class ExperiencePersonalizationSection extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 l10n.profileBudgetLabel(budget!),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 13,
-                  color: ColorName.primaryTrueDark.withValues(alpha: 0.7),
+                  color: AppColors.textTertiary,
                 ),
               ),
             ],
@@ -114,9 +113,9 @@ class ExperiencePersonalizationSection extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 l10n.profileCompanionsLabel(companions!),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 13,
-                  color: ColorName.primaryTrueDark.withValues(alpha: 0.7),
+                  color: AppColors.textTertiary,
                 ),
               ),
             ],

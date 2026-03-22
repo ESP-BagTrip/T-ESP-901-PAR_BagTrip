@@ -74,6 +74,16 @@ class ActivityCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final useContextMenu = AdaptivePlatform.isIOS && !isViewer;
+    final semanticTime = [
+      activity.startTime,
+      activity.endTime,
+    ].whereType<String>().join(' - ');
+    final semanticStatus =
+        activity.validationStatus == ValidationStatus.suggested
+        ? l10n.activityToValidate
+        : activity.validationStatus == ValidationStatus.validated
+        ? l10n.activityValidated
+        : '';
 
     final cardContent = Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -163,13 +173,24 @@ class ActivityCard extends StatelessWidget {
       ),
     );
 
+    final semanticCard = Semantics(
+      label: l10n.activityCardSemanticLabel(
+        activity.title,
+        semanticTime,
+        activity.location ?? '',
+        semanticStatus,
+      ),
+      excludeSemantics: true,
+      child: cardContent,
+    );
+
     if (useContextMenu) {
       return AdaptiveContextMenu(
         actions: _buildContextActions(l10n),
-        child: cardContent,
+        child: semanticCard,
       );
     }
 
-    return cardContent;
+    return semanticCard;
   }
 }

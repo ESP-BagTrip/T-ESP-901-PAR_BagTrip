@@ -73,6 +73,7 @@ class BaggageView extends StatelessWidget {
             if (canEdit && AdaptivePlatform.isIOS)
               IconButton(
                 icon: const Icon(CupertinoIcons.add),
+                tooltip: l10n.addBaggageItemTooltip,
                 onPressed: () => _showAddForm(context),
               ),
           ],

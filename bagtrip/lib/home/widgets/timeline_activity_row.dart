@@ -97,7 +97,7 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final dimmedAlpha = 0.4;
+    final dimmedAlpha = 0.6;
     final isDimmed = widget.isPast && !widget.isCurrent && !widget.isNext;
 
     return IntrinsicHeight(

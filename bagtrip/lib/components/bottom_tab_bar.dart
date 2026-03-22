@@ -84,7 +84,12 @@ class BottomTabBar extends StatelessWidget {
         );
       }
 
-      return bar;
+      return Semantics(
+        label: activityBadgeCount > 0
+            ? l10n.tabActivityWithBadge(activityBadgeCount)
+            : null,
+        child: bar,
+      );
     }
 
     return NavigationBar(

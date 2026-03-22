@@ -76,6 +76,7 @@ class _TripSharesViewState extends State<TripSharesView> {
           if (isOwner && AdaptivePlatform.isIOS)
             IconButton(
               icon: const Icon(CupertinoIcons.person_add),
+              tooltip: l10n.inviteTooltip,
               onPressed: () => _showInviteSheet(context),
             ),
         ],
@@ -224,6 +225,7 @@ class _ShareCard extends StatelessWidget {
             if (showRemove)
               IconButton(
                 icon: const Icon(Icons.remove_circle_outline),
+                tooltip: AppLocalizations.of(context)!.removeAccessTooltip,
                 onPressed: onRemove,
               ),
           ],

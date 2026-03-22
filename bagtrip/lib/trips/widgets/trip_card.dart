@@ -163,111 +163,127 @@ class _LargeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final destination = trip.destinationName ?? trip.title ?? '';
+    final statusLabel = switch (trip.status) {
+      TripStatus.ongoing => l10n.tripStatusOngoing,
+      TripStatus.planned || TripStatus.draft => l10n.tripStatusPlanned,
+      TripStatus.completed => l10n.tripStatusCompleted,
+    };
 
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: AppRadius.large16,
-        child: SizedBox(
-          width: double.infinity,
-          height: 200,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // Background: image or gradient placeholder
-              if (trip.coverImageUrl != null && trip.coverImageUrl!.isNotEmpty)
-                OptimizedImage.tripCover(
-                  trip.coverImageUrl!,
-                  errorWidget: const _GradientPlaceholder(),
-                )
-              else
-                const _GradientPlaceholder(),
+    return Semantics(
+      button: true,
+      label: l10n.tripCardSemanticLabel(destination, dateRange, statusLabel),
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: ClipRRect(
+          borderRadius: AppRadius.large16,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 200),
+            child: Stack(
+              fit: StackFit.passthrough,
+              children: [
+                // Background: image or gradient placeholder
+                if (trip.coverImageUrl != null &&
+                    trip.coverImageUrl!.isNotEmpty)
+                  OptimizedImage.tripCover(
+                    trip.coverImageUrl!,
+                    errorWidget: const _GradientPlaceholder(),
+                    semanticLabel: l10n.tripCoverImageLabel(destination),
+                  )
+                else
+                  const _GradientPlaceholder(),
 
-              // Gradient overlay
-              const DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Color(0x99000000)],
+                // Gradient overlay
+                const DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, Color(0x99000000)],
+                    ),
                   ),
                 ),
-              ),
 
-              // Content
-              Positioned(
-                left: AppSpacing.space16,
-                right: AppSpacing.space16,
-                bottom: AppSpacing.space16,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                destination.isNotEmpty
-                                    ? destination
-                                    : 'Untitled trip',
-                                style: const TextStyle(
-                                  fontFamily: FontFamily.b612,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              if (dateRange.isNotEmpty) ...[
-                                const SizedBox(height: 2),
+                // Content
+                Positioned(
+                  left: AppSpacing.space16,
+                  right: AppSpacing.space16,
+                  bottom: AppSpacing.space16,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                                 Text(
-                                  dateRange,
-                                  style: TextStyle(
+                                  destination.isNotEmpty
+                                      ? destination
+                                      : 'Untitled trip',
+                                  style: const TextStyle(
                                     fontFamily: FontFamily.b612,
-                                    fontSize: 13,
-                                    color: Colors.white.withValues(alpha: 0.8),
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
+                                if (dateRange.isNotEmpty) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    dateRange,
+                                    style: TextStyle(
+                                      fontFamily: FontFamily.b612,
+                                      fontSize: 13,
+                                      color: Colors.white.withValues(
+                                        alpha: 0.8,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ],
-                            ],
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.space8),
+                          TripStatusBadge(status: trip.status),
+                        ],
+                      ),
+                      if (completionPercent > 0) ...[
+                        const SizedBox(height: AppSpacing.space8),
+                        ClipRRect(
+                          borderRadius: AppRadius.small4,
+                          child: LinearProgressIndicator(
+                            value: completionPercent / 100,
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.2,
+                            ),
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                            minHeight: 3,
                           ),
                         ),
-                        const SizedBox(width: AppSpacing.space8),
-                        TripStatusBadge(status: trip.status),
+                        const SizedBox(height: 2),
+                        Text(
+                          '$completionPercent%',
+                          style: TextStyle(
+                            fontFamily: FontFamily.b612,
+                            fontSize: 11,
+                            color: Colors.white.withValues(alpha: 0.8),
+                          ),
+                        ),
                       ],
-                    ),
-                    if (completionPercent > 0) ...[
-                      const SizedBox(height: AppSpacing.space8),
-                      ClipRRect(
-                        borderRadius: AppRadius.small4,
-                        child: LinearProgressIndicator(
-                          value: completionPercent / 100,
-                          backgroundColor: Colors.white.withValues(alpha: 0.2),
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
-                          minHeight: 3,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '$completionPercent%',
-                        style: TextStyle(
-                          fontFamily: FontFamily.b612,
-                          fontSize: 11,
-                          color: Colors.white.withValues(alpha: 0.8),
-                        ),
-                      ),
                     ],
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -307,100 +323,119 @@ class _CompactCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final destination = trip.destinationName ?? trip.title ?? '';
+    final statusLabel = switch (trip.status) {
+      TripStatus.ongoing => l10n.tripStatusOngoing,
+      TripStatus.planned || TripStatus.draft => l10n.tripStatusPlanned,
+      TripStatus.completed => l10n.tripStatusCompleted,
+    };
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              // Thumbnail
-              ClipRRect(
-                borderRadius: AppRadius.medium8,
-                child: SizedBox(
-                  width: 80,
-                  height: 88,
-                  child:
-                      trip.coverImageUrl != null &&
-                          trip.coverImageUrl!.isNotEmpty
-                      ? OptimizedImage.activityImage(
-                          trip.coverImageUrl!,
-                          errorWidget: const _GradientPlaceholder(),
-                        )
-                      : const _GradientPlaceholder(),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.space12),
-              // Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            trip.title ?? 'Untitled trip',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontFamily: FontFamily.b612,
-                              fontWeight: FontWeight.w600,
+    return Semantics(
+      button: true,
+      label: l10n.tripCardSemanticLabel(
+        trip.title ?? l10n.tripCardNoTitle,
+        dateRange,
+        statusLabel,
+      ),
+      excludeSemantics: true,
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        elevation: 1,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Thumbnail
+                ClipRRect(
+                  borderRadius: AppRadius.medium8,
+                  child: SizedBox(
+                    width: 80,
+                    height: 88,
+                    child:
+                        trip.coverImageUrl != null &&
+                            trip.coverImageUrl!.isNotEmpty
+                        ? OptimizedImage.activityImage(
+                            trip.coverImageUrl!,
+                            errorWidget: const _GradientPlaceholder(),
+                            semanticLabel: l10n.tripCoverImageLabel(
+                              trip.destinationName ?? destination,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          )
+                        : const _GradientPlaceholder(),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.space12),
+                // Info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              trip.title ?? 'Untitled trip',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontFamily: FontFamily.b612,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
+                          const SizedBox(width: AppSpacing.space8),
+                          TripStatusBadge(status: trip.status),
+                        ],
+                      ),
+                      if (trip.destinationName != null) ...[
+                        const SizedBox(height: AppSpacing.space4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on_outlined,
+                              size: 16,
+                              color: theme.colorScheme.outline,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              trip.destinationName!,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: AppSpacing.space8),
-                        TripStatusBadge(status: trip.status),
                       ],
-                    ),
-                    if (trip.destinationName != null) ...[
-                      const SizedBox(height: AppSpacing.space4),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.location_on_outlined,
-                            size: 16,
-                            color: theme.colorScheme.outline,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            trip.destinationName!,
-                            style: theme.textTheme.bodySmall?.copyWith(
+                      if (dateRange.isNotEmpty) ...[
+                        const SizedBox(height: AppSpacing.space4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_today_outlined,
+                              size: 16,
                               color: theme.colorScheme.outline,
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
-                    if (dateRange.isNotEmpty) ...[
-                      const SizedBox(height: AppSpacing.space4),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.calendar_today_outlined,
-                            size: 16,
-                            color: theme.colorScheme.outline,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            dateRange,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.outline,
+                            const SizedBox(width: 4),
+                            Text(
+                              dateRange,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.outline,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

@@ -2,6 +2,7 @@ import 'package:bagtrip/components/adaptive/adaptive_app_bar.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -135,9 +136,9 @@ class ProfileView extends StatelessWidget {
               ),
             ),
           ),
-          Icon(
+          const Icon(
             Icons.chevron_right,
-            color: onSurface.withValues(alpha: 0.4),
+            color: AppColors.textDisabled,
             size: 20,
           ),
         ],

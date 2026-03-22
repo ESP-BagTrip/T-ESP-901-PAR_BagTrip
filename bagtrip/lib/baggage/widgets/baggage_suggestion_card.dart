@@ -1,5 +1,6 @@
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/suggested_baggage_item.dart';
 import 'package:flutter/material.dart';
 
@@ -79,12 +80,14 @@ class _BaggageSuggestionCardState extends State<BaggageSuggestionCard>
             children: [
               IconButton(
                 icon: const Icon(Icons.check_circle_outline),
+                tooltip: AppLocalizations.of(context)!.acceptSuggestionTooltip,
                 color: AppColors.success,
                 iconSize: 24,
                 onPressed: () => _fadeAndCallback(widget.onAccept),
               ),
               IconButton(
                 icon: const Icon(Icons.close),
+                tooltip: AppLocalizations.of(context)!.dismissSuggestionTooltip,
                 color: AppColors.hint,
                 iconSize: 20,
                 onPressed: () => _fadeAndCallback(widget.onDismiss),

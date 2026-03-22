@@ -39,6 +39,7 @@ class TransportsView extends StatelessWidget {
           if (isOwner && !isCompleted && AdaptivePlatform.isIOS)
             IconButton(
               icon: const Icon(CupertinoIcons.add),
+              tooltip: l10n.addTransportTooltip,
               onPressed: () => _showAddSheet(context),
             ),
         ],

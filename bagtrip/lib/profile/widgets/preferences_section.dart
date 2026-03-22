@@ -64,10 +64,10 @@ class PreferencesSection extends StatelessWidget {
             children: [
               Text(
                 AppLocalizations.of(context)!.languageLabel,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: onSurface.withValues(alpha: 0.5),
+                  color: AppColors.textSecondary,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -107,10 +107,10 @@ class PreferencesSection extends StatelessWidget {
                 children: [
                   Text(
                     AppLocalizations.of(context)!.themeLabel,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
-                      color: onSurface.withValues(alpha: 0.5),
+                      color: AppColors.textSecondary,
                       letterSpacing: 0.5,
                     ),
                   ),

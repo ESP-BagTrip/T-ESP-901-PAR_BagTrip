@@ -42,155 +42,168 @@ class TimelineActivityCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final isSuggested = activity.validationStatus == ValidationStatus.suggested;
 
-    final card = GestureDetector(
-      onTap: (isOwner && !isCompleted && onEdit != null)
-          ? () {
-              AppHaptics.light();
-              onEdit!.call();
-            }
-          : null,
-      child: Container(
-        decoration: BoxDecoration(
-          color: theme.cardTheme.color ?? theme.colorScheme.surface,
-          borderRadius: AppRadius.large16,
-          boxShadow: [
-            BoxShadow(color: AppColors.shadowLight, blurRadius: 8),
-            BoxShadow(color: AppColors.shadowFaint, blurRadius: 2),
-          ],
-        ),
-        child: IntrinsicHeight(
-          child: Row(
-            children: [
-              // Left accent bar
-              Container(
-                width: 4,
-                decoration: BoxDecoration(
-                  color: categoryColor(activity.category),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    bottomLeft: Radius.circular(16),
+    final card = Semantics(
+      button: true,
+      label: l10n.timelineActivitySemanticLabel(
+        activity.title,
+        activity.startTime ?? l10n.activeTripsAllDay,
+        activity.location ?? '',
+      ),
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: (isOwner && !isCompleted && onEdit != null)
+            ? () {
+                AppHaptics.light();
+                onEdit!.call();
+              }
+            : null,
+        child: Container(
+          decoration: BoxDecoration(
+            color: theme.cardTheme.color ?? theme.colorScheme.surface,
+            borderRadius: AppRadius.large16,
+            boxShadow: [
+              BoxShadow(color: AppColors.shadowLight, blurRadius: 8),
+              BoxShadow(color: AppColors.shadowFaint, blurRadius: 2),
+            ],
+          ),
+          child: IntrinsicHeight(
+            child: Row(
+              children: [
+                // Left accent bar
+                Container(
+                  width: 4,
+                  decoration: BoxDecoration(
+                    color: categoryColor(activity.category),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      bottomLeft: Radius.circular(16),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
+                const SizedBox(width: 12),
 
-              // Content
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Time row + AI badge
-                      Row(
-                        children: [
-                          Text(
-                            activity.startTime ?? l10n.activeTripsAllDay,
-                            style: const TextStyle(
-                              fontFamily: FontFamily.b612,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                          if (activity.endTime != null)
+                // Content
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Time row + AI badge
+                        Row(
+                          children: [
                             Text(
-                              ' - ${activity.endTime}',
-                              style: TextStyle(
+                              activity.startTime ?? l10n.activeTripsAllDay,
+                              style: const TextStyle(
                                 fontFamily: FontFamily.b612,
                                 fontSize: 13,
-                                color: theme.colorScheme.outline,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
                               ),
                             ),
-                          const Spacer(),
-                          if (isSuggested) _AiBadge(label: l10n.aiBadgeLabel),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-
-                      // Title
-                      Text(
-                        activity.title,
-                        style: TextStyle(
-                          fontFamily: FontFamily.b612,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.onSurface,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-
-                      // Location
-                      if (activity.location != null) ...[
-                        const SizedBox(height: 2),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.place_outlined,
-                              size: 14,
-                              color: theme.colorScheme.outline,
-                            ),
-                            const SizedBox(width: 2),
-                            Expanded(
-                              child: Text(
-                                activity.location!,
+                            if (activity.endTime != null)
+                              Text(
+                                ' - ${activity.endTime}',
                                 style: TextStyle(
                                   fontFamily: FontFamily.b612,
-                                  fontSize: 12,
+                                  fontSize: 13,
                                   color: theme.colorScheme.outline,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
+                            const Spacer(),
+                            if (isSuggested)
+                              Semantics(
+                                label: l10n.aiBadgeLabel,
+                                child: _AiBadge(label: l10n.aiBadgeLabel),
+                              ),
                           ],
                         ),
-                      ],
+                        const SizedBox(height: 4),
 
-                      // Validate / Reject actions
-                      if (isSuggested && isOwner && !isCompleted) ...[
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            _ActionChip(
-                              icon: Icons.check,
-                              label: l10n.timelineValidate,
-                              onTap: () {
-                                AppHaptics.medium();
-                                onValidate?.call();
-                              },
-                              color: AppColors.success,
-                            ),
-                            const SizedBox(width: 8),
-                            _ActionChip(
-                              icon: Icons.close,
-                              label: l10n.timelineReject,
-                              onTap: () {
-                                AppHaptics.light();
-                                onReject?.call();
-                              },
-                              color: AppColors.error,
-                            ),
-                          ],
+                        // Title
+                        Text(
+                          activity.title,
+                          style: TextStyle(
+                            fontFamily: FontFamily.b612,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
+
+                        // Location
+                        if (activity.location != null) ...[
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.place_outlined,
+                                size: 14,
+                                color: theme.colorScheme.outline,
+                              ),
+                              const SizedBox(width: 2),
+                              Expanded(
+                                child: Text(
+                                  activity.location!,
+                                  style: TextStyle(
+                                    fontFamily: FontFamily.b612,
+                                    fontSize: 12,
+                                    color: theme.colorScheme.outline,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+
+                        // Validate / Reject actions
+                        if (isSuggested && isOwner && !isCompleted) ...[
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              _ActionChip(
+                                icon: Icons.check,
+                                label: l10n.timelineValidate,
+                                onTap: () {
+                                  AppHaptics.medium();
+                                  onValidate?.call();
+                                },
+                                color: AppColors.success,
+                              ),
+                              const SizedBox(width: 8),
+                              _ActionChip(
+                                icon: Icons.close,
+                                label: l10n.timelineReject,
+                                onTap: () {
+                                  AppHaptics.light();
+                                  onReject?.call();
+                                },
+                                color: AppColors.error,
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
+                const SizedBox(width: 8),
 
-              // Category icon
-              Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: Icon(
-                  categoryIcon(activity.category),
-                  size: 20,
-                  color: theme.colorScheme.outline,
+                // Category icon
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Icon(
+                    categoryIcon(activity.category),
+                    size: 20,
+                    color: theme.colorScheme.outline,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -389,29 +402,37 @@ class _ActionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
+    return Semantics(
+      button: true,
+      label: label,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 44),
+        child: InkWell(
+          onTap: onTap,
           borderRadius: AppRadius.pill,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 14, color: color),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontFamily: FontFamily.b612,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: AppRadius.pill,
             ),
-          ],
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 14, color: color),
+                const SizedBox(width: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontFamily: FontFamily.b612,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

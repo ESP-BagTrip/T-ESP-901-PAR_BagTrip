@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -105,10 +106,10 @@ class PersonalInfoSection extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: ColorName.primaryTrueDark.withValues(alpha: 0.5),
+                  color: AppColors.textSecondary,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -128,8 +129,7 @@ class PersonalInfoSection extends StatelessWidget {
             onPressed: onEdit,
             style: TextButton.styleFrom(
               padding: EdgeInsets.zero,
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              minimumSize: const Size(44, 44),
             ),
             child: Text(
               AppLocalizations.of(context)!.modifyButton,

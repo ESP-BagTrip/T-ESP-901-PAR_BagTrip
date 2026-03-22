@@ -114,6 +114,7 @@ class _AccommodationCardState extends State<AccommodationCard> {
                     const SizedBox(width: 4),
                     IconButton(
                       icon: const Icon(Icons.delete_outline, size: 20),
+                      tooltip: l10n.deleteAccommodationTooltip,
                       color: theme.colorScheme.outline,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),

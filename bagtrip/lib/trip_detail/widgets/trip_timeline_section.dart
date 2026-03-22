@@ -221,8 +221,7 @@ class _BatchValidateBanner extends StatelessWidget {
             },
             style: FilledButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              minimumSize: const Size(0, 44),
             ),
             child: Text(
               l10n.activityValidateAll,
@@ -240,8 +239,7 @@ class _BatchValidateBanner extends StatelessWidget {
             },
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              minimumSize: const Size(0, 44),
             ),
             child: Text(
               l10n.activityReviewOneByOne,
