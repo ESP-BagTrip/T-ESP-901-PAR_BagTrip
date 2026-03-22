@@ -2704,4 +2704,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get accommodationNoResults => 'Aucun hôtel trouvé';
+
+  @override
+  String get baggageAllPacked => 'Tout est prêt !';
+
+  @override
+  String get baggageAllPackedSubtitle => 'Vous êtes prêt pour votre voyage !';
+
+  @override
+  String get baggageSwipeToDelete => 'Supprimer';
 }

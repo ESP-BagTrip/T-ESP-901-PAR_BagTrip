@@ -5077,6 +5077,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Aucun hôtel trouvé'**
   String get accommodationNoResults;
+
+  /// No description provided for @baggageAllPacked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout est prêt !'**
+  String get baggageAllPacked;
+
+  /// No description provided for @baggageAllPackedSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous êtes prêt pour votre voyage !'**
+  String get baggageAllPackedSubtitle;
+
+  /// No description provided for @baggageSwipeToDelete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer'**
+  String get baggageSwipeToDelete;
 }
 
 class _AppLocalizationsDelegate

@@ -1,5 +1,7 @@
 """Service pour la gestion des baggage items."""
 
+from __future__ import annotations
+
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -8,6 +10,7 @@ from src.enums import TripStatus
 from src.models.baggage_item import BaggageItem
 from src.models.trip import Trip
 from src.utils.errors import AppError
+from src.utils.logger import logger
 
 
 class BaggageItemsService:
@@ -105,3 +108,56 @@ class BaggageItemsService:
 
         db.delete(baggage_item)
         db.commit()
+
+    @staticmethod
+    async def suggest_baggage_items(db: Session, trip: Trip) -> list[dict]:
+        """Suggest baggage items via AI, deduplicating against existing items."""
+        from src.agent.prompts import BAGGAGE_PROMPT
+        from src.services.llm_service import LLMService
+
+        # Build prompt from trip data
+        parts = [
+            f"Destination: {trip.destination_name or 'Unknown'}",
+        ]
+
+        if trip.start_date and trip.end_date:
+            duration = (trip.end_date - trip.start_date).days
+            parts.append(f"Trip duration: {duration} days")
+
+        # Include activities if loaded
+        if trip.activities:
+            activity_titles = [a.title for a in trip.activities[:8]]
+            parts.append(f"Planned activities: {', '.join(activity_titles)}")
+
+        if trip.nb_travelers:
+            parts.append(f"Number of travelers: {trip.nb_travelers}")
+
+        user_prompt = "\n".join(parts)
+
+        # Call LLM
+        llm = LLMService()
+        try:
+            result = await llm.acall_llm(BAGGAGE_PROMPT, user_prompt)
+            items = result.get("items", [])
+        except Exception as e:
+            logger.error("Baggage suggest LLM call failed", {"error": str(e)})
+            items = _default_baggage_items()
+
+        # Deduplicate against existing items
+        existing = BaggageItemsService.get_baggage_items_by_trip(db, trip.id)
+        existing_names = {b.name.lower() for b in existing}
+        filtered = [i for i in items if i.get("name", "").lower() not in existing_names]
+
+        return filtered
+
+
+def _default_baggage_items() -> list[dict]:
+    """Fallback baggage items if LLM fails."""
+    return [
+        {"name": "Passport", "quantity": 1, "category": "DOCUMENTS", "reason": "Essential travel document"},
+        {"name": "Travel adapter", "quantity": 1, "category": "ELECTRONICS", "reason": "Power adapter"},
+        {"name": "Sunscreen", "quantity": 1, "category": "TOILETRIES", "reason": "Sun protection"},
+        {"name": "First aid kit", "quantity": 1, "category": "HEALTH", "reason": "Emergency kit"},
+        {"name": "Phone charger", "quantity": 1, "category": "ELECTRONICS", "reason": "Keep devices charged"},
+        {"name": "Change of clothes", "quantity": 3, "category": "CLOTHING", "reason": "Daily wear"},
+    ]

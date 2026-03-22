@@ -1,9 +1,20 @@
 import 'package:bagtrip/baggage/bloc/baggage_bloc.dart';
 import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+Map<String, String> _categoryLabels(AppLocalizations l10n) => {
+  'DOCUMENTS': l10n.baggageCategoryDocuments,
+  'CLOTHING': l10n.baggageCategoryClothing,
+  'ELECTRONICS': l10n.baggageCategoryElectronics,
+  'TOILETRIES': l10n.baggageCategoryHygiene,
+  'HEALTH': l10n.baggageCategoryMedication,
+  'ACCESSORIES': l10n.baggageCategoryAccessories,
+  'OTHER': l10n.baggageCategoryOther,
+};
 
 class BaggageAddForm extends StatefulWidget {
   final String tripId;
@@ -19,16 +30,6 @@ class _BaggageAddFormState extends State<BaggageAddForm> {
   late final TextEditingController _nameController;
   int _quantity = 1;
   String _category = 'OTHER';
-
-  static const _categoryMap = {
-    'CLOTHING': 'Vêtements',
-    'ELECTRONICS': 'Électronique',
-    'TOILETRIES': 'Toilette',
-    'DOCUMENTS': 'Documents',
-    'HEALTH': 'Santé',
-    'ACCESSORIES': 'Accessoires',
-    'OTHER': 'Autre',
-  };
 
   @override
   void initState() {
@@ -58,6 +59,7 @@ class _BaggageAddFormState extends State<BaggageAddForm> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final categories = _categoryLabels(l10n);
 
     return Container(
       decoration: const BoxDecoration(
@@ -156,20 +158,54 @@ class _BaggageAddFormState extends State<BaggageAddForm> {
               ),
               const SizedBox(height: AppSpacing.space16),
 
-              // Category dropdown
-              DropdownButtonFormField<String>(
-                initialValue: _category,
-                decoration: InputDecoration(
-                  labelText: l10n.baggageCategoryLabel,
-                  border: const OutlineInputBorder(),
-                ),
-                items: _categoryMap.entries
-                    .map(
-                      (e) =>
-                          DropdownMenuItem(value: e.key, child: Text(e.value)),
-                    )
-                    .toList(),
-                onChanged: (v) => setState(() => _category = v ?? 'OTHER'),
+              // Category chips
+              Text(
+                l10n.baggageCategoryLabel,
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: AppSpacing.space8),
+              Wrap(
+                spacing: AppSpacing.space8,
+                runSpacing: AppSpacing.space8,
+                children: categories.entries.map((entry) {
+                  final isSelected = _category == entry.key;
+                  return GestureDetector(
+                    onTap: () {
+                      AppHaptics.light();
+                      setState(() => _category = entry.key);
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.space16,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.primarySoftLight
+                            : AppColors.surface,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.primary
+                              : AppColors.border,
+                          width: isSelected ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Text(
+                        entry.value,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: isSelected
+                              ? AppColors.primary
+                              : AppColors.onSurface,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
               ),
               const SizedBox(height: AppSpacing.space24),
 

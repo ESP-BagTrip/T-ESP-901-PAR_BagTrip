@@ -11,12 +11,14 @@ class BaggageLoaded extends BaggageState {
   final int packedCount;
   final int totalCount;
   final List<SuggestedBaggageItem> suggestions;
+  final bool celebrationTriggered;
 
   BaggageLoaded({
     required this.items,
     required this.packedCount,
     required this.totalCount,
     this.suggestions = const [],
+    this.celebrationTriggered = false,
   });
 }
 

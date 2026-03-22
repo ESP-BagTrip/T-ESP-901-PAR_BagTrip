@@ -1,5 +1,6 @@
 import 'package:bagtrip/baggage/bloc/baggage_bloc.dart';
 import 'package:bagtrip/baggage/widgets/baggage_add_form.dart';
+import 'package:bagtrip/baggage/widgets/baggage_celebration.dart';
 import 'package:bagtrip/baggage/widgets/baggage_item_tile.dart';
 import 'package:bagtrip/baggage/widgets/baggage_progress_header.dart';
 import 'package:bagtrip/baggage/widgets/baggage_suggestion_card.dart';
@@ -7,6 +8,8 @@ import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/app_animations.dart';
+import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
@@ -39,6 +42,18 @@ class BaggageView extends StatelessWidget {
         BlocListener<BaggageBloc, BaggageState>(
           listenWhen: (_, current) => current is BaggageQuotaExceeded,
           listener: (context, _) => PremiumPaywall.show(context),
+        ),
+        BlocListener<BaggageBloc, BaggageState>(
+          listenWhen: (_, current) =>
+              current is BaggageLoaded && current.celebrationTriggered,
+          listener: (context, _) {
+            AppHaptics.success();
+            showDialog(
+              context: context,
+              barrierColor: Colors.black54,
+              builder: (_) => const BaggageCelebration(),
+            );
+          },
         ),
       ],
       child: Scaffold(
@@ -226,26 +241,43 @@ class BaggageView extends StatelessWidget {
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space16),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final item = unpackedItems[index];
-                return BaggageItemTile(
-                  item: item,
-                  isReadOnly: !canEdit,
-                  onToggle: () {
-                    context.read<BaggageBloc>().add(
-                      TogglePacked(tripId: tripId, item: item),
-                    );
-                  },
-                  onDelete: canEdit
-                      ? () {
-                          context.read<BaggageBloc>().add(
-                            DeleteBaggageItem(tripId: tripId, itemId: item.id),
-                          );
-                        }
-                      : null,
+            sliver: SliverReorderableList(
+              itemCount: unpackedItems.length,
+              onReorder: (oldIndex, newIndex) {
+                context.read<BaggageBloc>().add(
+                  ReorderBaggageItem(oldIndex: oldIndex, newIndex: newIndex),
                 );
-              }, childCount: unpackedItems.length),
+              },
+              itemBuilder: (context, index) {
+                final item = unpackedItems[index];
+                return ReorderableDelayedDragStartListener(
+                  key: ValueKey(item.id),
+                  index: index,
+                  child: AnimatedSize(
+                    duration: AppAnimations.cardTransition,
+                    curve: AppAnimations.standardCurve,
+                    child: BaggageItemTile(
+                      item: item,
+                      isReadOnly: !canEdit,
+                      onToggle: () {
+                        context.read<BaggageBloc>().add(
+                          TogglePacked(tripId: tripId, item: item),
+                        );
+                      },
+                      onDelete: canEdit
+                          ? () {
+                              context.read<BaggageBloc>().add(
+                                DeleteBaggageItem(
+                                  tripId: tripId,
+                                  itemId: item.id,
+                                ),
+                              );
+                            }
+                          : null,
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -274,21 +306,28 @@ class BaggageView extends StatelessWidget {
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate((context, index) {
                 final item = packedItems[index];
-                return BaggageItemTile(
-                  item: item,
-                  isReadOnly: !canEdit,
-                  onToggle: () {
-                    context.read<BaggageBloc>().add(
-                      TogglePacked(tripId: tripId, item: item),
-                    );
-                  },
-                  onDelete: canEdit
-                      ? () {
-                          context.read<BaggageBloc>().add(
-                            DeleteBaggageItem(tripId: tripId, itemId: item.id),
-                          );
-                        }
-                      : null,
+                return AnimatedSize(
+                  duration: AppAnimations.cardTransition,
+                  curve: AppAnimations.standardCurve,
+                  child: BaggageItemTile(
+                    item: item,
+                    isReadOnly: !canEdit,
+                    onToggle: () {
+                      context.read<BaggageBloc>().add(
+                        TogglePacked(tripId: tripId, item: item),
+                      );
+                    },
+                    onDelete: canEdit
+                        ? () {
+                            context.read<BaggageBloc>().add(
+                              DeleteBaggageItem(
+                                tripId: tripId,
+                                itemId: item.id,
+                              ),
+                            );
+                          }
+                        : null,
+                  ),
                 );
               }, childCount: packedItems.length),
             ),
