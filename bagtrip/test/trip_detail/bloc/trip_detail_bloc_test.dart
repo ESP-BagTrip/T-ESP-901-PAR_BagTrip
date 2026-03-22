@@ -713,6 +713,54 @@ void main() {
       ],
     );
 
+    // ── AddFlightToDetail ────────────────────────────────────────
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'AddFlightToDetail appends flight to loaded state',
+      build: () => buildBloc(),
+      seed: () => TripDetailLoaded(
+        trip: makeTrip(),
+        activities: [],
+        flights: [],
+        accommodations: [],
+        baggageItems: [],
+        shares: [],
+        completionResult: const CompletionResult(
+          percentage: 20,
+          segments: {
+            CompletionSegmentType.dates: true,
+            CompletionSegmentType.flights: false,
+            CompletionSegmentType.accommodation: false,
+            CompletionSegmentType.activities: false,
+            CompletionSegmentType.baggage: false,
+            CompletionSegmentType.budget: false,
+          },
+        ),
+      ),
+      act: (bloc) => bloc.add(AddFlightToDetail(flight: makeManualFlight())),
+      expect: () => [
+        isA<TripDetailLoaded>()
+            .having((s) => s.flights.length, 'flights.length', 1)
+            .having(
+              (s) => s.flights.first.flightNumber,
+              'flightNumber',
+              'AF123',
+            )
+            .having(
+              (s) => s.completionResult.segments[CompletionSegmentType.flights],
+              'flights segment',
+              true,
+            ),
+      ],
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'AddFlightToDetail is no-op when not in loaded state',
+      build: () => buildBloc(),
+      act: (bloc) => bloc.add(AddFlightToDetail(flight: makeManualFlight())),
+      expect: () => <TripDetailState>[],
+    );
+
     blocTest<TripDetailBloc, TripDetailState>(
       'UpdateTripStatus PLANNED with destination and dates calls API',
       build: () {

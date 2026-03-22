@@ -144,7 +144,7 @@ class FlightSearchForm extends StatelessWidget {
     }
 
     if (context.mounted) {
-      FlightSearchResultRoute($extra: args).go(context);
+      FlightSearchResultRoute($extra: args).push(context);
     }
   }
 }

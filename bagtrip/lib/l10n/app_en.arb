@@ -1108,5 +1108,11 @@
   "cannotFinalizeTitle": "Cannot finalize trip",
   "cannotFinalizeMessage": "Add a destination and dates first",
   "finalizeMissingDestination": "Missing destination",
-  "finalizeMissingDates": "Missing travel dates"
+  "finalizeMissingDates": "Missing travel dates",
+
+  "routeSectionLabel": "Route",
+  "scheduleSectionLabel": "Schedule",
+  "detailsSectionLabel": "Details",
+  "airportsMustDiffer": "Departure and arrival airports must be different",
+  "arrivalMustBeAfterDeparture": "Arrival must be after departure"
 }

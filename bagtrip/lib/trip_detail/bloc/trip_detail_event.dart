@@ -76,3 +76,8 @@ final class UpdateTripTravelers extends TripDetailEvent {
   final int nbTravelers;
   UpdateTripTravelers({required this.nbTravelers});
 }
+
+final class AddFlightToDetail extends TripDetailEvent {
+  final ManualFlight flight;
+  AddFlightToDetail({required this.flight});
+}

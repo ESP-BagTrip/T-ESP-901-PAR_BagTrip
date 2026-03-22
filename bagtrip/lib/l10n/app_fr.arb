@@ -1108,5 +1108,11 @@
   "cannotFinalizeTitle": "Impossible de finaliser",
   "cannotFinalizeMessage": "Ajoutez une destination et des dates",
   "finalizeMissingDestination": "Destination manquante",
-  "finalizeMissingDates": "Dates manquantes"
+  "finalizeMissingDates": "Dates manquantes",
+
+  "routeSectionLabel": "Itinéraire",
+  "scheduleSectionLabel": "Horaires",
+  "detailsSectionLabel": "Détails",
+  "airportsMustDiffer": "Les aéroports de départ et d'arrivée doivent être différents",
+  "arrivalMustBeAfterDeparture": "L'arrivée doit être après le départ"
 }
