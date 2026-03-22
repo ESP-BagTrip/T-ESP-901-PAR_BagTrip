@@ -44,7 +44,7 @@ class ActiveTripHero extends StatelessWidget {
         trip.coverImageUrl != null && trip.coverImageUrl!.isNotEmpty;
 
     return Hero(
-      tag: 'trip-${trip.id}',
+      tag: 'active-trip-${trip.id}',
       child: Material(
         type: MaterialType.transparency,
         child: GestureDetector(

@@ -76,6 +76,7 @@ err   = @printf "$(RED)[err]$(RESET)  %s\n" $(1)
         dev dev-docker dev-mobile stop logs \
         dev-clean \
         check lint lint-api lint-admin lint-mobile test test-api test-mobile \
+        test-e2e \
         coverage golden-test golden-update \
         db-migrate db-revision db-shell \
         shell-api shell-admin
@@ -102,7 +103,8 @@ help: ## Show this help
 	@printf "$(BOLD) Quality$(RESET)\n"
 	@printf "  $(CYAN)make check$(RESET)           Run pre-commit on all files\n"
 	@printf "  $(CYAN)make lint$(RESET)            Run all linters (api + admin + mobile)\n"
-	@printf "  $(CYAN)make test$(RESET)            Run all tests (api + mobile)\n"
+	@printf "  $(CYAN)make test$(RESET)            Run all tests (api + mobile + e2e)\n"
+	@printf "  $(CYAN)make test-e2e$(RESET)        Run E2E integration tests\n"
 	@printf "  $(CYAN)make coverage$(RESET)        Run Flutter tests with coverage (60%% threshold)\n"
 	@printf "  $(CYAN)make golden-test$(RESET)     Verify golden tests haven't drifted\n"
 	@printf "  $(CYAN)make golden-update$(RESET)   Regenerate golden reference files\n"
@@ -251,7 +253,7 @@ lint-mobile: ## Lint Flutter app (analyze + format)
 	@cd $(FLUTTER_DIR) && dart format --set-exit-if-changed .
 	$(call ok,"Mobile lint passed")
 
-test: test-api test-mobile ## Run all tests
+test: test-api test-mobile test-e2e ## Run all tests
 
 test-api: ## Run API tests (pytest)
 	@printf "$(CYAN)[info]$(RESET) Running API tests…\n"
@@ -262,6 +264,16 @@ test-mobile: ## Run Flutter tests
 	@printf "$(CYAN)[info]$(RESET) Running Flutter tests…\n"
 	@cd $(FLUTTER_DIR) && flutter test
 	$(call ok,"Mobile tests passed")
+
+test-e2e: ## Run E2E integration tests
+	@printf "$(CYAN)[info]$(RESET) Running E2E integration tests…\n"
+	@cd $(FLUTTER_DIR) && flutter test integration_test/
+	$(call ok,"E2E tests passed")
+
+test-e2e-%: ## Run single E2E test (e.g. make test-e2e-ft3_active_trip)
+	@printf "$(CYAN)[info]$(RESET) Running E2E test: $*…\n"
+	@cd $(FLUTTER_DIR) && flutter test integration_test/$*_test.dart
+	$(call ok,"E2E test $* passed")
 
 coverage: ## Run Flutter tests with coverage (60% threshold)
 	@printf "$(CYAN)[info]$(RESET) Running Flutter tests with coverage…\n"
