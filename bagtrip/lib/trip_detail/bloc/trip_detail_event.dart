@@ -81,3 +81,32 @@ final class AddFlightToDetail extends TripDetailEvent {
   final ManualFlight flight;
   AddFlightToDetail({required this.flight});
 }
+
+final class BatchValidateActivitiesFromDetail extends TripDetailEvent {
+  final List<String> activityIds;
+  BatchValidateActivitiesFromDetail({required this.activityIds});
+}
+
+final class UpdateActivityFromDetail extends TripDetailEvent {
+  final String activityId;
+  final Map<String, dynamic> data;
+  UpdateActivityFromDetail({required this.activityId, required this.data});
+}
+
+final class MoveActivityToDay extends TripDetailEvent {
+  final String activityId;
+  final int targetDayIndex; // 0-based
+  MoveActivityToDay({required this.activityId, required this.targetDayIndex});
+}
+
+final class SuggestActivitiesForDay extends TripDetailEvent {
+  final int dayNumber; // 1-based
+  SuggestActivitiesForDay({required this.dayNumber});
+}
+
+final class ClearDaySuggestions extends TripDetailEvent {}
+
+final class CreateActivityFromDetail extends TripDetailEvent {
+  final Map<String, dynamic> data;
+  CreateActivityFromDetail({required this.data});
+}

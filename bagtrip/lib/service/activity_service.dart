@@ -145,11 +145,15 @@ class ActivityRepositoryImpl implements ActivityRepository {
 
   @override
   Future<Result<List<Map<String, dynamic>>>> suggestActivities(
-    String tripId,
-  ) async {
+    String tripId, {
+    int? day,
+  }) async {
     try {
+      final queryParams = <String, dynamic>{};
+      if (day != null) queryParams['day'] = day;
       final response = await _apiClient.post(
         '/trips/$tripId/activities/suggest',
+        queryParameters: queryParams,
       );
       if (response.statusCode == 200) {
         final data = response.data;
@@ -164,6 +168,31 @@ class ActivityRepositoryImpl implements ActivityRepository {
       }
       return loggedFailure(
         UnknownError('suggest activities failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<List<Activity>>> batchUpdateActivities(
+    String tripId,
+    List<String> activityIds,
+    Map<String, dynamic> updates,
+  ) async {
+    try {
+      final response = await _apiClient.patch(
+        '/trips/$tripId/activities/batch',
+        data: {'activityIds': activityIds, 'updates': updates},
+      );
+      if (response.statusCode == 200) {
+        final data = response.data as List;
+        return Success(data.map((json) => Activity.fromJson(json)).toList());
+      }
+      return loggedFailure(
+        UnknownError('batch update failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
       return loggedFailure(ApiClient.mapDioError(e));

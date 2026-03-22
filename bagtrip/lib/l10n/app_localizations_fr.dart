@@ -2713,4 +2713,59 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get baggageSwipeToDelete => 'Supprimer';
+
+  @override
+  String activityBatchCount(int count) {
+    return '$count à valider';
+  }
+
+  @override
+  String get activityValidateAll => 'Tout valider';
+
+  @override
+  String get activityReviewOneByOne => 'Revoir un par un';
+
+  @override
+  String get activityBatchValidated => 'Toutes les activités validées !';
+
+  @override
+  String get categoryCulture => 'Culture';
+
+  @override
+  String get categoryNature => 'Nature';
+
+  @override
+  String get categoryFoodDrink => 'Gastronomie';
+
+  @override
+  String get categorySport => 'Sport';
+
+  @override
+  String get categoryShopping => 'Shopping';
+
+  @override
+  String get categoryNightlife => 'Vie nocturne';
+
+  @override
+  String get categoryRelaxation => 'Détente';
+
+  @override
+  String get categoryOtherActivity => 'Autre';
+
+  @override
+  String activityMovedToDay(int day) {
+    return 'Activité déplacée au jour $day';
+  }
+
+  @override
+  String get timelineGetSuggestions => 'Obtenir des suggestions IA';
+
+  @override
+  String get timelineSuggestionsForDay => 'Suggestions pour cette journée';
+
+  @override
+  String get timelineAddSuggestion => 'Ajouter à l\'itinéraire';
+
+  @override
+  String get addActivityManually => 'Ajouter manuellement';
 }

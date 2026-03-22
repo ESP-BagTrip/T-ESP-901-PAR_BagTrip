@@ -68,6 +68,12 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     on<UpdateTripDates>(_onUpdateTripDates);
     on<UpdateTripTravelers>(_onUpdateTripTravelers);
     on<AddFlightToDetail>(_onAddFlightToDetail);
+    on<BatchValidateActivitiesFromDetail>(_onBatchValidateActivities);
+    on<UpdateActivityFromDetail>(_onUpdateActivityFromDetail);
+    on<MoveActivityToDay>(_onMoveActivityToDay);
+    on<SuggestActivitiesForDay>(_onSuggestActivitiesForDay);
+    on<ClearDaySuggestions>(_onClearDaySuggestions);
+    on<CreateActivityFromDetail>(_onCreateActivityFromDetail);
   }
 
   Future<void> _onLoadTripDetail(
@@ -585,6 +591,196 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
 
     if (result is Success) {
       emit(TripDetailDeleted());
+    }
+  }
+
+  Future<void> _onBatchValidateActivities(
+    BatchValidateActivitiesFromDetail event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+    final ids = event.activityIds;
+
+    // Optimistic update
+    final updatedActivities = loaded.activities.map((a) {
+      if (ids.contains(a.id)) {
+        return Activity(
+          id: a.id,
+          tripId: a.tripId,
+          title: a.title,
+          description: a.description,
+          date: a.date,
+          startTime: a.startTime,
+          endTime: a.endTime,
+          location: a.location,
+          category: a.category,
+          estimatedCost: a.estimatedCost,
+          isBooked: a.isBooked,
+          validationStatus: ValidationStatus.validated,
+          suggestedDay: a.suggestedDay,
+          createdAt: a.createdAt,
+          updatedAt: a.updatedAt,
+        );
+      }
+      return a;
+    }).toList();
+    emit(loaded.copyWith(activities: updatedActivities));
+
+    final result = await _activityRepository.batchUpdateActivities(
+      _tripId!,
+      ids,
+      {'validationStatus': 'VALIDATED'},
+    );
+
+    if (isClosed) return;
+
+    if (result is Failure) {
+      emit(loaded);
+    }
+  }
+
+  Future<void> _onUpdateActivityFromDetail(
+    UpdateActivityFromDetail event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+
+    final result = await _activityRepository.updateActivity(
+      _tripId!,
+      event.activityId,
+      event.data,
+    );
+
+    if (isClosed) return;
+
+    if (result is Success<Activity>) {
+      final updatedActivities = loaded.activities
+          .map((a) => a.id == event.activityId ? result.data : a)
+          .toList();
+      emit(loaded.copyWith(activities: updatedActivities));
+    }
+  }
+
+  Future<void> _onMoveActivityToDay(
+    MoveActivityToDay event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+    if (loaded.trip.startDate == null) return;
+
+    final newDate = loaded.trip.startDate!.add(
+      Duration(days: event.targetDayIndex),
+    );
+    final dateStr =
+        '${newDate.year}-${newDate.month.toString().padLeft(2, '0')}-${newDate.day.toString().padLeft(2, '0')}';
+
+    // Optimistic update
+    final updatedActivities = loaded.activities.map((a) {
+      if (a.id == event.activityId) {
+        return Activity(
+          id: a.id,
+          tripId: a.tripId,
+          title: a.title,
+          description: a.description,
+          date: newDate,
+          startTime: a.startTime,
+          endTime: a.endTime,
+          location: a.location,
+          category: a.category,
+          estimatedCost: a.estimatedCost,
+          isBooked: a.isBooked,
+          validationStatus: a.validationStatus,
+          suggestedDay: a.suggestedDay,
+          createdAt: a.createdAt,
+          updatedAt: a.updatedAt,
+        );
+      }
+      return a;
+    }).toList();
+    emit(loaded.copyWith(activities: updatedActivities));
+
+    final result = await _activityRepository.updateActivity(
+      _tripId!,
+      event.activityId,
+      {'date': dateStr},
+    );
+
+    if (isClosed) return;
+
+    if (result is Failure) {
+      emit(loaded);
+    }
+  }
+
+  Future<void> _onSuggestActivitiesForDay(
+    SuggestActivitiesForDay event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+
+    emit(
+      loaded.copyWith(
+        suggestingForDay: event.dayNumber,
+        clearDaySuggestions: true,
+        clearSuggestionsForDay: true,
+      ),
+    );
+
+    final result = await _activityRepository.suggestActivities(
+      _tripId!,
+      day: event.dayNumber,
+    );
+
+    if (isClosed) return;
+
+    if (state is! TripDetailLoaded) return;
+    final current = state as TripDetailLoaded;
+
+    if (result is Success<List<Map<String, dynamic>>>) {
+      emit(
+        current.copyWith(
+          clearSuggestingForDay: true,
+          daySuggestions: result.data,
+          suggestionsForDay: event.dayNumber,
+        ),
+      );
+    } else {
+      emit(current.copyWith(clearSuggestingForDay: true));
+    }
+  }
+
+  void _onClearDaySuggestions(
+    ClearDaySuggestions event,
+    Emitter<TripDetailState> emit,
+  ) {
+    if (state is! TripDetailLoaded) return;
+    final loaded = state as TripDetailLoaded;
+    emit(
+      loaded.copyWith(clearDaySuggestions: true, clearSuggestionsForDay: true),
+    );
+  }
+
+  Future<void> _onCreateActivityFromDetail(
+    CreateActivityFromDetail event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+
+    final result = await _activityRepository.createActivity(
+      _tripId!,
+      event.data,
+    );
+
+    if (isClosed) return;
+
+    if (result is Success<Activity>) {
+      final updatedActivities = [...loaded.activities, result.data];
+      emit(loaded.copyWith(activities: updatedActivities));
     }
   }
 
