@@ -74,6 +74,7 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     on<SuggestActivitiesForDay>(_onSuggestActivitiesForDay);
     on<ClearDaySuggestions>(_onClearDaySuggestions);
     on<CreateActivityFromDetail>(_onCreateActivityFromDetail);
+    on<CreateBudgetItemFromDetail>(_onCreateBudgetItemFromDetail);
   }
 
   Future<void> _onLoadTripDetail(
@@ -781,6 +782,52 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     if (result is Success<Activity>) {
       final updatedActivities = [...loaded.activities, result.data];
       emit(loaded.copyWith(activities: updatedActivities));
+    }
+  }
+
+  Future<void> _onCreateBudgetItemFromDetail(
+    CreateBudgetItemFromDetail event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+
+    // Optimistic update — approximate new budget summary
+    final amount = (event.data['amount'] as num?)?.toDouble() ?? 0;
+    if (loaded.budgetSummary != null) {
+      final current = loaded.budgetSummary!;
+      final newSpent = current.totalSpent + amount;
+      final newRemaining = current.totalBudget - newSpent;
+      final newPercent = current.totalBudget > 0
+          ? (newSpent / current.totalBudget) * 100
+          : 0.0;
+      String? newAlertLevel;
+      if (newPercent >= 100) {
+        newAlertLevel = 'DANGER';
+      } else if (newPercent >= 80) {
+        newAlertLevel = 'WARNING';
+      }
+      final optimistic = current.copyWith(
+        totalSpent: newSpent,
+        remaining: newRemaining,
+        percentConsumed: newPercent,
+        alertLevel: newAlertLevel,
+      );
+      emit(loaded.copyWith(budgetSummary: optimistic));
+    }
+
+    final result = await _budgetRepository.createBudgetItem(
+      _tripId!,
+      event.data,
+    );
+
+    if (isClosed) return;
+
+    if (result is Success) {
+      add(RefreshTripDetail());
+    } else if (result is Failure) {
+      // Rollback
+      emit(loaded);
     }
   }
 

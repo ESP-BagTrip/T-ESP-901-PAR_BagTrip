@@ -1,4 +1,5 @@
 import 'package:bagtrip/budget/widgets/budget_alert_banner.dart';
+import 'package:bagtrip/budget/widgets/budget_item_form.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -282,31 +283,49 @@ class _BudgetDashboard extends StatelessWidget {
           }),
         ],
 
-        // ── Manage button ──
+        // ── Action buttons ──
         if (isOwner && !isCompleted) ...[
           const SizedBox(height: 4),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: () async {
-                await BudgetRoute(
-                  tripId: tripId,
-                  role: trip.role ?? 'OWNER',
-                  isCompleted: isCompleted,
-                ).push(context);
-                if (!context.mounted) return;
-                context.read<TripDetailBloc>().add(RefreshTripDetail());
-              },
-              child: Text(
-                l10n.budgetManageAll,
-                style: const TextStyle(
-                  fontFamily: FontFamily.b612,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: ColorName.primary,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () {
+                  final bloc = context.read<TripDetailBloc>();
+                  _showAddExpenseSheet(context, bloc, tripId);
+                },
+                child: Text(
+                  l10n.addExpense,
+                  style: const TextStyle(
+                    fontFamily: FontFamily.b612,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: ColorName.primary,
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(width: AppSpacing.space8),
+              TextButton(
+                onPressed: () async {
+                  await BudgetRoute(
+                    tripId: tripId,
+                    role: trip.role ?? 'OWNER',
+                    isCompleted: isCompleted,
+                  ).push(context);
+                  if (!context.mounted) return;
+                  context.read<TripDetailBloc>().add(RefreshTripDetail());
+                },
+                child: Text(
+                  l10n.budgetManageAll,
+                  style: const TextStyle(
+                    fontFamily: FontFamily.b612,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: ColorName.primary,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ],
@@ -516,14 +535,9 @@ class _EmptyState extends StatelessWidget {
                 icon: Icons.add_card_rounded,
                 title: l10n.addExpense,
                 subtitle: l10n.budgetAddExpenseSubtitle,
-                onTap: () async {
-                  await BudgetRoute(
-                    tripId: tripId,
-                    role: trip.role ?? 'OWNER',
-                    isCompleted: isCompleted,
-                  ).push(context);
-                  if (!context.mounted) return;
-                  context.read<TripDetailBloc>().add(RefreshTripDetail());
+                onTap: () {
+                  final bloc = context.read<TripDetailBloc>();
+                  _showAddExpenseSheet(context, bloc, tripId);
                 },
               ),
             ],
@@ -532,6 +546,49 @@ class _EmptyState extends StatelessWidget {
       ),
     );
   }
+}
+
+// ── Add Expense Sheet ────────────────────────────────────────────────────────
+
+void _showAddExpenseSheet(
+  BuildContext context,
+  TripDetailBloc bloc,
+  String tripId,
+) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (sheetContext) => Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 12),
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          BudgetItemForm(
+            tripId: tripId,
+            onSave: (data) {
+              bloc.add(CreateBudgetItemFromDetail(data: data));
+              Navigator.of(sheetContext).pop();
+            },
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 // ── Option Tile ─────────────────────────────────────────────────────────────

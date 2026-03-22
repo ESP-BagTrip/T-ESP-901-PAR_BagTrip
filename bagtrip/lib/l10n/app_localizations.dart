@@ -548,12 +548,6 @@ abstract class AppLocalizations {
   /// **'Suivez vos dépenses et planifiez votre voyage selon votre budget'**
   String get trackExpensesAndPlan;
 
-  /// No description provided for @addExpense.
-  ///
-  /// In fr, this message translates to:
-  /// **'Ajouter une dépense'**
-  String get addExpense;
-
   /// No description provided for @myProfile.
   ///
   /// In fr, this message translates to:
@@ -2036,6 +2030,12 @@ abstract class AppLocalizations {
   /// **'Budget'**
   String get budgetItems;
 
+  /// No description provided for @addExpense.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une dépense'**
+  String get addExpense;
+
   /// No description provided for @editExpense.
   ///
   /// In fr, this message translates to:
@@ -2083,6 +2083,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Réel'**
   String get expenseReal;
+
+  /// No description provided for @expenseLabelRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Libellé requis'**
+  String get expenseLabelRequired;
 
   /// No description provided for @budgetTotal.
   ///

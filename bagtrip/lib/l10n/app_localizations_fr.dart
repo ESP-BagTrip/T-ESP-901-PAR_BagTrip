@@ -265,9 +265,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Suivez vos dépenses et planifiez votre voyage selon votre budget';
 
   @override
-  String get addExpense => 'Ajouter une dépense';
-
-  @override
   String get myProfile => 'Mon profil';
 
   @override
@@ -1054,6 +1051,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get budgetItems => 'Budget';
 
   @override
+  String get addExpense => 'Ajouter une dépense';
+
+  @override
   String get editExpense => 'Modifier la dépense';
 
   @override
@@ -1076,6 +1076,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get expenseReal => 'Réel';
+
+  @override
+  String get expenseLabelRequired => 'Libellé requis';
 
   @override
   String get budgetTotal => 'Budget total';

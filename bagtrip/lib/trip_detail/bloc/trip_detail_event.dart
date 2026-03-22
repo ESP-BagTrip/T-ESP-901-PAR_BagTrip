@@ -110,3 +110,8 @@ final class CreateActivityFromDetail extends TripDetailEvent {
   final Map<String, dynamic> data;
   CreateActivityFromDetail({required this.data});
 }
+
+final class CreateBudgetItemFromDetail extends TripDetailEvent {
+  final Map<String, dynamic> data;
+  CreateBudgetItemFromDetail({required this.data});
+}
