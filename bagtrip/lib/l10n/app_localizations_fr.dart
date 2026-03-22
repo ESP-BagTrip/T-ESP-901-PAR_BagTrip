@@ -2653,4 +2653,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get finalizeMissingDates => 'Dates manquantes';
+
+  @override
+  String get routeSectionLabel => 'Itinéraire';
+
+  @override
+  String get scheduleSectionLabel => 'Horaires';
+
+  @override
+  String get detailsSectionLabel => 'Détails';
+
+  @override
+  String get airportsMustDiffer =>
+      'Les aéroports de départ et d\'arrivée doivent être différents';
+
+  @override
+  String get arrivalMustBeAfterDeparture =>
+      'L\'arrivée doit être après le départ';
 }

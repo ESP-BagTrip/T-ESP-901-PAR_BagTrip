@@ -3,6 +3,7 @@ import 'package:bagtrip/trips/widgets/map_coming_soon_view.dart';
 import 'package:bagtrip/transports/view/transports_page.dart';
 import 'package:bagtrip/budget/view/budget_page.dart';
 import 'package:bagtrip/flight_result_details/view/flight_result_details_page.dart';
+import 'package:bagtrip/flight_search/models/flight_search_prefill.dart';
 import 'package:bagtrip/flight_search_result/models/flight.dart';
 import 'package:bagtrip/flight_search_result/models/flight_search_arguments.dart';
 import 'package:bagtrip/home/view/home_page.dart';
@@ -165,13 +166,15 @@ class PlanTripRoute extends GoRouteData with $PlanTripRoute {
 }
 
 class TripFlightSearchRoute extends GoRouteData with $TripFlightSearchRoute {
-  const TripFlightSearchRoute();
+  const TripFlightSearchRoute({this.$extra});
+
+  final FlightSearchPrefill? $extra;
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       buildSlideTransitionPage<void>(
         state: state,
-        child: const PlanifierManualFlightPage(),
+        child: PlanifierManualFlightPage(prefill: $extra),
       );
 }
 

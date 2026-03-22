@@ -2628,4 +2628,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get finalizeMissingDates => 'Missing travel dates';
+
+  @override
+  String get routeSectionLabel => 'Route';
+
+  @override
+  String get scheduleSectionLabel => 'Schedule';
+
+  @override
+  String get detailsSectionLabel => 'Details';
+
+  @override
+  String get airportsMustDiffer =>
+      'Departure and arrival airports must be different';
+
+  @override
+  String get arrivalMustBeAfterDeparture => 'Arrival must be after departure';
 }

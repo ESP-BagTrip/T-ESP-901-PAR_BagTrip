@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:bagtrip/components/adaptive/adaptive_date_picker.dart';
+import 'package:bagtrip/components/adaptive/adaptive_time_picker.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -12,8 +14,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ManualFlightForm extends StatefulWidget {
   final String tripId;
+  final String? initialDepartureAirport;
+  final String? initialArrivalAirport;
+  final DateTime? initialDepartureDate;
+  final DateTime? initialArrivalDate;
 
-  const ManualFlightForm({super.key, required this.tripId});
+  const ManualFlightForm({
+    super.key,
+    required this.tripId,
+    this.initialDepartureAirport,
+    this.initialArrivalAirport,
+    this.initialDepartureDate,
+    this.initialArrivalDate,
+  });
 
   @override
   State<ManualFlightForm> createState() => _ManualFlightFormState();
@@ -34,6 +47,21 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
   Timer? _debounce;
   FlightInfo? _lookupInfo;
   bool _isLookingUp = false;
+  String? _airportsError;
+  String? _datesError;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialDepartureAirport != null) {
+      _depAirportCtrl.text = widget.initialDepartureAirport!;
+    }
+    if (widget.initialArrivalAirport != null) {
+      _arrAirportCtrl.text = widget.initialArrivalAirport!;
+    }
+    _departureDate = widget.initialDepartureDate;
+    _arrivalDate = widget.initialArrivalDate;
+  }
 
   @override
   void dispose() {
@@ -75,7 +103,31 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
   }
 
   void _submit() {
+    final l10n = AppLocalizations.of(context)!;
+
+    // Clear previous custom errors
+    setState(() {
+      _airportsError = null;
+      _datesError = null;
+    });
+
     if (!_formKey.currentState!.validate()) return;
+
+    // Validate same airports
+    final dep = _depAirportCtrl.text.toUpperCase().trim();
+    final arr = _arrAirportCtrl.text.toUpperCase().trim();
+    if (dep.isNotEmpty && arr.isNotEmpty && dep == arr) {
+      setState(() => _airportsError = l10n.airportsMustDiffer);
+      return;
+    }
+
+    // Validate arrival before departure
+    if (_departureDate != null &&
+        _arrivalDate != null &&
+        _arrivalDate!.isBefore(_departureDate!)) {
+      setState(() => _datesError = l10n.arrivalMustBeAfterDeparture);
+      return;
+    }
 
     final data = <String, dynamic>{
       'flightNumber': _flightNumberCtrl.text.toUpperCase().trim(),
@@ -100,7 +152,7 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
 
   Future<void> _pickDateTime({required bool isDeparture}) async {
     final now = DateTime.now();
-    final date = await showDatePicker(
+    final date = await showAdaptiveDatePicker(
       context: context,
       initialDate: now,
       firstDate: now.subtract(const Duration(days: 365)),
@@ -108,7 +160,7 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
     );
     if (date == null || !mounted) return;
 
-    final time = await showTimePicker(
+    final time = await showAdaptiveTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
     );
@@ -127,6 +179,7 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
       } else {
         _arrivalDate = dt;
       }
+      _datesError = null;
     });
   }
 
@@ -186,6 +239,50 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
                 ),
                 const SizedBox(height: 20),
 
+                // ── Section 1 — Route ─────────────────────────────────
+                _SectionLabel(label: l10n.routeSectionLabel),
+                const SizedBox(height: 8),
+
+                // Airports row
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _depAirportCtrl,
+                        decoration: InputDecoration(
+                          labelText: l10n.departureAirportLabel,
+                          hintText: 'CDG',
+                          errorText: _airportsError,
+                        ),
+                        textCapitalization: TextCapitalization.characters,
+                        onChanged: (_) {
+                          if (_airportsError != null) {
+                            setState(() => _airportsError = null);
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _arrAirportCtrl,
+                        decoration: InputDecoration(
+                          labelText: l10n.arrivalAirportLabel,
+                          hintText: 'NRT',
+                          errorText: _airportsError != null ? '' : null,
+                        ),
+                        textCapitalization: TextCapitalization.characters,
+                        onChanged: (_) {
+                          if (_airportsError != null) {
+                            setState(() => _airportsError = null);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
                 // Flight number + lookup indicator
                 TextFormField(
                   controller: _flightNumberCtrl,
@@ -214,42 +311,11 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
                       ? l10n.flightNumberRequired
                       : null,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 20),
 
-                // Airline
-                TextFormField(
-                  controller: _airlineCtrl,
-                  decoration: InputDecoration(labelText: l10n.airlineLabel),
-                ),
-                const SizedBox(height: 12),
-
-                // Airports row
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _depAirportCtrl,
-                        decoration: InputDecoration(
-                          labelText: l10n.departureAirportLabel,
-                          hintText: 'CDG',
-                        ),
-                        textCapitalization: TextCapitalization.characters,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _arrAirportCtrl,
-                        decoration: InputDecoration(
-                          labelText: l10n.arrivalAirportLabel,
-                          hintText: 'NRT',
-                        ),
-                        textCapitalization: TextCapitalization.characters,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
+                // ── Section 2 — Schedule ──────────────────────────────
+                _SectionLabel(label: l10n.scheduleSectionLabel),
+                const SizedBox(height: 8),
 
                 // Date pickers
                 Row(
@@ -259,6 +325,7 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
                         label: l10n.departureDateLabel,
                         value: _departureDate,
                         onTap: () => _pickDateTime(isDeparture: true),
+                        errorText: _datesError,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -267,20 +334,21 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
                         label: l10n.arrivalDateLabel,
                         value: _arrivalDate,
                         onTap: () => _pickDateTime(isDeparture: false),
+                        errorText: _datesError != null ? '' : null,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 20),
 
-                // Price
+                // ── Section 3 — Details ───────────────────────────────
+                _SectionLabel(label: l10n.detailsSectionLabel),
+                const SizedBox(height: 8),
+
+                // Airline
                 TextFormField(
-                  controller: _priceCtrl,
-                  decoration: InputDecoration(
-                    labelText: l10n.priceLabel,
-                    suffixText: '\u20ac',
-                  ),
-                  keyboardType: TextInputType.number,
+                  controller: _airlineCtrl,
+                  decoration: InputDecoration(labelText: l10n.airlineLabel),
                 ),
                 const SizedBox(height: 12),
 
@@ -299,6 +367,17 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
                   selected: {_flightType},
                   onSelectionChanged: (v) =>
                       setState(() => _flightType = v.first),
+                ),
+                const SizedBox(height: 12),
+
+                // Price
+                TextFormField(
+                  controller: _priceCtrl,
+                  decoration: InputDecoration(
+                    labelText: l10n.priceLabel,
+                    suffixText: '\u20ac',
+                  ),
+                  keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 12),
 
@@ -334,15 +413,36 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
   }
 }
 
+class _SectionLabel extends StatelessWidget {
+  final String label;
+
+  const _SectionLabel({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      style: const TextStyle(
+        fontFamily: FontFamily.b612,
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: ColorName.textMutedLight,
+      ),
+    );
+  }
+}
+
 class _DatePickerTile extends StatelessWidget {
   final String label;
   final DateTime? value;
   final VoidCallback onTap;
+  final String? errorText;
 
   const _DatePickerTile({
     required this.label,
     required this.value,
     required this.onTap,
+    this.errorText,
   });
 
   @override
@@ -354,6 +454,7 @@ class _DatePickerTile extends StatelessWidget {
         decoration: InputDecoration(
           labelText: label,
           suffixIcon: const Icon(Icons.calendar_today, size: 18),
+          errorText: errorText,
         ),
         child: Text(
           value != null

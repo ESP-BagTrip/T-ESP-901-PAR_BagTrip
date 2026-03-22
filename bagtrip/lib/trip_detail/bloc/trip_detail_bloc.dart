@@ -67,6 +67,7 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     on<UpdateTripTitle>(_onUpdateTripTitle);
     on<UpdateTripDates>(_onUpdateTripDates);
     on<UpdateTripTravelers>(_onUpdateTripTravelers);
+    on<AddFlightToDetail>(_onAddFlightToDetail);
   }
 
   Future<void> _onLoadTripDetail(
@@ -367,6 +368,27 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     } else {
       add(RefreshTripDetail());
     }
+  }
+
+  void _onAddFlightToDetail(
+    AddFlightToDetail event,
+    Emitter<TripDetailState> emit,
+  ) {
+    if (state is! TripDetailLoaded) return;
+    final loaded = state as TripDetailLoaded;
+
+    final updatedFlights = [...loaded.flights, event.flight];
+    final completion = tripDetailCompletion(
+      trip: loaded.trip,
+      flights: updatedFlights,
+      accommodations: loaded.accommodations,
+      activities: loaded.activities,
+      baggageItems: loaded.baggageItems,
+      budgetSummary: loaded.budgetSummary,
+    );
+    emit(
+      loaded.copyWith(flights: updatedFlights, completionResult: completion),
+    );
   }
 
   Future<void> _onDeleteFlight(

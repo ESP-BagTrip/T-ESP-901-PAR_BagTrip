@@ -4981,6 +4981,36 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Dates manquantes'**
   String get finalizeMissingDates;
+
+  /// No description provided for @routeSectionLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Itinéraire'**
+  String get routeSectionLabel;
+
+  /// No description provided for @scheduleSectionLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Horaires'**
+  String get scheduleSectionLabel;
+
+  /// No description provided for @detailsSectionLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Détails'**
+  String get detailsSectionLabel;
+
+  /// No description provided for @airportsMustDiffer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les aéroports de départ et d\'arrivée doivent être différents'**
+  String get airportsMustDiffer;
+
+  /// No description provided for @arrivalMustBeAfterDeparture.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'arrivée doit être après le départ'**
+  String get arrivalMustBeAfterDeparture;
 }
 
 class _AppLocalizationsDelegate

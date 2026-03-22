@@ -288,6 +288,7 @@ class FlightSearchBloc extends Bloc<FlightSearchEvent, FlightSearchState> {
   ) async {
     emit(
       FlightSearchLoaded(
+        departureAirport: event.departureAirport,
         arrivalAirport: event.arrivalAirport,
         departureDate: event.departureDate,
         returnDate: event.returnDate,
