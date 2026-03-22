@@ -6,18 +6,15 @@ repos:
       - id: check-added-large-files
   - repo: local
     hooks:
-      # - id: api-lint-format
-      #   name: "api: ruff format && ruff check"
-      #   entry: bash -lc 'cd api && uv run ruff format src/ && uv run ruff check src/'
-      #   language: system
-      #   pass_filenames: false
-      # - id: admin-panel-lint-format
-      #   name: "admin-panel: npm run format && npm run lint"
-      #   entry: bash -lc 'cd admin-panel/application && [ ! -d node_modules ] && npm install || true; npm run format && npm run lint'
-      #   language: system
-      #   pass_filenames: false
-      - id: mobile-lint-format
-        name: "mobile: flutter analyze && dart format . && dart fix --apply"
-        entry: bash -lc 'cd bagtrip/ && flutter analyze && dart format . && dart fix --apply'
+      - id: api-lint-format
+        name: "api: ruff format && ruff check"
+        entry: bash -lc 'cd api && uv run ruff format src/ && uv run ruff check src/'
         language: system
         pass_filenames: false
+        files: ^api/
+      - id: mobile-lint-format
+        name: "mobile: flutter analyze && dart format ."
+        entry: bash -lc 'cd bagtrip/ && flutter analyze && dart format .'
+        language: system
+        pass_filenames: false
+        files: ^bagtrip/

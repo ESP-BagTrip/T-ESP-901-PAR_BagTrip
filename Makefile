@@ -76,6 +76,7 @@ err   = @printf "$(RED)[err]$(RESET)  %s\n" $(1)
         dev dev-docker dev-mobile stop logs \
         dev-clean \
         check lint lint-api lint-admin lint-mobile test test-api test-mobile \
+        coverage golden-test golden-update \
         db-migrate db-revision db-shell \
         shell-api shell-admin
 
@@ -102,6 +103,9 @@ help: ## Show this help
 	@printf "  $(CYAN)make check$(RESET)           Run pre-commit on all files\n"
 	@printf "  $(CYAN)make lint$(RESET)            Run all linters (api + admin + mobile)\n"
 	@printf "  $(CYAN)make test$(RESET)            Run all tests (api + mobile)\n"
+	@printf "  $(CYAN)make coverage$(RESET)        Run Flutter tests with coverage (60%% threshold)\n"
+	@printf "  $(CYAN)make golden-test$(RESET)     Verify golden tests haven't drifted\n"
+	@printf "  $(CYAN)make golden-update$(RESET)   Regenerate golden reference files\n"
 	@printf "\n"
 	@printf "$(BOLD) Database$(RESET)\n"
 	@printf "  $(CYAN)make db-migrate$(RESET)      Run Alembic migrations (upgrade head)\n"
@@ -258,6 +262,33 @@ test-mobile: ## Run Flutter tests
 	@printf "$(CYAN)[info]$(RESET) Running Flutter tests…\n"
 	@cd $(FLUTTER_DIR) && flutter test
 	$(call ok,"Mobile tests passed")
+
+coverage: ## Run Flutter tests with coverage (60% threshold)
+	@printf "$(CYAN)[info]$(RESET) Running Flutter tests with coverage…\n"
+	@cd $(FLUTTER_DIR) && flutter test --coverage
+	@printf "$(GREEN)[ok]$(RESET)   Coverage report: $(FLUTTER_DIR)/coverage/lcov.info\n"
+	@if command -v lcov &>/dev/null; then \
+		COVERAGE=$$(lcov --summary $(FLUTTER_DIR)/coverage/lcov.info 2>&1 | grep 'lines' | sed 's/.*: *\([0-9.]*\)%.*/\1/'); \
+		printf "$(CYAN)[info]$(RESET) Line coverage: $${COVERAGE}%%\n"; \
+		if [ "$$(echo "$$COVERAGE < 60" | bc -l)" -eq 1 ]; then \
+			printf "$(RED)[err]$(RESET)  Coverage $${COVERAGE}%% below 60%% threshold\n"; \
+			exit 1; \
+		else \
+			printf "$(GREEN)[ok]$(RESET)   Coverage meets 60%% threshold\n"; \
+		fi; \
+	else \
+		printf "$(YELLOW)[warn]$(RESET) lcov not installed — skipping threshold check\n"; \
+	fi
+
+golden-test: ## Verify golden tests haven't drifted
+	@printf "$(CYAN)[info]$(RESET) Running golden tests…\n"
+	@cd $(FLUTTER_DIR) && flutter test --tags=golden
+	$(call ok,"Golden tests passed")
+
+golden-update: ## Regenerate golden reference files
+	@printf "$(CYAN)[info]$(RESET) Regenerating golden files…\n"
+	@cd $(FLUTTER_DIR) && flutter test --tags=golden --update-goldens
+	$(call ok,"Goldens updated — review and commit the new .png files")
 
 # ══════════════════════════════════════════════════════════════
 #  DATABASE
