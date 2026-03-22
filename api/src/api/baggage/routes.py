@@ -5,15 +5,19 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Path, status
 from sqlalchemy.orm import Session
 
+from src.api.auth.plan_guard import require_ai_quota
 from src.api.auth.trip_access import TripAccess, get_trip_access, get_trip_owner_access
 from src.api.baggage.schemas import (
     BaggageItemCreateRequest,
     BaggageItemListResponse,
     BaggageItemResponse,
     BaggageItemUpdateRequest,
+    BaggageSuggestionListResponse,
 )
 from src.config.database import get_db
+from src.models.user import User
 from src.services.baggage_items_service import BaggageItemsService
+from src.services.plan_service import PlanService
 from src.utils.errors import AppError, create_http_exception
 
 router = APIRouter(prefix="/v1/trips", tags=["Baggage"])
@@ -110,5 +114,25 @@ async def delete_baggage_item(
     """Supprimer un élément de bagage."""
     try:
         BaggageItemsService.delete_baggage_item(db, baggageItemId, access.trip)
+    except AppError as e:
+        raise create_http_exception(e) from e
+
+
+@router.post(
+    "/{tripId}/baggage/suggest",
+    response_model=BaggageSuggestionListResponse,
+    summary="AI baggage suggestions",
+    description="Get AI-powered baggage suggestions for a trip",
+)
+async def suggest_baggage_items(
+    access: TripAccess = Depends(get_trip_owner_access),
+    current_user: User = Depends(require_ai_quota),
+    db: Session = Depends(get_db),
+):
+    """Suggestions IA de bagages pour un trip."""
+    try:
+        items = await BaggageItemsService.suggest_baggage_items(db, access.trip)
+        PlanService.increment_ai_generation(db, current_user)
+        return BaggageSuggestionListResponse(items=items)
     except AppError as e:
         raise create_http_exception(e) from e

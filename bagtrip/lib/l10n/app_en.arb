@@ -1126,5 +1126,8 @@
   "accommodationGetPrices": "See prices",
   "accommodationSelectHotel": "Select",
   "accommodationPerNight": "/night",
-  "accommodationNoResults": "No hotels found"
+  "accommodationNoResults": "No hotels found",
+  "baggageAllPacked": "All packed!",
+  "baggageAllPackedSubtitle": "You're ready for your trip!",
+  "baggageSwipeToDelete": "Delete"
 }

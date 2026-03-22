@@ -22,6 +22,7 @@ class BaggageBloc extends Bloc<BaggageEvent, BaggageState> {
     on<SuggestBaggage>(_onSuggestBaggage);
     on<AcceptSuggestion>(_onAcceptSuggestion);
     on<DismissSuggestion>(_onDismissSuggestion);
+    on<ReorderBaggageItem>(_onReorderBaggageItem);
   }
 
   Future<void> _onLoadBaggage(
@@ -49,6 +50,7 @@ class BaggageBloc extends Bloc<BaggageEvent, BaggageState> {
   BaggageLoaded _rebuildLoaded(
     List<BaggageItem> items, {
     List<SuggestedBaggageItem> suggestions = const [],
+    bool celebrationTriggered = false,
   }) {
     final packed = items.where((item) => item.isPacked).length;
     return BaggageLoaded(
@@ -56,6 +58,7 @@ class BaggageBloc extends Bloc<BaggageEvent, BaggageState> {
       packedCount: packed,
       totalCount: items.length,
       suggestions: suggestions,
+      celebrationTriggered: celebrationTriggered,
     );
   }
 
@@ -76,7 +79,21 @@ class BaggageBloc extends Bloc<BaggageEvent, BaggageState> {
           final updated = current.items
               .map((i) => i.id == data.id ? data : i)
               .toList();
-          emit(_rebuildLoaded(updated, suggestions: current.suggestions));
+
+          // Celebration detection: transition to 100% packed
+          final wasPreviouslyAllPacked =
+              current.packedCount == current.totalCount;
+          final packed = updated.where((i) => i.isPacked).length;
+          final isNowAllPacked = packed == updated.length && updated.isNotEmpty;
+          final shouldCelebrate = isNowAllPacked && !wasPreviouslyAllPacked;
+
+          emit(
+            _rebuildLoaded(
+              updated,
+              suggestions: current.suggestions,
+              celebrationTriggered: shouldCelebrate,
+            ),
+          );
         } else {
           add(LoadBaggage(tripId: event.tripId));
         }
@@ -248,6 +265,25 @@ class BaggageBloc extends Bloc<BaggageEvent, BaggageState> {
         ),
       );
     }
+  }
+
+  void _onReorderBaggageItem(
+    ReorderBaggageItem event,
+    Emitter<BaggageState> emit,
+  ) {
+    final current = state;
+    if (current is! BaggageLoaded) return;
+
+    final unpackedItems = current.items.where((i) => !i.isPacked).toList();
+    final packedItems = current.items.where((i) => i.isPacked).toList();
+
+    var newIndex = event.newIndex;
+    if (newIndex > event.oldIndex) newIndex--;
+    final item = unpackedItems.removeAt(event.oldIndex);
+    unpackedItems.insert(newIndex, item);
+
+    final reordered = [...unpackedItems, ...packedItems];
+    emit(_rebuildLoaded(reordered, suggestions: current.suggestions));
   }
 
   @override

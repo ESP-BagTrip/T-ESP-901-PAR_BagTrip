@@ -50,3 +50,18 @@ class BaggageItemListResponse(BaseModel):
     """Réponse liste d'éléments de bagage."""
 
     items: list[BaggageItemResponse]
+
+
+class BaggageSuggestionItem(BaseModel):
+    """Un élément de suggestion de bagage IA."""
+
+    name: str
+    quantity: int = 1
+    category: str = "OTHER"
+    reason: str | None = None
+
+
+class BaggageSuggestionListResponse(BaseModel):
+    """Réponse liste de suggestions de bagage IA."""
+
+    items: list[BaggageSuggestionItem]

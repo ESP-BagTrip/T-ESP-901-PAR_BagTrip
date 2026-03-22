@@ -2678,4 +2678,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accommodationNoResults => 'No hotels found';
+
+  @override
+  String get baggageAllPacked => 'All packed!';
+
+  @override
+  String get baggageAllPackedSubtitle => 'You\'re ready for your trip!';
+
+  @override
+  String get baggageSwipeToDelete => 'Delete';
 }
