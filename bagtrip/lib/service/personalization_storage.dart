@@ -7,6 +7,7 @@ String _keyCompanions(String userId) => 'personalization_companions_$userId';
 String _keyTravelStyle(String userId) => 'personalization_travel_style_$userId';
 String _keyTravelFrequency(String userId) =>
     'personalization_travel_frequency_$userId';
+String _keyConstraints(String userId) => 'personalization_constraints_$userId';
 String _keyWelcomeSeen(String userId) => 'personalization_welcome_seen_$userId';
 
 /// Persists whether the user has seen the personalization prompt (per user)
@@ -82,6 +83,18 @@ class PersonalizationStorage {
     if (userId.isEmpty) return;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyTravelFrequency(userId), value);
+  }
+
+  Future<String> getConstraints(String userId) async {
+    if (userId.isEmpty) return '';
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyConstraints(userId)) ?? '';
+  }
+
+  Future<void> setConstraints(String userId, String value) async {
+    if (userId.isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyConstraints(userId), value);
   }
 
   /// True if the user has already seen the welcome screen (first launch only).

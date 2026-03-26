@@ -25,6 +25,8 @@ class FlightOrder(Base):
     status = Column(String, nullable=True)
     booking_reference = Column(String, nullable=True)
     amadeus_create_order_request = Column(JSON, nullable=False)
+    payment_id = Column(String, nullable=True)
+    ticket_url = Column(String, nullable=True)
     amadeus_create_order_response = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(

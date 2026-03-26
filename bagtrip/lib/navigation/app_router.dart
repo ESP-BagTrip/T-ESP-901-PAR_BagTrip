@@ -1,26 +1,8 @@
-import 'package:bagtrip/chat/bloc/chat_bloc.dart';
-import 'package:bagtrip/flightResultDetails/view/flight_result_details_page.dart';
-import 'package:bagtrip/flightSearchResult/models/flight.dart';
-import 'package:bagtrip/flightSearchResult/models/flight_search_arguments.dart';
 import 'package:bagtrip/navigation/app_shell.dart';
-import 'package:bagtrip/navigation/page_transitions.dart';
-import 'package:bagtrip/pages/budget_page.dart';
-import 'package:bagtrip/pages/chat_page.dart';
-import 'package:bagtrip/pages/flight_search_result_page.dart';
-import 'package:bagtrip/pages/login_page.dart';
-import 'package:bagtrip/pages/map_page.dart';
-import 'package:bagtrip/pages/onboarding_page.dart';
-import 'package:bagtrip/pages/personalization_page.dart';
-import 'package:bagtrip/pages/create_trip_ai_flow_page.dart';
-import 'package:bagtrip/pages/planifier_manual_flight_page.dart';
-import 'package:bagtrip/pages/planifier_manual_page.dart';
-import 'package:bagtrip/pages/planifier_manual_other_transport_page.dart';
-import 'package:bagtrip/pages/planifier_manual_transport_page.dart';
-import 'package:bagtrip/pages/planifier_page.dart';
-import 'package:bagtrip/pages/profile_page.dart';
-import 'package:bagtrip/pages/splash_page.dart';
-import 'package:bagtrip/service/auth_service.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
+import 'package:bagtrip/core/result.dart';
+import 'package:bagtrip/config/service_locator.dart';
+import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:go_router/go_router.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -33,198 +15,59 @@ final GoRouter appRouter = GoRouter(
       return null;
     }
 
-    final authService = AuthService();
-    final isAuthenticated = await authService.isAuthenticated();
+    final authRepository = getIt<AuthRepository>();
+    final authResult = await authRepository.isAuthenticated();
+    final isAuthenticated = authResult.dataOrNull ?? false;
     final isLoginPage = path == '/login';
     final isOnboardingPage = path == '/onboarding';
 
     if (!isAuthenticated && !isLoginPage && !isOnboardingPage) {
+      final intended = state.uri.toString();
+      if (intended != '/' && intended != '/login') {
+        return '/login?redirect=${Uri.encodeComponent(intended)}';
+      }
       return '/login';
     }
 
     if (isAuthenticated && isLoginPage) {
+      final redirect = state.uri.queryParameters['redirect'];
+      if (redirect != null && redirect.isNotEmpty) {
+        final decoded = Uri.decodeComponent(redirect);
+        if (decoded != '/login' && decoded != '/') {
+          return decoded;
+        }
+      }
       return null;
     }
 
     return null;
   },
   routes: [
-    GoRoute(
-      path: '/',
-      name: 'splash',
-      pageBuilder:
-          (context, state) => const NoTransitionPage(child: SplashPage()),
-    ),
-    GoRoute(
-      path: '/login',
-      name: 'login',
-      pageBuilder:
-          (context, state) => const NoTransitionPage(child: LoginPage()),
-    ),
-    GoRoute(
-      path: '/onboarding',
-      name: 'onboarding',
-      pageBuilder:
-          (context, state) => const NoTransitionPage(child: OnboardingPage()),
-    ),
-    GoRoute(
-      path: '/personalization',
-      name: 'personalization',
-      pageBuilder:
-          (context, state) =>
-              const NoTransitionPage(child: PersonalizationPage()),
-    ),
+    $splashRoute,
+    $loginRoute,
+    $onboardingRoute,
+    $personalizationRoute,
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
         return AppShell(navigationShell: navigationShell);
       },
       branches: [
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/map',
-              name: 'map',
-              pageBuilder:
-                  (context, state) => const NoTransitionPage(child: MapPage()),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/budget',
-              name: 'budget',
-              pageBuilder:
-                  (context, state) =>
-                      const NoTransitionPage(child: BudgetPage()),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/planifier',
-              name: 'planifier',
-              pageBuilder:
-                  (context, state) =>
-                      const NoTransitionPage(child: PlanifierPage()),
-              routes: [
-                GoRoute(
-                  path: 'manual',
-                  name: 'planifierManual',
-                  pageBuilder:
-                      (context, state) => buildSlideTransitionPage<void>(
-                        state: state,
-                        child: const PlanifierManualPage(),
-                      ),
-                  routes: [
-                    GoRoute(
-                      path: 'transport',
-                      name: 'planifierManualTransport',
-                      pageBuilder:
-                          (context, state) => buildSlideTransitionPage<void>(
-                            state: state,
-                            child: const PlanifierManualTransportPage(),
-                          ),
-                      routes: [
-                        GoRoute(
-                          path: 'other',
-                          name: 'planifierManualOtherTransport',
-                          pageBuilder:
-                              (
-                                context,
-                                state,
-                              ) => buildSlideTransitionPage<void>(
-                                state: state,
-                                child:
-                                    const PlanifierManualOtherTransportPage(),
-                              ),
-                        ),
-                      ],
-                    ),
-                    GoRoute(
-                      path: 'flight-search',
-                      name: 'planifierManualFlightSearch',
-                      pageBuilder:
-                          (context, state) => buildSlideTransitionPage<void>(
-                            state: state,
-                            child: const PlanifierManualFlightPage(),
-                          ),
-                    ),
-                  ],
-                ),
-                GoRoute(
-                  path: 'create-trip-ai',
-                  name: 'createTripAi',
-                  pageBuilder:
-                      (context, state) => buildSlideTransitionPage<void>(
-                        state: state,
-                        child: const CreateTripAiFlowPage(),
-                      ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/profile',
-              name: 'profile',
-              pageBuilder:
-                  (context, state) =>
-                      const NoTransitionPage(child: ProfilePage()),
-            ),
-          ],
-        ),
+        // Branch 0: Home
+        StatefulShellBranch(routes: [$homeRoute]),
+        // Branch 1: Activity
+        StatefulShellBranch(routes: [$activityRoute]),
+        // Branch 2: Profile
+        StatefulShellBranch(routes: [$profileRoute]),
       ],
     ),
-    GoRoute(
-      path: '/flight-search-result',
-      name: 'flight-search-result',
-      pageBuilder: (context, state) {
-        final args = state.extra as FlightSearchArguments?;
-        if (args == null) {
-          return const NoTransitionPage(child: PlanifierPage());
-        }
-        return buildSlideTransitionPage<void>(
-          state: state,
-          child: FlightSearchResultPage(arguments: args),
-        );
-      },
-    ),
-    GoRoute(
-      path: FlightResultDetailsPage.routePath,
-      name: 'flight-result-details',
-      pageBuilder: (context, state) {
-        final flight = state.extra as Flight?;
-        if (flight == null) {
-          return const NoTransitionPage(child: PlanifierPage());
-        }
-        return buildSlideTransitionPage<void>(
-          state: state,
-          child: FlightResultDetailsPage(flight: flight),
-        );
-      },
-    ),
-    GoRoute(
-      path: '/chat',
-      name: 'chat',
-      pageBuilder: (context, state) {
-        final tripId = state.uri.queryParameters['tripId'];
-        final conversationId = state.uri.queryParameters['conversationId'];
-
-        if (tripId == null || conversationId == null) {
-          return const NoTransitionPage(child: PlanifierPage());
-        }
-
-        return NoTransitionPage(
-          child: BlocProvider(
-            create: (context) => ChatBloc(),
-            child: ChatPage(tripId: tripId, conversationId: conversationId),
-          ),
-        );
-      },
-    ),
+    $notificationsRoute,
+    $deepLinkTripRoute,
+    $flightSearchResultRoute,
+    $flightResultDetailsRoute,
+    $subscriptionSuccessRoute,
+    $subscriptionCancelRoute,
+    $paymentSuccessRoute,
+    $paymentCancelRoute,
+    $paymentResultRoute,
   ],
 );

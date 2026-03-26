@@ -25,21 +25,20 @@ class CompanionsStepContent extends StatelessWidget {
       ('friends', l10n.personalizationCompanionFriends, Icons.groups_outlined),
     ];
     return Column(
-      children:
-          options
-              .map(
-                (opt) => Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.space24),
-                  child: PremiumSelectCard(
-                    icon: opt.$3,
-                    iconSize: iconSize,
-                    label: opt.$2,
-                    selected: selectedId == opt.$1,
-                    onTap: () => onSelect(opt.$1),
-                  ),
-                ),
-              )
-              .toList(),
+      children: options
+          .map(
+            (opt) => Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.space24),
+              child: PremiumSelectCard(
+                icon: opt.$3,
+                iconSize: iconSize,
+                label: opt.$2,
+                selected: selectedId == opt.$1,
+                onTap: () => onSelect(opt.$1),
+              ),
+            ),
+          )
+          .toList(),
     );
   }
 }

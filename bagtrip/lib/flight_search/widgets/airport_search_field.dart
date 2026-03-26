@@ -74,62 +74,59 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
     final size = renderBox.size;
 
     _overlayEntry = OverlayEntry(
-      builder:
-          (context) => Positioned(
-            width: size.width,
-            child: CompositedTransformFollower(
-              link: _layerLink,
-              offset: Offset(0, size.height + 4),
-              showWhenUnlinked: false,
-              child: Material(
-                elevation: 8,
-                borderRadius: BorderRadius.circular(12),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 200),
-                  child: ListView.separated(
-                    padding: EdgeInsets.zero,
-                    shrinkWrap: true,
-                    itemCount: airports.length,
-                    separatorBuilder: (_, _) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final airport = airports[index];
-                      return ListTile(
-                        dense: true,
-                        title: Text(
-                          airport['name'] ?? '',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: FontFamily.b612,
-                            color: ColorName.primary,
-                          ),
-                        ),
-                        subtitle: Text(
-                          [airport['iataCode'], airport['city']]
-                              .where(
-                                (e) => e != null && e.toString().isNotEmpty,
-                              )
-                              .join(' \u2022 '),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontFamily: FontFamily.b612,
-                            color: AppColors.hint,
-                          ),
-                        ),
-                        onTap: () {
-                          _controller.text = airport['name'] ?? '';
-                          _removeOverlay();
-                          FocusManager.instance.primaryFocus?.unfocus();
-                          setState(() => _showResults = false);
-                          widget.onSelected?.call(airport, widget.type);
-                        },
-                      );
+      builder: (context) => Positioned(
+        width: size.width,
+        child: CompositedTransformFollower(
+          link: _layerLink,
+          offset: Offset(0, size.height + 4),
+          showWhenUnlinked: false,
+          child: Material(
+            elevation: 8,
+            borderRadius: BorderRadius.circular(12),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 200),
+              child: ListView.separated(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: airports.length,
+                separatorBuilder: (_, _) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final airport = airports[index];
+                  return ListTile(
+                    dense: true,
+                    title: Text(
+                      airport['name'] ?? '',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: FontFamily.b612,
+                        color: ColorName.primary,
+                      ),
+                    ),
+                    subtitle: Text(
+                      [airport['iataCode'], airport['city']]
+                          .where((e) => e != null && e.toString().isNotEmpty)
+                          .join(' \u2022 '),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontFamily: FontFamily.b612,
+                        color: AppColors.hint,
+                      ),
+                    ),
+                    onTap: () {
+                      _controller.text = airport['name'] ?? '';
+                      _removeOverlay();
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      setState(() => _showResults = false);
+                      widget.onSelected?.call(airport, widget.type);
                     },
-                  ),
-                ),
+                  );
+                },
               ),
             ),
           ),
+        ),
+      ),
     );
 
     Overlay.of(context).insert(_overlayEntry!);

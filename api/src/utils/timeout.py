@@ -29,9 +29,7 @@ def with_timeout(timeout_seconds: float, fallback_value: Any = None):
                     timeout=timeout_seconds,
                 )
             except builtins.TimeoutError:
-                logger.warning(
-                    f"Function {func.__name__} timed out after {timeout_seconds}s"
-                )
+                logger.warning(f"Function {func.__name__} timed out after {timeout_seconds}s")
                 return fallback_value
             except Exception as e:
                 logger.error(f"Error in {func.__name__}: {e}")
@@ -59,9 +57,7 @@ def with_timeout_sync(timeout_seconds: float, fallback_value: Any = None):
                 executor.shutdown(wait=False)
                 return result
             except TimeoutError:
-                logger.warning(
-                    f"Function {func.__name__} timed out after {timeout_seconds}s"
-                )
+                logger.warning(f"Function {func.__name__} timed out after {timeout_seconds}s")
                 executor.shutdown(wait=False)
                 return fallback_value
             except Exception as e:

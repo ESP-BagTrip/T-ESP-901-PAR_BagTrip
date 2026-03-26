@@ -18,6 +18,7 @@ class AppSpacing {
 
   static const double space4 = 4.0;
   static const double space8 = 8.0;
+  static const double space12 = 12.0;
   static const double space16 = 16.0;
   static const double space24 = 24.0;
   static const double space32 = 32.0;
@@ -56,6 +57,33 @@ class AppSpacing {
   static const EdgeInsets verticalSpace16 = EdgeInsets.symmetric(
     vertical: space16,
   );
+
+  // --- space12 EdgeInsets ---
+  static const EdgeInsets allEdgeInsetSpace12 = EdgeInsets.all(space12);
+  static const EdgeInsets horizontalSpace12 = EdgeInsets.symmetric(
+    horizontal: space12,
+  );
+  static const EdgeInsets verticalSpace12 = EdgeInsets.symmetric(
+    vertical: space12,
+  );
+
+  // --- Additional symmetric EdgeInsets ---
+  static const EdgeInsets verticalSpace4 = EdgeInsets.symmetric(
+    vertical: space4,
+  );
+  static const EdgeInsets verticalSpace24 = EdgeInsets.symmetric(
+    vertical: space24,
+  );
+  static const EdgeInsets horizontalSpace4 = EdgeInsets.symmetric(
+    horizontal: space4,
+  );
+  static const EdgeInsets horizontalSpace24 = EdgeInsets.symmetric(
+    horizontal: space24,
+  );
+
+  // --- Additional directional EdgeInsets ---
+  static const EdgeInsets onlyTopSpace24 = EdgeInsets.only(top: space24);
+  static const EdgeInsets onlyBottomSpace24 = EdgeInsets.only(bottom: space24);
 }
 
 /// Centralized corner radius tokens.

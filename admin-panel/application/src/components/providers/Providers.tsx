@@ -1,5 +1,6 @@
 'use client'
 
+import { Toaster } from 'sonner'
 import { QueryProvider } from './QueryProvider'
 
 interface ProvidersProps {
@@ -7,5 +8,10 @@ interface ProvidersProps {
 }
 
 export function Providers({ children }: ProvidersProps) {
-  return <QueryProvider>{children}</QueryProvider>
+  return (
+    <QueryProvider>
+      {children}
+      <Toaster richColors position="top-right" />
+    </QueryProvider>
+  )
 }

@@ -112,40 +112,33 @@ class PassengersRow extends StatelessWidget {
           label: AppLocalizations.of(context)!.passengersAdults,
           description: AppLocalizations.of(context)!.passengersAdultsDesc,
           value: state.adults,
-          onAdd:
-              () => context.read<FlightSearchBloc>().add(
-                SetAdults(state.adults + 1),
-              ),
-          onRemove:
-              () => context.read<FlightSearchBloc>().add(
-                SetAdults(state.adults > 1 ? state.adults - 1 : 1),
-              ),
+          onAdd: () =>
+              context.read<FlightSearchBloc>().add(SetAdults(state.adults + 1)),
+          onRemove: () => context.read<FlightSearchBloc>().add(
+            SetAdults(state.adults > 1 ? state.adults - 1 : 1),
+          ),
         ),
         buildPassengerRow(
           label: AppLocalizations.of(context)!.passengersChildren,
           description: AppLocalizations.of(context)!.passengersChildrenDesc,
           value: state.children,
-          onAdd:
-              () => context.read<FlightSearchBloc>().add(
-                SetChildren(state.children + 1),
-              ),
-          onRemove:
-              () => context.read<FlightSearchBloc>().add(
-                SetChildren(state.children > 0 ? state.children - 1 : 0),
-              ),
+          onAdd: () => context.read<FlightSearchBloc>().add(
+            SetChildren(state.children + 1),
+          ),
+          onRemove: () => context.read<FlightSearchBloc>().add(
+            SetChildren(state.children > 0 ? state.children - 1 : 0),
+          ),
         ),
         buildPassengerRow(
           label: AppLocalizations.of(context)!.passengersInfants,
           description: AppLocalizations.of(context)!.passengersInfantsDesc,
           value: state.infants,
-          onAdd:
-              () => context.read<FlightSearchBloc>().add(
-                SetInfants(state.infants + 1),
-              ),
-          onRemove:
-              () => context.read<FlightSearchBloc>().add(
-                SetInfants(state.infants > 0 ? state.infants - 1 : 0),
-              ),
+          onAdd: () => context.read<FlightSearchBloc>().add(
+            SetInfants(state.infants + 1),
+          ),
+          onRemove: () => context.read<FlightSearchBloc>().add(
+            SetInfants(state.infants > 0 ? state.infants - 1 : 0),
+          ),
           isLast: true,
         ),
       ],

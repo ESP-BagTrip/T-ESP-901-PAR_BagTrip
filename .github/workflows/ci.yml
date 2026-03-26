@@ -1,0 +1,275 @@
+name: CI Quality Gates
+
+on:
+  push:
+    branches: [main, develop, feat/SMP-54-add-postgresql-prisma]
+  pull_request:
+    branches: [main, develop, feat/SMP-54-add-postgresql-prisma]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ========================================
+  # CHANGE DETECTION
+  # ========================================
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      flutter: ${{ steps.filter.outputs.flutter }}
+      api: ${{ steps.filter.outputs.api }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Filter paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            flutter:
+              - 'bagtrip/**'
+              - '.github/workflows/ci.yml'
+            api:
+              - 'api/**'
+              - '.github/workflows/ci.yml'
+
+  # ========================================
+  # FLUTTER — ANALYZE + FORMAT
+  # ========================================
+  flutter-analyze:
+    name: Flutter Analyze
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.flutter == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ hashFiles('bagtrip/pubspec.lock') }}
+          restore-keys: pub-
+
+      - name: Install dependencies
+        working-directory: bagtrip
+        run: flutter pub get
+
+      - name: Analyze
+        working-directory: bagtrip
+        run: flutter analyze
+
+      - name: Check formatting
+        working-directory: bagtrip
+        run: dart format --set-exit-if-changed .
+
+  # ========================================
+  # FLUTTER — TEST + COVERAGE
+  # ========================================
+  flutter-test:
+    name: Flutter Test
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.flutter == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ hashFiles('bagtrip/pubspec.lock') }}
+          restore-keys: pub-
+
+      - name: Install dependencies
+        working-directory: bagtrip
+        run: flutter pub get
+
+      - name: Run tests with coverage
+        working-directory: bagtrip
+        run: flutter test --coverage
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-coverage
+          path: bagtrip/coverage/lcov.info
+          retention-days: 7
+
+      - name: Check coverage threshold
+        working-directory: bagtrip
+        run: |
+          sudo apt-get install -y lcov > /dev/null 2>&1
+          COVERAGE=$(lcov --summary coverage/lcov.info 2>&1 | grep 'lines' | sed 's/.*: *\([0-9.]*\)%.*/\1/')
+          echo "Line coverage: ${COVERAGE}%"
+          echo "## Flutter Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "Line coverage: **${COVERAGE}%** (threshold: 60%)" >> $GITHUB_STEP_SUMMARY
+          if [ "$(echo "$COVERAGE < 60" | bc -l)" -eq 1 ]; then
+            echo "Coverage ${COVERAGE}% is below 60% threshold"
+            exit 1
+          fi
+
+  # ========================================
+  # FLUTTER — GOLDEN TESTS
+  # ========================================
+  flutter-goldens:
+    name: Flutter Golden Tests
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.flutter == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ hashFiles('bagtrip/pubspec.lock') }}
+          restore-keys: pub-
+
+      - name: Install dependencies
+        working-directory: bagtrip
+        run: flutter pub get
+
+      - name: Run golden tests
+        working-directory: bagtrip
+        run: flutter test --tags=golden
+
+      - name: Upload golden failures
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: golden-failures
+          path: bagtrip/test/goldens/failures/
+          retention-days: 7
+
+  # ========================================
+  # API — LINT + TEST
+  # ========================================
+  api-checks:
+    name: API Checks
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.api == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Cache uv dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv
+          key: uv-${{ hashFiles('api/uv.lock') }}
+          restore-keys: uv-
+
+      - name: Install dependencies
+        working-directory: api
+        run: uv sync
+
+      - name: Lint (ruff check)
+        working-directory: api
+        run: uv run ruff check .
+
+      - name: Format check (ruff format)
+        working-directory: api
+        run: uv run ruff format --check .
+
+      - name: Run tests
+        working-directory: api
+        run: uv run pytest
+
+  # ========================================
+  # QUALITY GATE
+  # ========================================
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    needs: [flutter-analyze, flutter-test, flutter-goldens, api-checks]
+    if: always()
+    steps:
+      - name: Check all jobs
+        run: |
+          echo "flutter-analyze: ${{ needs.flutter-analyze.result }}"
+          echo "flutter-test:    ${{ needs.flutter-test.result }}"
+          echo "flutter-goldens: ${{ needs.flutter-goldens.result }}"
+          echo "api-checks:      ${{ needs.api-checks.result }}"
+
+          for result in \
+            "${{ needs.flutter-analyze.result }}" \
+            "${{ needs.flutter-test.result }}" \
+            "${{ needs.flutter-goldens.result }}" \
+            "${{ needs.api-checks.result }}"; do
+            if [[ "$result" != "success" && "$result" != "skipped" ]]; then
+              echo "Quality gate FAILED"
+              exit 1
+            fi
+          done
+
+          echo "Quality gate PASSED"
+
+  # ========================================
+  # REPORT
+  # ========================================
+  report:
+    name: CI Report
+    runs-on: ubuntu-latest
+    needs: [flutter-analyze, flutter-test, flutter-goldens, api-checks, quality-gate]
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          status() {
+            case "$1" in
+              success) echo "Passed" ;;
+              skipped) echo "Skipped" ;;
+              *) echo "Failed" ;;
+            esac
+          }
+
+          echo "## CI/CD Quality Gates" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Flutter Analyze | $(status "${{ needs.flutter-analyze.result }}") |" >> $GITHUB_STEP_SUMMARY
+          echo "| Flutter Test | $(status "${{ needs.flutter-test.result }}") |" >> $GITHUB_STEP_SUMMARY
+          echo "| Flutter Goldens | $(status "${{ needs.flutter-goldens.result }}") |" >> $GITHUB_STEP_SUMMARY
+          echo "| API Checks | $(status "${{ needs.api-checks.result }}") |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ needs.quality-gate.result }}" == "success" ]]; then
+            echo "**Quality Gate: PASSED**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Quality Gate: FAILED**" >> $GITHUB_STEP_SUMMARY
+          fi

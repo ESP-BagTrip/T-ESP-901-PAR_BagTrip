@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session
 from src.integrations.amadeus import amadeus_client
 from src.integrations.amadeus.types import FlightOffer
 from src.models.flight_offer import FlightOffer as FlightOfferModel
-from src.services.trips_service import TripsService
 from src.utils.errors import AppError
 
 
@@ -19,17 +18,11 @@ class FlightOfferPricingService:
         db: Session,
         offer_id: UUID,
         trip_id: UUID,
-        user_id: UUID,
     ) -> FlightOfferModel:
         """
         Repricer une offre de vol et mettre à jour priced_offer_json.
-        Recommandé avant le booking pour éviter les échecs.
+        Accès vérifié par la dependency en amont.
         """
-        # Vérifier que le trip existe et appartient à l'utilisateur
-        trip = TripsService.get_trip_by_id(db, trip_id, user_id)
-        if not trip:
-            raise AppError("TRIP_NOT_FOUND", 404, "Trip not found")
-
         # Récupérer l'offre
         offer = (
             db.query(FlightOfferModel)

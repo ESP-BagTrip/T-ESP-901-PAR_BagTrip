@@ -27,18 +27,6 @@ export function useAdminTravelers(params?: QueryParams) {
   })
 }
 
-export function useAdminHotelBookings(params?: QueryParams) {
-  return useQuery({
-    queryKey: ['admin', 'hotel-bookings', params],
-    queryFn: () =>
-      adminService.getAllHotelBookings({
-        page: params?.page || PAGINATION_DEFAULTS.PAGE,
-        limit: params?.limit || PAGINATION_DEFAULTS.LIMIT,
-        ...params,
-      }),
-  })
-}
-
 export function useAdminFlightBookings(params?: QueryParams) {
   return useQuery({
     queryKey: ['admin', 'flight-bookings', params],
@@ -75,18 +63,6 @@ export function useAdminBookingIntents(params?: QueryParams) {
   })
 }
 
-export function useAdminConversations(params?: QueryParams) {
-  return useQuery({
-    queryKey: ['admin', 'conversations', params],
-    queryFn: () =>
-      adminService.getAllConversations({
-        page: params?.page || PAGINATION_DEFAULTS.PAGE,
-        limit: params?.limit || PAGINATION_DEFAULTS.LIMIT,
-        ...params,
-      }),
-  })
-}
-
 export function useAdminFlightSearches(params?: QueryParams) {
   return useQuery({
     queryKey: ['admin', 'flight-searches', params],
@@ -99,11 +75,71 @@ export function useAdminFlightSearches(params?: QueryParams) {
   })
 }
 
-export function useAdminHotelSearches(params?: QueryParams) {
+export function useAdminAccommodations(params?: QueryParams) {
   return useQuery({
-    queryKey: ['admin', 'hotel-searches', params],
+    queryKey: ['admin', 'accommodations', params],
     queryFn: () =>
-      adminService.getAllHotelSearches({
+      adminService.getAllAccommodations({
+        page: params?.page || PAGINATION_DEFAULTS.PAGE,
+        limit: params?.limit || PAGINATION_DEFAULTS.LIMIT,
+        ...params,
+      }),
+  })
+}
+
+export function useAdminBaggageItems(params?: QueryParams) {
+  return useQuery({
+    queryKey: ['admin', 'baggage-items', params],
+    queryFn: () =>
+      adminService.getAllBaggageItems({
+        page: params?.page || PAGINATION_DEFAULTS.PAGE,
+        limit: params?.limit || PAGINATION_DEFAULTS.LIMIT,
+        ...params,
+      }),
+  })
+}
+
+export function useAdminActivities(params?: QueryParams) {
+  return useQuery({
+    queryKey: ['admin', 'activities', params],
+    queryFn: () =>
+      adminService.getAllActivities({
+        page: params?.page || PAGINATION_DEFAULTS.PAGE,
+        limit: params?.limit || PAGINATION_DEFAULTS.LIMIT,
+        ...params,
+      }),
+  })
+}
+
+export function useAdminBudgetItems(params?: QueryParams) {
+  return useQuery({
+    queryKey: ['admin', 'budgetItems', params],
+    queryFn: () =>
+      adminService.getAllBudgetItems({
+        page: params?.page || PAGINATION_DEFAULTS.PAGE,
+        limit: params?.limit || PAGINATION_DEFAULTS.LIMIT,
+        ...params,
+      }),
+  })
+}
+
+export function useAdminTripShares(params?: QueryParams) {
+  return useQuery({
+    queryKey: ['admin', 'trip-shares', params],
+    queryFn: () =>
+      adminService.getAllTripShares({
+        page: params?.page || PAGINATION_DEFAULTS.PAGE,
+        limit: params?.limit || PAGINATION_DEFAULTS.LIMIT,
+        ...params,
+      }),
+  })
+}
+
+export function useAdminNotifications(params?: QueryParams) {
+  return useQuery({
+    queryKey: ['admin', 'notifications', params],
+    queryFn: () =>
+      adminService.getAllNotifications({
         page: params?.page || PAGINATION_DEFAULTS.PAGE,
         limit: params?.limit || PAGINATION_DEFAULTS.LIMIT,
         ...params,

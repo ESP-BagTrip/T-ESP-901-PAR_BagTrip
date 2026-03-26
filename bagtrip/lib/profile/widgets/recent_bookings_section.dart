@@ -2,9 +2,10 @@ import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/profile/bloc/profile_bloc.dart';
+import 'package:bagtrip/models/recent_booking.dart';
 import 'package:bagtrip/profile/widgets/profile_section_card.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class RecentBookingsSection extends StatelessWidget {
   final List<RecentBooking> recentBookings;
@@ -18,40 +19,19 @@ class RecentBookingsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(
-                    Icons.flight_outlined,
-                    color: ColorName.secondary,
-                    size: 20,
-                  ),
-                  const SizedBox(width: AppSpacing.space8),
-                  Text(
-                    AppLocalizations.of(context)!.recentBookingsTitle,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: ColorName.primaryTrueDark,
-                    ),
-                  ),
-                ],
+              const Icon(
+                Icons.flight_outlined,
+                color: ColorName.secondary,
+                size: 20,
               ),
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  AppLocalizations.of(context)!.viewAllButton,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: ColorName.secondary,
-                    fontWeight: FontWeight.w600,
-                  ),
+              const SizedBox(width: AppSpacing.space8),
+              Text(
+                AppLocalizations.of(context)!.recentBookingsTitle,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: ColorName.primaryTrueDark,
                 ),
               ),
             ],
@@ -81,11 +61,15 @@ class RecentBookingsSection extends StatelessWidget {
 
   Widget _buildBookingRow(RecentBooking booking, BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).languageCode;
     final localizedStatus = _getLocalizedStatus(booking.status, localizations);
     final isCompleted =
         booking.status.toUpperCase() == 'CONFIRMED' ||
         booking.status == localizations.bookingStatusCompleted ||
         localizedStatus == localizations.bookingStatusCompleted;
+    final formattedDate = DateFormat('d MMM yyyy', locale).format(booking.date);
+    final formattedPrice =
+        '${NumberFormat.decimalPattern(locale).format(booking.priceTotal)} ${booking.currency}';
 
     return Row(
       children: [
@@ -108,7 +92,7 @@ class RecentBookingsSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                booking.route,
+                localizations.bookingLabel,
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -133,7 +117,7 @@ class RecentBookingsSection extends StatelessWidget {
                   ),
                   const SizedBox(width: AppSpacing.space4),
                   Text(
-                    booking.date,
+                    formattedDate,
                     style: TextStyle(
                       fontSize: 12,
                       color: ColorName.primaryTrueDark.withValues(alpha: 0.6),
@@ -150,7 +134,7 @@ class RecentBookingsSection extends StatelessWidget {
                   ),
                   const SizedBox(width: AppSpacing.space8),
                   Text(
-                    booking.price,
+                    formattedPrice,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -168,10 +152,9 @@ class RecentBookingsSection extends StatelessWidget {
             vertical: AppSpacing.space4,
           ),
           decoration: BoxDecoration(
-            color:
-                isCompleted
-                    ? ColorName.primaryLight
-                    : ColorName.secondary.withValues(alpha: 0.2),
+            color: isCompleted
+                ? ColorName.primaryLight
+                : ColorName.secondary.withValues(alpha: 0.2),
             borderRadius: AppRadius.small4,
           ),
           child: Text(
@@ -179,10 +162,9 @@ class RecentBookingsSection extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color:
-                  isCompleted
-                      ? ColorName.primaryTrueDark.withValues(alpha: 0.7)
-                      : ColorName.secondary,
+              color: isCompleted
+                  ? ColorName.primaryTrueDark.withValues(alpha: 0.7)
+                  : ColorName.secondary,
             ),
           ),
         ),

@@ -1,22 +1,22 @@
 import 'package:bagtrip/auth/bloc/auth_bloc.dart';
-import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 
 class LogoutButton extends StatelessWidget {
   const LogoutButton({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.cardTheme.color ?? theme.colorScheme.surface,
         borderRadius: AppRadius.large16,
-        border: Border.all(color: ColorName.primarySoftLight),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
             color: ColorName.primary.withValues(alpha: 0.08),
@@ -37,7 +37,7 @@ class LogoutButton extends StatelessWidget {
         child: InkWell(
           onTap: () {
             context.read<AuthBloc>().add(LogoutRequested());
-            context.go('/login');
+            const LoginRoute().go(context);
           },
           borderRadius: AppRadius.large16,
           child: Container(

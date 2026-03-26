@@ -1,1 +1,1 @@
-"""Hotels API routes."""
+"""Hotel search endpoints."""

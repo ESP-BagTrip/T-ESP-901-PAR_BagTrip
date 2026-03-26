@@ -39,26 +39,23 @@ class _PremiumInterestChipState extends State<PremiumInterestChip> {
             vertical: 14,
           ),
           decoration: BoxDecoration(
-            color:
-                widget.selected
-                    ? PersonalizationColors.chipSelected
-                    : PersonalizationColors.chipUnselected,
+            color: widget.selected
+                ? PersonalizationColors.chipSelected
+                : PersonalizationColors.chipUnselected,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color:
-                  widget.selected
-                      ? PersonalizationColors.accentBlue.withValues(alpha: 0.6)
-                      : PersonalizationColors.cardBorderUnselected,
+              color: widget.selected
+                  ? PersonalizationColors.accentBlue.withValues(alpha: 0.6)
+                  : PersonalizationColors.cardBorderUnselected,
               width: widget.selected ? 1.5 : 1,
             ),
           ),
           child: Text(
             widget.label,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color:
-                  widget.selected
-                      ? PersonalizationColors.accentBlue
-                      : PersonalizationColors.textPrimary,
+              color: widget.selected
+                  ? PersonalizationColors.accentBlue
+                  : PersonalizationColors.textPrimary,
               fontWeight: widget.selected ? FontWeight.w600 : FontWeight.w500,
             ),
           ),

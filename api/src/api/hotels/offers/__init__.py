@@ -1,1 +1,0 @@
-"""Hotel offers API routes."""

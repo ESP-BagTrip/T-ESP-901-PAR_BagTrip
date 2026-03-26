@@ -41,7 +41,7 @@ class SocialLoginButton extends StatelessWidget {
   }
 
   Color get _backgroundColor {
-    if (useDarkStyle) return ColorName.primaryLight;
+    if (useDarkStyle) return AppColors.surfaceDark;
     switch (provider) {
       case SocialProvider.google:
         return AppColors.surface;
@@ -62,13 +62,12 @@ class SocialLoginButton extends StatelessWidget {
 
   BorderSide get _side {
     if (useDarkStyle) {
-      return const BorderSide(color: ColorName.primaryLight);
+      return BorderSide(color: AppColors.surface.withValues(alpha: 0.2));
     }
     return BorderSide(
-      color:
-          provider == SocialProvider.google
-              ? ColorName.primarySoftLight
-              : AppColors.primaryTrueDark,
+      color: provider == SocialProvider.google
+          ? ColorName.primarySoftLight
+          : AppColors.primaryTrueDark,
       width: 1.5,
     );
   }
@@ -88,32 +87,31 @@ class SocialLoginButton extends StatelessWidget {
           padding: AppSpacing.allEdgeInsetSpace16,
           shape: const RoundedRectangleBorder(borderRadius: AppRadius.large16),
         ),
-        child:
-            isLoading
-                ? SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: _textColor,
-                  ),
-                )
-                : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(_icon, size: 20, color: _textColor),
-                    const SizedBox(width: AppSpacing.space8),
-                    Text(
-                      buttonLabel,
-                      style: TextStyle(
-                        fontFamily: FontFamily.b612,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        color: _textColor,
-                      ),
-                    ),
-                  ],
+        child: isLoading
+            ? SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: _textColor,
                 ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(_icon, size: 20, color: _textColor),
+                  const SizedBox(width: AppSpacing.space8),
+                  Text(
+                    buttonLabel,
+                    style: TextStyle(
+                      fontFamily: FontFamily.b612,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      color: _textColor,
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }

@@ -1,8 +1,7 @@
-// ignore_for_file: file-names
-
-import 'package:bagtrip/flightSearchResult/models/flight.dart';
+import 'package:bagtrip/core/result.dart';
+import 'package:bagtrip/flight_search_result/models/flight.dart';
 import 'package:bagtrip/flight_search/models/flight_segment.dart';
-import 'package:bagtrip/service/LocationService.dart';
+import 'package:bagtrip/service/location_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
@@ -87,12 +86,13 @@ void main() {
           );
 
           // Assert
-          expect(result, isA<List<Flight>>());
-          expect(result.length, equals(1));
-          expect(result.first.id, equals('flight-1'));
-          expect(result.first.departureCode, contains('CDG'));
-          expect(result.first.arrivalCode, contains('JFK'));
-          expect(result.first.price, equals(500.0));
+          expect(result, isA<Success<List<Flight>>>());
+          final flights = (result as Success<List<Flight>>).data;
+          expect(flights.length, equals(1));
+          expect(flights.first.id, equals('flight-1'));
+          expect(flights.first.departureCode, contains('CDG'));
+          expect(flights.first.arrivalCode, contains('JFK'));
+          expect(flights.first.price, equals(500.0));
         },
       );
 
@@ -157,10 +157,11 @@ void main() {
           );
 
           // Assert
-          expect(result, isA<List<Flight>>());
-          expect(result.length, equals(1));
-          expect(result.first.id, equals('flight-2'));
-          expect(result.first.price, equals(800.0));
+          expect(result, isA<Success<List<Flight>>>());
+          final flights = (result as Success<List<Flight>>).data;
+          expect(flights.length, equals(1));
+          expect(flights.first.id, equals('flight-2'));
+          expect(flights.first.price, equals(800.0));
         },
       );
 
@@ -235,10 +236,11 @@ void main() {
           );
 
           // Assert
-          expect(result, isA<List<Flight>>());
-          expect(result.length, equals(1));
-          expect(result.first.returnDepartureTime, isNotNull);
-          expect(result.first.returnArrivalTime, isNotNull);
+          expect(result, isA<Success<List<Flight>>>());
+          final flights = (result as Success<List<Flight>>).data;
+          expect(flights.length, equals(1));
+          expect(flights.first.returnDepartureTime, isNotNull);
+          expect(flights.first.returnArrivalTime, isNotNull);
         },
       );
 
@@ -303,8 +305,9 @@ void main() {
         );
 
         // Assert
-        expect(result, isA<List<Flight>>());
-        expect(result.length, equals(1));
+        expect(result, isA<Success<List<Flight>>>());
+        final flights = (result as Success<List<Flight>>).data;
+        expect(flights.length, equals(1));
         // The airline name should be extracted from dictionaries if available
       });
 
@@ -326,15 +329,13 @@ void main() {
         );
 
         // Act & Assert
-        expect(
-          () => locationService.searchFlights(
-            departureCode: 'CDG',
-            arrivalCode: 'JFK',
-            departureDate: '2024-01-15',
-            adults: 1,
-          ),
-          throwsA(isA<Exception>()),
+        final result = await locationService.searchFlights(
+          departureCode: 'CDG',
+          arrivalCode: 'JFK',
+          departureDate: '2024-01-15',
+          adults: 1,
         );
+        expect(result, isA<Failure<List<Flight>>>());
       });
 
       test('should throw exception on network error', () async {
@@ -361,15 +362,13 @@ void main() {
         );
 
         // Act & Assert
-        expect(
-          () => locationService.searchFlights(
-            departureCode: 'CDG',
-            arrivalCode: 'JFK',
-            departureDate: '2024-01-15',
-            adults: 1,
-          ),
-          throwsA(isA<Exception>()),
+        final result = await locationService.searchFlights(
+          departureCode: 'CDG',
+          arrivalCode: 'JFK',
+          departureDate: '2024-01-15',
+          adults: 1,
         );
+        expect(result, isA<Failure<List<Flight>>>());
       });
 
       test('should handle multi-destination segments parameter', () async {
@@ -422,7 +421,7 @@ void main() {
           departureDate: '2024-04-01',
           adults: 1,
           multiDestSegments: [
-            FlightSegment(
+            const FlightSegment(
               departureAirport: {'code': 'CDG'},
               arrivalAirport: {'code': 'JFK'},
             ),
@@ -430,7 +429,7 @@ void main() {
         );
 
         // Assert
-        expect(result, isA<List<Flight>>());
+        expect(result, isA<Success<List<Flight>>>());
         // Multi-destination is not yet implemented, but should not throw
       });
     });
@@ -472,12 +471,13 @@ void main() {
         );
 
         // Assert
-        expect(result, isA<List<Map<String, dynamic>>>());
-        expect(result.length, equals(2));
-        expect(result[0]['iataCode'], equals('CDG'));
-        expect(result[0]['city'], equals('Paris'));
-        expect(result[0]['countryCode'], equals('FR'));
-        expect(result[0]['countryName'], equals('France'));
+        expect(result, isA<Success<List<Map<String, dynamic>>>>());
+        final locations = (result as Success<List<Map<String, dynamic>>>).data;
+        expect(locations.length, equals(2));
+        expect(locations[0]['iataCode'], equals('CDG'));
+        expect(locations[0]['city'], equals('Paris'));
+        expect(locations[0]['countryCode'], equals('FR'));
+        expect(locations[0]['countryName'], equals('France'));
       });
 
       test(
@@ -512,11 +512,13 @@ void main() {
           );
 
           // Assert
-          expect(result, isA<List<Map<String, dynamic>>>());
-          expect(result.length, equals(1));
-          expect(result[0]['iataCode'], equals('JFK'));
-          expect(result[0]['city'], equals('New York'));
-          expect(result[0]['countryCode'], equals('US'));
+          expect(result, isA<Success<List<Map<String, dynamic>>>>());
+          final locations =
+              (result as Success<List<Map<String, dynamic>>>).data;
+          expect(locations.length, equals(1));
+          expect(locations[0]['iataCode'], equals('JFK'));
+          expect(locations[0]['city'], equals('New York'));
+          expect(locations[0]['countryCode'], equals('US'));
         },
       );
 
@@ -551,10 +553,12 @@ void main() {
           );
 
           // Assert
-          expect(result, isA<List<Map<String, dynamic>>>());
-          expect(result.length, equals(1));
-          expect(result[0]['iataCode'], equals('LHR'));
-          expect(result[0]['city'], equals('London'));
+          expect(result, isA<Success<List<Map<String, dynamic>>>>());
+          final locations =
+              (result as Success<List<Map<String, dynamic>>>).data;
+          expect(locations.length, equals(1));
+          expect(locations[0]['iataCode'], equals('LHR'));
+          expect(locations[0]['city'], equals('London'));
         },
       );
 
@@ -585,10 +589,12 @@ void main() {
           );
 
           // Assert
-          expect(result, isA<List<Map<String, dynamic>>>());
-          expect(result.length, equals(1));
-          expect(result[0]['iataCode'], equals('LAX'));
-          expect(result[0]['city'], equals('Los Angeles'));
+          expect(result, isA<Success<List<Map<String, dynamic>>>>());
+          final locations =
+              (result as Success<List<Map<String, dynamic>>>).data;
+          expect(locations.length, equals(1));
+          expect(locations[0]['iataCode'], equals('LAX'));
+          expect(locations[0]['city'], equals('Los Angeles'));
         },
       );
 
@@ -621,9 +627,11 @@ void main() {
           );
 
           // Assert
-          expect(result, isA<List<Map<String, dynamic>>>());
-          expect(result.length, equals(1));
-          expect(result[0]['iataCode'], equals('CDG'));
+          expect(result, isA<Success<List<Map<String, dynamic>>>>());
+          final locations =
+              (result as Success<List<Map<String, dynamic>>>).data;
+          expect(locations.length, equals(1));
+          expect(locations[0]['iataCode'], equals('CDG'));
         },
       );
 
@@ -658,10 +666,12 @@ void main() {
           );
 
           // Assert
-          expect(result, isA<List<Map<String, dynamic>>>());
-          expect(result.length, equals(1));
-          expect(result[0]['iataCode'], equals('FCO'));
-          expect(result[0]['city'], equals('Rome'));
+          expect(result, isA<Success<List<Map<String, dynamic>>>>());
+          final locations =
+              (result as Success<List<Map<String, dynamic>>>).data;
+          expect(locations.length, equals(1));
+          expect(locations[0]['iataCode'], equals('FCO'));
+          expect(locations[0]['city'], equals('Rome'));
         },
       );
 
@@ -677,10 +687,11 @@ void main() {
           );
 
           // Act & Assert
-          expect(
-            () => locationService.searchLocationsByKeyword('Test', 'AIRPORT'),
-            throwsA(isA<Exception>()),
+          final result = await locationService.searchLocationsByKeyword(
+            'Test',
+            'AIRPORT',
           );
+          expect(result, isA<Failure<List<Map<String, dynamic>>>>());
         },
       );
 
@@ -695,11 +706,11 @@ void main() {
           );
 
           // Act & Assert
-          expect(
-            () =>
-                locationService.searchLocationsByKeyword('Invalid', 'AIRPORT'),
-            throwsA(isA<Exception>()),
+          final result = await locationService.searchLocationsByKeyword(
+            'Invalid',
+            'AIRPORT',
           );
+          expect(result, isA<Failure<List<Map<String, dynamic>>>>());
         },
       );
 
@@ -720,10 +731,11 @@ void main() {
           );
 
           // Act & Assert
-          expect(
-            () => locationService.searchLocationsByKeyword('Test', 'AIRPORT'),
-            throwsA(isA<Exception>()),
+          final result = await locationService.searchLocationsByKeyword(
+            'Test',
+            'AIRPORT',
           );
+          expect(result, isA<Failure<List<Map<String, dynamic>>>>());
         },
       );
 
@@ -750,9 +762,10 @@ void main() {
         );
 
         // Assert
-        expect(result, isA<List<Map<String, dynamic>>>());
-        expect(result.length, equals(1));
-        expect(result[0]['iataCode'], equals('TEST'));
+        expect(result, isA<Success<List<Map<String, dynamic>>>>());
+        final locations = (result as Success<List<Map<String, dynamic>>>).data;
+        expect(locations.length, equals(1));
+        expect(locations[0]['iataCode'], equals('TEST'));
         // Should not have city, countryCode, countryName if no address
       });
 
@@ -765,13 +778,11 @@ void main() {
         );
 
         // Act & Assert
-        expect(
-          () => locationService.searchLocationsByKeyword(
-            'NonExistent',
-            'AIRPORT',
-          ),
-          throwsA(isA<Exception>()),
+        final result = await locationService.searchLocationsByKeyword(
+          'NonExistent',
+          'AIRPORT',
         );
+        expect(result, isA<Failure<List<Map<String, dynamic>>>>());
       });
     });
 
@@ -803,10 +814,12 @@ void main() {
         );
 
         // Assert
-        expect(result[0], containsPair('city', 'Paris'));
-        expect(result[0], containsPair('countryCode', 'FR'));
-        expect(result[0], containsPair('countryName', 'France'));
-        expect(result[0], containsPair('iataCode', 'CDG'));
+        expect(result, isA<Success<List<Map<String, dynamic>>>>());
+        final locations = (result as Success<List<Map<String, dynamic>>>).data;
+        expect(locations[0], containsPair('city', 'Paris'));
+        expect(locations[0], containsPair('countryCode', 'FR'));
+        expect(locations[0], containsPair('countryName', 'France'));
+        expect(locations[0], containsPair('iataCode', 'CDG'));
       });
     });
   });

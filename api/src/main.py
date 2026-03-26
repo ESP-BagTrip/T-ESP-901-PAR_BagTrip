@@ -1,5 +1,7 @@
 """Point d'entrée FastAPI."""
 
+import asyncio
+import contextlib
 import traceback
 from contextlib import asynccontextmanager
 
@@ -7,30 +9,35 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from src.api.accommodations.routes import router as accommodations_router
+from src.api.activities.routes import router as activities_router
 from src.api.admin.routes import router as admin_router
-from src.api.agent.routes import router as agent_router
+from src.api.ai.plan_trip_routes import router as ai_plan_trip_router
+from src.api.ai.post_trip_routes import router as ai_post_trip_router
 from src.api.auth.routes import router as auth_router
+from src.api.baggage.routes import router as baggage_router
 from src.api.booking.routes import router as booking_router
 from src.api.booking_intents.book_routes import router as booking_intents_book_router
 from src.api.booking_intents.routes import router as booking_intents_router
-from src.api.conversations.routes import (
-    detail_router as conversations_detail_router,
-)
-from src.api.conversations.routes import (
-    router as conversations_router,
-)
+from src.api.budget_items.routes import router as budget_items_router
+from src.api.device_tokens.routes import router as device_tokens_router
+from src.api.feedback.routes import router as feedback_router
+from src.api.flights.info.routes import router as flight_info_router
+from src.api.flights.manual.routes import router as manual_flights_router
 from src.api.flights.offers.routes import router as flight_offers_router
+from src.api.flights.orders.routes import router as flight_orders_router
 from src.api.flights.searches.routes import router as flight_searches_router
-from src.api.hotels.offers.routes import router as hotel_offers_router
-from src.api.hotels.searches.routes import router as hotel_searches_router
-from src.api.messages.routes import router as messages_router
+from src.api.hotels.routes import router as hotel_search_router
+from src.api.notifications.routes import router as notifications_router
 from src.api.payments.routes import router as payments_router
 from src.api.profile.routes import router as profile_router
+from src.api.shares.routes import router as shares_router
 from src.api.stripe.webhooks.routes import router as stripe_webhooks_router
+from src.api.subscription.routes import router as subscription_router
 from src.api.travel.routes import router as travel_router
 from src.api.travelers.routes import router as travelers_router
 from src.api.trips.routes import router as trips_router
-from src.config.database import Base, check_database_connection, engine
+from src.config.database import check_database_connection, engine
 from src.config.env import settings
 from src.middleware.rate_limit import auth_rate_limit_middleware, rate_limit_middleware
 from src.utils.errors import AppError, create_http_exception
@@ -45,45 +52,15 @@ async def lifespan(app: FastAPI):
     check_database_connection()
     logger.info("Database connection successful")
 
-    # Migrer la table users si nécessaire
+    # Schema managed by: alembic upgrade head
+
+    # Migrer la table trips si nécessaire
     try:
-        from src.migrations.migrate_user_table import migrate_user_table
+        from src.migrations.migrate_trips_table import migrate_trips_table
 
-        migrate_user_table(engine)
+        migrate_trips_table(engine)
     except Exception as e:
-        logger.warn(f"User table migration failed (may already be migrated): {e}")
-
-    # Migrer les tables de booking si nécessaire
-    try:
-        from src.migrations.migrate_booking_tables import migrate_booking_tables
-
-        migrate_booking_tables(engine)
-    except Exception as e:
-        logger.warn(f"Booking tables migration failed (may already be migrated): {e}")
-
-    # Migrer les tables de conversation si nécessaire
-    try:
-        from src.migrations.migrate_conversation_tables import migrate_conversation_tables
-
-        migrate_conversation_tables(engine)
-    except Exception as e:
-        logger.warn(f"Conversation tables migration failed (may already be migrated): {e}")
-
-    # Migrer la table refresh_tokens si nécessaire
-    try:
-        from src.migrations.migrate_refresh_tokens import migrate_refresh_tokens
-
-        migrate_refresh_tokens(engine)
-    except Exception as e:
-        logger.warn(f"Refresh tokens migration failed (may already be migrated): {e}")
-
-    # Migrer la table traveler_profiles si nécessaire
-    try:
-        from src.migrations.migrate_traveler_profiles import migrate_traveler_profiles
-
-        migrate_traveler_profiles(engine)
-    except Exception as e:
-        logger.warn(f"Traveler profiles migration failed (may already be migrated): {e}")
+        logger.warn(f"Trips table migration failed (may already be migrated): {e}")
 
     # Initialiser les produits Stripe
     try:
@@ -93,10 +70,6 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warn(f"Stripe products initialization failed: {e}")
 
-    # Créer les tables au démarrage
-    Base.metadata.create_all(bind=engine)
-    logger.info("Database tables created")
-
     # Créer l'admin par défaut
     try:
         from src.seeds.create_admin import create_default_admin
@@ -105,8 +78,26 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warn(f"Default admin seed failed: {e}")
 
+    # Lancer le job de transition automatique des statuts de trips
+    from src.jobs.trip_status_job import trip_status_scheduler
+
+    scheduler_task = asyncio.create_task(trip_status_scheduler())
+
+    # Lancer le job de notifications planifiées
+    from src.jobs.notification_job import notification_scheduler
+
+    notif_scheduler_task = asyncio.create_task(notification_scheduler())
+
     yield
-    # Nettoyage à l'arrêt (si nécessaire)
+
+    # Arrêter les schedulers
+    scheduler_task.cancel()
+    notif_scheduler_task.cancel()
+    with contextlib.suppress(asyncio.CancelledError):
+        await scheduler_task
+    with contextlib.suppress(asyncio.CancelledError):
+        await notif_scheduler_task
+
     logger.info("Application shutting down")
 
 
@@ -120,7 +111,7 @@ app = FastAPI(
 # Configuration CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # À restreindre en production
+    allow_origins=settings.ALLOWED_ORIGINS.split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -136,26 +127,37 @@ app.include_router(auth_router)  # Déjà préfixé avec /v1/auth
 app.include_router(admin_router)  # Préfixé avec /admin
 app.include_router(trips_router)  # Déjà préfixé avec /v1/trips
 app.include_router(travelers_router)  # Déjà préfixé avec /v1/trips
-app.include_router(conversations_router)  # Préfixé avec /v1/trips/{tripId}/conversations
-app.include_router(conversations_detail_router)  # Préfixé avec /v1/conversations
-app.include_router(messages_router)  # Préfixé avec /v1/conversations/{conversationId}/messages
+app.include_router(activities_router)  # Déjà préfixé avec /v1/trips
+app.include_router(accommodations_router)  # Déjà préfixé avec /v1/trips
+app.include_router(baggage_router)  # Déjà préfixé avec /v1/trips
+app.include_router(shares_router)  # Déjà préfixé avec /v1/trips
+app.include_router(budget_items_router)  # Déjà préfixé avec /v1/trips
+app.include_router(feedback_router)  # Déjà préfixé avec /v1/trips
 app.include_router(flight_searches_router)  # Déjà préfixé avec /v1/trips
 app.include_router(flight_offers_router)  # Déjà préfixé avec /v1/trips
-app.include_router(hotel_searches_router)  # Déjà préfixé avec /v1/trips
-app.include_router(hotel_offers_router)  # Déjà préfixé avec /v1/trips
+app.include_router(flight_orders_router)  # Déjà préfixé avec /v1/trips
+app.include_router(manual_flights_router)  # Déjà préfixé avec /v1/trips
+app.include_router(flight_info_router)  # Déjà préfixé avec /v1/travel/flights
 app.include_router(booking_intents_router)  # Déjà préfixé avec /v1/trips
 app.include_router(booking_intents_book_router)  # Déjà préfixé avec /v1/booking-intents
 app.include_router(payments_router)  # Déjà préfixé avec /v1/booking-intents
 app.include_router(stripe_webhooks_router)  # Déjà préfixé avec /v1/stripe
+app.include_router(subscription_router)  # Préfixé avec /v1/subscription
+app.include_router(device_tokens_router)  # Déjà préfixé avec /v1/device-tokens
+app.include_router(notifications_router)  # Déjà préfixé avec /v1/notifications
 
 # Routes utilitaires
 app.include_router(travel_router)  # Déjà préfixé avec /v1/travel (locations, inspirations)
-app.include_router(agent_router)  # Déjà préfixé avec /v1/agent
 
 # Routes dépréciées (ancien pattern, remplacé par booking_intents)
 # Conservées pour compatibilité mais marquées comme deprecated
 app.include_router(profile_router)  # Préfixé avec /v1/profile
 app.include_router(booking_router)  # DÉPRÉCIÉ - utiliser /v1/trips/{tripId}/booking-intents
+
+# Routes IA
+app.include_router(ai_post_trip_router)
+app.include_router(ai_plan_trip_router)
+app.include_router(hotel_search_router)
 
 
 # Gestion globale des erreurs

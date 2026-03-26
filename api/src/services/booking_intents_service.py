@@ -5,10 +5,9 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from src.enums import BookingIntentStatus, BookingIntentType
 from src.models.booking_intent import BookingIntent
 from src.models.flight_offer import FlightOffer
-from src.models.hotel_offer import HotelOffer
-from src.services.trips_service import TripsService
 from src.utils.errors import AppError
 
 
@@ -20,26 +19,20 @@ class BookingIntentsService:
         db: Session,
         trip_id: UUID,
         user_id: UUID,
-        type: str,  # flight | hotel
+        type: str,  # flight
         flight_offer_id: UUID | None = None,
-        hotel_offer_id: UUID | None = None,
     ) -> BookingIntent:
         """
         Créer un booking intent selon PLAN.md.
-        Calcule le montant depuis l'offre sélectionnée.
+        Accès vérifié par la dependency en amont.
         """
-        # Vérifier que le trip existe et appartient à l'utilisateur
-        trip = TripsService.get_trip_by_id(db, trip_id, user_id)
-        if not trip:
-            raise AppError("TRIP_NOT_FOUND", 404, "Trip not found")
-
         # Charger l'offre selon le type
         amount = Decimal("0")
         currency = "EUR"
         selected_offer_type = None
         selected_offer_id = None
 
-        if type == "flight":
+        if type == BookingIntentType.FLIGHT:
             if not flight_offer_id:
                 raise AppError("INVALID_REQUEST", 400, "flightOfferId is required for flight type")
 
@@ -76,38 +69,15 @@ class BookingIntentsService:
             selected_offer_type = "flight_offer"
             selected_offer_id = flight_offer_id
 
-        elif type == "hotel":
-            if not hotel_offer_id:
-                raise AppError("INVALID_REQUEST", 400, "hotelOfferId is required for hotel type")
-
-            offer = (
-                db.query(HotelOffer)
-                .filter(
-                    HotelOffer.id == hotel_offer_id,
-                    HotelOffer.trip_id == trip_id,
-                )
-                .first()
-            )
-
-            if not offer:
-                raise AppError("OFFER_NOT_FOUND", 404, "Hotel offer not found")
-
-            amount = Decimal(str(offer.total_price or 0))
-            currency = offer.currency or "EUR"
-            selected_offer_type = "hotel_offer"
-            selected_offer_id = hotel_offer_id
-
         else:
-            raise AppError(
-                "INVALID_REQUEST", 400, f"Invalid type: {type}. Must be 'flight' or 'hotel'"
-            )
+            raise AppError("INVALID_REQUEST", 400, f"Invalid type: {type}. Must be 'flight'")
 
         # Créer le booking intent
         booking_intent = BookingIntent(
             user_id=user_id,
             trip_id=trip_id,
             type=type,
-            status="INIT",
+            status=BookingIntentStatus.INIT,
             amount=amount,
             currency=currency,
             selected_offer_type=selected_offer_type,

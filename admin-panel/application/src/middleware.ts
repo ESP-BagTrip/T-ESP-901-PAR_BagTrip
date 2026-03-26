@@ -5,7 +5,7 @@ const protectedRoutes = ['/dashboard', '/test', '/users', '/feedbacks']
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const token = request.cookies.get('auth-token')?.value
+  const token = request.cookies.get('access_token')?.value
 
   // Allow public routes without authentication
   if (publicRoutes.includes(pathname)) {

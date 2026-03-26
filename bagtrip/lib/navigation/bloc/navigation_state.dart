@@ -1,16 +1,23 @@
 part of 'navigation_bloc.dart';
 
-enum NavigationTab { map, budget, planifier, profile }
+enum NavigationTab { home, activity, profile }
 
-class NavigationState extends Equatable {
+final class NavigationState {
   final NavigationTab activeTab;
 
-  const NavigationState({this.activeTab = NavigationTab.planifier});
+  const NavigationState({this.activeTab = NavigationTab.home});
 
   NavigationState copyWith({NavigationTab? activeTab}) {
     return NavigationState(activeTab: activeTab ?? this.activeTab);
   }
 
   @override
-  List<Object?> get props => [activeTab];
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NavigationState &&
+          runtimeType == other.runtimeType &&
+          activeTab == other.activeTab;
+
+  @override
+  int get hashCode => activeTab.hashCode;
 }

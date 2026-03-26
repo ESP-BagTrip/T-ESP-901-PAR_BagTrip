@@ -263,9 +263,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Track your expenses and plan your trip according to your budget';
 
   @override
-  String get addExpense => 'Add expense';
-
-  @override
   String get myProfile => 'My profile';
 
   @override
@@ -327,16 +324,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get personalInfoTitle => 'Personal Information';
 
   @override
+  String get nameLabel => 'NAME';
+
+  @override
   String get emailLabel => 'EMAIL';
 
   @override
   String get phoneLabel => 'PHONE';
 
   @override
-  String get addressLabel => 'ADDRESS';
+  String get modifyButton => 'Modify';
 
   @override
-  String get modifyButton => 'Modify';
+  String get editNameTitle => 'Edit name';
+
+  @override
+  String get editPhoneTitle => 'Edit phone number';
+
+  @override
+  String get saveButton => 'Save';
+
+  @override
+  String get profileUpdateSuccess => 'Profile updated successfully';
+
+  @override
+  String get profileUpdateError => 'Failed to update profile';
 
   @override
   String get preferencesTitle => 'Preferences';
@@ -693,17 +705,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planifierAIDesc => 'Let AI help you create a personalized trip';
 
   @override
-  String get planifierSectionMyTrips => 'My trips';
-
-  @override
-  String get planifierInProgressTitle => 'In progress';
-
-  @override
-  String planifierInProgressCount(int count) {
-    return '$count trip(s) pending';
-  }
-
-  @override
   String get planifierCompletedTitle => 'Completed trips';
 
   @override
@@ -728,28 +729,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get planifierNewBadge => 'NEW';
-
-  @override
-  String get planifierPlanningTitle => 'Planning';
-
-  @override
-  String get planifierPlanningDescription => 'Trips being prepared';
-
-  @override
-  String planifierInProgressSuffix(int count) {
-    return '$count in progress';
-  }
-
-  @override
-  String get planifierCompletedShort => 'Completed';
-
-  @override
-  String get planifierCompletedDescriptionCard => 'Past trips & budgets';
-
-  @override
-  String planifierCompletedSuffix(int count) {
-    return '$count completed';
-  }
 
   @override
   String get planifierSectionExploreDestinations => 'Explore destinations';
@@ -847,10 +826,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get skipThisStepLabel => 'Skip this step';
 
   @override
-  String get recapTitle => 'Summary';
+  String get recapTitle => 'Plan your trip';
 
   @override
-  String get recapFinalStepLabel => 'FINAL STEP';
+  String get recapFinalStepLabel => 'AI PLANNING';
 
   @override
   String get recapDateChoose => 'Choose';
@@ -1001,4 +980,1982 @@ class AppLocalizationsEn extends AppLocalizations {
   String summaryBudgetAmount(String amount) {
     return '$amount budget';
   }
+
+  @override
+  String get activities => 'Activities';
+
+  @override
+  String get addActivity => 'Add Activity';
+
+  @override
+  String get editActivity => 'Edit Activity';
+
+  @override
+  String get noActivities => 'No activities yet';
+
+  @override
+  String get activityTitle => 'Title';
+
+  @override
+  String get activityDate => 'Date';
+
+  @override
+  String get activityDescription => 'Description';
+
+  @override
+  String get activityStartTime => 'Start time';
+
+  @override
+  String get activityEndTime => 'End time';
+
+  @override
+  String get activityLocation => 'Location';
+
+  @override
+  String get activityCategory => 'Category';
+
+  @override
+  String get activityEstimatedCost => 'Estimated cost';
+
+  @override
+  String get activityBooked => 'Booked';
+
+  @override
+  String get categoryVisit => 'Visit';
+
+  @override
+  String get categoryRestaurant => 'Restaurant';
+
+  @override
+  String get categoryTransport => 'Transport';
+
+  @override
+  String get categoryLeisure => 'Leisure';
+
+  @override
+  String get categoryOther => 'Other';
+
+  @override
+  String get budgetItems => 'Budget';
+
+  @override
+  String get addExpense => 'Add expense';
+
+  @override
+  String get editExpense => 'Edit expense';
+
+  @override
+  String get noExpenses => 'No expenses yet';
+
+  @override
+  String get expenseLabel => 'Label';
+
+  @override
+  String get expenseAmount => 'Amount';
+
+  @override
+  String get expenseCategory => 'Category';
+
+  @override
+  String get expenseDate => 'Date';
+
+  @override
+  String get expensePlanned => 'Planned';
+
+  @override
+  String get expenseReal => 'Real';
+
+  @override
+  String get expenseLabelRequired => 'Label is required';
+
+  @override
+  String get budgetTotal => 'Total budget';
+
+  @override
+  String get budgetSpent => 'Spent';
+
+  @override
+  String get budgetRemaining => 'Remaining';
+
+  @override
+  String get categoryFlight => 'Flight';
+
+  @override
+  String get categoryAccommodation => 'Accommodation';
+
+  @override
+  String get categoryFood => 'Food';
+
+  @override
+  String get categoryActivity => 'Activity';
+
+  @override
+  String budgetExceeded(String amount) {
+    return 'Budget exceeded by $amount €';
+  }
+
+  @override
+  String budgetWarning(String percent) {
+    return 'You have used $percent% of your budget';
+  }
+
+  @override
+  String get tripCompletedReadOnly =>
+      'This trip is completed. Data is read-only.';
+
+  @override
+  String get markAsReady => 'Mark as ready';
+
+  @override
+  String get cancelButton => 'Cancel';
+
+  @override
+  String get deleteButton => 'Delete';
+
+  @override
+  String get addButton => 'Add';
+
+  @override
+  String get comingSoon => 'Coming soon';
+
+  @override
+  String get errorTitle => 'Error';
+
+  @override
+  String get backButton => 'Back';
+
+  @override
+  String get tabHome => 'Home';
+
+  @override
+  String get tabActivity => 'Activity';
+
+  @override
+  String get tabProfile => 'Profile';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsMarkAllRead => 'Mark all read';
+
+  @override
+  String get notificationsEmpty => 'No notifications';
+
+  @override
+  String get notificationsToday => 'Today';
+
+  @override
+  String get notificationsYesterday => 'Yesterday';
+
+  @override
+  String notificationsDaysAgo(int count) {
+    return '$count days ago';
+  }
+
+  @override
+  String get baggageTitle => 'Luggage';
+
+  @override
+  String get baggageSuggestionsTooltip => 'AI Suggestions';
+
+  @override
+  String get baggageCategoryDocuments => 'Documents';
+
+  @override
+  String get baggageCategoryClothing => 'Clothing';
+
+  @override
+  String get baggageCategoryElectronics => 'Electronics';
+
+  @override
+  String get baggageCategoryHygiene => 'Hygiene';
+
+  @override
+  String get baggageCategoryMedication => 'Medication';
+
+  @override
+  String get baggageCategoryAccessories => 'Accessories';
+
+  @override
+  String get baggageCategoryOther => 'Other';
+
+  @override
+  String get baggageDeleteTitle => 'Delete item';
+
+  @override
+  String get baggageDeleteConfirm =>
+      'Are you sure you want to delete this item?';
+
+  @override
+  String get baggageItemAdded => 'Item added';
+
+  @override
+  String get baggageItemDeleted => 'Item deleted';
+
+  @override
+  String get baggageItemAddedFromSuggestion => 'Item added from suggestion';
+
+  @override
+  String get baggageQuantityLabel => 'Qty';
+
+  @override
+  String get baggageCategoryLabel => 'Category (optional)';
+
+  @override
+  String get baggageEmptyTitle => 'No items';
+
+  @override
+  String get baggageEmptySubtitle => 'Add items to your luggage list';
+
+  @override
+  String get baggageAddItemTitle => 'Add an item';
+
+  @override
+  String baggagePackedCount(int packed, int total) {
+    return '$packed of $total packed';
+  }
+
+  @override
+  String get baggageSuggestionsTitle => 'Suggestions for you';
+
+  @override
+  String get baggageToPack => 'To pack';
+
+  @override
+  String get baggagePacked => 'Packed';
+
+  @override
+  String get baggageSwipeToPack => 'Swipe to pack';
+
+  @override
+  String get baggageUnpack => 'Unpack';
+
+  @override
+  String get baggageItemName => 'Item name';
+
+  @override
+  String get fieldRequired => 'This field is required';
+
+  @override
+  String get accommodationsTitle => 'Accommodations';
+
+  @override
+  String get accommodationCheckInHelp => 'Check-in date';
+
+  @override
+  String get accommodationCheckOutHelp => 'Check-out date';
+
+  @override
+  String get accommodationAdded => 'Accommodation added successfully';
+
+  @override
+  String get accommodationDeleteTitle => 'Delete accommodation';
+
+  @override
+  String get accommodationDeleteConfirm =>
+      'Are you sure you want to delete this accommodation?';
+
+  @override
+  String get accommodationDeleted => 'Accommodation deleted';
+
+  @override
+  String get accommodationCheckInLabel => 'Check-in';
+
+  @override
+  String get accommodationCheckOutLabel => 'Check-out';
+
+  @override
+  String get accommodationEmptyTitle => 'No accommodations';
+
+  @override
+  String get accommodationEmptySubtitle => 'Add your hotels and lodgings';
+
+  @override
+  String get accommodationAddTitle => 'Add an accommodation';
+
+  @override
+  String get tripTravelers => 'Travelers';
+
+  @override
+  String get tripDaysRemaining => 'Days remaining';
+
+  @override
+  String get tripTravelDays => 'Travel days';
+
+  @override
+  String get tripComplete => 'Complete trip';
+
+  @override
+  String get tripDeleteTitle => 'Delete trip';
+
+  @override
+  String get tripDeleteConfirm =>
+      'Are you sure you want to delete this trip? This action is irreversible.';
+
+  @override
+  String get tripGiveReview => 'Give a review';
+
+  @override
+  String get tripsMyTrips => 'My trips';
+
+  @override
+  String get tripsNewTrip => 'New trip';
+
+  @override
+  String get tripStatusOngoing => 'Ongoing';
+
+  @override
+  String get tripStatusPlanned => 'Upcoming';
+
+  @override
+  String get tripStatusCompleted => 'Completed';
+
+  @override
+  String get tripsEmptyOngoing => 'No ongoing trips';
+
+  @override
+  String get tripsEmptyPlanned => 'No planned trips';
+
+  @override
+  String get tripsEmptyCompleted => 'No completed trips';
+
+  @override
+  String get sharesTitle => 'Shares';
+
+  @override
+  String get sharesInviteButton => 'Invite';
+
+  @override
+  String get sharesRevokeTitle => 'Revoke access';
+
+  @override
+  String get sharesRevokeConfirm =>
+      'Are you sure you want to revoke access for this user?';
+
+  @override
+  String get sharesRevokeButton => 'Revoke';
+
+  @override
+  String get sharesEmpty => 'No shares';
+
+  @override
+  String get sharesEmptySubtitle => 'Invite people to view your trip';
+
+  @override
+  String get tripCreated => 'Trip created!';
+
+  @override
+  String get aiResultsTitle => 'AI Results';
+
+  @override
+  String get feedbackTitle => 'Reviews';
+
+  @override
+  String get feedbackGiveReview => 'Give a review';
+
+  @override
+  String get feedbackAllReviews => 'All reviews';
+
+  @override
+  String get feedbackGiveYourReview => 'Give your review';
+
+  @override
+  String get feedbackOverallRating => 'Overall rating';
+
+  @override
+  String get feedbackHighlights => 'Highlights';
+
+  @override
+  String get feedbackHighlightsHint => 'What did you like?';
+
+  @override
+  String get feedbackLowlights => 'Weak points';
+
+  @override
+  String get feedbackLowlightsHint => 'What could be improved?';
+
+  @override
+  String get feedbackWouldRecommend => 'Would you recommend this trip?';
+
+  @override
+  String get feedbackThanks => 'Thanks for your review!';
+
+  @override
+  String get feedbackSubmitButton => 'Submit my review';
+
+  @override
+  String get feedbackSent => 'Your review has been sent';
+
+  @override
+  String get feedbackRecommended => 'Recommended: ';
+
+  @override
+  String get feedbackDiscoverNextTrip => 'Discover my next trip';
+
+  @override
+  String get feedbackDiscoverText =>
+      'Discover your next ideal trip based on your experiences.';
+
+  @override
+  String get postTripSuggestionTitle => 'Suggested next trip';
+
+  @override
+  String get postTripNextTrip => 'Your next trip';
+
+  @override
+  String get postTripBasedOnPreferences => 'Based on your preferences';
+
+  @override
+  String get postTripProposedActivities => 'Proposed activities';
+
+  @override
+  String get postTripCreateTrip => 'Create this trip';
+
+  @override
+  String get filterCabinBagIncluded => 'Cabin bag included';
+
+  @override
+  String get filterCheckedBagIncluded => 'Checked bag included';
+
+  @override
+  String get filterReset => 'Reset';
+
+  @override
+  String get premiumFeatureAiUnlimited => 'Unlimited AI generations';
+
+  @override
+  String get premiumFeatureViewers => 'Up to 10 viewers per trip';
+
+  @override
+  String get premiumFeatureOfflineNotifs => 'Offline notifications';
+
+  @override
+  String get premiumFeaturePostTrip => 'AI post-trip suggestions';
+
+  @override
+  String get premiumCtaButton => 'Upgrade to Premium - €9.99/mo';
+
+  @override
+  String get profileConfigurePreferences => 'Configure your preferences';
+
+  @override
+  String profileStyleLabel(String style) {
+    return 'Style: $style';
+  }
+
+  @override
+  String profileBudgetLabel(String budget) {
+    return 'Budget: $budget';
+  }
+
+  @override
+  String profileCompanionsLabel(String companions) {
+    return 'Companions: $companions';
+  }
+
+  @override
+  String get errorNetwork =>
+      'Connection error. Check your internet connection.';
+
+  @override
+  String get errorAuth => 'Invalid credentials or session expired.';
+
+  @override
+  String get errorForbidden => 'Access denied.';
+
+  @override
+  String get errorNotFound => 'Resource not found.';
+
+  @override
+  String get errorValidation => 'Invalid request.';
+
+  @override
+  String get errorQuota => 'Limit reached. Upgrade to Premium to continue.';
+
+  @override
+  String get errorStaleContext => 'Context has been updated. Please refresh.';
+
+  @override
+  String get errorServer => 'Server error. Please try again later.';
+
+  @override
+  String get errorRateLimit => 'Too many requests. Please wait.';
+
+  @override
+  String get errorCancelled => 'Operation cancelled.';
+
+  @override
+  String get errorUnknown => 'An error occurred. Please try again.';
+
+  @override
+  String get errorSessionExpired => 'Session expired';
+
+  @override
+  String get bookingLabel => 'Booking';
+
+  @override
+  String get activitiesTitle => 'Activities';
+
+  @override
+  String get activitiesEmpty => 'No activities yet';
+
+  @override
+  String get activitiesEmptySubtitle => 'Add activities to plan your trip';
+
+  @override
+  String get activitiesSuggestionsTitle => 'AI Suggestions';
+
+  @override
+  String get activityFormNew => 'New Activity';
+
+  @override
+  String get activityFormEdit => 'Edit Activity';
+
+  @override
+  String get activityTitleRequired => 'Title is required';
+
+  @override
+  String get activityFormCreate => 'Create';
+
+  @override
+  String get activityFormUpdate => 'Update';
+
+  @override
+  String get activityFormBooked => 'Booked';
+
+  @override
+  String get feedbackYesLabel => 'Yes';
+
+  @override
+  String get feedbackNoLabel => 'No';
+
+  @override
+  String get offlineMode => 'You are offline. Showing cached data.';
+
+  @override
+  String get offlineWriteError =>
+      'This action requires an internet connection.';
+
+  @override
+  String get loadingMore => 'Loading more...';
+
+  @override
+  String get noMoreItems => 'No more items';
+
+  @override
+  String get subscriptionVerifying => 'Verifying your subscription...';
+
+  @override
+  String get subscriptionWelcomePremium => 'Welcome to Premium!';
+
+  @override
+  String get subscriptionPending => 'Subscription pending';
+
+  @override
+  String get subscriptionSuccessMessage =>
+      'You now have access to all premium features. Enjoy unlimited AI generations and more!';
+
+  @override
+  String get subscriptionPendingMessage =>
+      'Your payment is being processed. It may take a moment to activate.';
+
+  @override
+  String get subscriptionCancelTitle => 'Payment not completed';
+
+  @override
+  String get subscriptionCancelMessage =>
+      'Your subscription payment was not completed. You can try again or return to your profile.';
+
+  @override
+  String get subscriptionBackToProfile => 'Back to profile';
+
+  @override
+  String get paymentSuccessTitle => 'Payment confirmed!';
+
+  @override
+  String get paymentSuccessMessage =>
+      'Your flight booking has been confirmed. You can view it in your trips.';
+
+  @override
+  String get paymentBackToTrips => 'Back to my trips';
+
+  @override
+  String get paymentCancelledTitle => 'Payment cancelled';
+
+  @override
+  String get paymentCancelledMessage =>
+      'Your payment was cancelled. No charges were made.';
+
+  @override
+  String get payment3dsReturnTitle => 'Payment processing';
+
+  @override
+  String get payment3dsReturnMessage =>
+      'Your payment is being processed. You will receive a confirmation shortly.';
+
+  @override
+  String get nextTripSection => 'Next trip';
+
+  @override
+  String nextTripCountdown(int days) {
+    return 'In $days days';
+  }
+
+  @override
+  String get nextTripNoUpcoming => 'No upcoming trip';
+
+  @override
+  String nextTripReady(int percent) {
+    return '$percent% ready';
+  }
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get personalInfoPageTitle => 'Personal information';
+
+  @override
+  String get travelPreferencesTitle => 'Travel preferences';
+
+  @override
+  String homeGreeting(String name) {
+    return 'Welcome back, $name';
+  }
+
+  @override
+  String get homeWelcomeTitle => 'Ready to travel?';
+
+  @override
+  String get homeWelcomeSubtitle =>
+      'Create your first trip in a few steps. Manual or AI-assisted — your choice.';
+
+  @override
+  String get homeCreateFirstTrip => 'Create my first trip';
+
+  @override
+  String get planTripCta => 'Plan a trip';
+
+  @override
+  String get planTripCtaSubtitle => 'Manual or AI-assisted';
+
+  @override
+  String get inspireMe => 'Inspire me';
+
+  @override
+  String get datesLabel => 'DATES';
+
+  @override
+  String get suggestedDuration => 'Suggested duration';
+
+  @override
+  String get days => 'days';
+
+  @override
+  String get reviewTitle => 'Summary';
+
+  @override
+  String get aiSuggestionsTitle => 'AI SUGGESTIONS';
+
+  @override
+  String get createTripButton => 'Create trip';
+
+  @override
+  String get tripCreatedSuccess => 'Trip created successfully!';
+
+  @override
+  String get stepDestination => 'Where?';
+
+  @override
+  String get stepDates => 'When?';
+
+  @override
+  String get stepTravelers => 'Who?';
+
+  @override
+  String get stepReview => 'Review';
+
+  @override
+  String get toValidateBadge => 'To validate';
+
+  @override
+  String get addFirstAccommodation => 'Add an accommodation';
+
+  @override
+  String get addFirstActivity => 'Add an activity';
+
+  @override
+  String get addFirstBaggage => 'Prepare your luggage';
+
+  @override
+  String get addFirstBudget => 'Track your expenses';
+
+  @override
+  String get budgetTitle => 'Budget';
+
+  @override
+  String get transportsTitle => 'Transports';
+
+  @override
+  String get addFirstTransport => 'Add your flight';
+
+  @override
+  String get addFlight => 'Add a flight';
+
+  @override
+  String get addFlightSubtitle => 'Enter your flight number to get live info';
+
+  @override
+  String get searchFlightOption => 'Search a flight';
+
+  @override
+  String get searchFlightOptionSubtitle => 'Find and compare flights';
+
+  @override
+  String get addManuallyOption => 'Add manually';
+
+  @override
+  String get addManuallyOptionSubtitle => 'Enter flight details yourself';
+
+  @override
+  String get mainFlightsSection => 'Main flights';
+
+  @override
+  String get internalFlightsSection => 'Internal flights';
+
+  @override
+  String get flightNumberLabel => 'Flight number';
+
+  @override
+  String get flightNumberRequired => 'Flight number is required';
+
+  @override
+  String get airlineLabel => 'Airline';
+
+  @override
+  String get departureAirportLabel => 'Departure';
+
+  @override
+  String get arrivalAirportLabel => 'Arrival';
+
+  @override
+  String get departureDateLabel => 'Departure date';
+
+  @override
+  String get arrivalDateLabel => 'Arrival date';
+
+  @override
+  String get priceLabel => 'Price';
+
+  @override
+  String get notesLabel => 'Notes';
+
+  @override
+  String get mainFlightType => 'Main';
+
+  @override
+  String get internalFlightType => 'Internal';
+
+  @override
+  String get flightStatusOnTime => 'On time';
+
+  @override
+  String get flightStatusDelayed => 'Delayed';
+
+  @override
+  String get flightStatusCancelled => 'Cancelled';
+
+  @override
+  String get flightStatusLanded => 'Landed';
+
+  @override
+  String get flightStatusScheduled => 'Scheduled';
+
+  @override
+  String get editButton => 'Edit';
+
+  @override
+  String get activityToValidate => 'To verify';
+
+  @override
+  String get activityValidated => 'Verified';
+
+  @override
+  String get activityDisclaimerSubtitle =>
+      'AI Suggestions — verify availability and prices';
+
+  @override
+  String get activityValidateConfirmTitle => 'Verify this activity?';
+
+  @override
+  String get activityValidateConfirmMessage =>
+      'You can adjust the estimated cost if needed.';
+
+  @override
+  String get activityValidateCostLabel => 'Actual cost (optional)';
+
+  @override
+  String get activityValidateConfirm => 'Confirm';
+
+  @override
+  String get accommodationSearchHotels => 'Search a hotel';
+
+  @override
+  String get accommodationSearchHotelsSubtitle => 'Find and compare prices';
+
+  @override
+  String get accommodationAddManually => 'Add manually';
+
+  @override
+  String get accommodationAddManuallySubtitle =>
+      'Airbnb, hostel, hotel, camping...';
+
+  @override
+  String get accommodationAiSuggestTitle => 'AI Recommendations';
+
+  @override
+  String get accommodationAiSuggestLoading => 'Generating suggestions...';
+
+  @override
+  String get accommodationEstimatedPrice => 'Estimated price';
+
+  @override
+  String get accommodationNights => 'night(s)';
+
+  @override
+  String get accommodationTotal => 'Total';
+
+  @override
+  String get accommodationSearchInArea => 'Search in area';
+
+  @override
+  String get accommodationTypeHotel => 'Hotel';
+
+  @override
+  String get accommodationTypeAirbnb => 'Airbnb';
+
+  @override
+  String get accommodationTypeHostel => 'Hostel';
+
+  @override
+  String get accommodationTypeCamping => 'Camping';
+
+  @override
+  String get accommodationTypeGuesthouse => 'Guesthouse';
+
+  @override
+  String get accommodationTypeResort => 'Resort';
+
+  @override
+  String get accommodationTypeOther => 'Other';
+
+  @override
+  String get accommodationPricePerNight => 'Price/night';
+
+  @override
+  String get accommodationUpdated => 'Accommodation updated';
+
+  @override
+  String get accommodationAiDisclaimer =>
+      'AI suggestions — verify availability and prices';
+
+  @override
+  String get budgetConfirmed => 'Confirmed';
+
+  @override
+  String get budgetForecasted => 'Forecasted';
+
+  @override
+  String get budgetEstimateButton => 'Estimate my budget';
+
+  @override
+  String get budgetEstimateTitle => 'Budget estimation';
+
+  @override
+  String get budgetEstimateAccept => 'Accept';
+
+  @override
+  String get budgetEstimateModify => 'Modify';
+
+  @override
+  String get budgetAccommodationPerNight => 'Accommodation / night';
+
+  @override
+  String get budgetMealsPerDay => 'Meals / day / person';
+
+  @override
+  String get budgetLocalTransport => 'Local transport / day';
+
+  @override
+  String get budgetActivitiesTotal => 'Activities total';
+
+  @override
+  String budgetTotalRange(String min, String max, String currency) {
+    return '$min – $max $currency';
+  }
+
+  @override
+  String get statusPending => 'To validate';
+
+  @override
+  String get statusConfirmed => 'Confirmed';
+
+  @override
+  String get statusForecasted => 'Forecasted';
+
+  @override
+  String get statusActive => 'Active';
+
+  @override
+  String get statusCompleted => 'Completed';
+
+  @override
+  String get emptyTransportsTitle => 'Where are you flying?';
+
+  @override
+  String get emptyTransportsSubtitle =>
+      'Add your flights to start organizing your trip';
+
+  @override
+  String get emptyAccommodationsTitle => 'Where will you stay?';
+
+  @override
+  String get emptyAccommodationsSubtitle => 'Add your hotels and lodgings';
+
+  @override
+  String get emptyActivitiesTitle => 'What will you discover?';
+
+  @override
+  String get emptyActivitiesSubtitle => 'Add activities to plan your trip';
+
+  @override
+  String get emptyBaggageTitle => 'What do you need to pack?';
+
+  @override
+  String get emptyBaggageSubtitle => 'Add items to your luggage list';
+
+  @override
+  String get emptyBudgetTitle => 'Track your expenses';
+
+  @override
+  String get emptyBudgetSubtitle =>
+      'Follow your expenses and plan your trip budget';
+
+  @override
+  String get mapTitle => 'Map';
+
+  @override
+  String get mapComingSoonSubtitle => 'Your trip on a map. Coming soon.';
+
+  @override
+  String get mapComingSoonShort => 'Map coming soon';
+
+  @override
+  String get datesModeExact => 'Exact dates';
+
+  @override
+  String get datesModeMonth => 'Month';
+
+  @override
+  String get datesModeFlexible => 'Flexible';
+
+  @override
+  String get datesFlexibleWhenever => 'Whenever';
+
+  @override
+  String get datesFlexibleWeekend => 'Weekend';
+
+  @override
+  String get datesFlexibleWeek => '1 week';
+
+  @override
+  String get datesFlexibleTwoWeeks => '2 weeks';
+
+  @override
+  String get datesFlexibleThreeWeeks => '3 weeks';
+
+  @override
+  String get datesFlexibleWeekendDays => '2-3 days';
+
+  @override
+  String get datesFlexibleWeekDays => '7 days';
+
+  @override
+  String get datesFlexibleTwoWeeksDays => '14 days';
+
+  @override
+  String get datesFlexibleThreeWeeksDays => '21 days';
+
+  @override
+  String get planTripStepDates => 'When are you going?';
+
+  @override
+  String get travelersLabel => 'TRAVELERS';
+
+  @override
+  String travelerCountLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count travelers',
+      one: '1 traveler',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get budgetLabel => 'BUDGET';
+
+  @override
+  String get budgetPresetBackpacker => 'Backpacker';
+
+  @override
+  String get budgetPresetBackpackerDesc => '30–60 €/day';
+
+  @override
+  String get budgetPresetComfortable => 'Comfortable';
+
+  @override
+  String get budgetPresetComfortableDesc => '80–150 €/day';
+
+  @override
+  String get budgetPresetPremium => 'Premium';
+
+  @override
+  String get budgetPresetPremiumDesc => '200–400 €/day';
+
+  @override
+  String get budgetPresetNoLimit => 'No limit';
+
+  @override
+  String get budgetPresetNoLimitDesc => '400+ €/day';
+
+  @override
+  String get budgetEstimationLabel => 'ESTIMATED TOTAL';
+
+  @override
+  String get budgetSkipLabel => 'I\'ll decide later';
+
+  @override
+  String get destinationSectionLabel => 'DESTINATION';
+
+  @override
+  String get destinationOrSeparator => 'OR';
+
+  @override
+  String get destinationNoResults => 'No results found';
+
+  @override
+  String get destinationAiLoading => 'Our AI is searching for you...';
+
+  @override
+  String get destinationSelected => 'Selected destination';
+
+  @override
+  String get stepAiProposals => 'Your destinations';
+
+  @override
+  String get chooseThisDestination => 'Choose this destination';
+
+  @override
+  String get swipeToDiscover => 'Swipe to discover →';
+
+  @override
+  String get aiProposalsEmpty => 'No suggestions available';
+
+  @override
+  String get aiProposalsEmptySubtitle => 'Go back and try again';
+
+  @override
+  String get aiBadgeLabel => 'AI';
+
+  @override
+  String get stepGeneration => 'Generating...';
+
+  @override
+  String get generationTitle => 'AI GENERATION';
+
+  @override
+  String get generationStepDestinations => 'Destinations';
+
+  @override
+  String get generationStepActivities => 'Activities';
+
+  @override
+  String get generationStepAccommodations => 'Accommodations';
+
+  @override
+  String get generationStepBaggage => 'Luggage';
+
+  @override
+  String get generationStepBudget => 'Budget';
+
+  @override
+  String get generationErrorTitle => 'Generation failed';
+
+  @override
+  String get generationErrorSubtitle =>
+      'Something went wrong. Please try again.';
+
+  @override
+  String get generationTimeoutTitle => 'Taking too long';
+
+  @override
+  String get generationTimeoutSubtitle =>
+      'The generation is taking longer than expected. Please try again.';
+
+  @override
+  String generationProgressLabel(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get reviewCreateTrip => 'Create my trip';
+
+  @override
+  String get reviewSeeOtherDestinations => 'See other destinations';
+
+  @override
+  String get reviewCreatingTrip => 'Creating your trip...';
+
+  @override
+  String get reviewSectionBudget => 'BUDGET BREAKDOWN';
+
+  @override
+  String get reviewBudgetFlights => 'Flights';
+
+  @override
+  String get reviewBudgetAccommodation => 'Accommodation';
+
+  @override
+  String get reviewBudgetMeals => 'Meals';
+
+  @override
+  String get reviewBudgetTransport => 'Transport';
+
+  @override
+  String get reviewBudgetActivities => 'Activities';
+
+  @override
+  String get reviewBudgetOther => 'Other';
+
+  @override
+  String get reviewBudgetTotal => 'Total';
+
+  @override
+  String get reviewSourceVerified => 'Verified';
+
+  @override
+  String get reviewSourceEstimated => 'Estimated';
+
+  @override
+  String reviewDayLabel(int day) {
+    return 'Day $day';
+  }
+
+  @override
+  String reviewPriceEur(String amount) {
+    return '$amount EUR';
+  }
+
+  @override
+  String get reviewHighlightsLabel => 'HIGHLIGHTS';
+
+  @override
+  String reviewEssentialReason(String reason) {
+    return 'Why: $reason';
+  }
+
+  @override
+  String get reviewNoActivities => 'No activities planned';
+
+  @override
+  String homeActiveTripTitle(String destination) {
+    return 'Your trip to $destination';
+  }
+
+  @override
+  String homeActiveTripDay(int current, int total) {
+    return 'Day $current of $total';
+  }
+
+  @override
+  String get homeTodayActivities => 'Today\'s schedule';
+
+  @override
+  String get homeNoActivitiesToday => 'No activities planned today';
+
+  @override
+  String homeTripCompletion(int percent) {
+    return '$percent% ready';
+  }
+
+  @override
+  String get onboardingInspirationTitle => 'Get inspired';
+
+  @override
+  String get onboardingInspirationSubtitle => 'Popular destinations';
+
+  @override
+  String get tripManagerCompletedSection => 'Past adventures';
+
+  @override
+  String get tripCardNoDestination => 'No destination';
+
+  @override
+  String get tripCardNoTitle => 'Untitled trip';
+
+  @override
+  String get activeTripsViewTrip => 'View trip';
+
+  @override
+  String get activeTripsNextUp => 'Next up';
+
+  @override
+  String get activeTripsAllDay => 'All day';
+
+  @override
+  String get activeTripsTomorrow => 'Tomorrow';
+
+  @override
+  String activeTripsTomorrowCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count activities',
+      one: '1 activity',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get activeTripsQuickActions => 'Quick actions';
+
+  @override
+  String get activeTripsActivities => 'Activities';
+
+  @override
+  String get activeTripsBudget => 'Budget';
+
+  @override
+  String get activeTripsBaggage => 'Baggage';
+
+  @override
+  String get activeTripsShare => 'Share';
+
+  @override
+  String get completionDates => 'Dates';
+
+  @override
+  String get completionFlights => 'Flights';
+
+  @override
+  String get completionAccommodation => 'Hotels';
+
+  @override
+  String get completionActivities => 'Activities';
+
+  @override
+  String get completionBaggage => 'Luggage';
+
+  @override
+  String get completionBudget => 'Budget';
+
+  @override
+  String get tripDetailQuickFlights => 'Flights';
+
+  @override
+  String get tripDetailQuickActivities => 'Activities';
+
+  @override
+  String get tripDetailQuickAddFlight => 'Add flight';
+
+  @override
+  String get tripDetailQuickAddHotel => 'Add hotel';
+
+  @override
+  String get tripDetailQuickAddActivity => 'Add activity';
+
+  @override
+  String get tripDetailQuickExpense => 'Expense';
+
+  @override
+  String get tripDetailQuickBaggage => 'Baggage';
+
+  @override
+  String get tripDetailQuickMemories => 'Memories';
+
+  @override
+  String get tripDetailQuickNavigate => 'Navigate';
+
+  @override
+  String get timelineSectionTitle => 'Itinerary';
+
+  @override
+  String get timelineMorning => 'Morning';
+
+  @override
+  String get timelineAfternoon => 'Afternoon';
+
+  @override
+  String get timelineEvening => 'Evening';
+
+  @override
+  String get timelineEmptyDayTitle => 'No activities yet';
+
+  @override
+  String get timelineEmptyDaySubtitle =>
+      'Add some or ask the AI to suggest ideas';
+
+  @override
+  String get timelineValidate => 'Validate';
+
+  @override
+  String get timelineReject => 'Reject';
+
+  @override
+  String get flightStatusConfirmed => 'Confirmed';
+
+  @override
+  String get flightStatusPending => 'Pending';
+
+  @override
+  String get flightsSectionEmptyTitle => 'Where are you flying?';
+
+  @override
+  String get flightsSectionEmptySubtitle =>
+      'Add your flights to start organizing your trip';
+
+  @override
+  String flightsSectionSeeAll(int count) {
+    return 'See all flights ($count)';
+  }
+
+  @override
+  String get flightsSectionTitle => 'Flights';
+
+  @override
+  String accommodationSectionSeeAll(int count) {
+    return 'See all accommodations ($count)';
+  }
+
+  @override
+  String get accommodationStatusConfirmed => 'Confirmed';
+
+  @override
+  String get accommodationStatusPending => 'Pending';
+
+  @override
+  String baggageSectionSeeAll(int count) {
+    return 'See all items ($count)';
+  }
+
+  @override
+  String get baggageSectionAddItem => 'Add an item';
+
+  @override
+  String get baggageSectionAddItemSubtitle => 'Create your packing list';
+
+  @override
+  String get baggageSectionAiSuggest => 'Get AI suggestions';
+
+  @override
+  String get baggageSectionAiSuggestSubtitle => 'Let AI help you pack';
+
+  @override
+  String get budgetEstimateOptionSubtitle =>
+      'Let AI suggest a budget for your trip';
+
+  @override
+  String get budgetAddExpenseSubtitle => 'Track a planned or actual expense';
+
+  @override
+  String get budgetManageAll => 'Manage budget';
+
+  @override
+  String get budgetCategoryBreakdown => 'Breakdown';
+
+  @override
+  String get sharingSectionTitle => 'Sharing';
+
+  @override
+  String get sharingSectionEmptyTitle => 'Share your trip';
+
+  @override
+  String get sharingSectionEmptySubtitle =>
+      'Invite friends and family to follow along';
+
+  @override
+  String get sharingSectionInvite => 'Invite someone';
+
+  @override
+  String get sharingSectionInviteSubtitle => 'Share your trip with others';
+
+  @override
+  String sharingSectionSeeAll(int count) {
+    return 'See all members ($count)';
+  }
+
+  @override
+  String get sharingSectionOwner => 'Owner';
+
+  @override
+  String get sharingSectionViewer => 'Viewer';
+
+  @override
+  String get sharingSectionYou => 'You';
+
+  @override
+  String timelineInMinutes(int minutes) {
+    return 'In $minutes min';
+  }
+
+  @override
+  String get timelineNow => 'Now';
+
+  @override
+  String get timelineInProgress => 'In progress';
+
+  @override
+  String timelineRemainingMinutes(int minutes) {
+    return '$minutes min left';
+  }
+
+  @override
+  String get timelineNavigate => 'Navigate';
+
+  @override
+  String get timelineChooseMapApp => 'Choose map app';
+
+  @override
+  String get timelineAppleMaps => 'Apple Maps';
+
+  @override
+  String get timelineGoogleMaps => 'Google Maps';
+
+  @override
+  String get activeTripsTomorrowLastDay => 'Last day of the trip';
+
+  @override
+  String activeTripsTomorrowShowAll(int count) {
+    return 'Show all ($count)';
+  }
+
+  @override
+  String get activeTripsTomorrowCollapse => 'Show less';
+
+  @override
+  String get qaSchedule => 'Schedule';
+
+  @override
+  String get qaWeather => 'Weather';
+
+  @override
+  String get qaCheckOut => 'Check-out';
+
+  @override
+  String get qaNavigate => 'Navigate';
+
+  @override
+  String get qaExpense => 'Expense';
+
+  @override
+  String get qaPhoto => 'Photo';
+
+  @override
+  String get qaNextActivity => 'Next up';
+
+  @override
+  String get qaAiSuggestion => 'AI Idea';
+
+  @override
+  String get qaMap => 'Map';
+
+  @override
+  String get qaTodayExpenses => 'Today';
+
+  @override
+  String get qaTomorrow => 'Tomorrow';
+
+  @override
+  String get qaBudget => 'Budget';
+
+  @override
+  String get qaQuickExpenseTitle => 'Quick expense';
+
+  @override
+  String get qaQuickExpenseNote => 'Note (optional)';
+
+  @override
+  String get qaQuickExpenseSaved => 'Expense saved!';
+
+  @override
+  String get qaQuickExpenseAmount => 'Amount';
+
+  @override
+  String get qaQuickExpenseAmountRequired => 'Amount is required';
+
+  @override
+  String get qaQuickExpenseInvalidAmount => 'Invalid amount';
+
+  @override
+  String get qaCategoryFood => 'Food';
+
+  @override
+  String get qaCategoryTransport => 'Transport';
+
+  @override
+  String get qaCategoryActivity => 'Activity';
+
+  @override
+  String get qaCategoryShopping => 'Shopping';
+
+  @override
+  String get qaCategoryOther => 'Other';
+
+  @override
+  String get notifDailySummaryTitle => 'Good morning!';
+
+  @override
+  String notifDailySummaryBody(int day, String destination) {
+    return 'Day $day in $destination — check today\'s schedule';
+  }
+
+  @override
+  String notifActivityReminderTitle(String title) {
+    return 'Coming up: $title';
+  }
+
+  @override
+  String notifActivityReminderBody(String location) {
+    return 'Starting in 30 minutes at $location';
+  }
+
+  @override
+  String get notifCheckoutReminderTitle => 'Checkout reminder';
+
+  @override
+  String notifCheckoutReminderBody(String name) {
+    return 'Don\'t forget to check out from $name';
+  }
+
+  @override
+  String get notifPackingReminderTitle => 'Time to pack!';
+
+  @override
+  String notifPackingReminderBody(int count, String destination) {
+    return '$count items left to pack for $destination';
+  }
+
+  @override
+  String get postTripDetectionTitle => 'Trip completed!';
+
+  @override
+  String postTripDetectionMessage(String destination) {
+    return 'Your trip to $destination has ended. Would you like to mark it as completed?';
+  }
+
+  @override
+  String get postTripDetectionConfirm => 'Yes, complete';
+
+  @override
+  String get postTripDetectionRemindLater => 'Remind me later';
+
+  @override
+  String get postTripSouvenirsTitle => 'Souvenirs';
+
+  @override
+  String postTripDaysCount(int count) {
+    return '$count days of adventure';
+  }
+
+  @override
+  String postTripActivitiesCompleted(int completed, int total) {
+    return '$completed of $total activities';
+  }
+
+  @override
+  String postTripBudgetSpent(String amount) {
+    return '$amount spent';
+  }
+
+  @override
+  String postTripCategoriesExplored(int count) {
+    return '$count categories explored';
+  }
+
+  @override
+  String get postTripGiveReview => 'Share your experience';
+
+  @override
+  String get postTripPlanNext => 'Plan your next trip';
+
+  @override
+  String get feedbackAiRatingLabel => 'Rate the AI planning experience';
+
+  @override
+  String get feedbackAiRatingHint => 'How helpful were the AI suggestions?';
+
+  @override
+  String get editTripTitle => 'Edit trip name';
+
+  @override
+  String get editTripDates => 'Trip dates';
+
+  @override
+  String get editTripStartDate => 'Start date';
+
+  @override
+  String get editTripEndDate => 'End date';
+
+  @override
+  String get editTripTravelers => 'Travelers';
+
+  @override
+  String get activitiesOutOfRangeTitle => 'Activities out of range';
+
+  @override
+  String activitiesOutOfRangeMessage(int count) {
+    return '$count activities fall outside the new dates';
+  }
+
+  @override
+  String get cannotFinalizeTitle => 'Cannot finalize trip';
+
+  @override
+  String get cannotFinalizeMessage => 'Add a destination and dates first';
+
+  @override
+  String get finalizeMissingDestination => 'Missing destination';
+
+  @override
+  String get finalizeMissingDates => 'Missing travel dates';
+
+  @override
+  String get routeSectionLabel => 'Route';
+
+  @override
+  String get scheduleSectionLabel => 'Schedule';
+
+  @override
+  String get detailsSectionLabel => 'Details';
+
+  @override
+  String get airportsMustDiffer =>
+      'Departure and arrival airports must be different';
+
+  @override
+  String get arrivalMustBeAfterDeparture => 'Arrival must be after departure';
+
+  @override
+  String get accommodationEditTitle => 'Edit Accommodation';
+
+  @override
+  String get accommodationSaveButton => 'Save';
+
+  @override
+  String get accommodationAddressLabel => 'Address';
+
+  @override
+  String get accommodationReferenceLabel => 'Booking reference';
+
+  @override
+  String get accommodationCheckOutBeforeCheckIn =>
+      'Check-out must be after check-in';
+
+  @override
+  String get accommodationCheckInTimeLabel => 'Check-in time';
+
+  @override
+  String get accommodationCheckOutTimeLabel => 'Check-out time';
+
+  @override
+  String get accommodationGetPrices => 'See prices';
+
+  @override
+  String get accommodationSelectHotel => 'Select';
+
+  @override
+  String get accommodationPerNight => '/night';
+
+  @override
+  String get accommodationNoResults => 'No hotels found';
+
+  @override
+  String get baggageAllPacked => 'All packed!';
+
+  @override
+  String get baggageAllPackedSubtitle => 'You\'re ready for your trip!';
+
+  @override
+  String get baggageSwipeToDelete => 'Delete';
+
+  @override
+  String activityBatchCount(int count) {
+    return '$count to validate';
+  }
+
+  @override
+  String get activityValidateAll => 'Validate all';
+
+  @override
+  String get activityReviewOneByOne => 'Review one by one';
+
+  @override
+  String get activityBatchValidated => 'All activities validated!';
+
+  @override
+  String get categoryCulture => 'Culture';
+
+  @override
+  String get categoryNature => 'Nature';
+
+  @override
+  String get categoryFoodDrink => 'Food & Drink';
+
+  @override
+  String get categorySport => 'Sport';
+
+  @override
+  String get categoryShopping => 'Shopping';
+
+  @override
+  String get categoryNightlife => 'Nightlife';
+
+  @override
+  String get categoryRelaxation => 'Relaxation';
+
+  @override
+  String get categoryOtherActivity => 'Other';
+
+  @override
+  String activityMovedToDay(int day) {
+    return 'Activity moved to day $day';
+  }
+
+  @override
+  String get timelineGetSuggestions => 'Get AI suggestions';
+
+  @override
+  String get timelineSuggestionsForDay => 'Suggestions for this day';
+
+  @override
+  String get timelineAddSuggestion => 'Add to itinerary';
+
+  @override
+  String get addActivityManually => 'Add manually';
+
+  @override
+  String get shareInviteTitle => 'Invite to trip';
+
+  @override
+  String get shareInviteEmailLabel => 'Email address';
+
+  @override
+  String get shareInviteEmailHint => 'user@example.com';
+
+  @override
+  String get shareInviteEmailRequired => 'Email is required';
+
+  @override
+  String get shareInviteEmailInvalid => 'Invalid email format';
+
+  @override
+  String get shareInviteMessageLabel => 'Message (optional)';
+
+  @override
+  String get shareInviteMessageHint => 'Add a personal note...';
+
+  @override
+  String get shareInviteSendButton => 'Send invite';
+
+  @override
+  String get shareErrorUserNotFound =>
+      'This person must create an account first';
+
+  @override
+  String get shareErrorAlreadyShared => 'Already shared with this person';
+
+  @override
+  String get shareErrorSelfShare => 'You can\'t share a trip with yourself';
+
+  @override
+  String get shareRevokeConfirmTitle => 'Remove access';
+
+  @override
+  String shareRevokeConfirmMessage(String name) {
+    return 'Remove access for $name?';
+  }
+
+  @override
+  String get viewerBadgeReadOnly => 'Read only';
+
+  @override
+  String get shareInviteSuccess => 'Invitation sent';
+
+  @override
+  String get shareRevokeSuccess => 'Access revoked';
+
+  @override
+  String get filterTitle => 'Filters';
+
+  @override
+  String get filterPrice => 'Price';
+
+  @override
+  String get filterPriceLowest => 'Lowest price';
+
+  @override
+  String get filterPriceHighest => 'Highest price';
+
+  @override
+  String get filterAirline => 'Airline';
+
+  @override
+  String get filterNoAirlines => 'No airlines available';
+
+  @override
+  String get filterAllAirlines => 'All';
+
+  @override
+  String get filterBaggage => 'Baggage';
+
+  @override
+  String get filterDepartureTime => 'Departure time';
+
+  @override
+  String get filterBefore => 'Before';
+
+  @override
+  String get filterAfter => 'After';
+
+  @override
+  String get filterApply => 'Apply';
+
+  @override
+  String get doneButton => 'Done';
+
+  @override
+  String get contextMenuView => 'View';
+
+  @override
+  String get contextMenuShare => 'Share';
+
+  @override
+  String get contextMenuArchive => 'Archive';
+
+  @override
+  String get contextMenuEdit => 'Edit';
+
+  @override
+  String get contextMenuValidate => 'Validate';
+
+  @override
+  String get contextMenuDelete => 'Delete';
+
+  @override
+  String get contextMenuMoveToDay => 'Move to another day';
+
+  @override
+  String contextMenuDayLabel(int day) {
+    return 'Day $day';
+  }
+
+  @override
+  String tripCardSemanticLabel(
+    String destination,
+    String dateRange,
+    String status,
+  ) {
+    return '$destination, $dateRange, $status';
+  }
+
+  @override
+  String tripCoverImageLabel(String destination) {
+    return 'Cover photo of $destination';
+  }
+
+  @override
+  String activityCardSemanticLabel(
+    String title,
+    String time,
+    String location,
+    String status,
+  ) {
+    return '$title, $time, $location, $status';
+  }
+
+  @override
+  String timelineActivitySemanticLabel(
+    String title,
+    String time,
+    String location,
+  ) {
+    return '$title, $time, $location';
+  }
+
+  @override
+  String get addTripTooltip => 'Add a trip';
+
+  @override
+  String get addActivityTooltip => 'Add an activity';
+
+  @override
+  String get addAccommodationTooltip => 'Add an accommodation';
+
+  @override
+  String get addTransportTooltip => 'Add a transport';
+
+  @override
+  String get addExpenseTooltip => 'Add an expense';
+
+  @override
+  String get addBaggageItemTooltip => 'Add an item';
+
+  @override
+  String get shareTooltip => 'Share';
+
+  @override
+  String get backTooltip => 'Back';
+
+  @override
+  String get closeTooltip => 'Close';
+
+  @override
+  String get deleteFlightTooltip => 'Delete flight';
+
+  @override
+  String get deleteAccommodationTooltip => 'Delete accommodation';
+
+  @override
+  String get removeAccessTooltip => 'Remove access';
+
+  @override
+  String get inviteTooltip => 'Invite';
+
+  @override
+  String get acceptSuggestionTooltip => 'Accept suggestion';
+
+  @override
+  String get dismissSuggestionTooltip => 'Dismiss suggestion';
+
+  @override
+  String get decreaseQuantityTooltip => 'Decrease quantity';
+
+  @override
+  String get increaseQuantityTooltip => 'Increase quantity';
+
+  @override
+  String starRatingTooltip(int current, int total) {
+    return '$current of $total stars';
+  }
+
+  @override
+  String tabActivityWithBadge(int count) {
+    return 'Activity, $count notifications';
+  }
+
+  @override
+  String get loadingButton => 'Loading';
 }

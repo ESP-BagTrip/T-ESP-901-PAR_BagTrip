@@ -25,10 +25,9 @@ class PersonalizationProgressBar extends StatelessWidget {
                   height: 4,
                   margin: EdgeInsets.only(right: i < total - 1 ? 4 : 0),
                   decoration: BoxDecoration(
-                    color:
-                        filled
-                            ? AppColors.secondary
-                            : AppColors.primarySoftLight,
+                    color: filled
+                        ? AppColors.secondary
+                        : AppColors.primarySoftLight,
                     borderRadius: AppRadius.small4,
                   ),
                 ),

@@ -2,7 +2,12 @@
 
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '@/hooks'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { loginSchema, registerSchema } from '@/lib/validations/auth'
 import type { LoginCredentials, RegisterCredentials } from '@/types'
 
 export default function LoginPage() {
@@ -22,10 +27,7 @@ export default function LoginPage() {
     handleSubmit,
     formState: { errors },
   } = useForm<LoginCredentials & RegisterCredentials>({
-    defaultValues: {
-      email: 'admin@bagtrip.com',
-      password: 'admin123456',
-    },
+    resolver: zodResolver(isRegisterMode ? registerSchema : loginSchema),
   })
 
   const onSubmit = (data: LoginCredentials & RegisterCredentials) => {
@@ -56,21 +58,14 @@ export default function LoginPage() {
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <div className="rounded-md shadow-sm -space-y-px">
+          <div className="space-y-4">
             <div>
               <label htmlFor="email" className="sr-only">
                 Adresse email
               </label>
-              <input
-                {...register('email', {
-                  required: "L'email est requis",
-                  pattern: {
-                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: "Format d'email invalide",
-                  },
-                })}
+              <Input
+                {...register('email')}
                 type="email"
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder="Adresse email"
               />
               {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
@@ -81,10 +76,9 @@ export default function LoginPage() {
                   <label htmlFor="fullName" className="sr-only">
                     Nom complet
                   </label>
-                  <input
+                  <Input
                     {...register('fullName')}
                     type="text"
-                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                     placeholder="Nom complet (optionnel)"
                   />
                 </div>
@@ -92,10 +86,9 @@ export default function LoginPage() {
                   <label htmlFor="phone" className="sr-only">
                     Téléphone
                   </label>
-                  <input
+                  <Input
                     {...register('phone')}
                     type="tel"
-                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                     placeholder="Téléphone (optionnel)"
                   />
                 </div>
@@ -106,17 +99,11 @@ export default function LoginPage() {
                 Mot de passe
               </label>
               <div className="relative">
-                <input
-                  {...register('password', {
-                    required: 'Le mot de passe est requis',
-                    minLength: {
-                      value: 6,
-                      message: 'Le mot de passe doit contenir au moins 6 caractères',
-                    },
-                  })}
+                <Input
+                  {...register('password')}
                   type={showPassword ? 'text' : 'password'}
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                   placeholder="Mot de passe"
+                  className="pr-10"
                 />
                 <button
                   type="button"
@@ -124,39 +111,9 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <svg
-                      className="h-5 w-5 text-gray-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                      />
-                    </svg>
+                    <Eye className="h-5 w-5 text-gray-400" />
                   ) : (
-                    <svg
-                      className="h-5 w-5 text-gray-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
-                      />
-                    </svg>
+                    <EyeOff className="h-5 w-5 text-gray-400" />
                   )}
                 </button>
               </div>
@@ -174,24 +131,22 @@ export default function LoginPage() {
             </div>
           )}
 
-          <div>
-            <button
-              type="submit"
-              disabled={isLoggingIn || isRegistering}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoggingIn || isRegistering ? (
-                <div className="flex items-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {isRegistering ? 'Inscription...' : 'Connexion...'}
-                </div>
-              ) : isRegisterMode ? (
-                "S'inscrire"
-              ) : (
-                'Se connecter'
-              )}
-            </button>
-          </div>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isLoggingIn || isRegistering}
+          >
+            {isLoggingIn || isRegistering ? (
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                {isRegistering ? 'Inscription...' : 'Connexion...'}
+              </div>
+            ) : isRegisterMode ? (
+              "S'inscrire"
+            ) : (
+              'Se connecter'
+            )}
+          </Button>
 
           <div className="text-center">
             <button

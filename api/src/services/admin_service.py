@@ -1,22 +1,27 @@
 """Service pour les opérations admin (sans filtrage par utilisateur)."""
 
+import csv
+import io
 from math import ceil
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from src.models.accommodation import Accommodation
+from src.models.activity import Activity
+from src.models.baggage_item import BaggageItem
 from src.models.booking_intent import BookingIntent
-from src.models.conversation import Conversation
+from src.models.budget_item import BudgetItem
+from src.models.feedback import Feedback
 from src.models.flight_order import FlightOrder
 from src.models.flight_search import FlightSearch
-from src.models.hotel_booking import HotelBooking
-from src.models.hotel_offer import HotelOffer
-from src.models.hotel_search import HotelSearch
-from src.models.message import Message
+from src.models.notification import Notification
 from src.models.traveler import TripTraveler
 from src.models.traveler_profile import TravelerProfile
 from src.models.trip import Trip
+from src.models.trip_share import TripShare
 from src.models.user import User
+from src.utils.errors import AppError
 
 
 class AdminService:
@@ -47,6 +52,7 @@ class AdminService:
                 {
                     "id": user.id,
                     "email": user.email,
+                    "plan": user.plan or "FREE",
                     "created_at": user.created_at,
                     "updated_at": user.updated_at,
                 }
@@ -94,6 +100,8 @@ class AdminService:
                     "start_date": trip.start_date,
                     "end_date": trip.end_date,
                     "status": trip.status,
+                    "budget_total": trip.budget_total,
+                    "origin": trip.origin,
                     "created_at": trip.created_at,
                     "updated_at": trip.updated_at,
                 }
@@ -148,59 +156,6 @@ class AdminService:
                     "gender": traveler.gender,
                     "created_at": traveler.created_at,
                     "updated_at": traveler.updated_at,
-                }
-            )
-
-        total_pages = ceil(total / limit) if limit > 0 else 0
-        return items, total, total_pages
-
-    @staticmethod
-    def get_all_hotel_bookings(
-        db: Session, page: int = 1, limit: int = 10
-    ) -> tuple[list[dict], int, int]:
-        """
-        Récupérer toutes les hotel bookings avec informations trip et utilisateur.
-        Retourne (items, total, total_pages).
-        """
-        # Calculer l'offset
-        offset = (page - 1) * limit
-
-        # Requête avec joins pour obtenir trip title, user email, et hotel_id
-        query = (
-            db.query(
-                HotelBooking,
-                Trip.title.label("trip_title"),
-                User.email.label("user_email"),
-                HotelOffer.hotel_id.label("hotel_id"),
-            )
-            .join(Trip, HotelBooking.trip_id == Trip.id)
-            .join(User, Trip.user_id == User.id)
-            .join(HotelOffer, HotelBooking.hotel_offer_id == HotelOffer.id)
-            .order_by(HotelBooking.created_at.desc())
-        )
-
-        # Compter le total
-        total = query.count()
-
-        # Paginer
-        results = query.offset(offset).limit(limit).all()
-
-        # Construire les items
-        items = []
-        for booking, trip_title, user_email, hotel_id in results:
-            items.append(
-                {
-                    "id": booking.id,
-                    "trip_id": booking.trip_id,
-                    "trip_title": trip_title,
-                    "user_email": user_email,
-                    "hotel_offer_id": booking.hotel_offer_id,
-                    "hotel_id": hotel_id,
-                    "booking_intent_id": booking.booking_intent_id,
-                    "amadeus_booking_id": booking.amadeus_booking_id,
-                    "status": booking.status,
-                    "created_at": booking.created_at,
-                    "updated_at": booking.updated_at,
                 }
             )
 
@@ -347,53 +302,331 @@ class AdminService:
         return items, total, total_pages
 
     @staticmethod
-    def get_all_conversations(
+    def get_all_accommodations(
         db: Session, page: int = 1, limit: int = 10
     ) -> tuple[list[dict], int, int]:
         """
-        Récupérer toutes les conversations avec informations trip, utilisateur et nombre de messages.
+        Récupérer tous les hébergements avec informations trip et utilisateur.
         Retourne (items, total, total_pages).
         """
         offset = (page - 1) * limit
 
-        message_count_subq = (
-            db.query(
-                Message.conversation_id,
-                func.count(Message.id).label("message_count"),
-            )
-            .group_by(Message.conversation_id)
-            .subquery()
-        )
-
         query = (
             db.query(
-                Conversation,
+                Accommodation,
                 Trip.title.label("trip_title"),
                 User.email.label("user_email"),
-                func.coalesce(message_count_subq.c.message_count, 0).label("message_count"),
             )
-            .join(Trip, Conversation.trip_id == Trip.id)
-            .join(User, Conversation.user_id == User.id)
-            .outerjoin(message_count_subq, Conversation.id == message_count_subq.c.conversation_id)
-            .order_by(Conversation.created_at.desc())
+            .join(Trip, Accommodation.trip_id == Trip.id)
+            .join(User, Trip.user_id == User.id)
+            .order_by(Accommodation.created_at.desc())
         )
 
         total = query.count()
         results = query.offset(offset).limit(limit).all()
 
         items = []
-        for conversation, trip_title, user_email, message_count in results:
+        for accommodation, trip_title, user_email in results:
             items.append(
                 {
-                    "id": conversation.id,
-                    "user_id": conversation.user_id,
-                    "user_email": user_email,
-                    "trip_id": conversation.trip_id,
+                    "id": accommodation.id,
+                    "trip_id": accommodation.trip_id,
                     "trip_title": trip_title,
-                    "title": conversation.title,
-                    "message_count": message_count,
-                    "created_at": conversation.created_at,
-                    "updated_at": conversation.updated_at,
+                    "user_email": user_email,
+                    "name": accommodation.name,
+                    "address": accommodation.address,
+                    "check_in": accommodation.check_in,
+                    "check_out": accommodation.check_out,
+                    "price_per_night": float(accommodation.price_per_night)
+                    if accommodation.price_per_night
+                    else None,
+                    "currency": accommodation.currency,
+                    "booking_reference": accommodation.booking_reference,
+                    "created_at": accommodation.created_at,
+                    "updated_at": accommodation.updated_at,
+                }
+            )
+
+        total_pages = ceil(total / limit) if limit > 0 else 0
+        return items, total, total_pages
+
+    @staticmethod
+    def get_all_baggage_items(
+        db: Session, page: int = 1, limit: int = 10
+    ) -> tuple[list[dict], int, int]:
+        """
+        Récupérer tous les éléments de bagage avec informations trip et utilisateur.
+        Retourne (items, total, total_pages).
+        """
+        offset = (page - 1) * limit
+
+        query = (
+            db.query(
+                BaggageItem,
+                Trip.title.label("trip_title"),
+                User.email.label("user_email"),
+            )
+            .join(Trip, BaggageItem.trip_id == Trip.id)
+            .join(User, Trip.user_id == User.id)
+            .order_by(BaggageItem.created_at.desc())
+        )
+
+        total = query.count()
+        results = query.offset(offset).limit(limit).all()
+
+        items = []
+        for baggage_item, trip_title, user_email in results:
+            items.append(
+                {
+                    "id": baggage_item.id,
+                    "trip_id": baggage_item.trip_id,
+                    "trip_title": trip_title,
+                    "user_email": user_email,
+                    "name": baggage_item.name,
+                    "category": baggage_item.category,
+                    "quantity": baggage_item.quantity,
+                    "is_packed": baggage_item.is_packed,
+                    "created_at": baggage_item.created_at,
+                    "updated_at": baggage_item.updated_at,
+                }
+            )
+
+        total_pages = ceil(total / limit) if limit > 0 else 0
+        return items, total, total_pages
+
+    @staticmethod
+    def get_all_activities(
+        db: Session, page: int = 1, limit: int = 10
+    ) -> tuple[list[dict], int, int]:
+        """
+        Récupérer toutes les activités avec informations trip et utilisateur.
+        Retourne (items, total, total_pages).
+        """
+        offset = (page - 1) * limit
+
+        query = (
+            db.query(
+                Activity,
+                Trip.title.label("trip_title"),
+                User.email.label("user_email"),
+            )
+            .join(Trip, Activity.trip_id == Trip.id)
+            .join(User, Trip.user_id == User.id)
+            .order_by(Activity.created_at.desc())
+        )
+
+        total = query.count()
+        results = query.offset(offset).limit(limit).all()
+
+        items = []
+        for activity, trip_title, user_email in results:
+            items.append(
+                {
+                    "id": activity.id,
+                    "trip_id": activity.trip_id,
+                    "trip_title": trip_title,
+                    "user_email": user_email,
+                    "title": activity.title,
+                    "description": activity.description,
+                    "date": activity.date,
+                    "start_time": activity.start_time,
+                    "end_time": activity.end_time,
+                    "location": activity.location,
+                    "category": activity.category,
+                    "estimated_cost": float(activity.estimated_cost)
+                    if activity.estimated_cost
+                    else None,
+                    "is_booked": activity.is_booked,
+                    "created_at": activity.created_at,
+                    "updated_at": activity.updated_at,
+                }
+            )
+
+        total_pages = ceil(total / limit) if limit > 0 else 0
+        return items, total, total_pages
+
+    @staticmethod
+    def get_all_budget_items(
+        db: Session, page: int = 1, limit: int = 10
+    ) -> tuple[list[dict], int, int]:
+        """
+        Récupérer tous les budget items avec informations trip et utilisateur.
+        Retourne (items, total, total_pages).
+        """
+        offset = (page - 1) * limit
+
+        query = (
+            db.query(
+                BudgetItem,
+                Trip.title.label("trip_title"),
+                User.email.label("user_email"),
+            )
+            .join(Trip, BudgetItem.trip_id == Trip.id)
+            .join(User, Trip.user_id == User.id)
+            .order_by(BudgetItem.created_at.desc())
+        )
+
+        total = query.count()
+        results = query.offset(offset).limit(limit).all()
+
+        items = []
+        for budget_item, trip_title, user_email in results:
+            items.append(
+                {
+                    "id": budget_item.id,
+                    "trip_id": budget_item.trip_id,
+                    "trip_title": trip_title,
+                    "user_email": user_email,
+                    "label": budget_item.label,
+                    "amount": float(budget_item.amount),
+                    "category": budget_item.category,
+                    "date": budget_item.date,
+                    "is_planned": budget_item.is_planned,
+                    "created_at": budget_item.created_at,
+                    "updated_at": budget_item.updated_at,
+                }
+            )
+
+        total_pages = ceil(total / limit) if limit > 0 else 0
+        return items, total, total_pages
+
+    @staticmethod
+    def get_all_trip_shares(
+        db: Session, page: int = 1, limit: int = 10
+    ) -> tuple[list[dict], int, int]:
+        """Récupérer tous les partages de trips."""
+        offset = (page - 1) * limit
+
+        query = (
+            db.query(
+                TripShare,
+                Trip.title.label("trip_title"),
+                User.email.label("owner_email"),
+            )
+            .join(Trip, TripShare.trip_id == Trip.id)
+            .join(User, TripShare.user_id == User.id)
+            .order_by(TripShare.invited_at.desc())
+        )
+
+        total = query.count()
+        results = query.offset(offset).limit(limit).all()
+
+        items = []
+        for share, trip_title, user_email in results:
+            items.append(
+                {
+                    "id": share.id,
+                    "trip_id": share.trip_id,
+                    "trip_title": trip_title,
+                    "user_id": share.user_id,
+                    "user_email": user_email,
+                    "role": share.role,
+                    "invited_at": share.invited_at,
+                }
+            )
+
+        total_pages = ceil(total / limit) if limit > 0 else 0
+        return items, total, total_pages
+
+    @staticmethod
+    def get_all_feedbacks(
+        db: Session, page: int = 1, limit: int = 10
+    ) -> tuple[list[dict], int, int]:
+        """Récupérer tous les feedbacks."""
+        offset = (page - 1) * limit
+
+        query = (
+            db.query(
+                Feedback,
+                Trip.title.label("trip_title"),
+                User.email.label("user_email"),
+            )
+            .join(Trip, Feedback.trip_id == Trip.id)
+            .join(User, Feedback.user_id == User.id)
+            .order_by(Feedback.created_at.desc())
+        )
+
+        total = query.count()
+        results = query.offset(offset).limit(limit).all()
+
+        items = []
+        for feedback, trip_title, user_email in results:
+            items.append(
+                {
+                    "id": feedback.id,
+                    "trip_id": feedback.trip_id,
+                    "trip_title": trip_title,
+                    "user_id": feedback.user_id,
+                    "user_email": user_email,
+                    "overall_rating": feedback.overall_rating,
+                    "highlights": feedback.highlights,
+                    "lowlights": feedback.lowlights,
+                    "would_recommend": feedback.would_recommend,
+                    "created_at": feedback.created_at,
+                }
+            )
+
+        total_pages = ceil(total / limit) if limit > 0 else 0
+        return items, total, total_pages
+
+    @staticmethod
+    def delete_feedback(db: Session, feedback_id) -> None:
+        """Supprimer un feedback."""
+        from src.models.feedback import Feedback as FeedbackModel
+
+        feedback = db.query(FeedbackModel).filter(FeedbackModel.id == feedback_id).first()
+        if not feedback:
+            raise AppError("FEEDBACK_NOT_FOUND", 404, "Feedback not found")
+        db.delete(feedback)
+        db.commit()
+
+    @staticmethod
+    def update_user_plan(db: Session, user_id, plan: str) -> None:
+        """Update a user's plan."""
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise AppError("USER_NOT_FOUND", 404, "User not found")
+        if plan not in ("FREE", "PREMIUM", "ADMIN"):
+            raise AppError("INVALID_PLAN", 400, "Plan must be FREE, PREMIUM or ADMIN")
+        user.plan = plan
+        db.commit()
+
+    @staticmethod
+    def get_all_notifications(
+        db: Session, page: int = 1, limit: int = 10
+    ) -> tuple[list[dict], int, int]:
+        """Récupérer toutes les notifications avec informations utilisateur et trip."""
+        offset = (page - 1) * limit
+
+        query = (
+            db.query(
+                Notification,
+                User.email.label("user_email"),
+                Trip.title.label("trip_title"),
+            )
+            .join(User, Notification.user_id == User.id)
+            .outerjoin(Trip, Notification.trip_id == Trip.id)
+            .order_by(Notification.created_at.desc())
+        )
+
+        total = query.count()
+        results = query.offset(offset).limit(limit).all()
+
+        items = []
+        for notif, user_email, trip_title in results:
+            items.append(
+                {
+                    "id": notif.id,
+                    "user_id": notif.user_id,
+                    "user_email": user_email,
+                    "trip_id": notif.trip_id,
+                    "trip_title": trip_title,
+                    "type": notif.type,
+                    "title": notif.title,
+                    "body": notif.body,
+                    "is_read": notif.is_read,
+                    "sent_at": notif.sent_at,
+                    "created_at": notif.created_at,
                 }
             )
 
@@ -444,42 +677,123 @@ class AdminService:
         return items, total, total_pages
 
     @staticmethod
-    def get_all_hotel_searches(
-        db: Session, page: int = 1, limit: int = 10
-    ) -> tuple[list[dict], int, int]:
-        """
-        Récupérer toutes les recherches d'hôtels avec informations trip.
-        Retourne (items, total, total_pages).
-        """
-        offset = (page - 1) * limit
-
-        query = (
-            db.query(
-                HotelSearch,
-                Trip.title.label("trip_title"),
+    def export_users_csv(db: Session) -> str:
+        """Export all users as CSV string."""
+        users = db.query(User).order_by(User.created_at.desc()).all()
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["id", "email", "plan", "created_at", "updated_at"])
+        for user in users:
+            writer.writerow(
+                [
+                    str(user.id),
+                    user.email,
+                    user.plan or "FREE",
+                    user.created_at.isoformat() if user.created_at else "",
+                    user.updated_at.isoformat() if user.updated_at else "",
+                ]
             )
-            .join(Trip, HotelSearch.trip_id == Trip.id)
-            .order_by(HotelSearch.created_at.desc())
+        return output.getvalue()
+
+    @staticmethod
+    def get_dashboard_metrics(db: Session) -> dict:
+        """Get dashboard KPI metrics."""
+        total_users = db.query(func.count(User.id)).scalar() or 0
+
+        active_users = db.query(func.count(func.distinct(Trip.user_id))).scalar() or 0
+        inactive_users = total_users - active_users
+
+        total_trips = db.query(func.count(Trip.id)).scalar() or 0
+
+        total_revenue = (
+            db.query(func.coalesce(func.sum(BookingIntent.amount), 0))
+            .filter(BookingIntent.status == "CAPTURED")
+            .scalar()
         )
 
-        total = query.count()
-        results = query.offset(offset).limit(limit).all()
+        total_feedbacks = db.query(func.count(Feedback.id)).scalar() or 0
+        pending_feedbacks = total_feedbacks
 
-        items = []
-        for search, trip_title in results:
-            items.append(
-                {
-                    "id": search.id,
-                    "trip_id": search.trip_id,
-                    "trip_title": trip_title,
-                    "city_code": search.city_code,
-                    "check_in": search.check_in,
-                    "check_out": search.check_out,
-                    "adults": search.adults,
-                    "room_qty": search.room_qty,
-                    "created_at": search.created_at,
-                }
+        avg_rating = db.query(func.avg(Feedback.overall_rating)).scalar()
+
+        return {
+            "totalUsers": total_users,
+            "activeUsers": active_users,
+            "inactiveUsers": inactive_users,
+            "totalTrips": total_trips,
+            "totalRevenue": float(total_revenue),
+            "totalFeedbacks": total_feedbacks,
+            "pendingFeedbacks": pending_feedbacks,
+            "averageRating": round(float(avg_rating), 1) if avg_rating else 0,
+        }
+
+    @staticmethod
+    def get_users_chart(db: Session, period: str = "month") -> list[dict]:
+        """User registrations grouped by period."""
+        if period == "week":
+            trunc = func.date_trunc("day", User.created_at)
+        elif period == "year":
+            trunc = func.date_trunc("month", User.created_at)
+        else:
+            trunc = func.date_trunc("week", User.created_at)
+
+        rows = (
+            db.query(trunc.label("date"), func.count(User.id).label("value"))
+            .group_by(trunc)
+            .order_by(trunc)
+            .all()
+        )
+        return [
+            {
+                "name": row.date.strftime("%Y-%m-%d"),
+                "value": row.value,
+                "date": row.date.strftime("%Y-%m-%d"),
+            }
+            for row in rows
+        ]
+
+    @staticmethod
+    def get_revenue_chart(db: Session, period: str = "month") -> list[dict]:
+        """Revenue grouped by period (captured booking intents)."""
+        if period == "week":
+            trunc = func.date_trunc("day", BookingIntent.created_at)
+        elif period == "year":
+            trunc = func.date_trunc("month", BookingIntent.created_at)
+        else:
+            trunc = func.date_trunc("week", BookingIntent.created_at)
+
+        rows = (
+            db.query(
+                trunc.label("date"),
+                func.coalesce(func.sum(BookingIntent.amount), 0).label("value"),
             )
+            .filter(BookingIntent.status == "CAPTURED")
+            .group_by(trunc)
+            .order_by(trunc)
+            .all()
+        )
+        return [
+            {
+                "name": row.date.strftime("%Y-%m-%d"),
+                "value": float(row.value),
+                "date": row.date.strftime("%Y-%m-%d"),
+            }
+            for row in rows
+        ]
 
-        total_pages = ceil(total / limit) if limit > 0 else 0
-        return items, total, total_pages
+    @staticmethod
+    def get_feedbacks_chart(db: Session) -> list[dict]:
+        """Feedbacks count grouped by rating."""
+        rows = (
+            db.query(
+                Feedback.overall_rating.label("rating"),
+                func.count(Feedback.id).label("count"),
+            )
+            .group_by(Feedback.overall_rating)
+            .order_by(Feedback.overall_rating)
+            .all()
+        )
+        return [
+            {"name": f"{row.rating} étoile{'s' if row.rating > 1 else ''}", "value": row.count}
+            for row in rows
+        ]

@@ -249,14 +249,12 @@ class _CustomCalendarPickerState extends State<CustomCalendarPicker> {
   Widget _buildHeader() {
     final locale = Localizations.localeOf(context).toString();
     final monthYearText = DateFormat('MMM yyyy', locale).format(_currentMonth);
-    final canGoPrevious =
-        !_currentMonth.isBefore(
-          DateTime(widget.firstDate.year, widget.firstDate.month),
-        );
-    final canGoNext =
-        !_currentMonth.isAfter(
-          DateTime(widget.lastDate.year, widget.lastDate.month),
-        );
+    final canGoPrevious = !_currentMonth.isBefore(
+      DateTime(widget.firstDate.year, widget.firstDate.month),
+    );
+    final canGoNext = !_currentMonth.isAfter(
+      DateTime(widget.lastDate.year, widget.lastDate.month),
+    );
 
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 375; // iPhone SE width
@@ -280,16 +278,16 @@ class _CustomCalendarPickerState extends State<CustomCalendarPicker> {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color:
-                          canGoPrevious
-                              ? ColorName.secondary.withValues(alpha: 0.1)
-                              : AppColors.border.withValues(alpha: 0.3),
+                      color: canGoPrevious
+                          ? ColorName.secondary.withValues(alpha: 0.1)
+                          : AppColors.border.withValues(alpha: 0.3),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.chevron_left,
-                      color:
-                          canGoPrevious ? ColorName.secondary : AppColors.hint,
+                      color: canGoPrevious
+                          ? ColorName.secondary
+                          : AppColors.hint,
                       size: iconSize,
                     ),
                   ),
@@ -314,10 +312,9 @@ class _CustomCalendarPickerState extends State<CustomCalendarPicker> {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color:
-                          canGoNext
-                              ? ColorName.secondary.withValues(alpha: 0.1)
-                              : AppColors.border.withValues(alpha: 0.3),
+                      color: canGoNext
+                          ? ColorName.secondary.withValues(alpha: 0.1)
+                          : AppColors.border.withValues(alpha: 0.3),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -376,21 +373,20 @@ class _CustomCalendarPickerState extends State<CustomCalendarPicker> {
             defaultColumnWidth: FixedColumnWidth(cellSize),
             children: [
               TableRow(
-                children:
-                    weekDays
-                        .map(
-                          (day) => Text(
-                            day,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: ColorName.secondary,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: FontFamily.b612,
-                              fontSize: 14,
-                            ),
-                          ),
-                        )
-                        .toList(),
+                children: weekDays
+                    .map(
+                      (day) => Text(
+                        day,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: ColorName.secondary,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: FontFamily.b612,
+                          fontSize: 14,
+                        ),
+                      ),
+                    )
+                    .toList(),
               ),
             ],
           );
@@ -453,22 +449,20 @@ class _CustomCalendarPickerState extends State<CustomCalendarPicker> {
 
       dayWidgets.add(
         GestureDetector(
-          onTap:
-              isDisabled
-                  ? null
-                  : () {
-                    _selectDate(date);
-                  },
+          onTap: isDisabled
+              ? null
+              : () {
+                  _selectDate(date);
+                },
           child: Container(
             margin: const EdgeInsets.all(2),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color:
-                  isSelected
-                      ? ColorName.primary
-                      : (isInRange
-                          ? ColorName.primary.withValues(alpha: 0.2)
-                          : (isToday
+              color: isSelected
+                  ? ColorName.primary
+                  : (isInRange
+                        ? ColorName.primary.withValues(alpha: 0.2)
+                        : (isToday
                               ? ColorName.primary.withValues(alpha: 0.1)
                               : Colors.transparent)),
             ),
@@ -476,16 +470,16 @@ class _CustomCalendarPickerState extends State<CustomCalendarPicker> {
             child: Text(
               '$i',
               style: TextStyle(
-                color:
-                    isSelected
-                        ? AppColors.surface
-                        : (isDisabled
-                            ? AppColors.hint
-                            : (isToday
+                color: isSelected
+                    ? AppColors.surface
+                    : (isDisabled
+                          ? AppColors.hint
+                          : (isToday
                                 ? ColorName.primary
                                 : ColorName.secondary)),
-                fontWeight:
-                    isSelected || isToday ? FontWeight.bold : FontWeight.normal,
+                fontWeight: isSelected || isToday
+                    ? FontWeight.bold
+                    : FontWeight.normal,
                 fontFamily: FontFamily.b612,
                 fontSize: 16,
               ),
@@ -511,10 +505,9 @@ class _CustomCalendarPickerState extends State<CustomCalendarPicker> {
                     for (int col = 0; col < 7; col++)
                       SizedBox(
                         height: cellSize,
-                        child:
-                            (row * 7 + col < dayWidgets.length)
-                                ? dayWidgets[row * 7 + col]
-                                : const SizedBox(),
+                        child: (row * 7 + col < dayWidgets.length)
+                            ? dayWidgets[row * 7 + col]
+                            : const SizedBox(),
                       ),
                   ],
                 ),

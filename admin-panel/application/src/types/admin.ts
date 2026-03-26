@@ -8,6 +8,8 @@ export interface AdminTrip {
   start_date: string | null
   end_date: string | null
   status: string | null
+  budget_total: number | null
+  origin: string | null
   created_at: string
   updated_at: string
 }
@@ -23,20 +25,6 @@ export interface AdminTraveler {
   last_name: string
   date_of_birth: string | null
   gender: string | null
-  created_at: string
-  updated_at: string
-}
-
-export interface AdminHotelBooking {
-  id: string
-  trip_id: string
-  trip_title: string | null
-  user_email: string
-  hotel_offer_id: string
-  hotel_id: string | null
-  booking_intent_id: string | null
-  amadeus_booking_id: string | null
-  status: string | null
   created_at: string
   updated_at: string
 }
@@ -83,18 +71,6 @@ export interface AdminBookingIntent {
   updated_at: string
 }
 
-export interface AdminConversation {
-  id: string
-  user_id: string
-  user_email: string
-  trip_id: string
-  trip_title: string | null
-  title: string | null
-  message_count: number
-  created_at: string
-  updated_at: string
-}
-
 export interface AdminFlightSearch {
   id: string
   trip_id: string
@@ -109,15 +85,88 @@ export interface AdminFlightSearch {
   created_at: string
 }
 
-export interface AdminHotelSearch {
+export interface AdminAccommodation {
   id: string
   trip_id: string
   trip_title: string | null
-  city_code: string | null
-  check_in: string
-  check_out: string
-  adults: number
-  room_qty: number
+  user_email: string
+  name: string
+  address: string | null
+  check_in: string | null
+  check_out: string | null
+  price_per_night: number | null
+  currency: string | null
+  booking_reference: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface AdminBaggageItem {
+  id: string
+  trip_id: string
+  trip_title: string | null
+  user_email: string
+  name: string
+  category: string | null
+  quantity: number | null
+  is_packed: boolean | null
+  created_at: string
+  updated_at: string
+}
+
+export interface AdminActivity {
+  id: string
+  trip_id: string
+  trip_title: string | null
+  user_email: string
+  title: string
+  description: string | null
+  date: string
+  start_time: string | null
+  end_time: string | null
+  location: string | null
+  category: string
+  estimated_cost: number | null
+  is_booked: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface AdminBudgetItem {
+  id: string
+  trip_id: string
+  trip_title: string | null
+  user_email: string
+  label: string
+  amount: number
+  category: string
+  date: string | null
+  is_planned: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface AdminTripShare {
+  id: string
+  trip_id: string
+  trip_title: string | null
+  user_id: string
+  user_email: string
+  role: string
+  invited_at: string
+}
+
+export interface AdminNotification {
+  id: string
+  user_id: string
+  user_email: string
+  trip_id: string | null
+  trip_title: string | null
+  type: string
+  title: string
+  body: string
+  is_read: boolean
+  sent_at: string | null
   created_at: string
 }
 

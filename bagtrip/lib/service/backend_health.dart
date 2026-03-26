@@ -1,11 +1,9 @@
+import 'package:bagtrip/config/app_config.dart';
 import 'package:dio/dio.dart';
-
-/// Base URL of the API (with /v1). Health endpoint is at origin/health.
-const String _defaultBaseUrl = 'http://localhost:3000/v1';
 
 /// Returns the API origin (without /v1) for health checks.
 String get _healthOrigin {
-  final base = _defaultBaseUrl;
+  final base = AppConfig.apiBaseUrl;
   if (base.endsWith('/v1')) {
     return base.substring(0, base.length - 3);
   }

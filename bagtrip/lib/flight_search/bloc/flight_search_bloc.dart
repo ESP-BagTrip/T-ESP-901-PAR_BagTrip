@@ -1,10 +1,12 @@
 // ignore_for_file: depend_on_referenced_packages
 
 import 'package:bagtrip/flight_search/models/flight_segment.dart';
+import 'package:bagtrip/config/service_locator.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 
-import '../../service/LocationService.dart';
+import '../../service/location_service.dart';
 
 part 'flight_search_event.dart';
 part 'flight_search_state.dart';
@@ -13,7 +15,7 @@ class FlightSearchBloc extends Bloc<FlightSearchEvent, FlightSearchState> {
   final LocationService _locationService;
 
   FlightSearchBloc({LocationService? locationService})
-    : _locationService = locationService ?? LocationService(),
+    : _locationService = locationService ?? getIt<LocationService>(),
       super(FlightSearchInitial()) {
     on<SearchDepartureAirport>(_onSearchDepartureAirport);
     on<SearchArrivalAirport>(_onSearchArrivalAirport);
@@ -35,6 +37,7 @@ class FlightSearchBloc extends Bloc<FlightSearchEvent, FlightSearchState> {
     on<SearchFlights>(_onSearchFlights);
     on<ShowValidationErrors>(_onShowValidationErrors);
     on<SwapAirports>(_onSwapAirports);
+    on<InitWithPrefilledData>(_onInitWithPrefilledData);
   }
 
   FlightSearchLoaded _currentState() {
@@ -51,20 +54,22 @@ class FlightSearchBloc extends Bloc<FlightSearchEvent, FlightSearchState> {
     final current = _currentState();
     emit(current.copyWith(isLoading: true, clearError: true));
 
-    try {
-      final airports = await _locationService.searchLocationsByKeyword(
-        event.keyword,
-        'AIRPORT',
-      );
-      emit(
-        current.copyWith(
-          isLoading: false,
-          searchResults: airports,
-          clearError: true,
-        ),
-      );
-    } catch (e) {
-      emit(current.copyWith(isLoading: false, errorMessage: e.toString()));
+    final result = await _locationService.searchLocationsByKeyword(
+      event.keyword,
+      'AIRPORT',
+    );
+    if (isClosed) return;
+    switch (result) {
+      case Success(:final data):
+        emit(
+          current.copyWith(
+            isLoading: false,
+            searchResults: data,
+            clearError: true,
+          ),
+        );
+      case Failure(:final error):
+        emit(current.copyWith(isLoading: false, errorMessage: error.message));
     }
   }
 
@@ -75,20 +80,22 @@ class FlightSearchBloc extends Bloc<FlightSearchEvent, FlightSearchState> {
     final current = _currentState();
     emit(current.copyWith(isLoading: true, clearError: true));
 
-    try {
-      final airports = await _locationService.searchLocationsByKeyword(
-        event.keyword,
-        'AIRPORT',
-      );
-      emit(
-        current.copyWith(
-          isLoading: false,
-          searchResults: airports,
-          clearError: true,
-        ),
-      );
-    } catch (e) {
-      emit(current.copyWith(isLoading: false, errorMessage: e.toString()));
+    final result = await _locationService.searchLocationsByKeyword(
+      event.keyword,
+      'AIRPORT',
+    );
+    if (isClosed) return;
+    switch (result) {
+      case Success(:final data):
+        emit(
+          current.copyWith(
+            isLoading: false,
+            searchResults: data,
+            clearError: true,
+          ),
+        );
+      case Failure(:final error):
+        emit(current.copyWith(isLoading: false, errorMessage: error.message));
     }
   }
 
@@ -271,6 +278,21 @@ class FlightSearchBloc extends Bloc<FlightSearchEvent, FlightSearchState> {
       current.copyWith(
         departureAirport: current.arrivalAirport,
         arrivalAirport: current.departureAirport,
+      ),
+    );
+  }
+
+  Future<void> _onInitWithPrefilledData(
+    InitWithPrefilledData event,
+    Emitter<FlightSearchState> emit,
+  ) async {
+    emit(
+      FlightSearchLoaded(
+        departureAirport: event.departureAirport,
+        arrivalAirport: event.arrivalAirport,
+        departureDate: event.departureDate,
+        returnDate: event.returnDate,
+        adults: event.adults ?? 1,
       ),
     );
   }

@@ -1,14 +1,19 @@
+import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/logged_failure.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/traveler.dart';
+import 'package:bagtrip/repositories/traveler_repository.dart';
 import 'package:bagtrip/service/api_client.dart';
+import 'package:dio/dio.dart';
 
-class TravelerService {
+class TravelerRepositoryImpl implements TravelerRepository {
   final ApiClient _apiClient;
 
-  TravelerService({ApiClient? apiClient})
+  TravelerRepositoryImpl({ApiClient? apiClient})
     : _apiClient = apiClient ?? ApiClient();
 
-  /// Create a traveler for a trip.
-  Future<Traveler> createTraveler(
+  @override
+  Future<Result<Traveler>> createTraveler(
     String tripId, {
     String? amadeusTravelerRef,
     required String travelerType,
@@ -34,42 +39,48 @@ class TravelerService {
           if (contacts != null) 'contacts': contacts,
         },
       );
-
       if (response.statusCode == 201 || response.statusCode == 200) {
-        return Traveler.fromJson(response.data);
-      } else {
-        throw Exception('Failed to create traveler: ${response.statusCode}');
+        return Success(Traveler.fromJson(response.data));
       }
+      return loggedFailure(
+        UnknownError('create traveler failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error creating traveler: $e');
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
-  /// Get all travelers for a trip.
-  Future<List<Traveler>> getTravelersByTrip(String tripId) async {
+  @override
+  Future<Result<List<Traveler>>> getTravelersByTrip(String tripId) async {
     try {
       final response = await _apiClient.get('/trips/$tripId/travelers');
-
       if (response.statusCode == 200) {
         final data = response.data;
         if (data is List) {
-          return data.map((json) => Traveler.fromJson(json)).toList();
+          return Success(data.map((json) => Traveler.fromJson(json)).toList());
         } else if (data is Map && data['items'] is List) {
-          return (data['items'] as List)
-              .map((json) => Traveler.fromJson(json))
-              .toList();
+          return Success(
+            (data['items'] as List)
+                .map((json) => Traveler.fromJson(json))
+                .toList(),
+          );
         }
-        return [];
-      } else {
-        throw Exception('Failed to fetch travelers: ${response.statusCode}');
+        return const Success([]);
       }
+      return loggedFailure(
+        UnknownError('fetch travelers failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error fetching travelers: $e');
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
-  /// Update a traveler.
-  Future<Traveler> updateTraveler(
+  @override
+  Future<Result<Traveler>> updateTraveler(
     String tripId,
     String travelerId,
     Map<String, dynamic> updates,
@@ -79,29 +90,35 @@ class TravelerService {
         '/trips/$tripId/travelers/$travelerId',
         data: updates,
       );
-
       if (response.statusCode == 200) {
-        return Traveler.fromJson(response.data);
-      } else {
-        throw Exception('Failed to update traveler: ${response.statusCode}');
+        return Success(Traveler.fromJson(response.data));
       }
+      return loggedFailure(
+        UnknownError('update traveler failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error updating traveler: $e');
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 
-  /// Delete a traveler.
-  Future<void> deleteTraveler(String tripId, String travelerId) async {
+  @override
+  Future<Result<void>> deleteTraveler(String tripId, String travelerId) async {
     try {
       final response = await _apiClient.delete(
         '/trips/$tripId/travelers/$travelerId',
       );
-
-      if (response.statusCode != 200 && response.statusCode != 204) {
-        throw Exception('Failed to delete traveler: ${response.statusCode}');
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return const Success(null);
       }
+      return loggedFailure(
+        UnknownError('delete traveler failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error deleting traveler: $e');
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 }

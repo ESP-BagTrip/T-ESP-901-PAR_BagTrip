@@ -18,10 +18,10 @@ final class AuthSuccess extends AuthState {
 }
 
 final class AuthError extends AuthState {
-  final String errorMessage;
+  final AppError error;
   final bool isLoginMode;
 
-  AuthError({required this.errorMessage, this.isLoginMode = true});
+  AuthError({required this.error, this.isLoginMode = true});
 }
 
 final class AuthModeChangedState extends AuthState {

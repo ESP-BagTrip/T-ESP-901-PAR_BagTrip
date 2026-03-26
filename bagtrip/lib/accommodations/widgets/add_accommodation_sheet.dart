@@ -1,0 +1,187 @@
+import 'package:bagtrip/accommodations/bloc/accommodation_bloc.dart';
+import 'package:bagtrip/accommodations/widgets/hotel_search_sheet.dart';
+import 'package:bagtrip/accommodations/widgets/manual_accommodation_form.dart';
+import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/gen/fonts.gen.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+class AddAccommodationSheet extends StatelessWidget {
+  final String tripId;
+  final DateTime? tripStartDate;
+  final DateTime? tripEndDate;
+  final String? destinationIata;
+
+  const AddAccommodationSheet({
+    super.key,
+    required this.tripId,
+    this.tripStartDate,
+    this.tripEndDate,
+    this.destinationIata,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle bar
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.3,
+                ),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            l10n.accommodationAddTitle,
+            style: TextStyle(
+              fontFamily: FontFamily.b612,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Option 1: Add manually
+          _OptionTile(
+            icon: Icons.edit_rounded,
+            title: l10n.accommodationAddManually,
+            subtitle: l10n.accommodationAddManuallySubtitle,
+            onTap: () {
+              Navigator.of(context).pop();
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => BlocProvider.value(
+                  value: context.read<AccommodationBloc>(),
+                  child: ManualAccommodationForm(
+                    tripId: tripId,
+                    tripStartDate: tripStartDate,
+                    tripEndDate: tripEndDate,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+
+          // Option 2: Search hotel
+          _OptionTile(
+            icon: Icons.search_rounded,
+            title: l10n.accommodationSearchHotels,
+            subtitle: l10n.accommodationSearchHotelsSubtitle,
+            onTap: () {
+              Navigator.of(context).pop();
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => BlocProvider.value(
+                  value: context.read<AccommodationBloc>(),
+                  child: HotelSearchSheet(
+                    tripId: tripId,
+                    initialCityCode: destinationIata,
+                    tripStartDate: tripStartDate,
+                    tripEndDate: tripEndDate,
+                  ),
+                ),
+              );
+            },
+          ),
+          SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
+        ],
+      ),
+    );
+  }
+}
+
+class _OptionTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _OptionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: AppRadius.large16,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(color: theme.colorScheme.outlineVariant),
+          borderRadius: AppRadius.large16,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: ColorName.primary.withValues(alpha: 0.1),
+                borderRadius: AppRadius.medium8,
+              ),
+              child: Icon(icon, color: ColorName.primary),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontFamily: FontFamily.b612,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontFamily: FontFamily.b612,
+                      fontSize: 12,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: theme.colorScheme.outline),
+          ],
+        ),
+      ),
+    );
+  }
+}

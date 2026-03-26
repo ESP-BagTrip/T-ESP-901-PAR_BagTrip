@@ -2,12 +2,13 @@
 
 import uuid
 
-from sqlalchemy import Column, Date, DateTime, ForeignKey, String
+from sqlalchemy import Column, Date, DateTime, ForeignKey, Integer, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from src.config.database import Base
+from src.enums import DateMode, TripStatus
 
 
 class Trip(Base):
@@ -22,7 +23,15 @@ class Trip(Base):
     destination_iata = Column(String(3), nullable=True)
     start_date = Column(Date, nullable=True)
     end_date = Column(Date, nullable=True)
-    status = Column(String, nullable=True)  # draft | planned | booked | cancelled
+    status = Column(String, nullable=False, server_default="DRAFT", default=TripStatus.DRAFT)
+    description = Column(String, nullable=True)
+    budget_total = Column(Numeric(12, 2), nullable=True)
+    origin = Column(String, nullable=True, default="MANUAL")
+    cover_image_url = Column(String, nullable=True)
+    destination_name = Column(String, nullable=True)
+    nb_travelers = Column(Integer, nullable=True, default=1)
+    date_mode = Column(String, nullable=False, server_default="EXACT", default=DateMode.EXACT)
+    archived_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(
         DateTime(timezone=True),
@@ -33,15 +42,20 @@ class Trip(Base):
 
     # Relationships
     travelers = relationship("TripTraveler", back_populates="trip", cascade="all, delete-orphan")
+    accommodations = relationship(
+        "Accommodation", back_populates="trip", cascade="all, delete-orphan"
+    )
+    baggage_items = relationship("BaggageItem", back_populates="trip", cascade="all, delete-orphan")
     flight_searches = relationship(
         "FlightSearch", back_populates="trip", cascade="all, delete-orphan"
-    )
-    hotel_searches = relationship(
-        "HotelSearch", back_populates="trip", cascade="all, delete-orphan"
     )
     booking_intents = relationship(
         "BookingIntent", back_populates="trip", cascade="all, delete-orphan"
     )
-    conversations = relationship(
-        "Conversation", back_populates="trip", cascade="all, delete-orphan"
+    shares = relationship("TripShare", back_populates="trip", cascade="all, delete-orphan")
+    activities = relationship("Activity", back_populates="trip", cascade="all, delete-orphan")
+    budget_items = relationship("BudgetItem", back_populates="trip", cascade="all, delete-orphan")
+    feedbacks = relationship("Feedback", back_populates="trip", cascade="all, delete-orphan")
+    manual_flights = relationship(
+        "ManualFlight", back_populates="trip", cascade="all, delete-orphan"
     )

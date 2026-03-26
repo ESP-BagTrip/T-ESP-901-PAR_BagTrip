@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/premium_cta_button.dart';
@@ -6,15 +7,17 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/personalization/bloc/personalization_bloc.dart';
 import 'package:bagtrip/personalization/widgets/budget_step_content.dart';
 import 'package:bagtrip/personalization/widgets/companions_step_content.dart';
+import 'package:bagtrip/personalization/widgets/constraints_step_content.dart';
 import 'package:bagtrip/personalization/widgets/travel_frequency_step_content.dart';
 import 'package:bagtrip/personalization/widgets/travel_types_step_content.dart';
 import 'package:bagtrip/personalization/widgets/welcome_step_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:go_router/go_router.dart';
 
-/// Welcome = 0, content steps 1–4 = companions, budget, interests, frequency.
-const int _kContentSteps = 4;
+/// Welcome = 0, content steps 1–5 = companions, budget, interests, frequency, constraints.
+const int _kContentSteps = 5;
 
 double _responsiveHorizontalPadding(BuildContext context) {
   final width = MediaQuery.sizeOf(context).width;
@@ -32,24 +35,21 @@ class PersonalizationView extends StatelessWidget {
       listener: (context, state) {
         if (state is PersonalizationCompleted ||
             state is PersonalizationSkipped) {
-          final fromCreateTripAi =
-              GoRouterState.of(context).uri.queryParameters['from'] ==
-              'createTripAi';
-          if (fromCreateTripAi) {
-            context.go('/planifier/create-trip-ai');
-          } else if (Navigator.of(context).canPop()) {
-            context.pop();
-          } else {
-            context.go('/planifier');
+          final from = GoRouterState.of(context).uri.queryParameters['from'];
+          switch (from) {
+            case 'createTripAi':
+              const PlanTripRoute().go(context);
+            case 'profile':
+              const ProfileRoute().go(context);
+            default:
+              const HomeRoute().go(context);
           }
         }
       },
       child: BlocBuilder<PersonalizationBloc, PersonalizationState>(
         builder: (context, state) {
           if (state is PersonalizationLoading) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
+            return const Scaffold(body: LoadingView());
           }
           if (state is! PersonalizationLoaded) {
             return const Scaffold(body: SizedBox.shrink());
@@ -95,7 +95,20 @@ class PersonalizationView extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.chevron_left),
           color: PersonalizationColors.textPrimary,
-          onPressed: () => bloc.add(PersonalizationPreviousStep()),
+          onPressed: () {
+            if (state.step == 1) {
+              final from = GoRouterState.of(
+                context,
+              ).uri.queryParameters['from'];
+              if (from == 'profile') {
+                const ProfileRoute().go(context);
+              } else {
+                const HomeRoute().go(context);
+              }
+            } else {
+              bloc.add(PersonalizationPreviousStep());
+            }
+          },
         ),
         title: PremiumStepIndicator(current: state.step, total: _kContentSteps),
         centerTitle: true,
@@ -118,13 +131,12 @@ class PersonalizationView extends StatelessWidget {
                     const SizedBox(height: AppSpacing.space16),
                     Text(
                       _stepTitle(l10n, state.step),
-                      style: Theme.of(
-                        context,
-                      ).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: PersonalizationColors.textPrimary,
-                        letterSpacing: -0.3,
-                      ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: PersonalizationColors.textPrimary,
+                            letterSpacing: -0.3,
+                          ),
                     ),
                     const SizedBox(height: AppSpacing.space8),
                     Text(
@@ -151,10 +163,9 @@ class PersonalizationView extends StatelessWidget {
               child: Column(
                 children: [
                   PremiumCtaButton(
-                    label:
-                        isLastStep
-                            ? l10n.personalizationFinish
-                            : l10n.personalizationContinue,
+                    label: isLastStep
+                        ? l10n.personalizationFinish
+                        : l10n.personalizationContinue,
                     onPressed: () {
                       if (isLastStep) {
                         bloc.add(SaveAndFinishPersonalization());
@@ -195,6 +206,8 @@ class PersonalizationView extends StatelessWidget {
         return l10n.personalizationStepTitleInterests;
       case 4:
         return l10n.personalizationStepTitleFrequency;
+      case 5:
+        return 'Contraintes';
       default:
         return '';
     }
@@ -210,6 +223,8 @@ class PersonalizationView extends StatelessWidget {
         return l10n.personalizationStepSubtitleInterests;
       case 4:
         return l10n.personalizationStepSubtitleFrequency;
+      case 5:
+        return 'Des restrictions ou contraintes pour votre voyage ?';
       default:
         return '';
     }
@@ -248,6 +263,11 @@ class PersonalizationView extends StatelessWidget {
         return TravelFrequencyStepContent(
           selectedId: state.travelFrequency,
           onSelect: (id) => bloc.add(SetTravelFrequency(id)),
+        );
+      case 5:
+        return ConstraintsStepContent(
+          value: state.constraints,
+          onChanged: (v) => bloc.add(SetConstraints(v.isEmpty ? null : v)),
         );
       default:
         return const SizedBox.shrink();

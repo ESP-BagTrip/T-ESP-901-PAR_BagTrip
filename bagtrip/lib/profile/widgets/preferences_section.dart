@@ -2,55 +2,54 @@ import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/profile/bloc/profile_bloc.dart';
 import 'package:bagtrip/profile/widgets/profile_section_card.dart';
+import 'package:bagtrip/settings/bloc/settings_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PreferencesSection extends StatelessWidget {
-  final String selectedTheme;
-  final String selectedLanguage;
-
-  const PreferencesSection({
-    super.key,
-    required this.selectedTheme,
-    required this.selectedLanguage,
-  });
+  const PreferencesSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ProfileSectionCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    final theme = Theme.of(context);
+    return BlocBuilder<SettingsBloc, SettingsState>(
+      builder: (context, settingsState) {
+        return ProfileSectionCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(
-                Icons.language_outlined,
-                color: ColorName.secondary,
-                size: 20,
+              Row(
+                children: [
+                  const Icon(
+                    Icons.language_outlined,
+                    color: ColorName.secondary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: AppSpacing.space8),
+                  Text(
+                    AppLocalizations.of(context)!.preferencesTitle,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: AppSpacing.space8),
-              Text(
-                AppLocalizations.of(context)!.preferencesTitle,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: ColorName.primaryTrueDark,
-                ),
-              ),
+              const SizedBox(height: AppSpacing.space16),
+              _buildLanguageRow(context, settingsState.selectedLanguage),
+              const SizedBox(height: AppSpacing.space16),
+              _buildThemeSelector(context, settingsState.selectedTheme),
             ],
           ),
-          const SizedBox(height: AppSpacing.space16),
-          _buildLanguageRow(context),
-          const SizedBox(height: AppSpacing.space16),
-          _buildThemeSelector(context),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildLanguageRow(BuildContext context) {
+  Widget _buildLanguageRow(BuildContext context, String selectedLanguage) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
     return Row(
       children: [
         Icon(
@@ -65,34 +64,32 @@ class PreferencesSection extends StatelessWidget {
             children: [
               Text(
                 AppLocalizations.of(context)!.languageLabel,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: ColorName.primaryTrueDark.withValues(alpha: 0.5),
+                  color: AppColors.textSecondary,
                   letterSpacing: 0.5,
                 ),
               ),
               const SizedBox(height: AppSpacing.space4),
               Text(
                 selectedLanguage,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: ColorName.primaryTrueDark,
-                ),
+                style: TextStyle(fontSize: 14, color: onSurface),
               ),
             ],
           ),
         ),
         Icon(
           Icons.chevron_right,
-          color: ColorName.primaryTrueDark.withValues(alpha: 0.4),
+          color: onSurface.withValues(alpha: 0.4),
           size: 20,
         ),
       ],
     );
   }
 
-  Widget _buildThemeSelector(BuildContext context) {
+  Widget _buildThemeSelector(BuildContext context, String currentTheme) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -110,10 +107,10 @@ class PreferencesSection extends StatelessWidget {
                 children: [
                   Text(
                     AppLocalizations.of(context)!.themeLabel,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
-                      color: ColorName.primaryTrueDark.withValues(alpha: 0.5),
+                      color: AppColors.textSecondary,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -122,7 +119,7 @@ class PreferencesSection extends StatelessWidget {
                     AppLocalizations.of(context)!.chooseThemeHint,
                     style: TextStyle(
                       fontSize: 12,
-                      color: ColorName.primaryTrueDark.withValues(alpha: 0.6),
+                      color: onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -131,45 +128,38 @@ class PreferencesSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-        BlocBuilder<ProfileBloc, ProfileState>(
-          builder: (context, state) {
-            final currentTheme =
-                state is ProfileLoaded ? state.selectedTheme : selectedTheme;
-
-            return Row(
-              children: [
-                Expanded(
-                  child: _buildThemeOption(
-                    context,
-                    'light',
-                    AppLocalizations.of(context)!.themeLight,
-                    Icons.light_mode_outlined,
-                    currentTheme == 'light',
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.space8),
-                Expanded(
-                  child: _buildThemeOption(
-                    context,
-                    'dark',
-                    AppLocalizations.of(context)!.themeDark,
-                    Icons.dark_mode_outlined,
-                    currentTheme == 'dark',
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.space8),
-                Expanded(
-                  child: _buildThemeOption(
-                    context,
-                    'system',
-                    AppLocalizations.of(context)!.themeSystem,
-                    Icons.desktop_windows_outlined,
-                    currentTheme == 'system',
-                  ),
-                ),
-              ],
-            );
-          },
+        Row(
+          children: [
+            Expanded(
+              child: _buildThemeOption(
+                context,
+                'light',
+                AppLocalizations.of(context)!.themeLight,
+                Icons.light_mode_outlined,
+                currentTheme == 'light',
+              ),
+            ),
+            const SizedBox(width: AppSpacing.space8),
+            Expanded(
+              child: _buildThemeOption(
+                context,
+                'dark',
+                AppLocalizations.of(context)!.themeDark,
+                Icons.dark_mode_outlined,
+                currentTheme == 'dark',
+              ),
+            ),
+            const SizedBox(width: AppSpacing.space8),
+            Expanded(
+              child: _buildThemeOption(
+                context,
+                'system',
+                AppLocalizations.of(context)!.themeSystem,
+                Icons.desktop_windows_outlined,
+                currentTheme == 'system',
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -182,9 +172,12 @@ class PreferencesSection extends StatelessWidget {
     IconData icon,
     bool isSelected,
   ) {
+    final theme = Theme.of(context);
+    final onSurface = theme.colorScheme.onSurface;
+    final isDark = theme.brightness == Brightness.dark;
     return InkWell(
       onTap: () {
-        context.read<ProfileBloc>().add(UpdateTheme(themeValue));
+        context.read<SettingsBloc>().add(ChangeTheme(themeValue));
       },
       borderRadius: AppRadius.medium8,
       child: Container(
@@ -193,14 +186,16 @@ class PreferencesSection extends StatelessWidget {
           horizontal: AppSpacing.space8,
         ),
         decoration: BoxDecoration(
-          color:
-              isSelected
-                  ? ColorName.secondary.withValues(alpha: 0.1)
-                  : ColorName.primaryLight,
+          color: isSelected
+              ? ColorName.secondary.withValues(alpha: 0.1)
+              : isDark
+              ? ColorName.primaryDark
+              : ColorName.primaryLight,
           borderRadius: AppRadius.medium8,
           border: Border.all(
-            color:
-                isSelected ? ColorName.secondary : ColorName.primarySoftLight,
+            color: isSelected
+                ? ColorName.secondary
+                : theme.colorScheme.outlineVariant,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -212,10 +207,9 @@ class PreferencesSection extends StatelessWidget {
               children: [
                 Icon(
                   icon,
-                  color:
-                      isSelected
-                          ? ColorName.secondary
-                          : ColorName.primaryTrueDark.withValues(alpha: 0.6),
+                  color: isSelected
+                      ? ColorName.secondary
+                      : onSurface.withValues(alpha: 0.6),
                   size: 20,
                 ),
                 const SizedBox(height: AppSpacing.space4),
@@ -225,10 +219,9 @@ class PreferencesSection extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color:
-                        isSelected
-                            ? ColorName.secondary
-                            : ColorName.primaryTrueDark.withValues(alpha: 0.7),
+                    color: isSelected
+                        ? ColorName.secondary
+                        : onSurface.withValues(alpha: 0.7),
                   ),
                 ),
               ],

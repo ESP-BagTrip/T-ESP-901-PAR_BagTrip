@@ -39,15 +39,13 @@ class ManualFlightAirportsCard extends StatelessWidget {
             icon: Icons.flight_takeoff_rounded,
             label: l10n.departureLabel.toUpperCase(),
             airport: state.departureAirport,
-            onTap:
-                () => _openAirportPicker(
-                  context,
-                  type: AirportType.departure,
-                  onSelect:
-                      (a) => context.read<FlightSearchBloc>().add(
-                        SelectDepartureAirport(a),
-                      ),
-                ),
+            onTap: () => _openAirportPicker(
+              context,
+              type: AirportType.departure,
+              onSelect: (a) => context.read<FlightSearchBloc>().add(
+                SelectDepartureAirport(a),
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           _SeparatorWithSwap(
@@ -61,15 +59,12 @@ class ManualFlightAirportsCard extends StatelessWidget {
             icon: Icons.flight_land_rounded,
             label: l10n.destinationLabel.toUpperCase(),
             airport: state.arrivalAirport,
-            onTap:
-                () => _openAirportPicker(
-                  context,
-                  type: AirportType.arrival,
-                  onSelect:
-                      (a) => context.read<FlightSearchBloc>().add(
-                        SelectArrivalAirport(a),
-                      ),
-                ),
+            onTap: () => _openAirportPicker(
+              context,
+              type: AirportType.arrival,
+              onSelect: (a) =>
+                  context.read<FlightSearchBloc>().add(SelectArrivalAirport(a)),
+            ),
           ),
         ],
       ),
@@ -82,149 +77,139 @@ class ManualFlightAirportsCard extends StatelessWidget {
     required void Function(Map<String, dynamic>) onSelect,
   }) {
     final bloc = context.read<FlightSearchBloc>();
-    final hint =
-        type == AirportType.departure
-            ? AppLocalizations.of(context)!.airportDepartureHint
-            : AppLocalizations.of(context)!.airportArrivalHint;
+    final hint = type == AirportType.departure
+        ? AppLocalizations.of(context)!.airportDepartureHint
+        : AppLocalizations.of(context)!.airportArrivalHint;
 
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder:
-          (sheetContext) => BlocProvider.value(
-            value: bloc,
-            child: DraggableScrollableSheet(
-              initialChildSize: 0.6,
-              minChildSize: 0.4,
-              maxChildSize: 0.9,
-              builder:
-                  (_, scrollController) => Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(20),
+      builder: (sheetContext) => BlocProvider.value(
+        value: bloc,
+        child: DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (_, scrollController) => Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+            ),
+            child: Column(
+              children: [
+                const SizedBox(height: 12),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: TextField(
+                    autofocus: true,
+                    style: const TextStyle(
+                      fontFamily: FontFamily.b612,
+                      fontSize: 16,
+                      color: ColorName.primaryTrueDark,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: hint,
+                      hintStyle: const TextStyle(
+                        fontFamily: FontFamily.b612,
+                        color: AppColors.hint,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.search_rounded,
+                        color: ColorName.hint,
+                        size: 22,
+                      ),
+                      filled: true,
+                      fillColor: ColorName.primaryLight.withValues(alpha: 0.5),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
                       ),
                     ),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 12),
-                        Container(
-                          width: 40,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: ColorName.primarySoftLight,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: TextField(
-                            autofocus: true,
-                            style: const TextStyle(
+                    onChanged: (value) {
+                      if (value.length >= 2) {
+                        bloc.add(
+                          type == AirportType.departure
+                              ? SearchDepartureAirport(value)
+                              : SearchArrivalAirport(value),
+                        );
+                      }
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: BlocBuilder<FlightSearchBloc, FlightSearchState>(
+                    builder: (context, state) {
+                      final results = state is FlightSearchLoaded
+                          ? state.searchResults
+                          : null;
+                      if (results == null || results.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            'Type to search',
+                            style: TextStyle(
                               fontFamily: FontFamily.b612,
-                              fontSize: 16,
-                              color: ColorName.primaryTrueDark,
+                              color: AppColors.hint,
+                              fontSize: 14,
                             ),
-                            decoration: InputDecoration(
-                              hintText: hint,
-                              hintStyle: const TextStyle(
+                          ),
+                        );
+                      }
+                      return ListView.separated(
+                        controller: scrollController,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        itemCount: results.length,
+                        separatorBuilder: (_, _) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final airport = results[index];
+                          return ListTile(
+                            title: Text(
+                              airport['name'] ?? '',
+                              style: const TextStyle(
                                 fontFamily: FontFamily.b612,
+                                fontWeight: FontWeight.w600,
+                                color: ColorName.primaryTrueDark,
+                              ),
+                            ),
+                            subtitle: Text(
+                              [airport['iataCode'], airport['city']]
+                                  .where(
+                                    (e) => e != null && e.toString().isNotEmpty,
+                                  )
+                                  .join(' · '),
+                              style: const TextStyle(
+                                fontFamily: FontFamily.b612,
+                                fontSize: 13,
                                 color: AppColors.hint,
                               ),
-                              prefixIcon: const Icon(
-                                Icons.search_rounded,
-                                color: ColorName.hint,
-                                size: 22,
-                              ),
-                              filled: true,
-                              fillColor: ColorName.primaryLight.withValues(
-                                alpha: 0.5,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
                             ),
-                            onChanged: (value) {
-                              if (value.length >= 2) {
-                                bloc.add(
-                                  type == AirportType.departure
-                                      ? SearchDepartureAirport(value)
-                                      : SearchArrivalAirport(value),
-                                );
-                              }
+                            onTap: () {
+                              onSelect(airport);
+                              Navigator.of(sheetContext).pop();
                             },
-                          ),
-                        ),
-                        Expanded(
-                          child:
-                              BlocBuilder<FlightSearchBloc, FlightSearchState>(
-                                builder: (context, state) {
-                                  final results =
-                                      state is FlightSearchLoaded
-                                          ? state.searchResults
-                                          : null;
-                                  if (results == null || results.isEmpty) {
-                                    return const Center(
-                                      child: Text(
-                                        'Type to search',
-                                        style: TextStyle(
-                                          fontFamily: FontFamily.b612,
-                                          color: AppColors.hint,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                  return ListView.separated(
-                                    controller: scrollController,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 20,
-                                    ),
-                                    itemCount: results.length,
-                                    separatorBuilder:
-                                        (_, _) => const Divider(height: 1),
-                                    itemBuilder: (context, index) {
-                                      final airport = results[index];
-                                      return ListTile(
-                                        title: Text(
-                                          airport['name'] ?? '',
-                                          style: const TextStyle(
-                                            fontFamily: FontFamily.b612,
-                                            fontWeight: FontWeight.w600,
-                                            color: ColorName.primaryTrueDark,
-                                          ),
-                                        ),
-                                        subtitle: Text(
-                                          [airport['iataCode'], airport['city']]
-                                              .where(
-                                                (e) =>
-                                                    e != null &&
-                                                    e.toString().isNotEmpty,
-                                              )
-                                              .join(' · '),
-                                          style: const TextStyle(
-                                            fontFamily: FontFamily.b612,
-                                            fontSize: 13,
-                                            color: AppColors.hint,
-                                          ),
-                                        ),
-                                        onTap: () {
-                                          onSelect(airport);
-                                          Navigator.of(sheetContext).pop();
-                                        },
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                        ),
-                      ],
-                    ),
+                          );
+                        },
+                      );
+                    },
                   ),
+                ),
+              ],
             ),
           ),
+        ),
+      ),
     );
   }
 }
@@ -288,10 +273,9 @@ class _AirportRow extends StatelessWidget {
                               fontFamily: FontFamily.b612,
                               fontSize: 20,
                               fontWeight: FontWeight.w700,
-                              color:
-                                  city.isNotEmpty
-                                      ? ColorName.primaryTrueDark
-                                      : AppColors.hint,
+                              color: city.isNotEmpty
+                                  ? ColorName.primaryTrueDark
+                                  : AppColors.hint,
                             ),
                           ),
                         ),

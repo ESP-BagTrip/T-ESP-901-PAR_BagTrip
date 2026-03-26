@@ -1,0 +1,81 @@
+"""Tests for Phase 5 (API-4): retry logic, degradation."""
+
+import asyncio
+
+from src.agent.retry import _NODE_FIELD_MAP, with_retry
+
+
+def _run(coro):
+    return asyncio.get_event_loop().run_until_complete(coro)
+
+
+def test_success_on_first_attempt():
+    async def ok_node(state):
+        return {"activities": [{"title": "Hiking"}]}
+
+    result = _run(with_retry(ok_node, {}, "activity_planner"))
+    assert result["activities"] == [{"title": "Hiking"}]
+
+
+def test_failure_then_success_on_retry():
+    call_count = 0
+
+    async def flaky_node(state):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            raise RuntimeError("Temporary failure")
+        return {"accommodations": [{"name": "Hotel Test"}]}
+
+    result = _run(with_retry(flaky_node, {}, "accommodation"))
+    assert call_count == 2
+    assert result["accommodations"] == [{"name": "Hotel Test"}]
+
+
+def test_total_failure_returns_degraded_result():
+    async def always_fails(state):
+        raise RuntimeError("Permanent failure")
+
+    result = _run(with_retry(always_fails, {}, "activity_planner"))
+
+    # Should return empty list for the mapped field
+    assert result["activities"] == []
+    # Should include warning event
+    assert len(result["events"]) == 1
+    assert result["events"][0]["event"] == "warning"
+    assert result["events"][0]["data"]["section"] == "activity_planner"
+    # Should include error message
+    assert len(result["errors"]) == 1
+    assert "activity_planner failed" in result["errors"][0]
+
+
+def test_total_failure_unknown_node_uses_name_as_field():
+    async def always_fails(state):
+        raise RuntimeError("fail")
+
+    result = _run(with_retry(always_fails, {}, "unknown_node"))
+    assert result["unknown_node"] == []
+
+
+def test_node_field_map_covers_parallel_nodes():
+    assert "activity_planner" in _NODE_FIELD_MAP
+    assert "accommodation" in _NODE_FIELD_MAP
+    assert "baggage" in _NODE_FIELD_MAP
+    assert _NODE_FIELD_MAP["activity_planner"] == "activities"
+    assert _NODE_FIELD_MAP["accommodation"] == "accommodations"
+    assert _NODE_FIELD_MAP["baggage"] == "baggage_items"
+
+
+def test_max_retries_custom():
+    call_count = 0
+
+    async def fails_twice(state):
+        nonlocal call_count
+        call_count += 1
+        if call_count <= 2:
+            raise RuntimeError("fail")
+        return {"activities": []}
+
+    result = _run(with_retry(fails_twice, {}, "activity_planner", max_retries=2))
+    assert call_count == 3
+    assert result["activities"] == []

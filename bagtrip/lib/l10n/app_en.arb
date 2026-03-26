@@ -123,7 +123,6 @@
   "otherCardTitle": "Others",
   "handleBudget": "Manage your budget",
   "trackExpensesAndPlan": "Track your expenses and plan your trip according to your budget",
-  "addExpense": "Add expense",
   "myProfile": "My profile",
   "managePersonalInfo": "Manage your personal information and preferences",
   "editProfile": "Edit profile",
@@ -150,10 +149,15 @@
     }
   },
   "personalInfoTitle": "Personal Information",
+  "nameLabel": "NAME",
   "emailLabel": "EMAIL",
   "phoneLabel": "PHONE",
-  "addressLabel": "ADDRESS",
   "modifyButton": "Modify",
+  "editNameTitle": "Edit name",
+  "editPhoneTitle": "Edit phone number",
+  "saveButton": "Save",
+  "profileUpdateSuccess": "Profile updated successfully",
+  "profileUpdateError": "Failed to update profile",
   "preferencesTitle": "Preferences",
   "languageLabel": "LANGUAGE",
   "themeLabel": "THEME",
@@ -283,14 +287,6 @@
   "planifierManualDesc": "Create your trip step by step with all the details",
   "planifierAITitle": "AI Assistant",
   "planifierAIDesc": "Let AI help you create a personalized trip",
-  "planifierSectionMyTrips": "My trips",
-  "planifierInProgressTitle": "In progress",
-  "planifierInProgressCount": "{count} trip(s) pending",
-  "@planifierInProgressCount": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
-  },
   "planifierCompletedTitle": "Completed trips",
   "planifierCompletedDesc": "View your past trips and budgets",
   "planifierGreeting": "Good morning",
@@ -299,22 +295,6 @@
   "planifierManualDescriptionCard": "Build your itinerary step by step with full control.",
   "planifierAIDescriptionCard": "Let AI craft a personalized trip for you.",
   "planifierNewBadge": "NEW",
-  "planifierPlanningTitle": "Planning",
-  "planifierPlanningDescription": "Trips being prepared",
-  "planifierInProgressSuffix": "{count} in progress",
-  "@planifierInProgressSuffix": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
-  },
-  "planifierCompletedShort": "Completed",
-  "planifierCompletedDescriptionCard": "Past trips & budgets",
-  "planifierCompletedSuffix": "{count} completed",
-  "@planifierCompletedSuffix": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
-  },
   "planifierSectionExploreDestinations": "Explore destinations",
   "destinationKyoto": "Kyoto",
   "destinationSantorini": "Santorini",
@@ -347,8 +327,8 @@
   "transportBudgetHint": "This amount will be added to your trip budget",
   "continueButton": "Continue",
   "skipThisStepLabel": "Skip this step",
-  "recapTitle": "Summary",
-  "recapFinalStepLabel": "FINAL STEP",
+  "recapTitle": "Plan your trip",
+  "recapFinalStepLabel": "AI PLANNING",
   "recapDateChoose": "Choose",
   "recapDateSelectHint": "Select",
   "recapTravelTypesLabel": "TRAVEL TYPES",
@@ -409,5 +389,887 @@
         "type": "String"
       }
     }
-  }
+  },
+  "activities": "Activities",
+  "addActivity": "Add Activity",
+  "editActivity": "Edit Activity",
+  "noActivities": "No activities yet",
+  "activityTitle": "Title",
+  "activityDate": "Date",
+  "activityDescription": "Description",
+  "activityStartTime": "Start time",
+  "activityEndTime": "End time",
+  "activityLocation": "Location",
+  "activityCategory": "Category",
+  "activityEstimatedCost": "Estimated cost",
+  "activityBooked": "Booked",
+  "categoryVisit": "Visit",
+  "categoryRestaurant": "Restaurant",
+  "categoryTransport": "Transport",
+  "categoryLeisure": "Leisure",
+  "categoryOther": "Other",
+  "budgetItems": "Budget",
+  "addExpense": "Add expense",
+  "editExpense": "Edit expense",
+  "noExpenses": "No expenses yet",
+  "expenseLabel": "Label",
+  "expenseAmount": "Amount",
+  "expenseCategory": "Category",
+  "expenseDate": "Date",
+  "expensePlanned": "Planned",
+  "expenseReal": "Real",
+  "expenseLabelRequired": "Label is required",
+  "budgetTotal": "Total budget",
+  "budgetSpent": "Spent",
+  "budgetRemaining": "Remaining",
+  "categoryFlight": "Flight",
+  "categoryAccommodation": "Accommodation",
+  "categoryFood": "Food",
+  "categoryActivity": "Activity",
+  "budgetExceeded": "Budget exceeded by {amount} €",
+  "@budgetExceeded": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetWarning": "You have used {percent}% of your budget",
+  "@budgetWarning": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "tripCompletedReadOnly": "This trip is completed. Data is read-only.",
+  "markAsReady": "Mark as ready",
+  "cancelButton": "Cancel",
+  "deleteButton": "Delete",
+  "addButton": "Add",
+  "comingSoon": "Coming soon",
+  "errorTitle": "Error",
+  "backButton": "Back",
+  "tabHome": "Home",
+  "tabActivity": "Activity",
+  "tabProfile": "Profile",
+  "notificationsTitle": "Notifications",
+  "notificationsMarkAllRead": "Mark all read",
+  "notificationsEmpty": "No notifications",
+  "notificationsToday": "Today",
+  "notificationsYesterday": "Yesterday",
+  "notificationsDaysAgo": "{count} days ago",
+  "@notificationsDaysAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "baggageTitle": "Luggage",
+  "baggageSuggestionsTooltip": "AI Suggestions",
+  "baggageCategoryDocuments": "Documents",
+  "baggageCategoryClothing": "Clothing",
+  "baggageCategoryElectronics": "Electronics",
+  "baggageCategoryHygiene": "Hygiene",
+  "baggageCategoryMedication": "Medication",
+  "baggageCategoryAccessories": "Accessories",
+  "baggageCategoryOther": "Other",
+  "baggageDeleteTitle": "Delete item",
+  "baggageDeleteConfirm": "Are you sure you want to delete this item?",
+  "baggageItemAdded": "Item added",
+  "baggageItemDeleted": "Item deleted",
+  "baggageItemAddedFromSuggestion": "Item added from suggestion",
+  "baggageQuantityLabel": "Qty",
+  "baggageCategoryLabel": "Category (optional)",
+  "baggageEmptyTitle": "No items",
+  "baggageEmptySubtitle": "Add items to your luggage list",
+  "baggageAddItemTitle": "Add an item",
+  "baggagePackedCount": "{packed} of {total} packed",
+  "@baggagePackedCount": {
+    "placeholders": {
+      "packed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "baggageSuggestionsTitle": "Suggestions for you",
+  "baggageToPack": "To pack",
+  "baggagePacked": "Packed",
+  "baggageSwipeToPack": "Swipe to pack",
+  "baggageUnpack": "Unpack",
+  "baggageItemName": "Item name",
+  "fieldRequired": "This field is required",
+  "accommodationsTitle": "Accommodations",
+  "accommodationCheckInHelp": "Check-in date",
+  "accommodationCheckOutHelp": "Check-out date",
+  "accommodationAdded": "Accommodation added successfully",
+  "accommodationDeleteTitle": "Delete accommodation",
+  "accommodationDeleteConfirm": "Are you sure you want to delete this accommodation?",
+  "accommodationDeleted": "Accommodation deleted",
+  "accommodationCheckInLabel": "Check-in",
+  "accommodationCheckOutLabel": "Check-out",
+  "accommodationEmptyTitle": "No accommodations",
+  "accommodationEmptySubtitle": "Add your hotels and lodgings",
+  "accommodationAddTitle": "Add an accommodation",
+  "tripTravelers": "Travelers",
+  "tripDaysRemaining": "Days remaining",
+  "tripTravelDays": "Travel days",
+  "tripComplete": "Complete trip",
+  "tripDeleteTitle": "Delete trip",
+  "tripDeleteConfirm": "Are you sure you want to delete this trip? This action is irreversible.",
+  "tripGiveReview": "Give a review",
+  "tripsMyTrips": "My trips",
+  "tripsNewTrip": "New trip",
+  "tripStatusOngoing": "Ongoing",
+  "tripStatusPlanned": "Upcoming",
+  "tripStatusCompleted": "Completed",
+  "tripsEmptyOngoing": "No ongoing trips",
+  "tripsEmptyPlanned": "No planned trips",
+  "tripsEmptyCompleted": "No completed trips",
+  "sharesTitle": "Shares",
+  "sharesInviteButton": "Invite",
+  "sharesRevokeTitle": "Revoke access",
+  "sharesRevokeConfirm": "Are you sure you want to revoke access for this user?",
+  "sharesRevokeButton": "Revoke",
+  "sharesEmpty": "No shares",
+  "sharesEmptySubtitle": "Invite people to view your trip",
+  "tripCreated": "Trip created!",
+  "aiResultsTitle": "AI Results",
+  "feedbackTitle": "Reviews",
+  "feedbackGiveReview": "Give a review",
+  "feedbackAllReviews": "All reviews",
+  "feedbackGiveYourReview": "Give your review",
+  "feedbackOverallRating": "Overall rating",
+  "feedbackHighlights": "Highlights",
+  "feedbackHighlightsHint": "What did you like?",
+  "feedbackLowlights": "Weak points",
+  "feedbackLowlightsHint": "What could be improved?",
+  "feedbackWouldRecommend": "Would you recommend this trip?",
+  "feedbackThanks": "Thanks for your review!",
+  "feedbackSubmitButton": "Submit my review",
+  "feedbackSent": "Your review has been sent",
+  "feedbackRecommended": "Recommended: ",
+  "feedbackDiscoverNextTrip": "Discover my next trip",
+  "feedbackDiscoverText": "Discover your next ideal trip based on your experiences.",
+  "postTripSuggestionTitle": "Suggested next trip",
+  "postTripNextTrip": "Your next trip",
+  "postTripBasedOnPreferences": "Based on your preferences",
+  "postTripProposedActivities": "Proposed activities",
+  "postTripCreateTrip": "Create this trip",
+  "filterCabinBagIncluded": "Cabin bag included",
+  "filterCheckedBagIncluded": "Checked bag included",
+  "filterReset": "Reset",
+  "premiumFeatureAiUnlimited": "Unlimited AI generations",
+  "premiumFeatureViewers": "Up to 10 viewers per trip",
+  "premiumFeatureOfflineNotifs": "Offline notifications",
+  "premiumFeaturePostTrip": "AI post-trip suggestions",
+  "premiumCtaButton": "Upgrade to Premium - €9.99/mo",
+  "profileConfigurePreferences": "Configure your preferences",
+  "profileStyleLabel": "Style: {style}",
+  "@profileStyleLabel": {
+    "placeholders": {
+      "style": {"type": "String"}
+    }
+  },
+  "profileBudgetLabel": "Budget: {budget}",
+  "@profileBudgetLabel": {
+    "placeholders": {
+      "budget": {"type": "String"}
+    }
+  },
+  "profileCompanionsLabel": "Companions: {companions}",
+  "@profileCompanionsLabel": {
+    "placeholders": {
+      "companions": {"type": "String"}
+    }
+  },
+  "errorNetwork": "Connection error. Check your internet connection.",
+  "errorAuth": "Invalid credentials or session expired.",
+  "errorForbidden": "Access denied.",
+  "errorNotFound": "Resource not found.",
+  "errorValidation": "Invalid request.",
+  "errorQuota": "Limit reached. Upgrade to Premium to continue.",
+  "errorStaleContext": "Context has been updated. Please refresh.",
+  "errorServer": "Server error. Please try again later.",
+  "errorRateLimit": "Too many requests. Please wait.",
+  "errorCancelled": "Operation cancelled.",
+  "errorUnknown": "An error occurred. Please try again.",
+  "errorSessionExpired": "Session expired",
+  "bookingLabel": "Booking",
+  "activitiesTitle": "Activities",
+  "activitiesEmpty": "No activities yet",
+  "activitiesEmptySubtitle": "Add activities to plan your trip",
+  "activitiesSuggestionsTitle": "AI Suggestions",
+  "activityFormNew": "New Activity",
+  "activityFormEdit": "Edit Activity",
+  "activityTitleRequired": "Title is required",
+  "activityFormCreate": "Create",
+  "activityFormUpdate": "Update",
+  "activityFormBooked": "Booked",
+  "feedbackYesLabel": "Yes",
+  "feedbackNoLabel": "No",
+  "offlineMode": "You are offline. Showing cached data.",
+  "offlineWriteError": "This action requires an internet connection.",
+  "loadingMore": "Loading more...",
+  "noMoreItems": "No more items",
+  "subscriptionVerifying": "Verifying your subscription...",
+  "subscriptionWelcomePremium": "Welcome to Premium!",
+  "subscriptionPending": "Subscription pending",
+  "subscriptionSuccessMessage": "You now have access to all premium features. Enjoy unlimited AI generations and more!",
+  "subscriptionPendingMessage": "Your payment is being processed. It may take a moment to activate.",
+  "subscriptionCancelTitle": "Payment not completed",
+  "subscriptionCancelMessage": "Your subscription payment was not completed. You can try again or return to your profile.",
+  "subscriptionBackToProfile": "Back to profile",
+  "paymentSuccessTitle": "Payment confirmed!",
+  "paymentSuccessMessage": "Your flight booking has been confirmed. You can view it in your trips.",
+  "paymentBackToTrips": "Back to my trips",
+  "paymentCancelledTitle": "Payment cancelled",
+  "paymentCancelledMessage": "Your payment was cancelled. No charges were made.",
+  "payment3dsReturnTitle": "Payment processing",
+  "payment3dsReturnMessage": "Your payment is being processed. You will receive a confirmation shortly.",
+  "nextTripSection": "Next trip",
+  "nextTripCountdown": "In {days} days",
+  "@nextTripCountdown": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "nextTripNoUpcoming": "No upcoming trip",
+  "nextTripReady": "{percent}% ready",
+  "@nextTripReady": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTitle": "Settings",
+  "personalInfoPageTitle": "Personal information",
+  "travelPreferencesTitle": "Travel preferences",
+  "homeGreeting": "Welcome back, {name}",
+  "@homeGreeting": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "homeWelcomeTitle": "Ready to travel?",
+  "homeWelcomeSubtitle": "Create your first trip in a few steps. Manual or AI-assisted — your choice.",
+  "homeCreateFirstTrip": "Create my first trip",
+  "planTripCta": "Plan a trip",
+  "planTripCtaSubtitle": "Manual or AI-assisted",
+  "inspireMe": "Inspire me",
+  "datesLabel": "DATES",
+  "suggestedDuration": "Suggested duration",
+  "days": "days",
+  "reviewTitle": "Summary",
+  "aiSuggestionsTitle": "AI SUGGESTIONS",
+  "createTripButton": "Create trip",
+  "tripCreatedSuccess": "Trip created successfully!",
+  "stepDestination": "Where?",
+  "stepDates": "When?",
+  "stepTravelers": "Who?",
+  "stepReview": "Review",
+  "toValidateBadge": "To validate",
+  "addFirstAccommodation": "Add an accommodation",
+  "addFirstActivity": "Add an activity",
+  "addFirstBaggage": "Prepare your luggage",
+  "addFirstBudget": "Track your expenses",
+  "budgetTitle": "Budget",
+  "transportsTitle": "Transports",
+  "addFirstTransport": "Add your flight",
+  "addFlight": "Add a flight",
+  "addFlightSubtitle": "Enter your flight number to get live info",
+  "searchFlightOption": "Search a flight",
+  "searchFlightOptionSubtitle": "Find and compare flights",
+  "addManuallyOption": "Add manually",
+  "addManuallyOptionSubtitle": "Enter flight details yourself",
+  "mainFlightsSection": "Main flights",
+  "internalFlightsSection": "Internal flights",
+  "flightNumberLabel": "Flight number",
+  "flightNumberRequired": "Flight number is required",
+  "airlineLabel": "Airline",
+  "departureAirportLabel": "Departure",
+  "arrivalAirportLabel": "Arrival",
+  "departureDateLabel": "Departure date",
+  "arrivalDateLabel": "Arrival date",
+  "priceLabel": "Price",
+  "notesLabel": "Notes",
+  "mainFlightType": "Main",
+  "internalFlightType": "Internal",
+  "flightStatusOnTime": "On time",
+  "flightStatusDelayed": "Delayed",
+  "flightStatusCancelled": "Cancelled",
+  "flightStatusLanded": "Landed",
+  "flightStatusScheduled": "Scheduled",
+  "editButton": "Edit",
+  "activityToValidate": "To verify",
+  "activityValidated": "Verified",
+  "activityDisclaimerSubtitle": "AI Suggestions \u2014 verify availability and prices",
+  "activityValidateConfirmTitle": "Verify this activity?",
+  "activityValidateConfirmMessage": "You can adjust the estimated cost if needed.",
+  "activityValidateCostLabel": "Actual cost (optional)",
+  "activityValidateConfirm": "Confirm",
+  "accommodationSearchHotels": "Search a hotel",
+  "accommodationSearchHotelsSubtitle": "Find and compare prices",
+  "accommodationAddManually": "Add manually",
+  "accommodationAddManuallySubtitle": "Airbnb, hostel, hotel, camping...",
+  "accommodationAiSuggestTitle": "AI Recommendations",
+  "accommodationAiSuggestLoading": "Generating suggestions...",
+  "accommodationEstimatedPrice": "Estimated price",
+  "accommodationNights": "night(s)",
+  "accommodationTotal": "Total",
+  "accommodationSearchInArea": "Search in area",
+  "accommodationTypeHotel": "Hotel",
+  "accommodationTypeAirbnb": "Airbnb",
+  "accommodationTypeHostel": "Hostel",
+  "accommodationTypeCamping": "Camping",
+  "accommodationTypeGuesthouse": "Guesthouse",
+  "accommodationTypeResort": "Resort",
+  "accommodationTypeOther": "Other",
+  "accommodationPricePerNight": "Price/night",
+  "accommodationUpdated": "Accommodation updated",
+  "accommodationAiDisclaimer": "AI suggestions \u2014 verify availability and prices",
+  "budgetConfirmed": "Confirmed",
+  "budgetForecasted": "Forecasted",
+  "budgetEstimateButton": "Estimate my budget",
+  "budgetEstimateTitle": "Budget estimation",
+  "budgetEstimateAccept": "Accept",
+  "budgetEstimateModify": "Modify",
+  "budgetAccommodationPerNight": "Accommodation / night",
+  "budgetMealsPerDay": "Meals / day / person",
+  "budgetLocalTransport": "Local transport / day",
+  "budgetActivitiesTotal": "Activities total",
+  "budgetTotalRange": "{min} – {max} {currency}",
+  "@budgetTotalRange": {
+    "placeholders": {
+      "min": {"type": "String"},
+      "max": {"type": "String"},
+      "currency": {"type": "String"}
+    }
+  },
+  "statusPending": "To validate",
+  "statusConfirmed": "Confirmed",
+  "statusForecasted": "Forecasted",
+  "statusActive": "Active",
+  "statusCompleted": "Completed",
+  "emptyTransportsTitle": "Where are you flying?",
+  "emptyTransportsSubtitle": "Add your flights to start organizing your trip",
+  "emptyAccommodationsTitle": "Where will you stay?",
+  "emptyAccommodationsSubtitle": "Add your hotels and lodgings",
+  "emptyActivitiesTitle": "What will you discover?",
+  "emptyActivitiesSubtitle": "Add activities to plan your trip",
+  "emptyBaggageTitle": "What do you need to pack?",
+  "emptyBaggageSubtitle": "Add items to your luggage list",
+  "emptyBudgetTitle": "Track your expenses",
+  "emptyBudgetSubtitle": "Follow your expenses and plan your trip budget",
+  "mapTitle": "Map",
+  "mapComingSoonSubtitle": "Your trip on a map. Coming soon.",
+  "mapComingSoonShort": "Map coming soon",
+  "datesModeExact": "Exact dates",
+  "datesModeMonth": "Month",
+  "datesModeFlexible": "Flexible",
+  "datesFlexibleWhenever": "Whenever",
+  "datesFlexibleWeekend": "Weekend",
+  "datesFlexibleWeek": "1 week",
+  "datesFlexibleTwoWeeks": "2 weeks",
+  "datesFlexibleThreeWeeks": "3 weeks",
+  "datesFlexibleWeekendDays": "2-3 days",
+  "datesFlexibleWeekDays": "7 days",
+  "datesFlexibleTwoWeeksDays": "14 days",
+  "datesFlexibleThreeWeeksDays": "21 days",
+  "planTripStepDates": "When are you going?",
+  "travelersLabel": "TRAVELERS",
+  "travelerCountLabel": "{count, plural, =1{1 traveler} other{{count} travelers}}",
+  "@travelerCountLabel": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "budgetLabel": "BUDGET",
+  "budgetPresetBackpacker": "Backpacker",
+  "budgetPresetBackpackerDesc": "30–60 €/day",
+  "budgetPresetComfortable": "Comfortable",
+  "budgetPresetComfortableDesc": "80–150 €/day",
+  "budgetPresetPremium": "Premium",
+  "budgetPresetPremiumDesc": "200–400 €/day",
+  "budgetPresetNoLimit": "No limit",
+  "budgetPresetNoLimitDesc": "400+ €/day",
+  "budgetEstimationLabel": "ESTIMATED TOTAL",
+  "budgetSkipLabel": "I'll decide later",
+  "destinationSectionLabel": "DESTINATION",
+  "destinationOrSeparator": "OR",
+  "destinationNoResults": "No results found",
+  "destinationAiLoading": "Our AI is searching for you...",
+  "destinationSelected": "Selected destination",
+  "stepAiProposals": "Your destinations",
+  "chooseThisDestination": "Choose this destination",
+  "swipeToDiscover": "Swipe to discover →",
+  "aiProposalsEmpty": "No suggestions available",
+  "aiProposalsEmptySubtitle": "Go back and try again",
+  "aiBadgeLabel": "AI",
+  "stepGeneration": "Generating...",
+  "generationTitle": "AI GENERATION",
+  "generationStepDestinations": "Destinations",
+  "generationStepActivities": "Activities",
+  "generationStepAccommodations": "Accommodations",
+  "generationStepBaggage": "Luggage",
+  "generationStepBudget": "Budget",
+  "generationErrorTitle": "Generation failed",
+  "generationErrorSubtitle": "Something went wrong. Please try again.",
+  "generationTimeoutTitle": "Taking too long",
+  "generationTimeoutSubtitle": "The generation is taking longer than expected. Please try again.",
+  "generationProgressLabel": "{percent}%",
+  "@generationProgressLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewCreateTrip": "Create my trip",
+  "reviewSeeOtherDestinations": "See other destinations",
+  "reviewCreatingTrip": "Creating your trip...",
+  "reviewSectionBudget": "BUDGET BREAKDOWN",
+  "reviewBudgetFlights": "Flights",
+  "reviewBudgetAccommodation": "Accommodation",
+  "reviewBudgetMeals": "Meals",
+  "reviewBudgetTransport": "Transport",
+  "reviewBudgetActivities": "Activities",
+  "reviewBudgetOther": "Other",
+  "reviewBudgetTotal": "Total",
+  "reviewSourceVerified": "Verified",
+  "reviewSourceEstimated": "Estimated",
+  "reviewDayLabel": "Day {day}",
+  "@reviewDayLabel": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewPriceEur": "{amount} EUR",
+  "@reviewPriceEur": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewHighlightsLabel": "HIGHLIGHTS",
+  "reviewEssentialReason": "Why: {reason}",
+  "@reviewEssentialReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewNoActivities": "No activities planned",
+  "homeActiveTripTitle": "Your trip to {destination}",
+  "@homeActiveTripTitle": {
+    "placeholders": {
+      "destination": {
+        "type": "String"
+      }
+    }
+  },
+  "homeActiveTripDay": "Day {current} of {total}",
+  "@homeActiveTripDay": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "homeTodayActivities": "Today's schedule",
+  "homeNoActivitiesToday": "No activities planned today",
+  "homeTripCompletion": "{percent}% ready",
+  "@homeTripCompletion": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingInspirationTitle": "Get inspired",
+  "onboardingInspirationSubtitle": "Popular destinations",
+  "tripManagerCompletedSection": "Past adventures",
+  "tripCardNoDestination": "No destination",
+  "tripCardNoTitle": "Untitled trip",
+  "activeTripsViewTrip": "View trip",
+  "activeTripsNextUp": "Next up",
+  "activeTripsAllDay": "All day",
+  "activeTripsTomorrow": "Tomorrow",
+  "activeTripsTomorrowCount": "{count, plural, =1{1 activity} other{{count} activities}}",
+  "@activeTripsTomorrowCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "activeTripsQuickActions": "Quick actions",
+  "activeTripsActivities": "Activities",
+  "activeTripsBudget": "Budget",
+  "activeTripsBaggage": "Baggage",
+  "activeTripsShare": "Share",
+  "completionDates": "Dates",
+  "completionFlights": "Flights",
+  "completionAccommodation": "Hotels",
+  "completionActivities": "Activities",
+  "completionBaggage": "Luggage",
+  "completionBudget": "Budget",
+  "tripDetailQuickFlights": "Flights",
+  "tripDetailQuickActivities": "Activities",
+  "tripDetailQuickAddFlight": "Add flight",
+  "tripDetailQuickAddHotel": "Add hotel",
+  "tripDetailQuickAddActivity": "Add activity",
+  "tripDetailQuickExpense": "Expense",
+  "tripDetailQuickBaggage": "Baggage",
+  "tripDetailQuickMemories": "Memories",
+  "tripDetailQuickNavigate": "Navigate",
+  "timelineSectionTitle": "Itinerary",
+  "timelineMorning": "Morning",
+  "timelineAfternoon": "Afternoon",
+  "timelineEvening": "Evening",
+  "timelineEmptyDayTitle": "No activities yet",
+  "timelineEmptyDaySubtitle": "Add some or ask the AI to suggest ideas",
+  "timelineValidate": "Validate",
+  "timelineReject": "Reject",
+  "flightStatusConfirmed": "Confirmed",
+  "flightStatusPending": "Pending",
+  "flightsSectionEmptyTitle": "Where are you flying?",
+  "flightsSectionEmptySubtitle": "Add your flights to start organizing your trip",
+  "flightsSectionSeeAll": "See all flights ({count})",
+  "@flightsSectionSeeAll": { "placeholders": { "count": { "type": "int" } } },
+  "flightsSectionTitle": "Flights",
+  "accommodationSectionSeeAll": "See all accommodations ({count})",
+  "@accommodationSectionSeeAll": { "placeholders": { "count": { "type": "int" } } },
+  "accommodationStatusConfirmed": "Confirmed",
+  "accommodationStatusPending": "Pending",
+  "baggageSectionSeeAll": "See all items ({count})",
+  "@baggageSectionSeeAll": { "placeholders": { "count": { "type": "int" } } },
+  "baggageSectionAddItem": "Add an item",
+  "baggageSectionAddItemSubtitle": "Create your packing list",
+  "baggageSectionAiSuggest": "Get AI suggestions",
+  "baggageSectionAiSuggestSubtitle": "Let AI help you pack",
+  "budgetEstimateOptionSubtitle": "Let AI suggest a budget for your trip",
+  "budgetAddExpenseSubtitle": "Track a planned or actual expense",
+  "budgetManageAll": "Manage budget",
+  "budgetCategoryBreakdown": "Breakdown",
+  "sharingSectionTitle": "Sharing",
+  "sharingSectionEmptyTitle": "Share your trip",
+  "sharingSectionEmptySubtitle": "Invite friends and family to follow along",
+  "sharingSectionInvite": "Invite someone",
+  "sharingSectionInviteSubtitle": "Share your trip with others",
+  "sharingSectionSeeAll": "See all members ({count})",
+  "@sharingSectionSeeAll": { "placeholders": { "count": { "type": "int" } } },
+  "sharingSectionOwner": "Owner",
+  "sharingSectionViewer": "Viewer",
+  "sharingSectionYou": "You",
+  "timelineInMinutes": "In {minutes} min",
+  "@timelineInMinutes": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "timelineNow": "Now",
+  "timelineInProgress": "In progress",
+  "timelineRemainingMinutes": "{minutes} min left",
+  "@timelineRemainingMinutes": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "timelineNavigate": "Navigate",
+  "timelineChooseMapApp": "Choose map app",
+  "timelineAppleMaps": "Apple Maps",
+  "timelineGoogleMaps": "Google Maps",
+  "activeTripsTomorrowLastDay": "Last day of the trip",
+  "activeTripsTomorrowShowAll": "Show all ({count})",
+  "@activeTripsTomorrowShowAll": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "activeTripsTomorrowCollapse": "Show less",
+  "qaSchedule": "Schedule",
+  "qaWeather": "Weather",
+  "qaCheckOut": "Check-out",
+  "qaNavigate": "Navigate",
+  "qaExpense": "Expense",
+  "qaPhoto": "Photo",
+  "qaNextActivity": "Next up",
+  "qaAiSuggestion": "AI Idea",
+  "qaMap": "Map",
+  "qaTodayExpenses": "Today",
+  "qaTomorrow": "Tomorrow",
+  "qaBudget": "Budget",
+  "qaQuickExpenseTitle": "Quick expense",
+  "qaQuickExpenseNote": "Note (optional)",
+  "qaQuickExpenseSaved": "Expense saved!",
+  "qaQuickExpenseAmount": "Amount",
+  "qaQuickExpenseAmountRequired": "Amount is required",
+  "qaQuickExpenseInvalidAmount": "Invalid amount",
+  "qaCategoryFood": "Food",
+  "qaCategoryTransport": "Transport",
+  "qaCategoryActivity": "Activity",
+  "qaCategoryShopping": "Shopping",
+  "qaCategoryOther": "Other",
+  "notifDailySummaryTitle": "Good morning!",
+  "notifDailySummaryBody": "Day {day} in {destination} — check today's schedule",
+  "@notifDailySummaryBody": {
+    "placeholders": {
+      "day": {"type": "int"},
+      "destination": {"type": "String"}
+    }
+  },
+  "notifActivityReminderTitle": "Coming up: {title}",
+  "@notifActivityReminderTitle": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
+  },
+  "notifActivityReminderBody": "Starting in 30 minutes at {location}",
+  "@notifActivityReminderBody": {
+    "placeholders": {
+      "location": {"type": "String"}
+    }
+  },
+  "notifCheckoutReminderTitle": "Checkout reminder",
+  "notifCheckoutReminderBody": "Don't forget to check out from {name}",
+  "@notifCheckoutReminderBody": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "notifPackingReminderTitle": "Time to pack!",
+  "notifPackingReminderBody": "{count} items left to pack for {destination}",
+  "@notifPackingReminderBody": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "destination": {"type": "String"}
+    }
+  },
+
+  "postTripDetectionTitle": "Trip completed!",
+  "postTripDetectionMessage": "Your trip to {destination} has ended. Would you like to mark it as completed?",
+  "@postTripDetectionMessage": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "postTripDetectionConfirm": "Yes, complete",
+  "postTripDetectionRemindLater": "Remind me later",
+  "postTripSouvenirsTitle": "Souvenirs",
+  "postTripDaysCount": "{count} days of adventure",
+  "@postTripDaysCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "postTripActivitiesCompleted": "{completed} of {total} activities",
+  "@postTripActivitiesCompleted": {
+    "placeholders": {
+      "completed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "postTripBudgetSpent": "{amount} spent",
+  "@postTripBudgetSpent": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "postTripCategoriesExplored": "{count} categories explored",
+  "@postTripCategoriesExplored": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "postTripGiveReview": "Share your experience",
+  "postTripPlanNext": "Plan your next trip",
+  "feedbackAiRatingLabel": "Rate the AI planning experience",
+  "feedbackAiRatingHint": "How helpful were the AI suggestions?",
+
+  "editTripTitle": "Edit trip name",
+  "editTripDates": "Trip dates",
+  "editTripStartDate": "Start date",
+  "editTripEndDate": "End date",
+  "editTripTravelers": "Travelers",
+  "activitiesOutOfRangeTitle": "Activities out of range",
+  "activitiesOutOfRangeMessage": "{count} activities fall outside the new dates",
+  "@activitiesOutOfRangeMessage": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "cannotFinalizeTitle": "Cannot finalize trip",
+  "cannotFinalizeMessage": "Add a destination and dates first",
+  "finalizeMissingDestination": "Missing destination",
+  "finalizeMissingDates": "Missing travel dates",
+
+  "routeSectionLabel": "Route",
+  "scheduleSectionLabel": "Schedule",
+  "detailsSectionLabel": "Details",
+  "airportsMustDiffer": "Departure and arrival airports must be different",
+  "arrivalMustBeAfterDeparture": "Arrival must be after departure",
+
+  "accommodationEditTitle": "Edit Accommodation",
+  "accommodationSaveButton": "Save",
+  "accommodationAddressLabel": "Address",
+  "accommodationReferenceLabel": "Booking reference",
+  "accommodationCheckOutBeforeCheckIn": "Check-out must be after check-in",
+  "accommodationCheckInTimeLabel": "Check-in time",
+  "accommodationCheckOutTimeLabel": "Check-out time",
+  "accommodationGetPrices": "See prices",
+  "accommodationSelectHotel": "Select",
+  "accommodationPerNight": "/night",
+  "accommodationNoResults": "No hotels found",
+  "baggageAllPacked": "All packed!",
+  "baggageAllPackedSubtitle": "You're ready for your trip!",
+  "baggageSwipeToDelete": "Delete",
+
+  "activityBatchCount": "{count} to validate",
+  "@activityBatchCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "activityValidateAll": "Validate all",
+  "activityReviewOneByOne": "Review one by one",
+  "activityBatchValidated": "All activities validated!",
+  "categoryCulture": "Culture",
+  "categoryNature": "Nature",
+  "categoryFoodDrink": "Food & Drink",
+  "categorySport": "Sport",
+  "categoryShopping": "Shopping",
+  "categoryNightlife": "Nightlife",
+  "categoryRelaxation": "Relaxation",
+  "categoryOtherActivity": "Other",
+  "activityMovedToDay": "Activity moved to day {day}",
+  "@activityMovedToDay": {
+    "placeholders": {
+      "day": {"type": "int"}
+    }
+  },
+  "timelineGetSuggestions": "Get AI suggestions",
+  "timelineSuggestionsForDay": "Suggestions for this day",
+  "timelineAddSuggestion": "Add to itinerary",
+  "addActivityManually": "Add manually",
+
+  "shareInviteTitle": "Invite to trip",
+  "shareInviteEmailLabel": "Email address",
+  "shareInviteEmailHint": "user@example.com",
+  "shareInviteEmailRequired": "Email is required",
+  "shareInviteEmailInvalid": "Invalid email format",
+  "shareInviteMessageLabel": "Message (optional)",
+  "shareInviteMessageHint": "Add a personal note...",
+  "shareInviteSendButton": "Send invite",
+  "shareErrorUserNotFound": "This person must create an account first",
+  "shareErrorAlreadyShared": "Already shared with this person",
+  "shareErrorSelfShare": "You can't share a trip with yourself",
+  "shareRevokeConfirmTitle": "Remove access",
+  "shareRevokeConfirmMessage": "Remove access for {name}?",
+  "@shareRevokeConfirmMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "viewerBadgeReadOnly": "Read only",
+  "shareInviteSuccess": "Invitation sent",
+  "shareRevokeSuccess": "Access revoked",
+
+  "filterTitle": "Filters",
+  "filterPrice": "Price",
+  "filterPriceLowest": "Lowest price",
+  "filterPriceHighest": "Highest price",
+  "filterAirline": "Airline",
+  "filterNoAirlines": "No airlines available",
+  "filterAllAirlines": "All",
+  "filterBaggage": "Baggage",
+  "filterDepartureTime": "Departure time",
+  "filterBefore": "Before",
+  "filterAfter": "After",
+  "filterApply": "Apply",
+  "doneButton": "Done",
+  "contextMenuView": "View",
+  "contextMenuShare": "Share",
+  "contextMenuArchive": "Archive",
+  "contextMenuEdit": "Edit",
+  "contextMenuValidate": "Validate",
+  "contextMenuDelete": "Delete",
+  "contextMenuMoveToDay": "Move to another day",
+  "contextMenuDayLabel": "Day {day}",
+  "@contextMenuDayLabel": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+
+  "tripCardSemanticLabel": "{destination}, {dateRange}, {status}",
+  "@tripCardSemanticLabel": {
+    "placeholders": {
+      "destination": {"type": "String"},
+      "dateRange": {"type": "String"},
+      "status": {"type": "String"}
+    }
+  },
+  "tripCoverImageLabel": "Cover photo of {destination}",
+  "@tripCoverImageLabel": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "activityCardSemanticLabel": "{title}, {time}, {location}, {status}",
+  "@activityCardSemanticLabel": {
+    "placeholders": {
+      "title": {"type": "String"},
+      "time": {"type": "String"},
+      "location": {"type": "String"},
+      "status": {"type": "String"}
+    }
+  },
+  "timelineActivitySemanticLabel": "{title}, {time}, {location}",
+  "@timelineActivitySemanticLabel": {
+    "placeholders": {
+      "title": {"type": "String"},
+      "time": {"type": "String"},
+      "location": {"type": "String"}
+    }
+  },
+  "addTripTooltip": "Add a trip",
+  "addActivityTooltip": "Add an activity",
+  "addAccommodationTooltip": "Add an accommodation",
+  "addTransportTooltip": "Add a transport",
+  "addExpenseTooltip": "Add an expense",
+  "addBaggageItemTooltip": "Add an item",
+  "shareTooltip": "Share",
+  "backTooltip": "Back",
+  "closeTooltip": "Close",
+  "deleteFlightTooltip": "Delete flight",
+  "deleteAccommodationTooltip": "Delete accommodation",
+  "removeAccessTooltip": "Remove access",
+  "inviteTooltip": "Invite",
+  "acceptSuggestionTooltip": "Accept suggestion",
+  "dismissSuggestionTooltip": "Dismiss suggestion",
+  "decreaseQuantityTooltip": "Decrease quantity",
+  "increaseQuantityTooltip": "Increase quantity",
+  "starRatingTooltip": "{current} of {total} stars",
+  "@starRatingTooltip": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "tabActivityWithBadge": "Activity, {count} notifications",
+  "@tabActivityWithBadge": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "loadingButton": "Loading"
 }

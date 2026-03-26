@@ -1,31 +1,94 @@
+import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/logged_failure.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/booking_response.dart';
+import 'package:bagtrip/models/payment_authorize_response.dart';
+import 'package:bagtrip/repositories/booking_repository.dart';
 import 'package:bagtrip/service/api_client.dart';
 import 'package:dio/dio.dart';
 
-class BookingService {
+class BookingRepositoryImpl implements BookingRepository {
   final ApiClient _apiClient;
 
-  BookingService({ApiClient? apiClient})
+  BookingRepositoryImpl({ApiClient? apiClient})
     : _apiClient = apiClient ?? ApiClient();
 
-  /// List bookings for the authenticated user (GET /v1/booking/list).
-  /// Uses the same JWT as ApiClient (Bearer token from StorageService).
-  Future<List<BookingResponse>> listBookings() async {
+  @override
+  Future<Result<List<BookingResponse>>> listBookings() async {
     try {
       final response = await _apiClient.get('/booking/list');
-
       if (response.statusCode == 200) {
         final list = response.data as List<dynamic>? ?? [];
-        return list
-            .map((e) => BookingResponse.fromJson(e as Map<String, dynamic>))
-            .toList();
-      } else {
-        throw Exception('Failed to list bookings: ${response.statusCode}');
+        return Success(
+          list
+              .map((e) => BookingResponse.fromJson(e as Map<String, dynamic>))
+              .toList(),
+        );
       }
+      return loggedFailure(
+        UnknownError('list bookings failed: ${response.statusCode}'),
+      );
     } on DioException catch (e) {
-      throw Exception(e.error?.toString() ?? 'Error listing bookings');
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
-      throw Exception('Error listing bookings: $e');
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<PaymentAuthorizeResponse>> authorizePayment(
+    String intentId,
+  ) async {
+    try {
+      final response = await _apiClient.post('/booking/$intentId/authorize');
+      if (response.statusCode == 200) {
+        return Success(
+          PaymentAuthorizeResponse.fromJson(
+            response.data as Map<String, dynamic>,
+          ),
+        );
+      }
+      return loggedFailure(
+        UnknownError('authorize payment failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<void>> capturePayment(String intentId) async {
+    try {
+      final response = await _apiClient.post('/booking/$intentId/capture');
+      if (response.statusCode == 200) {
+        return const Success(null);
+      }
+      return loggedFailure(
+        UnknownError('capture payment failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<void>> cancelPayment(String intentId) async {
+    try {
+      final response = await _apiClient.post('/booking/$intentId/cancel');
+      if (response.statusCode == 200) {
+        return const Success(null);
+      }
+      return loggedFailure(
+        UnknownError('cancel payment failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
     }
   }
 }

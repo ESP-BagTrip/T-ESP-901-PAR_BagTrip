@@ -1,5 +1,5 @@
 import 'package:bagtrip/components/app_snackbar.dart';
-import 'package:bagtrip/flightSearchResult/models/flight_search_arguments.dart';
+import 'package:bagtrip/flight_search_result/models/flight_search_arguments.dart';
 import 'package:bagtrip/flight_search/bloc/flight_search_bloc.dart';
 import 'package:bagtrip/flight_search/widgets/manual_flight_airports_card.dart';
 import 'package:bagtrip/flight_search/widgets/manual_flight_cabin_selector.dart';
@@ -11,10 +11,9 @@ import 'package:bagtrip/flight_search/widgets/trip_type_selector.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 
 class FlightSearchForm extends StatelessWidget {
   const FlightSearchForm({super.key});
@@ -29,14 +28,15 @@ class FlightSearchForm extends StatelessWidget {
           if (state.searchResults == null || state.searchResults!.isEmpty) {
             AppSnackBar.showError(
               context,
-              message: toUserFriendlyMessage(state.errorMessage),
+              message: state.errorMessage ?? 'Une erreur est survenue.',
             );
           }
         }
       },
       builder: (context, state) {
-        final loadedState =
-            state is FlightSearchLoaded ? state : FlightSearchLoaded();
+        final loadedState = state is FlightSearchLoaded
+            ? state
+            : FlightSearchLoaded();
 
         return ListView(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
@@ -144,7 +144,7 @@ class FlightSearchForm extends StatelessWidget {
     }
 
     if (context.mounted) {
-      context.go('/flight-search-result', extra: args);
+      FlightSearchResultRoute($extra: args).push(context);
     }
   }
 }

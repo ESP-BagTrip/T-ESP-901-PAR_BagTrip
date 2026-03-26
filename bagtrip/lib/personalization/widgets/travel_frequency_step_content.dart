@@ -22,17 +22,16 @@ class TravelFrequencyStepContent extends StatelessWidget {
       ('6+', l10n.personalizationFrequency6Plus),
     ];
     return Column(
-      children:
-          options.map((opt) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.space24),
-              child: PremiumSelectCard(
-                label: opt.$2,
-                selected: selectedId == opt.$1,
-                onTap: () => onSelect(opt.$1),
-              ),
-            );
-          }).toList(),
+      children: options.map((opt) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.space24),
+          child: PremiumSelectCard(
+            label: opt.$2,
+            selected: selectedId == opt.$1,
+            onTap: () => onSelect(opt.$1),
+          ),
+        );
+      }).toList(),
     );
   }
 }

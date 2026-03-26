@@ -1,37 +1,49 @@
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/profile/widgets/profile_section_card.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class PersonalInfoSection extends StatelessWidget {
+  final String name;
   final String email;
   final String phone;
-  final String address;
+  final VoidCallback? onEditName;
+  final VoidCallback? onEditPhone;
 
   const PersonalInfoSection({
     super.key,
+    required this.name,
     required this.email,
     required this.phone,
-    required this.address,
+    this.onEditName,
+    this.onEditPhone,
   });
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return ProfileSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.person_outline,
+              Icon(
+                AdaptivePlatform.select(
+                  material: Icons.person_outline,
+                  cupertino: CupertinoIcons.person,
+                ),
                 color: ColorName.secondary,
                 size: 20,
               ),
               const SizedBox(width: AppSpacing.space8),
               Text(
-                AppLocalizations.of(context)!.personalInfoTitle,
+                l10n.personalInfoTitle,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -43,23 +55,34 @@ class PersonalInfoSection extends StatelessWidget {
           const SizedBox(height: AppSpacing.space16),
           _buildInfoRow(
             context: context,
-            icon: Icons.email_outlined,
-            label: AppLocalizations.of(context)!.emailLabel,
+            icon: AdaptivePlatform.select(
+              material: Icons.badge_outlined,
+              cupertino: CupertinoIcons.person_crop_circle,
+            ),
+            label: l10n.nameLabel,
+            value: name,
+            onEdit: onEditName,
+          ),
+          const SizedBox(height: AppSpacing.space16),
+          _buildInfoRow(
+            context: context,
+            icon: AdaptivePlatform.select(
+              material: Icons.email_outlined,
+              cupertino: CupertinoIcons.mail,
+            ),
+            label: l10n.emailLabel,
             value: email,
           ),
           const SizedBox(height: AppSpacing.space16),
           _buildInfoRow(
             context: context,
-            icon: Icons.phone_outlined,
-            label: AppLocalizations.of(context)!.phoneLabel,
+            icon: AdaptivePlatform.select(
+              material: Icons.phone_outlined,
+              cupertino: CupertinoIcons.phone,
+            ),
+            label: l10n.phoneLabel,
             value: phone,
-          ),
-          const SizedBox(height: AppSpacing.space16),
-          _buildInfoRow(
-            context: context,
-            icon: Icons.location_on_outlined,
-            label: AppLocalizations.of(context)!.addressLabel,
-            value: address,
+            onEdit: onEditPhone,
           ),
         ],
       ),
@@ -71,6 +94,7 @@ class PersonalInfoSection extends StatelessWidget {
     required IconData icon,
     required String label,
     required String value,
+    VoidCallback? onEdit,
   }) {
     return Row(
       children: [
@@ -82,10 +106,10 @@ class PersonalInfoSection extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: ColorName.primaryTrueDark.withValues(alpha: 0.5),
+                  color: AppColors.textSecondary,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -100,22 +124,22 @@ class PersonalInfoSection extends StatelessWidget {
             ],
           ),
         ),
-        TextButton(
-          onPressed: () {},
-          style: TextButton.styleFrom(
-            padding: EdgeInsets.zero,
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          child: Text(
-            AppLocalizations.of(context)!.modifyButton,
-            style: const TextStyle(
-              fontSize: 14,
-              color: ColorName.secondary,
-              fontWeight: FontWeight.w600,
+        if (onEdit != null)
+          TextButton(
+            onPressed: onEdit,
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              minimumSize: const Size(44, 44),
+            ),
+            child: Text(
+              AppLocalizations.of(context)!.modifyButton,
+              style: const TextStyle(
+                fontSize: 14,
+                color: ColorName.secondary,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-        ),
       ],
     );
   }

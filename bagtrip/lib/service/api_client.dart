@@ -1,5 +1,10 @@
+import 'package:bagtrip/config/app_config.dart';
+import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/auth_event_bus.dart';
+import 'package:bagtrip/service/performance_interceptor.dart';
 import 'package:bagtrip/service/storage_service.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 class ApiClient {
   late final Dio _dio;
@@ -8,7 +13,7 @@ class ApiClient {
   bool _isRefreshing = false;
 
   ApiClient({String? baseUrl, StorageService? storageService})
-    : baseUrl = baseUrl ?? 'http://localhost:3000/v1',
+    : baseUrl = baseUrl ?? AppConfig.apiBaseUrl,
       _storageService = storageService ?? StorageService() {
     _dio = Dio(
       BaseOptions(
@@ -21,6 +26,18 @@ class ApiClient {
         },
       ),
     );
+
+    _dio.interceptors.add(PerformanceInterceptor());
+
+    if (kDebugMode) {
+      _dio.interceptors.add(
+        LogInterceptor(
+          requestBody: true,
+          responseBody: true,
+          logPrint: (obj) => debugPrint('[API] $obj'),
+        ),
+      );
+    }
 
     // Interceptor to add JWT token.
     _dio.interceptors.add(
@@ -48,6 +65,7 @@ class ApiClient {
               }
             } else {
               await _storageService.deleteToken();
+              AuthEventBus.fireUnauthenticated();
             }
           }
           final apiError = _handleError(error);
@@ -80,7 +98,8 @@ class ApiClient {
         }
       }
       return false;
-    } catch (_) {
+    } catch (e) {
+      if (kDebugMode) debugPrint('[BestEffort] token refresh failed: $e');
       return false;
     } finally {
       _isRefreshing = false;
@@ -96,8 +115,18 @@ class ApiClient {
     return _dio.get(path, queryParameters: queryParameters, options: options);
   }
 
-  Future<Response> post(String path, {dynamic data, Options? options}) {
-    return _dio.post(path, data: data, options: options);
+  Future<Response> post(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) {
+    return _dio.post(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+    );
   }
 
   Future<Response> patch(String path, {dynamic data, Options? options}) {
@@ -115,59 +144,87 @@ class ApiClient {
   /// Direct access to Dio (if needed).
   Dio get dio => _dio;
 
-  DioException _handleError(DioException error) {
-    String message;
-    int? statusCode;
-
+  /// Maps a [DioException] to a typed [AppError].
+  static AppError mapDioError(DioException error) {
     if (error.response != null) {
-      statusCode = error.response!.statusCode;
+      final statusCode = error.response!.statusCode;
       final data = error.response!.data;
+      final detail = data is Map ? data['detail'] : null;
+      final detailStr = detail is String ? detail : error.message ?? '';
 
-      switch (statusCode) {
-        case 400:
-          message = data['detail'] ?? 'Requête invalide';
-          break;
-        case 401:
-          message = 'Non authentifié. Veuillez vous reconnecter.';
-          break;
-        case 403:
-          message =
-              'Accès refusé. Vous n\'avez pas les permissions nécessaires.';
-          break;
-        case 404:
-          message = 'Ressource non trouvée';
-          break;
-        case 409:
-          // Context version mismatch
-          if (data is Map && data['error'] == 'stale_context') {
-            message = 'Le contexte a été mis à jour. Veuillez rafraîchir.';
-          } else {
-            message = data['detail'] ?? 'Conflit de version';
-          }
-          break;
-        case 429:
-          message = 'Trop de requêtes. Veuillez patienter.';
-          break;
-        case 500:
-          message = 'Erreur serveur. Veuillez réessayer plus tard.';
-          break;
-        default:
-          message = data['detail'] ?? 'Une erreur est survenue';
-      }
-    } else if (error.type == DioExceptionType.connectionTimeout ||
-        error.type == DioExceptionType.receiveTimeout) {
-      message = 'Timeout. Vérifiez votre connexion internet.';
-    } else if (error.type == DioExceptionType.connectionError) {
-      message = 'Erreur de connexion. Vérifiez votre connexion internet.';
-    } else {
-      message = 'Une erreur inattendue est survenue';
+      return switch (statusCode) {
+        400 => ValidationError(
+          detailStr,
+          statusCode: statusCode,
+          originalError: error,
+        ),
+        401 => AuthenticationError(
+          detailStr,
+          statusCode: statusCode,
+          originalError: error,
+        ),
+        402 => QuotaExceededError(
+          detailStr,
+          statusCode: statusCode,
+          originalError: error,
+        ),
+        403 => ForbiddenError(
+          detailStr,
+          statusCode: statusCode,
+          originalError: error,
+        ),
+        404 => NotFoundError(
+          detailStr,
+          statusCode: statusCode,
+          originalError: error,
+        ),
+        409 when data is Map && data['error'] == 'stale_context' =>
+          StaleContextError(
+            detailStr,
+            statusCode: statusCode,
+            originalError: error,
+          ),
+        409 => ValidationError(
+          detailStr,
+          statusCode: statusCode,
+          originalError: error,
+        ),
+        429 => RateLimitError(
+          detailStr,
+          statusCode: statusCode,
+          originalError: error,
+        ),
+        500 => ServerError(
+          detailStr,
+          statusCode: statusCode,
+          originalError: error,
+        ),
+        _ => UnknownError(
+          detailStr,
+          statusCode: statusCode,
+          originalError: error,
+        ),
+      };
     }
 
+    if (error.type == DioExceptionType.connectionTimeout ||
+        error.type == DioExceptionType.receiveTimeout) {
+      return NetworkError('timeout', originalError: error);
+    }
+    if (error.type == DioExceptionType.connectionError) {
+      return NetworkError('connection_error', originalError: error);
+    }
+    return UnknownError(error.message ?? '', originalError: error);
+  }
+
+  DioException _handleError(DioException error) {
+    // Delegate to mapDioError for classification; keep interceptor reject behavior.
+    final appError = mapDioError(error);
     return DioException(
       requestOptions: error.requestOptions,
       response: error.response,
       type: error.type,
-      error: message,
+      error: appError.message,
     );
   }
 }

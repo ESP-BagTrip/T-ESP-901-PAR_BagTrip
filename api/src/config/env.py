@@ -31,29 +31,50 @@ class Settings(BaseSettings):
     AMADEUS_CLIENT_SECRET: str
     AMADEUS_BASE_URL: str = "https://test.api.amadeus.com"
 
-    # Google GenAI
-    GOOGLE_API_KEY: str
+    # LLM (OpenAI-compatible)
+    LLM_MODEL: str = "gpt-oss-120b"
+    LLM_API_BASE: str = "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1"
+    LLM_API_KEY: str
 
     # LangChain / LangSmith
     LANGCHAIN_TRACING_V2: bool = False
     LANGCHAIN_API_KEY: str | None = None
-    LANGCHAIN_PROJECT: str = "default"
+    LANGCHAIN_PROJECT: str = "BagTrip"
 
     # Stripe
     STRIPE_SECRET_KEY: str | None = Field(None, description="Stripe Secret Key")
     STRIPE_WEBHOOK_SECRET: str | None = Field(None, description="Stripe Webhook Secret")
+    STRIPE_SUCCESS_URL: str = "bagtrip://subscription/success?session-id={CHECKOUT_SESSION_ID}"
+    STRIPE_CANCEL_URL: str = "bagtrip://subscription/cancel"
 
     # Auth / JWT
-    JWT_SECRET: str  # Required — no fallback
+    JWT_SECRET: str = "dev-secret-key-change-in-production"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 30
+
+    # Firebase Admin (FCM push notifications)
+    FIREBASE_SERVICE_ACCOUNT_PATH: str | None = None
+
+    # Cookie / CORS
+    ALLOWED_ORIGINS: str = "http://localhost:8000"
+    COOKIE_DOMAIN: str | None = None
+    COOKIE_SECURE: bool = False
 
     # OAuth verification
     GOOGLE_FIREBASE_PROJECT_ID: str = "bagtrip-7d2d8"
     GOOGLE_OAUTH_CLIENT_ID: str | None = None
     APPLE_BUNDLE_ID: str | None = None
 
-    @field_validator("AMADEUS_CLIENT_ID", "AMADEUS_CLIENT_SECRET", "GOOGLE_API_KEY", "JWT_SECRET")
+    # AirLabs (flight info)
+    AIRLABS_API_KEY: str | None = None
+
+    # Unsplash (cover images)
+    UNSPLASH_ACCESS_KEY: str | None = None
+
+    # Open-Meteo (weather — free, no key required)
+    OPEN_METEO_BASE_URL: str = "https://api.open-meteo.com"
+
+    @field_validator("AMADEUS_CLIENT_ID", "AMADEUS_CLIENT_SECRET", "LLM_API_KEY")
     @classmethod
     def validate_required_strings(cls, v: str) -> str:
         """Validate that required API keys are not empty."""

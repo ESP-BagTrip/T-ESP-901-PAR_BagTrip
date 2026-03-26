@@ -41,4 +41,10 @@ class SetTravelFrequency extends PersonalizationEvent {
   SetTravelFrequency(this.value);
 }
 
+class SetConstraints extends PersonalizationEvent {
+  final String? value;
+
+  SetConstraints(this.value);
+}
+
 class SaveAndFinishPersonalization extends PersonalizationEvent {}

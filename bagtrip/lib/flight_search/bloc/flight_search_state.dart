@@ -39,7 +39,7 @@ final class FlightSearchLoaded extends FlightSearchState {
     this.errorMessage,
     this.showValidationErrors = false,
   }) : multiDestSegments =
-           multiDestSegments ?? [FlightSegment(), FlightSegment()];
+           multiDestSegments ?? [const FlightSegment(), const FlightSegment()];
 
   FlightSearchLoaded copyWith({
     int? tripTypeIndex,

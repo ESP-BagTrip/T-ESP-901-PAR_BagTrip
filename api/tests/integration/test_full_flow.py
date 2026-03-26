@@ -1,20 +1,16 @@
 """Tests d'intégration pour le flow complet."""
 
+import os
+from uuid import uuid4
+
+import jwt
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-from uuid import uuid4
 
+from src.config.database import SessionLocal
 from src.main import app
 from src.models.user import User
-from src.models.trip import Trip
-from src.models.traveler import TripTraveler
-from src.models.conversation import Conversation
-from src.models.message import Message
-from src.config.database import get_db, SessionLocal
-from src.api.auth.middleware import verify_jwt_token
-import os
-from jose import jwt
 
 client = TestClient(app)
 
@@ -102,7 +98,12 @@ def test_full_flow(auth_token: str, db: Session, test_user: User):
     trip_response = client.post(
         "/v1/trips",
         headers=headers,
-        json={"title": "Voyage à Paris"},
+        json={
+            "title": "Voyage à Paris",
+            "destinationName": "Paris",
+            "startDate": "2099-06-01",
+            "endDate": "2099-06-10",
+        },
     )
     assert trip_response.status_code == 200
     trip_id = trip_response.json()["trip"]["id"]
@@ -165,7 +166,12 @@ def test_context_version_mismatch(
     trip_response = client.post(
         "/v1/trips",
         headers=headers,
-        json={"title": "Test Trip"},
+        json={
+            "title": "Test Trip",
+            "destinationName": "Paris",
+            "startDate": "2099-06-01",
+            "endDate": "2099-06-10",
+        },
     )
     trip_id = trip_response.json()["trip"]["id"]
 
@@ -212,7 +218,12 @@ def test_rate_limiting(auth_token: str, db: Session, test_user: User):
     trip_response = client.post(
         "/v1/trips",
         headers=headers,
-        json={"title": "Test Trip"},
+        json={
+            "title": "Test Trip",
+            "destinationName": "Paris",
+            "startDate": "2099-06-01",
+            "endDate": "2099-06-10",
+        },
     )
     trip_id = trip_response.json()["trip"]["id"]
 
@@ -253,7 +264,12 @@ def test_rbac_unauthorized_access(
     trip_response = client.post(
         "/v1/trips",
         headers=headers1,
-        json={"title": "User1 Trip"},
+        json={
+            "title": "User1 Trip",
+            "destinationName": "Paris",
+            "startDate": "2099-06-01",
+            "endDate": "2099-06-10",
+        },
     )
     trip_id = trip_response.json()["trip"]["id"]
 

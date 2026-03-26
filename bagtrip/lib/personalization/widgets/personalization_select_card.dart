@@ -19,8 +19,10 @@ class PersonalizationSelectCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Material(
-      color: AppColors.surface,
+      color: theme.cardTheme.color ?? theme.colorScheme.surface,
       borderRadius: AppRadius.large16,
       child: InkWell(
         onTap: onTap,
@@ -33,8 +35,9 @@ class PersonalizationSelectCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: AppRadius.large16,
             border: Border.all(
-              color:
-                  selected ? AppColors.secondary : ColorName.primarySoftLight,
+              color: selected
+                  ? AppColors.secondary
+                  : theme.colorScheme.outlineVariant,
               width: selected ? 2 : 1,
             ),
             boxShadow: [
@@ -53,9 +56,9 @@ class PersonalizationSelectCard extends StatelessWidget {
               Text(
                 label,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: AppColors.primaryTrueDark,
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
             ],

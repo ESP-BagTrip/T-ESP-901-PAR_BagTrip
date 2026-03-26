@@ -1,98 +1,148 @@
+import 'package:bagtrip/components/adaptive/adaptive_app_bar.dart';
+import 'package:bagtrip/components/error_view.dart';
+import 'package:bagtrip/components/loading_view.dart';
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/profile/bloc/profile_bloc.dart';
-import 'package:bagtrip/profile/widgets/experience_personalization_section.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
+import 'package:bagtrip/profile/bloc/user_profile_bloc.dart';
 import 'package:bagtrip/profile/widgets/logout_button.dart';
-import 'package:bagtrip/profile/widgets/personal_info_section.dart';
-import 'package:bagtrip/profile/widgets/preferences_section.dart';
 import 'package:bagtrip/profile/widgets/profile_footer.dart';
 import 'package:bagtrip/profile/widgets/profile_header_card.dart';
-import 'package:bagtrip/profile/widgets/recent_bookings_section.dart';
+import 'package:bagtrip/profile/widgets/profile_section_card.dart';
+import 'package:bagtrip/utils/error_display.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ProfileBloc, ProfileState>(
-      builder: (context, state) {
-        if (state is ProfileInitial || state is ProfileUnauthenticated) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    return Scaffold(
+      appBar: AdaptiveAppBar.build(
+        context: context,
+        title: AppLocalizations.of(context)!.tabProfile,
+      ),
+      body: BlocBuilder<UserProfileBloc, UserProfileState>(
+        builder: (context, state) {
+          if (state is UserProfileInitial || state is UserProfileLoading) {
+            return const LoadingView();
+          }
 
-        if (state is ProfileLoadFailure) {
-          return Center(
-            child: Padding(
-              padding: AppSpacing.allEdgeInsetSpace24,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 48,
-                    color: ColorName.primaryTrueDark.withValues(alpha: 0.5),
-                  ),
-                  const SizedBox(height: AppSpacing.space16),
-                  Text(
-                    state.message ??
-                        AppLocalizations.of(context)!.profileLoadFailureMessage,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: ColorName.primaryTrueDark.withValues(alpha: 0.8),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.space24),
-                  FilledButton.icon(
-                    onPressed:
-                        () => context.read<ProfileBloc>().add(LoadProfile()),
-                    icon: const Icon(Icons.refresh),
-                    label: Text(AppLocalizations.of(context)!.retryButton),
-                  ),
-                ],
+          if (state is UserProfileError) {
+            return ErrorView(
+              message: toUserFriendlyMessage(
+                state.error,
+                AppLocalizations.of(context)!,
               ),
-            ),
-          );
-        }
+              onRetry: () =>
+                  context.read<UserProfileBloc>().add(LoadUserProfile()),
+            );
+          }
 
-        if (state is ProfileLoaded) {
-          return SingleChildScrollView(
-            padding: AppSpacing.allEdgeInsetSpace24,
-            child: Column(
+          if (state is UserProfileLoaded) {
+            final l10n = AppLocalizations.of(context)!;
+
+            final content = Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ProfileHeaderCard(
                   name: state.name.isNotEmpty ? state.name : state.email,
-                  memberSince: state.memberSince,
+                  memberSince: DateFormat.yMMM(
+                    Localizations.localeOf(context).languageCode,
+                  ).format(state.memberSince),
                 ),
                 const SizedBox(height: AppSpacing.space16),
-                PersonalInfoSection(
-                  email: state.email,
-                  phone: state.phone,
-                  address: state.address.isEmpty ? '—' : state.address,
+                _buildNavigationRow(
+                  context,
+                  icon: AdaptivePlatform.isIOS
+                      ? CupertinoIcons.person
+                      : Icons.person_outline,
+                  title: l10n.personalInfoPageTitle,
+                  onTap: () => const PersonalInfoRoute().go(context),
                 ),
-                const SizedBox(height: AppSpacing.space16),
-                PreferencesSection(
-                  selectedTheme: state.selectedTheme,
-                  selectedLanguage: state.selectedLanguage,
+                const SizedBox(height: AppSpacing.space8),
+                _buildNavigationRow(
+                  context,
+                  icon: AdaptivePlatform.isIOS
+                      ? CupertinoIcons.airplane
+                      : Icons.flight_outlined,
+                  title: l10n.travelPreferencesTitle,
+                  onTap: () =>
+                      const PersonalizationRoute(from: 'profile').push(context),
                 ),
-                const SizedBox(height: AppSpacing.space16),
-                const ExperiencePersonalizationSection(),
-                const SizedBox(height: AppSpacing.space16),
-                RecentBookingsSection(recentBookings: state.recentBookings),
+                const SizedBox(height: AppSpacing.space8),
+                _buildNavigationRow(
+                  context,
+                  icon: AdaptivePlatform.isIOS
+                      ? CupertinoIcons.gear
+                      : Icons.settings_outlined,
+                  title: l10n.settingsTitle,
+                  onTap: () => const SettingsRoute().go(context),
+                ),
                 const SizedBox(height: AppSpacing.space24),
                 const LogoutButton(),
                 const SizedBox(height: AppSpacing.space24),
                 const ProfileFooter(),
               ],
-            ),
-          );
-        }
+            );
 
-        return const SizedBox.shrink();
-      },
+            if (AdaptivePlatform.isIOS) {
+              return CupertinoScrollbar(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
+                  child: content,
+                ),
+              );
+            }
+
+            return SingleChildScrollView(
+              padding: AppSpacing.allEdgeInsetSpace24,
+              child: content,
+            );
+          }
+
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+  }
+
+  Widget _buildNavigationRow(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    return ProfileSectionCard(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(icon, color: ColorName.secondary, size: 20),
+          const SizedBox(width: AppSpacing.space16),
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: onSurface,
+              ),
+            ),
+          ),
+          const Icon(
+            Icons.chevron_right,
+            color: AppColors.textDisabled,
+            size: 20,
+          ),
+        ],
+      ),
     );
   }
 }

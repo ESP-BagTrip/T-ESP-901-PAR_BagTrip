@@ -1,20 +1,24 @@
+import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/assets.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/service/auth_service.dart';
+import 'package:bagtrip/core/result.dart';
+import 'package:bagtrip/config/service_locator.dart';
+import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/service/backend_health.dart';
 import 'package:bagtrip/service/onboarding_storage.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 
 /// Minimum display duration for the splash screen so it remains visible.
 const Duration _kMinSplashDuration = Duration(milliseconds: 1500);
 
 /// Startup loading screen: waits for backend to be ready, validates token via API,
-/// then redirects to /planifier if logged in, else to /onboarding (if not seen) or /login.
+/// then redirects to /trips if logged in, else to /onboarding (if not seen) or /login.
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
 
@@ -43,32 +47,33 @@ class _SplashPageState extends State<SplashPage> {
 
     if (!mounted) return;
 
-    final authService = AuthService();
-    final user = await authService.getCurrentUser();
+    final authRepository = getIt<AuthRepository>();
+    final userResult = await authRepository.getCurrentUser();
+    final user = userResult.dataOrNull;
 
     if (!mounted) return;
 
     if (user != null) {
       if (!user.isProfileCompleted) {
-        final hasSeen = await PersonalizationStorage()
+        final hasSeen = await getIt<PersonalizationStorage>()
             .hasSeenPersonalizationPrompt(user.id);
         if (!hasSeen) {
           if (!mounted) return;
-          context.go('/personalization');
+          const PersonalizationRoute().go(context);
           return;
         }
       }
       if (!mounted) return;
-      context.go('/planifier');
+      const HomeRoute().go(context);
     } else {
-      await authService.logout();
+      await authRepository.logout();
       if (!mounted) return;
-      final hasSeen = await OnboardingStorage().hasSeenOnboarding();
+      final hasSeen = await getIt<OnboardingStorage>().hasSeenOnboarding();
       if (!mounted) return;
       if (hasSeen) {
-        context.go('/login');
+        const LoginRoute().go(context);
       } else {
-        context.go('/onboarding');
+        const OnboardingRoute().go(context);
       }
     }
   }
@@ -124,13 +129,17 @@ class _SplashPageState extends State<SplashPage> {
                 ),
               ),
               const SizedBox(height: AppSpacing.space24),
-              const SizedBox(
+              SizedBox(
                 width: 32,
                 height: 32,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                ),
+                child: AdaptivePlatform.isIOS
+                    ? const CupertinoActivityIndicator(radius: 14)
+                    : const CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.primary,
+                        ),
+                      ),
               ),
             ],
           ),

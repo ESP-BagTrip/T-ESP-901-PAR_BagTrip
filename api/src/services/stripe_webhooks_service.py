@@ -7,8 +7,11 @@ from uuid import UUID
 import stripe
 from sqlalchemy.orm import Session
 
+from src.enums import BookingIntentStatus
 from src.models.booking_intent import BookingIntent
 from src.models.stripe_event import StripeEvent
+from src.models.user import User
+from src.utils.logger import logger
 
 
 class StripeWebhooksService:
@@ -89,8 +92,8 @@ class StripeWebhooksService:
                     .first()
                 )
 
-                if booking_intent and booking_intent.status == "INIT":
-                    booking_intent.status = "AUTHORIZED"
+                if booking_intent and booking_intent.status == BookingIntentStatus.INIT:
+                    booking_intent.status = BookingIntentStatus.AUTHORIZED
                     db.commit()
 
         elif event.type == "payment_intent.canceled":
@@ -102,8 +105,8 @@ class StripeWebhooksService:
                     .first()
                 )
 
-                if booking_intent and booking_intent.status != "CAPTURED":
-                    booking_intent.status = "CANCELLED"
+                if booking_intent and booking_intent.status != BookingIntentStatus.CAPTURED:
+                    booking_intent.status = BookingIntentStatus.CANCELLED
                     db.commit()
 
         elif (
@@ -116,6 +119,102 @@ class StripeWebhooksService:
             )
         ):
             # Échec de paiement
-            booking_intent.status = "FAILED"
+            booking_intent.status = BookingIntentStatus.FAILED
             booking_intent.last_error = {"type": "payment_failed", "event_id": event.id}
             db.commit()
+
+        # --- Subscription events for Premium plan ---
+        elif event.type == "customer.subscription.created":
+            StripeWebhooksService._handle_subscription_change(db, event, "PREMIUM")
+
+        elif event.type == "customer.subscription.updated":
+            StripeWebhooksService._handle_subscription_updated(db, event)
+
+        elif event.type == "customer.subscription.deleted":
+            StripeWebhooksService._handle_subscription_change(db, event, "FREE", clear=True)
+
+        elif event.type == "invoice.payment_succeeded":
+            StripeWebhooksService._handle_invoice_succeeded(db, event)
+
+    # --- Subscription helpers ---
+
+    @staticmethod
+    def _find_user_by_customer(db: Session, event: stripe.Event) -> User | None:
+        obj = event.data.object
+        customer_id = (
+            obj.get("customer") if isinstance(obj, dict) else getattr(obj, "customer", None)
+        )
+        if not customer_id:
+            return None
+        return db.query(User).filter(User.stripe_customer_id == customer_id).first()
+
+    @staticmethod
+    def _handle_subscription_change(
+        db: Session, event: stripe.Event, target_plan: str, *, clear: bool = False
+    ) -> None:
+        user = StripeWebhooksService._find_user_by_customer(db, event)
+        if not user:
+            logger.warn(f"subscription event: user not found for {event.type}")
+            return
+        obj = event.data.object
+        user.plan = target_plan
+        if clear:
+            user.stripe_subscription_id = None
+            user.plan_expires_at = None
+        else:
+            sub_id = obj.get("id") if isinstance(obj, dict) else getattr(obj, "id", None)
+            user.stripe_subscription_id = sub_id
+            period_end = (
+                obj.get("current_period_end")
+                if isinstance(obj, dict)
+                else getattr(obj, "current_period_end", None)
+            )
+            if period_end:
+                from datetime import datetime
+
+                user.plan_expires_at = datetime.fromtimestamp(period_end, tz=UTC)
+        db.commit()
+        logger.info(f"User {user.id} plan set to {target_plan}")
+
+    @staticmethod
+    def _handle_subscription_updated(db: Session, event: stripe.Event) -> None:
+        user = StripeWebhooksService._find_user_by_customer(db, event)
+        if not user:
+            return
+        obj = event.data.object
+        status_val = obj.get("status") if isinstance(obj, dict) else getattr(obj, "status", None)
+        period_end = (
+            obj.get("current_period_end")
+            if isinstance(obj, dict)
+            else getattr(obj, "current_period_end", None)
+        )
+        if period_end:
+            from datetime import datetime
+
+            user.plan_expires_at = datetime.fromtimestamp(period_end, tz=UTC)
+        if status_val in ("canceled", "unpaid", "incomplete_expired"):
+            user.plan = "FREE"
+            user.stripe_subscription_id = None
+        db.commit()
+
+    @staticmethod
+    def _handle_invoice_succeeded(db: Session, event: stripe.Event) -> None:
+        user = StripeWebhooksService._find_user_by_customer(db, event)
+        if not user:
+            return
+        obj = event.data.object
+        lines = obj.get("lines", {}) if isinstance(obj, dict) else getattr(obj, "lines", {})
+        data = lines.get("data", []) if isinstance(lines, dict) else getattr(lines, "data", [])
+        for line in data:
+            period = (
+                line.get("period", {}) if isinstance(line, dict) else getattr(line, "period", {})
+            )
+            end = period.get("end") if isinstance(period, dict) else getattr(period, "end", None)
+            if end:
+                from datetime import datetime
+
+                user.plan_expires_at = datetime.fromtimestamp(end, tz=UTC)
+                break
+        if user.plan != "ADMIN":
+            user.plan = "PREMIUM"
+        db.commit()

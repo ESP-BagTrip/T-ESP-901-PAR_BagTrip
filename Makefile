@@ -9,6 +9,54 @@ COMPOSE      := docker compose
 FLUTTER_DIR  := bagtrip
 ADMIN_APP_DIR := admin-panel/application
 API_DIR      := api
+API_PORT     := 3000
+
+# ── API URL detection ────────────────────────────────────────
+# Detect the Flutter target device and resolve the right API host.
+#   • Simulator / desktop  → localhost (same machine)
+#   • Physical device      → Mac's LAN IP so the phone can reach the API
+#
+# FLUTTER_DEVICE can be overridden:  make dev FLUTTER_DEVICE=<device-id>
+FLUTTER_DEVICE ?=
+
+# Resolve the host dynamically (called in recipes via $(shell …) or inline)
+# Tries multiple interfaces: en0 (Wi-Fi), en1-en6, bridge*, then any non-loopback.
+define resolve_api_host
+$(shell \
+	device="$(1)"; \
+	if [ -z "$$device" ]; then \
+		echo "localhost"; \
+	elif echo "$$device" | grep -qiE "simulator|emulator|macos|linux|windows|chrome"; then \
+		echo "localhost"; \
+	else \
+		ip=""; \
+		for iface in en0 en1 en2 en3 en4 en5 en6 bridge0; do \
+			candidate=$$(ipconfig getifaddr $$iface 2>/dev/null); \
+			if [ -n "$$candidate" ] && echo "$$candidate" | grep -qvE "^169\.254\.|^127\."; then \
+				ip="$$candidate"; break; \
+			fi; \
+		done; \
+		if [ -z "$$ip" ]; then \
+			ip=$$(ifconfig 2>/dev/null | grep "inet " | grep -v 127.0.0.1 | grep -v "169.254" | head -1 | awk '{print $$2}'); \
+		fi; \
+		if [ -n "$$ip" ]; then echo "$$ip"; else echo "localhost"; fi; \
+	fi \
+)
+endef
+
+# Auto-detect connected device when FLUTTER_DEVICE is empty
+# flutter devices output: "iPhone de yanis (mobile) • <id> • ios • ..."
+# The bullet is U+2022; we split on it and grab the device id (field 2).
+define detect_device
+$(shell \
+	if [ -n "$(FLUTTER_DEVICE)" ]; then \
+		echo "$(FLUTTER_DEVICE)"; \
+	else \
+		flutter devices 2>/dev/null | grep -iE "iPhone|iPad|Android" | head -1 | \
+		sed 's/•/|/g' | awk -F'|' '{gsub(/^[ \t]+|[ \t]+$$/,"",$$2); print $$2}'; \
+	fi \
+)
+endef
 
 # ── Colors ───────────────────────────────────────────────────
 CYAN    := \033[36m
@@ -27,7 +75,9 @@ err   = @printf "$(RED)[err]$(RESET)  %s\n" $(1)
 .PHONY: help init \
         dev dev-docker dev-mobile stop logs \
         dev-clean \
-        check lint lint-api lint-admin lint-mobile test test-api test-mobile sonar-analyze \
+        check lint lint-api lint-admin lint-mobile test test-api test-mobile \
+        test-e2e \
+        coverage golden-test golden-update \
         db-migrate db-revision db-shell \
         shell-api shell-admin
 
@@ -53,8 +103,11 @@ help: ## Show this help
 	@printf "$(BOLD) Quality$(RESET)\n"
 	@printf "  $(CYAN)make check$(RESET)           Run pre-commit on all files\n"
 	@printf "  $(CYAN)make lint$(RESET)            Run all linters (api + admin + mobile)\n"
-	@printf "  $(CYAN)make test$(RESET)            Run all tests (api + mobile)\n"
-	@printf "  $(CYAN)make sonar-analyze$(RESET)   Run SonarCloud analysis\n"
+	@printf "  $(CYAN)make test$(RESET)            Run all tests (api + mobile + e2e)\n"
+	@printf "  $(CYAN)make test-e2e$(RESET)        Run E2E integration tests\n"
+	@printf "  $(CYAN)make coverage$(RESET)        Run Flutter tests with coverage (60%% threshold)\n"
+	@printf "  $(CYAN)make golden-test$(RESET)     Verify golden tests haven't drifted\n"
+	@printf "  $(CYAN)make golden-update$(RESET)   Regenerate golden reference files\n"
 	@printf "\n"
 	@printf "$(BOLD) Database$(RESET)\n"
 	@printf "  $(CYAN)make db-migrate$(RESET)      Run Alembic migrations (upgrade head)\n"
@@ -109,23 +162,37 @@ dev: ## Start Docker services + Flutter app
 	@printf "$(CYAN)[info]$(RESET) Starting Docker services…\n"
 	@$(COMPOSE) up -d --build
 	@printf "\n$(GREEN)[ok]$(RESET)   Services ready:\n"
-	@printf "       API          http://localhost:3000\n"
-	@printf "       API Docs     http://localhost:3000/docs\n"
+	@printf "       API          http://localhost:$(API_PORT)\n"
+	@printf "       API Docs     http://localhost:$(API_PORT)/docs\n"
 	@printf "       Admin Panel  http://localhost:8000\n\n"
-	@printf "$(CYAN)[info]$(RESET) Starting Flutter app (hot reload: r/R, quit: q)…\n\n"
-	@cd $(FLUTTER_DIR) && flutter run
+	@$(MAKE) --no-print-directory _flutter-run
 
 dev-docker: ## Start Docker services only (db, api, admin)
 	@printf "$(CYAN)[info]$(RESET) Starting Docker services…\n"
 	@$(COMPOSE) up -d --build
 	@printf "\n$(GREEN)[ok]$(RESET)   Services ready:\n"
-	@printf "       API          http://localhost:3000\n"
-	@printf "       API Docs     http://localhost:3000/docs\n"
+	@printf "       API          http://localhost:$(API_PORT)\n"
+	@printf "       API Docs     http://localhost:$(API_PORT)/docs\n"
 	@printf "       Admin Panel  http://localhost:8000\n\n"
 
 dev-mobile: ## Start Flutter app only
+	@$(MAKE) --no-print-directory _flutter-run
+
+# Internal: detect device, resolve API host, inject --dart-define, run Flutter
+_flutter-run:
+	$(eval DEVICE := $(call detect_device))
+	$(eval API_HOST := $(call resolve_api_host,$(DEVICE)))
+	$(eval API_URL := http://$(API_HOST):$(API_PORT)/v1)
+	$(eval DEVICE_FLAG := $(if $(DEVICE),-d $(DEVICE),))
+	@printf "$(CYAN)[info]$(RESET) Target device: $(if $(DEVICE),$(DEVICE),auto)\n"
+	@printf "$(CYAN)[info]$(RESET) API URL:       $(API_URL)\n"
+	@if [ "$(API_HOST)" != "localhost" ]; then \
+		printf "$(YELLOW)[warn]$(RESET) Physical device detected — using LAN IP $(API_HOST)\n"; \
+		printf "       Make sure your Mac firewall allows port $(API_PORT)\n\n"; \
+	fi
 	@printf "$(CYAN)[info]$(RESET) Starting Flutter app (hot reload: r/R, quit: q)…\n\n"
-	@cd $(FLUTTER_DIR) && flutter run
+	@cd $(FLUTTER_DIR) && flutter run $(DEVICE_FLAG) \
+		--dart-define=API_BASE_URL=$(API_URL)
 
 stop: ## Stop Docker services
 	@printf "$(CYAN)[info]$(RESET) Stopping services…\n"
@@ -186,7 +253,7 @@ lint-mobile: ## Lint Flutter app (analyze + format)
 	@cd $(FLUTTER_DIR) && dart format --set-exit-if-changed .
 	$(call ok,"Mobile lint passed")
 
-test: test-api test-mobile ## Run all tests
+test: test-api test-mobile test-e2e ## Run all tests
 
 test-api: ## Run API tests (pytest)
 	@printf "$(CYAN)[info]$(RESET) Running API tests…\n"
@@ -198,10 +265,42 @@ test-mobile: ## Run Flutter tests
 	@cd $(FLUTTER_DIR) && flutter test
 	$(call ok,"Mobile tests passed")
 
-sonar-analyze: ## Run SonarCloud analysis
-	@printf "$(CYAN)[info]$(RESET) Running SonarCloud analysis…\n"
-	@./scripts/run-sonar-analysis.sh
-	$(call ok,"SonarCloud analysis complete")
+test-e2e: ## Run E2E integration tests
+	@printf "$(CYAN)[info]$(RESET) Running E2E integration tests…\n"
+	@cd $(FLUTTER_DIR) && flutter test integration_test/
+	$(call ok,"E2E tests passed")
+
+test-e2e-%: ## Run single E2E test (e.g. make test-e2e-ft3_active_trip)
+	@printf "$(CYAN)[info]$(RESET) Running E2E test: $*…\n"
+	@cd $(FLUTTER_DIR) && flutter test integration_test/$*_test.dart
+	$(call ok,"E2E test $* passed")
+
+coverage: ## Run Flutter tests with coverage (60% threshold)
+	@printf "$(CYAN)[info]$(RESET) Running Flutter tests with coverage…\n"
+	@cd $(FLUTTER_DIR) && flutter test --coverage
+	@printf "$(GREEN)[ok]$(RESET)   Coverage report: $(FLUTTER_DIR)/coverage/lcov.info\n"
+	@if command -v lcov &>/dev/null; then \
+		COVERAGE=$$(lcov --summary $(FLUTTER_DIR)/coverage/lcov.info 2>&1 | grep 'lines' | sed 's/.*: *\([0-9.]*\)%.*/\1/'); \
+		printf "$(CYAN)[info]$(RESET) Line coverage: $${COVERAGE}%%\n"; \
+		if [ "$$(echo "$$COVERAGE < 60" | bc -l)" -eq 1 ]; then \
+			printf "$(RED)[err]$(RESET)  Coverage $${COVERAGE}%% below 60%% threshold\n"; \
+			exit 1; \
+		else \
+			printf "$(GREEN)[ok]$(RESET)   Coverage meets 60%% threshold\n"; \
+		fi; \
+	else \
+		printf "$(YELLOW)[warn]$(RESET) lcov not installed — skipping threshold check\n"; \
+	fi
+
+golden-test: ## Verify golden tests haven't drifted
+	@printf "$(CYAN)[info]$(RESET) Running golden tests…\n"
+	@cd $(FLUTTER_DIR) && flutter test --tags=golden
+	$(call ok,"Golden tests passed")
+
+golden-update: ## Regenerate golden reference files
+	@printf "$(CYAN)[info]$(RESET) Regenerating golden files…\n"
+	@cd $(FLUTTER_DIR) && flutter test --tags=golden --update-goldens
+	$(call ok,"Goldens updated — review and commit the new .png files")
 
 # ══════════════════════════════════════════════════════════════
 #  DATABASE
@@ -222,7 +321,7 @@ db-revision: ## Create Alembic revision (MSG="description")
 	$(call ok,"Revision created")
 
 db-shell: ## Open psql shell in db container
-	@$(COMPOSE) exec db psql -U $${POSTGRES_USER:-user} -d $${POSTGRES_DB:-bagtrip}
+	@$(COMPOSE) exec db psql -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-bagtrip}
 
 # ══════════════════════════════════════════════════════════════
 #  UTILITIES

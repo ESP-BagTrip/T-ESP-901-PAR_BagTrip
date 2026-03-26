@@ -7,7 +7,10 @@ from .flights import (
     search_flight_destinations,
     search_flight_offers,
 )
-from .hotels import book_hotel, search_hotel_offers
+from .hotels import (
+    search_hotel_list,
+    search_hotel_offers,
+)
 from .locations import (
     search_location_by_id,
     search_location_nearest,
@@ -19,6 +22,8 @@ from .types import (
     FlightOffer,
     FlightOfferSearchQuery,
     FlightOrderTraveler,
+    HotelListSearchQuery,
+    HotelOffersSearchQuery,
     LocationIdSearchQuery,
     LocationKeywordSearchQuery,
     LocationNearestSearchQuery,
@@ -65,43 +70,13 @@ class AmadeusClient:
         return await create_flight_order(flight_offer, travelers)
 
     # Hotel methods
-    async def search_hotel_offers(
-        self,
-        city_code: str | None = None,
-        latitude: float | None = None,
-        longitude: float | None = None,
-        check_in: str | None = None,
-        check_out: str | None = None,
-        adults: int = 1,
-        room_qty: int = 1,
-        currency: str | None = None,
-    ):
-        """Recherche d'offres d'hôtels."""
-        return await search_hotel_offers(
-            city_code=city_code,
-            latitude=latitude,
-            longitude=longitude,
-            check_in=check_in,
-            check_out=check_out,
-            adults=adults,
-            room_qty=room_qty,
-            currency=currency,
-        )
+    async def search_hotel_list(self, query: HotelListSearchQuery):
+        """Recherche d'hôtels par ville."""
+        return await search_hotel_list(query)
 
-    async def book_hotel(
-        self,
-        offer_id: str,
-        hotel_id: str,
-        guests: list[dict],
-        payments: list[dict] | None = None,
-    ):
-        """Réserve un hôtel."""
-        return await book_hotel(
-            offer_id=offer_id,
-            hotel_id=hotel_id,
-            guests=guests,
-            payments=payments,
-        )
+    async def search_hotel_offers(self, query: HotelOffersSearchQuery):
+        """Recherche d'offres d'hôtels."""
+        return await search_hotel_offers(query)
 
 
 # Instance globale du client

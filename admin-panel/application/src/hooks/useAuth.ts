@@ -1,11 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { setCookie, deleteCookie, getCookie } from 'cookies-next'
 import { authService } from '@/services'
 import type { LoginCredentials, RegisterCredentials } from '@/types'
 
 const QUERY_KEYS = {
   currentUser: ['auth', 'currentUser'],
+}
+
+function hasAuthCookie(): boolean {
+  if (typeof document === 'undefined') return false
+  return document.cookie.includes('auth-status=authenticated')
 }
 
 export const useAuth = () => {
@@ -19,20 +23,13 @@ export const useAuth = () => {
   } = useQuery({
     queryKey: QUERY_KEYS.currentUser,
     queryFn: authService.getCurrentUser,
-    enabled: !!getCookie('auth-token'),
+    enabled: hasAuthCookie(),
     retry: false,
   })
 
   const loginMutation = useMutation({
     mutationFn: authService.login,
     onSuccess: data => {
-      setCookie('auth-token', data.access_token, {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 365, // 365 days to match API
-      })
-
       queryClient.setQueryData(QUERY_KEYS.currentUser, data.user)
       router.push('/dashboard')
     },
@@ -41,20 +38,17 @@ export const useAuth = () => {
   const registerMutation = useMutation({
     mutationFn: authService.register,
     onSuccess: data => {
-      setCookie('auth-token', data.access_token, {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 365, // 365 days to match API
-      })
-
       queryClient.setQueryData(QUERY_KEYS.currentUser, data.user)
       router.push('/dashboard')
     },
   })
 
-  const logout = () => {
-    deleteCookie('auth-token')
+  const logout = async () => {
+    try {
+      await authService.logout()
+    } catch {
+      // Ignore errors on logout
+    }
     queryClient.clear()
     router.push('/login')
   }
