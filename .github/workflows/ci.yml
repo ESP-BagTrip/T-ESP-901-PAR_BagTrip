@@ -206,9 +206,50 @@ jobs:
         working-directory: api
         run: uv run ruff format --check .
 
-      - name: Run tests
+      - name: Run tests with coverage
         working-directory: api
-        run: uv run pytest
+        run: uv run pytest --cov=src --cov-report=xml:coverage.xml
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-coverage
+          path: api/coverage.xml
+          retention-days: 7
+
+  # ========================================
+  # SONAR — QUALITY ANALYSIS
+  # ========================================
+  sonar:
+    name: SonarCloud Scan
+    runs-on: ubuntu-latest
+    needs: [flutter-test, api-checks]
+    if: always() && (needs.flutter-test.result == 'success' || needs.api-checks.result == 'success')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download Flutter coverage
+        uses: actions/download-artifact@v4
+        if: needs.flutter-test.result == 'success'
+        with:
+          name: flutter-coverage
+          path: bagtrip/coverage
+
+      - name: Download API coverage
+        uses: actions/download-artifact@v4
+        if: needs.api-checks.result == 'success'
+        with:
+          name: api-coverage
+          path: api
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   # ========================================
   # QUALITY GATE
@@ -216,7 +257,7 @@ jobs:
   quality-gate:
     name: Quality Gate
     runs-on: ubuntu-latest
-    needs: [flutter-analyze, flutter-test, flutter-goldens, api-checks]
+    needs: [flutter-analyze, flutter-test, flutter-goldens, api-checks, sonar]
     if: always()
     steps:
       - name: Check all jobs
@@ -230,7 +271,8 @@ jobs:
             "${{ needs.flutter-analyze.result }}" \
             "${{ needs.flutter-test.result }}" \
             "${{ needs.flutter-goldens.result }}" \
-            "${{ needs.api-checks.result }}"; do
+            "${{ needs.api-checks.result }}" \
+            "${{ needs.sonar.result }}"; do
             if [[ "$result" != "success" && "$result" != "skipped" ]]; then
               echo "Quality gate FAILED"
               exit 1
