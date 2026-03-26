@@ -1,0 +1,7 @@
+organization=esp-bagtrip
+projectKey=ESP-BagTrip_T-ESP-901-81605-PAR_Gospalaga
+serverUrl=https://sonarcloud.io
+serverVersion=8.0.0.83474
+dashboardUrl=https://sonarcloud.io/dashboard?id=ESP-BagTrip_T-ESP-901-81605-PAR_Gospalaga
+ceTaskId=AZ0Gc56BctvLFQWm8Bei
+ceTaskUrl=https://sonarcloud.io/api/ce/task?id=AZ0Gc56BctvLFQWm8Bei

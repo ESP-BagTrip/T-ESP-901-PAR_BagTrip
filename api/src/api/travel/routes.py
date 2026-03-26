@@ -121,6 +121,12 @@ async def search_location_nearest(
         if latitude is None or longitude is None:
             raise AppError("INVALID_QUERY", 400, "latitude and longitude are required")
 
+        if not (-90 <= latitude <= 90):
+            raise AppError("INVALID_QUERY", 400, "Latitude must be between -90 and 90")
+        
+        if not (-180 <= longitude <= 180):
+            raise AppError("INVALID_QUERY", 400, "Longitude must be between -180 and 180")
+
         query = LocationNearestSearchQuery(latitude=latitude, longitude=longitude)
         locations = await amadeus_client.search_location_nearest(query)
 

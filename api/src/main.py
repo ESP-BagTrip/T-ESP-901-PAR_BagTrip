@@ -177,7 +177,17 @@ async def app_error_handler(request: Request, exc: AppError):
                 "method": request.method,
             },
         )
-    return create_http_exception(exc)
+    
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "detail": {
+                "error": exc.message,
+                "code": exc.code,
+                **(exc.detail or {}),
+            }
+        },
+    )
 
 
 @app.exception_handler(Exception)

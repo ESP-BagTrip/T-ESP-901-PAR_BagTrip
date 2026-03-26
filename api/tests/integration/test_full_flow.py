@@ -21,6 +21,14 @@ JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key")
 @pytest.fixture
 def db():
     """Fixture pour la session DB."""
+    from src.config.database import engine
+    from sqlalchemy import text
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+    except Exception:
+        pytest.skip("Database connection failed, skipping integration tests")
+
     db = SessionLocal()
     try:
         yield db
@@ -31,13 +39,13 @@ def db():
 @pytest.fixture
 def test_user(db: Session):
     """Créer un utilisateur de test."""
-    from passlib.context import CryptContext
+    import bcrypt
 
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    password_hash = bcrypt.hashpw("test_password".encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
     user = User(
         id=uuid4(),
         email="test@example.com",
-        password_hash=pwd_context.hash("test_password"),
+        password_hash=password_hash,
         full_name="Test User",
     )
     db.add(user)
@@ -58,13 +66,13 @@ def auth_token(test_user: User):
 @pytest.fixture
 def test_user2(db: Session):
     """Créer un deuxième utilisateur de test."""
-    from passlib.context import CryptContext
+    import bcrypt
 
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    password_hash = bcrypt.hashpw("test_password".encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
     user = User(
         id=uuid4(),
         email="test2@example.com",
-        password_hash=pwd_context.hash("test_password"),
+        password_hash=password_hash,
         full_name="Test User 2",
     )
     db.add(user)

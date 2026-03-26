@@ -74,5 +74,31 @@ services:
   #   environment:
   #     - API_URL=http://localhost:3000
 
+  sonarqube:
+    image: sonarqube:community
+    container_name: BagTrip-sonarqube
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+      - ./sonar-flutter-plugin-0.5.2.jar:/opt/sonarqube/extensions/plugins/sonar-flutter-plugin-0.5.2.jar
+    
+
+  sonar-scanner:
+    build:
+      context: .
+      dockerfile: Dockerfile.sonar-scanner
+    container_name: BagTrip-sonar-scanner
+    volumes:
+      - .:/usr/src
+    environment:
+      - SONAR_HOST_URL=http://sonarqube:9000
+      - SONAR_TOKEN=${SONAR_TOKEN}
+    
 volumes:
   postgres_data:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
