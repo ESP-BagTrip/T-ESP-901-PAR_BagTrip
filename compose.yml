@@ -6,9 +6,9 @@ services:
     container_name: BagTrip-db
     restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-bagtrip}
     ports:
       - "5432:5432"
     volumes:
@@ -25,32 +25,54 @@ services:
       - "3000:3000"
     volumes:
       - ./api/src:/app/src
-      - ./api/prisma:/app/prisma
+      - ./api/pyproject.toml:/app/pyproject.toml
+      - ./api/uv.lock:/app/uv.lock
+      - ./api/alembic:/app/alembic
+      - ./api/alembic.ini:/app/alembic.ini
     environment:
-      - CHOKIDAR_USEPOLLING=true
-      - DATABASE_URL=${DATABASE_URL}
+      # Python path for alembic & src imports
+      - PYTHONPATH=/app
+      # Docker-specific: host 'db' instead of 'localhost'
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-bagtrip}
+      # Required API keys (no defaults)
       - AMADEUS_CLIENT_ID=${AMADEUS_CLIENT_ID}
       - AMADEUS_CLIENT_SECRET=${AMADEUS_CLIENT_SECRET}
-      - AMADEUS_BASE_URL=${AMADEUS_BASE_URL}
-      - GOOGLE_GENAI_API_KEY=${GOOGLE_GENAI_API_KEY}
+      - LLM_API_KEY=${LLM_API_KEY}
+      # Optional: passed only if defined in .env
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY:-}
     command: >
       sh -c "
-        npx prisma generate &&
-        npx prisma migrate dev --name init &&
-        npm run dev
+        uv sync &&
+        uv run uvicorn src.main:app --host 0.0.0.0 --port 3000 --reload
       "
 
-  # admin-panel:
-  #   container_name: BagTrip-admin-panel
+  admin-panel:
+    container_name: BagTrip-admin-panel
+    build:
+      context: ./admin-panel/application
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./admin-panel/application:/app
+      - /app/node_modules
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3000
+      - WATCHPACK_POLLING=true
+
+  # mobile-web:
+  #   container_name: BagTrip-mobile-web
   #   build:
-  #     context: ./admin-panel
+  #     context: ./bagtrip
   #     dockerfile: Dockerfile.dev
   #   ports:
-  #     - "5173:5173"
+  #     - "5000:5000"
   #   volumes:
-  #     - ./admin-panel/src:/app/src
+  #     - ./bagtrip:/app
   #   environment:
-  #     - CHOKIDAR_USEPOLLING=true
+  #     - API_URL=http://localhost:3000
 
 volumes:
   postgres_data:

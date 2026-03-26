@@ -1,0 +1,307 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
+// ignore_for_file: type=lint
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
+
+part of 'user.dart';
+
+// **************************************************************************
+// FreezedGenerator
+// **************************************************************************
+
+// dart format off
+T _$identity<T>(T value) => value;
+
+/// @nodoc
+mixin _$User {
+
+ String get id; String get email;@JsonKey(name: 'fullName') String? get fullName; String? get phone;@JsonKey(name: 'stripeCustomerId') String? get stripeCustomerId;@JsonKey(name: 'isProfileCompleted') bool get isProfileCompleted;@JsonKey(name: 'createdAt') DateTime? get createdAt;@JsonKey(name: 'updatedAt') DateTime? get updatedAt; String get plan;@JsonKey(name: 'aiGenerationsRemaining') int? get aiGenerationsRemaining;@JsonKey(name: 'planExpiresAt') DateTime? get planExpiresAt;
+/// Create a copy of User
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$UserCopyWith<User> get copyWith => _$UserCopyWithImpl<User>(this as User, _$identity);
+
+  /// Serializes this User to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is User&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.stripeCustomerId, stripeCustomerId) || other.stripeCustomerId == stripeCustomerId)&&(identical(other.isProfileCompleted, isProfileCompleted) || other.isProfileCompleted == isProfileCompleted)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.plan, plan) || other.plan == plan)&&(identical(other.aiGenerationsRemaining, aiGenerationsRemaining) || other.aiGenerationsRemaining == aiGenerationsRemaining)&&(identical(other.planExpiresAt, planExpiresAt) || other.planExpiresAt == planExpiresAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,email,fullName,phone,stripeCustomerId,isProfileCompleted,createdAt,updatedAt,plan,aiGenerationsRemaining,planExpiresAt);
+
+@override
+String toString() {
+  return 'User(id: $id, email: $email, fullName: $fullName, phone: $phone, stripeCustomerId: $stripeCustomerId, isProfileCompleted: $isProfileCompleted, createdAt: $createdAt, updatedAt: $updatedAt, plan: $plan, aiGenerationsRemaining: $aiGenerationsRemaining, planExpiresAt: $planExpiresAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $UserCopyWith<$Res>  {
+  factory $UserCopyWith(User value, $Res Function(User) _then) = _$UserCopyWithImpl;
+@useResult
+$Res call({
+ String id, String email,@JsonKey(name: 'fullName') String? fullName, String? phone,@JsonKey(name: 'stripeCustomerId') String? stripeCustomerId,@JsonKey(name: 'isProfileCompleted') bool isProfileCompleted,@JsonKey(name: 'createdAt') DateTime? createdAt,@JsonKey(name: 'updatedAt') DateTime? updatedAt, String plan,@JsonKey(name: 'aiGenerationsRemaining') int? aiGenerationsRemaining,@JsonKey(name: 'planExpiresAt') DateTime? planExpiresAt
+});
+
+
+
+
+}
+/// @nodoc
+class _$UserCopyWithImpl<$Res>
+    implements $UserCopyWith<$Res> {
+  _$UserCopyWithImpl(this._self, this._then);
+
+  final User _self;
+  final $Res Function(User) _then;
+
+/// Create a copy of User
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? email = null,Object? fullName = freezed,Object? phone = freezed,Object? stripeCustomerId = freezed,Object? isProfileCompleted = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? plan = null,Object? aiGenerationsRemaining = freezed,Object? planExpiresAt = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as String,fullName: freezed == fullName ? _self.fullName : fullName // ignore: cast_nullable_to_non_nullable
+as String?,phone: freezed == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
+as String?,stripeCustomerId: freezed == stripeCustomerId ? _self.stripeCustomerId : stripeCustomerId // ignore: cast_nullable_to_non_nullable
+as String?,isProfileCompleted: null == isProfileCompleted ? _self.isProfileCompleted : isProfileCompleted // ignore: cast_nullable_to_non_nullable
+as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,plan: null == plan ? _self.plan : plan // ignore: cast_nullable_to_non_nullable
+as String,aiGenerationsRemaining: freezed == aiGenerationsRemaining ? _self.aiGenerationsRemaining : aiGenerationsRemaining // ignore: cast_nullable_to_non_nullable
+as int?,planExpiresAt: freezed == planExpiresAt ? _self.planExpiresAt : planExpiresAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [User].
+extension UserPatterns on User {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _User value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _User() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _User value)  $default,){
+final _that = this;
+switch (_that) {
+case _User():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _User value)?  $default,){
+final _that = this;
+switch (_that) {
+case _User() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String email, @JsonKey(name: 'fullName')  String? fullName,  String? phone, @JsonKey(name: 'stripeCustomerId')  String? stripeCustomerId, @JsonKey(name: 'isProfileCompleted')  bool isProfileCompleted, @JsonKey(name: 'createdAt')  DateTime? createdAt, @JsonKey(name: 'updatedAt')  DateTime? updatedAt,  String plan, @JsonKey(name: 'aiGenerationsRemaining')  int? aiGenerationsRemaining, @JsonKey(name: 'planExpiresAt')  DateTime? planExpiresAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _User() when $default != null:
+return $default(_that.id,_that.email,_that.fullName,_that.phone,_that.stripeCustomerId,_that.isProfileCompleted,_that.createdAt,_that.updatedAt,_that.plan,_that.aiGenerationsRemaining,_that.planExpiresAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String email, @JsonKey(name: 'fullName')  String? fullName,  String? phone, @JsonKey(name: 'stripeCustomerId')  String? stripeCustomerId, @JsonKey(name: 'isProfileCompleted')  bool isProfileCompleted, @JsonKey(name: 'createdAt')  DateTime? createdAt, @JsonKey(name: 'updatedAt')  DateTime? updatedAt,  String plan, @JsonKey(name: 'aiGenerationsRemaining')  int? aiGenerationsRemaining, @JsonKey(name: 'planExpiresAt')  DateTime? planExpiresAt)  $default,) {final _that = this;
+switch (_that) {
+case _User():
+return $default(_that.id,_that.email,_that.fullName,_that.phone,_that.stripeCustomerId,_that.isProfileCompleted,_that.createdAt,_that.updatedAt,_that.plan,_that.aiGenerationsRemaining,_that.planExpiresAt);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String email, @JsonKey(name: 'fullName')  String? fullName,  String? phone, @JsonKey(name: 'stripeCustomerId')  String? stripeCustomerId, @JsonKey(name: 'isProfileCompleted')  bool isProfileCompleted, @JsonKey(name: 'createdAt')  DateTime? createdAt, @JsonKey(name: 'updatedAt')  DateTime? updatedAt,  String plan, @JsonKey(name: 'aiGenerationsRemaining')  int? aiGenerationsRemaining, @JsonKey(name: 'planExpiresAt')  DateTime? planExpiresAt)?  $default,) {final _that = this;
+switch (_that) {
+case _User() when $default != null:
+return $default(_that.id,_that.email,_that.fullName,_that.phone,_that.stripeCustomerId,_that.isProfileCompleted,_that.createdAt,_that.updatedAt,_that.plan,_that.aiGenerationsRemaining,_that.planExpiresAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _User extends User {
+  const _User({required this.id, required this.email, @JsonKey(name: 'fullName') this.fullName, this.phone, @JsonKey(name: 'stripeCustomerId') this.stripeCustomerId, @JsonKey(name: 'isProfileCompleted') this.isProfileCompleted = false, @JsonKey(name: 'createdAt') this.createdAt, @JsonKey(name: 'updatedAt') this.updatedAt, this.plan = 'FREE', @JsonKey(name: 'aiGenerationsRemaining') this.aiGenerationsRemaining, @JsonKey(name: 'planExpiresAt') this.planExpiresAt}): super._();
+  factory _User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+
+@override final  String id;
+@override final  String email;
+@override@JsonKey(name: 'fullName') final  String? fullName;
+@override final  String? phone;
+@override@JsonKey(name: 'stripeCustomerId') final  String? stripeCustomerId;
+@override@JsonKey(name: 'isProfileCompleted') final  bool isProfileCompleted;
+@override@JsonKey(name: 'createdAt') final  DateTime? createdAt;
+@override@JsonKey(name: 'updatedAt') final  DateTime? updatedAt;
+@override@JsonKey() final  String plan;
+@override@JsonKey(name: 'aiGenerationsRemaining') final  int? aiGenerationsRemaining;
+@override@JsonKey(name: 'planExpiresAt') final  DateTime? planExpiresAt;
+
+/// Create a copy of User
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$UserCopyWith<_User> get copyWith => __$UserCopyWithImpl<_User>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$UserToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _User&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.stripeCustomerId, stripeCustomerId) || other.stripeCustomerId == stripeCustomerId)&&(identical(other.isProfileCompleted, isProfileCompleted) || other.isProfileCompleted == isProfileCompleted)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.plan, plan) || other.plan == plan)&&(identical(other.aiGenerationsRemaining, aiGenerationsRemaining) || other.aiGenerationsRemaining == aiGenerationsRemaining)&&(identical(other.planExpiresAt, planExpiresAt) || other.planExpiresAt == planExpiresAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,email,fullName,phone,stripeCustomerId,isProfileCompleted,createdAt,updatedAt,plan,aiGenerationsRemaining,planExpiresAt);
+
+@override
+String toString() {
+  return 'User(id: $id, email: $email, fullName: $fullName, phone: $phone, stripeCustomerId: $stripeCustomerId, isProfileCompleted: $isProfileCompleted, createdAt: $createdAt, updatedAt: $updatedAt, plan: $plan, aiGenerationsRemaining: $aiGenerationsRemaining, planExpiresAt: $planExpiresAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$UserCopyWith<$Res> implements $UserCopyWith<$Res> {
+  factory _$UserCopyWith(_User value, $Res Function(_User) _then) = __$UserCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String email,@JsonKey(name: 'fullName') String? fullName, String? phone,@JsonKey(name: 'stripeCustomerId') String? stripeCustomerId,@JsonKey(name: 'isProfileCompleted') bool isProfileCompleted,@JsonKey(name: 'createdAt') DateTime? createdAt,@JsonKey(name: 'updatedAt') DateTime? updatedAt, String plan,@JsonKey(name: 'aiGenerationsRemaining') int? aiGenerationsRemaining,@JsonKey(name: 'planExpiresAt') DateTime? planExpiresAt
+});
+
+
+
+
+}
+/// @nodoc
+class __$UserCopyWithImpl<$Res>
+    implements _$UserCopyWith<$Res> {
+  __$UserCopyWithImpl(this._self, this._then);
+
+  final _User _self;
+  final $Res Function(_User) _then;
+
+/// Create a copy of User
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? email = null,Object? fullName = freezed,Object? phone = freezed,Object? stripeCustomerId = freezed,Object? isProfileCompleted = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? plan = null,Object? aiGenerationsRemaining = freezed,Object? planExpiresAt = freezed,}) {
+  return _then(_User(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as String,fullName: freezed == fullName ? _self.fullName : fullName // ignore: cast_nullable_to_non_nullable
+as String?,phone: freezed == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
+as String?,stripeCustomerId: freezed == stripeCustomerId ? _self.stripeCustomerId : stripeCustomerId // ignore: cast_nullable_to_non_nullable
+as String?,isProfileCompleted: null == isProfileCompleted ? _self.isProfileCompleted : isProfileCompleted // ignore: cast_nullable_to_non_nullable
+as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,plan: null == plan ? _self.plan : plan // ignore: cast_nullable_to_non_nullable
+as String,aiGenerationsRemaining: freezed == aiGenerationsRemaining ? _self.aiGenerationsRemaining : aiGenerationsRemaining // ignore: cast_nullable_to_non_nullable
+as int?,planExpiresAt: freezed == planExpiresAt ? _self.planExpiresAt : planExpiresAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+
+}
+
+// dart format on

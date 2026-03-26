@@ -1,0 +1,125 @@
+import 'package:flutter/material.dart';
+
+/// Centralized spacing tokens (logical pixels) and convenient EdgeInsets.
+/// Use these constants throughout the app instead of magic numbers.
+
+class AppSize {
+  const AppSize._();
+
+  static const double height42 = 42.0;
+  static const double width42 = 42.0;
+  static const double iconSizeHeight24 = 24.0;
+  static const double boxSize8 = 8.0;
+  static const double boxSize16 = 16.0;
+}
+
+class AppSpacing {
+  const AppSpacing._();
+
+  static const double space4 = 4.0;
+  static const double space8 = 8.0;
+  static const double space12 = 12.0;
+  static const double space16 = 16.0;
+  static const double space24 = 24.0;
+  static const double space32 = 32.0;
+  static const double space40 = 40.0;
+  static const double space48 = 48.0;
+  static const double space56 = 56.0;
+
+  // Convenience EdgeInsets
+  static const EdgeInsets allEdgeInsetSpace4 = EdgeInsets.all(space4);
+  static const EdgeInsets allEdgeInsetSpace8 = EdgeInsets.all(space8);
+  static const EdgeInsets allEdgeInsetSpace16 = EdgeInsets.all(space16);
+  static const EdgeInsets allEdgeInsetSpace24 = EdgeInsets.all(space24);
+  static const EdgeInsets allEdgeInsetSpace32 = EdgeInsets.all(space32);
+  static const EdgeInsets allEdgeInsetSpace40 = EdgeInsets.all(space40);
+  static const EdgeInsets allEdgeInsetSpace48 = EdgeInsets.all(space48);
+
+  static const EdgeInsets onlyTopSpace8 = EdgeInsets.only(top: space8);
+  static const EdgeInsets onlyBottomSpace8 = EdgeInsets.only(bottom: space8);
+  static const EdgeInsets onlyLeftSpace8 = EdgeInsets.only(left: space8);
+  static const EdgeInsets onlyRightSpace8 = EdgeInsets.only(right: space8);
+
+  static const EdgeInsets onlyTopSpace16 = EdgeInsets.only(top: space16);
+  static const EdgeInsets onlyBottomSpace16 = EdgeInsets.only(bottom: space16);
+  static const EdgeInsets onlyLeftSpace16 = EdgeInsets.only(left: space16);
+  static const EdgeInsets onlyRightSpace16 = EdgeInsets.only(right: space16);
+
+  static const EdgeInsets horizontalSpace8 = EdgeInsets.symmetric(
+    horizontal: space8,
+  );
+  static const EdgeInsets horizontalSpace16 = EdgeInsets.symmetric(
+    horizontal: space16,
+  );
+  static const EdgeInsets verticalSpace8 = EdgeInsets.symmetric(
+    vertical: space8,
+  );
+  static const EdgeInsets verticalSpace16 = EdgeInsets.symmetric(
+    vertical: space16,
+  );
+
+  // --- space12 EdgeInsets ---
+  static const EdgeInsets allEdgeInsetSpace12 = EdgeInsets.all(space12);
+  static const EdgeInsets horizontalSpace12 = EdgeInsets.symmetric(
+    horizontal: space12,
+  );
+  static const EdgeInsets verticalSpace12 = EdgeInsets.symmetric(
+    vertical: space12,
+  );
+
+  // --- Additional symmetric EdgeInsets ---
+  static const EdgeInsets verticalSpace4 = EdgeInsets.symmetric(
+    vertical: space4,
+  );
+  static const EdgeInsets verticalSpace24 = EdgeInsets.symmetric(
+    vertical: space24,
+  );
+  static const EdgeInsets horizontalSpace4 = EdgeInsets.symmetric(
+    horizontal: space4,
+  );
+  static const EdgeInsets horizontalSpace24 = EdgeInsets.symmetric(
+    horizontal: space24,
+  );
+
+  // --- Additional directional EdgeInsets ---
+  static const EdgeInsets onlyTopSpace24 = EdgeInsets.only(top: space24);
+  static const EdgeInsets onlyBottomSpace24 = EdgeInsets.only(bottom: space24);
+}
+
+/// Centralized corner radius tokens.
+class AppRadius {
+  const AppRadius._();
+
+  static const double cornerRaidus4 = 4.0;
+  static const double cornerRaidus8 = 8.0;
+  static const double cornerRaidus16 = 16.0;
+  static const double cornerRadius20 = 20.0;
+  static const double cornerRadius24 = 24.0;
+  static const double cornerRadius28 = 28.0;
+  static const double cornerRadius32 = 32.0;
+
+  static const BorderRadius small4 = BorderRadius.all(
+    Radius.circular(cornerRaidus4),
+  );
+  static const BorderRadius medium8 = BorderRadius.all(
+    Radius.circular(cornerRaidus8),
+  );
+  static const BorderRadius large16 = BorderRadius.all(
+    Radius.circular(cornerRaidus16),
+  );
+  static const BorderRadius large20 = BorderRadius.all(
+    Radius.circular(cornerRadius20),
+  );
+  static const BorderRadius large24 = BorderRadius.all(
+    Radius.circular(cornerRadius24),
+  );
+  static const BorderRadius large28 = BorderRadius.all(
+    Radius.circular(cornerRadius28),
+  );
+  static const BorderRadius large32 = BorderRadius.all(
+    Radius.circular(cornerRadius32),
+  );
+
+  /// Pilule (bords entièrement arrondis), comme dans la maquette.
+  static const BorderRadius pill = BorderRadius.all(Radius.circular(999));
+}

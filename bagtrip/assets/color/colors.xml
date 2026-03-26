@@ -6,13 +6,39 @@
     <color name="primary_soft_light">#dfe7f0</color>
     <color name="primary_true_dark">#0e2135</color>
     <color name="primary_dark">#1f4772</color>
-    
+
     <!-- Secondary Colors -->
     <color name="secondary">#35A8B5</color>
-    
+    <color name="secondary_light">#E8F8F7</color>
+
     <!-- Status Colors -->
     <color name="success">#4CAF50</color>
     <color name="warning">#FF9800</color>
     <color name="error">#F44336</color>
+    <color name="error_dark">#B71C1C</color>
     <color name="info">#2196F3</color>
+    <color name="info_light">#E3F2FD</color>
+    <color name="warning_light">#FFF3E0</color>
+
+    <!-- Text / UI -->
+    <color name="hint">#9AA6AC</color>
+    <color name="text_muted_light">#6B7280</color>
+    <color name="on_surface">#1F3A5F</color>
+
+    <!-- Surfaces -->
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_light">#F7F9FC</color>
+    <color name="surface_dark">#2A2F3D</color>
+    <color name="surface_variant">#E8EDF1</color>
+    <color name="input_background_dark">#353B4A</color>
+
+    <!-- Background gradients -->
+    <color name="background_gradient_start">#F0F7FA</color>
+    <color name="background_gradient_mid">#F5F9FB</color>
+    <color name="background_gradient_end">#FAFCFD</color>
+
+    <!-- Shimmer / borders (grey equivalents) -->
+    <color name="border">#E0E0E0</color>
+    <color name="shimmer_base">#E0E0E0</color>
+    <color name="shimmer_highlight">#F5F5F5</color>
 </resources>

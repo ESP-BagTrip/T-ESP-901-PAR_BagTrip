@@ -1,0 +1,1275 @@
+{
+  "dateFormatHint": "jj/mm/aaaa",
+  "travelClassTitle": "Classe de voyage",
+  "passengersTitle": "Passagers",
+  "searchFlightButton": "Rechercher votre vol",
+  "errorAddAtLeastOneFlight": "Veuillez ajouter au moins un vol",
+  "errorFillAllFields": "Veuillez remplir tous les champs obligatoires",
+  "travelClassEconomy": "Économique",
+  "travelClassPremiumEconomy": "Premium Éco",
+  "travelClassBusiness": "Affaires",
+  "travelClassFirst": "Première",
+  "tripTypeRoundTrip": "Aller-retour",
+  "tripTypeOneWay": "Aller simple",
+  "tripTypeMultiCity": "Multi-destinations",
+  "airportDepartureHint": "Aéroport de départ",
+  "airportArrivalHint": "Aéroport de destination",
+  "passengersAdults": "Adultes",
+  "passengersAdultsDesc": "12 ans et plus",
+  "passengersChildren": "Enfants",
+  "passengersChildrenDesc": "2-11 ans",
+  "passengersInfants": "Bébés",
+  "passengersInfantsDesc": "Moins de 2 ans",
+  "multiDestFlightTitle": "Vol {index}",
+  "@multiDestFlightTitle": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "multiDestDepartureHint": "Départ",
+  "multiDestArrivalHint": "Arrivée",
+  "multiDestDateHint": "Date de départ",
+  "multiDestAddFlightButton": "Ajouter un autre vol",
+  "maxPriceHint": "Prix maximum (€)",
+  "noFlightsFoundTitle": "Aucun vol trouvé",
+  "noFlightsFoundMessage": "Essayez de modifier vos critères de recherche.",
+  "noFlightsFoundPriceFilterMessage": "Aucun vol ne correspond à votre budget maximum. Essayez d'augmenter votre limite de prix ou d'effacer le filtre.",
+  "clearPriceFilterButton": "Effacer le filtre de prix",
+  "selectYourRate": "Sélectionnez votre tarif",
+  "outboundFlight": "Vol aller",
+  "returnFlight": "Vol retour",
+  "stopsLabel": "{count, plural, =0{Vol direct} =1{1 escale} other{{count} escales}}",
+  "@stopsLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "baggageIncluded": "Bagages inclus",
+  "cabinBag": "Bagage cabine",
+  "checkedBag": "Bagage en soute",
+  "classAndConditions": "Classe et conditions",
+  "bookingClass": "Classe de réservation",
+  "cabin": "Cabine",
+  "fareBasis": "Code tarifaire",
+  "fareInformation": "Informations tarifaires",
+  "ticketEmissionDeadline": "Émission du billet avant le {date}",
+  "@ticketEmissionDeadline": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "seatsRemaining": "{count} siège(s) restant(s) à ce tarif",
+  "@seatsRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "baseFare": "Tarif de base",
+  "taxesAndFees": "Taxes et frais",
+  "totalPrice": "Prix total",
+  "bookThisFlight": "Réserver ce vol",
+  "baggageKg": "{weight} kg",
+  "@baggageKg": {
+    "placeholders": {
+      "weight": {
+        "type": "int"
+      }
+    }
+  },
+  "baggageQuantity": "{quantity, plural, =1{1 bagage} other{{quantity} bagages}}",
+  "@baggageQuantity": {
+    "placeholders": {
+      "quantity": {
+        "type": "int"
+      }
+    }
+  },
+  "baggageNotIncluded": "Non inclus",
+  "handBaggageIncluded": "Bagage à main inclus",
+  "unknown": "Inconnu",
+  "unknownAirline": "Compagnie inconnue",
+  "unknownAircraft": "Appareil inconnu",
+  "error": "Erreur : {message}",
+  "@error": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "searchResults": "Résultats de recherche",
+  "departureLabel": "Départ",
+  "destinationLabel": "Destination",
+  "travelDatesLabel": "Dates de voyage",
+  "outboundLabel": "Aller",
+  "returnLabel": "Retour",
+  "maxBudgetLabel": "Budget maximum",
+  "whereNextLabel": "Quel est votre prochain voyage",
+  "findYourFlightTitle": "Trouvez votre vol",
+  "departLabel": "Départ",
+  "cabinClassLabel": "Classe",
+  "tripDetailsLabel": "Détails du voyage",
+  "flightCardTitle": "Vol",
+  "hotelCardTitle": "Hôtel",
+  "flightAndHotelCardTitle": "Vol + Hôtel",
+  "otherCardTitle": "Autres",
+  "handleBudget": "Gérer votre budget",
+  "trackExpensesAndPlan": "Suivez vos dépenses et planifiez votre voyage selon votre budget",
+  "myProfile": "Mon profil",
+  "managePersonalInfo": "Gérez vos informations personnelles et vos préférences",
+  "editProfile": "Modifier le profil",
+  "disconnect": "Se déconnecter",
+  "viewDestinations": "Visualiser les destinations",
+  "exploreDestinations": "Explorez les destinations disponibles sur une carte interactive",
+  "startButton": "Commencer",
+  "newTrip": "Nouveau voyage",
+  "createYourTrip": "Créez votre voyage",
+  "nameTripToStart": "Donnez un nom à votre voyage pour commencer la planification",
+  "tripNameLabel": "Nom du voyage",
+  "tripNameHint": "Ex: Vacances à Paris",
+  "continueButton": "Continuer",
+  "aiPlanning": "Planification IA",
+  "retryButton": "Réessayer",
+  "searchingInProgress": "Recherche en cours...",
+  "typeYourMessage": "Tapez votre message...",
+  "planningTitle": "Planification {title}",
+  "@planningTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "personalInfoTitle": "Informations personnelles",
+  "nameLabel": "NOM",
+  "emailLabel": "EMAIL",
+  "phoneLabel": "TÉLÉPHONE",
+  "modifyButton": "Modifier",
+  "editNameTitle": "Modifier le nom",
+  "editPhoneTitle": "Modifier le téléphone",
+  "saveButton": "Enregistrer",
+  "profileUpdateSuccess": "Profil mis à jour avec succès",
+  "profileUpdateError": "Échec de la mise à jour du profil",
+  "preferencesTitle": "Préférences",
+  "languageLabel": "LANGUE",
+  "themeLabel": "THÈME",
+  "chooseThemeHint": "Choisissez votre thème préféré",
+  "themeLight": "Clair",
+  "themeDark": "Sombre",
+  "themeSystem": "Système",
+  "profileFooterText": "Version {version} · © {year} Vol Airlines",
+  "@profileFooterText": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "memberSinceText": "Membre depuis {date}",
+  "@memberSinceText": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "recentBookingsTitle": "Réservations récentes",
+  "viewAllButton": "Voir tout",
+  "noRecentBookings": "Aucune réservation récente",
+  "bookingStatusCompleted": "Terminé",
+  "bookingStatusConfirmed": "Confirmé",
+  "profileLoadFailureMessage": "Impossible de charger le profil.",
+  "loginWelcomeTitle": "Bienvenue sur Bag Trip",
+  "loginWelcomeSubtitle": "Connectez-vous ou créez un compte pour accéder à votre espace",
+  "login": "Connexion",
+  "signUp": "Inscription",
+  "loginOrContinueWithEmail": "OU CONTINUER AVEC L'EMAIL",
+  "loginEmailPlaceholder": "Adresse e-mail",
+  "loginPasswordPlaceholder": "Mot de passe",
+  "loginForgotPassword": "Mot de passe oublié ?",
+  "loginButton": "Connexion",
+  "loginLegalBySigningIn": "En vous connectant, vous acceptez les ",
+  "loginTermsOfService": "Conditions d'utilisation",
+  "loginPrivacyPolicy": "Politique de confidentialité",
+  "loginLegalAnd": " et ",
+  "loginContinueWithGoogle": "Google",
+  "loginContinueWithApple": "Apple",
+  "loginFullNameLabel": "Nom complet (optionnel)",
+  "loginFullNameHint": "Jean Dupont",
+  "loginToggleNoAccount": "Pas de compte ? S'inscrire",
+  "loginToggleHasAccount": "Déjà un compte ? Se connecter",
+  "loginErrorEmailRequired": "Veuillez renseigner votre adresse e-mail",
+  "loginErrorEmailInvalid": "Adresse e-mail incorrecte",
+  "loginErrorPasswordRequired": "Veuillez renseigner votre mot de passe",
+  "loginErrorPasswordMinLength": "Le mot de passe doit contenir au moins 6 caractères",
+  "loginRegisterButton": "S'inscrire",
+  "onboardingTitle": "Bienvenue !",
+  "onboardingSubtitle": "Personnalisons votre expérience de voyage en quelques étapes simples.",
+  "onboardingFeature1Title": "Planification simplifiée",
+  "onboardingFeature1Desc": "Créez votre voyage en quelques étapes. Plus besoin de jongler entre mille onglets.",
+  "onboardingFeature2Title": "Voyage personnalisé",
+  "onboardingFeature2Desc": "Chaque voyage s'adapte à vos envies, votre budget et votre rythme.",
+  "onboardingFeature3Title": "IA à votre service",
+  "onboardingFeature3Desc": "Pas d'idée de destination ? Notre IA vous guide vers le voyage parfait.",
+  "onboardingCtaButton": "Commencer",
+  "onboardingSkip": "Passer l'introduction",
+  "splashLoading": "Chargement...",
+  "personalizationPromptTitle": "Personnalisez votre expérience",
+  "personalizationPromptSubtitle": "Quelques questions pour mieux vous connaître et vous proposer des voyages sur mesure.",
+  "personalizationOptionTravelTypes": "Vos types de voyage préférés",
+  "personalizationOptionBudget": "Votre budget habituel",
+  "personalizationOptionCompanions": "Avec qui vous voyagez",
+  "personalizationCompleteProfile": "Compléter mon profil >",
+  "personalizationSkipStep": "Passer cette étape",
+  "personalizationProfileSectionTitle": "Personnalisation de l'expérience",
+  "personalizationPageTitle": "Mon profil voyage",
+  "personalizationDone": "Terminer",
+  "personalizationStepTitleTravelTypes": "Vos types de voyage préférés",
+  "personalizationStepSubtitleTravelTypes": "Sélectionnez un ou plusieurs types",
+  "personalizationTravelTypeBeach": "Plage & Détente",
+  "personalizationTravelTypeAdventure": "Aventure & Nature",
+  "personalizationTravelTypeCity": "Ville & Culture",
+  "personalizationTravelTypeGastronomy": "Gastronomie",
+  "personalizationTravelTypeWellness": "Bien-être & Spa",
+  "personalizationTravelTypeNightlife": "Fête & Vie nocturne",
+  "personalizationStepTitleTravelStyle": "Votre style de voyage",
+  "personalizationStepSubtitleTravelStyle": "Comment aimez-vous organiser vos voyages ?",
+  "personalizationTravelStylePlanned": "Tout planifié",
+  "personalizationTravelStyleFlexible": "Flexible",
+  "personalizationTravelStyleSpontaneous": "Spontané",
+  "personalizationStepTitleBudget": "Votre budget habituel",
+  "personalizationStepSubtitleBudget": "Quel est votre niveau de dépense préféré ?",
+  "personalizationBudgetEconomical": "Économique",
+  "personalizationBudgetEconomicalDesc": "Auberges, transports locaux",
+  "personalizationBudgetModerate": "Modéré",
+  "personalizationBudgetModerateDesc": "Hôtels 3★, confort",
+  "personalizationBudgetLuxury": "Luxe",
+  "personalizationBudgetLuxuryDesc": "Hôtels 5★, expériences VIP",
+  "personalizationStepTitleCompanions": "Avec qui voyagez-vous ?",
+  "personalizationStepSubtitleCompanions": "Généralement, vous voyagez...",
+  "personalizationCompanionSolo": "Solo",
+  "personalizationCompanionCouple": "En couple",
+  "personalizationCompanionFamily": "En famille",
+  "personalizationCompanionFriends": "Entre amis",
+  "personalizationContinue": "Continuer",
+  "personalizationFinish": "Terminer",
+  "personalizationSkip": "Passer",
+  "personalizationWelcomeTitle": "Bienvenue",
+  "personalizationWelcomeSubtitle": "Personnalisons votre expérience de voyage",
+  "personalizationWelcomeCta": "Commencer",
+  "personalizationStepTitleHowYouTravel": "Comment voyagez-vous ?",
+  "personalizationStepTitleInterests": "Vos centres d'intérêt",
+  "personalizationStepSubtitleInterests": "Sélectionnez un ou plusieurs",
+  "personalizationStepTitleBudgetQuestion": "Quel est votre budget ?",
+  "personalizationStepTitleFrequency": "À quelle fréquence voyagez-vous ?",
+  "personalizationStepSubtitleFrequency": "Par an",
+  "personalizationBudgetComfort": "Confort",
+  "personalizationBudgetComfortDesc": "Hôtels 4★, bon équilibre",
+  "personalizationFrequency1_2": "1–2 fois",
+  "personalizationFrequency3_5": "3–5 fois",
+  "personalizationFrequency6Plus": "6+ fois",
+  "personalizationInterestPhotography": "Photographie",
+  "personalizationInterestShopping": "Shopping",
+  "planifierTab": "Planifier",
+  "planifierSectionCreateTrip": "Créer un voyage",
+  "planifierManualTitle": "Planifier manuellement",
+  "planifierManualDesc": "Créez votre voyage étape par étape avec tous les détails",
+  "planifierAITitle": "Assistant IA",
+  "planifierAIDesc": "Laissez l'IA vous aider à créer un voyage personnalisé",
+  "planifierCompletedTitle": "Voyages terminés",
+  "planifierCompletedDesc": "Consultez vos voyages passés et budgets",
+  "planifierGreeting": "Bonjour",
+  "planifierMainTitle": "Planifiez votre\nprochain voyage",
+  "planifierSubtitle": "Créez et gérez vos voyages",
+  "planifierManualDescriptionCard": "Construisez votre itinéraire étape par étape.",
+  "planifierAIDescriptionCard": "Laissez l'IA créer un voyage personnalisé pour vous.",
+  "planifierNewBadge": "NOUVEAU",
+  "planifierSectionExploreDestinations": "Explorer les destinations",
+  "destinationKyoto": "Kyoto",
+  "destinationSantorini": "Santorini",
+  "destinationMarrakech": "Marrakech",
+  "countryJapan": "JAPAN",
+  "countryGreece": "GREECE",
+  "countryMorocco": "MOROCCO",
+  "yourDestinationTitle": "Votre destination",
+  "destinationPlaceholder": "Paris, Tokyo, New York...",
+  "numberOfTravelersLabel": "Nombre de voyageurs",
+  "nextButton": "Suivant",
+  "travelerCount5Plus": "5+",
+  "transportTitle": "Transport",
+  "transportOptionFlightTitle": "Oui, chercher un vol",
+  "transportOptionFlightSubtitle": "Recherche via Amadeus",
+  "transportOptionOtherTitle": "Non, autre transport",
+  "transportOptionOtherSubtitle": "Voiture, train, bus...",
+  "transportOptionSkipTitle": "Non, passer cette étape",
+  "transportOptionSkipSubtitle": "Aucun transport à ajouter",
+  "otherTransportTitle": "Autres transport",
+  "transportTypeLabel": "Type de transport",
+  "transportTypeCar": "Voiture",
+  "transportTypeTrain": "Train",
+  "transportTypeBus": "Bus",
+  "transportTypeFlightBooked": "Vol (déjà réservé)",
+  "transportDetailsLabel": "Détails (optionnel)",
+  "transportDetailsPlaceholder": "Ex: Location chez Hertz, TGV Paris-Lyon...",
+  "transportBudgetLabel": "Budget transport (€)",
+  "transportBudgetPlaceholder": "Ex: 150",
+  "transportBudgetHint": "Ce montant sera ajouté à votre budget voyage",
+  "continueButton": "Continuer",
+  "skipThisStepLabel": "Passer cette étape",
+  "recapTitle": "Planifiez votre voyage",
+  "recapFinalStepLabel": "PLANIFICATION IA",
+  "recapDateChoose": "Choisir",
+  "recapDateSelectHint": "Sélectionner",
+  "recapTravelTypesLabel": "TYPES DE VOYAGE",
+  "recapStyleLabel": "STYLE",
+  "recapBudgetLabel": "BUDGET",
+  "recapCompanionsLabel": "COMPAGNONS",
+  "recapLaunchSearchButton": "Lancer la recherche IA",
+  "summaryTitle": "Votre voyage personnalisé",
+  "summarySubtitle": "+ Généré par l'IA",
+  "summaryUpcomingJourney": "◆ PROCHAIN VOYAGE",
+  "summaryDays": "jours",
+  "summaryBudget": "budget",
+  "summarySolo": "Solo",
+  "summarySectionCurated": "POUR VOUS",
+  "summaryTripHighlights": "Points forts du voyage",
+  "summarySectionWhereStay": "OÙ LOGER",
+  "summaryAccommodation": "Hébergement",
+  "summarySectionFlight": "VOL",
+  "summaryFlight": "Vol",
+  "summaryFlightRouteMock": "Paris CDG → Paris Orly",
+  "summaryFlightDetailsMock": "Aller-retour · Économique",
+  "summarySectionYourJourney": "VOTRE VOYAGE",
+  "summaryDayByDay": "Jour par jour",
+  "summarySectionEssentials": "ESSENTIELS",
+  "summaryWhatToBring": "À emporter",
+  "summaryBestPick": "Best pick",
+  "summaryDayPrefix": "J",
+  "summaryDay1Date": "LUNDI · 9 JUIN",
+  "summaryDay2Date": "MARDI · 10 JUIN",
+  "summaryDay3Date": "MERCREDI · 11 JUIN",
+  "summaryDay4Date": "JEUDI · 12 JUIN",
+  "summaryDay5Date": "VENDREDI · 13 JUIN",
+  "summaryDay1Description": "Installation au Marais, balade dans les rues historiques, apéritif en soirée place des Vosges.",
+  "summaryDay2Description": "Louvre le matin, quartier Notre-Dame, berges de la Seine l'après-midi.",
+  "summaryDay3Description": "Atelier cuisine, marché, dîner dans un bistro typique.",
+  "summaryDay4Description": "Château de Versailles, la Galerie des Glaces et les jardins en fleurs.",
+  "summaryDay5Description": "Matin à Sacré-Cœur, dernier café crème, vol retour l'après-midi.",
+  "summaryCategoryTravelDay": "Jour de voyage",
+  "summaryCategoryCulture": "Culture",
+  "summaryCategoryCuisine": "Cuisine",
+  "summaryCategoryDayTrip": "Excursion",
+  "summaryCategoryDeparture": "Départ",
+  "summarySaveTrip": "Sauvegarder ce voyage",
+  "summaryRegenerate": "Régénérer",
+  "summaryTripSaved": "Voyage sauvegardé",
+  "summaryDaysCount": "{count} jours",
+  "@summaryDaysCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "summaryBudgetAmount": "{amount} budget",
+  "@summaryBudgetAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "activities": "Activit\u00e9s",
+  "addActivity": "Ajouter une activit\u00e9",
+  "editActivity": "Modifier l\u2019activit\u00e9",
+  "noActivities": "Aucune activit\u00e9",
+  "activityTitle": "Titre",
+  "activityDate": "Date",
+  "activityDescription": "Description",
+  "activityStartTime": "Heure de d\u00e9but",
+  "activityEndTime": "Heure de fin",
+  "activityLocation": "Lieu",
+  "activityCategory": "Cat\u00e9gorie",
+  "activityEstimatedCost": "Co\u00fbt estim\u00e9",
+  "activityBooked": "R\u00e9serv\u00e9",
+  "categoryVisit": "Visite",
+  "categoryRestaurant": "Restaurant",
+  "categoryTransport": "Transport",
+  "categoryLeisure": "Loisir",
+  "categoryOther": "Autre",
+  "budgetItems": "Budget",
+  "addExpense": "Ajouter une d\u00e9pense",
+  "editExpense": "Modifier la d\u00e9pense",
+  "noExpenses": "Aucune d\u00e9pense",
+  "expenseLabel": "Libell\u00e9",
+  "expenseAmount": "Montant",
+  "expenseCategory": "Cat\u00e9gorie",
+  "expenseDate": "Date",
+  "expensePlanned": "Planifi\u00e9",
+  "expenseReal": "R\u00e9el",
+  "expenseLabelRequired": "Libell\u00e9 requis",
+  "budgetTotal": "Budget total",
+  "budgetSpent": "D\u00e9pens\u00e9",
+  "budgetRemaining": "Restant",
+  "categoryFlight": "Vol",
+  "categoryAccommodation": "H\u00e9bergement",
+  "categoryFood": "Nourriture",
+  "categoryActivity": "Activit\u00e9",
+  "budgetExceeded": "Budget d\u00e9pass\u00e9 de {amount} \u20ac",
+  "@budgetExceeded": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetWarning": "Vous avez utilis\u00e9 {percent}% de votre budget",
+  "@budgetWarning": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "tripCompletedReadOnly": "Ce voyage est termin\u00e9. Les donn\u00e9es sont en lecture seule.",
+  "markAsReady": "Marquer comme pr\u00eat",
+  "cancelButton": "Annuler",
+  "deleteButton": "Supprimer",
+  "addButton": "Ajouter",
+  "comingSoon": "Bientôt disponible",
+  "errorTitle": "Erreur",
+  "backButton": "Retour",
+  "tabHome": "Accueil",
+  "tabActivity": "Activité",
+  "tabProfile": "Profil",
+  "notificationsTitle": "Notifications",
+  "notificationsMarkAllRead": "Tout marquer lu",
+  "notificationsEmpty": "Aucune notification",
+  "notificationsToday": "Aujourd'hui",
+  "notificationsYesterday": "Hier",
+  "notificationsDaysAgo": "Il y a {count} jours",
+  "@notificationsDaysAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "baggageTitle": "Bagages",
+  "baggageSuggestionsTooltip": "Suggestions IA",
+  "baggageCategoryDocuments": "Documents",
+  "baggageCategoryClothing": "Vêtements",
+  "baggageCategoryElectronics": "Électronique",
+  "baggageCategoryHygiene": "Hygiène",
+  "baggageCategoryMedication": "Médicaments",
+  "baggageCategoryAccessories": "Accessoires",
+  "baggageCategoryOther": "Autre",
+  "baggageDeleteTitle": "Supprimer l'élément",
+  "baggageDeleteConfirm": "Êtes-vous sûr de vouloir supprimer cet élément ?",
+  "baggageItemAdded": "Élément ajouté",
+  "baggageItemDeleted": "Élément supprimé",
+  "baggageItemAddedFromSuggestion": "Élément ajouté depuis suggestion",
+  "baggageQuantityLabel": "Qté",
+  "baggageCategoryLabel": "Catégorie (optionnel)",
+  "baggageEmptyTitle": "Aucun élément",
+  "baggageEmptySubtitle": "Ajoutez des éléments à votre liste de bagages",
+  "baggageAddItemTitle": "Ajouter un \u00e9l\u00e9ment",
+  "baggagePackedCount": "{packed} sur {total} emball\u00e9s",
+  "@baggagePackedCount": {
+    "placeholders": {
+      "packed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "baggageSuggestionsTitle": "Suggestions pour vous",
+  "baggageToPack": "\u00c0 emballer",
+  "baggagePacked": "Emball\u00e9s",
+  "baggageSwipeToPack": "Glisser pour emballer",
+  "baggageUnpack": "D\u00e9baller",
+  "baggageItemName": "Nom de l'\u00e9l\u00e9ment",
+  "fieldRequired": "Ce champ est requis",
+  "accommodationsTitle": "Hébergements",
+  "accommodationCheckInHelp": "Date d'arrivée",
+  "accommodationCheckOutHelp": "Date de départ",
+  "accommodationAdded": "Hébergement ajouté avec succès",
+  "accommodationDeleteTitle": "Supprimer l'hébergement",
+  "accommodationDeleteConfirm": "Êtes-vous sûr de vouloir supprimer cet hébergement ?",
+  "accommodationDeleted": "Hébergement supprimé",
+  "accommodationCheckInLabel": "Arrivée",
+  "accommodationCheckOutLabel": "Départ",
+  "accommodationEmptyTitle": "Aucun hébergement",
+  "accommodationEmptySubtitle": "Ajoutez vos hôtels et logements",
+  "accommodationAddTitle": "Ajouter un hébergement",
+  "tripTravelers": "Voyageurs",
+  "tripDaysRemaining": "Jours restants",
+  "tripTravelDays": "Jours de voyage",
+  "tripComplete": "Terminer le voyage",
+  "tripDeleteTitle": "Supprimer le voyage",
+  "tripDeleteConfirm": "Êtes-vous sûr de vouloir supprimer ce voyage ? Cette action est irréversible.",
+  "tripGiveReview": "Donner un avis",
+  "tripsMyTrips": "Mes voyages",
+  "tripsNewTrip": "Nouveau voyage",
+  "tripStatusOngoing": "En cours",
+  "tripStatusPlanned": "À venir",
+  "tripStatusCompleted": "Terminé",
+  "tripsEmptyOngoing": "Aucun voyage en cours",
+  "tripsEmptyPlanned": "Aucun voyage planifié",
+  "tripsEmptyCompleted": "Aucun voyage terminé",
+  "sharesTitle": "Partages",
+  "sharesInviteButton": "Inviter",
+  "sharesRevokeTitle": "Révoquer l'accès",
+  "sharesRevokeConfirm": "Êtes-vous sûr de vouloir révoquer l'accès de cet utilisateur ?",
+  "sharesRevokeButton": "Révoquer",
+  "sharesEmpty": "Aucun partage",
+  "sharesEmptySubtitle": "Invitez des personnes à consulter votre voyage",
+  "tripCreated": "Voyage créé !",
+  "aiResultsTitle": "Résultats IA",
+  "feedbackTitle": "Avis",
+  "feedbackGiveReview": "Donner un avis",
+  "feedbackAllReviews": "Tous les avis",
+  "feedbackGiveYourReview": "Donner votre avis",
+  "feedbackOverallRating": "Note globale",
+  "feedbackHighlights": "Points forts",
+  "feedbackHighlightsHint": "Qu'avez-vous aimé ?",
+  "feedbackLowlights": "Points faibles",
+  "feedbackLowlightsHint": "Qu'est-ce qui pourrait être amélioré ?",
+  "feedbackWouldRecommend": "Recommanderiez-vous ce voyage ?",
+  "feedbackThanks": "Merci pour votre avis !",
+  "feedbackSubmitButton": "Envoyer mon avis",
+  "feedbackSent": "Votre avis a été envoyé",
+  "feedbackRecommended": "Recommandé : ",
+  "feedbackDiscoverNextTrip": "Découvrir mon prochain voyage",
+  "feedbackDiscoverText": "Découvrez votre prochain voyage idéal basé sur vos expériences.",
+  "postTripSuggestionTitle": "Prochain voyage suggéré",
+  "postTripNextTrip": "Votre prochain voyage",
+  "postTripBasedOnPreferences": "Basé sur vos préférences",
+  "postTripProposedActivities": "Activités proposées",
+  "postTripCreateTrip": "Créer ce voyage",
+  "filterCabinBagIncluded": "Bagage cabine inclus",
+  "filterCheckedBagIncluded": "Bagage soute inclus",
+  "filterReset": "Réinitialiser",
+  "premiumFeatureAiUnlimited": "Générations IA illimitées",
+  "premiumFeatureViewers": "Jusqu'à 10 viewers par trip",
+  "premiumFeatureOfflineNotifs": "Notifications hors-ligne",
+  "premiumFeaturePostTrip": "Suggestions post-voyage IA",
+  "premiumCtaButton": "Passer à Premium - 9,99€/mois",
+  "profileConfigurePreferences": "Configurez vos préférences",
+  "profileStyleLabel": "Style : {style}",
+  "@profileStyleLabel": {
+    "placeholders": {
+      "style": {"type": "String"}
+    }
+  },
+  "profileBudgetLabel": "Budget : {budget}",
+  "@profileBudgetLabel": {
+    "placeholders": {
+      "budget": {"type": "String"}
+    }
+  },
+  "profileCompanionsLabel": "Compagnons : {companions}",
+  "@profileCompanionsLabel": {
+    "placeholders": {
+      "companions": {"type": "String"}
+    }
+  },
+  "errorNetwork": "Erreur de connexion. Vérifiez votre connexion internet.",
+  "errorAuth": "Identifiants incorrects ou session expirée.",
+  "errorForbidden": "Accès refusé.",
+  "errorNotFound": "Ressource non trouvée.",
+  "errorValidation": "Requête invalide.",
+  "errorQuota": "Limite atteinte. Passez à Premium pour continuer.",
+  "errorStaleContext": "Le contexte a été mis à jour. Veuillez rafraîchir.",
+  "errorServer": "Erreur serveur. Veuillez réessayer plus tard.",
+  "errorRateLimit": "Trop de requêtes. Veuillez patienter.",
+  "errorCancelled": "Opération annulée.",
+  "errorUnknown": "Une erreur est survenue. Veuillez réessayer.",
+  "errorSessionExpired": "Session expirée",
+  "bookingLabel": "Réservation",
+  "activitiesTitle": "Activités",
+  "activitiesEmpty": "Aucune activité",
+  "activitiesEmptySubtitle": "Ajoutez des activités pour planifier votre voyage",
+  "activitiesSuggestionsTitle": "Suggestions IA",
+  "activityFormNew": "Nouvelle activité",
+  "activityFormEdit": "Modifier l'activité",
+  "activityTitleRequired": "Le titre est requis",
+  "activityFormCreate": "Créer",
+  "activityFormUpdate": "Modifier",
+  "activityFormBooked": "Réservé",
+  "feedbackYesLabel": "Oui",
+  "feedbackNoLabel": "Non",
+  "offlineMode": "Vous êtes hors ligne. Données en cache affichées.",
+  "offlineWriteError": "Cette action nécessite une connexion internet.",
+  "loadingMore": "Chargement...",
+  "noMoreItems": "Plus d'éléments",
+  "subscriptionVerifying": "Vérification de votre abonnement...",
+  "subscriptionWelcomePremium": "Bienvenue en Premium !",
+  "subscriptionPending": "Abonnement en attente",
+  "subscriptionSuccessMessage": "Vous avez désormais accès à toutes les fonctionnalités premium. Profitez des générations IA illimitées et plus encore !",
+  "subscriptionPendingMessage": "Votre paiement est en cours de traitement. L'activation peut prendre un instant.",
+  "subscriptionCancelTitle": "Paiement non complété",
+  "subscriptionCancelMessage": "Votre paiement d'abonnement n'a pas été finalisé. Vous pouvez réessayer ou retourner à votre profil.",
+  "subscriptionBackToProfile": "Retour au profil",
+  "paymentSuccessTitle": "Paiement confirmé !",
+  "paymentSuccessMessage": "Votre réservation de vol a été confirmée. Vous pouvez la consulter dans vos voyages.",
+  "paymentBackToTrips": "Retour à mes voyages",
+  "paymentCancelledTitle": "Paiement annulé",
+  "paymentCancelledMessage": "Votre paiement a été annulé. Aucun montant n'a été débité.",
+  "payment3dsReturnTitle": "Paiement en cours",
+  "payment3dsReturnMessage": "Votre paiement est en cours de traitement. Vous recevrez une confirmation sous peu.",
+  "nextTripSection": "Prochain voyage",
+  "nextTripCountdown": "Dans {days} jours",
+  "@nextTripCountdown": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "nextTripNoUpcoming": "Aucun voyage prévu",
+  "nextTripReady": "{percent}% prêt",
+  "@nextTripReady": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTitle": "Réglages",
+  "personalInfoPageTitle": "Informations personnelles",
+  "travelPreferencesTitle": "Préférences de voyage",
+  "homeGreeting": "Bon voyage, {name}",
+  "@homeGreeting": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "homeWelcomeTitle": "Prêt à voyager ?",
+  "homeWelcomeSubtitle": "Créez votre premier voyage en quelques étapes. Manuel ou assisté par l'IA — à vous de choisir.",
+  "homeCreateFirstTrip": "Créer mon premier voyage",
+  "planTripCta": "Planifier un voyage",
+  "planTripCtaSubtitle": "Manuel ou assisté par l'IA",
+  "inspireMe": "Inspire-moi",
+  "datesLabel": "DATES",
+  "suggestedDuration": "Durée suggérée",
+  "days": "jours",
+  "reviewTitle": "Récapitulatif",
+  "aiSuggestionsTitle": "SUGGESTIONS IA",
+  "createTripButton": "Créer le voyage",
+  "tripCreatedSuccess": "Voyage créé avec succès !",
+  "stepDestination": "Où ?",
+  "stepDates": "Quand ?",
+  "stepTravelers": "Qui ?",
+  "stepReview": "Résumé",
+  "toValidateBadge": "A valider",
+  "addFirstAccommodation": "Ajouter un hébergement",
+  "addFirstActivity": "Ajouter une activité",
+  "addFirstBaggage": "Préparer vos bagages",
+  "addFirstBudget": "Suivre vos dépenses",
+  "budgetTitle": "Budget",
+  "transportsTitle": "Transports",
+  "addFirstTransport": "Ajoutez votre vol",
+  "addFlight": "Ajouter un vol",
+  "addFlightSubtitle": "Entrez votre num\u00e9ro de vol pour obtenir les infos en direct",
+  "searchFlightOption": "Rechercher un vol",
+  "searchFlightOptionSubtitle": "Trouvez et comparez des vols",
+  "addManuallyOption": "Ajouter manuellement",
+  "addManuallyOptionSubtitle": "Saisissez les d\u00e9tails du vol",
+  "mainFlightsSection": "Vols principaux",
+  "internalFlightsSection": "Vols internes",
+  "flightNumberLabel": "Num\u00e9ro de vol",
+  "flightNumberRequired": "Le num\u00e9ro de vol est requis",
+  "airlineLabel": "Compagnie a\u00e9rienne",
+  "departureAirportLabel": "D\u00e9part",
+  "arrivalAirportLabel": "Arriv\u00e9e",
+  "departureDateLabel": "Date de d\u00e9part",
+  "arrivalDateLabel": "Date d'arriv\u00e9e",
+  "priceLabel": "Prix",
+  "notesLabel": "Notes",
+  "mainFlightType": "Principal",
+  "internalFlightType": "Interne",
+  "flightStatusOnTime": "\u00c0 l'heure",
+  "flightStatusDelayed": "Retard\u00e9",
+  "flightStatusCancelled": "Annul\u00e9",
+  "flightStatusLanded": "Atterri",
+  "flightStatusScheduled": "Programm\u00e9",
+  "editButton": "Modifier",
+  "activityToValidate": "\u00c0 v\u00e9rifier",
+  "activityValidated": "V\u00e9rifi\u00e9",
+  "activityDisclaimerSubtitle": "Suggestions IA \u2014 v\u00e9rifiez disponibilit\u00e9 et tarifs",
+  "activityValidateConfirmTitle": "V\u00e9rifier cette activit\u00e9 ?",
+  "activityValidateConfirmMessage": "Vous pouvez ajuster le co\u00fbt estim\u00e9 si besoin.",
+  "activityValidateCostLabel": "Co\u00fbt r\u00e9el (optionnel)",
+  "activityValidateConfirm": "Confirmer",
+  "accommodationSearchHotels": "Rechercher un h\u00f4tel",
+  "accommodationSearchHotelsSubtitle": "Trouver et comparer les prix",
+  "accommodationAddManually": "Ajouter manuellement",
+  "accommodationAddManuallySubtitle": "Airbnb, auberge, h\u00f4tel, camping...",
+  "accommodationAiSuggestTitle": "Recommandations IA",
+  "accommodationAiSuggestLoading": "G\u00e9n\u00e9ration des suggestions...",
+  "accommodationEstimatedPrice": "Prix estim\u00e9",
+  "accommodationNights": "nuit(s)",
+  "accommodationTotal": "Total",
+  "accommodationSearchInArea": "Rechercher dans le quartier",
+  "accommodationTypeHotel": "H\u00f4tel",
+  "accommodationTypeAirbnb": "Airbnb",
+  "accommodationTypeHostel": "Auberge",
+  "accommodationTypeCamping": "Camping",
+  "accommodationTypeGuesthouse": "Maison d'h\u00f4tes",
+  "accommodationTypeResort": "Resort",
+  "accommodationTypeOther": "Autre",
+  "accommodationPricePerNight": "Prix/nuit",
+  "accommodationUpdated": "H\u00e9bergement mis \u00e0 jour",
+  "accommodationAiDisclaimer": "Suggestions IA \u2014 v\u00e9rifiez disponibilit\u00e9 et tarifs",
+  "budgetConfirmed": "Confirm\u00e9",
+  "budgetForecasted": "Pr\u00e9visionnel",
+  "budgetEstimateButton": "Estimer mon budget",
+  "budgetEstimateTitle": "Estimation du budget",
+  "budgetEstimateAccept": "Accepter",
+  "budgetEstimateModify": "Modifier",
+  "budgetAccommodationPerNight": "H\u00e9bergement / nuit",
+  "budgetMealsPerDay": "Repas / jour / personne",
+  "budgetLocalTransport": "Transport local / jour",
+  "budgetActivitiesTotal": "Total activit\u00e9s",
+  "budgetTotalRange": "{min} \u2013 {max} {currency}",
+  "@budgetTotalRange": {
+    "placeholders": {
+      "min": {"type": "String"},
+      "max": {"type": "String"},
+      "currency": {"type": "String"}
+    }
+  },
+  "statusPending": "\u00c0 valider",
+  "statusConfirmed": "Confirm\u00e9",
+  "statusForecasted": "Pr\u00e9visionnel",
+  "statusActive": "En cours",
+  "statusCompleted": "Termin\u00e9",
+  "emptyTransportsTitle": "O\u00f9 volez-vous ?",
+  "emptyTransportsSubtitle": "Ajoutez vos vols pour organiser votre voyage",
+  "emptyAccommodationsTitle": "O\u00f9 dormirez-vous ?",
+  "emptyAccommodationsSubtitle": "Ajoutez vos h\u00f4tels et logements",
+  "emptyActivitiesTitle": "Que d\u00e9couvrirez-vous ?",
+  "emptyActivitiesSubtitle": "Ajoutez des activit\u00e9s pour planifier votre voyage",
+  "emptyBaggageTitle": "Que faut-il emporter ?",
+  "emptyBaggageSubtitle": "Ajoutez des \u00e9l\u00e9ments \u00e0 votre liste de bagages",
+  "emptyBudgetTitle": "Suivez vos d\u00e9penses",
+  "emptyBudgetSubtitle": "Suivez vos d\u00e9penses et planifiez votre budget voyage",
+  "mapTitle": "Carte",
+  "mapComingSoonSubtitle": "Votre voyage sur une carte. Bient\u00f4t disponible.",
+  "mapComingSoonShort": "Carte bient\u00f4t",
+  "datesModeExact": "Dates exactes",
+  "datesModeMonth": "Mois",
+  "datesModeFlexible": "Flexible",
+  "datesFlexibleWhenever": "N'importe quand",
+  "datesFlexibleWeekend": "Week-end",
+  "datesFlexibleWeek": "1 semaine",
+  "datesFlexibleTwoWeeks": "2 semaines",
+  "datesFlexibleThreeWeeks": "3 semaines",
+  "datesFlexibleWeekendDays": "2-3 jours",
+  "datesFlexibleWeekDays": "7 jours",
+  "datesFlexibleTwoWeeksDays": "14 jours",
+  "datesFlexibleThreeWeeksDays": "21 jours",
+  "planTripStepDates": "Quand partez-vous ?",
+  "travelersLabel": "VOYAGEURS",
+  "travelerCountLabel": "{count, plural, =1{1 voyageur} other{{count} voyageurs}}",
+  "@travelerCountLabel": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "budgetLabel": "BUDGET",
+  "budgetPresetBackpacker": "Routard",
+  "budgetPresetBackpackerDesc": "30–60 €/jour",
+  "budgetPresetComfortable": "Confortable",
+  "budgetPresetComfortableDesc": "80–150 €/jour",
+  "budgetPresetPremium": "Premium",
+  "budgetPresetPremiumDesc": "200–400 €/jour",
+  "budgetPresetNoLimit": "Sans limite",
+  "budgetPresetNoLimitDesc": "400+ €/jour",
+  "budgetEstimationLabel": "TOTAL ESTIMÉ",
+  "budgetSkipLabel": "Je verrai plus tard",
+  "destinationSectionLabel": "DESTINATION",
+  "destinationOrSeparator": "OU",
+  "destinationNoResults": "Aucun résultat trouvé",
+  "destinationAiLoading": "Notre IA cherche pour vous...",
+  "destinationSelected": "Destination sélectionnée",
+  "stepAiProposals": "Vos destinations",
+  "chooseThisDestination": "Choisir cette destination",
+  "swipeToDiscover": "Glissez pour découvrir →",
+  "aiProposalsEmpty": "Aucune suggestion disponible",
+  "aiProposalsEmptySubtitle": "Retournez en arrière et réessayez",
+  "aiBadgeLabel": "IA",
+  "stepGeneration": "Génération...",
+  "generationTitle": "GÉNÉRATION IA",
+  "generationStepDestinations": "Destinations",
+  "generationStepActivities": "Activités",
+  "generationStepAccommodations": "Hébergements",
+  "generationStepBaggage": "Bagages",
+  "generationStepBudget": "Budget",
+  "generationErrorTitle": "Échec de la génération",
+  "generationErrorSubtitle": "Une erreur est survenue. Veuillez réessayer.",
+  "generationTimeoutTitle": "Temps dépassé",
+  "generationTimeoutSubtitle": "La génération prend plus de temps que prévu. Veuillez réessayer.",
+  "generationProgressLabel": "{percent}%",
+  "@generationProgressLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewCreateTrip": "Créer mon voyage",
+  "reviewSeeOtherDestinations": "Voir d'autres destinations",
+  "reviewCreatingTrip": "Création en cours...",
+  "reviewSectionBudget": "RÉPARTITION DU BUDGET",
+  "reviewBudgetFlights": "Vols",
+  "reviewBudgetAccommodation": "Hébergement",
+  "reviewBudgetMeals": "Repas",
+  "reviewBudgetTransport": "Transport",
+  "reviewBudgetActivities": "Activités",
+  "reviewBudgetOther": "Autre",
+  "reviewBudgetTotal": "Total",
+  "reviewSourceVerified": "Vérifié",
+  "reviewSourceEstimated": "Estimé",
+  "reviewDayLabel": "Jour {day}",
+  "@reviewDayLabel": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewPriceEur": "{amount} EUR",
+  "@reviewPriceEur": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewHighlightsLabel": "TEMPS FORTS",
+  "reviewEssentialReason": "Pourquoi : {reason}",
+  "@reviewEssentialReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewNoActivities": "Aucune activité prévue",
+  "homeActiveTripTitle": "Votre voyage à {destination}",
+  "@homeActiveTripTitle": {
+    "placeholders": {
+      "destination": {
+        "type": "String"
+      }
+    }
+  },
+  "homeActiveTripDay": "Jour {current} sur {total}",
+  "@homeActiveTripDay": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "homeTodayActivities": "Programme du jour",
+  "homeNoActivitiesToday": "Aucune activité prévue aujourd'hui",
+  "homeTripCompletion": "{percent}% prêt",
+  "@homeTripCompletion": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingInspirationTitle": "Inspirez-vous",
+  "onboardingInspirationSubtitle": "Destinations populaires",
+  "tripManagerCompletedSection": "Voyages passés",
+  "tripCardNoDestination": "Pas de destination",
+  "tripCardNoTitle": "Voyage sans titre",
+  "activeTripsViewTrip": "Voir le voyage",
+  "activeTripsNextUp": "Prochainement",
+  "activeTripsAllDay": "Toute la journée",
+  "activeTripsTomorrow": "Demain",
+  "activeTripsTomorrowCount": "{count, plural, =1{1 activité} other{{count} activités}}",
+  "@activeTripsTomorrowCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "activeTripsQuickActions": "Actions rapides",
+  "activeTripsActivities": "Activités",
+  "activeTripsBudget": "Budget",
+  "activeTripsBaggage": "Bagages",
+  "activeTripsShare": "Partager",
+  "completionDates": "Dates",
+  "completionFlights": "Vols",
+  "completionAccommodation": "H\u00f4tels",
+  "completionActivities": "Activit\u00e9s",
+  "completionBaggage": "Bagages",
+  "completionBudget": "Budget",
+  "tripDetailQuickFlights": "Vols",
+  "tripDetailQuickActivities": "Activités",
+  "tripDetailQuickAddFlight": "Ajouter vol",
+  "tripDetailQuickAddHotel": "Ajouter hôtel",
+  "tripDetailQuickAddActivity": "Ajouter activité",
+  "tripDetailQuickExpense": "Dépense",
+  "tripDetailQuickBaggage": "Bagages",
+  "tripDetailQuickMemories": "Souvenirs",
+  "tripDetailQuickNavigate": "Naviguer",
+  "timelineSectionTitle": "Itinéraire",
+  "timelineMorning": "Matin",
+  "timelineAfternoon": "Après-midi",
+  "timelineEvening": "Soirée",
+  "timelineEmptyDayTitle": "Aucune activité",
+  "timelineEmptyDaySubtitle": "Ajoutez-en ou demandez à l'IA de vous suggérer des idées",
+  "timelineValidate": "Valider",
+  "timelineReject": "Rejeter",
+  "flightStatusConfirmed": "Confirmé",
+  "flightStatusPending": "En attente",
+  "flightsSectionEmptyTitle": "Où allez-vous ?",
+  "flightsSectionEmptySubtitle": "Ajoutez vos vols pour organiser votre voyage",
+  "flightsSectionSeeAll": "Voir tous les vols ({count})",
+  "@flightsSectionSeeAll": { "placeholders": { "count": { "type": "int" } } },
+  "flightsSectionTitle": "Vols",
+  "accommodationSectionSeeAll": "Voir tous les hébergements ({count})",
+  "@accommodationSectionSeeAll": { "placeholders": { "count": { "type": "int" } } },
+  "accommodationStatusConfirmed": "Confirmé",
+  "accommodationStatusPending": "En attente",
+  "baggageSectionSeeAll": "Voir tous les éléments ({count})",
+  "@baggageSectionSeeAll": { "placeholders": { "count": { "type": "int" } } },
+  "baggageSectionAddItem": "Ajouter un élément",
+  "baggageSectionAddItemSubtitle": "Créez votre liste",
+  "baggageSectionAiSuggest": "Suggestions IA",
+  "baggageSectionAiSuggestSubtitle": "Laissez l'IA vous aider",
+  "budgetEstimateOptionSubtitle": "Laissez l'IA vous suggerer un budget",
+  "budgetAddExpenseSubtitle": "Suivez une depense prevue ou reelle",
+  "budgetManageAll": "Gerer le budget",
+  "budgetCategoryBreakdown": "Repartition",
+  "sharingSectionTitle": "Partage",
+  "sharingSectionEmptyTitle": "Partagez votre voyage",
+  "sharingSectionEmptySubtitle": "Invitez vos proches a suivre votre voyage",
+  "sharingSectionInvite": "Inviter quelqu'un",
+  "sharingSectionInviteSubtitle": "Partagez votre voyage avec d'autres",
+  "sharingSectionSeeAll": "Voir tous les membres ({count})",
+  "@sharingSectionSeeAll": { "placeholders": { "count": { "type": "int" } } },
+  "sharingSectionOwner": "Proprietaire",
+  "sharingSectionViewer": "Lecteur",
+  "sharingSectionYou": "Vous",
+  "timelineInMinutes": "Dans {minutes} min",
+  "@timelineInMinutes": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "timelineNow": "Maintenant",
+  "timelineInProgress": "En cours",
+  "timelineRemainingMinutes": "{minutes} min restantes",
+  "@timelineRemainingMinutes": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "timelineNavigate": "Naviguer",
+  "timelineChooseMapApp": "Choisir l'application",
+  "timelineAppleMaps": "Apple Plans",
+  "timelineGoogleMaps": "Google Maps",
+  "activeTripsTomorrowLastDay": "Dernier jour de voyage",
+  "activeTripsTomorrowShowAll": "Voir tout ({count})",
+  "@activeTripsTomorrowShowAll": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "activeTripsTomorrowCollapse": "Voir moins",
+  "qaSchedule": "Programme",
+  "qaWeather": "Meteo",
+  "qaCheckOut": "Check-out",
+  "qaNavigate": "Naviguer",
+  "qaExpense": "Depense",
+  "qaPhoto": "Photo",
+  "qaNextActivity": "Prochaine",
+  "qaAiSuggestion": "Idee IA",
+  "qaMap": "Plan",
+  "qaTodayExpenses": "Aujourd'hui",
+  "qaTomorrow": "Demain",
+  "qaBudget": "Budget",
+  "qaQuickExpenseTitle": "Depense rapide",
+  "qaQuickExpenseNote": "Note (optionnel)",
+  "qaQuickExpenseSaved": "Depense enregistree !",
+  "qaQuickExpenseAmount": "Montant",
+  "qaQuickExpenseAmountRequired": "Montant requis",
+  "qaQuickExpenseInvalidAmount": "Montant invalide",
+  "qaCategoryFood": "Repas",
+  "qaCategoryTransport": "Transport",
+  "qaCategoryActivity": "Activite",
+  "qaCategoryShopping": "Shopping",
+  "qaCategoryOther": "Autre",
+  "notifDailySummaryTitle": "Bonjour !",
+  "notifDailySummaryBody": "Jour {day} à {destination} — consultez le programme du jour",
+  "@notifDailySummaryBody": {
+    "placeholders": {
+      "day": {"type": "int"},
+      "destination": {"type": "String"}
+    }
+  },
+  "notifActivityReminderTitle": "Bientôt : {title}",
+  "@notifActivityReminderTitle": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
+  },
+  "notifActivityReminderBody": "Dans 30 minutes à {location}",
+  "@notifActivityReminderBody": {
+    "placeholders": {
+      "location": {"type": "String"}
+    }
+  },
+  "notifCheckoutReminderTitle": "Rappel check-out",
+  "notifCheckoutReminderBody": "N'oubliez pas de quitter {name}",
+  "@notifCheckoutReminderBody": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "notifPackingReminderTitle": "C'est l'heure de faire les valises !",
+  "notifPackingReminderBody": "{count} articles restants à emballer pour {destination}",
+  "@notifPackingReminderBody": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "destination": {"type": "String"}
+    }
+  },
+
+  "postTripDetectionTitle": "Voyage terminé !",
+  "postTripDetectionMessage": "Votre voyage à {destination} est terminé. Voulez-vous le marquer comme complété ?",
+  "@postTripDetectionMessage": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "postTripDetectionConfirm": "Oui, terminer",
+  "postTripDetectionRemindLater": "Me rappeler plus tard",
+  "postTripSouvenirsTitle": "Souvenirs",
+  "postTripDaysCount": "{count} jours d'aventure",
+  "@postTripDaysCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "postTripActivitiesCompleted": "{completed} sur {total} activités",
+  "@postTripActivitiesCompleted": {
+    "placeholders": {
+      "completed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "postTripBudgetSpent": "{amount} dépensés",
+  "@postTripBudgetSpent": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "postTripCategoriesExplored": "{count} catégories explorées",
+  "@postTripCategoriesExplored": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "postTripGiveReview": "Partagez votre expérience",
+  "postTripPlanNext": "Planifier votre prochain voyage",
+  "feedbackAiRatingLabel": "Notez l'expérience de planification IA",
+  "feedbackAiRatingHint": "Les suggestions IA vous ont-elles été utiles ?",
+
+  "editTripTitle": "Modifier le nom du voyage",
+  "editTripDates": "Dates du voyage",
+  "editTripStartDate": "Date de début",
+  "editTripEndDate": "Date de fin",
+  "editTripTravelers": "Voyageurs",
+  "activitiesOutOfRangeTitle": "Activités hors période",
+  "activitiesOutOfRangeMessage": "{count} activités sont hors de la nouvelle période",
+  "@activitiesOutOfRangeMessage": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "cannotFinalizeTitle": "Impossible de finaliser",
+  "cannotFinalizeMessage": "Ajoutez une destination et des dates",
+  "finalizeMissingDestination": "Destination manquante",
+  "finalizeMissingDates": "Dates manquantes",
+
+  "routeSectionLabel": "Itinéraire",
+  "scheduleSectionLabel": "Horaires",
+  "detailsSectionLabel": "Détails",
+  "airportsMustDiffer": "Les aéroports de départ et d'arrivée doivent être différents",
+  "arrivalMustBeAfterDeparture": "L'arrivée doit être après le départ",
+
+  "accommodationEditTitle": "Modifier l'hébergement",
+  "accommodationSaveButton": "Enregistrer",
+  "accommodationAddressLabel": "Adresse",
+  "accommodationReferenceLabel": "Référence de réservation",
+  "accommodationCheckOutBeforeCheckIn": "Le check-out doit être après le check-in",
+  "accommodationCheckInTimeLabel": "Heure d'arrivée",
+  "accommodationCheckOutTimeLabel": "Heure de départ",
+  "accommodationGetPrices": "Voir les prix",
+  "accommodationSelectHotel": "Sélectionner",
+  "accommodationPerNight": "/nuit",
+  "accommodationNoResults": "Aucun hôtel trouvé",
+  "baggageAllPacked": "Tout est prêt !",
+  "baggageAllPackedSubtitle": "Vous êtes prêt pour votre voyage !",
+  "baggageSwipeToDelete": "Supprimer",
+
+  "activityBatchCount": "{count} à valider",
+  "@activityBatchCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "activityValidateAll": "Tout valider",
+  "activityReviewOneByOne": "Revoir un par un",
+  "activityBatchValidated": "Toutes les activités validées !",
+  "categoryCulture": "Culture",
+  "categoryNature": "Nature",
+  "categoryFoodDrink": "Gastronomie",
+  "categorySport": "Sport",
+  "categoryShopping": "Shopping",
+  "categoryNightlife": "Vie nocturne",
+  "categoryRelaxation": "Détente",
+  "categoryOtherActivity": "Autre",
+  "activityMovedToDay": "Activité déplacée au jour {day}",
+  "@activityMovedToDay": {
+    "placeholders": {
+      "day": {"type": "int"}
+    }
+  },
+  "timelineGetSuggestions": "Obtenir des suggestions IA",
+  "timelineSuggestionsForDay": "Suggestions pour cette journée",
+  "timelineAddSuggestion": "Ajouter à l'itinéraire",
+  "addActivityManually": "Ajouter manuellement",
+
+  "shareInviteTitle": "Inviter au voyage",
+  "shareInviteEmailLabel": "Adresse email",
+  "shareInviteEmailHint": "utilisateur@exemple.com",
+  "shareInviteEmailRequired": "L'email est requis",
+  "shareInviteEmailInvalid": "Format d'email invalide",
+  "shareInviteMessageLabel": "Message (optionnel)",
+  "shareInviteMessageHint": "Ajouter un message personnel...",
+  "shareInviteSendButton": "Envoyer l'invitation",
+  "shareErrorUserNotFound": "Cette personne doit d'abord créer un compte",
+  "shareErrorAlreadyShared": "Déjà partagé avec cette personne",
+  "shareErrorSelfShare": "Vous ne pouvez pas partager un voyage avec vous-même",
+  "shareRevokeConfirmTitle": "Retirer l'accès",
+  "shareRevokeConfirmMessage": "Retirer l'accès de {name} ?",
+  "@shareRevokeConfirmMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "viewerBadgeReadOnly": "Lecture seule",
+  "shareInviteSuccess": "Invitation envoyée",
+  "shareRevokeSuccess": "Accès révoqué",
+
+  "filterTitle": "Filtres",
+  "filterPrice": "Prix",
+  "filterPriceLowest": "Prix le plus bas",
+  "filterPriceHighest": "Prix le plus haut",
+  "filterAirline": "Compagnie aérienne",
+  "filterNoAirlines": "Aucune compagnie disponible",
+  "filterAllAirlines": "Toutes",
+  "filterBaggage": "Bagages",
+  "filterDepartureTime": "Heure de départ",
+  "filterBefore": "Avant",
+  "filterAfter": "Après",
+  "filterApply": "Appliquer",
+  "doneButton": "Terminé",
+  "contextMenuView": "Voir",
+  "contextMenuShare": "Partager",
+  "contextMenuArchive": "Archiver",
+  "contextMenuEdit": "Modifier",
+  "contextMenuValidate": "Valider",
+  "contextMenuDelete": "Supprimer",
+  "contextMenuMoveToDay": "Déplacer vers un autre jour",
+  "contextMenuDayLabel": "Jour {day}",
+  "@contextMenuDayLabel": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+
+  "tripCardSemanticLabel": "{destination}, {dateRange}, {status}",
+  "@tripCardSemanticLabel": {
+    "placeholders": {
+      "destination": {"type": "String"},
+      "dateRange": {"type": "String"},
+      "status": {"type": "String"}
+    }
+  },
+  "tripCoverImageLabel": "Photo de couverture de {destination}",
+  "@tripCoverImageLabel": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "activityCardSemanticLabel": "{title}, {time}, {location}, {status}",
+  "@activityCardSemanticLabel": {
+    "placeholders": {
+      "title": {"type": "String"},
+      "time": {"type": "String"},
+      "location": {"type": "String"},
+      "status": {"type": "String"}
+    }
+  },
+  "timelineActivitySemanticLabel": "{title}, {time}, {location}",
+  "@timelineActivitySemanticLabel": {
+    "placeholders": {
+      "title": {"type": "String"},
+      "time": {"type": "String"},
+      "location": {"type": "String"}
+    }
+  },
+  "addTripTooltip": "Ajouter un voyage",
+  "addActivityTooltip": "Ajouter une activite",
+  "addAccommodationTooltip": "Ajouter un hebergement",
+  "addTransportTooltip": "Ajouter un transport",
+  "addExpenseTooltip": "Ajouter une depense",
+  "addBaggageItemTooltip": "Ajouter un element",
+  "shareTooltip": "Partager",
+  "backTooltip": "Retour",
+  "closeTooltip": "Fermer",
+  "deleteFlightTooltip": "Supprimer le vol",
+  "deleteAccommodationTooltip": "Supprimer l'hebergement",
+  "removeAccessTooltip": "Retirer l'acces",
+  "inviteTooltip": "Inviter",
+  "acceptSuggestionTooltip": "Accepter la suggestion",
+  "dismissSuggestionTooltip": "Ignorer la suggestion",
+  "decreaseQuantityTooltip": "Diminuer la quantite",
+  "increaseQuantityTooltip": "Augmenter la quantite",
+  "starRatingTooltip": "{current} sur {total} etoiles",
+  "@starRatingTooltip": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "tabActivityWithBadge": "Activite, {count} notifications",
+  "@tabActivityWithBadge": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "loadingButton": "Chargement"
+}

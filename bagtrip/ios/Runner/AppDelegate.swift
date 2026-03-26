@@ -10,4 +10,14 @@ import UIKit
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
+
+  // Handle URL schemes for Google Sign-In
+  override func application(
+    _ app: UIApplication,
+    open url: URL,
+    options: [UIApplication.OpenURLOptionsKey: Any] = [:]
+  ) -> Bool {
+    // Let Google Sign-In handle its URL scheme
+    return super.application(app, open: url, options: options)
+  }
 }

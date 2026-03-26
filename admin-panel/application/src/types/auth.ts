@@ -1,12 +1,9 @@
 export interface User {
   id: string
   email: string
-  firstName: string
-  lastName: string
-  role: 'super_admin' | 'admin' | 'user'
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
+  plan: 'FREE' | 'PREMIUM' | 'ADMIN'
+  created_at: string
+  updated_at: string | null
 }
 
 export interface LoginCredentials {
@@ -14,10 +11,19 @@ export interface LoginCredentials {
   password: string
 }
 
+export interface RegisterCredentials {
+  email: string
+  password: string
+  fullName?: string
+  phone?: string
+}
+
 export interface AuthResponse {
   user: User
-  token: string
-  refreshToken: string
+  access_token: string
+  refresh_token: string
+  expires_in: number
+  token_type: string
 }
 
 export interface AuthState {

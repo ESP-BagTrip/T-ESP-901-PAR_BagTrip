@@ -1,0 +1,256 @@
+import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/logged_failure.dart';
+import 'package:bagtrip/core/result.dart';
+import 'package:bagtrip/models/auth_response.dart';
+import 'package:bagtrip/models/user.dart';
+import 'package:bagtrip/repositories/auth_repository.dart';
+import 'package:bagtrip/service/api_client.dart';
+import 'package:bagtrip/service/storage_service.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+
+class AuthRepositoryImpl implements AuthRepository {
+  final ApiClient _apiClient;
+  final StorageService _storageService;
+
+  AuthRepositoryImpl({ApiClient? apiClient, StorageService? storageService})
+    : _apiClient = apiClient ?? ApiClient(),
+      _storageService = storageService ?? StorageService();
+
+  @override
+  Future<Result<AuthResponse>> login(String email, String password) async {
+    try {
+      final response = await _apiClient.post(
+        '/auth/login',
+        data: {'email': email, 'password': password},
+      );
+
+      if (response.statusCode == 200) {
+        final authResponse = AuthResponse.fromJson(response.data);
+        await _storageService.saveTokens(
+          authResponse.accessToken,
+          authResponse.refreshToken,
+        );
+        return Success(authResponse);
+      }
+      return loggedFailure(
+        UnknownError('login failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<AuthResponse>> register(
+    String email,
+    String password,
+    String fullName,
+  ) async {
+    try {
+      final response = await _apiClient.post(
+        '/auth/register',
+        data: {'email': email, 'password': password, 'fullName': fullName},
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final authResponse = AuthResponse.fromJson(response.data);
+        await _storageService.saveTokens(
+          authResponse.accessToken,
+          authResponse.refreshToken,
+        );
+        return Success(authResponse);
+      }
+      return loggedFailure(
+        UnknownError('registration failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<User?>> getCurrentUser() async {
+    try {
+      final response = await _apiClient.get('/auth/me');
+      if (response.statusCode == 200) {
+        return Success(User.fromJson(response.data));
+      }
+      return loggedFailure(
+        ServerError('Unexpected status ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        return loggedFailure(
+          AuthenticationError(
+            'not authenticated',
+            statusCode: 401,
+            originalError: e,
+          ),
+        );
+      }
+      return loggedFailure(
+        NetworkError(e.message ?? 'Network error', originalError: e),
+      );
+    } catch (e) {
+      return loggedFailure(
+        UnknownError('getCurrentUser failed', originalError: e),
+      );
+    }
+  }
+
+  @override
+  Future<Result<bool>> isAuthenticated() async {
+    final token = await _storageService.getToken();
+    return Success(token != null && token.isNotEmpty);
+  }
+
+  @override
+  Future<Result<AuthResponse>> loginWithGoogle() async {
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        scopes: ['email', 'profile'],
+      );
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        return loggedFailure(const CancelledError('Google sign-in cancelled'));
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      if (googleAuth.idToken == null || googleAuth.idToken!.isEmpty) {
+        return loggedFailure(
+          const AuthenticationError('Google identity token missing'),
+        );
+      }
+
+      final response = await _apiClient.post(
+        '/auth/google',
+        data: {'idToken': googleAuth.idToken},
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final authResponse = AuthResponse.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+        if (authResponse.accessToken.isEmpty) {
+          return loggedFailure(
+            const AuthenticationError('token missing in response'),
+          );
+        }
+        await _storageService.saveTokens(
+          authResponse.accessToken,
+          authResponse.refreshToken,
+        );
+        return Success(authResponse);
+      }
+      return loggedFailure(
+        UnknownError('Google login failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      final msg = e.toString();
+      if (msg.contains('cancelled') || msg.contains('canceled')) {
+        return loggedFailure(const CancelledError('Google sign-in cancelled'));
+      }
+      return loggedFailure(UnknownError(msg, originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<AuthResponse>> loginWithApple() async {
+    try {
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      if (credential.identityToken == null ||
+          credential.identityToken!.isEmpty) {
+        return loggedFailure(
+          const AuthenticationError('Apple identity token missing'),
+        );
+      }
+
+      final response = await _apiClient.post(
+        '/auth/apple',
+        data: {'idToken': credential.identityToken},
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final authResponse = AuthResponse.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+        if (authResponse.accessToken.isEmpty) {
+          return loggedFailure(
+            const AuthenticationError('token missing in response'),
+          );
+        }
+        await _storageService.saveTokens(
+          authResponse.accessToken,
+          authResponse.refreshToken,
+        );
+        return Success(authResponse);
+      }
+      return loggedFailure(
+        UnknownError('Apple login failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      final msg = e.toString();
+      if (msg.contains('cancelled') || msg.contains('canceled')) {
+        return loggedFailure(const CancelledError('Apple sign-in cancelled'));
+      }
+      return loggedFailure(UnknownError(msg, originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<User>> updateUser({String? fullName, String? phone}) async {
+    try {
+      final data = <String, dynamic>{};
+      if (fullName != null) data['fullName'] = fullName;
+      if (phone != null) data['phone'] = phone;
+
+      final response = await _apiClient.patch('/auth/me', data: data);
+
+      if (response.statusCode == 200) {
+        return Success(User.fromJson(response.data as Map<String, dynamic>));
+      }
+      return loggedFailure(
+        UnknownError('update failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<void>> logout() async {
+    try {
+      final refreshToken = await _storageService.getRefreshToken();
+      if (refreshToken != null && refreshToken.isNotEmpty) {
+        await _apiClient.post(
+          '/auth/logout',
+          data: {'refresh_token': refreshToken},
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('[BestEffort] logout server call failed: $e');
+    }
+    await _storageService.clearAll();
+    return const Success(null);
+  }
+}

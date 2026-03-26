@@ -1,0 +1,58 @@
+name: Update Golden Files
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit_message:
+        description: 'Commit message for golden update'
+        default: 'chore: update golden test baselines'
+        required: false
+
+jobs:
+  update-goldens:
+    name: Regenerate Goldens
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ hashFiles('bagtrip/pubspec.lock') }}
+          restore-keys: pub-
+
+      - name: Install dependencies
+        working-directory: bagtrip
+        run: flutter pub get
+
+      - name: Update golden files
+        working-directory: bagtrip
+        run: flutter test --tags=golden --update-goldens
+
+      - name: Check for changes
+        id: diff
+        run: |
+          git add bagtrip/test/goldens/
+          if git diff --cached --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "${{ inputs.commit_message || 'chore: update golden test baselines' }}"
+          git push

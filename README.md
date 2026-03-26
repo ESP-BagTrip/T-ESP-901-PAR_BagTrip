@@ -1,109 +1,91 @@
-# Bag_Trip
+# BagTrip
+
 Student Project
 
-## 🚀 Quick Start
+## Prerequisites
 
-### For New Collaborators
+- **Docker & Docker Compose** (required) — [Install Docker](https://docs.docker.com/get-docker/)
+- **Flutter SDK** (required for mobile dev) — [Install Flutter](https://docs.flutter.dev/get-started/install)
+- **pre-commit** (recommended) — [Install pre-commit](https://pre-commit.com/#install)
 
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd Bag_Trip
-   ```
+> Python, Node.js and all other dependencies run inside Docker containers — no local install needed.
 
-2. **Initialize the project (recommended):**
-   ```bash
-   make init
-   ```
-   
-   This will:
-   - Install pre-commit hooks
-   - Install all project dependencies (API + Admin Panel)
-   - Set up git hooks for code quality
-
-### Manual Setup (Alternative)
-
-If you prefer manual setup or the Makefile doesn't work:
-
-1. **Install pre-commit:**
-   ```bash
-   # Option 1: Using pipx (recommended)
-   pipx install pre-commit
-   
-   # Option 2: Using pip
-   pip install pre-commit
-   
-   # Option 3: Using Homebrew (macOS)
-   brew install pre-commit
-   ```
-
-2. **Install git hooks:**
-   ```bash
-   pre-commit install --install-hooks
-   ```
-
-3. **Install dependencies:**
-   ```bash
-   # API dependencies
-   cd api && npm install
-   
-   # Admin Panel dependencies
-   cd admin-panel && npm install
-   ```
-
-## 🛠️ Development
-
-### Pre-commit Hooks
-
-The project uses pre-commit hooks that automatically run on every commit:
-
-- ✅ **Large file check** - Prevents files >500KB from being committed
-- ✅ **Code formatting** - Runs Prettier on both API and Admin Panel
-- ✅ **Code linting** - Runs ESLint on both packages with auto-fix
-
-### Available Commands
+## Quick Start
 
 ```bash
-# View all available make targets
-make help
+git clone <repository-url>
+cd BagTrip
 
-# Install only pre-commit hooks
-make install-pre-commit
-
-# Install only dependencies
-make install-deps
-
-# Complete initialization
+# Setup project (env file, dependencies, git hooks)
 make init
+
+# Edit .env and fill in your API keys (Amadeus, Google, Stripe, etc.)
+
+# Start everything (Docker services + Flutter app)
+make dev
 ```
 
-## 🏗️ Project Structure
-
-```
-Bag_Trip/
-├── api/                 # Backend API (Node.js + Express + Prisma)
-├── admin-panel/         # Frontend (React + TypeScript + Vite)
-├── compose.yml          # Docker Compose configuration
-├── .pre-commit-config.yaml  # Pre-commit hooks configuration
-└── Makefile            # Development automation
-```
-
-## 🐳 Docker Development
-
-Start the development environment:
+## Development
 
 ```bash
-docker-compose up
+make dev            # Start Docker services + Flutter app (interactive)
+make dev-docker     # Start Docker services only (db, api, admin-panel)
+make dev-mobile     # Start Flutter app only
+make stop           # Stop Docker services
+make logs           # Follow Docker logs
 ```
 
-This will start:
-- PostgreSQL database on port 5432
-- API server on port 3000
-- Admin Panel on port 5173
+Services available after `make dev` or `make dev-docker`:
 
-## 📝 Code Quality
+| Service     | URL                          |
+|-------------|------------------------------|
+| API         | http://localhost:3000         |
+| API Docs    | http://localhost:3000/docs    |
+| Admin Panel | http://localhost:8000         |
 
-- **ESLint**: Code linting with auto-fix
-- **Prettier**: Code formatting
-- **Pre-commit**: Automated quality checks before commit
-- **TypeScript**: Type safety for both API and Admin Panel
+## Code Quality
+
+```bash
+make check          # Run pre-commit hooks on all files
+make lint           # Run all linters (api + admin + mobile)
+make test           # Run all tests (api + mobile)
+```
+
+Individual targets are also available: `lint-api`, `lint-admin`, `lint-mobile`, `test-api`, `test-mobile`.
+
+## Database
+
+```bash
+make db-migrate                     # Run Alembic migrations (upgrade head)
+make db-revision MSG="add column"   # Create a new Alembic revision
+make db-shell                       # Open psql shell
+```
+
+## Cleanup
+
+```bash
+make dev-clean      # Remove Docker volumes, caches, build artifacts (with confirmation)
+```
+
+## Utilities
+
+```bash
+make shell-api      # Bash shell in the API container
+make shell-admin    # Shell in the admin-panel container
+make help           # Show all available commands
+```
+
+## Project Structure
+
+```
+BagTrip/
+├── api/                    # Backend (FastAPI + SQLAlchemy + PostgreSQL)
+│   ├── src/                # Application source code
+│   └── alembic/            # Database migrations
+├── admin-panel/
+│   └── application/        # Admin Panel (Next.js)
+├── bagtrip/                # Mobile app (Flutter)
+├── compose.yml             # Docker Compose configuration
+├── .pre-commit-config.yaml # Pre-commit hooks
+└── Makefile                # Development automation
+```

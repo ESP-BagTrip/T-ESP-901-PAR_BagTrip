@@ -1,11 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { setCookie, deleteCookie, getCookie } from 'cookies-next'
 import { authService } from '@/services'
-import type { LoginCredentials } from '@/types'
+import type { LoginCredentials, RegisterCredentials } from '@/types'
 
 const QUERY_KEYS = {
   currentUser: ['auth', 'currentUser'],
+}
+
+function hasAuthCookie(): boolean {
+  if (typeof document === 'undefined') return false
+  return document.cookie.includes('auth-status=authenticated')
 }
 
 export const useAuth = () => {
@@ -19,48 +23,42 @@ export const useAuth = () => {
   } = useQuery({
     queryKey: QUERY_KEYS.currentUser,
     queryFn: authService.getCurrentUser,
-    enabled: !!getCookie('auth-token'),
+    enabled: hasAuthCookie(),
     retry: false,
   })
 
   const loginMutation = useMutation({
     mutationFn: authService.login,
     onSuccess: data => {
-      setCookie('auth-token', data.token, {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7,
-      })
-
-      setCookie('refresh-token', data.refreshToken, {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 30,
-      })
-
       queryClient.setQueryData(QUERY_KEYS.currentUser, data.user)
       router.push('/dashboard')
     },
   })
 
-  const logoutMutation = useMutation({
-    mutationFn: authService.logout,
-    onSuccess: () => {
-      deleteCookie('auth-token')
-      deleteCookie('refresh-token')
-      queryClient.clear()
-      router.push('/login')
+  const registerMutation = useMutation({
+    mutationFn: authService.register,
+    onSuccess: data => {
+      queryClient.setQueryData(QUERY_KEYS.currentUser, data.user)
+      router.push('/dashboard')
     },
   })
+
+  const logout = async () => {
+    try {
+      await authService.logout()
+    } catch {
+      // Ignore errors on logout
+    }
+    queryClient.clear()
+    router.push('/login')
+  }
 
   const login = (credentials: LoginCredentials) => {
     loginMutation.mutate(credentials)
   }
 
-  const logout = () => {
-    logoutMutation.mutate()
+  const register = (credentials: RegisterCredentials) => {
+    registerMutation.mutate(credentials)
   }
 
   return {
@@ -69,9 +67,11 @@ export const useAuth = () => {
     isAuthenticated: !!user,
     error,
     login,
+    register,
     logout,
     isLoggingIn: loginMutation.isPending,
-    isLoggingOut: logoutMutation.isPending,
+    isRegistering: registerMutation.isPending,
     loginError: loginMutation.error,
+    registerError: registerMutation.error,
   }
 }

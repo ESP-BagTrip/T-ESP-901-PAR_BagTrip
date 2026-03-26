@@ -216,13 +216,13 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           start: npm run start
-          wait-on: 'http://localhost:3000'
+          wait-on: 'http://localhost:8000'
           wait-on-timeout: 120
           browser: ${{ matrix.browser }}
           record: false
           parallel: false
         env:
-          CYPRESS_baseUrl: http://localhost:3000
+          CYPRESS_baseUrl: http://localhost:8000
 
       - name: 📸 Upload Cypress screenshots
         uses: actions/upload-artifact@v4
@@ -256,7 +256,7 @@ jobs:
           echo "Format: ${{ needs.format.result }}"
           echo "Build: ${{ needs.build.result }}"
           echo "Cypress: ${{ needs.cypress.result }}"
-          
+
           if [[ "${{ needs.typecheck.result }}" != "success" ]] || \
              [[ "${{ needs.lint.result }}" != "success" ]] || \
              [[ "${{ needs.format.result }}" != "success" ]] || \

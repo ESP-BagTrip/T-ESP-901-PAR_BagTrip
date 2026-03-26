@@ -1,24 +1,23 @@
-# Dockerfile.dev (pour le service API)
-FROM node:20-alpine AS dev
+# Dockerfile.dev pour l'API Python BagTrip
+FROM python:3.12-slim
+
+# Installer uv en copiant depuis l'image officielle
+# Utiliser un stage intermédiaire pour extraire uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /tmp/uv
+RUN mv /tmp/uv /usr/local/bin/uv && chmod +x /usr/local/bin/uv
+
+# Définir le répertoire de travail
 WORKDIR /app
 
-# Install system tools for Prisma (openssl, etc.)
-RUN apk add --no-cache openssl
+# Copier les fichiers de configuration des dépendances
+COPY pyproject.toml uv.lock ./
 
-# Install dependencies
-COPY package*.json ./
-RUN npm install
+# Installer les dépendances avec uv
+RUN uv sync --frozen
 
-# Copy everything
-COPY . .
-
-# Run Prisma generation + migration
-RUN npx prisma generate
-
-# Expose port
+# Exposer le port 3000
 EXPOSE 3000
 
-# Enable file watching in dev
-ENV CHOKIDAR_USEPOLLING=true
+# Commande par défaut (sera surchargée par compose.yml)
+CMD ["uv", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "3000", "--reload"]
 
-CMD ["npm", "run", "dev"]

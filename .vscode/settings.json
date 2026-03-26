@@ -1,3 +1,143 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive"
+  // Configuration globale
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+
+  // ============================================================================
+  // API Python - Ruff
+  // ============================================================================
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit",
+      "source.organizeImports": "explicit"
+    }
+  },
+  "ruff.enable": true,
+  "ruff.organizeImports": true,
+  "ruff.fixAll": true,
+  "ruff.lint.enable": true,
+  "ruff.format.args": ["--line-length=100"],
+  "ruff.lint.args": ["--select=E,W,F,I,N,UP,B,C4,SIM"],
+
+  // Configuration spécifique pour le dossier api/
+  "files.associations": {
+    "**/api/**/*.py": "python"
+  },
+
+  // ============================================================================
+  // Admin Panel - ESLint + Prettier
+  // ============================================================================
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    }
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    }
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    }
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    }
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "eslint.enable": true,
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "eslint.workingDirectories": [
+    {
+      "pattern": "admin-panel/application"
+    }
+  ],
+  "prettier.enable": true,
+  "prettier.requireConfig": true,
+
+  // ============================================================================
+  // Bagtrip Flutter/Dart
+  // ============================================================================
+  "[dart]": {
+    "editor.defaultFormatter": "Dart-Code.dart-code",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit"
+    },
+    "editor.selectionHighlight": false,
+    "editor.suggest.snippetsPreventQuickSuggestions": false,
+    "editor.suggestSelection": "first",
+    "editor.tabCompletion": "onlySnippets",
+    "editor.wordBasedSuggestions": "off"
+  },
+  "dart.enableSdkFormatter": true,
+  "dart.lineLength": 80,
+  "dart.enableSnippets": true,
+  "dart.analysisExcludedFolders": [
+    ".dart_tool",
+    ".flutter-plugins",
+    ".flutter-plugins-dependencies",
+    ".packages",
+    ".pub-cache",
+    ".pub",
+    "build"
+  ],
+
+  // ============================================================================
+  // Exclusions de fichiers
+  // ============================================================================
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/node_modules": true,
+    "**/.venv": true,
+    "**/__pycache__": true,
+    "**/.ruff_cache": true,
+    "**/.dart_tool": true,
+    "**/build": true
+  },
+
+  // ============================================================================
+  // Configuration par workspace
+  // ============================================================================
+  "python.defaultInterpreterPath": "${workspaceFolder}/api/.venv/bin/python",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/api/src"
+  ],
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.typeCheckingMode": "basic",
+  "cmake.ignoreCMakeListsMissing": true
 }
+
