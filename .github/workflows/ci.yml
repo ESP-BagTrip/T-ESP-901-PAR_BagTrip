@@ -2,9 +2,9 @@ name: CI Quality Gates
 
 on:
   push:
-    branches: [main, develop, feat/SMP-54-add-postgresql-prisma]
+    branches: [main, develop, feat/SMP-54-add-postgresql-prisma, feat/SMP-116-setup-sonarqube]
   pull_request:
-    branches: [main, develop, feat/SMP-54-add-postgresql-prisma]
+    branches: [main, develop, feat/SMP-54-add-postgresql-prisma, feat/SMP-116-setup-sonarqube]
 
 concurrency:
   group: ci-${{ github.ref }}
