@@ -62,3 +62,7 @@ docker-compose.override.yml
 .specify/
 ./specs
 CLAUDE.md
+
+# ===== Sonarqube =====
+.scannerwork/
+
