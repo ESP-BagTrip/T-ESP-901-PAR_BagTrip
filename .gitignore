@@ -1,8 +1,64 @@
+# ===== Environment & Secrets =====
 .env
-.
+.env.*
+!.env.example
+!.env.local.example
 
-node_modules
-.claude
-.specify
+# ===== IDE / Editors =====
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== Node =====
+node_modules/
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+*.egg-info/
+*.egg
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+.mypy_cache/
+.tox/
+
+# ===== Flutter / Dart =====
+bagtrip/build/
+bagtrip/.dart_tool/
+bagtrip/.flutter-plugins
+bagtrip/.flutter-plugins-dependencies
+bagtrip/.packages
+bagtrip/.pub-cache/
+bagtrip/.pub/
+bagtrip/coverage/
+
+# ===== Next.js / Admin Panel =====
+admin-panel/application/.next/
+admin-panel/application/out/
+admin-panel/application/build/
+admin-panel/application/coverage/
+
+# ===== Docker =====
+docker-compose.override.yml
+
+# ===== Misc =====
+*.log
+*.pem
+.claude/
+.specify/
 ./specs
 CLAUDE.md
