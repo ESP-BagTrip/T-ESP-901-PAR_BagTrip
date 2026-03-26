@@ -101,8 +101,12 @@ async def get_flight_search(
             FlightOfferDetail(
                 id=offer.id,
                 amadeusOfferId=offer.amadeus_offer_id,
-                grandTotal=None if is_viewer else (float(offer.grand_total) if offer.grand_total else None),
-                baseTotal=None if is_viewer else (float(offer.base_total) if offer.base_total else None),
+                grandTotal=None
+                if is_viewer
+                else (float(offer.grand_total) if offer.grand_total else None),
+                baseTotal=None
+                if is_viewer
+                else (float(offer.base_total) if offer.base_total else None),
                 currency=offer.currency,
                 offer=offer.offer_json if offer.offer_json else {},
             )

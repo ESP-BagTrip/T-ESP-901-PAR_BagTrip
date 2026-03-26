@@ -37,7 +37,10 @@ async def destination_research_node(state: TripPlanState) -> dict:
         parts.append(f"Preferred season: {state['season']}")
     if state.get("budget_preset"):
         from src.api.ai.plan_trip_schemas import BUDGET_PRESET_RANGES
-        label = BUDGET_PRESET_RANGES.get(state["budget_preset"], {}).get("label", state["budget_preset"])
+
+        label = BUDGET_PRESET_RANGES.get(state["budget_preset"], {}).get(
+            "label", state["budget_preset"]
+        )
         parts.append(f"Budget level: {label}")
     if state.get("nb_travelers"):
         parts.append(f"Number of travelers: {state['nb_travelers']}")
@@ -65,7 +68,15 @@ async def destination_research_node(state: TripPlanState) -> dict:
             "destinations": [],
             "selected_destination": {},
             "weather_data": {},
-            "events": [{"event": "progress", "data": {"phase": "destination_research", "message": "No destinations found, using defaults"}}],
+            "events": [
+                {
+                    "event": "progress",
+                    "data": {
+                        "phase": "destination_research",
+                        "message": "No destinations found, using defaults",
+                    },
+                }
+            ],
             "errors": ["No destinations returned by LLM"],
         }
 

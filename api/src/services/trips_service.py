@@ -198,7 +198,13 @@ class TripsService:
 
         for trip, role in rows:
             trip_status = trip.status or TripStatus.DRAFT
-            if trip_status in (TripStatus.DRAFT, TripStatus.PLANNED, "draft", "planning", "planned"):
+            if trip_status in (
+                TripStatus.DRAFT,
+                TripStatus.PLANNED,
+                "draft",
+                "planning",
+                "planned",
+            ):
                 grouped["planned"].append((trip, role))
             elif trip_status in (TripStatus.ONGOING, "active"):
                 grouped["ongoing"].append((trip, role))
@@ -274,11 +280,41 @@ class TripsService:
         }
 
         features = [
-            {"id": "baggage", "label": "Bagages", "icon": "luggage", "route": "baggage", "enabled": True},
-            {"id": "budget", "label": "Budget", "icon": "wallet", "route": "budget", "enabled": False},
-            {"id": "accommodation", "label": "Hébergement", "icon": "hotel", "route": "accommodations", "enabled": True},
-            {"id": "activities", "label": "Activités", "icon": "hiking", "route": "activities", "enabled": False},
-            {"id": "transport", "label": "Transport", "icon": "directions_car", "route": "transport", "enabled": True},
+            {
+                "id": "baggage",
+                "label": "Bagages",
+                "icon": "luggage",
+                "route": "baggage",
+                "enabled": True,
+            },
+            {
+                "id": "budget",
+                "label": "Budget",
+                "icon": "wallet",
+                "route": "budget",
+                "enabled": False,
+            },
+            {
+                "id": "accommodation",
+                "label": "Hébergement",
+                "icon": "hotel",
+                "route": "accommodations",
+                "enabled": True,
+            },
+            {
+                "id": "activities",
+                "label": "Activités",
+                "icon": "hiking",
+                "route": "activities",
+                "enabled": False,
+            },
+            {
+                "id": "transport",
+                "label": "Transport",
+                "icon": "directions_car",
+                "route": "transport",
+                "enabled": True,
+            },
             {"id": "map", "label": "Carte", "icon": "map", "route": "map", "enabled": False},
         ]
 
@@ -335,26 +371,38 @@ class TripsService:
         # Capture trips that will transition PLANNED→ONGOING before updating
         starting_trips = (
             db.query(Trip)
-            .filter(Trip.status == TripStatus.PLANNED, Trip.start_date.isnot(None), Trip.start_date <= today)
+            .filter(
+                Trip.status == TripStatus.PLANNED,
+                Trip.start_date.isnot(None),
+                Trip.start_date <= today,
+            )
             .all()
         )
 
         planned_to_ongoing = db.execute(
             update(Trip)
-            .where(Trip.status == TripStatus.PLANNED, Trip.start_date.isnot(None), Trip.start_date <= today)
+            .where(
+                Trip.status == TripStatus.PLANNED,
+                Trip.start_date.isnot(None),
+                Trip.start_date <= today,
+            )
             .values(status=TripStatus.ONGOING)
         ).rowcount
 
         # Capture trips that will transition ONGOING→COMPLETED before updating
         completing_trips = (
             db.query(Trip)
-            .filter(Trip.status == TripStatus.ONGOING, Trip.end_date.isnot(None), Trip.end_date < today)
+            .filter(
+                Trip.status == TripStatus.ONGOING, Trip.end_date.isnot(None), Trip.end_date < today
+            )
             .all()
         )
 
         ongoing_to_completed = db.execute(
             update(Trip)
-            .where(Trip.status == TripStatus.ONGOING, Trip.end_date.isnot(None), Trip.end_date < today)
+            .where(
+                Trip.status == TripStatus.ONGOING, Trip.end_date.isnot(None), Trip.end_date < today
+            )
             .values(status=TripStatus.COMPLETED)
         ).rowcount
 
@@ -412,7 +460,9 @@ class TripsService:
 
         confirmed_flight = (
             db.query(FlightOrder)
-            .filter(FlightOrder.trip_id == trip.id, FlightOrder.status == FlightOrderStatus.CONFIRMED)
+            .filter(
+                FlightOrder.trip_id == trip.id, FlightOrder.status == FlightOrderStatus.CONFIRMED
+            )
             .first()
         )
         if confirmed_flight:
@@ -426,9 +476,9 @@ class TripsService:
         booking_intent_ids = (
             db.query(BookingIntent.id).filter(BookingIntent.trip_id == trip.id).subquery()
         )
-        db.query(StripeEvent).filter(
-            StripeEvent.booking_intent_id.in_(booking_intent_ids)
-        ).update({StripeEvent.booking_intent_id: None}, synchronize_session="fetch")
+        db.query(StripeEvent).filter(StripeEvent.booking_intent_id.in_(booking_intent_ids)).update(
+            {StripeEvent.booking_intent_id: None}, synchronize_session="fetch"
+        )
 
         # Delete FlightOrders of this trip (no cascade from Trip)
         db.query(FlightOrder).filter(FlightOrder.trip_id == trip.id).delete(

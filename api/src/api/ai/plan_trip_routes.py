@@ -40,10 +40,13 @@ async def _trip_plan_generator(request: PlanTripRequest, user_id: str, db: Sessi
     from src.agent.state import TripPlanState
 
     # Send initial progress
-    yield _sse_event("progress", {
-        "phase": "starting",
-        "message": "Starting trip planning...",
-    })
+    yield _sse_event(
+        "progress",
+        {
+            "phase": "starting",
+            "message": "Starting trip planning...",
+        },
+    )
 
     # Build initial state
     initial_state: TripPlanState = {
@@ -64,10 +67,13 @@ async def _trip_plan_generator(request: PlanTripRequest, user_id: str, db: Sessi
         "errors": [],
     }
 
-    yield _sse_event("progress", {
-        "phase": "destination_research",
-        "message": "Researching destinations...",
-    })
+    yield _sse_event(
+        "progress",
+        {
+            "phase": "destination_research",
+            "message": "Researching destinations...",
+        },
+    )
 
     # Select graph based on mode
     active_graph = destinations_only_graph if request.mode == "destinations_only" else graph
@@ -96,19 +102,27 @@ async def _trip_plan_generator(request: PlanTripRequest, user_id: str, db: Sessi
 
                     # Send progress for next phase
                     if event_type == "destinations":
-                        yield _sse_event("progress", {
-                            "phase": "parallel_planning",
-                            "message": "Planning activities, accommodation & packing...",
-                        })
+                        yield _sse_event(
+                            "progress",
+                            {
+                                "phase": "parallel_planning",
+                                "message": "Planning activities, accommodation & packing...",
+                            },
+                        )
                     elif event_type in ("activities", "accommodations", "baggage"):
                         # Check if all 3 parallel nodes are done
                         parallel_done = {"activities", "accommodations", "baggage"}
-                        done = {e.split(":")[0] for e in sent_events if e.split(":")[0] in parallel_done}
+                        done = {
+                            e.split(":")[0] for e in sent_events if e.split(":")[0] in parallel_done
+                        }
                         if done == parallel_done:
-                            yield _sse_event("progress", {
-                                "phase": "budget",
-                                "message": "Estimating budget...",
-                            })
+                            yield _sse_event(
+                                "progress",
+                                {
+                                    "phase": "budget",
+                                    "message": "Estimating budget...",
+                                },
+                            )
 
                 # Log errors
                 node_errors = update.get("errors", [])
@@ -123,7 +137,9 @@ async def _trip_plan_generator(request: PlanTripRequest, user_id: str, db: Sessi
 
         # Increment AI quota after successful completion
         try:
-            PlanService.increment_ai_generation(db, db.query(User).filter(User.id == user_id).first())
+            PlanService.increment_ai_generation(
+                db, db.query(User).filter(User.id == user_id).first()
+            )
         except Exception as e:
             logger.warn(f"Failed to increment AI generation count: {e}")
 
@@ -261,7 +277,9 @@ async def accept_plan(
                 with contextlib.suppress(ValueError):
                     trip_start = date.fromisoformat(request.startDate)
 
-            duration_days = suggestion.get("durationDays", len(activities_data)) or len(activities_data)
+            duration_days = suggestion.get("durationDays", len(activities_data)) or len(
+                activities_data
+            )
 
             for i, act in enumerate(activities_data):
                 suggested_day = act.get("suggested_day")

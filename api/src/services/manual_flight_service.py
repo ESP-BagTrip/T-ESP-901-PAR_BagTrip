@@ -59,16 +59,18 @@ class ManualFlightService:
         db.add(flight)
 
         if flight.price is not None:
-            db.add(BudgetItem(
-                trip_id=trip.id,
-                label=f"Vol : {flight.flight_number}",
-                amount=flight.price,
-                category=BudgetCategory.FLIGHT,
-                date=departure_date.date() if departure_date else None,
-                is_planned=True,
-                source_type="manual_flight",
-                source_id=flight.id,
-            ))
+            db.add(
+                BudgetItem(
+                    trip_id=trip.id,
+                    label=f"Vol : {flight.flight_number}",
+                    amount=flight.price,
+                    category=BudgetCategory.FLIGHT,
+                    date=departure_date.date() if departure_date else None,
+                    is_planned=True,
+                    source_type="manual_flight",
+                    source_id=flight.id,
+                )
+            )
 
         db.commit()
         db.refresh(flight)
@@ -80,9 +82,7 @@ class ManualFlightService:
         return db.query(ManualFlight).filter(ManualFlight.trip_id == trip_id).all()
 
     @staticmethod
-    def get_manual_flight_by_id(
-        db: Session, flight_id: UUID, trip_id: UUID
-    ) -> ManualFlight | None:
+    def get_manual_flight_by_id(db: Session, flight_id: UUID, trip_id: UUID) -> ManualFlight | None:
         """Récupérer un vol manuel par ID."""
         return (
             db.query(ManualFlight)

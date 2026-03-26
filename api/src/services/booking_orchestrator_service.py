@@ -196,7 +196,11 @@ class BookingOrchestratorService:
         except Exception:
             pass
 
-        label = f"Vol : {origin_iata} → {destination_iata}" if origin_iata and destination_iata else "Vol"
+        label = (
+            f"Vol : {origin_iata} → {destination_iata}"
+            if origin_iata and destination_iata
+            else "Vol"
+        )
 
         budget_item = BudgetItem(
             trip_id=booking_intent.trip_id,

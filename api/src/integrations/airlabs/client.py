@@ -45,7 +45,13 @@ class AirLabsClient:
             if not response:
                 return None
 
-            data = response if isinstance(response, dict) else response[0] if isinstance(response, list) and response else None
+            data = (
+                response
+                if isinstance(response, dict)
+                else response[0]
+                if isinstance(response, list) and response
+                else None
+            )
             if not data:
                 return None
 

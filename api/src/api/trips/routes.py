@@ -10,7 +10,6 @@ from src.api.trips.schemas import (
     TripDetailResponse,
     TripGroupedResponse,
     TripHomeResponse,
-    TripListResponse,
     TripPaginatedResponse,
     TripResponse,
     TripStatusUpdateRequest,
@@ -83,14 +82,20 @@ async def create_trip(
 async def list_trips(
     page: int = Query(default=1, ge=1, description="Page number"),
     limit: int = Query(default=20, ge=1, le=100, description="Items per page"),
-    status: str | None = Query(default=None, description="Filter by status: ongoing, planned, completed"),
+    status: str | None = Query(
+        default=None, description="Filter by status: ongoing, planned, completed"
+    ),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Lister les trips de l'utilisateur (owned + shared) avec pagination."""
     try:
         rows, total, total_pages = TripsService.get_trips_by_user_paginated(
-            db, current_user.id, page=page, limit=limit, status=status,
+            db,
+            current_user.id,
+            page=page,
+            limit=limit,
+            status=status,
         )
         items = []
         for trip, role in rows:
@@ -98,7 +103,11 @@ async def list_trips(
             resp.role = role
             items.append(resp)
         return TripPaginatedResponse(
-            items=items, total=total, page=page, limit=limit, total_pages=total_pages,
+            items=items,
+            total=total,
+            page=page,
+            limit=limit,
+            total_pages=total_pages,
         )
     except AppError as e:
         raise create_http_exception(e) from e
@@ -306,7 +315,11 @@ async def get_trip_weather(
     # Date range: max(start_date, today) to min(end_date, today + 7 days)
     today = date.today()
     start = max(trip.start_date, today) if trip.start_date else today
-    end = min(trip.end_date, today + timedelta(days=7)) if trip.end_date else today + timedelta(days=7)
+    end = (
+        min(trip.end_date, today + timedelta(days=7))
+        if trip.end_date
+        else today + timedelta(days=7)
+    )
     if end < start:
         end = start
 

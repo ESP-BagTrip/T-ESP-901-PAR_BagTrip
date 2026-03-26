@@ -141,7 +141,9 @@ class StripeWebhooksService:
     @staticmethod
     def _find_user_by_customer(db: Session, event: stripe.Event) -> User | None:
         obj = event.data.object
-        customer_id = obj.get("customer") if isinstance(obj, dict) else getattr(obj, "customer", None)
+        customer_id = (
+            obj.get("customer") if isinstance(obj, dict) else getattr(obj, "customer", None)
+        )
         if not customer_id:
             return None
         return db.query(User).filter(User.stripe_customer_id == customer_id).first()
@@ -162,7 +164,11 @@ class StripeWebhooksService:
         else:
             sub_id = obj.get("id") if isinstance(obj, dict) else getattr(obj, "id", None)
             user.stripe_subscription_id = sub_id
-            period_end = obj.get("current_period_end") if isinstance(obj, dict) else getattr(obj, "current_period_end", None)
+            period_end = (
+                obj.get("current_period_end")
+                if isinstance(obj, dict)
+                else getattr(obj, "current_period_end", None)
+            )
             if period_end:
                 from datetime import datetime
 
@@ -177,7 +183,11 @@ class StripeWebhooksService:
             return
         obj = event.data.object
         status_val = obj.get("status") if isinstance(obj, dict) else getattr(obj, "status", None)
-        period_end = obj.get("current_period_end") if isinstance(obj, dict) else getattr(obj, "current_period_end", None)
+        period_end = (
+            obj.get("current_period_end")
+            if isinstance(obj, dict)
+            else getattr(obj, "current_period_end", None)
+        )
         if period_end:
             from datetime import datetime
 
@@ -196,7 +206,9 @@ class StripeWebhooksService:
         lines = obj.get("lines", {}) if isinstance(obj, dict) else getattr(obj, "lines", {})
         data = lines.get("data", []) if isinstance(lines, dict) else getattr(lines, "data", [])
         for line in data:
-            period = line.get("period", {}) if isinstance(line, dict) else getattr(line, "period", {})
+            period = (
+                line.get("period", {}) if isinstance(line, dict) else getattr(line, "period", {})
+            )
             end = period.get("end") if isinstance(period, dict) else getattr(period, "end", None)
             if end:
                 from datetime import datetime

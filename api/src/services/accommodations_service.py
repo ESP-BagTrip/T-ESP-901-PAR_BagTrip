@@ -67,16 +67,18 @@ class AccommodationsService:
         if accommodation.price_per_night is not None:
             nights = AccommodationsService._calc_nights(check_in, check_out)
             amount = accommodation.price_per_night * nights
-            db.add(BudgetItem(
-                trip_id=trip.id,
-                label=f"Hébergement : {name}",
-                amount=amount,
-                category=BudgetCategory.ACCOMMODATION,
-                date=check_in,
-                is_planned=True,
-                source_type="accommodation",
-                source_id=accommodation.id,
-            ))
+            db.add(
+                BudgetItem(
+                    trip_id=trip.id,
+                    label=f"Hébergement : {name}",
+                    amount=amount,
+                    category=BudgetCategory.ACCOMMODATION,
+                    date=check_in,
+                    is_planned=True,
+                    source_type="accommodation",
+                    source_id=accommodation.id,
+                )
+            )
 
         db.commit()
         db.refresh(accommodation)
@@ -141,23 +143,27 @@ class AccommodationsService:
         # Sync linked budget item
         linked = BudgetItemService.find_by_source(db, "accommodation", accommodation.id)
         if accommodation.price_per_night is not None:
-            nights = AccommodationsService._calc_nights(accommodation.check_in, accommodation.check_out)
+            nights = AccommodationsService._calc_nights(
+                accommodation.check_in, accommodation.check_out
+            )
             amount = accommodation.price_per_night * nights
             if linked:
                 linked.label = f"Hébergement : {accommodation.name}"
                 linked.amount = amount
                 linked.date = accommodation.check_in
             else:
-                db.add(BudgetItem(
-                    trip_id=trip.id,
-                    label=f"Hébergement : {accommodation.name}",
-                    amount=amount,
-                    category=BudgetCategory.ACCOMMODATION,
-                    date=accommodation.check_in,
-                    is_planned=True,
-                    source_type="accommodation",
-                    source_id=accommodation.id,
-                ))
+                db.add(
+                    BudgetItem(
+                        trip_id=trip.id,
+                        label=f"Hébergement : {accommodation.name}",
+                        amount=amount,
+                        category=BudgetCategory.ACCOMMODATION,
+                        date=accommodation.check_in,
+                        is_planned=True,
+                        source_type="accommodation",
+                        source_id=accommodation.id,
+                    )
+                )
         elif price_explicitly_cleared and linked:
             db.delete(linked)
 

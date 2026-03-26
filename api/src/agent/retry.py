@@ -33,6 +33,11 @@ async def with_retry(node_fn, state, node_name: str, max_retries: int = 1):
     field = _NODE_FIELD_MAP.get(node_name, node_name)
     return {
         field: [],
-        "events": [{"event": "warning", "data": {"section": node_name, "message": f"{node_name} unavailable"}}],
+        "events": [
+            {
+                "event": "warning",
+                "data": {"section": node_name, "message": f"{node_name} unavailable"},
+            }
+        ],
         "errors": [f"{node_name} failed after {max_retries + 1} attempts: {last_error}"],
     }

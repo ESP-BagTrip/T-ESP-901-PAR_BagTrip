@@ -88,7 +88,9 @@ async def update_accommodation(
 ):
     """Mettre à jour un hébergement."""
     try:
-        price_explicitly_cleared = "pricePerNight" in request.model_fields_set and request.pricePerNight is None
+        price_explicitly_cleared = (
+            "pricePerNight" in request.model_fields_set and request.pricePerNight is None
+        )
         accommodation = AccommodationsService.update_accommodation(
             db=db,
             accommodation_id=accommodationId,

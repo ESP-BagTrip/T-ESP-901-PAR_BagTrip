@@ -45,9 +45,7 @@ class Trip(Base):
     accommodations = relationship(
         "Accommodation", back_populates="trip", cascade="all, delete-orphan"
     )
-    baggage_items = relationship(
-        "BaggageItem", back_populates="trip", cascade="all, delete-orphan"
-    )
+    baggage_items = relationship("BaggageItem", back_populates="trip", cascade="all, delete-orphan")
     flight_searches = relationship(
         "FlightSearch", back_populates="trip", cascade="all, delete-orphan"
     )

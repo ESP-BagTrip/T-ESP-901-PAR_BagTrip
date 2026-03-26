@@ -154,10 +154,30 @@ class BaggageItemsService:
 def _default_baggage_items() -> list[dict]:
     """Fallback baggage items if LLM fails."""
     return [
-        {"name": "Passport", "quantity": 1, "category": "DOCUMENTS", "reason": "Essential travel document"},
-        {"name": "Travel adapter", "quantity": 1, "category": "ELECTRONICS", "reason": "Power adapter"},
+        {
+            "name": "Passport",
+            "quantity": 1,
+            "category": "DOCUMENTS",
+            "reason": "Essential travel document",
+        },
+        {
+            "name": "Travel adapter",
+            "quantity": 1,
+            "category": "ELECTRONICS",
+            "reason": "Power adapter",
+        },
         {"name": "Sunscreen", "quantity": 1, "category": "TOILETRIES", "reason": "Sun protection"},
         {"name": "First aid kit", "quantity": 1, "category": "HEALTH", "reason": "Emergency kit"},
-        {"name": "Phone charger", "quantity": 1, "category": "ELECTRONICS", "reason": "Keep devices charged"},
-        {"name": "Change of clothes", "quantity": 3, "category": "CLOTHING", "reason": "Daily wear"},
+        {
+            "name": "Phone charger",
+            "quantity": 1,
+            "category": "ELECTRONICS",
+            "reason": "Keep devices charged",
+        },
+        {
+            "name": "Change of clothes",
+            "quantity": 3,
+            "category": "CLOTHING",
+            "reason": "Daily wear",
+        },
     ]

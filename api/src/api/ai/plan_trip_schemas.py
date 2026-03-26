@@ -3,9 +3,21 @@
 from pydantic import BaseModel, Field
 
 BUDGET_PRESET_RANGES = {
-    "BACKPACKER": {"min_per_day": 0, "max_per_day": 50, "label": "budget/backpacker (< 50 EUR/day/person)"},
-    "COMFORTABLE": {"min_per_day": 50, "max_per_day": 150, "label": "comfortable (50-150 EUR/day/person)"},
-    "PREMIUM": {"min_per_day": 150, "max_per_day": 500, "label": "premium (150-500 EUR/day/person)"},
+    "BACKPACKER": {
+        "min_per_day": 0,
+        "max_per_day": 50,
+        "label": "budget/backpacker (< 50 EUR/day/person)",
+    },
+    "COMFORTABLE": {
+        "min_per_day": 50,
+        "max_per_day": 150,
+        "label": "comfortable (50-150 EUR/day/person)",
+    },
+    "PREMIUM": {
+        "min_per_day": 150,
+        "max_per_day": 500,
+        "label": "premium (150-500 EUR/day/person)",
+    },
     "NO_LIMIT": {"min_per_day": 0, "max_per_day": None, "label": "no budget limit"},
 }
 

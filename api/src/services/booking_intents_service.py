@@ -70,9 +70,7 @@ class BookingIntentsService:
             selected_offer_id = flight_offer_id
 
         else:
-            raise AppError(
-                "INVALID_REQUEST", 400, f"Invalid type: {type}. Must be 'flight'"
-            )
+            raise AppError("INVALID_REQUEST", 400, f"Invalid type: {type}. Must be 'flight'")
 
         # Créer le booking intent
         booking_intent = BookingIntent(

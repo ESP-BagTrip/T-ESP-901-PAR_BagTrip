@@ -66,7 +66,5 @@ async def get_trip_owner_access(
     """Dependency pour les endpoints écriture (Owner only)."""
     access = _resolve_trip_access(db, tripId, current_user.id)
     if access.role != TripRole.OWNER:
-        raise AppError(
-            "FORBIDDEN", 403, "Only the trip owner can perform this action"
-        )
+        raise AppError("FORBIDDEN", 403, "Only the trip owner can perform this action")
     return access

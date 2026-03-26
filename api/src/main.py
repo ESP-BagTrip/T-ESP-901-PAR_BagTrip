@@ -1,6 +1,7 @@
 """Point d'entrée FastAPI."""
 
 import asyncio
+import contextlib
 import traceback
 from contextlib import asynccontextmanager
 
@@ -11,6 +12,8 @@ from fastapi.responses import JSONResponse
 from src.api.accommodations.routes import router as accommodations_router
 from src.api.activities.routes import router as activities_router
 from src.api.admin.routes import router as admin_router
+from src.api.ai.plan_trip_routes import router as ai_plan_trip_router
+from src.api.ai.post_trip_routes import router as ai_post_trip_router
 from src.api.auth.routes import router as auth_router
 from src.api.baggage.routes import router as baggage_router
 from src.api.booking.routes import router as booking_router
@@ -19,17 +22,22 @@ from src.api.booking_intents.routes import router as booking_intents_router
 from src.api.budget_items.routes import router as budget_items_router
 from src.api.device_tokens.routes import router as device_tokens_router
 from src.api.feedback.routes import router as feedback_router
+from src.api.flights.info.routes import router as flight_info_router
+from src.api.flights.manual.routes import router as manual_flights_router
 from src.api.flights.offers.routes import router as flight_offers_router
+from src.api.flights.orders.routes import router as flight_orders_router
 from src.api.flights.searches.routes import router as flight_searches_router
+from src.api.hotels.routes import router as hotel_search_router
 from src.api.notifications.routes import router as notifications_router
 from src.api.payments.routes import router as payments_router
 from src.api.profile.routes import router as profile_router
 from src.api.shares.routes import router as shares_router
 from src.api.stripe.webhooks.routes import router as stripe_webhooks_router
+from src.api.subscription.routes import router as subscription_router
 from src.api.travel.routes import router as travel_router
 from src.api.travelers.routes import router as travelers_router
 from src.api.trips.routes import router as trips_router
-from src.config.database import check_database_connection
+from src.config.database import check_database_connection, engine
 from src.config.env import settings
 from src.middleware.rate_limit import auth_rate_limit_middleware, rate_limit_middleware
 from src.utils.errors import AppError, create_http_exception
@@ -45,6 +53,14 @@ async def lifespan(app: FastAPI):
     logger.info("Database connection successful")
 
     # Schema managed by: alembic upgrade head
+
+    # Migrer la table trips si nécessaire
+    try:
+        from src.migrations.migrate_trips_table import migrate_trips_table
+
+        migrate_trips_table(engine)
+    except Exception as e:
+        logger.warn(f"Trips table migration failed (may already be migrated): {e}")
 
     # Initialiser les produits Stripe
     try:
@@ -77,14 +93,10 @@ async def lifespan(app: FastAPI):
     # Arrêter les schedulers
     scheduler_task.cancel()
     notif_scheduler_task.cancel()
-    try:
+    with contextlib.suppress(asyncio.CancelledError):
         await scheduler_task
-    except asyncio.CancelledError:
-        pass
-    try:
+    with contextlib.suppress(asyncio.CancelledError):
         await notif_scheduler_task
-    except asyncio.CancelledError:
-        pass
 
     logger.info("Application shutting down")
 
@@ -123,11 +135,6 @@ app.include_router(budget_items_router)  # Déjà préfixé avec /v1/trips
 app.include_router(feedback_router)  # Déjà préfixé avec /v1/trips
 app.include_router(flight_searches_router)  # Déjà préfixé avec /v1/trips
 app.include_router(flight_offers_router)  # Déjà préfixé avec /v1/trips
-
-from src.api.flights.orders.routes import router as flight_orders_router
-from src.api.flights.manual.routes import router as manual_flights_router
-from src.api.flights.info.routes import router as flight_info_router
-
 app.include_router(flight_orders_router)  # Déjà préfixé avec /v1/trips
 app.include_router(manual_flights_router)  # Déjà préfixé avec /v1/trips
 app.include_router(flight_info_router)  # Déjà préfixé avec /v1/travel/flights
@@ -135,9 +142,6 @@ app.include_router(booking_intents_router)  # Déjà préfixé avec /v1/trips
 app.include_router(booking_intents_book_router)  # Déjà préfixé avec /v1/booking-intents
 app.include_router(payments_router)  # Déjà préfixé avec /v1/booking-intents
 app.include_router(stripe_webhooks_router)  # Déjà préfixé avec /v1/stripe
-
-from src.api.subscription.routes import router as subscription_router
-
 app.include_router(subscription_router)  # Préfixé avec /v1/subscription
 app.include_router(device_tokens_router)  # Déjà préfixé avec /v1/device-tokens
 app.include_router(notifications_router)  # Déjà préfixé avec /v1/notifications
@@ -151,16 +155,8 @@ app.include_router(profile_router)  # Préfixé avec /v1/profile
 app.include_router(booking_router)  # DÉPRÉCIÉ - utiliser /v1/trips/{tripId}/booking-intents
 
 # Routes IA
-from src.api.ai.post_trip_routes import router as ai_post_trip_router
-
 app.include_router(ai_post_trip_router)
-
-from src.api.ai.plan_trip_routes import router as ai_plan_trip_router
-
 app.include_router(ai_plan_trip_router)
-
-from src.api.hotels.routes import router as hotel_search_router
-
 app.include_router(hotel_search_router)
 
 

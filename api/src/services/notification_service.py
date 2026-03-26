@@ -188,18 +188,16 @@ class NotificationService:
         """Get owner + viewers for a trip via TripShare."""
         recipients = [trip.user_id]
         if not owner_only:
-            viewers = (
-                db.query(TripShare.user_id)
-                .filter(TripShare.trip_id == trip.id)
-                .all()
-            )
+            viewers = db.query(TripShare.user_id).filter(TripShare.trip_id == trip.id).all()
             for (uid,) in viewers:
                 if uid not in recipients:
                     recipients.append(uid)
         return recipients
 
     @staticmethod
-    def _send_fcm(db: Session, tokens: list[str], title: str, body: str, data: dict | None = None) -> bool:
+    def _send_fcm(
+        db: Session, tokens: list[str], title: str, body: str, data: dict | None = None
+    ) -> bool:
         """Send push notification via Firebase Cloud Messaging."""
         try:
             from firebase_admin import messaging
@@ -235,9 +233,9 @@ class NotificationService:
                         ):
                             from src.models.device_token import DeviceToken
 
-                            db.query(DeviceToken).filter(
-                                DeviceToken.fcm_token == tokens[i]
-                            ).delete(synchronize_session="fetch")
+                            db.query(DeviceToken).filter(DeviceToken.fcm_token == tokens[i]).delete(
+                                synchronize_session="fetch"
+                            )
                     db.commit()
 
             return True
@@ -265,7 +263,5 @@ class NotificationService:
         if trip_id:
             query = query.filter(Notification.trip_id == trip_id)
         if data_key and data_value:
-            query = query.filter(
-                Notification.data[data_key].astext == data_value
-            )
+            query = query.filter(Notification.data[data_key].astext == data_value)
         return query.first() is not None

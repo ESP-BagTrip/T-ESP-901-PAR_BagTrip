@@ -131,9 +131,7 @@ class FlightSearchService:
         return search, offers
 
     @staticmethod
-    def get_search_by_id(
-        db: Session, search_id: UUID, trip_id: UUID
-    ) -> FlightSearch | None:
+    def get_search_by_id(db: Session, search_id: UUID, trip_id: UUID) -> FlightSearch | None:
         """Récupérer une recherche par ID (accès vérifié par la dependency)."""
         return (
             db.query(FlightSearch)
@@ -142,9 +140,7 @@ class FlightSearchService:
         )
 
     @staticmethod
-    def get_offers_by_search(
-        db: Session, search_id: UUID, trip_id: UUID
-    ) -> list[FlightOffer]:
+    def get_offers_by_search(db: Session, search_id: UUID, trip_id: UUID) -> list[FlightOffer]:
         """Récupérer les offres d'une recherche (accès vérifié par la dependency)."""
         search = FlightSearchService.get_search_by_id(db, search_id, trip_id)
         if not search:

@@ -14,9 +14,7 @@ class TripShare(Base):
     """Modèle TripShare — partage d'un trip avec un autre utilisateur."""
 
     __tablename__ = "trip_shares"
-    __table_args__ = (
-        UniqueConstraint("trip_id", "user_id", name="uq_trip_shares_trip_user"),
-    )
+    __table_args__ = (UniqueConstraint("trip_id", "user_id", name="uq_trip_shares_trip_user"),)
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     trip_id = Column(UUID(as_uuid=True), ForeignKey("trips.id"), nullable=False, index=True)

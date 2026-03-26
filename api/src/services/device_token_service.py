@@ -11,7 +11,9 @@ class DeviceTokenService:
     """Service pour les opérations CRUD sur les device tokens."""
 
     @staticmethod
-    def register(db: Session, user_id: UUID, fcm_token: str, platform: str | None = None) -> DeviceToken:
+    def register(
+        db: Session, user_id: UUID, fcm_token: str, platform: str | None = None
+    ) -> DeviceToken:
         """Register or update a device token (upsert)."""
         existing = db.query(DeviceToken).filter(DeviceToken.fcm_token == fcm_token).first()
         if existing:

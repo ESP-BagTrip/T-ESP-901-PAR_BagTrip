@@ -207,9 +207,7 @@ async def list_all_booking_intents(
 ):
     """Lister tous les booking intents (admin)."""
     try:
-        items, total, total_pages = AdminService.get_all_booking_intents(
-            db, page=page, limit=limit
-        )
+        items, total, total_pages = AdminService.get_all_booking_intents(db, page=page, limit=limit)
         return AdminListResponse[AdminBookingIntentResponse](
             items=[AdminBookingIntentResponse(**item) for item in items],
             total=total,
@@ -239,9 +237,7 @@ async def list_all_flight_searches(
 ):
     """Lister toutes les recherches de vols (admin)."""
     try:
-        items, total, total_pages = AdminService.get_all_flight_searches(
-            db, page=page, limit=limit
-        )
+        items, total, total_pages = AdminService.get_all_flight_searches(db, page=page, limit=limit)
         return AdminListResponse[AdminFlightSearchResponse](
             items=[AdminFlightSearchResponse(**item) for item in items],
             total=total,
@@ -271,9 +267,7 @@ async def list_all_accommodations(
 ):
     """Lister tous les hébergements (admin)."""
     try:
-        items, total, total_pages = AdminService.get_all_accommodations(
-            db, page=page, limit=limit
-        )
+        items, total, total_pages = AdminService.get_all_accommodations(db, page=page, limit=limit)
         return AdminListResponse[AdminAccommodationResponse](
             items=[AdminAccommodationResponse(**item) for item in items],
             total=total,
@@ -303,9 +297,7 @@ async def list_all_activities(
 ):
     """Lister toutes les activités (admin)."""
     try:
-        items, total, total_pages = AdminService.get_all_activities(
-            db, page=page, limit=limit
-        )
+        items, total, total_pages = AdminService.get_all_activities(db, page=page, limit=limit)
         return AdminListResponse[AdminActivityResponse](
             items=[AdminActivityResponse(**item) for item in items],
             total=total,
@@ -335,9 +327,7 @@ async def list_all_budget_items(
 ):
     """Lister tous les budget items (admin)."""
     try:
-        items, total, total_pages = AdminService.get_all_budget_items(
-            db, page=page, limit=limit
-        )
+        items, total, total_pages = AdminService.get_all_budget_items(db, page=page, limit=limit)
         return AdminListResponse[AdminBudgetItemResponse](
             items=[AdminBudgetItemResponse(**item) for item in items],
             total=total,
@@ -367,9 +357,7 @@ async def list_all_baggage_items(
 ):
     """Lister tous les éléments de bagage (admin)."""
     try:
-        items, total, total_pages = AdminService.get_all_baggage_items(
-            db, page=page, limit=limit
-        )
+        items, total, total_pages = AdminService.get_all_baggage_items(db, page=page, limit=limit)
         return AdminListResponse[AdminBaggageItemResponse](
             items=[AdminBaggageItemResponse(**item) for item in items],
             total=total,

@@ -337,7 +337,9 @@ class AdminService:
                     "address": accommodation.address,
                     "check_in": accommodation.check_in,
                     "check_out": accommodation.check_out,
-                    "price_per_night": float(accommodation.price_per_night) if accommodation.price_per_night else None,
+                    "price_per_night": float(accommodation.price_per_night)
+                    if accommodation.price_per_night
+                    else None,
                     "currency": accommodation.currency,
                     "booking_reference": accommodation.booking_reference,
                     "created_at": accommodation.created_at,
@@ -431,7 +433,9 @@ class AdminService:
                     "end_time": activity.end_time,
                     "location": activity.location,
                     "category": activity.category,
-                    "estimated_cost": float(activity.estimated_cost) if activity.estimated_cost else None,
+                    "estimated_cost": float(activity.estimated_cost)
+                    if activity.estimated_cost
+                    else None,
                     "is_booked": activity.is_booked,
                     "created_at": activity.created_at,
                     "updated_at": activity.updated_at,
@@ -547,18 +551,20 @@ class AdminService:
 
         items = []
         for feedback, trip_title, user_email in results:
-            items.append({
-                "id": feedback.id,
-                "trip_id": feedback.trip_id,
-                "trip_title": trip_title,
-                "user_id": feedback.user_id,
-                "user_email": user_email,
-                "overall_rating": feedback.overall_rating,
-                "highlights": feedback.highlights,
-                "lowlights": feedback.lowlights,
-                "would_recommend": feedback.would_recommend,
-                "created_at": feedback.created_at,
-            })
+            items.append(
+                {
+                    "id": feedback.id,
+                    "trip_id": feedback.trip_id,
+                    "trip_title": trip_title,
+                    "user_id": feedback.user_id,
+                    "user_email": user_email,
+                    "overall_rating": feedback.overall_rating,
+                    "highlights": feedback.highlights,
+                    "lowlights": feedback.lowlights,
+                    "would_recommend": feedback.would_recommend,
+                    "created_at": feedback.created_at,
+                }
+            )
 
         total_pages = ceil(total / limit) if limit > 0 else 0
         return items, total, total_pages
@@ -567,6 +573,7 @@ class AdminService:
     def delete_feedback(db: Session, feedback_id) -> None:
         """Supprimer un feedback."""
         from src.models.feedback import Feedback as FeedbackModel
+
         feedback = db.query(FeedbackModel).filter(FeedbackModel.id == feedback_id).first()
         if not feedback:
             raise AppError("FEEDBACK_NOT_FOUND", 404, "Feedback not found")
@@ -607,19 +614,21 @@ class AdminService:
 
         items = []
         for notif, user_email, trip_title in results:
-            items.append({
-                "id": notif.id,
-                "user_id": notif.user_id,
-                "user_email": user_email,
-                "trip_id": notif.trip_id,
-                "trip_title": trip_title,
-                "type": notif.type,
-                "title": notif.title,
-                "body": notif.body,
-                "is_read": notif.is_read,
-                "sent_at": notif.sent_at,
-                "created_at": notif.created_at,
-            })
+            items.append(
+                {
+                    "id": notif.id,
+                    "user_id": notif.user_id,
+                    "user_email": user_email,
+                    "trip_id": notif.trip_id,
+                    "trip_title": trip_title,
+                    "type": notif.type,
+                    "title": notif.title,
+                    "body": notif.body,
+                    "is_read": notif.is_read,
+                    "sent_at": notif.sent_at,
+                    "created_at": notif.created_at,
+                }
+            )
 
         total_pages = ceil(total / limit) if limit > 0 else 0
         return items, total, total_pages
@@ -675,13 +684,15 @@ class AdminService:
         writer = csv.writer(output)
         writer.writerow(["id", "email", "plan", "created_at", "updated_at"])
         for user in users:
-            writer.writerow([
-                str(user.id),
-                user.email,
-                user.plan or "FREE",
-                user.created_at.isoformat() if user.created_at else "",
-                user.updated_at.isoformat() if user.updated_at else "",
-            ])
+            writer.writerow(
+                [
+                    str(user.id),
+                    user.email,
+                    user.plan or "FREE",
+                    user.created_at.isoformat() if user.created_at else "",
+                    user.updated_at.isoformat() if user.updated_at else "",
+                ]
+            )
         return output.getvalue()
 
     @staticmethod
@@ -689,9 +700,7 @@ class AdminService:
         """Get dashboard KPI metrics."""
         total_users = db.query(func.count(User.id)).scalar() or 0
 
-        active_users = (
-            db.query(func.count(func.distinct(Trip.user_id))).scalar() or 0
-        )
+        active_users = db.query(func.count(func.distinct(Trip.user_id))).scalar() or 0
         inactive_users = total_users - active_users
 
         total_trips = db.query(func.count(Trip.id)).scalar() or 0
@@ -735,7 +744,11 @@ class AdminService:
             .all()
         )
         return [
-            {"name": row.date.strftime("%Y-%m-%d"), "value": row.value, "date": row.date.strftime("%Y-%m-%d")}
+            {
+                "name": row.date.strftime("%Y-%m-%d"),
+                "value": row.value,
+                "date": row.date.strftime("%Y-%m-%d"),
+            }
             for row in rows
         ]
 
@@ -760,7 +773,11 @@ class AdminService:
             .all()
         )
         return [
-            {"name": row.date.strftime("%Y-%m-%d"), "value": float(row.value), "date": row.date.strftime("%Y-%m-%d")}
+            {
+                "name": row.date.strftime("%Y-%m-%d"),
+                "value": float(row.value),
+                "date": row.date.strftime("%Y-%m-%d"),
+            }
             for row in rows
         ]
 

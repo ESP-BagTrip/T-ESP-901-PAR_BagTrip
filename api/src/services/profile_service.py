@@ -44,12 +44,14 @@ class ProfileService:
             profile.medical_constraints = medical_constraints
 
         # Calculer is_completed : tous les champs doivent être renseignés
-        profile.is_completed = all([
-            profile.travel_types,
-            profile.travel_style,
-            profile.budget,
-            profile.companions,
-        ])
+        profile.is_completed = all(
+            [
+                profile.travel_types,
+                profile.travel_style,
+                profile.budget,
+                profile.companions,
+            ]
+        )
 
         db.commit()
         db.refresh(profile)

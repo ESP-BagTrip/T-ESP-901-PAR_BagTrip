@@ -49,9 +49,7 @@ class TravelersService:
         return db.query(TripTraveler).filter(TripTraveler.trip_id == trip_id).all()
 
     @staticmethod
-    def get_traveler_by_id(
-        db: Session, traveler_id: UUID, trip_id: UUID
-    ) -> TripTraveler | None:
+    def get_traveler_by_id(db: Session, traveler_id: UUID, trip_id: UUID) -> TripTraveler | None:
         """Récupérer un traveler par ID."""
         return (
             db.query(TripTraveler)

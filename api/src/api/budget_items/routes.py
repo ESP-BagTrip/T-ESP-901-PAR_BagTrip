@@ -54,9 +54,7 @@ async def list_budget_items(
         if access.role == TripRole.VIEWER:
             return BudgetItemListResponse(items=[])
         items = BudgetItemService.get_by_trip(db, access.trip.id)
-        return BudgetItemListResponse(
-            items=[BudgetItemResponse.model_validate(i) for i in items]
-        )
+        return BudgetItemListResponse(items=[BudgetItemResponse.model_validate(i) for i in items])
     except AppError as e:
         raise create_http_exception(e) from e
 
@@ -71,9 +69,7 @@ async def get_budget_summary(
         if access.role == TripRole.VIEWER:
             total_budget = summary["total_budget"]
             total_spent = summary["total_spent"]
-            percent_consumed = (
-                (total_spent / total_budget * 100) if total_budget > 0 else 0
-            )
+            percent_consumed = (total_spent / total_budget * 100) if total_budget > 0 else 0
             return BudgetSummaryResponse(
                 total_budget=total_budget,
                 total_spent=0,

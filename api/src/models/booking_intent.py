@@ -28,9 +28,7 @@ class BookingIntent(Base):
     currency = Column(String(3), nullable=False)
 
     selected_offer_type = Column(String, nullable=True)  # flight_offer
-    selected_offer_id = Column(
-        UUID(as_uuid=True), nullable=True
-    )  # flight_offers.id
+    selected_offer_id = Column(UUID(as_uuid=True), nullable=True)  # flight_offers.id
     selected_offer_payload_hash = Column(String, nullable=True)
 
     stripe_payment_intent_id = Column(String, nullable=True)

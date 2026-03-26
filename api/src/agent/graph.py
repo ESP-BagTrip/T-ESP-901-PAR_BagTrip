@@ -54,18 +54,21 @@ async def assemble_node(state: TripPlanState) -> dict:
 async def assemble_destinations_node(state: TripPlanState) -> dict:
     """Lightweight assembly — destinations only, no activities/accommodation."""
     return {
-        "events": [{
-            "event": "complete",
-            "data": {
-                "destinations": state.get("destinations", []),
-                "origin_iata": state.get("origin_iata", ""),
-                "mode": "destinations_only",
-            },
-        }],
+        "events": [
+            {
+                "event": "complete",
+                "data": {
+                    "destinations": state.get("destinations", []),
+                    "origin_iata": state.get("origin_iata", ""),
+                    "mode": "destinations_only",
+                },
+            }
+        ],
     }
 
 
 # --- Retry wrappers for parallel nodes ---
+
 
 async def _activity_with_retry(state):
     return await with_retry(activity_planner_node, state, "activity_planner")

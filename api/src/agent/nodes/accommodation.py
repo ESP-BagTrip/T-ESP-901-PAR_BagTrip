@@ -31,7 +31,10 @@ async def accommodation_node(state: TripPlanState) -> dict:
         parts.append(f"Budget: {state['budget_range']}")
     if state.get("budget_preset"):
         from src.api.ai.plan_trip_schemas import BUDGET_PRESET_RANGES
-        label = BUDGET_PRESET_RANGES.get(state["budget_preset"], {}).get("label", state["budget_preset"])
+
+        label = BUDGET_PRESET_RANGES.get(state["budget_preset"], {}).get(
+            "label", state["budget_preset"]
+        )
         parts.append(f"Budget level: {label}")
     if state.get("nb_travelers"):
         parts.append(f"Number of travelers: {state['nb_travelers']}")
@@ -49,7 +52,11 @@ async def accommodation_node(state: TripPlanState) -> dict:
     accommodations = result.get("accommodations", [])
 
     # If no real data, mark as estimated
-    source = "amadeus" if accommodations and any(a.get("source") == "amadeus" for a in accommodations) else "estimated"
+    source = (
+        "amadeus"
+        if accommodations and any(a.get("source") == "amadeus" for a in accommodations)
+        else "estimated"
+    )
 
     logger.info("Accommodation search complete", {"count": len(accommodations), "source": source})
 

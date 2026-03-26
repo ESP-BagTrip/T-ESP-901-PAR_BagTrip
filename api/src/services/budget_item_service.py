@@ -131,11 +131,7 @@ class BudgetItemService:
                 forecasted_total += float(item.amount)
 
         # Confirmed vs forecasted — activities
-        activities = (
-            db.query(Activity)
-            .filter(Activity.trip_id == trip.id)
-            .all()
-        )
+        activities = db.query(Activity).filter(Activity.trip_id == trip.id).all()
         for activity in activities:
             if activity.estimated_cost is None:
                 continue

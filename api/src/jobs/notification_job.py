@@ -23,18 +23,12 @@ def _check_departure_reminders(db: Session) -> int:
     """Trip PLANNED, start_date = tomorrow → DEPARTURE_REMINDER."""
     tomorrow = date.today() + timedelta(days=1)
     trips = (
-        db.query(Trip)
-        .filter(Trip.status == TripStatus.PLANNED, Trip.start_date == tomorrow)
-        .all()
+        db.query(Trip).filter(Trip.status == TripStatus.PLANNED, Trip.start_date == tomorrow).all()
     )
     count = 0
     for trip in trips:
         # Compute baggage checklist status
-        baggage_items = (
-            db.query(BaggageItem)
-            .filter(BaggageItem.trip_id == trip.id)
-            .all()
-        )
+        baggage_items = db.query(BaggageItem).filter(BaggageItem.trip_id == trip.id).all()
         total = len(baggage_items)
         packed = sum(1 for b in baggage_items if b.is_packed)
 
@@ -68,11 +62,7 @@ def _check_flight_alerts(db: Session, hours_before: float, notif_type: str, titl
     window_start = now + timedelta(hours=hours_before - 0.5)
     window_end = now + timedelta(hours=hours_before + 0.5)
 
-    orders = (
-        db.query(FlightOrder)
-        .filter(FlightOrder.status == FlightOrderStatus.CONFIRMED)
-        .all()
-    )
+    orders = db.query(FlightOrder).filter(FlightOrder.status == FlightOrderStatus.CONFIRMED).all()
     count = 0
     for order in orders:
         departure_time = _extract_departure_time(db, order)
@@ -91,8 +81,13 @@ def _check_flight_alerts(db: Session, hours_before: float, notif_type: str, titl
         recipients = NotificationService._get_trip_recipients(db, trip)
         for uid in recipients:
             if NotificationService._already_sent(
-                db, uid, trip.id, notif_type, timedelta(hours=5),
-                data_key="orderId", data_value=str(order.id),
+                db,
+                uid,
+                trip.id,
+                notif_type,
+                timedelta(hours=5),
+                data_key="orderId",
+                data_value=str(order.id),
             ):
                 continue
 
@@ -183,9 +178,7 @@ def _check_morning_summary(db: Session) -> int:
     count = 0
     for trip in trips:
         activities = (
-            db.query(Activity)
-            .filter(Activity.trip_id == trip.id, Activity.date == today)
-            .all()
+            db.query(Activity).filter(Activity.trip_id == trip.id, Activity.date == today).all()
         )
         if not activities:
             continue
@@ -240,8 +233,13 @@ def _check_activity_reminders(db: Session) -> int:
         recipients = NotificationService._get_trip_recipients(db, trip)
         for uid in recipients:
             if NotificationService._already_sent(
-                db, uid, trip.id, NotificationType.ACTIVITY_H1, timedelta(hours=2),
-                data_key="activityId", data_value=str(activity.id),
+                db,
+                uid,
+                trip.id,
+                NotificationType.ACTIVITY_H1,
+                timedelta(hours=2),
+                data_key="activityId",
+                data_value=str(activity.id),
             ):
                 continue
             location_hint = f" à {activity.location}" if activity.location else ""

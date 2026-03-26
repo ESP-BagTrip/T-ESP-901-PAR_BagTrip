@@ -61,8 +61,6 @@ async def list_feedbacks(
     """Lister les feedbacks d'un trip."""
     try:
         feedbacks = FeedbackService.get_feedbacks_by_trip(db, access.trip.id)
-        return FeedbackListResponse(
-            items=[FeedbackResponse.model_validate(f) for f in feedbacks]
-        )
+        return FeedbackListResponse(items=[FeedbackResponse.model_validate(f) for f in feedbacks])
     except AppError as e:
         raise create_http_exception(e) from e

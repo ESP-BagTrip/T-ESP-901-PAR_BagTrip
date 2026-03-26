@@ -127,7 +127,10 @@ class StripePaymentsService:
 
         # POC: Allow capture from AUTHORIZED status (skip booking step)
         # In production, this should require BOOKED status
-        if booking_intent.status not in [BookingIntentStatus.BOOKED, BookingIntentStatus.AUTHORIZED]:
+        if booking_intent.status not in [
+            BookingIntentStatus.BOOKED,
+            BookingIntentStatus.AUTHORIZED,
+        ]:
             raise AppError(
                 "INVALID_STATUS",
                 400,

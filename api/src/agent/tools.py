@@ -25,6 +25,7 @@ _amadeus_semaphore = asyncio.Semaphore(3)
 # resolve_iata_code
 # ---------------------------------------------------------------------------
 
+
 async def resolve_iata_code(city_name: str) -> dict:
     """Resolve a city name to its IATA airport code via Amadeus.
 
@@ -62,6 +63,7 @@ async def resolve_iata_code(city_name: str) -> dict:
 # ---------------------------------------------------------------------------
 # search_real_flights
 # ---------------------------------------------------------------------------
+
 
 async def search_real_flights(
     origin: str,
@@ -102,14 +104,18 @@ async def search_real_flights(
         flights = []
         for offer in response.data[:5]:
             seg = offer.itineraries[0].segments[0] if offer.itineraries else None
-            flights.append({
-                "airline": offer.validatingAirlineCodes[0] if offer.validatingAirlineCodes else "??",
-                "price": float(offer.price.grandTotal),
-                "currency": offer.price.currency,
-                "departure": seg.departure.at if seg else "",
-                "arrival": seg.arrival.at if seg else "",
-                "duration": offer.itineraries[0].duration if offer.itineraries else "",
-            })
+            flights.append(
+                {
+                    "airline": offer.validatingAirlineCodes[0]
+                    if offer.validatingAirlineCodes
+                    else "??",
+                    "price": float(offer.price.grandTotal),
+                    "currency": offer.price.currency,
+                    "departure": seg.departure.at if seg else "",
+                    "arrival": seg.arrival.at if seg else "",
+                    "duration": offer.itineraries[0].duration if offer.itineraries else "",
+                }
+            )
 
         cheapest = min((f["price"] for f in flights), default=0)
         result = {
@@ -128,6 +134,7 @@ async def search_real_flights(
 # ---------------------------------------------------------------------------
 # search_real_hotels
 # ---------------------------------------------------------------------------
+
 
 async def search_real_hotels(
     city_code: str,
@@ -180,15 +187,17 @@ async def search_real_hotels(
             if item.offers:
                 offer = item.offers[0]
                 price = float(offer.price.total) if offer.price and offer.price.total else None
-                hotels.append({
-                    "name": hotel_info.get("name", "Unknown Hotel"),
-                    "hotel_id": hotel_info.get("hotelId", ""),
-                    "price_total": price,
-                    "currency": offer.price.currency if offer.price else "EUR",
-                    "check_in": offer.checkInDate,
-                    "check_out": offer.checkOutDate,
-                    "source": "amadeus",
-                })
+                hotels.append(
+                    {
+                        "name": hotel_info.get("name", "Unknown Hotel"),
+                        "hotel_id": hotel_info.get("hotelId", ""),
+                        "price_total": price,
+                        "currency": offer.price.currency if offer.price else "EUR",
+                        "check_in": offer.checkInDate,
+                        "check_out": offer.checkOutDate,
+                        "source": "amadeus",
+                    }
+                )
 
         result = {"hotels": hotels, "source": "amadeus"}
         idempotency_cache.set("search_real_hotels", cache_key_params, result)
@@ -201,6 +210,7 @@ async def search_real_hotels(
 # ---------------------------------------------------------------------------
 # get_weather  (Open-Meteo — free, no API key)
 # ---------------------------------------------------------------------------
+
 
 async def get_weather(
     latitude: float,
@@ -297,12 +307,40 @@ def _fallback_weather(start_date: str, latitude: float | None = None) -> dict:
     # No latitude → original month-only fallback
     if latitude is None:
         if month in (6, 7, 8):
-            return {"avg_temp_c": 25, "min_temp_c": 18, "max_temp_c": 32, "rain_probability": 15, "description": "Summer estimate", "source": "estimated"}
+            return {
+                "avg_temp_c": 25,
+                "min_temp_c": 18,
+                "max_temp_c": 32,
+                "rain_probability": 15,
+                "description": "Summer estimate",
+                "source": "estimated",
+            }
         if month in (12, 1, 2):
-            return {"avg_temp_c": 5, "min_temp_c": -2, "max_temp_c": 10, "rain_probability": 40, "description": "Winter estimate", "source": "estimated"}
+            return {
+                "avg_temp_c": 5,
+                "min_temp_c": -2,
+                "max_temp_c": 10,
+                "rain_probability": 40,
+                "description": "Winter estimate",
+                "source": "estimated",
+            }
         if month in (3, 4, 5):
-            return {"avg_temp_c": 15, "min_temp_c": 8, "max_temp_c": 22, "rain_probability": 30, "description": "Spring estimate", "source": "estimated"}
-        return {"avg_temp_c": 18, "min_temp_c": 10, "max_temp_c": 25, "rain_probability": 25, "description": "Autumn estimate", "source": "estimated"}
+            return {
+                "avg_temp_c": 15,
+                "min_temp_c": 8,
+                "max_temp_c": 22,
+                "rain_probability": 30,
+                "description": "Spring estimate",
+                "source": "estimated",
+            }
+        return {
+            "avg_temp_c": 18,
+            "min_temp_c": 10,
+            "max_temp_c": 25,
+            "rain_probability": 25,
+            "description": "Autumn estimate",
+            "source": "estimated",
+        }
 
     # Latitude-aware estimation
     abs_lat = abs(latitude)
@@ -360,12 +398,12 @@ def _fallback_weather(start_date: str, latitude: float | None = None) -> dict:
 TOOL_REGISTRY: dict[str, dict] = {
     "resolve_iata_code": {
         "fn": resolve_iata_code,
-        "description": "Resolve a city name to its IATA airport code. Input: {\"city_name\": \"Paris\"}",
+        "description": 'Resolve a city name to its IATA airport code. Input: {"city_name": "Paris"}',
         "parameters": {"city_name": "string (required) — city name to resolve"},
     },
     "search_real_flights": {
         "fn": search_real_flights,
-        "description": "Search real flight prices via Amadeus. Input: {\"origin\": \"CDG\", \"destination\": \"BCN\", \"date\": \"2025-07-01\", \"return_date\": \"2025-07-08\", \"adults\": 1}",
+        "description": 'Search real flight prices via Amadeus. Input: {"origin": "CDG", "destination": "BCN", "date": "2025-07-01", "return_date": "2025-07-08", "adults": 1}',
         "parameters": {
             "origin": "string (required) — origin IATA code",
             "destination": "string (required) — destination IATA code",
@@ -376,7 +414,7 @@ TOOL_REGISTRY: dict[str, dict] = {
     },
     "search_real_hotels": {
         "fn": search_real_hotels,
-        "description": "Search real hotel prices via Amadeus. Input: {\"city_code\": \"PAR\", \"check_in\": \"2025-07-01\", \"check_out\": \"2025-07-08\", \"adults\": 1}",
+        "description": 'Search real hotel prices via Amadeus. Input: {"city_code": "PAR", "check_in": "2025-07-01", "check_out": "2025-07-08", "adults": 1}',
         "parameters": {
             "city_code": "string (required) — IATA city code",
             "check_in": "string (required) — YYYY-MM-DD",
@@ -386,7 +424,7 @@ TOOL_REGISTRY: dict[str, dict] = {
     },
     "get_weather": {
         "fn": get_weather,
-        "description": "Get weather forecast for a location and date range. Input: {\"latitude\": 48.85, \"longitude\": 2.35, \"start_date\": \"2025-07-01\", \"end_date\": \"2025-07-08\"}",
+        "description": 'Get weather forecast for a location and date range. Input: {"latitude": 48.85, "longitude": 2.35, "start_date": "2025-07-01", "end_date": "2025-07-08"}',
         "parameters": {
             "latitude": "float (required)",
             "longitude": "float (required)",

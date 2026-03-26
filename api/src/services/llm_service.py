@@ -43,10 +43,12 @@ class LLMService:
         """Appelle le LLM et retourne le JSON parsé (synchrone)."""
         try:
             llm = self._get_llm()
-            response = llm.invoke([
-                SystemMessage(content=system_prompt),
-                HumanMessage(content=user_prompt),
-            ])
+            response = llm.invoke(
+                [
+                    SystemMessage(content=system_prompt),
+                    HumanMessage(content=user_prompt),
+                ]
+            )
             raw = response.content
         except Exception as e:
             raise AppError("LLM_ERROR", 502, f"LLM call failed: {e}") from e
@@ -65,10 +67,12 @@ class LLMService:
         """Appelle le LLM de manière asynchrone et retourne le JSON parsé."""
         try:
             llm = self._get_llm()
-            response = await llm.ainvoke([
-                SystemMessage(content=system_prompt),
-                HumanMessage(content=user_prompt),
-            ])
+            response = await llm.ainvoke(
+                [
+                    SystemMessage(content=system_prompt),
+                    HumanMessage(content=user_prompt),
+                ]
+            )
             raw = response.content
         except Exception as e:
             raise AppError("LLM_ERROR", 502, f"LLM call failed: {e}") from e

@@ -18,7 +18,9 @@ def _init_firebase() -> None:
     global _app
     path = settings.FIREBASE_SERVICE_ACCOUNT_PATH
     if not path:
-        logger.warn("[FIREBASE] FIREBASE_SERVICE_ACCOUNT_PATH not set — push notifications disabled")
+        logger.warn(
+            "[FIREBASE] FIREBASE_SERVICE_ACCOUNT_PATH not set — push notifications disabled"
+        )
         return
     try:
         cred = credentials.Certificate(path)

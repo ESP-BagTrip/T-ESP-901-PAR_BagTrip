@@ -34,8 +34,7 @@ async def trip_status_scheduler() -> None:
             try:
                 p2o, o2c = await asyncio.to_thread(run_trip_status_transitions)
                 logger.info(
-                    f"{TAG} Transitions applied — "
-                    f"PLANNED→ONGOING: {p2o}, ONGOING→COMPLETED: {o2c}"
+                    f"{TAG} Transitions applied — PLANNED→ONGOING: {p2o}, ONGOING→COMPLETED: {o2c}"
                 )
             except Exception as e:
                 logger.error(f"{TAG} Error during transition: {e}")

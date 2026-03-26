@@ -66,10 +66,40 @@ async def baggage_node(state: TripPlanState) -> dict:
 def _default_baggage_items() -> list[dict]:
     """Fallback baggage items if LLM fails."""
     return [
-        {"name": "Passeport", "quantity": 1, "category": "DOCUMENTS", "reason": "Essential travel document"},
-        {"name": "Adaptateur de voyage", "quantity": 1, "category": "ELECTRONICS", "reason": "Power adapter"},
-        {"name": "Crème solaire", "quantity": 1, "category": "TOILETRIES", "reason": "Sun protection"},
-        {"name": "Trousse de premiers secours", "quantity": 1, "category": "HEALTH", "reason": "Emergency kit"},
-        {"name": "Chargeur de téléphone", "quantity": 1, "category": "ELECTRONICS", "reason": "Keep devices charged"},
-        {"name": "Vêtements de rechange", "quantity": 3, "category": "CLOTHING", "reason": "Daily wear"},
+        {
+            "name": "Passeport",
+            "quantity": 1,
+            "category": "DOCUMENTS",
+            "reason": "Essential travel document",
+        },
+        {
+            "name": "Adaptateur de voyage",
+            "quantity": 1,
+            "category": "ELECTRONICS",
+            "reason": "Power adapter",
+        },
+        {
+            "name": "Crème solaire",
+            "quantity": 1,
+            "category": "TOILETRIES",
+            "reason": "Sun protection",
+        },
+        {
+            "name": "Trousse de premiers secours",
+            "quantity": 1,
+            "category": "HEALTH",
+            "reason": "Emergency kit",
+        },
+        {
+            "name": "Chargeur de téléphone",
+            "quantity": 1,
+            "category": "ELECTRONICS",
+            "reason": "Keep devices charged",
+        },
+        {
+            "name": "Vêtements de rechange",
+            "quantity": 3,
+            "category": "CLOTHING",
+            "reason": "Daily wear",
+        },
     ]

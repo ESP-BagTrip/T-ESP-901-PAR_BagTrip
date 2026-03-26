@@ -23,8 +23,6 @@ class BudgetItem(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    __table_args__ = (
-        Index("ix_budget_items_source", "source_type", "source_id"),
-    )
+    __table_args__ = (Index("ix_budget_items_source", "source_type", "source_id"),)
 
     trip = relationship("Trip", back_populates="budget_items")

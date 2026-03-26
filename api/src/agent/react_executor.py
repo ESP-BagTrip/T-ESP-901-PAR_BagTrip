@@ -76,7 +76,9 @@ def parse_react_output(llm_output: str) -> tuple[str, dict] | str:
 
     # Check for Action + Action Input
     action_match = re.search(r"Action:\s*(\S+)", llm_output)
-    input_match = re.search(r"Action Input:\s*(.+?)(?:\n(?:Thought|Action|$)|\Z)", llm_output, re.DOTALL)
+    input_match = re.search(
+        r"Action Input:\s*(.+?)(?:\n(?:Thought|Action|$)|\Z)", llm_output, re.DOTALL
+    )
 
     if action_match and input_match:
         tool_name = action_match.group(1).strip()
@@ -87,7 +89,9 @@ def parse_react_output(llm_output: str) -> tuple[str, dict] | str:
         try:
             tool_input = json.loads(raw_input)
         except json.JSONDecodeError:
-            logger.warn("Failed to parse Action Input JSON, attempting recovery", {"raw": raw_input})
+            logger.warn(
+                "Failed to parse Action Input JSON, attempting recovery", {"raw": raw_input}
+            )
             # Try to extract JSON object from the string
             json_match = re.search(r"\{[^}]+\}", raw_input)
             if json_match:
@@ -162,7 +166,9 @@ async def react_execute(
                 observation = json.dumps(observation_data, default=str)
             except TypeError as e:
                 observation = f"Error calling {tool_name}: invalid parameters — {e}"
-                logger.error(f"Tool call type error: {tool_name}", {"error": str(e), "input": tool_input})
+                logger.error(
+                    f"Tool call type error: {tool_name}", {"error": str(e), "input": tool_input}
+                )
             except Exception as e:
                 observation = f"Error calling {tool_name}: {e}"
                 logger.error(f"Tool call failed: {tool_name}", {"error": str(e)})
@@ -172,7 +178,11 @@ async def react_execute(
 
     # Max iterations reached — force a final answer
     logger.warn("ReAct max iterations reached, requesting final answer")
-    messages.append(HumanMessage(content="You have reached the maximum number of tool calls. Please provide your Final Answer now based on the information gathered so far."))
+    messages.append(
+        HumanMessage(
+            content="You have reached the maximum number of tool calls. Please provide your Final Answer now based on the information gathered so far."
+        )
+    )
 
     try:
         raw_response = await llm_service.acall_llm_messages(messages)

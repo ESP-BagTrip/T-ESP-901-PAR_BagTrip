@@ -417,9 +417,7 @@ async def google_sign_in(
                     name=full_name,
                 )
                 user.stripe_customer_id = stripe_customer.id
-                logger.info(
-                    f"Created Stripe customer {stripe_customer.id} for user {user.id}"
-                )
+                logger.info(f"Created Stripe customer {stripe_customer.id} for user {user.id}")
             except Exception as e:
                 logger.warning(
                     f"Failed to create Stripe customer for user {user.id}: {e}",
@@ -564,9 +562,7 @@ async def apple_sign_in(
                     name=None,
                 )
                 user.stripe_customer_id = stripe_customer.id
-                logger.info(
-                    f"Created Stripe customer {stripe_customer.id} for user {user.id}"
-                )
+                logger.info(f"Created Stripe customer {stripe_customer.id} for user {user.id}")
             except Exception as e:
                 logger.warning(
                     f"Failed to create Stripe customer for user {user.id}: {e}",
@@ -619,9 +615,7 @@ async def apple_sign_in(
     summary="Refresh access token",
     description="Exchange a valid refresh token for a new access + refresh token pair",
 )
-async def refresh(
-    request: RefreshTokenRequest, response: Response, db: Session = Depends(get_db)
-):
+async def refresh(request: RefreshTokenRequest, response: Response, db: Session = Depends(get_db)):
     """Refresh — rotate tokens."""
     stored = (
         db.query(RefreshToken)

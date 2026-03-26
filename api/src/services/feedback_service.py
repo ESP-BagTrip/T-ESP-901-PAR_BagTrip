@@ -44,7 +44,9 @@ class FeedbackService:
             .first()
         )
         if existing:
-            raise AppError("FEEDBACK_EXISTS", 409, "You have already submitted feedback for this trip")
+            raise AppError(
+                "FEEDBACK_EXISTS", 409, "You have already submitted feedback for this trip"
+            )
 
         feedback = Feedback(
             trip_id=trip_id,
@@ -60,7 +62,9 @@ class FeedbackService:
             db.commit()
         except IntegrityError:
             db.rollback()
-            raise AppError("FEEDBACK_EXISTS", 409, "You have already submitted feedback for this trip")
+            raise AppError(
+                "FEEDBACK_EXISTS", 409, "You have already submitted feedback for this trip"
+            ) from None
         db.refresh(feedback)
         return feedback
 

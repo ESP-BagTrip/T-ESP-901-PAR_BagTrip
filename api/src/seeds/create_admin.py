@@ -38,12 +38,14 @@ def _upsert_admin(db: Session, email: str, password: str, full_name: str) -> Non
         bcrypt.gensalt(),
     ).decode("utf-8")
 
-    db.add(User(
-        email=email,
-        password_hash=password_hash,
-        full_name=full_name,
-        plan="ADMIN",
-    ))
+    db.add(
+        User(
+            email=email,
+            password_hash=password_hash,
+            full_name=full_name,
+            plan="ADMIN",
+        )
+    )
     logger.info(f"Admin created ({email})")
 
 

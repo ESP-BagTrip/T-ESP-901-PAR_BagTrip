@@ -61,14 +61,21 @@ async def list_activities(
 ):
     try:
         activities, total, total_pages = ActivityService.get_by_trip_paginated(
-            db, access.trip.id, page=page, limit=limit,
+            db,
+            access.trip.id,
+            page=page,
+            limit=limit,
         )
         items = [ActivityResponse.model_validate(a) for a in activities]
         if access.role == TripRole.VIEWER:
             for item in items:
                 item.estimatedCost = None
         return ActivityPaginatedResponse(
-            items=items, total=total, page=page, limit=limit, total_pages=total_pages,
+            items=items,
+            total=total,
+            page=page,
+            limit=limit,
+            total_pages=total_pages,
         )
     except AppError as e:
         raise create_http_exception(e) from e

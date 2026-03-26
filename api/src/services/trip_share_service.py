@@ -26,7 +26,9 @@ class TripShareService:
             )
 
     @staticmethod
-    def create_share(db: Session, trip_id: UUID, owner_user_id: UUID, email: str, message: str | None = None) -> dict:
+    def create_share(
+        db: Session, trip_id: UUID, owner_user_id: UUID, email: str, message: str | None = None
+    ) -> dict:
         """Inviter un utilisateur par email à rejoindre un trip."""
         TripShareService._check_trip_not_completed(db, trip_id)
         # Resolve user by email
@@ -99,7 +101,9 @@ class TripShareService:
     def get_shares_by_trip(db: Session, trip_id: UUID) -> list[dict]:
         """Récupérer tous les partages d'un trip."""
         shares = (
-            db.query(TripShare, User.email.label("user_email"), User.full_name.label("user_full_name"))
+            db.query(
+                TripShare, User.email.label("user_email"), User.full_name.label("user_full_name")
+            )
             .join(User, TripShare.user_id == User.id)
             .filter(TripShare.trip_id == trip_id)
             .all()

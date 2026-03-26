@@ -37,7 +37,10 @@ async def budget_node(state: TripPlanState) -> dict:
         parts.append(f"Travelers: {state['companions']}")
     if state.get("budget_preset"):
         from src.api.ai.plan_trip_schemas import BUDGET_PRESET_RANGES
-        label = BUDGET_PRESET_RANGES.get(state["budget_preset"], {}).get("label", state["budget_preset"])
+
+        label = BUDGET_PRESET_RANGES.get(state["budget_preset"], {}).get(
+            "label", state["budget_preset"]
+        )
         parts.append(f"Budget level: {label}")
     if state.get("nb_travelers"):
         parts.append(f"Number of travelers: {state['nb_travelers']}")
