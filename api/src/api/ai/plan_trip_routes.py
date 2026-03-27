@@ -32,11 +32,49 @@ def _sse_event(event: str, data: dict) -> str:
     return f"event: {event}\ndata: {json_data}\n\n"
 
 
+_QUICK_DESTINATIONS_PROMPT = """Suggest 3-4 travel destinations as a JSON object.
+Consider the user's preferences and return ONLY a valid JSON object (no explanation):
+{
+  "destinations": [
+    {"city": "...", "country": "...", "match_reason": "Short reason why this matches"}
+  ]
+}"""
+
+
+async def _quick_destination_suggestions(state: dict) -> list[dict]:
+    """Single LLM call to get destination suggestions — no tools, no ReAct."""
+    from src.services.llm_service import LLMService
+
+    parts = []
+    if state.get("travel_types"):
+        parts.append(f"Preferences: {state['travel_types']}")
+    if state.get("budget_range") or state.get("budget_preset"):
+        parts.append(f"Budget: {state.get('budget_preset') or state.get('budget_range')}")
+    if state.get("duration_days"):
+        parts.append(f"Duration: {state['duration_days']} days")
+    if state.get("companions"):
+        parts.append(f"Traveling with: {state['companions']}")
+    if state.get("season"):
+        parts.append(f"Season: {state['season']}")
+    if state.get("constraints"):
+        parts.append(f"Constraints: {state['constraints']}")
+    if state.get("nb_travelers"):
+        parts.append(f"Travelers: {state['nb_travelers']}")
+
+    user_prompt = "\n".join(parts) if parts else "Suggest diverse travel destinations."
+
+    llm_service = LLMService()
+    result = await llm_service.acall_llm(_QUICK_DESTINATIONS_PROMPT, user_prompt)
+    destinations = result.get("destinations", [])
+    logger.info("Quick destination suggestions", {"count": len(destinations)})
+    return destinations
+
+
 async def _trip_plan_generator(request: PlanTripRequest, user_id: str, db: Session):
     """Async generator that runs the LangGraph pipeline and yields SSE events."""
 
     # Import here to avoid circular imports at module level
-    from src.agent.graph import destinations_only_graph, graph
+    from src.agent.graph import graph
     from src.agent.state import TripPlanState
 
     # Send initial progress
@@ -75,8 +113,23 @@ async def _trip_plan_generator(request: PlanTripRequest, user_id: str, db: Sessi
         },
     )
 
+    # Fast path for destinations_only: single LLM call, no ReAct/tools
+    if request.mode == "destinations_only":
+        try:
+            destinations = await _quick_destination_suggestions(initial_state)
+            yield _sse_event("destinations", {"destinations": destinations})
+            yield _sse_event(
+                "complete",
+                {"destinations": destinations, "mode": "destinations_only"},
+            )
+        except Exception as e:
+            logger.error("Quick destination suggestions failed", {"error": str(e)})
+            yield _sse_event("error", {"message": str(e)})
+        yield _sse_event("done", {"status": "complete"})
+        return
+
     # Select graph based on mode
-    active_graph = destinations_only_graph if request.mode == "destinations_only" else graph
+    active_graph = graph
 
     # Run the graph with streaming
     last_heartbeat = asyncio.get_event_loop().time()
