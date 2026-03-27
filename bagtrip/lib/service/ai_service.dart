@@ -29,7 +29,6 @@ class AiRepositoryImpl implements AiRepository {
     String? constraints,
   }) async {
     try {
-      final events = <Map<String, dynamic>>[];
       await for (final event in planTripStream(
         travelTypes: travelTypes,
         budgetRange: budgetRange,
@@ -38,16 +37,17 @@ class AiRepositoryImpl implements AiRepository {
         constraints: constraints,
         mode: 'destinations_only',
       )) {
-        events.add(event);
-      }
-      // Find the destinations event from the SSE stream
-      for (final evt in events) {
-        final type = evt['event'] as String?;
-        final data = evt['data'] as Map<String, dynamic>? ?? {};
+        final type = event['event'] as String?;
+        final data = event['data'] as Map<String, dynamic>? ?? {};
+
+        // Return immediately when we receive destinations
         if (type == 'destinations' || type == 'complete') {
           final destinations = data['destinations'] as List? ?? [];
           return Success(destinations.cast<Map<String, dynamic>>());
         }
+
+        // Stop waiting on terminal events
+        if (type == 'done' || type == 'error') break;
       }
       return const Success([]);
     } catch (e) {
