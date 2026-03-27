@@ -2,7 +2,7 @@
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Depends, HTTPException, Path
 from sqlalchemy.orm import Session
 
 from src.api.auth.middleware import get_current_user
@@ -13,6 +13,7 @@ from src.api.payments.schemas import (
     PaymentCaptureResponse,
 )
 from src.config.database import get_db
+from src.config.env import settings
 from src.models.user import User
 from src.services.stripe_payments_service import StripePaymentsService
 from src.utils.errors import AppError, create_http_exception
@@ -115,6 +116,8 @@ async def confirm_payment_test(
     db: Session = Depends(get_db),
 ):
     """Confirmer un paiement avec une carte de test pour POC."""
+    if settings.NODE_ENV == "production":
+        raise HTTPException(status_code=404, detail="Not found")
     try:
         result = StripePaymentsService.confirm_payment_with_test_card(
             db=db,
