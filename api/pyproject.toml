@@ -20,6 +20,7 @@ dependencies = [
   "python-jose[cryptography]>=3.5.0",
   "sqlalchemy>=2.0.45",
   "stripe>=14.1.0",
+  "tenacity>=8.2.0",
   "uvicorn[standard]>=0.38.0",
 ]
 

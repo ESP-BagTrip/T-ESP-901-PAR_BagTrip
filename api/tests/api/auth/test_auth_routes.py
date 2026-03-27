@@ -9,14 +9,25 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from fastapi.responses import JSONResponse
+
 from src.api.auth.routes import router as auth_router
 from src.api.auth.middleware import get_current_user
 from src.config.database import get_db
 from src.models.user import User
+from src.utils.errors import AppError
 
 # Setup the test app
 app = FastAPI()
 app.include_router(auth_router)
+
+
+@app.exception_handler(AppError)
+async def app_error_handler(request, exc: AppError):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": {"error": exc.message, "code": exc.code}},
+    )
 
 
 @pytest.fixture
@@ -148,11 +159,11 @@ class TestRegister:
         }
         
         response = client.post("/v1/auth/register", json=payload)
-        
-        # Should still succeed
-        assert response.status_code == 201
+
+        # Should fail with 503 — Stripe customer creation is now required
+        assert response.status_code == 503
         data = response.json()
-        assert data["user"]["email"] == "nostripe@example.com"
+        assert data["detail"]["code"] == "STRIPE_CUSTOMER_CREATION_FAILED"
 
 
 class TestLogin:

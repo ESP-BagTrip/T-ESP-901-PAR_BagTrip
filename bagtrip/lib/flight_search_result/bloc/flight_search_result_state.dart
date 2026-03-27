@@ -106,7 +106,7 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
 }
 
 final class FlightSearchResultError extends FlightSearchResultState {
-  final String message;
+  final AppError error;
 
-  FlightSearchResultError(this.message);
+  FlightSearchResultError(this.error);
 }

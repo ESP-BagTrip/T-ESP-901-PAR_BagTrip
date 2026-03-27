@@ -19,7 +19,7 @@ final class FlightSearchLoaded extends FlightSearchState {
   final double? maxPrice;
   final List<Map<String, dynamic>>? searchResults;
   final bool isLoading;
-  final String? errorMessage;
+  final AppError? error;
   final bool showValidationErrors;
 
   FlightSearchLoaded({
@@ -36,7 +36,7 @@ final class FlightSearchLoaded extends FlightSearchState {
     this.maxPrice,
     this.searchResults,
     this.isLoading = false,
-    this.errorMessage,
+    this.error,
     this.showValidationErrors = false,
   }) : multiDestSegments =
            multiDestSegments ?? [const FlightSegment(), const FlightSegment()];
@@ -55,7 +55,7 @@ final class FlightSearchLoaded extends FlightSearchState {
     double? maxPrice,
     List<Map<String, dynamic>>? searchResults,
     bool? isLoading,
-    String? errorMessage,
+    AppError? error,
     bool clearError = false,
     bool? showValidationErrors,
   }) {
@@ -73,7 +73,7 @@ final class FlightSearchLoaded extends FlightSearchState {
       maxPrice: maxPrice ?? this.maxPrice,
       searchResults: searchResults ?? this.searchResults,
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      error: clearError ? null : (error ?? this.error),
       showValidationErrors: showValidationErrors ?? this.showValidationErrors,
     );
   }

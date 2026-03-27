@@ -1249,7 +1249,7 @@ mixin _$PlanTripState {
  List<LocationResult> get searchResults; bool get isSearching; LocationResult? get selectedManualDestination; List<AiDestination> get aiSuggestions; bool get isLoadingAiSuggestions; AiDestination? get selectedAiDestination;// Step 4 — Generation
  Map<String, StepStatus> get generationSteps; double get generationProgress; String? get generationMessage; TripPlan? get generatedPlan; String? get generationError;// Step 5 — Review / Creation
  bool get isCreating; String? get createdTripId;// Meta
- bool get isManualFlow; String? get error;
+ bool get isManualFlow; AppError? get error;
 /// Create a copy of PlanTripState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1280,7 +1280,7 @@ abstract mixin class $PlanTripStateCopyWith<$Res>  {
   factory $PlanTripStateCopyWith(PlanTripState value, $Res Function(PlanTripState) _then) = _$PlanTripStateCopyWithImpl;
 @useResult
 $Res call({
- int currentStep, DateMode dateMode, DateTime? startDate, DateTime? endDate, int? preferredMonth, int? preferredYear, DurationPreset? flexibleDuration, int nbTravelers, BudgetPreset? budgetPreset, List<LocationResult> searchResults, bool isSearching, LocationResult? selectedManualDestination, List<AiDestination> aiSuggestions, bool isLoadingAiSuggestions, AiDestination? selectedAiDestination, Map<String, StepStatus> generationSteps, double generationProgress, String? generationMessage, TripPlan? generatedPlan, String? generationError, bool isCreating, String? createdTripId, bool isManualFlow, String? error
+ int currentStep, DateMode dateMode, DateTime? startDate, DateTime? endDate, int? preferredMonth, int? preferredYear, DurationPreset? flexibleDuration, int nbTravelers, BudgetPreset? budgetPreset, List<LocationResult> searchResults, bool isSearching, LocationResult? selectedManualDestination, List<AiDestination> aiSuggestions, bool isLoadingAiSuggestions, AiDestination? selectedAiDestination, Map<String, StepStatus> generationSteps, double generationProgress, String? generationMessage, TripPlan? generatedPlan, String? generationError, bool isCreating, String? createdTripId, bool isManualFlow, AppError? error
 });
 
 
@@ -1323,7 +1323,7 @@ as String?,isCreating: null == isCreating ? _self.isCreating : isCreating // ign
 as bool,createdTripId: freezed == createdTripId ? _self.createdTripId : createdTripId // ignore: cast_nullable_to_non_nullable
 as String?,isManualFlow: null == isManualFlow ? _self.isManualFlow : isManualFlow // ignore: cast_nullable_to_non_nullable
 as bool,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
-as String?,
+as AppError?,
   ));
 }
 /// Create a copy of PlanTripState
@@ -1444,7 +1444,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int currentStep,  DateMode dateMode,  DateTime? startDate,  DateTime? endDate,  int? preferredMonth,  int? preferredYear,  DurationPreset? flexibleDuration,  int nbTravelers,  BudgetPreset? budgetPreset,  List<LocationResult> searchResults,  bool isSearching,  LocationResult? selectedManualDestination,  List<AiDestination> aiSuggestions,  bool isLoadingAiSuggestions,  AiDestination? selectedAiDestination,  Map<String, StepStatus> generationSteps,  double generationProgress,  String? generationMessage,  TripPlan? generatedPlan,  String? generationError,  bool isCreating,  String? createdTripId,  bool isManualFlow,  String? error)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int currentStep,  DateMode dateMode,  DateTime? startDate,  DateTime? endDate,  int? preferredMonth,  int? preferredYear,  DurationPreset? flexibleDuration,  int nbTravelers,  BudgetPreset? budgetPreset,  List<LocationResult> searchResults,  bool isSearching,  LocationResult? selectedManualDestination,  List<AiDestination> aiSuggestions,  bool isLoadingAiSuggestions,  AiDestination? selectedAiDestination,  Map<String, StepStatus> generationSteps,  double generationProgress,  String? generationMessage,  TripPlan? generatedPlan,  String? generationError,  bool isCreating,  String? createdTripId,  bool isManualFlow,  AppError? error)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PlanTripState() when $default != null:
 return $default(_that.currentStep,_that.dateMode,_that.startDate,_that.endDate,_that.preferredMonth,_that.preferredYear,_that.flexibleDuration,_that.nbTravelers,_that.budgetPreset,_that.searchResults,_that.isSearching,_that.selectedManualDestination,_that.aiSuggestions,_that.isLoadingAiSuggestions,_that.selectedAiDestination,_that.generationSteps,_that.generationProgress,_that.generationMessage,_that.generatedPlan,_that.generationError,_that.isCreating,_that.createdTripId,_that.isManualFlow,_that.error);case _:
@@ -1465,7 +1465,7 @@ return $default(_that.currentStep,_that.dateMode,_that.startDate,_that.endDate,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int currentStep,  DateMode dateMode,  DateTime? startDate,  DateTime? endDate,  int? preferredMonth,  int? preferredYear,  DurationPreset? flexibleDuration,  int nbTravelers,  BudgetPreset? budgetPreset,  List<LocationResult> searchResults,  bool isSearching,  LocationResult? selectedManualDestination,  List<AiDestination> aiSuggestions,  bool isLoadingAiSuggestions,  AiDestination? selectedAiDestination,  Map<String, StepStatus> generationSteps,  double generationProgress,  String? generationMessage,  TripPlan? generatedPlan,  String? generationError,  bool isCreating,  String? createdTripId,  bool isManualFlow,  String? error)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int currentStep,  DateMode dateMode,  DateTime? startDate,  DateTime? endDate,  int? preferredMonth,  int? preferredYear,  DurationPreset? flexibleDuration,  int nbTravelers,  BudgetPreset? budgetPreset,  List<LocationResult> searchResults,  bool isSearching,  LocationResult? selectedManualDestination,  List<AiDestination> aiSuggestions,  bool isLoadingAiSuggestions,  AiDestination? selectedAiDestination,  Map<String, StepStatus> generationSteps,  double generationProgress,  String? generationMessage,  TripPlan? generatedPlan,  String? generationError,  bool isCreating,  String? createdTripId,  bool isManualFlow,  AppError? error)  $default,) {final _that = this;
 switch (_that) {
 case _PlanTripState():
 return $default(_that.currentStep,_that.dateMode,_that.startDate,_that.endDate,_that.preferredMonth,_that.preferredYear,_that.flexibleDuration,_that.nbTravelers,_that.budgetPreset,_that.searchResults,_that.isSearching,_that.selectedManualDestination,_that.aiSuggestions,_that.isLoadingAiSuggestions,_that.selectedAiDestination,_that.generationSteps,_that.generationProgress,_that.generationMessage,_that.generatedPlan,_that.generationError,_that.isCreating,_that.createdTripId,_that.isManualFlow,_that.error);case _:
@@ -1485,7 +1485,7 @@ return $default(_that.currentStep,_that.dateMode,_that.startDate,_that.endDate,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int currentStep,  DateMode dateMode,  DateTime? startDate,  DateTime? endDate,  int? preferredMonth,  int? preferredYear,  DurationPreset? flexibleDuration,  int nbTravelers,  BudgetPreset? budgetPreset,  List<LocationResult> searchResults,  bool isSearching,  LocationResult? selectedManualDestination,  List<AiDestination> aiSuggestions,  bool isLoadingAiSuggestions,  AiDestination? selectedAiDestination,  Map<String, StepStatus> generationSteps,  double generationProgress,  String? generationMessage,  TripPlan? generatedPlan,  String? generationError,  bool isCreating,  String? createdTripId,  bool isManualFlow,  String? error)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int currentStep,  DateMode dateMode,  DateTime? startDate,  DateTime? endDate,  int? preferredMonth,  int? preferredYear,  DurationPreset? flexibleDuration,  int nbTravelers,  BudgetPreset? budgetPreset,  List<LocationResult> searchResults,  bool isSearching,  LocationResult? selectedManualDestination,  List<AiDestination> aiSuggestions,  bool isLoadingAiSuggestions,  AiDestination? selectedAiDestination,  Map<String, StepStatus> generationSteps,  double generationProgress,  String? generationMessage,  TripPlan? generatedPlan,  String? generationError,  bool isCreating,  String? createdTripId,  bool isManualFlow,  AppError? error)?  $default,) {final _that = this;
 switch (_that) {
 case _PlanTripState() when $default != null:
 return $default(_that.currentStep,_that.dateMode,_that.startDate,_that.endDate,_that.preferredMonth,_that.preferredYear,_that.flexibleDuration,_that.nbTravelers,_that.budgetPreset,_that.searchResults,_that.isSearching,_that.selectedManualDestination,_that.aiSuggestions,_that.isLoadingAiSuggestions,_that.selectedAiDestination,_that.generationSteps,_that.generationProgress,_that.generationMessage,_that.generatedPlan,_that.generationError,_that.isCreating,_that.createdTripId,_that.isManualFlow,_that.error);case _:
@@ -1553,7 +1553,7 @@ class _PlanTripState extends PlanTripState {
 @override final  String? createdTripId;
 // Meta
 @override@JsonKey() final  bool isManualFlow;
-@override final  String? error;
+@override final  AppError? error;
 
 /// Create a copy of PlanTripState
 /// with the given fields replaced by the non-null parameter values.
@@ -1585,7 +1585,7 @@ abstract mixin class _$PlanTripStateCopyWith<$Res> implements $PlanTripStateCopy
   factory _$PlanTripStateCopyWith(_PlanTripState value, $Res Function(_PlanTripState) _then) = __$PlanTripStateCopyWithImpl;
 @override @useResult
 $Res call({
- int currentStep, DateMode dateMode, DateTime? startDate, DateTime? endDate, int? preferredMonth, int? preferredYear, DurationPreset? flexibleDuration, int nbTravelers, BudgetPreset? budgetPreset, List<LocationResult> searchResults, bool isSearching, LocationResult? selectedManualDestination, List<AiDestination> aiSuggestions, bool isLoadingAiSuggestions, AiDestination? selectedAiDestination, Map<String, StepStatus> generationSteps, double generationProgress, String? generationMessage, TripPlan? generatedPlan, String? generationError, bool isCreating, String? createdTripId, bool isManualFlow, String? error
+ int currentStep, DateMode dateMode, DateTime? startDate, DateTime? endDate, int? preferredMonth, int? preferredYear, DurationPreset? flexibleDuration, int nbTravelers, BudgetPreset? budgetPreset, List<LocationResult> searchResults, bool isSearching, LocationResult? selectedManualDestination, List<AiDestination> aiSuggestions, bool isLoadingAiSuggestions, AiDestination? selectedAiDestination, Map<String, StepStatus> generationSteps, double generationProgress, String? generationMessage, TripPlan? generatedPlan, String? generationError, bool isCreating, String? createdTripId, bool isManualFlow, AppError? error
 });
 
 
@@ -1628,7 +1628,7 @@ as String?,isCreating: null == isCreating ? _self.isCreating : isCreating // ign
 as bool,createdTripId: freezed == createdTripId ? _self.createdTripId : createdTripId // ignore: cast_nullable_to_non_nullable
 as String?,isManualFlow: null == isManualFlow ? _self.isManualFlow : isManualFlow // ignore: cast_nullable_to_non_nullable
 as bool,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
-as String?,
+as AppError?,
   ));
 }
 

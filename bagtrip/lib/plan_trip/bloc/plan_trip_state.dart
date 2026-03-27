@@ -41,7 +41,7 @@ abstract class PlanTripState with _$PlanTripState {
 
     // Meta
     @Default(false) bool isManualFlow,
-    String? error,
+    AppError? error,
   }) = _PlanTripState;
 
   /// Whether dates are valid based on the current [dateMode].

@@ -59,9 +59,7 @@ class AgentService {
         );
       }
     } on DioException catch (e) {
-      return loggedFailure(
-        NetworkError('Error executing action: ${e.message}'),
-      );
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
       return loggedFailure(
         UnknownError('Error executing action: $e', originalError: e),
