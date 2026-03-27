@@ -545,20 +545,7 @@ class TestAmadeusClient:
         """Test client methods delegate correctly."""
         client = AmadeusClient()
 
-        # Test all methods are delegated
-
-        # Locations
-        with patch("src.integrations.amadeus.client.search_locations_by_keyword", new_callable=AsyncMock) as mock_impl:
-            await client.search_locations_by_keyword("query")
-            mock_impl.assert_called_once()
-
-        with patch("src.integrations.amadeus.client.search_location_by_id", new_callable=AsyncMock) as mock_impl:
-            await client.search_location_by_id("query")
-            mock_impl.assert_called_once()
-
-        with patch("src.integrations.amadeus.client.search_location_nearest", new_callable=AsyncMock) as mock_impl:
-            await client.search_location_nearest("query")
-            mock_impl.assert_called_once()
+        # Locations are now handled by aviation_data (offline), not AmadeusClient.
 
         # Flights
         with patch("src.integrations.amadeus.client.search_flight_offers", new_callable=AsyncMock) as mock_impl:
