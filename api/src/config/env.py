@@ -52,6 +52,18 @@ class Settings(BaseSettings):
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
+    @field_validator("JWT_SECRET")
+    @classmethod
+    def validate_jwt_secret_not_default_in_prod(cls, v: str, info) -> str:
+        """Block startup if JWT_SECRET is the default value in production."""
+        node_env = info.data.get("NODE_ENV", "development")
+        if node_env == "production" and v == "dev-secret-key-change-in-production":
+            raise ValueError(
+                "JWT_SECRET must be changed from the default value in production. "
+                "Set a strong, unique secret in your environment variables."
+            )
+        return v
+
     # Firebase Admin (FCM push notifications)
     FIREBASE_SERVICE_ACCOUNT_PATH: str | None = None
 
