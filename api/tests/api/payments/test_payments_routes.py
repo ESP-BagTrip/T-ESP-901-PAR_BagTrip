@@ -171,16 +171,16 @@ class TestConfirmPaymentTest:
     def test_confirm_payment_test_success(self, mock_service, client, override_get_current_user, override_get_db):
         """Test successful test payment confirmation."""
         intent_id = uuid.uuid4()
-        
+
         mock_result = {
             "stripePaymentIntentId": "pi_123",
             "clientSecret": "secret_123",
             "status": "succeeded"
         }
         mock_service.confirm_payment_with_test_card.return_value = mock_result
-        
+
         response = client.post(f"/v1/booking-intents/{intent_id}/payment/confirm-test")
-        
+
         assert response.status_code == 200
         assert response.json() == mock_result
         mock_service.confirm_payment_with_test_card.assert_called_once()
@@ -190,8 +190,39 @@ class TestConfirmPaymentTest:
         """Test test payment confirmation error."""
         intent_id = uuid.uuid4()
         mock_service.confirm_payment_with_test_card.side_effect = AppError("ERROR", 400, "Confirm failed")
-        
+
         response = client.post(f"/v1/booking-intents/{intent_id}/payment/confirm-test")
-        
+
         assert response.status_code == 400
         assert response.json()["detail"]["error"] == "Confirm failed"
+
+    @patch("src.api.payments.routes.settings")
+    @patch("src.api.payments.routes.StripePaymentsService")
+    def test_confirm_payment_test_blocked_in_production(self, mock_service, mock_settings, client, override_get_current_user, override_get_db):
+        """Test that /confirm-test returns 404 in production."""
+        mock_settings.NODE_ENV = "production"
+        intent_id = uuid.uuid4()
+
+        response = client.post(f"/v1/booking-intents/{intent_id}/payment/confirm-test")
+
+        assert response.status_code == 404
+        mock_service.confirm_payment_with_test_card.assert_not_called()
+
+    @patch("src.api.payments.routes.settings")
+    @patch("src.api.payments.routes.StripePaymentsService")
+    def test_confirm_payment_test_allowed_in_development(self, mock_service, mock_settings, client, override_get_current_user, override_get_db):
+        """Test that /confirm-test works in development."""
+        mock_settings.NODE_ENV = "development"
+        intent_id = uuid.uuid4()
+
+        mock_result = {
+            "stripePaymentIntentId": "pi_123",
+            "clientSecret": "secret_123",
+            "status": "succeeded"
+        }
+        mock_service.confirm_payment_with_test_card.return_value = mock_result
+
+        response = client.post(f"/v1/booking-intents/{intent_id}/payment/confirm-test")
+
+        assert response.status_code == 200
+        mock_service.confirm_payment_with_test_card.assert_called_once()

@@ -66,6 +66,33 @@ class TestSettings:
             assert settings.LANGCHAIN_API_KEY == "lc_123"
 
 
+class TestJwtSecretValidation:
+    """Tests for JWT_SECRET production validation."""
+
+    def test_jwt_secret_default_allowed_in_development(self, mock_env_vars):
+        """Test that the default JWT_SECRET is allowed in development."""
+        with patch.dict(os.environ, {"NODE_ENV": "development", "LLM_API_KEY": "test_key"}):
+            settings = Settings()
+            assert settings.JWT_SECRET == "dev-secret-key-change-in-production"
+
+    def test_jwt_secret_default_blocked_in_production(self, mock_env_vars):
+        """Test that the default JWT_SECRET is rejected in production."""
+        with patch.dict(os.environ, {"NODE_ENV": "production", "LLM_API_KEY": "test_key"}):
+            with pytest.raises(ValidationError) as exc_info:
+                Settings()
+            assert "JWT_SECRET must be changed" in str(exc_info.value)
+
+    def test_jwt_secret_custom_allowed_in_production(self, mock_env_vars):
+        """Test that a custom JWT_SECRET is allowed in production."""
+        with patch.dict(os.environ, {
+            "NODE_ENV": "production",
+            "JWT_SECRET": "my-strong-production-secret-key-2026",
+            "LLM_API_KEY": "test_key",
+        }):
+            settings = Settings()
+            assert settings.JWT_SECRET == "my-strong-production-secret-key-2026"
+
+
 class TestFormatError:
     """Tests for error formatting helper."""
 
