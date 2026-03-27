@@ -8,6 +8,7 @@ import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:bagtrip/plan_trip/widgets/accommodation_preview_card.dart';
 import 'package:bagtrip/plan_trip/widgets/budget_breakdown_chart.dart';
 import 'package:bagtrip/plan_trip/widgets/day_activities_tab.dart';
@@ -35,9 +36,9 @@ class _StepReviewViewState extends State<StepReviewView> {
       listenWhen: (prev, curr) => prev.error != curr.error,
       listener: (context, state) {
         if (state.error != null) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(state.error!)));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(toUserFriendlyMessage(state.error!, l10n))),
+          );
         }
       },
       builder: (context, state) {

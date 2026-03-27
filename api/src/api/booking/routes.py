@@ -14,6 +14,7 @@ from src.integrations.amadeus import amadeus_client
 from src.integrations.amadeus.types import FlightPriceResponse
 from src.models.booking import Booking
 from src.models.user import User
+from src.utils.errors import AppError, create_http_exception
 from src.utils.logger import LogLevel, logger
 
 router = APIRouter(prefix="/v1/booking", tags=["Booking (Deprecated)"])
@@ -74,6 +75,8 @@ async def confirm_price(request: FlightPriceRequest):
     """
     try:
         return await amadeus_client.confirm_flight_price(request.flightOffer)
+    except AppError as e:
+        raise create_http_exception(e) from e
     except Exception as e:
         # Logger l'erreur avec traceback complète en mode debug
         if logger.level == LogLevel.DEBUG:
@@ -153,6 +156,9 @@ async def create_booking(
             createdAt=(booking.created_at),
         )
 
+    except AppError as e:
+        db.rollback()
+        raise create_http_exception(e) from e
     except Exception as e:
         db.rollback()
         # Logger l'erreur avec traceback complète en mode debug

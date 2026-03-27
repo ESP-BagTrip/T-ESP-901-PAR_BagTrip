@@ -31,6 +31,7 @@ from src.models.refresh_token import RefreshToken
 from src.models.user import User
 from src.services.plan_service import PlanService
 from src.utils.cookies import clear_auth_cookies, set_auth_cookies
+from src.utils.errors import AppError
 from src.utils.logger import logger
 
 router = APIRouter(prefix="/v1/auth", tags=["Auth"])
@@ -126,11 +127,16 @@ async def register(request: SignupRequest, response: Response, db: Session = Dep
             user.stripe_customer_id = stripe_customer.id
             logger.info(f"Created Stripe customer {stripe_customer.id} for user {user.id}")
         except Exception as e:
-            # Log l'erreur mais continue la création de l'utilisateur
-            logger.warning(
+            logger.error(
                 f"Failed to create Stripe customer for user {user.id}: {e}",
                 exc_info=True,
             )
+            db.rollback()
+            raise AppError(
+                "STRIPE_CUSTOMER_CREATION_FAILED",
+                503,
+                "Failed to create payment profile. Please try again.",
+            ) from e
 
         db.commit()
         db.refresh(user)
@@ -419,10 +425,16 @@ async def google_sign_in(
                 user.stripe_customer_id = stripe_customer.id
                 logger.info(f"Created Stripe customer {stripe_customer.id} for user {user.id}")
             except Exception as e:
-                logger.warning(
+                logger.error(
                     f"Failed to create Stripe customer for user {user.id}: {e}",
                     exc_info=True,
                 )
+                db.rollback()
+                raise AppError(
+                    "STRIPE_CUSTOMER_CREATION_FAILED",
+                    503,
+                    "Failed to create payment profile. Please try again.",
+                ) from e
 
             db.commit()
             db.refresh(user)
@@ -457,6 +469,8 @@ async def google_sign_in(
                 plan_expires_at=user.plan_expires_at,
             ),
         )
+    except AppError:
+        raise
     except jwt.JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -564,10 +578,16 @@ async def apple_sign_in(
                 user.stripe_customer_id = stripe_customer.id
                 logger.info(f"Created Stripe customer {stripe_customer.id} for user {user.id}")
             except Exception as e:
-                logger.warning(
+                logger.error(
                     f"Failed to create Stripe customer for user {user.id}: {e}",
                     exc_info=True,
                 )
+                db.rollback()
+                raise AppError(
+                    "STRIPE_CUSTOMER_CREATION_FAILED",
+                    503,
+                    "Failed to create payment profile. Please try again.",
+                ) from e
 
             db.commit()
             db.refresh(user)
@@ -596,6 +616,8 @@ async def apple_sign_in(
                 plan_expires_at=user.plan_expires_at,
             ),
         )
+    except AppError:
+        raise
     except jwt.JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

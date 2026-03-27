@@ -5,12 +5,16 @@ import time
 import httpx
 
 from src.config.env import settings
+from src.integrations.amadeus.errors import raise_amadeus_connection_error
+from src.integrations.amadeus.retry import amadeus_retry
+from src.utils.errors import AppError
 from src.utils.logger import logger
 
 # Cache de token en mémoire
 _token_cache: dict[str, any] | None = None
 
 
+@amadeus_retry
 async def fetch_token() -> str:
     """
     Récupère un token d'accès Amadeus avec cache.
@@ -70,7 +74,12 @@ async def fetch_token() -> str:
                     "data": response.text,
                 },
             )
-            raise Exception(f"Amadeus token error: {response.status_code}")
+            raise AppError(
+                "UPSTREAM_AUTH_ERROR",
+                502,
+                f"Amadeus token error: status {response.status_code}",
+                {"upstream_status": response.status_code},
+            )
 
         data = response.json()
 
@@ -82,7 +91,9 @@ async def fetch_token() -> str:
                     "data": data,
                 },
             )
-            raise Exception("Amadeus token error: missing access_token")
+            raise AppError(
+                "UPSTREAM_AUTH_ERROR", 502, "Amadeus token response missing access_token"
+            )
 
         logger.info(
             "Amadeus token obtained successfully",
@@ -108,4 +119,4 @@ async def fetch_token() -> str:
                 "url": str(error.request.url) if hasattr(error, "request") else None,
             },
         )
-        raise Exception(f"Amadeus token request failed: {str(error)}") from error
+        raise_amadeus_connection_error(error, "token acquisition")

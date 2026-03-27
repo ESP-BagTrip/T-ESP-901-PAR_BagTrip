@@ -9,6 +9,7 @@ import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -25,7 +26,9 @@ class FlightSearchResultView extends StatelessWidget {
 
         if (state is FlightSearchResultError) {
           return Center(
-            child: Text(AppLocalizations.of(context)!.error(state.message)),
+            child: Text(
+              toUserFriendlyMessage(state.error, AppLocalizations.of(context)!),
+            ),
           );
         }
 

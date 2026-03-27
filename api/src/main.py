@@ -40,7 +40,7 @@ from src.api.trips.routes import router as trips_router
 from src.config.database import check_database_connection, engine
 from src.config.env import settings
 from src.middleware.rate_limit import auth_rate_limit_middleware, rate_limit_middleware
-from src.utils.errors import AppError, create_http_exception
+from src.utils.errors import AppError
 from src.utils.logger import LogLevel, logger
 
 
@@ -177,7 +177,7 @@ async def app_error_handler(request: Request, exc: AppError):
                 "method": request.method,
             },
         )
-    
+
     return JSONResponse(
         status_code=exc.status_code,
         content={

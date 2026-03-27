@@ -675,25 +675,23 @@ void main() {
         },
       );
 
-      test(
-        'should throw exception when response shape is unexpected',
-        () async {
-          // Arrange
-          // Empty map will cause results to be null, triggering exception
-          dioAdapter.onGet(
-            'http://localhost:3000/v1/travel/locations',
-            (server) => server.reply(200, {}),
-            queryParameters: {'keyword': 'Test', 'subType': 'AIRPORT'},
-          );
+      test('empty map response returns Success with empty list', () async {
+        // Arrange
+        dioAdapter.onGet(
+          'http://localhost:3000/v1/travel/locations',
+          (server) => server.reply(200, {}),
+          queryParameters: {'keyword': 'Test', 'subType': 'AIRPORT'},
+        );
 
-          // Act & Assert
-          final result = await locationService.searchLocationsByKeyword(
-            'Test',
-            'AIRPORT',
-          );
-          expect(result, isA<Failure<List<Map<String, dynamic>>>>());
-        },
-      );
+        // Act & Assert
+        final result = await locationService.searchLocationsByKeyword(
+          'Test',
+          'AIRPORT',
+        );
+        expect(result, isA<Success<List<Map<String, dynamic>>>>());
+        final success = result as Success<List<Map<String, dynamic>>>;
+        expect(success.data, isEmpty);
+      });
 
       test(
         'should throw exception when HTTP error and no valid data',
@@ -782,7 +780,9 @@ void main() {
           'NonExistent',
           'AIRPORT',
         );
-        expect(result, isA<Failure<List<Map<String, dynamic>>>>());
+        expect(result, isA<Success<List<Map<String, dynamic>>>>());
+        final success = result as Success<List<Map<String, dynamic>>>;
+        expect(success.data, isEmpty);
       });
     });
 

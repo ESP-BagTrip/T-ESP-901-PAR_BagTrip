@@ -180,7 +180,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         final results = data.map((m) => LocationResult.fromJson(m)).toList();
         emit(state.copyWith(isSearching: false, searchResults: results));
       case Failure(:final error):
-        emit(state.copyWith(isSearching: false, error: error.message));
+        emit(state.copyWith(isSearching: false, error: error));
     }
   }
 
@@ -276,13 +276,16 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
             ),
           );
         case Failure(:final error):
-          emit(
-            state.copyWith(isLoadingAiSuggestions: false, error: error.message),
-          );
+          emit(state.copyWith(isLoadingAiSuggestions: false, error: error));
       }
     } catch (e) {
       if (isClosed) return;
-      emit(state.copyWith(isLoadingAiSuggestions: false, error: e.toString()));
+      emit(
+        state.copyWith(
+          isLoadingAiSuggestions: false,
+          error: UnknownError(e.toString(), originalError: e),
+        ),
+      );
     }
   }
 
@@ -504,7 +507,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       case Success(:final data):
         emit(state.copyWith(isCreating: false, createdTripId: data.id));
       case Failure(:final error):
-        emit(state.copyWith(isCreating: false, error: error.message));
+        emit(state.copyWith(isCreating: false, error: error));
     }
   }
 
@@ -512,7 +515,10 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     final plan = state.generatedPlan;
     if (plan == null) {
       emit(
-        state.copyWith(isCreating: false, error: 'Aucune proposition générée.'),
+        state.copyWith(
+          isCreating: false,
+          error: const ServerError('No plan generated'),
+        ),
       );
       return;
     }
@@ -541,16 +547,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
             data['id']?.toString() ?? data['tripId']?.toString() ?? '';
         emit(state.copyWith(isCreating: false, createdTripId: tripId));
       case Failure(:final error):
-        if (error is QuotaExceededError) {
-          emit(
-            state.copyWith(
-              isCreating: false,
-              error: 'AI generation quota exceeded',
-            ),
-          );
-        } else {
-          emit(state.copyWith(isCreating: false, error: error.message));
-        }
+        emit(state.copyWith(isCreating: false, error: error));
     }
   }
 
