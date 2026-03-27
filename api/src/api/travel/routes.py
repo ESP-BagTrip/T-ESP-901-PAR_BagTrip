@@ -123,7 +123,7 @@ async def search_location_nearest(
 
         if not (-90 <= latitude <= 90):
             raise AppError("INVALID_QUERY", 400, "Latitude must be between -90 and 90")
-        
+
         if not (-180 <= longitude <= 180):
             raise AppError("INVALID_QUERY", 400, "Longitude must be between -180 and 180")
 

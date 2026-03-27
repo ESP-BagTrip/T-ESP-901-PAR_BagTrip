@@ -1,5 +1,6 @@
 // ignore_for_file: depend_on_referenced_packages
 
+import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/flight_search_result/models/flight.dart';
 import 'package:bagtrip/flight_search/models/flight_segment.dart';
@@ -95,7 +96,7 @@ class FlightSearchResultBloc
           ),
         );
       case Failure(:final error):
-        emit(FlightSearchResultError(error.message));
+        emit(FlightSearchResultError(error));
     }
   }
 
@@ -286,7 +287,7 @@ class FlightSearchResultBloc
           ),
         );
       case Failure(:final error):
-        emit(FlightSearchResultError(error.message));
+        emit(FlightSearchResultError(error));
     }
   }
 

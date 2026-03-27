@@ -3,6 +3,8 @@
 import httpx
 
 from src.config.env import settings
+from src.integrations.amadeus.errors import raise_amadeus_connection_error, raise_for_amadeus_status
+from src.integrations.amadeus.retry import amadeus_retry
 from src.utils.logger import logger
 
 from .auth import fetch_token
@@ -17,6 +19,7 @@ from .types import (
 )
 
 
+@amadeus_retry
 async def search_hotel_list(query: HotelListSearchQuery) -> HotelListResponse:
     """
     Appel Hotel List: GET /v1/reference-data/locations/hotels/by-city
@@ -69,7 +72,7 @@ async def search_hotel_list(query: HotelListSearchQuery) -> HotelListResponse:
                     "response": response.text,
                 },
             )
-            raise Exception(f"Amadeus hotel list search failed: {response.status_code}")
+            raise_for_amadeus_status(response, "hotel list search")
 
         data = response.json()
 
@@ -89,9 +92,10 @@ async def search_hotel_list(query: HotelListSearchQuery) -> HotelListResponse:
                 "message": str(error),
             },
         )
-        raise Exception(f"Amadeus hotel list search failed: {str(error)}") from error
+        raise_amadeus_connection_error(error, "hotel list search")
 
 
+@amadeus_retry
 async def search_hotel_offers(query: HotelOffersSearchQuery) -> HotelOffersResponse:
     """
     Appel Hotel Offers: GET /v3/shopping/hotel-offers
@@ -144,7 +148,7 @@ async def search_hotel_offers(query: HotelOffersSearchQuery) -> HotelOffersRespo
                     "response": response.text,
                 },
             )
-            raise Exception(f"Amadeus hotel offers search failed: {response.status_code}")
+            raise_for_amadeus_status(response, "hotel offers search")
 
         data = response.json()
 
@@ -177,4 +181,4 @@ async def search_hotel_offers(query: HotelOffersSearchQuery) -> HotelOffersRespo
                 "message": str(error),
             },
         )
-        raise Exception(f"Amadeus hotel offers search failed: {str(error)}") from error
+        raise_amadeus_connection_error(error, "hotel offers search")

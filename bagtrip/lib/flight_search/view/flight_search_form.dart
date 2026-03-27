@@ -11,6 +11,7 @@ import 'package:bagtrip/flight_search/widgets/trip_type_selector.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
@@ -24,11 +25,14 @@ class FlightSearchForm extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocConsumer<FlightSearchBloc, FlightSearchState>(
       listener: (context, state) {
-        if (state is FlightSearchLoaded && state.errorMessage != null) {
+        if (state is FlightSearchLoaded && state.error != null) {
           if (state.searchResults == null || state.searchResults!.isEmpty) {
             AppSnackBar.showError(
               context,
-              message: state.errorMessage ?? 'Une erreur est survenue.',
+              message: toUserFriendlyMessage(
+                state.error!,
+                AppLocalizations.of(context)!,
+              ),
             );
           }
         }

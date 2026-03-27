@@ -95,9 +95,7 @@ class AuthRepositoryImpl implements AuthRepository {
           ),
         );
       }
-      return loggedFailure(
-        NetworkError(e.message ?? 'Network error', originalError: e),
-      );
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
       return loggedFailure(
         UnknownError('getCurrentUser failed', originalError: e),

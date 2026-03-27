@@ -1,3 +1,4 @@
+import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
@@ -112,7 +113,7 @@ void main() {
     blocTest<PlanTripBloc, PlanTripState>(
       'NextStep clears error',
       build: buildBloc,
-      seed: () => const PlanTripState(error: 'some error'),
+      seed: () => const PlanTripState(error: UnknownError('some error')),
       act: (bloc) => bloc.add(const PlanTripEvent.nextStep()),
       expect: () => [
         isA<PlanTripState>()
