@@ -514,13 +514,14 @@ class SubscriptionCancelRoute extends GoRouteData
 
 @TypedGoRoute<PaymentSuccessRoute>(path: '/payment/success')
 class PaymentSuccessRoute extends GoRouteData with $PaymentSuccessRoute {
-  const PaymentSuccessRoute();
+  final String? intentId;
+  const PaymentSuccessRoute({this.intentId});
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       buildSlideTransitionPage<void>(
         state: state,
-        child: const PaymentSuccessPage(),
+        child: PaymentSuccessPage(intentId: intentId),
       );
 }
 

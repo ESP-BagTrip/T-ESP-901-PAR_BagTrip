@@ -5582,6 +5582,60 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Chargement'**
   String get loadingButton;
+
+  /// No description provided for @forgotPasswordTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réinitialiser le mot de passe'**
+  String get forgotPasswordTitle;
+
+  /// No description provided for @forgotPasswordSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.'**
+  String get forgotPasswordSubtitle;
+
+  /// No description provided for @forgotPasswordSendButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer le lien'**
+  String get forgotPasswordSendButton;
+
+  /// No description provided for @forgotPasswordSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Si cette adresse existe, un lien de réinitialisation a été envoyé. Vérifiez votre boîte de réception.'**
+  String get forgotPasswordSuccess;
+
+  /// No description provided for @deleteAccountButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer mon compte'**
+  String get deleteAccountButton;
+
+  /// No description provided for @deleteAccountConfirmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer le compte ?'**
+  String get deleteAccountConfirmTitle;
+
+  /// No description provided for @deleteAccountConfirmMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cela supprimera définitivement votre compte et toutes les données associées. Cette action est irréversible.'**
+  String get deleteAccountConfirmMessage;
+
+  /// No description provided for @deleteAccountConfirmAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer définitivement'**
+  String get deleteAccountConfirmAction;
+
+  /// No description provided for @bookFlight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réserver ce vol'**
+  String get bookFlight;
 }
 
 class _AppLocalizationsDelegate

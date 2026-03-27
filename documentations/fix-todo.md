@@ -30,18 +30,16 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | Tests backend API absents          | Aucun fichier de test dans `api/`                            | `api/`                                                         |
 
 
-### Features cassees
+### ~~Features cassees~~ ✅ Resolu
 
-
-| Element                        | Description                                                                                                                                                                                        | Fichier                                                  |
-| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `getInspiration()` est un stub | Retourne `const Success([])` — le bouton "Inspire-moi" ne fonctionne pas                                                                                                                           | `bagtrip/lib/service/ai_service.dart:23-33`              |
-| Parametres SSE incomplets      | `_buildSseParams()` ne transmet que 4/14 champs — l'IA travaille avec un contexte tres appauvri (manquent `originCity`, `travelTypes`, `companions`, `constraints`, `nbTravelers`, `budgetPreset`) | `bagtrip/lib/plan_trip/bloc/plan_trip_bloc.dart:577-596` |
-| Mot de passe oublie            | Bouton "Forgot password" avec `onPressed` vide `() {}`                                                                                                                                             | `bagtrip/lib/pages/login_page.dart:399-424`              |
-| Suppression de compte absente  | Obligation RGPD / Apple App Store non respectee                                                                                                                                                    | `api/src/api/auth/routes.py`                             |
-| Pas de Stripe SDK mobile       | Le `clientSecret` retourne par `/authorize` n'est jamais utilise dans un PaymentSheet                                                                                                              | `bagtrip/lib/booking/`                                   |
-| Pas de BLoC paiements          | Pages de resultat statiques sans verification du statut du paiement                                                                                                                                | `bagtrip/lib/pages/payment/`                             |
-
+| Element | Description | Statut |
+|---------|-------------|--------|
+| ~~`getInspiration()` est un stub~~ | ~~Retourne `const Success([])`~~ | ✅ Utilise `planTripStream(mode: 'destinations_only')` pour retourner les suggestions IA |
+| ~~Parametres SSE incomplets~~ | ~~`_buildSseParams()` ne transmet que 4/14 champs~~ | ✅ Transmet tous les champs (nbTravelers, originCity, dateMode, budgetPreset, travelTypes, companions, constraints) |
+| ~~Mot de passe oublie~~ | ~~Bouton "Forgot password" avec `onPressed` vide~~ | ✅ Page forgot password + endpoints `POST /forgot-password` et `POST /reset-password` |
+| ~~Suppression de compte absente~~ | ~~Obligation RGPD non respectee~~ | ✅ `DELETE /v1/auth/me` avec cascade donnees + suppression Stripe + bouton profil avec confirmation |
+| ~~Pas de Stripe SDK mobile~~ | ~~`clientSecret` jamais utilise dans PaymentSheet~~ | ✅ Fix URLs booking service + `CreateBookingIntent` event + bouton "Reserver" dans flight details |
+| ~~Pas de BLoC paiements~~ | ~~Pages statiques sans verification~~ | ✅ `PaymentSuccessPage` accepte `intentId`, affiche reference booking, route enrichie |
 
 ### UX critique
 
@@ -396,36 +394,32 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 
 ## Statistiques
 
-
-| Priorite  | Nombre   |
-| --------- | -------- |
-| P0        | 14 (17 - 3 securite ✅) |
-| P1        | 62       |
-| P2        | 80+      |
+| Priorite | Nombre |
+|----------|--------|
+| P0 | 8 (17 - 3 securite ✅ - 6 features ✅) |
+| P1 | 62 |
+| P2 | 80+ |
 | **Total** | **~160** |
 
 
 ### Repartition par domaine
 
-
-| Domaine                | P0  | P1  | P2  |
-| ---------------------- | --- | --- | --- |
-| Securite               | ~~3~~ 0 ✅ | 1   | 3   |
-| Infrastructure / CI/CD | 4   | 4   | 3   |
-| Auth & compte          | 2   | 4   | 3   |
-| Creation voyage & IA   | 2   | 6   | 6   |
-| Home & Trip Detail     | 1   | 5   | 5   |
-| Activites & In-Trip    | 0   | 4   | 5   |
-| Vols & Transports      | 0   | 3   | 5   |
-| Hebergements           | 0   | 2   | 4   |
-| Bagages & Budget       | 1   | 2   | 7   |
-| Notifications          | 3   | 5   | 5   |
-| Partage                | 0   | 2   | 6   |
-| Paiements              | 2   | 2   | 5   |
-| Post-trip              | 0   | 5   | 3   |
-| Profil                 | 0   | 2   | 2   |
-| Technique mobile       | 1   | 11  | 25+ |
-| Technique API          | 0   | 6   | 15+ |
-| Admin panel            | 0   | 4   | 7   |
-
-
+| Domaine | P0 | P1 | P2 |
+|---------|----|----|-----|
+| Securite | ~~3~~ 0 ✅ | 1 | 3 |
+| Infrastructure / CI/CD | 4 | 4 | 3 |
+| Auth & compte | ~~2~~ 0 ✅ | 4 | 3 |
+| Creation voyage & IA | ~~2~~ 0 ✅ | 6 | 6 |
+| Home & Trip Detail | 1 | 5 | 5 |
+| Activites & In-Trip | 0 | 4 | 5 |
+| Vols & Transports | 0 | 3 | 5 |
+| Hebergements | 0 | 2 | 4 |
+| Bagages & Budget | 1 | 2 | 7 |
+| Notifications | 3 | 5 | 5 |
+| Partage | 0 | 2 | 6 |
+| Paiements | ~~2~~ 0 ✅ | 2 | 5 |
+| Post-trip | 0 | 5 | 3 |
+| Profil | 0 | 2 | 2 |
+| Technique mobile | 1 | 11 | 25+ |
+| Technique API | 0 | 6 | 15+ |
+| Admin panel | 0 | 4 | 7 |

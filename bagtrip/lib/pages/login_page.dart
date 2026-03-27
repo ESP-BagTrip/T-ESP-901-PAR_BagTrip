@@ -1,4 +1,5 @@
 import 'package:bagtrip/auth/bloc/auth_bloc.dart';
+import 'package:bagtrip/pages/forgot_password_page.dart';
 import 'package:bagtrip/auth/widgets/auth_text_field.dart';
 import 'package:bagtrip/auth/widgets/social_login_button.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
@@ -399,7 +400,14 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                                 child: AdaptivePlatform.isIOS
                                     ? CupertinoButton(
                                         padding: EdgeInsets.zero,
-                                        onPressed: isLoading ? null : () {},
+                                        onPressed: isLoading
+                                            ? null
+                                            : () => Navigator.of(context).push(
+                                                MaterialPageRoute<void>(
+                                                  builder: (_) =>
+                                                      const ForgotPasswordPage(),
+                                                ),
+                                              ),
                                         child: Text(
                                           l10n.loginForgotPassword,
                                           style: const TextStyle(
@@ -411,7 +419,14 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                                         ),
                                       )
                                     : TextButton(
-                                        onPressed: isLoading ? null : () {},
+                                        onPressed: isLoading
+                                            ? null
+                                            : () => Navigator.of(context).push(
+                                                MaterialPageRoute<void>(
+                                                  builder: (_) =>
+                                                      const ForgotPasswordPage(),
+                                                ),
+                                              ),
                                         child: Text(
                                           l10n.loginForgotPassword,
                                           style: const TextStyle(

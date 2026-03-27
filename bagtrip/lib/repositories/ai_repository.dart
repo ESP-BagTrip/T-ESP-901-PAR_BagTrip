@@ -18,6 +18,7 @@ abstract class AiRepository {
 
   /// Stream trip planning events via SSE from the multi-agent pipeline.
   /// Each emitted map has: {"event": "...", "data": {...}}
+  /// [mode] can be 'full' (default) or 'destinations_only'.
   Stream<Map<String, dynamic>> planTripStream({
     String? travelTypes,
     String? budgetRange,
@@ -27,5 +28,6 @@ abstract class AiRepository {
     String? departureDate,
     String? returnDate,
     String? originCity,
+    String? mode,
   });
 }

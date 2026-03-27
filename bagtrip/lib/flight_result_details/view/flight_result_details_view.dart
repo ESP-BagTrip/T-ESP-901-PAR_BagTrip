@@ -58,8 +58,8 @@ class FlightResultDetailsView extends StatelessWidget {
                   intentId: intentId,
                 ),
               );
-            case PaymentSuccess():
-              const PaymentSuccessRoute().go(context);
+            case PaymentSuccess(:final intentId):
+              PaymentSuccessRoute(intentId: intentId).go(context);
             case PaymentCancelled():
               AppSnackBar.showInfo(
                 context,
@@ -170,6 +170,39 @@ class FlightResultDetailsView extends StatelessWidget {
                         flight.lastTicketingDate,
                       ),
                     ),
+                    const SizedBox(height: AppSpacing.space16),
+                    // Book button (enabled only when trip context is available)
+                    if (flight.tripId != null && flight.flightOfferId != null)
+                      SizedBox(
+                        width: double.infinity,
+                        child: BlocBuilder<BookingBloc, BookingState>(
+                          builder: (context, bookingState) {
+                            final isLoading =
+                                bookingState is PaymentAuthorizing;
+                            return FilledButton(
+                              onPressed: isLoading
+                                  ? null
+                                  : () => context.read<BookingBloc>().add(
+                                      CreateBookingIntent(
+                                        tripId: flight.tripId!,
+                                        flightOfferId: flight.flightOfferId!,
+                                      ),
+                                    ),
+                              child: isLoading
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : Text(
+                                      AppLocalizations.of(context)!.bookFlight,
+                                    ),
+                            );
+                          },
+                        ),
+                      ),
                     const SizedBox(height: AppSpacing.space32),
                   ],
                 ),

@@ -1271,5 +1271,14 @@
       "count": {"type": "int"}
     }
   },
-  "loadingButton": "Loading"
+  "loadingButton": "Loading",
+  "forgotPasswordTitle": "Reset password",
+  "forgotPasswordSubtitle": "Enter your email address and we will send you a link to reset your password.",
+  "forgotPasswordSendButton": "Send reset link",
+  "forgotPasswordSuccess": "If this email exists, a reset link has been sent. Check your inbox.",
+  "deleteAccountButton": "Delete my account",
+  "deleteAccountConfirmTitle": "Delete account?",
+  "deleteAccountConfirmMessage": "This will permanently delete your account and all associated data. This action cannot be undone.",
+  "deleteAccountConfirmAction": "Delete permanently",
+  "bookFlight": "Book this flight"
 }

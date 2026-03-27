@@ -20,6 +20,8 @@ sealed class PlanTripEvent with _$PlanTripEvent {
   const factory PlanTripEvent.setTravelers(int count) = PlanTripSetTravelers;
   const factory PlanTripEvent.setBudgetPreset(BudgetPreset? preset) =
       PlanTripSetBudgetPreset;
+  const factory PlanTripEvent.setOriginCity(String city) =
+      PlanTripSetOriginCity;
 
   // Step 2 — Destination
   const factory PlanTripEvent.searchDestination(String query) =

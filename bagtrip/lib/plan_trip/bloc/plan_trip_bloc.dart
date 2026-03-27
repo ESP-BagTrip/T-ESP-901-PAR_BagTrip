@@ -55,6 +55,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     // Step 1 — Travelers + Budget
     on<PlanTripSetTravelers>(_onSetTravelers);
     on<PlanTripSetBudgetPreset>(_onSetBudgetPreset);
+    on<PlanTripSetOriginCity>(_onSetOriginCity);
     // Step 2 — Destination
     on<PlanTripSearchDestination>(_onSearchDestination);
     on<PlanTripSelectManualDestination>(_onSelectManualDestination);
@@ -152,6 +153,13 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     Emitter<PlanTripState> emit,
   ) {
     emit(state.copyWith(budgetPreset: event.preset));
+  }
+
+  void _onSetOriginCity(
+    PlanTripSetOriginCity event,
+    Emitter<PlanTripState> emit,
+  ) {
+    emit(state.copyWith(originCity: event.city));
   }
 
   // ---------------------------------------------------------------------------
@@ -356,8 +364,31 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       ),
     );
 
+    // Load personalization prefs for SSE params
+    final userId = user?.id ?? '';
+    String? travelTypes;
+    String? companions;
+    String? constraints;
+
+    if (userId.isNotEmpty) {
+      travelTypes = await _storage.getTravelTypes(userId);
+      if (isClosed) return;
+      companions = await _storage.getCompanions(userId);
+      if (isClosed) return;
+      constraints = await _storage.getConstraints(userId);
+      if (isClosed) return;
+
+      if (travelTypes.isEmpty) travelTypes = null;
+      if (companions.isEmpty) companions = null;
+      if (constraints.isEmpty) constraints = null;
+    }
+
     // Build SSE params
-    final params = _buildSseParams();
+    final params = _buildSseParams(
+      travelTypes: travelTypes,
+      companions: companions,
+      constraints: constraints,
+    );
 
     // Start SSE stream
     try {
@@ -370,6 +401,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
           constraints: params['constraints'] as String?,
           departureDate: params['departureDate'] as String?,
           returnDate: params['returnDate'] as String?,
+          originCity: params['originCity'] as String?,
         ),
         onData: (sseEvent) => _handleSseEvent(sseEvent),
       );
@@ -571,7 +603,11 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
   // ---------------------------------------------------------------------------
 
   /// Collect wizard data into SSE request params.
-  Map<String, dynamic> _buildSseParams() {
+  Map<String, dynamic> _buildSseParams({
+    String? travelTypes,
+    String? companions,
+    String? constraints,
+  }) {
     String? departureDate;
     String? returnDate;
 
@@ -582,13 +618,18 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       returnDate = state.endDate!.toIso8601String().split('T')[0];
     }
 
-    final budgetRange = state.budgetPreset?.name;
-
     return {
       'durationDays': state.tripDurationDays,
       'departureDate': departureDate,
       'returnDate': returnDate,
-      'budgetRange': budgetRange,
+      'budgetRange': state.budgetPreset?.name,
+      'nbTravelers': state.nbTravelers,
+      'originCity': state.originCity,
+      'dateMode': state.dateMode.name,
+      'budgetPreset': state.budgetPreset?.name,
+      if (travelTypes != null) 'travelTypes': travelTypes,
+      if (companions != null) 'companions': companions,
+      if (constraints != null) 'constraints': constraints,
     };
   }
 

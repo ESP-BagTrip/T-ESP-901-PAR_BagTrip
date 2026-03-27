@@ -19,6 +19,7 @@ abstract class PlanTripState with _$PlanTripState {
     // Step 1 — Travelers + Budget
     @Default(1) int nbTravelers,
     BudgetPreset? budgetPreset,
+    String? originCity,
 
     // Step 2 — Destination
     @Default([]) List<LocationResult> searchResults,

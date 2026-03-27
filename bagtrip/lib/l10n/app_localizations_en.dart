@@ -2958,4 +2958,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loadingButton => 'Loading';
+
+  @override
+  String get forgotPasswordTitle => 'Reset password';
+
+  @override
+  String get forgotPasswordSubtitle =>
+      'Enter your email address and we will send you a link to reset your password.';
+
+  @override
+  String get forgotPasswordSendButton => 'Send reset link';
+
+  @override
+  String get forgotPasswordSuccess =>
+      'If this email exists, a reset link has been sent. Check your inbox.';
+
+  @override
+  String get deleteAccountButton => 'Delete my account';
+
+  @override
+  String get deleteAccountConfirmTitle => 'Delete account?';
+
+  @override
+  String get deleteAccountConfirmMessage =>
+      'This will permanently delete your account and all associated data. This action cannot be undone.';
+
+  @override
+  String get deleteAccountConfirmAction => 'Delete permanently';
+
+  @override
+  String get bookFlight => 'Book this flight';
 }

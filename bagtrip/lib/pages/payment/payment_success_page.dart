@@ -7,7 +7,8 @@ import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:flutter/material.dart';
 
 class PaymentSuccessPage extends StatelessWidget {
-  const PaymentSuccessPage({super.key});
+  final String? intentId;
+  const PaymentSuccessPage({super.key, this.intentId});
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +57,17 @@ class PaymentSuccessPage extends StatelessWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
+                  if (intentId != null) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      'Ref: ${intentId!.substring(0, intentId!.length.clamp(0, 8))}',
+                      style: const TextStyle(
+                        fontFamily: FontFamily.b612,
+                        fontSize: 12,
+                        color: ColorName.hint,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,

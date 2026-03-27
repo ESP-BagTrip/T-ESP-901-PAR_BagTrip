@@ -28,8 +28,31 @@ class AiRepositoryImpl implements AiRepository {
     String? season,
     String? constraints,
   }) async {
-    // Legacy endpoint removed — AI planning now uses planTripStream().
-    return const Success([]);
+    try {
+      final events = <Map<String, dynamic>>[];
+      await for (final event in planTripStream(
+        travelTypes: travelTypes,
+        budgetRange: budgetRange,
+        durationDays: durationDays,
+        companions: companions,
+        constraints: constraints,
+        mode: 'destinations_only',
+      )) {
+        events.add(event);
+      }
+      // Find the destinations event from the SSE stream
+      for (final evt in events) {
+        final type = evt['event'] as String?;
+        final data = evt['data'] as Map<String, dynamic>? ?? {};
+        if (type == 'destinations' || type == 'complete') {
+          final destinations = data['destinations'] as List? ?? [];
+          return Success(destinations.cast<Map<String, dynamic>>());
+        }
+      }
+      return const Success([]);
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
   }
 
   @override
@@ -91,6 +114,7 @@ class AiRepositoryImpl implements AiRepository {
     String? departureDate,
     String? returnDate,
     String? originCity,
+    String? mode,
   }) async* {
     final token = await _storageService.getToken();
     final url = '${_apiClient.baseUrl}/ai/plan-trip/stream';
@@ -104,6 +128,7 @@ class AiRepositoryImpl implements AiRepository {
       if (departureDate != null) 'departureDate': departureDate,
       if (returnDate != null) 'returnDate': returnDate,
       if (originCity != null) 'originCity': originCity,
+      if (mode != null) 'mode': mode,
     };
 
     if (kDebugMode) debugPrint('[SSE] Connecting to $url');

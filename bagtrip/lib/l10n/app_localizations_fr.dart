@@ -2985,4 +2985,34 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get loadingButton => 'Chargement';
+
+  @override
+  String get forgotPasswordTitle => 'Réinitialiser le mot de passe';
+
+  @override
+  String get forgotPasswordSubtitle =>
+      'Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.';
+
+  @override
+  String get forgotPasswordSendButton => 'Envoyer le lien';
+
+  @override
+  String get forgotPasswordSuccess =>
+      'Si cette adresse existe, un lien de réinitialisation a été envoyé. Vérifiez votre boîte de réception.';
+
+  @override
+  String get deleteAccountButton => 'Supprimer mon compte';
+
+  @override
+  String get deleteAccountConfirmTitle => 'Supprimer le compte ?';
+
+  @override
+  String get deleteAccountConfirmMessage =>
+      'Cela supprimera définitivement votre compte et toutes les données associées. Cette action est irréversible.';
+
+  @override
+  String get deleteAccountConfirmAction => 'Supprimer définitivement';
+
+  @override
+  String get bookFlight => 'Réserver ce vol';
 }

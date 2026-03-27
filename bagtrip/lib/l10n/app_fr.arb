@@ -1271,5 +1271,14 @@
       "count": {"type": "int"}
     }
   },
-  "loadingButton": "Chargement"
+  "loadingButton": "Chargement",
+  "forgotPasswordTitle": "Réinitialiser le mot de passe",
+  "forgotPasswordSubtitle": "Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.",
+  "forgotPasswordSendButton": "Envoyer le lien",
+  "forgotPasswordSuccess": "Si cette adresse existe, un lien de réinitialisation a été envoyé. Vérifiez votre boîte de réception.",
+  "deleteAccountButton": "Supprimer mon compte",
+  "deleteAccountConfirmTitle": "Supprimer le compte ?",
+  "deleteAccountConfirmMessage": "Cela supprimera définitivement votre compte et toutes les données associées. Cette action est irréversible.",
+  "deleteAccountConfirmAction": "Supprimer définitivement",
+  "bookFlight": "Réserver ce vol"
 }

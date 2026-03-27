@@ -55,3 +55,8 @@ class StripeClient:
     def retrieve_payment_intent(payment_intent_id: str) -> stripe.PaymentIntent:
         """Récupérer un PaymentIntent."""
         return stripe.PaymentIntent.retrieve(payment_intent_id)
+
+    @staticmethod
+    def delete_customer(customer_id: str) -> None:
+        """Delete a Stripe customer."""
+        stripe.Customer.delete(customer_id)

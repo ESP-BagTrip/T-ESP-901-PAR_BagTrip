@@ -55,7 +55,7 @@ extension PlanTripEventPatterns on PlanTripEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( PlanTripNextStep value)?  nextStep,TResult Function( PlanTripPreviousStep value)?  previousStep,TResult Function( PlanTripGoToStep value)?  goToStep,TResult Function( PlanTripSetDateMode value)?  setDateMode,TResult Function( PlanTripSetExactDates value)?  setExactDates,TResult Function( PlanTripSetMonthPreference value)?  setMonthPreference,TResult Function( PlanTripSetFlexibleDuration value)?  setFlexibleDuration,TResult Function( PlanTripSetTravelers value)?  setTravelers,TResult Function( PlanTripSetBudgetPreset value)?  setBudgetPreset,TResult Function( PlanTripSearchDestination value)?  searchDestination,TResult Function( PlanTripSelectManualDestination value)?  selectManualDestination,TResult Function( PlanTripRequestAiSuggestions value)?  requestAiSuggestions,TResult Function( PlanTripSelectAiDestination value)?  selectAiDestination,TResult Function( PlanTripSwipeProposal value)?  swipeProposal,TResult Function( PlanTripStartGeneration value)?  startGeneration,TResult Function( PlanTripRetryGeneration value)?  retryGeneration,TResult Function( PlanTripCreateTrip value)?  createTrip,TResult Function( PlanTripBackToProposals value)?  backToProposals,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( PlanTripNextStep value)?  nextStep,TResult Function( PlanTripPreviousStep value)?  previousStep,TResult Function( PlanTripGoToStep value)?  goToStep,TResult Function( PlanTripSetDateMode value)?  setDateMode,TResult Function( PlanTripSetExactDates value)?  setExactDates,TResult Function( PlanTripSetMonthPreference value)?  setMonthPreference,TResult Function( PlanTripSetFlexibleDuration value)?  setFlexibleDuration,TResult Function( PlanTripSetTravelers value)?  setTravelers,TResult Function( PlanTripSetBudgetPreset value)?  setBudgetPreset,TResult Function( PlanTripSetOriginCity value)?  setOriginCity,TResult Function( PlanTripSearchDestination value)?  searchDestination,TResult Function( PlanTripSelectManualDestination value)?  selectManualDestination,TResult Function( PlanTripRequestAiSuggestions value)?  requestAiSuggestions,TResult Function( PlanTripSelectAiDestination value)?  selectAiDestination,TResult Function( PlanTripSwipeProposal value)?  swipeProposal,TResult Function( PlanTripStartGeneration value)?  startGeneration,TResult Function( PlanTripRetryGeneration value)?  retryGeneration,TResult Function( PlanTripCreateTrip value)?  createTrip,TResult Function( PlanTripBackToProposals value)?  backToProposals,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case PlanTripNextStep() when nextStep != null:
@@ -67,7 +67,8 @@ return setExactDates(_that);case PlanTripSetMonthPreference() when setMonthPrefe
 return setMonthPreference(_that);case PlanTripSetFlexibleDuration() when setFlexibleDuration != null:
 return setFlexibleDuration(_that);case PlanTripSetTravelers() when setTravelers != null:
 return setTravelers(_that);case PlanTripSetBudgetPreset() when setBudgetPreset != null:
-return setBudgetPreset(_that);case PlanTripSearchDestination() when searchDestination != null:
+return setBudgetPreset(_that);case PlanTripSetOriginCity() when setOriginCity != null:
+return setOriginCity(_that);case PlanTripSearchDestination() when searchDestination != null:
 return searchDestination(_that);case PlanTripSelectManualDestination() when selectManualDestination != null:
 return selectManualDestination(_that);case PlanTripRequestAiSuggestions() when requestAiSuggestions != null:
 return requestAiSuggestions(_that);case PlanTripSelectAiDestination() when selectAiDestination != null:
@@ -94,7 +95,7 @@ return backToProposals(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( PlanTripNextStep value)  nextStep,required TResult Function( PlanTripPreviousStep value)  previousStep,required TResult Function( PlanTripGoToStep value)  goToStep,required TResult Function( PlanTripSetDateMode value)  setDateMode,required TResult Function( PlanTripSetExactDates value)  setExactDates,required TResult Function( PlanTripSetMonthPreference value)  setMonthPreference,required TResult Function( PlanTripSetFlexibleDuration value)  setFlexibleDuration,required TResult Function( PlanTripSetTravelers value)  setTravelers,required TResult Function( PlanTripSetBudgetPreset value)  setBudgetPreset,required TResult Function( PlanTripSearchDestination value)  searchDestination,required TResult Function( PlanTripSelectManualDestination value)  selectManualDestination,required TResult Function( PlanTripRequestAiSuggestions value)  requestAiSuggestions,required TResult Function( PlanTripSelectAiDestination value)  selectAiDestination,required TResult Function( PlanTripSwipeProposal value)  swipeProposal,required TResult Function( PlanTripStartGeneration value)  startGeneration,required TResult Function( PlanTripRetryGeneration value)  retryGeneration,required TResult Function( PlanTripCreateTrip value)  createTrip,required TResult Function( PlanTripBackToProposals value)  backToProposals,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( PlanTripNextStep value)  nextStep,required TResult Function( PlanTripPreviousStep value)  previousStep,required TResult Function( PlanTripGoToStep value)  goToStep,required TResult Function( PlanTripSetDateMode value)  setDateMode,required TResult Function( PlanTripSetExactDates value)  setExactDates,required TResult Function( PlanTripSetMonthPreference value)  setMonthPreference,required TResult Function( PlanTripSetFlexibleDuration value)  setFlexibleDuration,required TResult Function( PlanTripSetTravelers value)  setTravelers,required TResult Function( PlanTripSetBudgetPreset value)  setBudgetPreset,required TResult Function( PlanTripSetOriginCity value)  setOriginCity,required TResult Function( PlanTripSearchDestination value)  searchDestination,required TResult Function( PlanTripSelectManualDestination value)  selectManualDestination,required TResult Function( PlanTripRequestAiSuggestions value)  requestAiSuggestions,required TResult Function( PlanTripSelectAiDestination value)  selectAiDestination,required TResult Function( PlanTripSwipeProposal value)  swipeProposal,required TResult Function( PlanTripStartGeneration value)  startGeneration,required TResult Function( PlanTripRetryGeneration value)  retryGeneration,required TResult Function( PlanTripCreateTrip value)  createTrip,required TResult Function( PlanTripBackToProposals value)  backToProposals,}){
 final _that = this;
 switch (_that) {
 case PlanTripNextStep():
@@ -106,7 +107,8 @@ return setExactDates(_that);case PlanTripSetMonthPreference():
 return setMonthPreference(_that);case PlanTripSetFlexibleDuration():
 return setFlexibleDuration(_that);case PlanTripSetTravelers():
 return setTravelers(_that);case PlanTripSetBudgetPreset():
-return setBudgetPreset(_that);case PlanTripSearchDestination():
+return setBudgetPreset(_that);case PlanTripSetOriginCity():
+return setOriginCity(_that);case PlanTripSearchDestination():
 return searchDestination(_that);case PlanTripSelectManualDestination():
 return selectManualDestination(_that);case PlanTripRequestAiSuggestions():
 return requestAiSuggestions(_that);case PlanTripSelectAiDestination():
@@ -129,7 +131,7 @@ return backToProposals(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( PlanTripNextStep value)?  nextStep,TResult? Function( PlanTripPreviousStep value)?  previousStep,TResult? Function( PlanTripGoToStep value)?  goToStep,TResult? Function( PlanTripSetDateMode value)?  setDateMode,TResult? Function( PlanTripSetExactDates value)?  setExactDates,TResult? Function( PlanTripSetMonthPreference value)?  setMonthPreference,TResult? Function( PlanTripSetFlexibleDuration value)?  setFlexibleDuration,TResult? Function( PlanTripSetTravelers value)?  setTravelers,TResult? Function( PlanTripSetBudgetPreset value)?  setBudgetPreset,TResult? Function( PlanTripSearchDestination value)?  searchDestination,TResult? Function( PlanTripSelectManualDestination value)?  selectManualDestination,TResult? Function( PlanTripRequestAiSuggestions value)?  requestAiSuggestions,TResult? Function( PlanTripSelectAiDestination value)?  selectAiDestination,TResult? Function( PlanTripSwipeProposal value)?  swipeProposal,TResult? Function( PlanTripStartGeneration value)?  startGeneration,TResult? Function( PlanTripRetryGeneration value)?  retryGeneration,TResult? Function( PlanTripCreateTrip value)?  createTrip,TResult? Function( PlanTripBackToProposals value)?  backToProposals,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( PlanTripNextStep value)?  nextStep,TResult? Function( PlanTripPreviousStep value)?  previousStep,TResult? Function( PlanTripGoToStep value)?  goToStep,TResult? Function( PlanTripSetDateMode value)?  setDateMode,TResult? Function( PlanTripSetExactDates value)?  setExactDates,TResult? Function( PlanTripSetMonthPreference value)?  setMonthPreference,TResult? Function( PlanTripSetFlexibleDuration value)?  setFlexibleDuration,TResult? Function( PlanTripSetTravelers value)?  setTravelers,TResult? Function( PlanTripSetBudgetPreset value)?  setBudgetPreset,TResult? Function( PlanTripSetOriginCity value)?  setOriginCity,TResult? Function( PlanTripSearchDestination value)?  searchDestination,TResult? Function( PlanTripSelectManualDestination value)?  selectManualDestination,TResult? Function( PlanTripRequestAiSuggestions value)?  requestAiSuggestions,TResult? Function( PlanTripSelectAiDestination value)?  selectAiDestination,TResult? Function( PlanTripSwipeProposal value)?  swipeProposal,TResult? Function( PlanTripStartGeneration value)?  startGeneration,TResult? Function( PlanTripRetryGeneration value)?  retryGeneration,TResult? Function( PlanTripCreateTrip value)?  createTrip,TResult? Function( PlanTripBackToProposals value)?  backToProposals,}){
 final _that = this;
 switch (_that) {
 case PlanTripNextStep() when nextStep != null:
@@ -141,7 +143,8 @@ return setExactDates(_that);case PlanTripSetMonthPreference() when setMonthPrefe
 return setMonthPreference(_that);case PlanTripSetFlexibleDuration() when setFlexibleDuration != null:
 return setFlexibleDuration(_that);case PlanTripSetTravelers() when setTravelers != null:
 return setTravelers(_that);case PlanTripSetBudgetPreset() when setBudgetPreset != null:
-return setBudgetPreset(_that);case PlanTripSearchDestination() when searchDestination != null:
+return setBudgetPreset(_that);case PlanTripSetOriginCity() when setOriginCity != null:
+return setOriginCity(_that);case PlanTripSearchDestination() when searchDestination != null:
 return searchDestination(_that);case PlanTripSelectManualDestination() when selectManualDestination != null:
 return selectManualDestination(_that);case PlanTripRequestAiSuggestions() when requestAiSuggestions != null:
 return requestAiSuggestions(_that);case PlanTripSelectAiDestination() when selectAiDestination != null:
@@ -167,7 +170,7 @@ return backToProposals(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  nextStep,TResult Function()?  previousStep,TResult Function( int step)?  goToStep,TResult Function( DateMode mode)?  setDateMode,TResult Function( DateTime start,  DateTime end)?  setExactDates,TResult Function( int month,  int year)?  setMonthPreference,TResult Function( DurationPreset preset)?  setFlexibleDuration,TResult Function( int count)?  setTravelers,TResult Function( BudgetPreset? preset)?  setBudgetPreset,TResult Function( String query)?  searchDestination,TResult Function( LocationResult location)?  selectManualDestination,TResult Function()?  requestAiSuggestions,TResult Function( AiDestination destination)?  selectAiDestination,TResult Function( int index)?  swipeProposal,TResult Function()?  startGeneration,TResult Function()?  retryGeneration,TResult Function()?  createTrip,TResult Function()?  backToProposals,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  nextStep,TResult Function()?  previousStep,TResult Function( int step)?  goToStep,TResult Function( DateMode mode)?  setDateMode,TResult Function( DateTime start,  DateTime end)?  setExactDates,TResult Function( int month,  int year)?  setMonthPreference,TResult Function( DurationPreset preset)?  setFlexibleDuration,TResult Function( int count)?  setTravelers,TResult Function( BudgetPreset? preset)?  setBudgetPreset,TResult Function( String city)?  setOriginCity,TResult Function( String query)?  searchDestination,TResult Function( LocationResult location)?  selectManualDestination,TResult Function()?  requestAiSuggestions,TResult Function( AiDestination destination)?  selectAiDestination,TResult Function( int index)?  swipeProposal,TResult Function()?  startGeneration,TResult Function()?  retryGeneration,TResult Function()?  createTrip,TResult Function()?  backToProposals,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case PlanTripNextStep() when nextStep != null:
 return nextStep();case PlanTripPreviousStep() when previousStep != null:
@@ -178,7 +181,8 @@ return setExactDates(_that.start,_that.end);case PlanTripSetMonthPreference() wh
 return setMonthPreference(_that.month,_that.year);case PlanTripSetFlexibleDuration() when setFlexibleDuration != null:
 return setFlexibleDuration(_that.preset);case PlanTripSetTravelers() when setTravelers != null:
 return setTravelers(_that.count);case PlanTripSetBudgetPreset() when setBudgetPreset != null:
-return setBudgetPreset(_that.preset);case PlanTripSearchDestination() when searchDestination != null:
+return setBudgetPreset(_that.preset);case PlanTripSetOriginCity() when setOriginCity != null:
+return setOriginCity(_that.city);case PlanTripSearchDestination() when searchDestination != null:
 return searchDestination(_that.query);case PlanTripSelectManualDestination() when selectManualDestination != null:
 return selectManualDestination(_that.location);case PlanTripRequestAiSuggestions() when requestAiSuggestions != null:
 return requestAiSuggestions();case PlanTripSelectAiDestination() when selectAiDestination != null:
@@ -205,7 +209,7 @@ return backToProposals();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  nextStep,required TResult Function()  previousStep,required TResult Function( int step)  goToStep,required TResult Function( DateMode mode)  setDateMode,required TResult Function( DateTime start,  DateTime end)  setExactDates,required TResult Function( int month,  int year)  setMonthPreference,required TResult Function( DurationPreset preset)  setFlexibleDuration,required TResult Function( int count)  setTravelers,required TResult Function( BudgetPreset? preset)  setBudgetPreset,required TResult Function( String query)  searchDestination,required TResult Function( LocationResult location)  selectManualDestination,required TResult Function()  requestAiSuggestions,required TResult Function( AiDestination destination)  selectAiDestination,required TResult Function( int index)  swipeProposal,required TResult Function()  startGeneration,required TResult Function()  retryGeneration,required TResult Function()  createTrip,required TResult Function()  backToProposals,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  nextStep,required TResult Function()  previousStep,required TResult Function( int step)  goToStep,required TResult Function( DateMode mode)  setDateMode,required TResult Function( DateTime start,  DateTime end)  setExactDates,required TResult Function( int month,  int year)  setMonthPreference,required TResult Function( DurationPreset preset)  setFlexibleDuration,required TResult Function( int count)  setTravelers,required TResult Function( BudgetPreset? preset)  setBudgetPreset,required TResult Function( String city)  setOriginCity,required TResult Function( String query)  searchDestination,required TResult Function( LocationResult location)  selectManualDestination,required TResult Function()  requestAiSuggestions,required TResult Function( AiDestination destination)  selectAiDestination,required TResult Function( int index)  swipeProposal,required TResult Function()  startGeneration,required TResult Function()  retryGeneration,required TResult Function()  createTrip,required TResult Function()  backToProposals,}) {final _that = this;
 switch (_that) {
 case PlanTripNextStep():
 return nextStep();case PlanTripPreviousStep():
@@ -216,7 +220,8 @@ return setExactDates(_that.start,_that.end);case PlanTripSetMonthPreference():
 return setMonthPreference(_that.month,_that.year);case PlanTripSetFlexibleDuration():
 return setFlexibleDuration(_that.preset);case PlanTripSetTravelers():
 return setTravelers(_that.count);case PlanTripSetBudgetPreset():
-return setBudgetPreset(_that.preset);case PlanTripSearchDestination():
+return setBudgetPreset(_that.preset);case PlanTripSetOriginCity():
+return setOriginCity(_that.city);case PlanTripSearchDestination():
 return searchDestination(_that.query);case PlanTripSelectManualDestination():
 return selectManualDestination(_that.location);case PlanTripRequestAiSuggestions():
 return requestAiSuggestions();case PlanTripSelectAiDestination():
@@ -239,7 +244,7 @@ return backToProposals();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  nextStep,TResult? Function()?  previousStep,TResult? Function( int step)?  goToStep,TResult? Function( DateMode mode)?  setDateMode,TResult? Function( DateTime start,  DateTime end)?  setExactDates,TResult? Function( int month,  int year)?  setMonthPreference,TResult? Function( DurationPreset preset)?  setFlexibleDuration,TResult? Function( int count)?  setTravelers,TResult? Function( BudgetPreset? preset)?  setBudgetPreset,TResult? Function( String query)?  searchDestination,TResult? Function( LocationResult location)?  selectManualDestination,TResult? Function()?  requestAiSuggestions,TResult? Function( AiDestination destination)?  selectAiDestination,TResult? Function( int index)?  swipeProposal,TResult? Function()?  startGeneration,TResult? Function()?  retryGeneration,TResult? Function()?  createTrip,TResult? Function()?  backToProposals,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  nextStep,TResult? Function()?  previousStep,TResult? Function( int step)?  goToStep,TResult? Function( DateMode mode)?  setDateMode,TResult? Function( DateTime start,  DateTime end)?  setExactDates,TResult? Function( int month,  int year)?  setMonthPreference,TResult? Function( DurationPreset preset)?  setFlexibleDuration,TResult? Function( int count)?  setTravelers,TResult? Function( BudgetPreset? preset)?  setBudgetPreset,TResult? Function( String city)?  setOriginCity,TResult? Function( String query)?  searchDestination,TResult? Function( LocationResult location)?  selectManualDestination,TResult? Function()?  requestAiSuggestions,TResult? Function( AiDestination destination)?  selectAiDestination,TResult? Function( int index)?  swipeProposal,TResult? Function()?  startGeneration,TResult? Function()?  retryGeneration,TResult? Function()?  createTrip,TResult? Function()?  backToProposals,}) {final _that = this;
 switch (_that) {
 case PlanTripNextStep() when nextStep != null:
 return nextStep();case PlanTripPreviousStep() when previousStep != null:
@@ -250,7 +255,8 @@ return setExactDates(_that.start,_that.end);case PlanTripSetMonthPreference() wh
 return setMonthPreference(_that.month,_that.year);case PlanTripSetFlexibleDuration() when setFlexibleDuration != null:
 return setFlexibleDuration(_that.preset);case PlanTripSetTravelers() when setTravelers != null:
 return setTravelers(_that.count);case PlanTripSetBudgetPreset() when setBudgetPreset != null:
-return setBudgetPreset(_that.preset);case PlanTripSearchDestination() when searchDestination != null:
+return setBudgetPreset(_that.preset);case PlanTripSetOriginCity() when setOriginCity != null:
+return setOriginCity(_that.city);case PlanTripSearchDestination() when searchDestination != null:
 return searchDestination(_that.query);case PlanTripSelectManualDestination() when selectManualDestination != null:
 return selectManualDestination(_that.location);case PlanTripRequestAiSuggestions() when requestAiSuggestions != null:
 return requestAiSuggestions();case PlanTripSelectAiDestination() when selectAiDestination != null:
@@ -800,6 +806,72 @@ as BudgetPreset?,
 /// @nodoc
 
 
+class PlanTripSetOriginCity implements PlanTripEvent {
+  const PlanTripSetOriginCity(this.city);
+  
+
+ final  String city;
+
+/// Create a copy of PlanTripEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PlanTripSetOriginCityCopyWith<PlanTripSetOriginCity> get copyWith => _$PlanTripSetOriginCityCopyWithImpl<PlanTripSetOriginCity>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlanTripSetOriginCity&&(identical(other.city, city) || other.city == city));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,city);
+
+@override
+String toString() {
+  return 'PlanTripEvent.setOriginCity(city: $city)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $PlanTripSetOriginCityCopyWith<$Res> implements $PlanTripEventCopyWith<$Res> {
+  factory $PlanTripSetOriginCityCopyWith(PlanTripSetOriginCity value, $Res Function(PlanTripSetOriginCity) _then) = _$PlanTripSetOriginCityCopyWithImpl;
+@useResult
+$Res call({
+ String city
+});
+
+
+
+
+}
+/// @nodoc
+class _$PlanTripSetOriginCityCopyWithImpl<$Res>
+    implements $PlanTripSetOriginCityCopyWith<$Res> {
+  _$PlanTripSetOriginCityCopyWithImpl(this._self, this._then);
+
+  final PlanTripSetOriginCity _self;
+  final $Res Function(PlanTripSetOriginCity) _then;
+
+/// Create a copy of PlanTripEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? city = null,}) {
+  return _then(PlanTripSetOriginCity(
+null == city ? _self.city : city // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
 class PlanTripSearchDestination implements PlanTripEvent {
   const PlanTripSearchDestination(this.query);
   
@@ -1245,7 +1317,7 @@ mixin _$PlanTripState {
 // Navigation
  int get currentStep;// Step 0 — Dates
  DateMode get dateMode; DateTime? get startDate; DateTime? get endDate; int? get preferredMonth; int? get preferredYear; DurationPreset? get flexibleDuration;// Step 1 — Travelers + Budget
- int get nbTravelers; BudgetPreset? get budgetPreset;// Step 2 — Destination
+ int get nbTravelers; BudgetPreset? get budgetPreset; String? get originCity;// Step 2 — Destination
  List<LocationResult> get searchResults; bool get isSearching; LocationResult? get selectedManualDestination; List<AiDestination> get aiSuggestions; bool get isLoadingAiSuggestions; AiDestination? get selectedAiDestination;// Step 4 — Generation
  Map<String, StepStatus> get generationSteps; double get generationProgress; String? get generationMessage; TripPlan? get generatedPlan; String? get generationError;// Step 5 — Review / Creation
  bool get isCreating; String? get createdTripId;// Meta
@@ -1260,16 +1332,16 @@ $PlanTripStateCopyWith<PlanTripState> get copyWith => _$PlanTripStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlanTripState&&(identical(other.currentStep, currentStep) || other.currentStep == currentStep)&&(identical(other.dateMode, dateMode) || other.dateMode == dateMode)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.preferredMonth, preferredMonth) || other.preferredMonth == preferredMonth)&&(identical(other.preferredYear, preferredYear) || other.preferredYear == preferredYear)&&(identical(other.flexibleDuration, flexibleDuration) || other.flexibleDuration == flexibleDuration)&&(identical(other.nbTravelers, nbTravelers) || other.nbTravelers == nbTravelers)&&(identical(other.budgetPreset, budgetPreset) || other.budgetPreset == budgetPreset)&&const DeepCollectionEquality().equals(other.searchResults, searchResults)&&(identical(other.isSearching, isSearching) || other.isSearching == isSearching)&&(identical(other.selectedManualDestination, selectedManualDestination) || other.selectedManualDestination == selectedManualDestination)&&const DeepCollectionEquality().equals(other.aiSuggestions, aiSuggestions)&&(identical(other.isLoadingAiSuggestions, isLoadingAiSuggestions) || other.isLoadingAiSuggestions == isLoadingAiSuggestions)&&(identical(other.selectedAiDestination, selectedAiDestination) || other.selectedAiDestination == selectedAiDestination)&&const DeepCollectionEquality().equals(other.generationSteps, generationSteps)&&(identical(other.generationProgress, generationProgress) || other.generationProgress == generationProgress)&&(identical(other.generationMessage, generationMessage) || other.generationMessage == generationMessage)&&(identical(other.generatedPlan, generatedPlan) || other.generatedPlan == generatedPlan)&&(identical(other.generationError, generationError) || other.generationError == generationError)&&(identical(other.isCreating, isCreating) || other.isCreating == isCreating)&&(identical(other.createdTripId, createdTripId) || other.createdTripId == createdTripId)&&(identical(other.isManualFlow, isManualFlow) || other.isManualFlow == isManualFlow)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlanTripState&&(identical(other.currentStep, currentStep) || other.currentStep == currentStep)&&(identical(other.dateMode, dateMode) || other.dateMode == dateMode)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.preferredMonth, preferredMonth) || other.preferredMonth == preferredMonth)&&(identical(other.preferredYear, preferredYear) || other.preferredYear == preferredYear)&&(identical(other.flexibleDuration, flexibleDuration) || other.flexibleDuration == flexibleDuration)&&(identical(other.nbTravelers, nbTravelers) || other.nbTravelers == nbTravelers)&&(identical(other.budgetPreset, budgetPreset) || other.budgetPreset == budgetPreset)&&(identical(other.originCity, originCity) || other.originCity == originCity)&&const DeepCollectionEquality().equals(other.searchResults, searchResults)&&(identical(other.isSearching, isSearching) || other.isSearching == isSearching)&&(identical(other.selectedManualDestination, selectedManualDestination) || other.selectedManualDestination == selectedManualDestination)&&const DeepCollectionEquality().equals(other.aiSuggestions, aiSuggestions)&&(identical(other.isLoadingAiSuggestions, isLoadingAiSuggestions) || other.isLoadingAiSuggestions == isLoadingAiSuggestions)&&(identical(other.selectedAiDestination, selectedAiDestination) || other.selectedAiDestination == selectedAiDestination)&&const DeepCollectionEquality().equals(other.generationSteps, generationSteps)&&(identical(other.generationProgress, generationProgress) || other.generationProgress == generationProgress)&&(identical(other.generationMessage, generationMessage) || other.generationMessage == generationMessage)&&(identical(other.generatedPlan, generatedPlan) || other.generatedPlan == generatedPlan)&&(identical(other.generationError, generationError) || other.generationError == generationError)&&(identical(other.isCreating, isCreating) || other.isCreating == isCreating)&&(identical(other.createdTripId, createdTripId) || other.createdTripId == createdTripId)&&(identical(other.isManualFlow, isManualFlow) || other.isManualFlow == isManualFlow)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,currentStep,dateMode,startDate,endDate,preferredMonth,preferredYear,flexibleDuration,nbTravelers,budgetPreset,const DeepCollectionEquality().hash(searchResults),isSearching,selectedManualDestination,const DeepCollectionEquality().hash(aiSuggestions),isLoadingAiSuggestions,selectedAiDestination,const DeepCollectionEquality().hash(generationSteps),generationProgress,generationMessage,generatedPlan,generationError,isCreating,createdTripId,isManualFlow,error]);
+int get hashCode => Object.hashAll([runtimeType,currentStep,dateMode,startDate,endDate,preferredMonth,preferredYear,flexibleDuration,nbTravelers,budgetPreset,originCity,const DeepCollectionEquality().hash(searchResults),isSearching,selectedManualDestination,const DeepCollectionEquality().hash(aiSuggestions),isLoadingAiSuggestions,selectedAiDestination,const DeepCollectionEquality().hash(generationSteps),generationProgress,generationMessage,generatedPlan,generationError,isCreating,createdTripId,isManualFlow,error]);
 
 @override
 String toString() {
-  return 'PlanTripState(currentStep: $currentStep, dateMode: $dateMode, startDate: $startDate, endDate: $endDate, preferredMonth: $preferredMonth, preferredYear: $preferredYear, flexibleDuration: $flexibleDuration, nbTravelers: $nbTravelers, budgetPreset: $budgetPreset, searchResults: $searchResults, isSearching: $isSearching, selectedManualDestination: $selectedManualDestination, aiSuggestions: $aiSuggestions, isLoadingAiSuggestions: $isLoadingAiSuggestions, selectedAiDestination: $selectedAiDestination, generationSteps: $generationSteps, generationProgress: $generationProgress, generationMessage: $generationMessage, generatedPlan: $generatedPlan, generationError: $generationError, isCreating: $isCreating, createdTripId: $createdTripId, isManualFlow: $isManualFlow, error: $error)';
+  return 'PlanTripState(currentStep: $currentStep, dateMode: $dateMode, startDate: $startDate, endDate: $endDate, preferredMonth: $preferredMonth, preferredYear: $preferredYear, flexibleDuration: $flexibleDuration, nbTravelers: $nbTravelers, budgetPreset: $budgetPreset, originCity: $originCity, searchResults: $searchResults, isSearching: $isSearching, selectedManualDestination: $selectedManualDestination, aiSuggestions: $aiSuggestions, isLoadingAiSuggestions: $isLoadingAiSuggestions, selectedAiDestination: $selectedAiDestination, generationSteps: $generationSteps, generationProgress: $generationProgress, generationMessage: $generationMessage, generatedPlan: $generatedPlan, generationError: $generationError, isCreating: $isCreating, createdTripId: $createdTripId, isManualFlow: $isManualFlow, error: $error)';
 }
 
 
@@ -1280,7 +1352,7 @@ abstract mixin class $PlanTripStateCopyWith<$Res>  {
   factory $PlanTripStateCopyWith(PlanTripState value, $Res Function(PlanTripState) _then) = _$PlanTripStateCopyWithImpl;
 @useResult
 $Res call({
- int currentStep, DateMode dateMode, DateTime? startDate, DateTime? endDate, int? preferredMonth, int? preferredYear, DurationPreset? flexibleDuration, int nbTravelers, BudgetPreset? budgetPreset, List<LocationResult> searchResults, bool isSearching, LocationResult? selectedManualDestination, List<AiDestination> aiSuggestions, bool isLoadingAiSuggestions, AiDestination? selectedAiDestination, Map<String, StepStatus> generationSteps, double generationProgress, String? generationMessage, TripPlan? generatedPlan, String? generationError, bool isCreating, String? createdTripId, bool isManualFlow, AppError? error
+ int currentStep, DateMode dateMode, DateTime? startDate, DateTime? endDate, int? preferredMonth, int? preferredYear, DurationPreset? flexibleDuration, int nbTravelers, BudgetPreset? budgetPreset, String? originCity, List<LocationResult> searchResults, bool isSearching, LocationResult? selectedManualDestination, List<AiDestination> aiSuggestions, bool isLoadingAiSuggestions, AiDestination? selectedAiDestination, Map<String, StepStatus> generationSteps, double generationProgress, String? generationMessage, TripPlan? generatedPlan, String? generationError, bool isCreating, String? createdTripId, bool isManualFlow, AppError? error
 });
 
 
@@ -1297,7 +1369,7 @@ class _$PlanTripStateCopyWithImpl<$Res>
 
 /// Create a copy of PlanTripState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? currentStep = null,Object? dateMode = null,Object? startDate = freezed,Object? endDate = freezed,Object? preferredMonth = freezed,Object? preferredYear = freezed,Object? flexibleDuration = freezed,Object? nbTravelers = null,Object? budgetPreset = freezed,Object? searchResults = null,Object? isSearching = null,Object? selectedManualDestination = freezed,Object? aiSuggestions = null,Object? isLoadingAiSuggestions = null,Object? selectedAiDestination = freezed,Object? generationSteps = null,Object? generationProgress = null,Object? generationMessage = freezed,Object? generatedPlan = freezed,Object? generationError = freezed,Object? isCreating = null,Object? createdTripId = freezed,Object? isManualFlow = null,Object? error = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? currentStep = null,Object? dateMode = null,Object? startDate = freezed,Object? endDate = freezed,Object? preferredMonth = freezed,Object? preferredYear = freezed,Object? flexibleDuration = freezed,Object? nbTravelers = null,Object? budgetPreset = freezed,Object? originCity = freezed,Object? searchResults = null,Object? isSearching = null,Object? selectedManualDestination = freezed,Object? aiSuggestions = null,Object? isLoadingAiSuggestions = null,Object? selectedAiDestination = freezed,Object? generationSteps = null,Object? generationProgress = null,Object? generationMessage = freezed,Object? generatedPlan = freezed,Object? generationError = freezed,Object? isCreating = null,Object? createdTripId = freezed,Object? isManualFlow = null,Object? error = freezed,}) {
   return _then(_self.copyWith(
 currentStep: null == currentStep ? _self.currentStep : currentStep // ignore: cast_nullable_to_non_nullable
 as int,dateMode: null == dateMode ? _self.dateMode : dateMode // ignore: cast_nullable_to_non_nullable
@@ -1308,7 +1380,8 @@ as int?,preferredYear: freezed == preferredYear ? _self.preferredYear : preferre
 as int?,flexibleDuration: freezed == flexibleDuration ? _self.flexibleDuration : flexibleDuration // ignore: cast_nullable_to_non_nullable
 as DurationPreset?,nbTravelers: null == nbTravelers ? _self.nbTravelers : nbTravelers // ignore: cast_nullable_to_non_nullable
 as int,budgetPreset: freezed == budgetPreset ? _self.budgetPreset : budgetPreset // ignore: cast_nullable_to_non_nullable
-as BudgetPreset?,searchResults: null == searchResults ? _self.searchResults : searchResults // ignore: cast_nullable_to_non_nullable
+as BudgetPreset?,originCity: freezed == originCity ? _self.originCity : originCity // ignore: cast_nullable_to_non_nullable
+as String?,searchResults: null == searchResults ? _self.searchResults : searchResults // ignore: cast_nullable_to_non_nullable
 as List<LocationResult>,isSearching: null == isSearching ? _self.isSearching : isSearching // ignore: cast_nullable_to_non_nullable
 as bool,selectedManualDestination: freezed == selectedManualDestination ? _self.selectedManualDestination : selectedManualDestination // ignore: cast_nullable_to_non_nullable
 as LocationResult?,aiSuggestions: null == aiSuggestions ? _self.aiSuggestions : aiSuggestions // ignore: cast_nullable_to_non_nullable
@@ -1444,10 +1517,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int currentStep,  DateMode dateMode,  DateTime? startDate,  DateTime? endDate,  int? preferredMonth,  int? preferredYear,  DurationPreset? flexibleDuration,  int nbTravelers,  BudgetPreset? budgetPreset,  List<LocationResult> searchResults,  bool isSearching,  LocationResult? selectedManualDestination,  List<AiDestination> aiSuggestions,  bool isLoadingAiSuggestions,  AiDestination? selectedAiDestination,  Map<String, StepStatus> generationSteps,  double generationProgress,  String? generationMessage,  TripPlan? generatedPlan,  String? generationError,  bool isCreating,  String? createdTripId,  bool isManualFlow,  AppError? error)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int currentStep,  DateMode dateMode,  DateTime? startDate,  DateTime? endDate,  int? preferredMonth,  int? preferredYear,  DurationPreset? flexibleDuration,  int nbTravelers,  BudgetPreset? budgetPreset,  String? originCity,  List<LocationResult> searchResults,  bool isSearching,  LocationResult? selectedManualDestination,  List<AiDestination> aiSuggestions,  bool isLoadingAiSuggestions,  AiDestination? selectedAiDestination,  Map<String, StepStatus> generationSteps,  double generationProgress,  String? generationMessage,  TripPlan? generatedPlan,  String? generationError,  bool isCreating,  String? createdTripId,  bool isManualFlow,  AppError? error)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PlanTripState() when $default != null:
-return $default(_that.currentStep,_that.dateMode,_that.startDate,_that.endDate,_that.preferredMonth,_that.preferredYear,_that.flexibleDuration,_that.nbTravelers,_that.budgetPreset,_that.searchResults,_that.isSearching,_that.selectedManualDestination,_that.aiSuggestions,_that.isLoadingAiSuggestions,_that.selectedAiDestination,_that.generationSteps,_that.generationProgress,_that.generationMessage,_that.generatedPlan,_that.generationError,_that.isCreating,_that.createdTripId,_that.isManualFlow,_that.error);case _:
+return $default(_that.currentStep,_that.dateMode,_that.startDate,_that.endDate,_that.preferredMonth,_that.preferredYear,_that.flexibleDuration,_that.nbTravelers,_that.budgetPreset,_that.originCity,_that.searchResults,_that.isSearching,_that.selectedManualDestination,_that.aiSuggestions,_that.isLoadingAiSuggestions,_that.selectedAiDestination,_that.generationSteps,_that.generationProgress,_that.generationMessage,_that.generatedPlan,_that.generationError,_that.isCreating,_that.createdTripId,_that.isManualFlow,_that.error);case _:
   return orElse();
 
 }
@@ -1465,10 +1538,10 @@ return $default(_that.currentStep,_that.dateMode,_that.startDate,_that.endDate,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int currentStep,  DateMode dateMode,  DateTime? startDate,  DateTime? endDate,  int? preferredMonth,  int? preferredYear,  DurationPreset? flexibleDuration,  int nbTravelers,  BudgetPreset? budgetPreset,  List<LocationResult> searchResults,  bool isSearching,  LocationResult? selectedManualDestination,  List<AiDestination> aiSuggestions,  bool isLoadingAiSuggestions,  AiDestination? selectedAiDestination,  Map<String, StepStatus> generationSteps,  double generationProgress,  String? generationMessage,  TripPlan? generatedPlan,  String? generationError,  bool isCreating,  String? createdTripId,  bool isManualFlow,  AppError? error)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int currentStep,  DateMode dateMode,  DateTime? startDate,  DateTime? endDate,  int? preferredMonth,  int? preferredYear,  DurationPreset? flexibleDuration,  int nbTravelers,  BudgetPreset? budgetPreset,  String? originCity,  List<LocationResult> searchResults,  bool isSearching,  LocationResult? selectedManualDestination,  List<AiDestination> aiSuggestions,  bool isLoadingAiSuggestions,  AiDestination? selectedAiDestination,  Map<String, StepStatus> generationSteps,  double generationProgress,  String? generationMessage,  TripPlan? generatedPlan,  String? generationError,  bool isCreating,  String? createdTripId,  bool isManualFlow,  AppError? error)  $default,) {final _that = this;
 switch (_that) {
 case _PlanTripState():
-return $default(_that.currentStep,_that.dateMode,_that.startDate,_that.endDate,_that.preferredMonth,_that.preferredYear,_that.flexibleDuration,_that.nbTravelers,_that.budgetPreset,_that.searchResults,_that.isSearching,_that.selectedManualDestination,_that.aiSuggestions,_that.isLoadingAiSuggestions,_that.selectedAiDestination,_that.generationSteps,_that.generationProgress,_that.generationMessage,_that.generatedPlan,_that.generationError,_that.isCreating,_that.createdTripId,_that.isManualFlow,_that.error);case _:
+return $default(_that.currentStep,_that.dateMode,_that.startDate,_that.endDate,_that.preferredMonth,_that.preferredYear,_that.flexibleDuration,_that.nbTravelers,_that.budgetPreset,_that.originCity,_that.searchResults,_that.isSearching,_that.selectedManualDestination,_that.aiSuggestions,_that.isLoadingAiSuggestions,_that.selectedAiDestination,_that.generationSteps,_that.generationProgress,_that.generationMessage,_that.generatedPlan,_that.generationError,_that.isCreating,_that.createdTripId,_that.isManualFlow,_that.error);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1485,10 +1558,10 @@ return $default(_that.currentStep,_that.dateMode,_that.startDate,_that.endDate,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int currentStep,  DateMode dateMode,  DateTime? startDate,  DateTime? endDate,  int? preferredMonth,  int? preferredYear,  DurationPreset? flexibleDuration,  int nbTravelers,  BudgetPreset? budgetPreset,  List<LocationResult> searchResults,  bool isSearching,  LocationResult? selectedManualDestination,  List<AiDestination> aiSuggestions,  bool isLoadingAiSuggestions,  AiDestination? selectedAiDestination,  Map<String, StepStatus> generationSteps,  double generationProgress,  String? generationMessage,  TripPlan? generatedPlan,  String? generationError,  bool isCreating,  String? createdTripId,  bool isManualFlow,  AppError? error)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int currentStep,  DateMode dateMode,  DateTime? startDate,  DateTime? endDate,  int? preferredMonth,  int? preferredYear,  DurationPreset? flexibleDuration,  int nbTravelers,  BudgetPreset? budgetPreset,  String? originCity,  List<LocationResult> searchResults,  bool isSearching,  LocationResult? selectedManualDestination,  List<AiDestination> aiSuggestions,  bool isLoadingAiSuggestions,  AiDestination? selectedAiDestination,  Map<String, StepStatus> generationSteps,  double generationProgress,  String? generationMessage,  TripPlan? generatedPlan,  String? generationError,  bool isCreating,  String? createdTripId,  bool isManualFlow,  AppError? error)?  $default,) {final _that = this;
 switch (_that) {
 case _PlanTripState() when $default != null:
-return $default(_that.currentStep,_that.dateMode,_that.startDate,_that.endDate,_that.preferredMonth,_that.preferredYear,_that.flexibleDuration,_that.nbTravelers,_that.budgetPreset,_that.searchResults,_that.isSearching,_that.selectedManualDestination,_that.aiSuggestions,_that.isLoadingAiSuggestions,_that.selectedAiDestination,_that.generationSteps,_that.generationProgress,_that.generationMessage,_that.generatedPlan,_that.generationError,_that.isCreating,_that.createdTripId,_that.isManualFlow,_that.error);case _:
+return $default(_that.currentStep,_that.dateMode,_that.startDate,_that.endDate,_that.preferredMonth,_that.preferredYear,_that.flexibleDuration,_that.nbTravelers,_that.budgetPreset,_that.originCity,_that.searchResults,_that.isSearching,_that.selectedManualDestination,_that.aiSuggestions,_that.isLoadingAiSuggestions,_that.selectedAiDestination,_that.generationSteps,_that.generationProgress,_that.generationMessage,_that.generatedPlan,_that.generationError,_that.isCreating,_that.createdTripId,_that.isManualFlow,_that.error);case _:
   return null;
 
 }
@@ -1500,7 +1573,7 @@ return $default(_that.currentStep,_that.dateMode,_that.startDate,_that.endDate,_
 
 
 class _PlanTripState extends PlanTripState {
-  const _PlanTripState({this.currentStep = 0, this.dateMode = DateMode.exact, this.startDate, this.endDate, this.preferredMonth, this.preferredYear, this.flexibleDuration, this.nbTravelers = 1, this.budgetPreset, final  List<LocationResult> searchResults = const [], this.isSearching = false, this.selectedManualDestination, final  List<AiDestination> aiSuggestions = const [], this.isLoadingAiSuggestions = false, this.selectedAiDestination, final  Map<String, StepStatus> generationSteps = const {}, this.generationProgress = 0.0, this.generationMessage, this.generatedPlan, this.generationError, this.isCreating = false, this.createdTripId, this.isManualFlow = false, this.error}): _searchResults = searchResults,_aiSuggestions = aiSuggestions,_generationSteps = generationSteps,super._();
+  const _PlanTripState({this.currentStep = 0, this.dateMode = DateMode.exact, this.startDate, this.endDate, this.preferredMonth, this.preferredYear, this.flexibleDuration, this.nbTravelers = 1, this.budgetPreset, this.originCity, final  List<LocationResult> searchResults = const [], this.isSearching = false, this.selectedManualDestination, final  List<AiDestination> aiSuggestions = const [], this.isLoadingAiSuggestions = false, this.selectedAiDestination, final  Map<String, StepStatus> generationSteps = const {}, this.generationProgress = 0.0, this.generationMessage, this.generatedPlan, this.generationError, this.isCreating = false, this.createdTripId, this.isManualFlow = false, this.error}): _searchResults = searchResults,_aiSuggestions = aiSuggestions,_generationSteps = generationSteps,super._();
   
 
 // Navigation
@@ -1515,6 +1588,7 @@ class _PlanTripState extends PlanTripState {
 // Step 1 — Travelers + Budget
 @override@JsonKey() final  int nbTravelers;
 @override final  BudgetPreset? budgetPreset;
+@override final  String? originCity;
 // Step 2 — Destination
  final  List<LocationResult> _searchResults;
 // Step 2 — Destination
@@ -1565,16 +1639,16 @@ _$PlanTripStateCopyWith<_PlanTripState> get copyWith => __$PlanTripStateCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlanTripState&&(identical(other.currentStep, currentStep) || other.currentStep == currentStep)&&(identical(other.dateMode, dateMode) || other.dateMode == dateMode)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.preferredMonth, preferredMonth) || other.preferredMonth == preferredMonth)&&(identical(other.preferredYear, preferredYear) || other.preferredYear == preferredYear)&&(identical(other.flexibleDuration, flexibleDuration) || other.flexibleDuration == flexibleDuration)&&(identical(other.nbTravelers, nbTravelers) || other.nbTravelers == nbTravelers)&&(identical(other.budgetPreset, budgetPreset) || other.budgetPreset == budgetPreset)&&const DeepCollectionEquality().equals(other._searchResults, _searchResults)&&(identical(other.isSearching, isSearching) || other.isSearching == isSearching)&&(identical(other.selectedManualDestination, selectedManualDestination) || other.selectedManualDestination == selectedManualDestination)&&const DeepCollectionEquality().equals(other._aiSuggestions, _aiSuggestions)&&(identical(other.isLoadingAiSuggestions, isLoadingAiSuggestions) || other.isLoadingAiSuggestions == isLoadingAiSuggestions)&&(identical(other.selectedAiDestination, selectedAiDestination) || other.selectedAiDestination == selectedAiDestination)&&const DeepCollectionEquality().equals(other._generationSteps, _generationSteps)&&(identical(other.generationProgress, generationProgress) || other.generationProgress == generationProgress)&&(identical(other.generationMessage, generationMessage) || other.generationMessage == generationMessage)&&(identical(other.generatedPlan, generatedPlan) || other.generatedPlan == generatedPlan)&&(identical(other.generationError, generationError) || other.generationError == generationError)&&(identical(other.isCreating, isCreating) || other.isCreating == isCreating)&&(identical(other.createdTripId, createdTripId) || other.createdTripId == createdTripId)&&(identical(other.isManualFlow, isManualFlow) || other.isManualFlow == isManualFlow)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlanTripState&&(identical(other.currentStep, currentStep) || other.currentStep == currentStep)&&(identical(other.dateMode, dateMode) || other.dateMode == dateMode)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.preferredMonth, preferredMonth) || other.preferredMonth == preferredMonth)&&(identical(other.preferredYear, preferredYear) || other.preferredYear == preferredYear)&&(identical(other.flexibleDuration, flexibleDuration) || other.flexibleDuration == flexibleDuration)&&(identical(other.nbTravelers, nbTravelers) || other.nbTravelers == nbTravelers)&&(identical(other.budgetPreset, budgetPreset) || other.budgetPreset == budgetPreset)&&(identical(other.originCity, originCity) || other.originCity == originCity)&&const DeepCollectionEquality().equals(other._searchResults, _searchResults)&&(identical(other.isSearching, isSearching) || other.isSearching == isSearching)&&(identical(other.selectedManualDestination, selectedManualDestination) || other.selectedManualDestination == selectedManualDestination)&&const DeepCollectionEquality().equals(other._aiSuggestions, _aiSuggestions)&&(identical(other.isLoadingAiSuggestions, isLoadingAiSuggestions) || other.isLoadingAiSuggestions == isLoadingAiSuggestions)&&(identical(other.selectedAiDestination, selectedAiDestination) || other.selectedAiDestination == selectedAiDestination)&&const DeepCollectionEquality().equals(other._generationSteps, _generationSteps)&&(identical(other.generationProgress, generationProgress) || other.generationProgress == generationProgress)&&(identical(other.generationMessage, generationMessage) || other.generationMessage == generationMessage)&&(identical(other.generatedPlan, generatedPlan) || other.generatedPlan == generatedPlan)&&(identical(other.generationError, generationError) || other.generationError == generationError)&&(identical(other.isCreating, isCreating) || other.isCreating == isCreating)&&(identical(other.createdTripId, createdTripId) || other.createdTripId == createdTripId)&&(identical(other.isManualFlow, isManualFlow) || other.isManualFlow == isManualFlow)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,currentStep,dateMode,startDate,endDate,preferredMonth,preferredYear,flexibleDuration,nbTravelers,budgetPreset,const DeepCollectionEquality().hash(_searchResults),isSearching,selectedManualDestination,const DeepCollectionEquality().hash(_aiSuggestions),isLoadingAiSuggestions,selectedAiDestination,const DeepCollectionEquality().hash(_generationSteps),generationProgress,generationMessage,generatedPlan,generationError,isCreating,createdTripId,isManualFlow,error]);
+int get hashCode => Object.hashAll([runtimeType,currentStep,dateMode,startDate,endDate,preferredMonth,preferredYear,flexibleDuration,nbTravelers,budgetPreset,originCity,const DeepCollectionEquality().hash(_searchResults),isSearching,selectedManualDestination,const DeepCollectionEquality().hash(_aiSuggestions),isLoadingAiSuggestions,selectedAiDestination,const DeepCollectionEquality().hash(_generationSteps),generationProgress,generationMessage,generatedPlan,generationError,isCreating,createdTripId,isManualFlow,error]);
 
 @override
 String toString() {
-  return 'PlanTripState(currentStep: $currentStep, dateMode: $dateMode, startDate: $startDate, endDate: $endDate, preferredMonth: $preferredMonth, preferredYear: $preferredYear, flexibleDuration: $flexibleDuration, nbTravelers: $nbTravelers, budgetPreset: $budgetPreset, searchResults: $searchResults, isSearching: $isSearching, selectedManualDestination: $selectedManualDestination, aiSuggestions: $aiSuggestions, isLoadingAiSuggestions: $isLoadingAiSuggestions, selectedAiDestination: $selectedAiDestination, generationSteps: $generationSteps, generationProgress: $generationProgress, generationMessage: $generationMessage, generatedPlan: $generatedPlan, generationError: $generationError, isCreating: $isCreating, createdTripId: $createdTripId, isManualFlow: $isManualFlow, error: $error)';
+  return 'PlanTripState(currentStep: $currentStep, dateMode: $dateMode, startDate: $startDate, endDate: $endDate, preferredMonth: $preferredMonth, preferredYear: $preferredYear, flexibleDuration: $flexibleDuration, nbTravelers: $nbTravelers, budgetPreset: $budgetPreset, originCity: $originCity, searchResults: $searchResults, isSearching: $isSearching, selectedManualDestination: $selectedManualDestination, aiSuggestions: $aiSuggestions, isLoadingAiSuggestions: $isLoadingAiSuggestions, selectedAiDestination: $selectedAiDestination, generationSteps: $generationSteps, generationProgress: $generationProgress, generationMessage: $generationMessage, generatedPlan: $generatedPlan, generationError: $generationError, isCreating: $isCreating, createdTripId: $createdTripId, isManualFlow: $isManualFlow, error: $error)';
 }
 
 
@@ -1585,7 +1659,7 @@ abstract mixin class _$PlanTripStateCopyWith<$Res> implements $PlanTripStateCopy
   factory _$PlanTripStateCopyWith(_PlanTripState value, $Res Function(_PlanTripState) _then) = __$PlanTripStateCopyWithImpl;
 @override @useResult
 $Res call({
- int currentStep, DateMode dateMode, DateTime? startDate, DateTime? endDate, int? preferredMonth, int? preferredYear, DurationPreset? flexibleDuration, int nbTravelers, BudgetPreset? budgetPreset, List<LocationResult> searchResults, bool isSearching, LocationResult? selectedManualDestination, List<AiDestination> aiSuggestions, bool isLoadingAiSuggestions, AiDestination? selectedAiDestination, Map<String, StepStatus> generationSteps, double generationProgress, String? generationMessage, TripPlan? generatedPlan, String? generationError, bool isCreating, String? createdTripId, bool isManualFlow, AppError? error
+ int currentStep, DateMode dateMode, DateTime? startDate, DateTime? endDate, int? preferredMonth, int? preferredYear, DurationPreset? flexibleDuration, int nbTravelers, BudgetPreset? budgetPreset, String? originCity, List<LocationResult> searchResults, bool isSearching, LocationResult? selectedManualDestination, List<AiDestination> aiSuggestions, bool isLoadingAiSuggestions, AiDestination? selectedAiDestination, Map<String, StepStatus> generationSteps, double generationProgress, String? generationMessage, TripPlan? generatedPlan, String? generationError, bool isCreating, String? createdTripId, bool isManualFlow, AppError? error
 });
 
 
@@ -1602,7 +1676,7 @@ class __$PlanTripStateCopyWithImpl<$Res>
 
 /// Create a copy of PlanTripState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? currentStep = null,Object? dateMode = null,Object? startDate = freezed,Object? endDate = freezed,Object? preferredMonth = freezed,Object? preferredYear = freezed,Object? flexibleDuration = freezed,Object? nbTravelers = null,Object? budgetPreset = freezed,Object? searchResults = null,Object? isSearching = null,Object? selectedManualDestination = freezed,Object? aiSuggestions = null,Object? isLoadingAiSuggestions = null,Object? selectedAiDestination = freezed,Object? generationSteps = null,Object? generationProgress = null,Object? generationMessage = freezed,Object? generatedPlan = freezed,Object? generationError = freezed,Object? isCreating = null,Object? createdTripId = freezed,Object? isManualFlow = null,Object? error = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? currentStep = null,Object? dateMode = null,Object? startDate = freezed,Object? endDate = freezed,Object? preferredMonth = freezed,Object? preferredYear = freezed,Object? flexibleDuration = freezed,Object? nbTravelers = null,Object? budgetPreset = freezed,Object? originCity = freezed,Object? searchResults = null,Object? isSearching = null,Object? selectedManualDestination = freezed,Object? aiSuggestions = null,Object? isLoadingAiSuggestions = null,Object? selectedAiDestination = freezed,Object? generationSteps = null,Object? generationProgress = null,Object? generationMessage = freezed,Object? generatedPlan = freezed,Object? generationError = freezed,Object? isCreating = null,Object? createdTripId = freezed,Object? isManualFlow = null,Object? error = freezed,}) {
   return _then(_PlanTripState(
 currentStep: null == currentStep ? _self.currentStep : currentStep // ignore: cast_nullable_to_non_nullable
 as int,dateMode: null == dateMode ? _self.dateMode : dateMode // ignore: cast_nullable_to_non_nullable
@@ -1613,7 +1687,8 @@ as int?,preferredYear: freezed == preferredYear ? _self.preferredYear : preferre
 as int?,flexibleDuration: freezed == flexibleDuration ? _self.flexibleDuration : flexibleDuration // ignore: cast_nullable_to_non_nullable
 as DurationPreset?,nbTravelers: null == nbTravelers ? _self.nbTravelers : nbTravelers // ignore: cast_nullable_to_non_nullable
 as int,budgetPreset: freezed == budgetPreset ? _self.budgetPreset : budgetPreset // ignore: cast_nullable_to_non_nullable
-as BudgetPreset?,searchResults: null == searchResults ? _self._searchResults : searchResults // ignore: cast_nullable_to_non_nullable
+as BudgetPreset?,originCity: freezed == originCity ? _self.originCity : originCity // ignore: cast_nullable_to_non_nullable
+as String?,searchResults: null == searchResults ? _self._searchResults : searchResults // ignore: cast_nullable_to_non_nullable
 as List<LocationResult>,isSearching: null == isSearching ? _self.isSearching : isSearching // ignore: cast_nullable_to_non_nullable
 as bool,selectedManualDestination: freezed == selectedManualDestination ? _self.selectedManualDestination : selectedManualDestination // ignore: cast_nullable_to_non_nullable
 as LocationResult?,aiSuggestions: null == aiSuggestions ? _self._aiSuggestions : aiSuggestions // ignore: cast_nullable_to_non_nullable
