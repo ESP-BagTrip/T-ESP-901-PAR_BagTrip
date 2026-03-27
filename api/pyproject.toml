@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.12"
 dependencies = [
+  "airportsdata>=20240101",
   "alembic>=1.13.0",
   "bcrypt>=5.0.0",
   "cachetools>=5.3.0",
