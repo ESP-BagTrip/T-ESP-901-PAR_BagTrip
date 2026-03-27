@@ -270,19 +270,34 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         case Success(:final data):
           final suggestions = data.map((m) {
             return AiDestination(
-              city: m['destination'] as String? ?? '',
-              country: m['destinationCountry'] as String? ?? '',
+              city: m['city'] as String? ?? m['destination'] as String? ?? '',
+              country:
+                  m['country'] as String? ??
+                  m['destinationCountry'] as String? ??
+                  '',
               iata: m['iata'] as String?,
-              matchReason: m['matchReason'] as String?,
+              matchReason:
+                  m['match_reason'] as String? ?? m['matchReason'] as String?,
             );
           }).toList();
-          emit(
-            state.copyWith(
-              isLoadingAiSuggestions: false,
-              aiSuggestions: suggestions,
-              isManualFlow: false,
-            ),
-          );
+          if (suggestions.isEmpty) {
+            emit(
+              state.copyWith(
+                isLoadingAiSuggestions: false,
+                error: const UnknownError(
+                  'No destinations found. Try adjusting your preferences.',
+                ),
+              ),
+            );
+          } else {
+            emit(
+              state.copyWith(
+                isLoadingAiSuggestions: false,
+                aiSuggestions: suggestions,
+                isManualFlow: false,
+              ),
+            );
+          }
         case Failure(:final error):
           emit(state.copyWith(isLoadingAiSuggestions: false, error: error));
       }
