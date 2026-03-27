@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:bagtrip/core/app_error.dart';
@@ -8,8 +9,6 @@ import 'package:bagtrip/service/api_client.dart';
 import 'package:bagtrip/service/storage_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_client_sse/constants/sse_request_type_enum.dart';
-import 'package:flutter_client_sse/flutter_client_sse.dart';
 
 class AiRepositoryImpl implements AiRepository {
   final ApiClient _apiClient;
@@ -133,35 +132,63 @@ class AiRepositoryImpl implements AiRepository {
 
     if (kDebugMode) debugPrint('[SSE] Connecting to $url');
 
-    final sseStream = SSEClient.subscribeToSSE(
-      method: SSERequestType.POST,
-      url: url,
-      header: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'text/event-stream',
-        'Content-Type': 'application/json',
-      },
-      body: body,
+    // Use Dio with ResponseType.stream for real streaming (flutter_client_sse
+    // buffers the entire response on some platforms).
+    final dio = Dio();
+    final response = await dio.post<ResponseBody>(
+      url,
+      data: body,
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'text/event-stream',
+          'Content-Type': 'application/json',
+        },
+        responseType: ResponseType.stream,
+      ),
     );
 
-    await for (final event in sseStream) {
-      if (event.data == null || event.data!.isEmpty) continue;
+    // Parse the SSE stream line by line
+    String currentEvent = '';
+    String currentData = '';
 
-      final eventType = event.event ?? 'message';
+    final byteStream = response.data!.stream;
+    final lines = byteStream
+        .cast<List<int>>()
+        .transform(utf8.decoder)
+        .transform(const LineSplitter());
 
-      // Skip heartbeats
-      if (eventType == 'heartbeat') continue;
+    await for (final chunk in lines) {
+      if (chunk.isEmpty) {
+        // Empty line = end of SSE event block
+        if (currentData.isNotEmpty) {
+          final eventType = currentEvent.isNotEmpty ? currentEvent : 'message';
 
-      try {
-        final data = json.decode(event.data!) as Map<String, dynamic>;
-        yield {'event': eventType, 'data': data};
-      } catch (e) {
-        if (kDebugMode) {
-          debugPrint('[SSE] Failed to parse event data: ${event.data}');
+          if (eventType != 'heartbeat') {
+            try {
+              final data = json.decode(currentData) as Map<String, dynamic>;
+              if (kDebugMode) debugPrint('[SSE] Event: $eventType');
+              yield {'event': eventType, 'data': data};
+            } catch (e) {
+              if (kDebugMode) {
+                debugPrint('[SSE] Failed to parse: $currentData');
+              }
+            }
+          }
         }
+        currentEvent = '';
+        currentData = '';
+        continue;
+      }
+
+      if (chunk.startsWith('event: ')) {
+        currentEvent = chunk.substring(7);
+      } else if (chunk.startsWith('data: ')) {
+        currentData += chunk.substring(6);
       }
     }
 
+    dio.close();
     if (kDebugMode) debugPrint('[SSE] Stream closed');
   }
 }
