@@ -1,6 +1,10 @@
-"""Routes travel pour les recherches Amadeus."""
+"""Routes travel pour les recherches de locations (offline) et vols (Amadeus)."""
 
-from fastapi import APIRouter, HTTPException, Path, Query
+import hashlib
+import json
+
+from cachetools import TTLCache
+from fastapi import APIRouter, HTTPException, Path, Query, status
 
 from src.api.travel.schemas import LocationSearchResult
 from src.integrations.amadeus import amadeus_client
@@ -8,13 +12,26 @@ from src.integrations.amadeus.types import (
     FlightCheapestDateSearchQuery,
     FlightInspirationSearchQuery,
     FlightOfferSearchQuery,
-    LocationIdSearchQuery,
-    LocationKeywordSearchQuery,
-    LocationNearestSearchQuery,
 )
+from src.integrations.aviation_data import aviation_data_service
 from src.utils.errors import AppError, create_http_exception
 
 router = APIRouter(prefix="/v1/travel", tags=["Travel"])
+
+# Flight search cache — 15 min TTL, max 256 entries
+_flight_search_cache: TTLCache = TTLCache(maxsize=256, ttl=900)
+
+
+def _flight_cache_key(**params: object) -> str:
+    """Build a deterministic cache key from search params (ignoring None values)."""
+    filtered = {k: v for k, v in sorted(params.items()) if v is not None}
+    normalized = json.dumps(filtered, sort_keys=True, default=str)
+    return hashlib.sha256(normalized.encode()).hexdigest()
+
+
+# ============================================================================
+# LOCATION ENDPOINTS — Offline (aviation_data)
+# ============================================================================
 
 
 @router.get(
@@ -38,7 +55,7 @@ async def search_locations_by_keyword(
     keyword: str = Query(..., description="Search keyword for location name", example="paris"),
 ):
     """
-    Recherche de locations par mot-clé.
+    Recherche de locations par mot-clé (données offline).
 
     - **subType**: Types de locations à rechercher (ex: "CITY,AIRPORT")
     - **keyword**: Mot-clé de recherche (ex: "paris")
@@ -47,9 +64,7 @@ async def search_locations_by_keyword(
         if not subType or not keyword:
             raise AppError("INVALID_QUERY", 400, "subType and keyword are required")
 
-        query = LocationKeywordSearchQuery(subType=subType, keyword=keyword)
-        locations = await amadeus_client.search_locations_by_keyword(query)
-
+        locations = aviation_data_service.search_by_keyword(keyword, sub_type=subType)
         return LocationSearchResult(locations=locations, count=len(locations))
     except AppError as e:
         raise create_http_exception(e) from e
@@ -58,42 +73,6 @@ async def search_locations_by_keyword(
     except Exception as e:
         raise create_http_exception(
             AppError("INTERNAL_ERROR", 500, "Failed to search locations")
-        ) from e
-
-
-@router.get(
-    "/locations/{id}",
-    summary="Search for a location by id",
-    description="Get detailed information about a specific location by its ID",
-    responses={
-        200: {
-            "description": "Location details",
-        },
-        400: {"description": "Bad request - Invalid query parameters"},
-        500: {"description": "Internal server error"},
-    },
-)
-async def search_location_by_id(id: str = Path(..., description="Location id", example="CMUC")):
-    """
-    Recherche de location par ID.
-
-    - **id**: ID de la location (ex: "CMUC")
-    """
-    try:
-        if not id:
-            raise AppError("INVALID_QUERY", 400, "id is required")
-
-        query = LocationIdSearchQuery(id=id)
-        location = await amadeus_client.search_location_by_id(query)
-
-        return location
-    except AppError as e:
-        raise create_http_exception(e) from e
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, "Failed to fetch location")
         ) from e
 
 
@@ -114,7 +93,7 @@ async def search_location_nearest(
     longitude: float = Query(..., ge=-180, le=180, description="Longitude", example=2.55),
 ):
     """
-    Recherche de locations les plus proches.
+    Recherche de locations les plus proches (données offline).
 
     - **latitude**: Latitude (-90 à 90)
     - **longitude**: Longitude (-180 à 180)
@@ -129,9 +108,7 @@ async def search_location_nearest(
         if not (-180 <= longitude <= 180):
             raise AppError("INVALID_QUERY", 400, "Longitude must be between -180 and 180")
 
-        query = LocationNearestSearchQuery(latitude=latitude, longitude=longitude)
-        locations = await amadeus_client.search_location_nearest(query)
-
+        locations = aviation_data_service.search_nearest(latitude, longitude)
         return LocationSearchResult(locations=locations, count=len(locations))
     except AppError as e:
         raise create_http_exception(e) from e
@@ -141,6 +118,47 @@ async def search_location_nearest(
         raise create_http_exception(
             AppError("INTERNAL_ERROR", 500, "Failed to search nearest locations")
         ) from e
+
+
+@router.get(
+    "/locations/{id}",
+    summary="Search for a location by id",
+    description="Get detailed information about a specific location by its ID",
+    responses={
+        200: {
+            "description": "Location details",
+        },
+        400: {"description": "Bad request - Invalid query parameters"},
+        500: {"description": "Internal server error"},
+    },
+)
+async def search_location_by_id(id: str = Path(..., description="Location id", example="CMUC")):
+    """
+    Recherche de location par ID (données offline).
+
+    - **id**: ID de la location (ex: "CDG")
+    """
+    try:
+        if not id:
+            raise AppError("INVALID_QUERY", 400, "id is required")
+
+        location = aviation_data_service.get_by_id(id)
+        if location is None:
+            raise AppError("NOT_FOUND", 404, "Location not found")
+
+        return location
+    except AppError as e:
+        raise create_http_exception(e) from e
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e),
+        ) from e
+
+
+# ============================================================================
+# FLIGHT ENDPOINTS — Amadeus (with cache)
+# ============================================================================
 
 
 @router.get(
@@ -213,6 +231,7 @@ async def search_flight_offers(
     Recherche d'offres de vols.
 
     Recherche des offres de vols disponibles entre deux destinations avec de nombreux paramètres optionnels.
+    Résultats mis en cache 15 minutes pour les recherches identiques.
     """
     try:
         if not originLocationCode or not destinationLocationCode or not departureDate:
@@ -249,6 +268,28 @@ async def search_flight_offers(
                 "Please use only one.",
             )
 
+        # Check cache
+        cache_key = _flight_cache_key(
+            originLocationCode=originLocationCode,
+            destinationLocationCode=destinationLocationCode,
+            departureDate=departureDate,
+            returnDate=returnDate,
+            adults=adults,
+            children=children,
+            infants=infants,
+            travelClass=travelClass,
+            nonStop=nonStop,
+            currencyCode=currencyCode,
+            maxPrice=maxPrice,
+            max=max,
+            includedAirlineCodes=includedAirlineCodes,
+            excludedAirlineCodes=excludedAirlineCodes,
+        )
+
+        cached = _flight_search_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
         query = FlightOfferSearchQuery(
             originLocationCode=originLocationCode,
             destinationLocationCode=destinationLocationCode,
@@ -267,6 +308,7 @@ async def search_flight_offers(
         )
 
         result = await amadeus_client.search_flight_offers(query)
+        _flight_search_cache[cache_key] = result
         return result
     except AppError as e:
         raise create_http_exception(e) from e
