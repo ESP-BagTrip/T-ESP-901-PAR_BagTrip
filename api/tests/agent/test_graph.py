@@ -1,50 +1,77 @@
-"""Unit tests for agent graph."""
+"""Unit tests for agent graph structure."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import patch
 
 import pytest
-from langchain_core.messages import AIMessage, HumanMessage
 
-# Need to patch ChatGoogleGenerativeAI before importing graph because it's instantiated at module level
-with patch("src.agent.graph.ChatGoogleGenerativeAI"):
-    from src.agent.graph import agent_node, graph
+
+@pytest.fixture(autouse=True)
+def _mock_llm():
+    """Mock LLM to avoid real API calls during import."""
+    with patch("src.services.llm_service.ChatOpenAI"):
+        yield
+
+
+def test_build_graph_has_expected_nodes():
+    """Test that the main graph has the expected pipeline nodes."""
+    from src.agent.graph import build_graph
+
+    builder = build_graph()
+    compiled = builder.compile()
+    drawable = compiled.get_graph()
+    node_names = set(drawable.nodes.keys())
+
+    expected = {
+        "destination_research",
+        "activity_planner",
+        "accommodation",
+        "baggage",
+        "budget",
+        "assemble",
+    }
+    assert expected.issubset(node_names)
+
+
+def test_build_destinations_only_graph_has_expected_nodes():
+    """Test that the destinations-only graph has the expected nodes."""
+    from src.agent.graph import build_destinations_only_graph
+
+    builder = build_destinations_only_graph()
+    compiled = builder.compile()
+    drawable = compiled.get_graph()
+    node_names = set(drawable.nodes.keys())
+
+    assert "destination_research" in node_names
+    assert "assemble_destinations" in node_names
 
 
 @pytest.mark.asyncio
-async def test_agent_node():
-    """Test the agent node logic."""
-    # Mock state
+async def test_assemble_node_returns_trip_plan():
+    """Test that assemble_node produces the expected output shape."""
+    from src.agent.graph import assemble_node
+
     state = {
-        "messages": [HumanMessage(content="Hello")],
-        "userid": "user123"
+        "selected_destination": {"city": "Paris", "country": "France", "iata": "CDG"},
+        "origin_iata": "JFK",
+        "weather_data": {},
+        "destinations": [
+            {"city": "Paris", "country": "France", "iata": "CDG"},
+            {"city": "Rome", "country": "Italy", "iata": "FCO"},
+        ],
+        "activities": [{"name": "Eiffel Tower"}],
+        "accommodations": [{"name": "Hotel Le Marais"}],
+        "baggage_items": [{"name": "Passport"}],
+        "budget_estimation": {"total": 1500},
+        "duration_days": 7,
+        "departure_date": "2026-06-01",
+        "return_date": "2026-06-08",
     }
-    
-    # Mock LLM response
-    mock_response = AIMessage(content="Hi there")
-    
-    # We need to patch the llm_with_tools object in the module
-    with patch("src.agent.graph.llm_with_tools") as mock_llm:
-        mock_llm.ainvoke = AsyncMock(return_value=mock_response)
-        
-        result = await agent_node(state)
-        
-        assert "messages" in result
-        assert len(result["messages"]) == 1
-        assert result["messages"][0].content == "Hi there"
-        mock_llm.ainvoke.assert_called_once()
 
+    result = await assemble_node(state)
 
-def test_graph_compilation():
-    """Test that the graph is compiled and has expected nodes."""
-    # This just ensures the module loaded and graph object exists
-    assert graph is not None
-    # We can check basic properties if accessible, e.g. nodes
-    # For CompiledGraph, we might check .get_graph()
-    try:
-        drawable_graph = graph.get_graph()
-        nodes = drawable_graph.nodes
-        assert "agent" in nodes
-        assert "tools" in nodes
-    except Exception:
-        # Fallback if get_graph is not available/working in this version
-        pass
+    assert "trip_plan" in result
+    assert "events" in result
+    assert result["trip_plan"]["destination"]["city"] == "Paris"
+    assert result["trip_plan"]["origin_iata"] == "JFK"
+    assert len(result["events"]) == 1
+    assert result["events"][0]["event"] == "complete"

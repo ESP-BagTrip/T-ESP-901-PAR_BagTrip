@@ -262,7 +262,7 @@ class FlightSearchBloc extends Bloc<FlightSearchEvent, FlightSearchState> {
       emit(
         current.copyWith(
           isLoading: false,
-          error: UnknownError(e.toString(), originalError: e),
+          error: UnknownError('Failed to search flights', originalError: e),
         ),
       );
     }

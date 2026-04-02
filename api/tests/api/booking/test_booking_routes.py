@@ -152,13 +152,15 @@ class TestConfirmPrice:
     def test_confirm_price_error(self, mock_amadeus_client, client):
         """Test error handling during price confirmation."""
         mock_amadeus_client.confirm_flight_price.side_effect = Exception("Amadeus Error")
-        
+
         payload = {"flightOffer": create_valid_flight_offer()}
-        
+
         response = client.post("/v1/booking/pricing", json=payload)
-        
+
         assert response.status_code == 500
-        assert "Price confirmation failed" in response.json()["detail"]
+        detail = response.json()["detail"]
+        assert detail["error"] == "Price confirmation failed"
+        assert detail["code"] == "INTERNAL_ERROR"
 
     def test_confirm_price_debug_logging(self, mock_amadeus_client, client):
         """Test error logging in confirm_price when debug mode is enabled."""
@@ -230,31 +232,35 @@ class TestCreateBooking:
         mock_response = MagicMock()
         mock_response.data = {"flightOffers": []}  # No ID
         mock_amadeus_client.create_flight_order.return_value = mock_response
-        
+
         payload = {
             "flightOffer": create_valid_flight_offer(),
             "travelers": []
         }
-        
+
         response = client.post("/v1/booking/create", json=payload)
-        
-        assert response.status_code == 500
-        assert "No order ID received" in response.json()["detail"]
+
+        assert response.status_code == 502
+        detail = response.json()["detail"]
+        assert detail["error"] == "No order ID received from Amadeus"
+        assert detail["code"] == "UPSTREAM_ERROR"
         assert mock_db_session.rollback.called
 
     def test_create_booking_amadeus_error(self, mock_amadeus_client, client, override_get_current_user, override_get_db, mock_db_session):
         """Test booking creation when Amadeus call fails."""
         mock_amadeus_client.create_flight_order.side_effect = Exception("Amadeus Down")
-        
+
         payload = {
             "flightOffer": create_valid_flight_offer(),
             "travelers": []
         }
-        
+
         response = client.post("/v1/booking/create", json=payload)
-        
+
         assert response.status_code == 500
-        assert "Amadeus Down" in response.json()["detail"]
+        detail = response.json()["detail"]
+        assert detail["error"] == "Booking creation failed"
+        assert detail["code"] == "INTERNAL_ERROR"
         assert mock_db_session.rollback.called
 
     def test_create_booking_debug_logging(self, mock_amadeus_client, client, override_get_current_user, override_get_db, mock_db_session):

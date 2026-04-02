@@ -79,3 +79,46 @@ def test_max_retries_custom():
     result = _run(with_retry(fails_twice, {}, "activity_planner", max_retries=2))
     assert call_count == 3
     assert result["activities"] == []
+
+
+# ---------------------------------------------------------------------------
+# Timeout tests (asyncio.wait_for wrapping)
+# ---------------------------------------------------------------------------
+
+
+def test_timeout_triggers_retry():
+    """A node that exceeds NODE_TIMEOUT_SECONDS is treated as a failure and retried."""
+    call_count = 0
+
+    async def slow_then_fast(state):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            await asyncio.sleep(999)  # Will be interrupted by timeout
+        return {"activities": [{"title": "Recovered"}]}
+
+    from unittest.mock import patch
+
+    with patch("src.agent.retry.settings") as mock_settings:
+        mock_settings.NODE_TIMEOUT_SECONDS = 0.1  # Very short timeout
+        result = _run(with_retry(slow_then_fast, {}, "activity_planner"))
+
+    assert call_count == 2
+    assert result["activities"] == [{"title": "Recovered"}]
+
+
+def test_timeout_all_attempts_returns_degraded():
+    """If all attempts timeout, returns degraded result."""
+
+    async def always_slow(state):
+        await asyncio.sleep(999)
+
+    from unittest.mock import patch
+
+    with patch("src.agent.retry.settings") as mock_settings:
+        mock_settings.NODE_TIMEOUT_SECONDS = 0.1
+        result = _run(with_retry(always_slow, {}, "activity_planner", max_retries=1))
+
+    assert result["activities"] == []
+    assert len(result["errors"]) == 1
+    assert "activity_planner failed" in result["errors"][0]

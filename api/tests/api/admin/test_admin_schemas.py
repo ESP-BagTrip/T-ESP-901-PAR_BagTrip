@@ -5,7 +5,6 @@ from uuid import uuid4
 
 from src.api.admin.schemas import (
     AdminFlightBookingResponse,
-    AdminHotelBookingResponse,
     AdminListResponse,
     AdminTravelerResponse,
     AdminTripResponse,
@@ -140,34 +139,6 @@ class TestAdminSchemas:
         data = response.model_dump(by_alias=True)
         assert data["trip_id"] == trip_id
         assert data["first_name"] == "John"
-
-    def test_admin_hotel_booking_response(self):
-        """Test du schéma AdminHotelBookingResponse."""
-        booking_id = uuid4()
-        trip_id = uuid4()
-        offer_id = uuid4()
-        now = datetime.now(timezone.utc)
-
-        response = AdminHotelBookingResponse(
-            id=booking_id,
-            trip_id=trip_id,
-            trip_title="Trip Title",
-            user_email="user@example.com",
-            hotel_offer_id=offer_id,
-            hotel_id="HOTEL123",
-            created_at=now,
-            updated_at=now
-        )
-
-        assert response.id == booking_id
-        assert response.tripId == trip_id
-        assert response.hotelOfferId == offer_id
-        assert response.hotelId == "HOTEL123"
-        assert response.bookingIntentId is None
-
-        # Test serialization
-        data = response.model_dump(by_alias=True)
-        assert data["hotel_offer_id"] == offer_id
 
     def test_admin_flight_booking_response(self):
         """Test du schéma AdminFlightBookingResponse."""

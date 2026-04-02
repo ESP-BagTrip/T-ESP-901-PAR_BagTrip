@@ -87,17 +87,17 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | Persistance de la langue perdue                        | Choix de langue perdu au redemarrage                    | `bagtrip/lib/settings/bloc/settings_bloc.dart`                   |
 
 
-### Creation voyage & IA
+### ~~Creation voyage & IA~~ ✅ Resolu
 
 
-| Element                              | Description                                                        | Fichier                                                  |
-| ------------------------------------ | ------------------------------------------------------------------ | -------------------------------------------------------- |
-| `originCity` non transmis au SSE     | Recherches de vols impossibles sans ville de depart                | `bagtrip/lib/plan_trip/bloc/plan_trip_bloc.dart:577-596` |
-| Mode `destinations_only` non utilise | L'API le supporte mais Flutter ne l'appelle jamais                 | `api/src/agent/graph.py`                                 |
-| Pas de timeout global sur le graph   | Stream ouvert indefiniment si noeud bloque                         | `api/src/api/ai/plan_trip_routes.py`                     |
-| Cache IA in-memory                   | `IdempotencyCache` non partage en multi-instance                   | `api/src/utils/idempotency.py:67`                        |
-| Pas de tests ReAct executor          | Parsing regex sans tests unitaires                                 | `api/src/agent/react_executor.py`                        |
-| Annulation SSE non propre            | `emit.forEach` non interrompu quand l'utilisateur quitte le wizard | `bagtrip/lib/plan_trip/bloc/plan_trip_bloc.dart:322-377` |
+| Element                              | Description                                                        | Fichier                                                  | Statut |
+| ------------------------------------ | ------------------------------------------------------------------ | -------------------------------------------------------- | ------ |
+| ~~`originCity` non transmis au SSE~~     | ~~Recherches de vols impossibles sans ville de depart~~                | `bagtrip/lib/plan_trip/bloc/plan_trip_bloc.dart:577-596` | ✅ Transmis dans `_buildSseParams()` |
+| ~~Mode `destinations_only` non utilise~~ | ~~L'API le supporte mais Flutter ne l'appelle jamais~~                 | `api/src/agent/graph.py`                                 | ✅ Appele via `getInspiration()` dans `ai_service.dart` |
+| ~~Pas de timeout global sur le graph~~   | ~~Stream ouvert indefiniment si noeud bloque~~                         | `api/src/api/ai/plan_trip_routes.py`                     | ✅ `async_generator_with_timeout` (5min) + timeouts LLM (60s) + timeout nodes (120s) |
+| ~~Cache IA in-memory~~                   | ~~`IdempotencyCache` non partage en multi-instance~~                   | `api/src/utils/idempotency.py:67`                        | ✅ Backend Redis avec fallback memoire + service Redis dans compose.yml |
+| ~~Pas de tests ReAct executor~~          | ~~Parsing regex sans tests unitaires~~                                 | `api/src/agent/react_executor.py`                        | ✅ 30 tests (parse_react_output + react_execute + timeouts) dans `tests/agent/test_react_executor.py` |
+| ~~Annulation SSE non propre~~            | ~~`emit.forEach` non interrompu quand l'utilisateur quitte le wizard~~ | `bagtrip/lib/plan_trip/bloc/plan_trip_bloc.dart:322-377` | ✅ Souscription manuelle + `_cancelSseStream()` dans back/retry/close |
 
 
 ### Home & Trip Detail
@@ -397,7 +397,7 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | Priorite | Nombre |
 |----------|--------|
 | P0 | 8 (17 - 3 securite ✅ - 6 features ✅) |
-| P1 | 62 |
+| P1 | 56 (62 - 6 creation voyage & IA ✅) |
 | P2 | 80+ |
 | **Total** | **~160** |
 
@@ -409,7 +409,7 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | Securite | ~~3~~ 0 ✅ | 1 | 3 |
 | Infrastructure / CI/CD | 4 | 4 | 3 |
 | Auth & compte | ~~2~~ 0 ✅ | 4 | 3 |
-| Creation voyage & IA | ~~2~~ 0 ✅ | 6 | 6 |
+| Creation voyage & IA | ~~2~~ 0 ✅ | ~~6~~ 0 ✅ | 6 |
 | Home & Trip Detail | 1 | 5 | 5 |
 | Activites & In-Trip | 0 | 4 | 5 |
 | Vols & Transports | 0 | 3 | 5 |

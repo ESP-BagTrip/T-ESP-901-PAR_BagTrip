@@ -7,7 +7,6 @@ import pytest
 
 from src.models.booking_intent import BookingIntent
 from src.models.flight_offer import FlightOffer
-from src.models.hotel_offer import HotelOffer
 from src.models.traveler import TripTraveler
 from src.services.booking_orchestrator_service import BookingOrchestratorService
 from src.utils.errors import AppError
@@ -145,30 +144,6 @@ class TestBookingOrchestratorService:
         with pytest.raises(AppError) as exc:
             await BookingOrchestratorService.book(mock_db_session, intent.id, uuid.uuid4())
         assert exc.value.code == "MISSING_OFFER"
-
-    @pytest.mark.asyncio
-    async def test_book_hotel_success_poc(self, mock_db_session):
-        """Test successful hotel booking (POC simulation)."""
-        intent = BookingIntent(
-            id=uuid.uuid4(),
-            status="AUTHORIZED",
-            type="hotel",
-            selected_offer_id=uuid.uuid4()
-        )
-        
-        hotel_offer = HotelOffer(
-            id=intent.selected_offer_id,
-            offer_json={"offer": {"id": "OFFER_123"}}
-        )
-        
-        mock_db_session.query.return_value.filter.return_value.first.side_effect = [intent, hotel_offer]
-        
-        result = await BookingOrchestratorService.book(
-            mock_db_session, intent.id, uuid.uuid4(), guests=[{"name": "Guest"}]
-        )
-        
-        assert result.status == "BOOKED"
-        assert "POC_BOOKING" in result.amadeus_booking_id
 
     @pytest.mark.asyncio
     async def test_book_intent_not_found(self, mock_db_session):

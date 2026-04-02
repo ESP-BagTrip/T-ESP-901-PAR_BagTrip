@@ -8,7 +8,6 @@ import pytest
 from src.models.booking_intent import BookingIntent
 from src.models.user import User
 from src.models.flight_offer import FlightOffer
-from src.models.hotel_offer import HotelOffer
 from src.services.stripe_payments_service import StripePaymentsService
 from src.utils.errors import AppError
 
@@ -88,46 +87,6 @@ class TestStripePaymentsService:
         call_args = mock_client.create_payment_intent.call_args
         assert "Flight: PAR → PAR" in call_args[1]["description"]
         assert call_args[1]["metadata"]["flight_origin"] == "PAR"
-
-    @patch("src.services.stripe_payments_service.StripeClient")
-    @patch("src.services.stripe_payments_service.StripeProductsService")
-    def test_create_manual_capture_hotel_intent(
-        self, mock_products, mock_client, mock_db_session
-    ):
-        """Test successful hotel payment intent creation with details."""
-        intent_id = uuid.uuid4()
-        user_id = uuid.uuid4()
-        offer_id = uuid.uuid4()
-        
-        intent = BookingIntent(
-            id=intent_id, user_id=user_id, status="INIT", amount=200.0, currency="EUR",
-            type="hotel", trip_id=uuid.uuid4(),
-            selected_offer_type="hotel_offer", selected_offer_id=offer_id
-        )
-        
-        user = User(id=user_id, stripe_customer_id="cus_123")
-        
-        hotel_offer = HotelOffer(
-            id=offer_id,
-            offer_json={
-                "hotel": {"name": "Grand Hotel", "hotelId": "H1"},
-            },
-            chain_code="CH",
-            room_type="Double",
-            offer_id="OFF1"
-        )
-        
-        mock_db_session.query.return_value.filter.return_value.first.side_effect = [intent, user, hotel_offer]
-        mock_products.get_product_id.return_value = "prod_hotel"
-        
-        mock_pi = MagicMock(id="pi_hotel", client_secret="sec", status="req")
-        mock_client.create_payment_intent.return_value = mock_pi
-        
-        StripePaymentsService.create_manual_capture_payment_intent(mock_db_session, intent_id, user_id)
-        
-        call_args = mock_client.create_payment_intent.call_args
-        assert "Hotel: Grand Hotel" in call_args[1]["description"]
-        assert call_args[1]["metadata"]["hotel_name"] == "Grand Hotel"
 
     def test_create_pi_invalid_status(self, mock_db_session):
         """Test error when intent status is invalid."""

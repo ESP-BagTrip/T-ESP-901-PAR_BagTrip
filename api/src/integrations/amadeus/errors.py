@@ -17,6 +17,9 @@ def raise_for_amadeus_status(response: httpx.Response, context: str) -> None:
         pass
 
     if status == 429:
+        retry_after = response.headers.get("Retry-After")
+        if retry_after is not None:
+            detail["retry_after"] = retry_after
         raise AppError("RATE_LIMITED", 429, f"Amadeus rate limit exceeded during {context}", detail)
     if status == 401:
         raise AppError(

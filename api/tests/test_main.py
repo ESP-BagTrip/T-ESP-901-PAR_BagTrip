@@ -24,10 +24,9 @@ def mock_db_connection():
 def client():
     """Provide a test client for the app."""
     # We need to mock lifespan migrations as they run on startup
-    with patch("src.migrations.migrate_user_table.migrate_user_table"), \
-         patch("src.migrations.migrate_booking_tables.migrate_booking_tables"), \
+    with patch("src.migrations.migrate_trips_table.migrate_trips_table"), \
          patch("src.services.stripe_products_service.StripeProductsService.initialize_products"), \
-         patch("src.config.database.Base.metadata.create_all"):
+         patch("src.seeds.create_admin.create_default_admin"):
         # raise_server_exceptions=False allows testing 500 responses
         with TestClient(app, raise_server_exceptions=False) as client:
             yield client
@@ -124,36 +123,33 @@ class TestLifespan:
     async def test_lifespan_success(self):
         """Test successful startup and shutdown."""
         app_mock = MagicMock()
-        
+
         with patch("src.main.check_database_connection") as mock_check_db:
-            with patch("src.migrations.migrate_user_table.migrate_user_table") as mock_migrate_user:
-                with patch("src.migrations.migrate_booking_tables.migrate_booking_tables") as mock_migrate_booking:
-                    with patch("src.services.stripe_products_service.StripeProductsService.initialize_products") as mock_stripe_init:
-                        with patch("src.config.database.Base.metadata.create_all") as mock_create_all:
-                            
-                            async with lifespan(app_mock):
-                                pass
-                            
-                            mock_check_db.assert_called_once()
-                            mock_migrate_user.assert_called_once()
-                            mock_migrate_booking.assert_called_once()
-                            mock_stripe_init.assert_called_once()
-                            mock_create_all.assert_called_once()
+            with patch("src.migrations.migrate_trips_table.migrate_trips_table") as mock_migrate_trips:
+                with patch("src.services.stripe_products_service.StripeProductsService.initialize_products") as mock_stripe_init:
+                    with patch("src.seeds.create_admin.create_default_admin") as mock_create_admin:
+
+                        async with lifespan(app_mock):
+                            pass
+
+                        mock_check_db.assert_called_once()
+                        mock_migrate_trips.assert_called_once()
+                        mock_stripe_init.assert_called_once()
+                        mock_create_admin.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_lifespan_migration_errors(self):
         """Test lifespan handles migration errors gracefully."""
         app_mock = MagicMock()
-        
+
         with patch("src.main.check_database_connection"):
-            with patch("src.migrations.migrate_user_table.migrate_user_table", side_effect=Exception("User migration failed")):
-                with patch("src.migrations.migrate_booking_tables.migrate_booking_tables", side_effect=Exception("Booking migration failed")):
-                    with patch("src.services.stripe_products_service.StripeProductsService.initialize_products", side_effect=Exception("Stripe init failed")):
-                        with patch("src.config.database.Base.metadata.create_all"):
-                            
-                            # Should not raise exception
-                            async with lifespan(app_mock):
-                                pass
+            with patch("src.migrations.migrate_trips_table.migrate_trips_table", side_effect=Exception("Trips migration failed")):
+                with patch("src.services.stripe_products_service.StripeProductsService.initialize_products", side_effect=Exception("Stripe init failed")):
+                    with patch("src.seeds.create_admin.create_default_admin", side_effect=Exception("Admin seed failed")):
+
+                        # Should not raise exception
+                        async with lifespan(app_mock):
+                            pass
 
 
 class TestMainBlock:

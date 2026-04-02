@@ -1,6 +1,6 @@
 """Routes travel pour les recherches Amadeus."""
 
-from fastapi import APIRouter, HTTPException, Path, Query, status
+from fastapi import APIRouter, HTTPException, Path, Query
 
 from src.api.travel.schemas import LocationSearchResult
 from src.integrations.amadeus import amadeus_client
@@ -53,10 +53,11 @@ async def search_locations_by_keyword(
         return LocationSearchResult(locations=locations, count=len(locations))
     except AppError as e:
         raise create_http_exception(e) from e
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, "Failed to search locations")
         ) from e
 
 
@@ -88,10 +89,11 @@ async def search_location_by_id(id: str = Path(..., description="Location id", e
         return location
     except AppError as e:
         raise create_http_exception(e) from e
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, "Failed to fetch location")
         ) from e
 
 
@@ -133,10 +135,11 @@ async def search_location_nearest(
         return LocationSearchResult(locations=locations, count=len(locations))
     except AppError as e:
         raise create_http_exception(e) from e
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, "Failed to search nearest locations")
         ) from e
 
 
@@ -267,10 +270,11 @@ async def search_flight_offers(
         return result
     except AppError as e:
         raise create_http_exception(e) from e
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, "Failed to search flight offers")
         ) from e
 
 
@@ -334,10 +338,11 @@ async def search_flight_destinations(
         return result
     except AppError as e:
         raise create_http_exception(e) from e
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, "Failed to search flight destinations")
         ) from e
 
 
@@ -408,8 +413,9 @@ async def search_flight_cheapest_dates(
         return result
     except AppError as e:
         raise create_http_exception(e) from e
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, "Failed to search cheapest flight dates")
         ) from e

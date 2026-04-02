@@ -15,6 +15,7 @@ from src.api.ai.plan_trip_schemas import AcceptPlanRequest, PlanTripRequest
 from src.api.auth.middleware import get_current_user
 from src.api.auth.plan_guard import require_ai_quota
 from src.config.database import get_db
+from src.config.env import settings
 from src.models.activity import Activity
 from src.models.baggage_item import BaggageItem
 from src.models.user import User
@@ -22,6 +23,7 @@ from src.services.plan_service import PlanService
 from src.services.trips_service import TripsService
 from src.utils.errors import AppError, create_http_exception
 from src.utils.logger import logger
+from src.utils.timeout import async_generator_with_timeout
 
 router = APIRouter(prefix="/v1/ai", tags=["AI Trip Planning"])
 
@@ -136,7 +138,10 @@ async def _trip_plan_generator(request: PlanTripRequest, user_id: str, db: Sessi
     sent_events = set()  # Track which event types we've already sent
 
     try:
-        async for event in active_graph.astream(initial_state, stream_mode="updates"):
+        async for event in async_generator_with_timeout(
+            active_graph.astream(initial_state, stream_mode="updates"),
+            total_timeout_seconds=settings.GRAPH_TIMEOUT_SECONDS,
+        ):
             # event is a dict: {node_name: state_update}
             for node_name, update in event.items():
                 node_events = update.get("events", [])
@@ -196,6 +201,15 @@ async def _trip_plan_generator(request: PlanTripRequest, user_id: str, db: Sessi
         except Exception as e:
             logger.warn(f"Failed to increment AI generation count: {e}")
 
+    except TimeoutError:
+        logger.error(
+            "Trip planning graph timed out",
+            {"timeout_seconds": settings.GRAPH_TIMEOUT_SECONDS},
+        )
+        yield _sse_event(
+            "error",
+            {"message": "Trip planning timed out. Please try again."},
+        )
     except Exception as e:
         logger.error("Trip planning graph failed", {"error": str(e)})
         yield _sse_event("error", {"message": str(e)})

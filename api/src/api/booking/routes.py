@@ -1,6 +1,6 @@
 """Routes pour la réservation de vols."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from src.api.auth.middleware import get_current_user
@@ -77,17 +77,17 @@ async def confirm_price(request: FlightPriceRequest):
         return await amadeus_client.confirm_flight_price(request.flightOffer)
     except AppError as e:
         raise create_http_exception(e) from e
+    except HTTPException:
+        raise
     except Exception as e:
-        # Logger l'erreur avec traceback complète en mode debug
         if logger.level == LogLevel.DEBUG:
             logger.error(
                 f"Price confirmation failed: {type(e).__name__}",
                 {"error": str(e), "endpoint": "/api/booking/pricing"},
                 exc_info=True,
             )
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Price confirmation failed: {str(e)}",
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, "Price confirmation failed")
         ) from e
 
 
@@ -122,7 +122,7 @@ async def create_booking(
         amadeus_order_id = amadeus_order_data.get("id")
 
         if not amadeus_order_id:
-            raise Exception("No order ID received from Amadeus")
+            raise AppError("UPSTREAM_ERROR", 502, "No order ID received from Amadeus")
 
         # Extraire le prix total
         price_total = 0.0
@@ -159,18 +159,19 @@ async def create_booking(
     except AppError as e:
         db.rollback()
         raise create_http_exception(e) from e
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception as e:
         db.rollback()
-        # Logger l'erreur avec traceback complète en mode debug
         if logger.level == LogLevel.DEBUG:
             logger.error(
                 f"Booking creation failed: {type(e).__name__}",
                 {"error": str(e), "endpoint": "/api/booking/create"},
                 exc_info=True,
             )
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Booking creation failed: {str(e)}",
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, "Booking creation failed")
         ) from e
 
 

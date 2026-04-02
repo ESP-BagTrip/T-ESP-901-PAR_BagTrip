@@ -86,6 +86,14 @@ class Settings(BaseSettings):
     # Open-Meteo (weather — free, no key required)
     OPEN_METEO_BASE_URL: str = "https://api.open-meteo.com"
 
+    # Redis (optional — falls back to in-memory if not set)
+    REDIS_URL: str | None = None
+
+    # AI graph timeouts (seconds)
+    GRAPH_TIMEOUT_SECONDS: int = 300  # Global timeout for the trip planning graph
+    LLM_CALL_TIMEOUT_SECONDS: int = 60  # Per-LLM-call timeout in ReAct executor
+    NODE_TIMEOUT_SECONDS: int = 120  # Per-node timeout in retry wrapper
+
     @field_validator("AMADEUS_CLIENT_ID", "AMADEUS_CLIENT_SECRET", "LLM_API_KEY")
     @classmethod
     def validate_required_strings(cls, v: str) -> str:

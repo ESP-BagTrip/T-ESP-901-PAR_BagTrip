@@ -306,7 +306,10 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       emit(
         state.copyWith(
           isLoadingAiSuggestions: false,
-          error: UnknownError(e.toString(), originalError: e),
+          error: UnknownError(
+            'Failed to load AI suggestions',
+            originalError: e,
+          ),
         ),
       );
     }
@@ -405,10 +408,13 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       constraints: constraints,
     );
 
-    // Start SSE stream
-    try {
-      await emit.forEach<Map<String, dynamic>>(
-        _aiRepository.planTripStream(
+    // Start SSE stream with proper cancellation support
+    await _cancelSseStream();
+
+    final completer = Completer<void>();
+
+    _sseSubscription = _aiRepository
+        .planTripStream(
           travelTypes: params['travelTypes'] as String?,
           budgetRange: params['budgetRange'] as String?,
           durationDays: params['durationDays'] as int?,
@@ -417,13 +423,27 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
           departureDate: params['departureDate'] as String?,
           returnDate: params['returnDate'] as String?,
           originCity: params['originCity'] as String?,
-        ),
-        onData: (sseEvent) => _handleSseEvent(sseEvent),
-      );
-    } catch (e) {
-      if (isClosed) return;
-      emit(state.copyWith(generationError: e.toString()));
-    }
+        )
+        .listen(
+          (sseEvent) {
+            if (!isClosed) {
+              emit(_handleSseEvent(sseEvent));
+            }
+          },
+          onError: (Object error) {
+            if (!isClosed) {
+              emit(state.copyWith(generationError: 'Generation failed'));
+            }
+            if (!completer.isCompleted) completer.complete();
+          },
+          onDone: () {
+            if (!completer.isCompleted) completer.complete();
+          },
+          cancelOnError: true,
+        );
+
+    // Keep handler alive so emit remains valid (bloc ^9 requirement)
+    await completer.future;
   }
 
   PlanTripState _handleSseEvent(Map<String, dynamic> sseEvent) {
@@ -598,10 +618,11 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     }
   }
 
-  void _onBackToProposals(
+  Future<void> _onBackToProposals(
     PlanTripBackToProposals event,
     Emitter<PlanTripState> emit,
-  ) {
+  ) async {
+    await _cancelSseStream();
     emit(
       state.copyWith(
         currentStep: state.isManualFlow ? 2 : 3,
@@ -774,9 +795,14 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     };
   }
 
+  Future<void> _cancelSseStream() async {
+    await _sseSubscription?.cancel();
+    _sseSubscription = null;
+  }
+
   @override
-  Future<void> close() {
-    _sseSubscription?.cancel();
+  Future<void> close() async {
+    await _cancelSseStream();
     return super.close();
   }
 }

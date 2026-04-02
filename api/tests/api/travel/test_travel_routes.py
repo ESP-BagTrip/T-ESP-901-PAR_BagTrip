@@ -21,7 +21,7 @@ def mock_settings():
     mock_settings_obj = MagicMock()
     mock_settings_obj.AMADEUS_CLIENT_ID = "test_id"
     mock_settings_obj.AMADEUS_CLIENT_SECRET = "test_secret"
-    mock_settings_obj.GOOGLE_API_KEY = "test_google_key"
+    mock_settings_obj.LLM_API_KEY = "test_llm_key"
 
     with patch("src.config.env.settings", new=mock_settings_obj):
         yield
@@ -89,7 +89,8 @@ class TestSearchLocationsByKeyword:
         mock_amadeus_client.search_locations_by_keyword.side_effect = Exception("Generic error")
         response = client.get("/v1/travel/locations?subType=CITY,AIRPORT&keyword=paris")
         assert response.status_code == 500
-        assert response.json()["detail"] == "Generic error"
+        assert response.json()["detail"]["code"] == "INTERNAL_ERROR"
+        assert response.json()["detail"]["error"] == "Failed to search locations"
 
 
 @patch("src.api.travel.routes.amadeus_client", new_callable=AsyncMock)

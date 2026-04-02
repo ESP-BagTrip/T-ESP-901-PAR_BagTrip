@@ -11,12 +11,14 @@ the ReAct (Reason + Act) pattern manually:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import re
 from typing import Any
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
+from src.config.env import settings
 from src.services.llm_service import LLMService
 from src.utils.logger import logger
 
@@ -149,9 +151,18 @@ async def react_execute(
     for iteration in range(max_iterations):
         logger.info(f"ReAct iteration {iteration + 1}/{max_iterations}")
 
-        # Call LLM
+        # Call LLM (with per-call timeout)
         try:
-            raw_response = await llm_service.acall_llm_messages(messages)
+            raw_response = await asyncio.wait_for(
+                llm_service.acall_llm_messages(messages),
+                timeout=settings.LLM_CALL_TIMEOUT_SECONDS,
+            )
+        except TimeoutError:
+            logger.error(
+                "ReAct LLM call timed out",
+                {"iteration": iteration + 1, "timeout": settings.LLM_CALL_TIMEOUT_SECONDS},
+            )
+            return {"error": f"LLM call timed out after {settings.LLM_CALL_TIMEOUT_SECONDS}s"}
         except Exception as e:
             logger.error("ReAct LLM call failed", {"error": str(e)})
             return {"error": f"LLM call failed: {e}"}
@@ -208,7 +219,10 @@ async def react_execute(
     )
 
     try:
-        raw_response = await llm_service.acall_llm_messages(messages)
+        raw_response = await asyncio.wait_for(
+            llm_service.acall_llm_messages(messages),
+            timeout=settings.LLM_CALL_TIMEOUT_SECONDS,
+        )
         parsed = parse_react_output(raw_response)
         if isinstance(parsed, str):
             try:
@@ -216,5 +230,7 @@ async def react_execute(
             except json.JSONDecodeError:
                 return {"raw_answer": parsed}
         return {"error": "Failed to get final answer after max iterations"}
+    except TimeoutError:
+        return {"error": f"Final LLM call timed out after {settings.LLM_CALL_TIMEOUT_SECONDS}s"}
     except Exception as e:
         return {"error": f"Final LLM call failed: {e}"}

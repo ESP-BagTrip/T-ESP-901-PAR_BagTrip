@@ -91,7 +91,7 @@ class TestRegister:
         
         assert response.status_code == 201
         data = response.json()
-        assert "token" in data
+        assert "access_token" in data
         assert data["user"]["email"] == "newuser@example.com"
         
         # Verify DB interactions
@@ -189,7 +189,7 @@ class TestLogin:
         
         assert response.status_code == 200
         data = response.json()
-        assert "token" in data
+        assert "access_token" in data
         assert data["user"]["email"] == "user@example.com"
 
     def test_login_user_not_found(self, client, override_get_db, mock_db_session):
@@ -224,7 +224,7 @@ class TestLogin:
 
 class TestMe:
     """Test suite for the me endpoint."""
-    
+
     def test_me_success(self, client):
         """Test retrieving current user info."""
         user = User(
@@ -233,16 +233,24 @@ class TestMe:
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow()
         )
-        
-        # Override the get_current_user dependency directly
+
+        # Mock DB session so ProfileService and PlanService don't hit a real DB
+        mock_db = MagicMock()
+        mock_db.query.return_value.filter.return_value.first.return_value = None
+
+        def _get_db():
+            yield mock_db
+
+        # Override both dependencies
         app.dependency_overrides[get_current_user] = lambda: user
-        
+        app.dependency_overrides[get_db] = _get_db
+
         response = client.get("/v1/auth/me")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["email"] == "me@example.com"
         assert "id" in data
-        
+
         # Cleanup
         app.dependency_overrides = {}
