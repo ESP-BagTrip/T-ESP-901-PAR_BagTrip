@@ -23,6 +23,8 @@ final class TripDetailLoaded extends TripDetailState {
   final List<Map<String, dynamic>>? daySuggestions;
   final int? suggestionsForDay;
   final bool deferredLoaded;
+  final AppError? operationError;
+  final Map<String, AppError> sectionErrors;
 
   TripDetailLoaded({
     required this.trip,
@@ -41,6 +43,8 @@ final class TripDetailLoaded extends TripDetailState {
     this.daySuggestions,
     this.suggestionsForDay,
     this.deferredLoaded = false,
+    this.operationError,
+    this.sectionErrors = const {},
   });
 
   int get completionPercentage => completionResult.percentage;
@@ -121,6 +125,10 @@ final class TripDetailLoaded extends TripDetailState {
     int? suggestionsForDay,
     bool clearSuggestionsForDay = false,
     bool? deferredLoaded,
+    AppError? operationError,
+    bool clearOperationError = false,
+    Map<String, AppError>? sectionErrors,
+    bool clearSectionErrors = false,
   }) {
     return TripDetailLoaded(
       trip: trip ?? this.trip,
@@ -149,6 +157,12 @@ final class TripDetailLoaded extends TripDetailState {
           ? null
           : (suggestionsForDay ?? this.suggestionsForDay),
       deferredLoaded: deferredLoaded ?? this.deferredLoaded,
+      operationError: clearOperationError
+          ? null
+          : (operationError ?? this.operationError),
+      sectionErrors: clearSectionErrors
+          ? const {}
+          : (sectionErrors ?? this.sectionErrors),
     );
   }
 }

@@ -1280,5 +1280,15 @@
   "deleteAccountConfirmTitle": "Supprimer le compte ?",
   "deleteAccountConfirmMessage": "Cela supprimera définitivement votre compte et toutes les données associées. Cette action est irréversible.",
   "deleteAccountConfirmAction": "Supprimer définitivement",
-  "bookFlight": "Réserver ce vol"
+  "bookFlight": "Réserver ce vol",
+  "weatherSheetTitle": "Météo",
+  "weatherSheetTemperature": "Température",
+  "weatherSheetRainProbability": "Probabilité de pluie",
+  "weatherSheetUnavailable": "Données météo indisponibles",
+  "photoLaunchFailed": "Impossible d'ouvrir l'appareil photo",
+  "mapLocationsTitle": "Lieux du voyage",
+  "mapNoLocations": "Aucun lieu ajouté",
+  "mapDestination": "Destination",
+  "mapActivities": "Activités",
+  "mapAccommodations": "Hébergements"
 }

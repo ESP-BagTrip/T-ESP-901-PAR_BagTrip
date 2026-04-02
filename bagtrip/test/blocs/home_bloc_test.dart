@@ -34,6 +34,9 @@ void main() {
 
     when(() => mockConnectivityService.isOnline).thenReturn(true);
     when(
+      () => mockConnectivityService.onConnectivityChanged,
+    ).thenAnswer((_) => const Stream<bool>.empty());
+    when(
       () => mockWeatherRepo.getWeather(any()),
     ).thenAnswer((_) async => const Failure(NetworkError('not available')));
     when(

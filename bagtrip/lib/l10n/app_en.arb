@@ -1280,5 +1280,15 @@
   "deleteAccountConfirmTitle": "Delete account?",
   "deleteAccountConfirmMessage": "This will permanently delete your account and all associated data. This action cannot be undone.",
   "deleteAccountConfirmAction": "Delete permanently",
-  "bookFlight": "Book this flight"
+  "bookFlight": "Book this flight",
+  "weatherSheetTitle": "Weather",
+  "weatherSheetTemperature": "Temperature",
+  "weatherSheetRainProbability": "Rain probability",
+  "weatherSheetUnavailable": "Weather data is unavailable",
+  "photoLaunchFailed": "Could not open camera",
+  "mapLocationsTitle": "Trip Locations",
+  "mapNoLocations": "No locations added yet",
+  "mapDestination": "Destination",
+  "mapActivities": "Activities",
+  "mapAccommodations": "Accommodations"
 }

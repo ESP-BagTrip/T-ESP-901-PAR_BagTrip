@@ -15,3 +15,5 @@ class DismissTripCompletion extends HomeEvent {
   final String tripId;
   DismissTripCompletion({required this.tripId});
 }
+
+class _ConnectivityRestored extends HomeEvent {}

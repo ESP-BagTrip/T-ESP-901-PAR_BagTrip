@@ -25,6 +25,7 @@ import 'package:bagtrip/trip_detail/widgets/trip_flights_section.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_accommodation_section.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_baggage_section.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_budget_section.dart';
+import 'package:bagtrip/trip_detail/widgets/section_error_indicator.dart';
 import 'package:bagtrip/trip_detail/widgets/trip_sharing_section.dart';
 import 'package:bagtrip/trip_detail/widgets/travelers_edit_sheet.dart';
 import 'package:bagtrip/trips/widgets/trip_section_card.dart';
@@ -59,6 +60,15 @@ class TripDetailView extends StatelessWidget {
           if (state is TripDetailLoaded && state.validationError != null) {
             final l10n = AppLocalizations.of(context)!;
             AppSnackBar.showError(context, message: l10n.cannotFinalizeMessage);
+          }
+          if (state is TripDetailLoaded && state.operationError != null) {
+            AppSnackBar.showError(
+              context,
+              message: toUserFriendlyMessage(
+                state.operationError!,
+                AppLocalizations.of(context)!,
+              ),
+            );
           }
         },
         builder: (context, state) {
@@ -476,7 +486,14 @@ class _LoadedContentState extends State<_LoadedContent> {
                 StaggeredFadeIn(
                   key: _sectionKeys[CompletionSegmentType.flights],
                   index: 0,
-                  child: state.deferredLoaded
+                  child: state.sectionErrors.containsKey('flights')
+                      ? SectionErrorIndicator(
+                          error: state.sectionErrors['flights']!,
+                          onRetry: () => context.read<TripDetailBloc>().add(
+                            RetryDeferredSection(section: 'flights'),
+                          ),
+                        )
+                      : state.deferredLoaded
                       ? TripFlightsSection(
                           flights: state.flights,
                           tripId: tripId,
@@ -490,7 +507,14 @@ class _LoadedContentState extends State<_LoadedContent> {
                 StaggeredFadeIn(
                   key: _sectionKeys[CompletionSegmentType.accommodation],
                   index: 1,
-                  child: state.deferredLoaded
+                  child: state.sectionErrors.containsKey('accommodations')
+                      ? SectionErrorIndicator(
+                          error: state.sectionErrors['accommodations']!,
+                          onRetry: () => context.read<TripDetailBloc>().add(
+                            RetryDeferredSection(section: 'accommodations'),
+                          ),
+                        )
+                      : state.deferredLoaded
                       ? TripAccommodationSection(
                           accommodations: state.accommodations,
                           tripId: tripId,
@@ -527,7 +551,14 @@ class _LoadedContentState extends State<_LoadedContent> {
                 StaggeredFadeIn(
                   key: _sectionKeys[CompletionSegmentType.baggage],
                   index: 3,
-                  child: state.deferredLoaded
+                  child: state.sectionErrors.containsKey('baggage')
+                      ? SectionErrorIndicator(
+                          error: state.sectionErrors['baggage']!,
+                          onRetry: () => context.read<TripDetailBloc>().add(
+                            RetryDeferredSection(section: 'baggage'),
+                          ),
+                        )
+                      : state.deferredLoaded
                       ? TripBaggageSection(
                           baggageItems: state.baggageItems,
                           tripId: tripId,
@@ -541,7 +572,14 @@ class _LoadedContentState extends State<_LoadedContent> {
                 StaggeredFadeIn(
                   key: _sectionKeys[CompletionSegmentType.budget],
                   index: 4,
-                  child: state.deferredLoaded
+                  child: state.sectionErrors.containsKey('budget')
+                      ? SectionErrorIndicator(
+                          error: state.sectionErrors['budget']!,
+                          onRetry: () => context.read<TripDetailBloc>().add(
+                            RetryDeferredSection(section: 'budget'),
+                          ),
+                        )
+                      : state.deferredLoaded
                       ? TripBudgetSection(
                           budgetSummary: state.budgetSummary,
                           tripId: tripId,
@@ -554,7 +592,14 @@ class _LoadedContentState extends State<_LoadedContent> {
                 const SizedBox(height: AppSpacing.space12),
                 StaggeredFadeIn(
                   index: 5,
-                  child: state.deferredLoaded
+                  child: state.sectionErrors.containsKey('shares')
+                      ? SectionErrorIndicator(
+                          error: state.sectionErrors['shares']!,
+                          onRetry: () => context.read<TripDetailBloc>().add(
+                            RetryDeferredSection(section: 'shares'),
+                          ),
+                        )
+                      : state.deferredLoaded
                       ? TripSharingSection(
                           shares: state.shares,
                           tripId: tripId,
@@ -565,16 +610,32 @@ class _LoadedContentState extends State<_LoadedContent> {
                       : const _DeferredSectionShimmer(),
                 ),
                 const SizedBox(height: AppSpacing.space12),
-                StaggeredFadeIn(
-                  index: 6,
-                  child: TripSectionCard(
-                    icon: Icons.map_rounded,
-                    title: l10n.mapTitle,
-                    itemCount: 0,
-                    previewItems: const [],
-                    emptyLabel: l10n.mapComingSoonShort,
-                    onTap: () => MapRoute(tripId: tripId).go(context),
-                  ),
+                Builder(
+                  builder: (context) {
+                    final locationItems = <String>[
+                      ...state.activities
+                          .where(
+                            (a) => a.location != null && a.location!.isNotEmpty,
+                          )
+                          .map((a) => a.title),
+                      ...state.accommodations
+                          .where(
+                            (a) => a.address != null && a.address!.isNotEmpty,
+                          )
+                          .map((a) => a.name),
+                    ];
+                    return StaggeredFadeIn(
+                      index: 6,
+                      child: TripSectionCard(
+                        icon: Icons.map_rounded,
+                        title: l10n.mapTitle,
+                        itemCount: locationItems.length,
+                        previewItems: locationItems.take(3).toList(),
+                        emptyLabel: l10n.mapNoLocations,
+                        onTap: () => MapRoute(tripId: tripId).go(context),
+                      ),
+                    );
+                  },
                 ),
               ]),
             ),

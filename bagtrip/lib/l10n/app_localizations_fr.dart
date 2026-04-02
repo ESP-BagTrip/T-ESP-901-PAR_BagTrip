@@ -3015,4 +3015,34 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get bookFlight => 'Réserver ce vol';
+
+  @override
+  String get weatherSheetTitle => 'Météo';
+
+  @override
+  String get weatherSheetTemperature => 'Température';
+
+  @override
+  String get weatherSheetRainProbability => 'Probabilité de pluie';
+
+  @override
+  String get weatherSheetUnavailable => 'Données météo indisponibles';
+
+  @override
+  String get photoLaunchFailed => 'Impossible d\'ouvrir l\'appareil photo';
+
+  @override
+  String get mapLocationsTitle => 'Lieux du voyage';
+
+  @override
+  String get mapNoLocations => 'Aucun lieu ajouté';
+
+  @override
+  String get mapDestination => 'Destination';
+
+  @override
+  String get mapActivities => 'Activités';
+
+  @override
+  String get mapAccommodations => 'Hébergements';
 }

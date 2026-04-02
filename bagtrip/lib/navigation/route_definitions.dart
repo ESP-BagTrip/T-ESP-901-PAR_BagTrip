@@ -1,5 +1,5 @@
 import 'package:bagtrip/activities/view/activities_page.dart';
-import 'package:bagtrip/trips/widgets/map_coming_soon_view.dart';
+import 'package:bagtrip/trips/view/trip_locations_page.dart';
 import 'package:bagtrip/transports/view/transports_page.dart';
 import 'package:bagtrip/budget/view/budget_page.dart';
 import 'package:bagtrip/flight_result_details/view/flight_result_details_page.dart';
@@ -327,7 +327,7 @@ class MapRoute extends GoRouteData with $MapRoute {
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       buildSlideTransitionPage<void>(
         state: state,
-        child: const MapComingSoonView(),
+        child: TripLocationsPage(tripId: tripId),
       );
 }
 

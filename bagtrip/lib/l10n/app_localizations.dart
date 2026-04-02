@@ -5636,6 +5636,66 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Réserver ce vol'**
   String get bookFlight;
+
+  /// No description provided for @weatherSheetTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Météo'**
+  String get weatherSheetTitle;
+
+  /// No description provided for @weatherSheetTemperature.
+  ///
+  /// In fr, this message translates to:
+  /// **'Température'**
+  String get weatherSheetTemperature;
+
+  /// No description provided for @weatherSheetRainProbability.
+  ///
+  /// In fr, this message translates to:
+  /// **'Probabilité de pluie'**
+  String get weatherSheetRainProbability;
+
+  /// No description provided for @weatherSheetUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Données météo indisponibles'**
+  String get weatherSheetUnavailable;
+
+  /// No description provided for @photoLaunchFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'ouvrir l\'appareil photo'**
+  String get photoLaunchFailed;
+
+  /// No description provided for @mapLocationsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lieux du voyage'**
+  String get mapLocationsTitle;
+
+  /// No description provided for @mapNoLocations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun lieu ajouté'**
+  String get mapNoLocations;
+
+  /// No description provided for @mapDestination.
+  ///
+  /// In fr, this message translates to:
+  /// **'Destination'**
+  String get mapDestination;
+
+  /// No description provided for @mapActivities.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activités'**
+  String get mapActivities;
+
+  /// No description provided for @mapAccommodations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hébergements'**
+  String get mapAccommodations;
 }
 
 class _AppLocalizationsDelegate

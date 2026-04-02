@@ -33,6 +33,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final TripNotificationScheduler _scheduler;
   final PostTripDismissalStorage _dismissalStorage;
 
+  List<String> _pendingOfflineTransitions = [];
+  StreamSubscription<bool>? _connectivitySub;
+
   HomeBloc({
     TripRepository? tripRepository,
     AuthRepository? authRepository,
@@ -55,6 +58,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<RefreshHome>(_onRefreshHome);
     on<ConfirmTripCompletion>(_onConfirmTripCompletion);
     on<DismissTripCompletion>(_onDismissTripCompletion);
+    on<_ConnectivityRestored>(_onConnectivityRestored);
+
+    _connectivitySub = _connectivityService.onConnectivityChanged.listen((
+      online,
+    ) {
+      if (online && _pendingOfflineTransitions.isNotEmpty) {
+        add(_ConnectivityRestored());
+      }
+    });
   }
 
   Future<void> _onLoadHome(LoadHome event, Emitter<HomeState> emit) async {
@@ -142,6 +154,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       }
     }
 
+    // Track offline transitions for replay on reconnect
+    if (!_connectivityService.isOnline &&
+        detectionResult.transitionedTrips.isNotEmpty) {
+      _pendingOfflineTransitions = detectionResult.transitionedTrips
+          .map((t) => t.id)
+          .toList();
+    }
+
     // Schedule notifications for newly transitioned trips (fire-and-forget)
     for (final trip in detectionResult.transitionedTrips) {
       unawaited(
@@ -200,9 +220,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       }
 
       String? weatherSummary;
+      WeatherSummary? weatherData;
       if (weatherResult is Success<WeatherSummary>) {
         final w = weatherResult.data;
         weatherSummary = '${w.avgTempC.round()}°C · ${w.description}';
+        weatherData = w;
       }
 
       // Schedule ongoing trip notifications (idempotent, fire-and-forget)
@@ -218,6 +240,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           activeTrip: activeTrip,
           todayActivities: todayActivities,
           weatherSummary: weatherSummary,
+          weatherData: weatherData,
           allActivities: activitiesResult is Success<List<Activity>>
               ? activitiesResult.data
               : [],
@@ -303,6 +326,34 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       }
     }
     add(RefreshHome());
+  }
+
+  Future<void> _onConnectivityRestored(
+    _ConnectivityRestored event,
+    Emitter<HomeState> emit,
+  ) async {
+    final pending = List<String>.from(_pendingOfflineTransitions);
+    final synced = <String>[];
+
+    for (final tripId in pending) {
+      final result = await _tripRepository.updateTripStatus(tripId, 'ongoing');
+      if (isClosed) return;
+      if (result is Success) {
+        synced.add(tripId);
+      }
+    }
+
+    _pendingOfflineTransitions.removeWhere(synced.contains);
+
+    if (synced.isNotEmpty) {
+      add(RefreshHome());
+    }
+  }
+
+  @override
+  Future<void> close() {
+    _connectivitySub?.cancel();
+    return super.close();
   }
 
   Trip _pickEarliestTrip(List<Trip> trips) {

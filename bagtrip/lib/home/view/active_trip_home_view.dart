@@ -15,8 +15,10 @@ import 'package:bagtrip/home/helpers/today_activities.dart';
 import 'package:bagtrip/home/widgets/quick_expense_sheet.dart';
 import 'package:bagtrip/home/widgets/active_trip_hero.dart';
 import 'package:bagtrip/home/widgets/now_indicator_row.dart';
+import 'package:bagtrip/home/helpers/camera_launcher.dart';
 import 'package:bagtrip/home/widgets/quick_actions_bar.dart';
 import 'package:bagtrip/home/widgets/shared_home_widgets.dart';
+import 'package:bagtrip/home/widgets/weather_detail_sheet.dart';
 import 'package:bagtrip/home/widgets/timeline_activity_row.dart';
 import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -35,6 +37,7 @@ class ActiveTripHomeView extends StatefulWidget {
 class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
   String? _previousCurrentActivityId;
   bool _completionDialogShown = false;
+  final _tomorrowSectionKey = GlobalKey();
 
   @override
   void didUpdateWidget(covariant ActiveTripHomeView oldWidget) {
@@ -243,6 +246,7 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
         // Tomorrow section
         if (result.tomorrowActivities.isNotEmpty) ...[
           SliverToBoxAdapter(
+            key: _tomorrowSectionKey,
             child: Builder(
               builder: (context) {
                 final itemCount = _countTimelineItems(allTimeline, result);
@@ -366,6 +370,22 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
                             : null,
                         onExpenseTap: () =>
                             _showQuickExpenseSheet(context, trip.id),
+                        onWeatherTap: () => showWeatherDetailSheet(
+                          context,
+                          weather: widget.state.weatherData,
+                          destinationName: trip.destinationName,
+                        ),
+                        onPhotoTap: () => launchCamera(context),
+                        onTomorrowTap: () {
+                          final ctx = _tomorrowSectionKey.currentContext;
+                          if (ctx != null) {
+                            Scrollable.ensureVisible(
+                              ctx,
+                              duration: const Duration(milliseconds: 400),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        },
                       ),
                     ],
                   ),

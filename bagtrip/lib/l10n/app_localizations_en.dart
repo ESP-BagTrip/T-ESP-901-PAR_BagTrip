@@ -2988,4 +2988,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bookFlight => 'Book this flight';
+
+  @override
+  String get weatherSheetTitle => 'Weather';
+
+  @override
+  String get weatherSheetTemperature => 'Temperature';
+
+  @override
+  String get weatherSheetRainProbability => 'Rain probability';
+
+  @override
+  String get weatherSheetUnavailable => 'Weather data is unavailable';
+
+  @override
+  String get photoLaunchFailed => 'Could not open camera';
+
+  @override
+  String get mapLocationsTitle => 'Trip Locations';
+
+  @override
+  String get mapNoLocations => 'No locations added yet';
+
+  @override
+  String get mapDestination => 'Destination';
+
+  @override
+  String get mapActivities => 'Activities';
+
+  @override
+  String get mapAccommodations => 'Accommodations';
 }

@@ -76,6 +76,7 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     on<ClearDaySuggestions>(_onClearDaySuggestions);
     on<CreateActivityFromDetail>(_onCreateActivityFromDetail);
     on<CreateBudgetItemFromDetail>(_onCreateBudgetItemFromDetail);
+    on<RetryDeferredSection>(_onRetryDeferredSection);
   }
 
   Future<void> _onLoadTripDetail(
@@ -115,13 +116,52 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     if (state is! TripDetailLoaded) return;
     final current = state as TripDetailLoaded;
 
-    final flights = (results[0] as Result<List<ManualFlight>>).dataOrNull ?? [];
-    final accommodations =
-        (results[1] as Result<List<Accommodation>>).dataOrNull ?? [];
-    final baggageItems =
-        (results[2] as Result<List<BaggageItem>>).dataOrNull ?? [];
-    final budgetSummary = (results[3] as Result<BudgetSummary>).dataOrNull;
-    final shares = (results[4] as Result<List<TripShare>>).dataOrNull ?? [];
+    final sectionErrors = <String, AppError>{};
+
+    final flightsResult = results[0] as Result<List<ManualFlight>>;
+    final flights = switch (flightsResult) {
+      Success(:final data) => data,
+      Failure(:final error) => () {
+        sectionErrors['flights'] = error;
+        return <ManualFlight>[];
+      }(),
+    };
+
+    final accommodationsResult = results[1] as Result<List<Accommodation>>;
+    final accommodations = switch (accommodationsResult) {
+      Success(:final data) => data,
+      Failure(:final error) => () {
+        sectionErrors['accommodations'] = error;
+        return <Accommodation>[];
+      }(),
+    };
+
+    final baggageResult = results[2] as Result<List<BaggageItem>>;
+    final baggageItems = switch (baggageResult) {
+      Success(:final data) => data,
+      Failure(:final error) => () {
+        sectionErrors['baggage'] = error;
+        return <BaggageItem>[];
+      }(),
+    };
+
+    final budgetResult = results[3] as Result<BudgetSummary>;
+    final BudgetSummary? budgetSummary = switch (budgetResult) {
+      Success(:final data) => data,
+      Failure(:final error) => () {
+        sectionErrors['budget'] = error;
+        return null;
+      }(),
+    };
+
+    final sharesResult = results[4] as Result<List<TripShare>>;
+    final shares = switch (sharesResult) {
+      Success(:final data) => data,
+      Failure(:final error) => () {
+        sectionErrors['shares'] = error;
+        return <TripShare>[];
+      }(),
+    };
 
     final completion = tripDetailCompletion(
       trip: current.trip,
@@ -141,6 +181,7 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
         shares: shares,
         completionResult: completion,
         deferredLoaded: true,
+        sectionErrors: sectionErrors,
       ),
     );
   }
@@ -235,11 +276,43 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
 
     final trip = (tripResult as Success<Trip>).data;
     final activities = activitiesResult.dataOrNull ?? [];
-    final flights = flightsResult.dataOrNull ?? [];
-    final accommodations = accommodationsResult.dataOrNull ?? [];
-    final baggageItems = baggageResult.dataOrNull ?? [];
-    final budgetSummary = budgetResult.dataOrNull;
-    final shares = sharesResult.dataOrNull ?? [];
+    final sectionErrors = <String, AppError>{};
+
+    final flights = switch (flightsResult) {
+      Success(:final data) => data,
+      Failure(:final error) => () {
+        sectionErrors['flights'] = error;
+        return <ManualFlight>[];
+      }(),
+    };
+    final accommodations = switch (accommodationsResult) {
+      Success(:final data) => data,
+      Failure(:final error) => () {
+        sectionErrors['accommodations'] = error;
+        return <Accommodation>[];
+      }(),
+    };
+    final baggageItems = switch (baggageResult) {
+      Success(:final data) => data,
+      Failure(:final error) => () {
+        sectionErrors['baggage'] = error;
+        return <BaggageItem>[];
+      }(),
+    };
+    final BudgetSummary? budgetSummary = switch (budgetResult) {
+      Success(:final data) => data,
+      Failure(:final error) => () {
+        sectionErrors['budget'] = error;
+        return null;
+      }(),
+    };
+    final shares = switch (sharesResult) {
+      Success(:final data) => data,
+      Failure(:final error) => () {
+        sectionErrors['shares'] = error;
+        return <TripShare>[];
+      }(),
+    };
 
     final completion = tripDetailCompletion(
       trip: trip,
@@ -264,6 +337,7 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
         completionResult: completion,
         collapsedSections: prevCollapsedSections,
         deferredLoaded: true,
+        sectionErrors: sectionErrors,
       ),
     );
   }
@@ -328,8 +402,8 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     if (isClosed) return;
 
     if (result is Failure) {
-      // Rollback
-      emit(loaded);
+      emit(loaded.copyWith(operationError: (result as Failure).error));
+      emit(loaded.copyWith(clearOperationError: true));
     }
   }
 
@@ -354,8 +428,8 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     if (isClosed) return;
 
     if (result is Failure) {
-      // Rollback
-      emit(loaded);
+      emit(loaded.copyWith(operationError: result.error));
+      emit(loaded.copyWith(clearOperationError: true));
     }
   }
 
@@ -410,7 +484,8 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     if (isClosed) return;
 
     if (result is Failure) {
-      emit(loaded);
+      emit(loaded.copyWith(operationError: (result as Failure).error));
+      emit(loaded.copyWith(clearOperationError: true));
     }
   }
 
@@ -444,7 +519,8 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     if (isClosed) return;
 
     if (result is Failure) {
-      emit(loaded);
+      emit(loaded.copyWith(operationError: (result as Failure).error));
+      emit(loaded.copyWith(clearOperationError: true));
     }
   }
 
@@ -466,7 +542,8 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     if (isClosed) return;
 
     if (result is Failure) {
-      emit(loaded);
+      emit(loaded.copyWith(operationError: (result as Failure).error));
+      emit(loaded.copyWith(clearOperationError: true));
     } else {
       add(RefreshTripDetail());
     }
@@ -524,8 +601,8 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     if (isClosed) return;
 
     if (result is Failure) {
-      // Rollback
-      emit(loaded);
+      emit(loaded.copyWith(operationError: result.error));
+      emit(loaded.copyWith(clearOperationError: true));
     }
   }
 
@@ -563,8 +640,8 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     if (isClosed) return;
 
     if (result is Failure) {
-      // Rollback
-      emit(loaded);
+      emit(loaded.copyWith(operationError: result.error));
+      emit(loaded.copyWith(clearOperationError: true));
     }
   }
 
@@ -608,8 +685,8 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     if (isClosed) return;
 
     if (result is Failure) {
-      // Rollback
-      emit(loaded);
+      emit(loaded.copyWith(operationError: (result as Failure).error));
+      emit(loaded.copyWith(clearOperationError: true));
     }
   }
 
@@ -644,8 +721,8 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     if (isClosed) return;
 
     if (result is Failure) {
-      // Rollback
-      emit(loaded);
+      emit(loaded.copyWith(operationError: result.error));
+      emit(loaded.copyWith(clearOperationError: true));
     }
   }
 
@@ -670,8 +747,8 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     if (isClosed) return;
 
     if (result is Failure) {
-      // Rollback
-      emit(loaded);
+      emit(loaded.copyWith(operationError: result.error));
+      emit(loaded.copyWith(clearOperationError: true));
     }
   }
 
@@ -732,7 +809,8 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     if (isClosed) return;
 
     if (result is Failure) {
-      emit(loaded);
+      emit(loaded.copyWith(operationError: (result as Failure).error));
+      emit(loaded.copyWith(clearOperationError: true));
     }
   }
 
@@ -807,7 +885,8 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     if (isClosed) return;
 
     if (result is Failure) {
-      emit(loaded);
+      emit(loaded.copyWith(operationError: (result as Failure).error));
+      emit(loaded.copyWith(clearOperationError: true));
     }
   }
 
@@ -921,8 +1000,78 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     if (result is Success) {
       add(RefreshTripDetail());
     } else if (result is Failure) {
-      // Rollback
-      emit(loaded);
+      emit(loaded.copyWith(operationError: (result as Failure).error));
+      emit(loaded.copyWith(clearOperationError: true));
+    }
+  }
+
+  Future<void> _onRetryDeferredSection(
+    RetryDeferredSection event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final section = event.section;
+
+    final Result result;
+    switch (section) {
+      case 'flights':
+        result = await _transportRepository.getManualFlights(_tripId!);
+      case 'accommodations':
+        result = await _accommodationRepository.getByTrip(_tripId!);
+      case 'baggage':
+        result = await _baggageRepository.getByTrip(_tripId!);
+      case 'budget':
+        result = await _budgetRepository.getBudgetSummary(_tripId!);
+      case 'shares':
+        result = await _tripShareRepository.getSharesByTrip(_tripId!);
+      default:
+        return;
+    }
+
+    if (isClosed) return;
+    if (state is! TripDetailLoaded) return;
+    final current = state as TripDetailLoaded;
+
+    if (result is Success) {
+      final updatedErrors = Map<String, AppError>.from(current.sectionErrors)
+        ..remove(section);
+      switch (section) {
+        case 'flights':
+          emit(
+            current.copyWith(
+              flights: (result as Success<List<ManualFlight>>).data,
+              sectionErrors: updatedErrors,
+            ),
+          );
+        case 'accommodations':
+          emit(
+            current.copyWith(
+              accommodations: (result as Success<List<Accommodation>>).data,
+              sectionErrors: updatedErrors,
+            ),
+          );
+        case 'baggage':
+          emit(
+            current.copyWith(
+              baggageItems: (result as Success<List<BaggageItem>>).data,
+              sectionErrors: updatedErrors,
+            ),
+          );
+        case 'budget':
+          emit(
+            current.copyWith(
+              budgetSummary: (result as Success<BudgetSummary>).data,
+              sectionErrors: updatedErrors,
+            ),
+          );
+        case 'shares':
+          emit(
+            current.copyWith(
+              shares: (result as Success<List<TripShare>>).data,
+              sectionErrors: updatedErrors,
+            ),
+          );
+      }
     }
   }
 }
