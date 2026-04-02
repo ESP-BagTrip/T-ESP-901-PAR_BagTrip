@@ -254,6 +254,8 @@ AppNotification makeAppNotification({
   String body = 'Your trip has been updated',
   bool isRead = false,
   String? tripId = 'trip-1',
+  Map<String, dynamic>? data,
+  DateTime? createdAt,
 }) {
   return AppNotification(
     id: id,
@@ -262,6 +264,8 @@ AppNotification makeAppNotification({
     body: body,
     isRead: isRead,
     tripId: tripId,
+    data: data,
+    createdAt: createdAt,
   );
 }
 
