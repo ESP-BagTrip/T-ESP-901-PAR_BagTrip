@@ -3045,4 +3045,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mapAccommodations => 'Hébergements';
+
+  @override
+  String get notFoundTitle => 'Page introuvable';
+
+  @override
+  String get notFoundSubtitle =>
+      'La page que vous recherchez n\'existe pas ou a été déplacée.';
+
+  @override
+  String get notFoundCta => 'Retour à l\'accueil';
 }

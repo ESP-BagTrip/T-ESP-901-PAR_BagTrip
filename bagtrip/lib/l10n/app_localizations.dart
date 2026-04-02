@@ -5696,6 +5696,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Hébergements'**
   String get mapAccommodations;
+
+  /// No description provided for @notFoundTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Page introuvable'**
+  String get notFoundTitle;
+
+  /// No description provided for @notFoundSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'La page que vous recherchez n\'existe pas ou a été déplacée.'**
+  String get notFoundSubtitle;
+
+  /// No description provided for @notFoundCta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour à l\'accueil'**
+  String get notFoundCta;
 }
 
 class _AppLocalizationsDelegate

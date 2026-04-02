@@ -41,15 +41,15 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | ~~Pas de Stripe SDK mobile~~ | ~~`clientSecret` jamais utilise dans PaymentSheet~~ | ✅ Fix URLs booking service + `CreateBookingIntent` event + bouton "Reserver" dans flight details |
 | ~~Pas de BLoC paiements~~ | ~~Pages statiques sans verification~~ | ✅ `PaymentSuccessPage` accepte `intentId`, affiche reference booking, route enrichie |
 
-### UX critique
+### ~~UX critique~~ ✅ Resolu
 
 
 | Element                         | Description                                                                      | Fichier                                           | Statut |
 | ------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------- | ------ |
 | ~~Changement de langue inoperant~~  | ~~`SettingsBloc.selectedLanguage` n'est pas connecte a `MaterialApp.locale`~~        | `bagtrip/lib/main.dart:~185`                      | ✅ `BlocBuilder` + `locale` param + picker UI |
 | ~~Theme non persiste~~              | ~~Le choix dark/light est perdu au redemarrage~~                                     | `bagtrip/lib/settings/bloc/settings_bloc.dart`    | ✅ `SettingsStorage` persiste theme + langue |
-| Budget summary stale apres CRUD | Le bloc ne recharge pas le summary apres Create/Update/Delete — donnees perimees | `bagtrip/lib/budget/bloc/budget_bloc.dart:49-125` | |
-| Pas de route 404                | Aucun `errorBuilder` dans GoRouter — URL invalide = crash                        | `bagtrip/lib/navigation/app_router.dart`          | |
+| ~~Budget summary stale apres CRUD~~ | ~~Le bloc ne recharge pas le summary apres Create/Update/Delete — donnees perimees~~ | `bagtrip/lib/budget/bloc/budget_bloc.dart:49-125` | ✅ `RefreshBudgetSummary` event re-fetch le summary apres chaque CRUD |
+| ~~Pas de route 404~~                | ~~Aucun `errorBuilder` dans GoRouter — URL invalide = crash~~                        | `bagtrip/lib/navigation/app_router.dart`          | ✅ `NotFoundPage` + `errorBuilder` dans GoRouter + l10n FR/EN |
 
 
 ### Notifications critiques
@@ -396,7 +396,7 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 
 | Priorite | Nombre |
 |----------|--------|
-| P0 | 6 (17 - 3 securite ✅ - 6 features ✅ - 2 UX langue/theme ✅) |
+| P0 | 4 (17 - 3 securite ✅ - 6 features ✅ - 4 UX critique ✅) |
 | P1 | 48 (62 - 6 creation voyage & IA ✅ - 5 home & trip detail ✅ - 3 donnees non persistees ✅) |
 | P2 | 80+ |
 | **Total** | **~160** |

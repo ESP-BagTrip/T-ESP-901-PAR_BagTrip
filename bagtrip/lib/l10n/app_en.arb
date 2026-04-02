@@ -1290,5 +1290,8 @@
   "mapNoLocations": "No locations added yet",
   "mapDestination": "Destination",
   "mapActivities": "Activities",
-  "mapAccommodations": "Accommodations"
+  "mapAccommodations": "Accommodations",
+  "notFoundTitle": "Page not found",
+  "notFoundSubtitle": "The page you are looking for doesn't exist or has been moved.",
+  "notFoundCta": "Return home"
 }

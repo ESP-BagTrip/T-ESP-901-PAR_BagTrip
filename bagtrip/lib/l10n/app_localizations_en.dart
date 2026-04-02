@@ -3018,4 +3018,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mapAccommodations => 'Accommodations';
+
+  @override
+  String get notFoundTitle => 'Page not found';
+
+  @override
+  String get notFoundSubtitle =>
+      'The page you are looking for doesn\'t exist or has been moved.';
+
+  @override
+  String get notFoundCta => 'Return home';
 }
