@@ -44,12 +44,12 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 ### UX critique
 
 
-| Element                         | Description                                                                      | Fichier                                           |
-| ------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------- |
-| Changement de langue inoperant  | `SettingsBloc.selectedLanguage` n'est pas connecte a `MaterialApp.locale`        | `bagtrip/lib/main.dart:~185`                      |
-| Theme non persiste              | Le choix dark/light est perdu au redemarrage                                     | `bagtrip/lib/settings/bloc/settings_bloc.dart`    |
-| Budget summary stale apres CRUD | Le bloc ne recharge pas le summary apres Create/Update/Delete — donnees perimees | `bagtrip/lib/budget/bloc/budget_bloc.dart:49-125` |
-| Pas de route 404                | Aucun `errorBuilder` dans GoRouter — URL invalide = crash                        | `bagtrip/lib/navigation/app_router.dart`          |
+| Element                         | Description                                                                      | Fichier                                           | Statut |
+| ------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------- | ------ |
+| ~~Changement de langue inoperant~~  | ~~`SettingsBloc.selectedLanguage` n'est pas connecte a `MaterialApp.locale`~~        | `bagtrip/lib/main.dart:~185`                      | ✅ `BlocBuilder` + `locale` param + picker UI |
+| ~~Theme non persiste~~              | ~~Le choix dark/light est perdu au redemarrage~~                                     | `bagtrip/lib/settings/bloc/settings_bloc.dart`    | ✅ `SettingsStorage` persiste theme + langue |
+| Budget summary stale apres CRUD | Le bloc ne recharge pas le summary apres Create/Update/Delete — donnees perimees | `bagtrip/lib/budget/bloc/budget_bloc.dart:49-125` | |
+| Pas de route 404                | Aucun `errorBuilder` dans GoRouter — URL invalide = crash                        | `bagtrip/lib/navigation/app_router.dart`          | |
 
 
 ### Notifications critiques
@@ -77,14 +77,14 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | CGU/politique de confidentialite  | Liens placeholder vides dans login page                     | `bagtrip/lib/pages/login_page.dart:137-143` |
 
 
-### Donnees non persistees
+### ~~Donnees non persistees~~ ✅ Resolu
 
 
-| Element                                                | Description                                             | Fichier                                                          |
-| ------------------------------------------------------ | ------------------------------------------------------- | ---------------------------------------------------------------- |
-| `travelFrequency` et `constraints` non envoyes a l'API | Stockes uniquement en SharedPreferences local           | `bagtrip/lib/personalization/bloc/personalization_bloc.dart:260` |
-| `travelFrequency` absent du modele backend             | Le champ n'existe pas dans `TravelerProfile` SQLAlchemy | `api/src/models/traveler_profile.py`                             |
-| Persistance de la langue perdue                        | Choix de langue perdu au redemarrage                    | `bagtrip/lib/settings/bloc/settings_bloc.dart`                   |
+| Element                                                | Description                                             | Fichier                                                          | Statut |
+| ------------------------------------------------------ | ------------------------------------------------------- | ---------------------------------------------------------------- | ------ |
+| ~~`travelFrequency` et `constraints` non envoyes a l'API~~ | ~~Stockes uniquement en SharedPreferences local~~           | `bagtrip/lib/personalization/bloc/personalization_bloc.dart:260` | ✅ `updateProfile()` transmet `travelFrequency` + `medicalConstraints` a l'API, migration 0022 ajoute `travel_frequency` |
+| ~~`travelFrequency` absent du modele backend~~             | ~~Le champ n'existe pas dans `TravelerProfile` SQLAlchemy~~ | `api/src/models/traveler_profile.py`                             | ✅ Colonne `travel_frequency` ajoutee + schemas/routes/service mis a jour |
+| ~~Persistance de la langue perdue~~                        | ~~Choix de langue perdu au redemarrage~~                    | `bagtrip/lib/settings/bloc/settings_bloc.dart`                   | ✅ `SettingsStorage` (SharedPreferences) + `LoadSettings` hydratation au demarrage + `locale` connecte a `MaterialApp` + picker langue dans profil |
 
 
 ### ~~Creation voyage & IA~~ ✅ Resolu
@@ -396,8 +396,8 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 
 | Priorite | Nombre |
 |----------|--------|
-| P0 | 8 (17 - 3 securite ✅ - 6 features ✅) |
-| P1 | 51 (62 - 6 creation voyage & IA ✅ - 5 home & trip detail ✅) |
+| P0 | 6 (17 - 3 securite ✅ - 6 features ✅ - 2 UX langue/theme ✅) |
+| P1 | 48 (62 - 6 creation voyage & IA ✅ - 5 home & trip detail ✅ - 3 donnees non persistees ✅) |
 | P2 | 80+ |
 | **Total** | **~160** |
 

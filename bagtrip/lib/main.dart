@@ -173,13 +173,16 @@ class _MyAppState extends State<MyApp> {
       ],
       child: AuthListener(
         router: appRouter,
-        child: BlocSelector<SettingsBloc, SettingsState, String>(
-          selector: (state) => state.selectedTheme,
-          builder: (context, selectedTheme) {
-            final ThemeMode themeMode = switch (selectedTheme) {
+        child: BlocBuilder<SettingsBloc, SettingsState>(
+          builder: (context, settingsState) {
+            final ThemeMode themeMode = switch (settingsState.selectedTheme) {
               'dark' => ThemeMode.dark,
               'light' => ThemeMode.light,
               _ => ThemeMode.system,
+            };
+            final Locale locale = switch (settingsState.selectedLanguage) {
+              'English' => const Locale('en'),
+              _ => const Locale('fr'),
             };
 
             return MaterialApp.router(
@@ -192,6 +195,7 @@ class _MyAppState extends State<MyApp> {
                 cupertinoOverrideTheme: AppTheme.cupertinoDark(),
               ),
               themeMode: themeMode,
+              locale: locale,
               routerConfig: appRouter,
               scrollBehavior: const _AdaptiveScrollBehavior(),
               localizationsDelegates: AppLocalizations.localizationsDelegates,

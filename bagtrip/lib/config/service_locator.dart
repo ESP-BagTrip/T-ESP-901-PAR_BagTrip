@@ -24,6 +24,7 @@ import 'package:bagtrip/service/onboarding_storage.dart';
 import 'package:bagtrip/service/post_trip_dismissal_storage.dart';
 import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
+import 'package:bagtrip/service/settings_storage.dart';
 import 'package:bagtrip/service/cached_trip_repository.dart';
 import 'package:bagtrip/service/cached_weather_repository.dart';
 import 'package:bagtrip/service/weather_service.dart';
@@ -45,6 +46,7 @@ void setupServiceLocator() {
   getIt.registerLazySingleton<PersonalizationStorage>(
     () => PersonalizationStorage(),
   );
+  getIt.registerLazySingleton<SettingsStorage>(() => SettingsStorage());
   getIt.registerLazySingleton<CrashlyticsService>(() => CrashlyticsService());
   getIt.registerLazySingleton<CacheService>(() => CacheService());
   getIt.registerLazySingleton<ConnectivityService>(() => ConnectivityService());

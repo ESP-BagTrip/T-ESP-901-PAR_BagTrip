@@ -36,6 +36,8 @@ async def get_profile(
         travel_style=profile.travel_style,
         budget=profile.budget,
         companions=profile.companions,
+        travel_frequency=profile.travel_frequency,
+        medical_constraints=profile.medical_constraints,
         is_completed=profile.is_completed,
         created_at=profile.created_at,
         updated_at=profile.updated_at,
@@ -61,6 +63,8 @@ async def update_profile(
         travel_style=request.travelStyle,
         budget=request.budget,
         companions=request.companions,
+        medical_constraints=request.medicalConstraints,
+        travel_frequency=request.travelFrequency,
     )
     return ProfileResponse(
         id=profile.id,
@@ -68,6 +72,8 @@ async def update_profile(
         travel_style=profile.travel_style,
         budget=profile.budget,
         companions=profile.companions,
+        travel_frequency=profile.travel_frequency,
+        medical_constraints=profile.medical_constraints,
         is_completed=profile.is_completed,
         created_at=profile.created_at,
         updated_at=profile.updated_at,
