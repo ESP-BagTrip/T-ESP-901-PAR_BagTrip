@@ -1,7 +1,7 @@
 import datetime as dt
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from src.enums import ActivityCategory
 
@@ -18,6 +18,12 @@ class ActivityCreateRequest(BaseModel):
     isBooked: bool | None = None
     validationStatus: str | None = None
 
+    @model_validator(mode="after")
+    def validate_time_range(self) -> "ActivityCreateRequest":
+        if self.startTime and self.endTime and self.endTime <= self.startTime:
+            raise ValueError("endTime must be after startTime")
+        return self
+
 
 class ActivityUpdateRequest(BaseModel):
     title: str | None = None
@@ -30,6 +36,12 @@ class ActivityUpdateRequest(BaseModel):
     estimatedCost: float | None = None
     isBooked: bool | None = None
     validationStatus: str | None = None
+
+    @model_validator(mode="after")
+    def validate_time_range(self) -> "ActivityUpdateRequest":
+        if self.startTime and self.endTime and self.endTime <= self.startTime:
+            raise ValueError("endTime must be after startTime")
+        return self
 
 
 class ActivityResponse(BaseModel):

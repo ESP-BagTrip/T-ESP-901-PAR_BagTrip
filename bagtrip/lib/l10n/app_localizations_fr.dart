@@ -1033,6 +1033,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get activityBooked => 'Réservé';
 
   @override
+  String get activityDeleteTitle => 'Supprimer l\'activité';
+
+  @override
+  String get activityDeleteConfirm =>
+      'Êtes-vous sûr de vouloir supprimer cette activité ?';
+
+  @override
+  String get activityDeleted => 'Activité supprimée';
+
+  @override
+  String get activityEndTimeBeforeStartTime =>
+      'L\'heure de fin doit être après l\'heure de début';
+
+  @override
   String get categoryVisit => 'Visite';
 
   @override

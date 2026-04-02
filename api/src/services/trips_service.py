@@ -21,6 +21,7 @@ from src.models.trip import Trip
 from src.models.trip_share import TripShare
 from src.models.user import User
 from src.utils.errors import AppError
+from src.utils.iata_timezone import resolve_timezone_from_iata
 
 
 class TripsService:
@@ -60,6 +61,7 @@ class TripsService:
             status=TripStatus.DRAFT,
             description=description,
             destination_name=destination_name,
+            destination_timezone=resolve_timezone_from_iata(destination_iata),
             nb_travelers=nb_travelers or 1,
             cover_image_url=cover_image_url,
             budget_total=budget_total,
@@ -164,6 +166,7 @@ class TripsService:
             trip.origin_iata = origin_iata
         if destination_iata is not None:
             trip.destination_iata = destination_iata
+            trip.destination_timezone = resolve_timezone_from_iata(destination_iata)
         if start_date is not None:
             trip.start_date = start_date
         if end_date is not None:

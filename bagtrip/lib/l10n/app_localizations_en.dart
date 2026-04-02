@@ -1021,6 +1021,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activityBooked => 'Booked';
 
   @override
+  String get activityDeleteTitle => 'Delete activity';
+
+  @override
+  String get activityDeleteConfirm =>
+      'Are you sure you want to delete this activity?';
+
+  @override
+  String get activityDeleted => 'Activity deleted';
+
+  @override
+  String get activityEndTimeBeforeStartTime =>
+      'End time must be after start time';
+
+  @override
   String get categoryVisit => 'Visit';
 
   @override

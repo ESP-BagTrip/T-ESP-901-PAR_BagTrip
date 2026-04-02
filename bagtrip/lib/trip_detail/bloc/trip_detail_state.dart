@@ -60,7 +60,7 @@ final class TripDetailLoaded extends TripDetailState {
 
   int? get daysUntilTrip {
     if (trip.startDate == null) return null;
-    final now = DateTime.now();
+    final now = nowInDestination(trip.destinationTimezone);
     final today = DateTime(now.year, now.month, now.day);
     final start = DateTime(
       trip.startDate!.year,
@@ -73,7 +73,7 @@ final class TripDetailLoaded extends TripDetailState {
 
   int? get currentDay {
     if (trip.startDate == null) return null;
-    final now = DateTime.now();
+    final now = nowInDestination(trip.destinationTimezone);
     final today = DateTime(now.year, now.month, now.day);
     final start = DateTime(
       trip.startDate!.year,
@@ -86,7 +86,7 @@ final class TripDetailLoaded extends TripDetailState {
 
   bool get isOngoing {
     if (trip.startDate == null || trip.endDate == null) return false;
-    final now = DateTime.now();
+    final now = nowInDestination(trip.destinationTimezone);
     final today = DateTime(now.year, now.month, now.day);
     final start = DateTime(
       trip.startDate!.year,

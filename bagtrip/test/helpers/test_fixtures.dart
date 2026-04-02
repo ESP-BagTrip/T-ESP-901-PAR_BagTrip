@@ -61,6 +61,7 @@ Trip makeTrip({
   String? title = 'Paris Trip',
   TripStatus status = TripStatus.draft,
   String? destinationName = 'Paris',
+  String? destinationTimezone,
   int? nbTravelers = 2,
   DateTime? startDate,
   DateTime? endDate,
@@ -71,6 +72,7 @@ Trip makeTrip({
     title: title,
     status: status,
     destinationName: destinationName,
+    destinationTimezone: destinationTimezone,
     nbTravelers: nbTravelers,
     startDate: startDate ?? DateTime(2024, 6),
     endDate: endDate ?? DateTime(2024, 6, 7),
@@ -111,6 +113,7 @@ Activity makeActivity({
   String title = 'Visit Eiffel Tower',
   DateTime? date,
   String? startTime = '09:00',
+  String? endTime,
   ActivityCategory category = ActivityCategory.culture,
   ValidationStatus validationStatus = ValidationStatus.manual,
 }) {
@@ -120,6 +123,7 @@ Activity makeActivity({
     title: title,
     date: date ?? DateTime(2024, 6),
     startTime: startTime,
+    endTime: endTime,
     category: category,
     validationStatus: validationStatus,
   );

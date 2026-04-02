@@ -19,6 +19,7 @@ import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/repositories/trip_repository.dart';
 import 'package:bagtrip/repositories/weather_repository.dart';
 import 'package:bagtrip/service/trip_notification_scheduler.dart';
+import 'package:bagtrip/utils/destination_time.dart';
 import 'package:bloc/bloc.dart';
 
 part 'home_event.dart';
@@ -206,7 +207,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
       List<Activity> todayActivities = [];
       if (activitiesResult is Success<List<Activity>>) {
-        final now = DateTime.now();
+        final now = nowInDestination(activeTrip.destinationTimezone);
         final today = DateTime(now.year, now.month, now.day);
         todayActivities =
             activitiesResult.data.where((a) {

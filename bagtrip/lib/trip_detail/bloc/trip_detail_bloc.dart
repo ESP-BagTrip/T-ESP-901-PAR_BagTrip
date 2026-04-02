@@ -16,6 +16,7 @@ import 'package:bagtrip/repositories/transport_repository.dart';
 import 'package:bagtrip/repositories/trip_repository.dart';
 import 'package:bagtrip/repositories/trip_share_repository.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
+import 'package:bagtrip/utils/destination_time.dart';
 import 'package:bloc/bloc.dart';
 
 part 'trip_detail_event.dart';

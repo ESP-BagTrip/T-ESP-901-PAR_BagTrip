@@ -1994,6 +1994,30 @@ abstract class AppLocalizations {
   /// **'Réservé'**
   String get activityBooked;
 
+  /// No description provided for @activityDeleteTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer l\'activité'**
+  String get activityDeleteTitle;
+
+  /// No description provided for @activityDeleteConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Êtes-vous sûr de vouloir supprimer cette activité ?'**
+  String get activityDeleteConfirm;
+
+  /// No description provided for @activityDeleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activité supprimée'**
+  String get activityDeleted;
+
+  /// No description provided for @activityEndTimeBeforeStartTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'heure de fin doit être après l\'heure de début'**
+  String get activityEndTimeBeforeStartTime;
+
   /// No description provided for @categoryVisit.
   ///
   /// In fr, this message translates to:

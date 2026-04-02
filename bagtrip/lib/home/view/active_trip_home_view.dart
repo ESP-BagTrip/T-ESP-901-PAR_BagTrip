@@ -91,7 +91,9 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => TodayTickCubit(),
+      create: (_) => TodayTickCubit(
+        destinationTimezone: widget.state.activeTrip.destinationTimezone,
+      ),
       child: BlocBuilder<TodayTickCubit, DateTime>(
         builder: (context, tickNow) {
           return _buildContent(context, tickNow);

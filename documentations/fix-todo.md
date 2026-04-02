@@ -100,28 +100,28 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | ~~Annulation SSE non propre~~            | ~~`emit.forEach` non interrompu quand l'utilisateur quitte le wizard~~ | `bagtrip/lib/plan_trip/bloc/plan_trip_bloc.dart:322-377` | ✅ Souscription manuelle + `_cancelSseStream()` dans back/retry/close |
 
 
-### ~~Home & Trip Detail~~ ✅ Resolu (5/6)
+### ~~Home & Trip Detail~~ ✅ Resolu
 
 
 | Element                             | Description                                                                  | Fichier                                                      | Statut |
 | ----------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------ | ------ |
 | ~~Quick Actions stubs~~             | ~~Weather, photo, AI suggestion, tomorrow — callbacks `() {}`~~              | `bagtrip/lib/home/widgets/quick_actions_bar.dart:62-104`     | ✅ Weather bottom sheet, camera launcher, AI→activities nav, tomorrow scroll |
 | ~~Transition offline non syncee~~   | ~~Transition PLANNED->ONGOING optimiste jamais rejoouee au retour de connexion~~ | `bagtrip/lib/home/helpers/trip_mode_detector.dart:46`    | ✅ HomeBloc ecoute `onConnectivityChanged`, replay transitions pending au retour |
-| ~~Section Carte placeholder~~       | ~~Affiche "Bientot disponible"~~                                             | `bagtrip/lib/trip_detail/view/trip_detail_view.dart:570-578` | ✅ `TripLocationsPage` avec lieux tappables → Maps natif |
+| ~~Section Carte placeholder~~       | ~~Affiche "Bientot disponible"~~                                             | `bagtrip/lib/trip_detail/view/trip_detail_view.dart:613-639` | ✅ `TripLocationsPage` avec lieux tappables → Maps natif |
 | ~~Erreurs sections differees ignorees~~ | ~~`dataOrNull ?? []` — aucun feedback utilisateur sur echec~~            | `bagtrip/lib/trip_detail/bloc/trip_detail_bloc.dart:106-146` | ✅ `sectionErrors` map + `SectionErrorIndicator` widget + retry par section |
 | ~~Rollback sans feedback~~          | ~~Etat restaure apres echec API sans snackbar ni feedback (10+ handlers)~~   | `bagtrip/lib/trip_detail/bloc/trip_detail_bloc.dart`         | ✅ `operationError` dans state + snackbar via `AppSnackBar.showError` (13 handlers) |
-| Budget viewer incoherent            | `totalExpenses` masque mais items individuels accessibles                    | `api/src/api/trips/routes.py:188`                            | |
+| ~~Budget viewer incoherent~~        | ~~`totalExpenses` masque mais items individuels accessibles~~                | `api/src/api/trips/routes.py:188`                            | ✅ VIEWER: `totalExpenses=0` home, liste vide budget-items, 403 detail, summary masque |
 
 
-### Activites & In-Trip
+### ~~Activites & In-Trip~~ ✅ Resolu
 
 
-| Element                                 | Description                                                                          | Fichier                                                |
-| --------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------ |
-| Timezone activites                      | Compare en heure locale du device, pas de la destination                             | `bagtrip/lib/home/helpers/today_activities.dart:35-36` |
-| Pas de validation `endTime > startTime` | Horaires incoherents acceptes                                                        | `bagtrip/lib/activities/widgets/activity_form.dart`    |
-| Pas de confirmation de suppression      | `DeleteActivity` fire directement sans dialogue                                      | `bagtrip/lib/activities/view/activities_view.dart:191` |
-| Pas de tests helpers in-trip            | `classifyTodayActivities`, `detectAndTransitionTrips`, `detectEndedTrips` non testes | `bagtrip/test/`                                        |
+| Element                                 | Description                                                                          | Fichier                                                | Statut |
+| --------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------ | ------ |
+| ~~Timezone activites~~                      | ~~Compare en heure locale du device, pas de la destination~~                             | `bagtrip/lib/home/helpers/today_activities.dart:35-36` | ✅ `destination_timezone` sur Trip (API + Flutter), `nowInDestination()` utility, `TodayTickCubit` timezone-aware, fix HomeBloc + TripDetailState |
+| ~~Pas de validation `endTime > startTime`~~ | ~~Horaires incoherents acceptes~~                                                        | `bagtrip/lib/activities/widgets/activity_form.dart`    | ✅ Validation Flutter dans `_submit()` + `@model_validator` Pydantic sur `ActivityCreateRequest`/`ActivityUpdateRequest` |
+| ~~Pas de confirmation de suppression~~      | ~~`DeleteActivity` fire directement sans dialogue~~                                      | `bagtrip/lib/activities/view/activities_view.dart:191` | ✅ `showAdaptiveAlertDialog` avec `isDestructive: true` avant `DeleteActivity` |
+| ~~Pas de tests helpers in-trip~~            | ~~`classifyTodayActivities`, `detectAndTransitionTrips`, `detectEndedTrips` non testes~~ | `bagtrip/test/`                                        | ✅ Tests existants + 9 nouveaux tests timezone (`destination_time_test.dart` + groupe timezone-aware dans `today_activities_test.dart`) |
 
 
 ### Vols & Transports
@@ -396,8 +396,8 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 
 | Priorite | Nombre |
 |----------|--------|
-| P0 | 4 (17 - 3 securite ✅ - 6 features ✅ - 4 UX critique ✅) |
-| P1 | 48 (62 - 6 creation voyage & IA ✅ - 5 home & trip detail ✅ - 3 donnees non persistees ✅) |
+| P0 | 3 (17 - 3 securite ✅ - 6 features ✅ - 4 UX critique ✅ - 1 home & trip detail ✅) |
+| P1 | 43 (62 - 6 creation voyage & IA ✅ - 6 home & trip detail ✅ - 3 donnees non persistees ✅ - 4 activites & in-trip ✅) |
 | P2 | 80+ |
 | **Total** | **~160** |
 
@@ -410,8 +410,8 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | Infrastructure / CI/CD | 4 | 4 | 3 |
 | Auth & compte | ~~2~~ 0 ✅ | 4 | 3 |
 | Creation voyage & IA | ~~2~~ 0 ✅ | ~~6~~ 0 ✅ | 6 |
-| Home & Trip Detail | 1 | ~~5~~ 0 ✅ | 5 |
-| Activites & In-Trip | 0 | 4 | 5 |
+| Home & Trip Detail | ~~1~~ 0 ✅ | ~~5~~ 0 ✅ | 5 |
+| Activites & In-Trip | 0 | ~~4~~ 0 ✅ | 5 |
 | Vols & Transports | 0 | 3 | 5 |
 | Hebergements | 0 | 2 | 4 |
 | Bagages & Budget | 1 | 2 | 7 |

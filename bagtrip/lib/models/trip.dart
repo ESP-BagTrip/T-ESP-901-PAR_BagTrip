@@ -49,6 +49,7 @@ abstract class Trip with _$Trip {
     @TripStatusConverter() @Default(TripStatus.draft) TripStatus status,
     String? description,
     @JsonKey(name: 'destinationName') String? destinationName,
+    String? destinationTimezone,
     int? nbTravelers,
     String? coverImageUrl,
     double? budgetTotal,
