@@ -15,6 +15,9 @@
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
     "cypress:run:headless": "cypress run --headless",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "start-server-and-test dev http://localhost:8000 cypress:run",
     "test:e2e:open": "start-server-and-test dev http://localhost:8000 cypress:open"
   },
@@ -45,19 +48,26 @@
     "@cypress/code-coverage": "^3.14.6",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@typescript-eslint/eslint-plugin": "^8.41.0",
     "@typescript-eslint/parser": "^8.41.0",
+    "@vitejs/plugin-react": "^6.0.1",
+    "@vitest/coverage-v8": "^4.1.2",
     "autoprefixer": "^10.4.21",
     "cypress": "^15.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.0",
+    "jsdom": "^29.0.1",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
     "start-server-and-test": "^2.0.13",
     "tailwindcss": "^4",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "^4.1.2"
   }
 }
