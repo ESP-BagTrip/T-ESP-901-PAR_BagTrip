@@ -5,6 +5,7 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/trips/bloc/trip_share_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ShareInviteSheet extends StatefulWidget {
@@ -20,6 +21,7 @@ class _ShareInviteSheetState extends State<ShareInviteSheet> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _messageController = TextEditingController();
+  String _selectedRole = 'VIEWER';
 
   static final _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
@@ -38,6 +40,7 @@ class _ShareInviteSheetState extends State<ShareInviteSheet> {
         tripId: widget.tripId,
         email: _emailController.text.trim(),
         message: message.isNotEmpty ? message : null,
+        role: _selectedRole,
       ),
     );
   }
@@ -48,6 +51,15 @@ class _ShareInviteSheetState extends State<ShareInviteSheet> {
 
     return BlocListener<TripShareBloc, TripShareState>(
       listener: (context, state) {
+        if (state is TripShareInvitePending) {
+          Navigator.of(context).pop();
+          AppSnackBar.showSuccess(
+            context,
+            message: l10n.shareInvitePendingMessage,
+          );
+          Clipboard.setData(ClipboardData(text: state.inviteToken));
+          AppSnackBar.showSuccess(context, message: l10n.shareInviteLinkCopied);
+        }
         if (state is TripShareLoaded) {
           Navigator.of(context).pop();
           AppSnackBar.showSuccess(context, message: l10n.shareInviteSuccess);
@@ -130,6 +142,26 @@ class _ShareInviteSheetState extends State<ShareInviteSheet> {
                     }
                     return null;
                   },
+                ),
+                const SizedBox(height: AppSpacing.space12),
+
+                // Role picker
+                SegmentedButton<String>(
+                  segments: [
+                    ButtonSegment(
+                      value: 'VIEWER',
+                      label: Text(l10n.shareRoleViewer),
+                      icon: const Icon(Icons.visibility_outlined),
+                    ),
+                    ButtonSegment(
+                      value: 'EDITOR',
+                      label: Text(l10n.shareRoleEditor),
+                      icon: const Icon(Icons.edit_outlined),
+                    ),
+                  ],
+                  selected: {_selectedRole},
+                  onSelectionChanged: (roles) =>
+                      setState(() => _selectedRole = roles.first),
                 ),
                 const SizedBox(height: AppSpacing.space12),
 

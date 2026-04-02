@@ -101,7 +101,27 @@ class TestStripeClient:
     def test_retrieve_payment_intent(self, mock_pi_retrieve):
         """Test retrieving a Stripe PaymentIntent."""
         mock_pi_retrieve.return_value = MagicMock(id="pi_123")
-        
+
         pi = StripeClient.retrieve_payment_intent("pi_123")
         assert pi.id == "pi_123"
         mock_pi_retrieve.assert_called_once_with("pi_123")
+
+    @patch("stripe.Refund.create")
+    def test_create_refund(self, mock_create):
+        """Test creating a refund."""
+        mock_refund = MagicMock()
+        mock_create.return_value = mock_refund
+
+        result = StripeClient.create_refund("ch_123")
+        assert result == mock_refund
+        mock_create.assert_called_once_with(charge="ch_123")
+
+    @patch("stripe.Refund.create")
+    def test_create_partial_refund(self, mock_create):
+        """Test creating a partial refund."""
+        mock_refund = MagicMock()
+        mock_create.return_value = mock_refund
+
+        result = StripeClient.create_refund("ch_123", amount=500, reason="requested_by_customer")
+        assert result == mock_refund
+        mock_create.assert_called_once_with(charge="ch_123", amount=500, reason="requested_by_customer")

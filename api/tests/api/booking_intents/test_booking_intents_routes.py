@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 from src.api.booking_intents.routes import router as trips_router
 from src.api.booking_intents.book_routes import router as booking_intents_router
 from src.api.auth.middleware import get_current_user
-from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access
+from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access, get_trip_editor_access
 from src.config.database import get_db
 from src.models.user import User
 from src.utils.errors import AppError
@@ -93,9 +93,11 @@ def override_trip_access(mock_trip_access):
     """Override both get_trip_access and get_trip_owner_access."""
     app.dependency_overrides[get_trip_access] = lambda: mock_trip_access
     app.dependency_overrides[get_trip_owner_access] = lambda: mock_trip_access
+    app.dependency_overrides[get_trip_editor_access] = lambda: mock_trip_access
     yield
     app.dependency_overrides.pop(get_trip_access, None)
     app.dependency_overrides.pop(get_trip_owner_access, None)
+    app.dependency_overrides.pop(get_trip_editor_access, None)
 
 
 @pytest.fixture

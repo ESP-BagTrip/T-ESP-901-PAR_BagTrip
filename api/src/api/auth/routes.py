@@ -142,6 +142,15 @@ async def register(request: SignupRequest, response: Response, db: Session = Dep
 
         db.commit()
         db.refresh(user)
+
+        # Claim pending invites for newly registered user
+        try:
+            from src.services.trip_share_service import TripShareService
+
+            TripShareService.claim_pending_invites(db, email=user.email, user_id=user.id)
+        except Exception:
+            pass  # Best-effort, don't block registration
+
     except IntegrityError:
         db.rollback()
         raise HTTPException(
@@ -440,6 +449,14 @@ async def google_sign_in(
 
             db.commit()
             db.refresh(user)
+
+            # Claim pending invites for newly registered user
+            try:
+                from src.services.trip_share_service import TripShareService
+
+                TripShareService.claim_pending_invites(db, email=user.email, user_id=user.id)
+            except Exception:
+                pass  # Best-effort
         else:
             # Mettre à jour le nom si nécessaire
             if full_name and not user.full_name:
@@ -593,6 +610,14 @@ async def apple_sign_in(
 
             db.commit()
             db.refresh(user)
+
+            # Claim pending invites for newly registered user
+            try:
+                from src.services.trip_share_service import TripShareService
+
+                TripShareService.claim_pending_invites(db, email=user.email, user_id=user.id)
+            except Exception:
+                pass  # Best-effort
 
         # Generate tokens
         access_token, expires_in = create_access_token(str(user.id))

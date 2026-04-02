@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 from src.api.accommodations.routes import router as accommodations_router
 from src.api.auth.middleware import get_current_user
 from src.api.auth.plan_guard import require_ai_quota
-from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access
+from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access, get_trip_editor_access
 from src.config.database import get_db
 from src.models.user import User
 from src.utils.errors import AppError
@@ -57,9 +57,11 @@ def trip_access(mock_trip_id):
     access = TripAccess(trip=mock_trip, role=TripRole.OWNER)
     app.dependency_overrides[get_trip_access] = lambda: access
     app.dependency_overrides[get_trip_owner_access] = lambda: access
+    app.dependency_overrides[get_trip_editor_access] = lambda: access
     yield access
     app.dependency_overrides.pop(get_trip_access, None)
     app.dependency_overrides.pop(get_trip_owner_access, None)
+    app.dependency_overrides.pop(get_trip_editor_access, None)
 
 
 class TestSuggestAccommodations:
@@ -152,19 +154,19 @@ class TestSuggestAccommodations:
         app.dependency_overrides[require_ai_quota] = lambda: mock_user
 
     def test_suggest_accommodations_viewer_denied(self, client, mock_trip_id):
-        """Test that viewers cannot access suggest endpoint (owner-only)."""
+        """Test that viewers cannot access suggest endpoint (editor+ only)."""
         mock_trip = MagicMock()
         mock_trip.id = mock_trip_id
         viewer_access = TripAccess(trip=mock_trip, role=TripRole.VIEWER)
 
         def _deny():
-            raise AppError("FORBIDDEN", 403, "Owner access required")
+            raise AppError("FORBIDDEN", 403, "Editor access required")
 
-        app.dependency_overrides[get_trip_owner_access] = _deny
+        app.dependency_overrides[get_trip_editor_access] = _deny
 
         response = client.post(f"/v1/trips/{mock_trip_id}/accommodations/suggest")
 
         assert response.status_code == 403
 
         # Cleanup
-        app.dependency_overrides.pop(get_trip_owner_access, None)
+        app.dependency_overrides.pop(get_trip_editor_access, None)

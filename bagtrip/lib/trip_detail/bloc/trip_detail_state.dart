@@ -51,6 +51,8 @@ final class TripDetailLoaded extends TripDetailState {
 
   bool get isViewer => userRole == 'VIEWER';
   bool get isOwner => userRole == 'OWNER';
+  bool get isEditor => userRole == 'EDITOR';
+  bool get canEdit => (isOwner || isEditor) && !isCompleted;
   bool get isCompleted => trip.status == TripStatus.completed;
 
   int get totalDays {

@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
 from src.api.flights.manual.routes import router as manual_flights_router
-from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access
+from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access, get_trip_editor_access
 from src.config.database import get_db
 from src.models.user import User
 from src.utils.errors import AppError
@@ -60,9 +60,11 @@ def trip_access(mock_trip_id):
     access = TripAccess(trip=mock_trip, role=TripRole.OWNER)
     app.dependency_overrides[get_trip_access] = lambda: access
     app.dependency_overrides[get_trip_owner_access] = lambda: access
+    app.dependency_overrides[get_trip_editor_access] = lambda: access
     yield access
     app.dependency_overrides.pop(get_trip_access, None)
     app.dependency_overrides.pop(get_trip_owner_access, None)
+    app.dependency_overrides.pop(get_trip_editor_access, None)
 
 
 def _make_mock_flight(flight_id, trip_id):

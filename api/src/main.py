@@ -28,6 +28,7 @@ from src.api.flights.offers.routes import router as flight_offers_router
 from src.api.flights.orders.routes import router as flight_orders_router
 from src.api.flights.searches.routes import router as flight_searches_router
 from src.api.hotels.routes import router as hotel_search_router
+from src.api.invites.routes import router as invites_router
 from src.api.notifications.routes import router as notifications_router
 from src.api.payments.routes import router as payments_router
 from src.api.profile.routes import router as profile_router
@@ -131,6 +132,7 @@ app.include_router(activities_router)  # Déjà préfixé avec /v1/trips
 app.include_router(accommodations_router)  # Déjà préfixé avec /v1/trips
 app.include_router(baggage_router)  # Déjà préfixé avec /v1/trips
 app.include_router(shares_router)  # Déjà préfixé avec /v1/trips
+app.include_router(invites_router)  # Préfixé avec /v1/invites
 app.include_router(budget_items_router)  # Déjà préfixé avec /v1/trips
 app.include_router(feedback_router)  # Déjà préfixé avec /v1/trips
 app.include_router(flight_searches_router)  # Déjà préfixé avec /v1/trips

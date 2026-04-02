@@ -13,7 +13,7 @@ from src.api.accommodations.schemas import (
     AccommodationUpdateRequest,
 )
 from src.api.auth.plan_guard import require_ai_quota
-from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access
+from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_editor_access
 from src.config.database import get_db
 from src.models.user import User
 from src.services.accommodations_service import AccommodationsService
@@ -32,7 +32,7 @@ router = APIRouter(prefix="/v1/trips", tags=["Accommodations"])
 )
 async def create_accommodation(
     request: AccommodationCreateRequest,
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     """Créer un hébergement."""
@@ -85,7 +85,7 @@ async def list_accommodations(
     description="Get AI-powered accommodation suggestions for a trip",
 )
 async def suggest_accommodations(
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     current_user: User = Depends(require_ai_quota),
     db: Session = Depends(get_db),
 ):
@@ -107,7 +107,7 @@ async def suggest_accommodations(
 async def update_accommodation(
     request: AccommodationUpdateRequest,
     accommodationId: UUID = Path(..., description="Accommodation ID"),
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     """Mettre à jour un hébergement."""
@@ -142,7 +142,7 @@ async def update_accommodation(
 )
 async def delete_accommodation(
     accommodationId: UUID = Path(..., description="Accommodation ID"),
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     """Supprimer un hébergement."""

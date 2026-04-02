@@ -226,3 +226,40 @@ class TestConfirmPaymentTest:
 
         assert response.status_code == 200
         mock_service.confirm_payment_with_test_card.assert_called_once()
+
+
+class TestRefundPayment:
+    """Tests for POST /v1/booking-intents/{intentId}/payment/refund."""
+
+    @patch("src.api.payments.routes.StripePaymentsService")
+    def test_refund_payment_success(self, mock_service, client, override_get_current_user, override_get_db):
+        """Test successful payment refund."""
+        intent_id = uuid.uuid4()
+        mock_intent = BookingIntent(id=intent_id, status="REFUNDED")
+        mock_service.refund_payment.return_value = mock_intent
+
+        response = client.post(f"/v1/booking-intents/{intent_id}/payment/refund", json={})
+        assert response.status_code == 200
+        data = response.json()
+        assert data["bookingIntent"]["status"] == "REFUNDED"
+        mock_service.refund_payment.assert_called_once()
+
+    @patch("src.api.payments.routes.StripePaymentsService")
+    def test_refund_payment_error(self, mock_service, client, override_get_current_user, override_get_db):
+        """Test refund error."""
+        intent_id = uuid.uuid4()
+        mock_service.refund_payment.side_effect = AppError("INVALID_STATUS", 400, "Must be CAPTURED")
+
+        response = client.post(f"/v1/booking-intents/{intent_id}/payment/refund", json={})
+        assert response.status_code == 400
+
+    @patch("src.api.payments.routes.StripePaymentsService")
+    def test_refund_payment_partial(self, mock_service, client, override_get_current_user, override_get_db):
+        """Test partial refund with amount."""
+        intent_id = uuid.uuid4()
+        mock_intent = BookingIntent(id=intent_id, status="REFUNDED")
+        mock_service.refund_payment.return_value = mock_intent
+
+        response = client.post(f"/v1/booking-intents/{intent_id}/payment/refund", json={"amount": 500, "reason": "requested_by_customer"})
+        assert response.status_code == 200
+        mock_service.refund_payment.assert_called_once()

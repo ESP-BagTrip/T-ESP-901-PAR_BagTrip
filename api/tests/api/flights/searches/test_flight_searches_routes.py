@@ -13,7 +13,7 @@ from src.api.flights.searches.routes import router as flight_searches_router
 from src.models.user import User
 from src.utils.errors import AppError
 from src.api.auth.middleware import get_current_user
-from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access
+from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access, get_trip_editor_access
 from src.config.database import get_db
 
 # Setup the test app
@@ -63,9 +63,11 @@ def trip_access(mock_trip_id):
     access = TripAccess(trip=mock_trip, role=TripRole.OWNER)
     app.dependency_overrides[get_trip_access] = lambda: access
     app.dependency_overrides[get_trip_owner_access] = lambda: access
+    app.dependency_overrides[get_trip_editor_access] = lambda: access
     yield access
     app.dependency_overrides.pop(get_trip_access, None)
     app.dependency_overrides.pop(get_trip_owner_access, None)
+    app.dependency_overrides.pop(get_trip_editor_access, None)
 
 
 @patch("src.api.flights.searches.routes.FlightSearchService")

@@ -158,16 +158,57 @@ class TestStripePaymentsService:
             stripe_payment_intent_id="pi_123"
         )
         mock_db_session.query.return_value.filter.return_value.first.return_value = intent
-        
+
         mock_pi = MagicMock()
         mock_pi.status = "requires_capture"
         mock_pi.id = "pi_123"
         mock_pi.client_secret = "secret"
         mock_confirm.return_value = mock_pi
-        
+
         result = StripePaymentsService.confirm_payment_with_test_card(
             mock_db_session, intent.id, uuid.uuid4()
         )
-        
+
         assert result["status"] == "requires_capture"
         assert intent.status == "AUTHORIZED"
+
+    @patch("src.services.stripe_payments_service.StripeClient")
+    def test_refund_payment_success(self, mock_client, mock_db_session):
+        """Test successful payment refund."""
+        intent = BookingIntent(
+            id=uuid.uuid4(),
+            status="CAPTURED",
+            stripe_charge_id="ch_123"
+        )
+        mock_db_session.query.return_value.filter.return_value.first.return_value = intent
+        mock_client.create_refund.return_value = MagicMock()
+
+        result = StripePaymentsService.refund_payment(mock_db_session, intent.id, uuid.uuid4())
+        assert result.status == "REFUNDED"
+        mock_client.create_refund.assert_called_once_with(charge_id="ch_123", amount=None, reason=None)
+
+    def test_refund_payment_invalid_status(self, mock_db_session):
+        """Test refund error when status is not CAPTURED."""
+        intent = BookingIntent(status="AUTHORIZED", stripe_charge_id="ch_123")
+        mock_db_session.query.return_value.filter.return_value.first.return_value = intent
+
+        with pytest.raises(AppError) as exc:
+            StripePaymentsService.refund_payment(mock_db_session, uuid.uuid4(), uuid.uuid4())
+        assert exc.value.code == "INVALID_STATUS"
+
+    def test_refund_payment_missing_charge_id(self, mock_db_session):
+        """Test refund error when no charge ID."""
+        intent = BookingIntent(status="CAPTURED", stripe_charge_id=None)
+        mock_db_session.query.return_value.filter.return_value.first.return_value = intent
+
+        with pytest.raises(AppError) as exc:
+            StripePaymentsService.refund_payment(mock_db_session, uuid.uuid4(), uuid.uuid4())
+        assert exc.value.code == "MISSING_CHARGE_ID"
+
+    def test_refund_payment_not_found(self, mock_db_session):
+        """Test refund error when booking intent not found."""
+        mock_db_session.query.return_value.filter.return_value.first.return_value = None
+
+        with pytest.raises(AppError) as exc:
+            StripePaymentsService.refund_payment(mock_db_session, uuid.uuid4(), uuid.uuid4())
+        assert exc.value.code == "BOOKING_INTENT_NOT_FOUND"

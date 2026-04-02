@@ -5,7 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Path, status
 from sqlalchemy.orm import Session
 
-from src.api.auth.trip_access import TripAccess, get_trip_access, get_trip_owner_access
+from src.api.auth.trip_access import TripAccess, get_trip_access, get_trip_editor_access
 from src.api.travelers.schemas import (
     TravelerCreateRequest,
     TravelerListResponse,
@@ -28,7 +28,7 @@ router = APIRouter(prefix="/v1/trips", tags=["Travelers"])
 )
 async def create_traveler(
     request: TravelerCreateRequest,
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     """Créer un traveler selon PLAN.md."""
@@ -77,7 +77,7 @@ async def list_travelers(
 async def update_traveler(
     request: TravelerUpdateRequest,
     travelerId: UUID = Path(..., description="Traveler ID"),
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     """Mettre à jour un traveler selon PLAN.md."""
@@ -108,7 +108,7 @@ async def update_traveler(
 )
 async def delete_traveler(
     travelerId: UUID = Path(..., description="Traveler ID"),
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     """Supprimer un traveler selon PLAN.md."""

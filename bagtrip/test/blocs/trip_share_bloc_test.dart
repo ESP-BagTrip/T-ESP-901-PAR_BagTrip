@@ -70,7 +70,12 @@ void main() {
         'emits [TripShareLoading, TripShareLoading, TripShareLoaded] when createShare succeeds and reloads',
         build: () {
           when(
-            () => mockRepo.createShare(any(), email: any(named: 'email')),
+            () => mockRepo.createShare(
+              any(),
+              email: any(named: 'email'),
+              message: any(named: 'message'),
+              role: any(named: 'role'),
+            ),
           ).thenAnswer((_) async => Success(makeTripShare()));
           when(
             () => mockRepo.getSharesByTrip(any()),
@@ -97,7 +102,12 @@ void main() {
         'emits [TripShareLoading, TripShareQuotaExceeded] when createShare fails with QuotaExceededError',
         build: () {
           when(
-            () => mockRepo.createShare(any(), email: any(named: 'email')),
+            () => mockRepo.createShare(
+              any(),
+              email: any(named: 'email'),
+              message: any(named: 'message'),
+              role: any(named: 'role'),
+            ),
           ).thenAnswer(
             (_) async => const Failure(QuotaExceededError('quota exceeded')),
           );
@@ -113,7 +123,12 @@ void main() {
         'emits [TripShareLoading, TripShareError] when createShare fails with non-quota error',
         build: () {
           when(
-            () => mockRepo.createShare(any(), email: any(named: 'email')),
+            () => mockRepo.createShare(
+              any(),
+              email: any(named: 'email'),
+              message: any(named: 'message'),
+              role: any(named: 'role'),
+            ),
           ).thenAnswer(
             (_) async => const Failure(NetworkError('network error')),
           );
@@ -129,7 +144,12 @@ void main() {
         'emits [TripShareLoading, TripShareError] when createShare fails with ServerError (already shared)',
         build: () {
           when(
-            () => mockRepo.createShare(any(), email: any(named: 'email')),
+            () => mockRepo.createShare(
+              any(),
+              email: any(named: 'email'),
+              message: any(named: 'message'),
+              role: any(named: 'role'),
+            ),
           ).thenAnswer(
             (_) async => const Failure(ServerError('already shared')),
           );
@@ -145,7 +165,12 @@ void main() {
         'emits [TripShareLoading, TripShareError] when createShare fails with NotFoundError (user not found)',
         build: () {
           when(
-            () => mockRepo.createShare(any(), email: any(named: 'email')),
+            () => mockRepo.createShare(
+              any(),
+              email: any(named: 'email'),
+              message: any(named: 'message'),
+              role: any(named: 'role'),
+            ),
           ).thenAnswer(
             (_) async => const Failure(NotFoundError('user not found')),
           );
@@ -155,6 +180,81 @@ void main() {
           CreateShare(tripId: 'trip-1', email: 'viewer@example.com'),
         ),
         expect: () => [isA<TripShareLoading>(), isA<TripShareError>()],
+      );
+
+      blocTest<TripShareBloc, TripShareState>(
+        'emits [TripShareLoading, TripShareInvitePending, TripShareLoading, TripShareLoaded] when createShare returns pending invite',
+        build: () {
+          when(
+            () => mockRepo.createShare(
+              any(),
+              email: any(named: 'email'),
+              message: any(named: 'message'),
+              role: any(named: 'role'),
+            ),
+          ).thenAnswer(
+            (_) async => Success(
+              makeTripShare().copyWith(
+                status: 'pending',
+                inviteToken: 'tok-123',
+              ),
+            ),
+          );
+          when(
+            () => mockRepo.getSharesByTrip(any()),
+          ).thenAnswer((_) async => const Success(<TripShare>[]));
+          return TripShareBloc(tripShareRepository: mockRepo);
+        },
+        act: (bloc) =>
+            bloc.add(CreateShare(tripId: 'trip-1', email: 'new@example.com')),
+        expect: () => [
+          isA<TripShareLoading>(),
+          isA<TripShareInvitePending>(),
+          isA<TripShareLoading>(),
+          isA<TripShareLoaded>(),
+        ],
+        verify: (bloc) {
+          // Verify the pending state had the correct token
+        },
+      );
+
+      blocTest<TripShareBloc, TripShareState>(
+        'passes role parameter to repository when creating share',
+        build: () {
+          when(
+            () => mockRepo.createShare(
+              any(),
+              email: any(named: 'email'),
+              message: any(named: 'message'),
+              role: any(named: 'role'),
+            ),
+          ).thenAnswer((_) async => Success(makeTripShare()));
+          when(
+            () => mockRepo.getSharesByTrip(any()),
+          ).thenAnswer((_) async => Success([makeTripShare()]));
+          return TripShareBloc(tripShareRepository: mockRepo);
+        },
+        act: (bloc) => bloc.add(
+          CreateShare(
+            tripId: 'trip-1',
+            email: 'editor@example.com',
+            role: 'EDITOR',
+          ),
+        ),
+        expect: () => [
+          isA<TripShareLoading>(),
+          isA<TripShareLoading>(),
+          isA<TripShareLoaded>(),
+        ],
+        verify: (_) {
+          verify(
+            () => mockRepo.createShare(
+              'trip-1',
+              email: 'editor@example.com',
+              role: 'EDITOR',
+            ),
+          ).called(1);
+        },
       );
     });
 

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Path, status
 from sqlalchemy.orm import Session
 
 from src.api.auth.plan_guard import require_ai_quota
-from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access
+from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_editor_access
 from src.api.budget_items.schemas import (
     AcceptEstimateRequest,
     BudgetEstimateResponse,
@@ -31,7 +31,7 @@ router = APIRouter(prefix="/v1/trips", tags=["BudgetItems"])
 )
 async def create_budget_item(
     request: BudgetItemCreateRequest,
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     try:
@@ -106,7 +106,7 @@ async def get_budget_item(
 async def update_budget_item(
     request: BudgetItemUpdateRequest,
     itemId: UUID = Path(..., description="Budget item ID"),
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     try:
@@ -132,7 +132,7 @@ async def update_budget_item(
 )
 async def delete_budget_item(
     itemId: UUID = Path(..., description="Budget item ID"),
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     try:
@@ -149,7 +149,7 @@ async def delete_budget_item(
     description="Get an AI-powered budget estimation for a trip",
 )
 async def estimate_budget(
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     current_user: User = Depends(require_ai_quota),
     db: Session = Depends(get_db),
 ):
@@ -208,7 +208,7 @@ async def estimate_budget(
 )
 async def accept_budget_estimate(
     request: AcceptEstimateRequest,
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     """Accept AI budget estimation and update trip budget_total."""

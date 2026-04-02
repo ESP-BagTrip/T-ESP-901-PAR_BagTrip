@@ -11,6 +11,8 @@ from src.api.payments.schemas import (
     PaymentAuthorizeResponse,
     PaymentCancelResponse,
     PaymentCaptureResponse,
+    PaymentRefundRequest,
+    PaymentRefundResponse,
 )
 from src.config.database import get_db
 from src.config.env import settings
@@ -95,6 +97,37 @@ async def cancel_payment(
             user_id=current_user.id,
         )
         return PaymentCancelResponse(
+            bookingIntent={
+                "id": str(booking_intent.id),
+                "status": booking_intent.status,
+            }
+        )
+    except AppError as e:
+        raise create_http_exception(e) from e
+
+
+@router.post(
+    "/{intentId}/payment/refund",
+    response_model=PaymentRefundResponse,
+    summary="Refund payment",
+    description="Refund a captured Stripe payment (full or partial)",
+)
+async def refund_payment(
+    request: PaymentRefundRequest,
+    intentId: UUID = Path(..., description="Booking Intent ID"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Rembourser un paiement capturé."""
+    try:
+        booking_intent = StripePaymentsService.refund_payment(
+            db=db,
+            intent_id=intentId,
+            user_id=current_user.id,
+            amount=request.amount,
+            reason=request.reason,
+        )
+        return PaymentRefundResponse(
             bookingIntent={
                 "id": str(booking_intent.id),
                 "status": booking_intent.status,

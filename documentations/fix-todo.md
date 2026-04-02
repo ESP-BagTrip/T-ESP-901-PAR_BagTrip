@@ -164,22 +164,22 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | ~~Tests notifications absents~~          | ~~Pas de tests `NotificationBloc` ni `TripNotificationScheduler`~~ | `bagtrip/test/`                                                    | ✅ Tests existants : `notification_bloc_test.dart` (361 lignes), `trip_notification_scheduler_test.dart` (309 lignes), `notification_model_test.dart` (82 lignes) |
 
 
-### Partage
+### ~~Partage~~ ✅ Resolu
 
 
-| Element                        | Description                                       | Fichier                                        |
-| ------------------------------ | ------------------------------------------------- | ---------------------------------------------- |
-| Role EDITOR absent             | Seuls OWNER et VIEWER — pas de role intermediaire | `api/src/enums.py:48-49`                       |
-| Invitation par lien impossible | Email uniquement — erreur si non-inscrit          | `api/src/services/trip_share_service.py:33-35` |
+| Element                        | Description                                       | Fichier                                        | Statut |
+| ------------------------------ | ------------------------------------------------- | ---------------------------------------------- | ------ |
+| ~~Role EDITOR absent~~             | ~~Seuls OWNER et VIEWER — pas de role intermediaire~~ | `api/src/enums.py:48-49`                       | ✅ `EDITOR` ajoute a `ShareRole` + `TripRole`, `get_trip_editor_access` dependency, 27 endpoints migres, role picker dans invite sheet, `canEdit` getter Flutter |
+| ~~Invitation par lien impossible~~ | ~~Email uniquement — erreur si non-inscrit~~          | `api/src/services/trip_share_service.py:33-35` | ✅ `PendingInvite` model + migration 0024, token UUID, auto-claim a l'inscription (3 chemins auth), `POST /v1/invites/{token}/accept`, pending invite UI |
 
 
-### Paiements
+### ~~Paiements~~ ✅ Resolu
 
 
-| Element                         | Description                                               | Fichier                                       |
-| ------------------------------- | --------------------------------------------------------- | --------------------------------------------- |
-| Pas de refund Stripe            | Aucun endpoint ni service pour les remboursements         | `api/src/services/stripe_payments_service.py` |
-| Tests backend paiements absents | Aucun test pour les routes paiement/subscription/webhooks | `api/`                                        |
+| Element                         | Description                                               | Fichier                                       | Statut |
+| ------------------------------- | --------------------------------------------------------- | --------------------------------------------- | ------ |
+| ~~Pas de refund Stripe~~            | ~~Aucun endpoint ni service pour les remboursements~~         | `api/src/services/stripe_payments_service.py` | ✅ `REFUNDED` enum, `StripeClient.create_refund()`, `refund_payment()` service, `POST /{intentId}/payment/refund` route, `charge.refunded` webhook handling |
+| ~~Tests backend paiements absents~~ | ~~Aucun test pour les routes paiement/subscription/webhooks~~ | `api/`                                        | ✅ Tests subscription routes (6), subscription service (7), webhook subscription events (5), refund route/service/webhook (9), Stripe client refund (2) = 29 nouveaux tests |
 
 
 ### Post-trip
@@ -397,7 +397,7 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | Priorite | Nombre |
 |----------|--------|
 | P0 | 3 (17 - 3 securite ✅ - 6 features ✅ - 4 UX critique ✅ - 1 home & trip detail ✅) |
-| P1 | 35 (62 - 6 creation voyage & IA ✅ - 6 home & trip detail ✅ - 3 donnees non persistees ✅ - 4 activites & in-trip ✅ - 3 vols & transports ✅ - 5 notifications ✅) |
+| P1 | 31 (62 - 6 creation voyage & IA ✅ - 6 home & trip detail ✅ - 3 donnees non persistees ✅ - 4 activites & in-trip ✅ - 3 vols & transports ✅ - 5 notifications ✅ - 2 partage ✅ - 2 paiements ✅) |
 | P2 | 80+ |
 | **Total** | **~160** |
 
@@ -416,8 +416,8 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | Hebergements | 0 | 2 | 4 |
 | Bagages & Budget | 1 | 2 | 7 |
 | Notifications | 3 | ~~5~~ 0 ✅ | 5 |
-| Partage | 0 | 2 | 6 |
-| Paiements | ~~2~~ 0 ✅ | 2 | 5 |
+| Partage | 0 | ~~2~~ 0 ✅ | 6 |
+| Paiements | ~~2~~ 0 ✅ | ~~2~~ 0 ✅ | 5 |
 | Post-trip | 0 | 5 | 3 |
 | Profil | 0 | 2 | 2 |
 | Technique mobile | 1 | 11 | 25+ |

@@ -2835,6 +2835,31 @@ class AppLocalizationsFr extends AppLocalizations {
   String get shareInviteSendButton => 'Envoyer l\'invitation';
 
   @override
+  String get shareRoleViewer => 'Lecteur';
+
+  @override
+  String get shareRoleEditor => 'Éditeur';
+
+  @override
+  String get shareInviteRoleLabel => 'Rôle';
+
+  @override
+  String get shareInvitePendingTitle => 'Invitation envoyée';
+
+  @override
+  String get shareInvitePendingMessage =>
+      'Cette personne n\'est pas encore inscrite. Elle aura accès en s\'inscrivant.';
+
+  @override
+  String get shareInviteCopyLink => 'Copier le lien d\'invitation';
+
+  @override
+  String get shareInviteLinkCopied => 'Lien d\'invitation copié';
+
+  @override
+  String get sharePendingBadge => 'En attente';
+
+  @override
   String get shareErrorUserNotFound =>
       'Cette personne doit d\'abord créer un compte';
 

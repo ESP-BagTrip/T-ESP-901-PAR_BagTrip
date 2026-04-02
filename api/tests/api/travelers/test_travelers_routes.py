@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 
 from src.api.travelers.routes import router as travelers_router
 from src.api.auth.middleware import get_current_user
-from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access
+from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access, get_trip_editor_access
 from src.config.database import get_db
 from src.models.user import User
 from src.utils.errors import AppError
@@ -90,6 +90,7 @@ def override_trip_access(mock_trip_access):
     """Override both get_trip_access and get_trip_owner_access."""
     app.dependency_overrides[get_trip_access] = lambda: mock_trip_access
     app.dependency_overrides[get_trip_owner_access] = lambda: mock_trip_access
+    app.dependency_overrides[get_trip_editor_access] = lambda: mock_trip_access
     yield
     app.dependency_overrides = {}
 

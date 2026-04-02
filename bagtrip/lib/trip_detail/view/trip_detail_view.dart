@@ -121,7 +121,7 @@ class _LoadedContentState extends State<_LoadedContent> {
   String get tripId => widget.tripId;
   TripDetailLoaded get state => widget.state;
 
-  bool get _canEdit => state.isOwner && !state.isCompleted;
+  bool get _canEdit => state.canEdit;
 
   String _formatDate(DateTime? date) {
     if (date == null) return '';
@@ -252,7 +252,7 @@ class _LoadedContentState extends State<_LoadedContent> {
               onPressed: () => const HomeRoute().go(context),
             ),
             actions: [
-              if (!state.isViewer)
+              if (state.isOwner)
                 IconButton(
                   icon: Icon(
                     AdaptivePlatform.isIOS ? CupertinoIcons.share : Icons.share,
@@ -430,7 +430,7 @@ class _LoadedContentState extends State<_LoadedContent> {
           ),
 
           // ── Completion bar ──────────────────────────────────────
-          if (!state.isViewer)
+          if (_canEdit)
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(
@@ -470,7 +470,7 @@ class _LoadedContentState extends State<_LoadedContent> {
                   activities: state.activities,
                   selectedDayIndex: state.selectedDayIndex,
                   totalDays: state.totalDays,
-                  isOwner: state.isOwner,
+                  isOwner: _canEdit,
                   isCompleted: state.isCompleted,
                   tripId: tripId,
                 ),
@@ -498,7 +498,7 @@ class _LoadedContentState extends State<_LoadedContent> {
                           flights: state.flights,
                           tripId: tripId,
                           trip: trip,
-                          isOwner: state.isOwner,
+                          isOwner: _canEdit,
                           isCompleted: state.isCompleted,
                         )
                       : const _DeferredSectionShimmer(),
@@ -519,7 +519,7 @@ class _LoadedContentState extends State<_LoadedContent> {
                           accommodations: state.accommodations,
                           tripId: tripId,
                           trip: trip,
-                          isOwner: state.isOwner,
+                          isOwner: _canEdit,
                           isCompleted: state.isCompleted,
                         )
                       : const _DeferredSectionShimmer(),
@@ -563,7 +563,7 @@ class _LoadedContentState extends State<_LoadedContent> {
                           baggageItems: state.baggageItems,
                           tripId: tripId,
                           trip: trip,
-                          isOwner: state.isOwner,
+                          isOwner: _canEdit,
                           isCompleted: state.isCompleted,
                         )
                       : const _DeferredSectionShimmer(),
@@ -584,7 +584,7 @@ class _LoadedContentState extends State<_LoadedContent> {
                           budgetSummary: state.budgetSummary,
                           tripId: tripId,
                           trip: trip,
-                          isOwner: state.isOwner,
+                          isOwner: _canEdit,
                           isCompleted: state.isCompleted,
                         )
                       : const _DeferredSectionShimmer(),
@@ -642,7 +642,7 @@ class _LoadedContentState extends State<_LoadedContent> {
           ),
 
           // ── Status action buttons ───────────────────────────────
-          if (trip.status == TripStatus.draft && !state.isViewer)
+          if (trip.status == TripStatus.draft && _canEdit)
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(
@@ -689,7 +689,7 @@ class _LoadedContentState extends State<_LoadedContent> {
               ),
             ),
 
-          if (trip.status == TripStatus.ongoing && !state.isViewer)
+          if (trip.status == TripStatus.ongoing && _canEdit)
             SliverToBoxAdapter(
               child: Padding(
                 padding: AppSpacing.allEdgeInsetSpace24,
@@ -726,7 +726,7 @@ class _LoadedContentState extends State<_LoadedContent> {
               ),
             ),
 
-          if (trip.status == TripStatus.draft && !state.isViewer)
+          if (trip.status == TripStatus.draft && state.isOwner)
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(

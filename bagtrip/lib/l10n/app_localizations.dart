@@ -5312,6 +5312,54 @@ abstract class AppLocalizations {
   /// **'Envoyer l\'invitation'**
   String get shareInviteSendButton;
 
+  /// No description provided for @shareRoleViewer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lecteur'**
+  String get shareRoleViewer;
+
+  /// No description provided for @shareRoleEditor.
+  ///
+  /// In fr, this message translates to:
+  /// **'Éditeur'**
+  String get shareRoleEditor;
+
+  /// No description provided for @shareInviteRoleLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rôle'**
+  String get shareInviteRoleLabel;
+
+  /// No description provided for @shareInvitePendingTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Invitation envoyée'**
+  String get shareInvitePendingTitle;
+
+  /// No description provided for @shareInvitePendingMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette personne n\'est pas encore inscrite. Elle aura accès en s\'inscrivant.'**
+  String get shareInvitePendingMessage;
+
+  /// No description provided for @shareInviteCopyLink.
+  ///
+  /// In fr, this message translates to:
+  /// **'Copier le lien d\'invitation'**
+  String get shareInviteCopyLink;
+
+  /// No description provided for @shareInviteLinkCopied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lien d\'invitation copié'**
+  String get shareInviteLinkCopied;
+
+  /// No description provided for @sharePendingBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente'**
+  String get sharePendingBadge;
+
   /// No description provided for @shareErrorUserNotFound.
   ///
   /// In fr, this message translates to:
