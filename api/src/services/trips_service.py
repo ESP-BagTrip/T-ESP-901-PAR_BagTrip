@@ -425,7 +425,7 @@ class TripsService:
                         notif_type=NotificationType.TRIP_STARTED,
                         title="Bon voyage !",
                         body=f"Votre voyage « {trip.title or 'sans titre'} » commence aujourd'hui !",
-                        data={"screen": "trip_home", "tripId": str(trip.id)},
+                        data={"screen": "tripHome", "tripId": str(trip.id)},
                     )
                 except Exception:
                     pass

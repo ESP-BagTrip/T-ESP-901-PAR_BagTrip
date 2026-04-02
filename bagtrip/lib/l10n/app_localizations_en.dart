@@ -1168,6 +1168,24 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get notificationsJustNow => 'Just now';
+
+  @override
+  String notificationsMinutesAgo(int count) {
+    return '$count min ago';
+  }
+
+  @override
+  String notificationsHoursAgo(int count) {
+    return '${count}h ago';
+  }
+
+  @override
+  String notificationsShortDaysAgo(int count) {
+    return '${count}d ago';
+  }
+
+  @override
   String get baggageTitle => 'Luggage';
 
   @override

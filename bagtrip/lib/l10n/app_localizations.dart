@@ -2270,6 +2270,30 @@ abstract class AppLocalizations {
   /// **'Il y a {count} jours'**
   String notificationsDaysAgo(int count);
 
+  /// No description provided for @notificationsJustNow.
+  ///
+  /// In fr, this message translates to:
+  /// **'À l\'instant'**
+  String get notificationsJustNow;
+
+  /// No description provided for @notificationsMinutesAgo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il y a {count} min'**
+  String notificationsMinutesAgo(int count);
+
+  /// No description provided for @notificationsHoursAgo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il y a {count}h'**
+  String notificationsHoursAgo(int count);
+
+  /// No description provided for @notificationsShortDaysAgo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il y a {count}j'**
+  String notificationsShortDaysAgo(int count);
+
   /// No description provided for @baggageTitle.
   ///
   /// In fr, this message translates to:

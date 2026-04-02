@@ -152,16 +152,16 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | ~~Endpoint estimation IA budget~~   | ~~Non visible dans les routes budget~~                                 | `api/src/api/budget_items/routes.py`         | ✅ `POST /v1/trips/{tripId}/budget/estimate` (AI quota guard + budget_node) + `POST /v1/trips/{tripId}/budget/estimate/accept` (set trip budget_total) |
 
 
-### Notifications
+### ~~Notifications~~ ✅ Resolu
 
 
-| Element                              | Description                                                    | Fichier                                                            |
-| ------------------------------------ | -------------------------------------------------------------- | ------------------------------------------------------------------ |
-| Temps relatif en dur en francais     | "A l'instant", "Il y a X min" hardcodes                        | `bagtrip/lib/notifications/widgets/notification_card.dart:171-175` |
-| Fichier doublon `activity_page.dart` | Copie exacte de `notifications_page.dart`                      | `bagtrip/lib/notifications/view/activity_page.dart`                |
-| Deep links incomplets                | Baggage/map non geres dans `_onTap()`                          | `bagtrip/lib/notifications/widgets/notification_card.dart:151-166` |
-| `TRIP_STARTED` non envoye            | Defini dans l'enum mais jamais utilise                         | `api/src/jobs/`                                                    |
-| Tests notifications absents          | Pas de tests `NotificationBloc` ni `TripNotificationScheduler` | `bagtrip/test/`                                                    |
+| Element                              | Description                                                    | Fichier                                                            | Statut |
+| ------------------------------------ | -------------------------------------------------------------- | ------------------------------------------------------------------ | ------ |
+| ~~Temps relatif en dur en francais~~     | ~~"A l'instant", "Il y a X min" hardcodes~~                        | `bagtrip/lib/notifications/widgets/notification_card.dart:171-175` | ✅ l10n keys `notificationsJustNow`, `notificationsMinutesAgo`, `notificationsHoursAgo`, `notificationsShortDaysAgo` + `_relativeTime()` utilise `AppLocalizations` |
+| ~~Fichier doublon `activity_page.dart`~~ | ~~Copie exacte de `notifications_page.dart`~~                      | `bagtrip/lib/notifications/view/activity_page.dart`                | ✅ Fichier supprime, `ActivityRoute` utilise `NotificationsPage` directement |
+| ~~Deep links incomplets~~                | ~~Baggage/map non geres dans `_onTap()`~~                          | `bagtrip/lib/notifications/widgets/notification_card.dart:151-166` | ✅ Cases `baggage`, `map`, `accommodations`, `transports` ajoutes + icones/couleurs `TRIP_STARTED` et `TRIP_SHARED` |
+| ~~`TRIP_STARTED` non envoye~~            | ~~Defini dans l'enum mais jamais utilise~~                         | `api/src/jobs/`                                                    | ✅ Deja implemente dans `trips_service.py:414-431` (PLANNED→ONGOING) + fix screen `"tripHome"` coherent |
+| ~~Tests notifications absents~~          | ~~Pas de tests `NotificationBloc` ni `TripNotificationScheduler`~~ | `bagtrip/test/`                                                    | ✅ Tests existants : `notification_bloc_test.dart` (361 lignes), `trip_notification_scheduler_test.dart` (309 lignes), `notification_model_test.dart` (82 lignes) |
 
 
 ### Partage
@@ -397,7 +397,7 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | Priorite | Nombre |
 |----------|--------|
 | P0 | 3 (17 - 3 securite ✅ - 6 features ✅ - 4 UX critique ✅ - 1 home & trip detail ✅) |
-| P1 | 40 (62 - 6 creation voyage & IA ✅ - 6 home & trip detail ✅ - 3 donnees non persistees ✅ - 4 activites & in-trip ✅ - 3 vols & transports ✅) |
+| P1 | 35 (62 - 6 creation voyage & IA ✅ - 6 home & trip detail ✅ - 3 donnees non persistees ✅ - 4 activites & in-trip ✅ - 3 vols & transports ✅ - 5 notifications ✅) |
 | P2 | 80+ |
 | **Total** | **~160** |
 
@@ -415,7 +415,7 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | Vols & Transports | 0 | ~~3~~ 0 ✅ | 5 |
 | Hebergements | 0 | 2 | 4 |
 | Bagages & Budget | 1 | 2 | 7 |
-| Notifications | 3 | 5 | 5 |
+| Notifications | 3 | ~~5~~ 0 ✅ | 5 |
 | Partage | 0 | 2 | 6 |
 | Paiements | ~~2~~ 0 ✅ | 2 | 5 |
 | Post-trip | 0 | 5 | 3 |

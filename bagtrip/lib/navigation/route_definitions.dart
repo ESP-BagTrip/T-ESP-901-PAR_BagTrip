@@ -8,7 +8,6 @@ import 'package:bagtrip/flight_search_result/models/flight.dart';
 import 'package:bagtrip/flight_search_result/models/flight_search_arguments.dart';
 import 'package:bagtrip/home/view/home_page.dart';
 import 'package:bagtrip/navigation/page_transitions.dart';
-import 'package:bagtrip/notifications/view/activity_page.dart';
 import 'package:bagtrip/notifications/view/notifications_page.dart';
 import 'package:bagtrip/accommodations/view/accommodations_page.dart';
 import 'package:bagtrip/baggage/view/baggage_page.dart';
@@ -381,7 +380,7 @@ class ActivityRoute extends GoRouteData with $ActivityRoute {
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      const NoTransitionPage(child: ActivityPage());
+      const NoTransitionPage(child: NotificationsPage());
 }
 
 // ---------------------------------------------------------------------------

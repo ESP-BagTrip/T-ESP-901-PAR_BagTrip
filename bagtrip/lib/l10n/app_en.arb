@@ -468,6 +468,25 @@
       "count": {"type": "int"}
     }
   },
+  "notificationsJustNow": "Just now",
+  "notificationsMinutesAgo": "{count} min ago",
+  "@notificationsMinutesAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "notificationsHoursAgo": "{count}h ago",
+  "@notificationsHoursAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "notificationsShortDaysAgo": "{count}d ago",
+  "@notificationsShortDaysAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "baggageTitle": "Luggage",
   "baggageSuggestionsTooltip": "AI Suggestions",
   "baggageCategoryDocuments": "Documents",

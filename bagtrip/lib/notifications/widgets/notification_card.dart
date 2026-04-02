@@ -1,4 +1,5 @@
 import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/notification.dart';
 import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
 import 'package:flutter/material.dart';
@@ -65,7 +66,10 @@ class NotificationCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _relativeTime(notification.createdAt ?? DateTime.now()),
+                    _relativeTime(
+                      context,
+                      notification.createdAt ?? DateTime.now(),
+                    ),
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.outline,
                     ),
@@ -103,8 +107,12 @@ class NotificationCard extends StatelessWidget {
         return Icons.event;
       case 'BUDGET_ALERT':
         return Icons.account_balance_wallet;
+      case 'TRIP_STARTED':
+        return Icons.play_circle;
       case 'TRIP_ENDED':
         return Icons.check_circle;
+      case 'TRIP_SHARED':
+        return Icons.group_add;
       default:
         return Icons.notifications;
     }
@@ -124,8 +132,12 @@ class NotificationCard extends StatelessWidget {
         return AppColors.success;
       case 'BUDGET_ALERT':
         return AppColors.warning;
+      case 'TRIP_STARTED':
+        return AppColors.success;
       case 'TRIP_ENDED':
         return AppColors.categoryActivityDark;
+      case 'TRIP_SHARED':
+        return AppColors.info;
       default:
         return theme.colorScheme.primary;
     }
@@ -161,17 +173,32 @@ class NotificationCard extends StatelessWidget {
       case 'feedback':
         FeedbackRoute(tripId: tripId).go(context);
         break;
+      case 'baggage':
+        BaggageRoute(tripId: tripId).go(context);
+        break;
+      case 'map':
+        MapRoute(tripId: tripId).go(context);
+        break;
+      case 'accommodations':
+        AccommodationsRoute(tripId: tripId).go(context);
+        break;
+      case 'transports':
+        TransportsRoute(tripId: tripId).go(context);
+        break;
       default:
         TripHomeRoute(tripId: tripId).go(context);
     }
   }
 
-  String _relativeTime(DateTime dateTime) {
+  String _relativeTime(BuildContext context, DateTime dateTime) {
+    final l10n = AppLocalizations.of(context)!;
     final diff = DateTime.now().difference(dateTime);
-    if (diff.inMinutes < 1) return "À l'instant";
-    if (diff.inMinutes < 60) return 'Il y a ${diff.inMinutes} min';
-    if (diff.inHours < 24) return 'Il y a ${diff.inHours}h';
-    if (diff.inDays < 7) return 'Il y a ${diff.inDays}j';
+    if (diff.inMinutes < 1) return l10n.notificationsJustNow;
+    if (diff.inMinutes < 60) {
+      return l10n.notificationsMinutesAgo(diff.inMinutes);
+    }
+    if (diff.inHours < 24) return l10n.notificationsHoursAgo(diff.inHours);
+    if (diff.inDays < 7) return l10n.notificationsShortDaysAgo(diff.inDays);
     return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
   }
 }
