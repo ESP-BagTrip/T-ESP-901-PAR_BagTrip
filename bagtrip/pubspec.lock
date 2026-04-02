@@ -289,6 +289,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.12"
+  dead_code_analyzer:
+    dependency: "direct dev"
+    description:
+      name: dead_code_analyzer
+      sha256: "5207b146f4e014ab252e9202fb5732897a688e2ec468cecb176f77628c5c96f2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.2"
   diff_match_patch:
     dependency: transitive
     description:
