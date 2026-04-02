@@ -23,6 +23,12 @@ abstract final class AppAnimations {
   /// Empty states, halo fade-in.
   static const Duration fadeIn = Duration(milliseconds: 400);
 
+  /// Wizard shell: title row + step indicator slide/fade in.
+  static const Duration fadeDown = Duration(milliseconds: 360);
+
+  /// Badge scale-in (dates step).
+  static const Duration badgeScaleIn = Duration(milliseconds: 320);
+
   /// Quick scale/press feedback.
   static const Duration pressFeedback = Duration(milliseconds: 150);
 }

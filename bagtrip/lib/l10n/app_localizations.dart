@@ -3176,6 +3176,18 @@ abstract class AppLocalizations {
   /// **'DATES'**
   String get datesLabel;
 
+  /// No description provided for @datesChooseDatePlaceholder.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir une date'**
+  String get datesChooseDatePlaceholder;
+
+  /// No description provided for @tripNightsCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 nuit} other{{count} nuits}}'**
+  String tripNightsCount(int count);
+
   /// No description provided for @suggestedDuration.
   ///
   /// In fr, this message translates to:

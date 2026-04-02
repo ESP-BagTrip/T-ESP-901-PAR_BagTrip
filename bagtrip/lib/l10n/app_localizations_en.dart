@@ -1647,6 +1647,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get datesLabel => 'DATES';
 
   @override
+  String get datesChooseDatePlaceholder => 'Choose a date';
+
+  @override
+  String tripNightsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nights',
+      one: '1 night',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get suggestedDuration => 'Suggested duration';
 
   @override

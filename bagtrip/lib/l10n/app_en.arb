@@ -659,6 +659,15 @@
   "planTripCtaSubtitle": "Manual or AI-assisted",
   "inspireMe": "Inspire me",
   "datesLabel": "DATES",
+  "datesChooseDatePlaceholder": "Choose a date",
+  "tripNightsCount": "{count, plural, =1{1 night} other{{count} nights}}",
+  "@tripNightsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "suggestedDuration": "Suggested duration",
   "days": "days",
   "reviewTitle": "Summary",

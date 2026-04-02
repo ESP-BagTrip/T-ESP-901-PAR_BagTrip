@@ -2,6 +2,7 @@ import 'package:bagtrip/design/app_animations.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/widgets/premium_step_indicator.dart';
 import 'package:bagtrip/design/widgets/step_header.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
@@ -89,37 +90,17 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
         builder: (context, state) {
           return Scaffold(
             backgroundColor: PersonalizationColors.gradientStart,
-            appBar: AppBar(
-              leading: IconButton(
-                icon: const Icon(Icons.close_rounded, size: 22),
-                onPressed: () => const HomeRoute().go(context),
-              ),
-              title: Text(
-                _stepTitle(state.currentStep, l10n),
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontFamily: FontFamily.b612,
-                  fontSize: 16,
-                  color: PersonalizationColors.textPrimary,
-                ),
-              ),
-              centerTitle: true,
-              elevation: 0,
-              scrolledUnderElevation: 0,
-              backgroundColor: PersonalizationColors.gradientStart,
-              foregroundColor: PersonalizationColors.textPrimary,
-            ),
             body: SafeArea(
               left: false,
               right: false,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: PremiumStepIndicator(
-                      current: state.currentStep + 1,
-                      total: state.totalSteps,
-                    ),
+                  _WizardNavAnimatedColumn(
+                    currentStep: state.currentStep,
+                    totalSteps: state.totalSteps,
+                    title: _stepTitle(state.currentStep, l10n),
+                    onClose: () => const HomeRoute().go(context),
                   ),
                   if (state.currentStep > 0 && state.currentStep < 4)
                     Padding(
@@ -236,5 +217,163 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
       BudgetPreset.premium => l10n.budgetPresetPremium,
       BudgetPreset.noLimit => l10n.budgetPresetNoLimit,
     };
+  }
+}
+
+class _WizardNavAnimatedColumn extends StatefulWidget {
+  const _WizardNavAnimatedColumn({
+    required this.currentStep,
+    required this.totalSteps,
+    required this.title,
+    required this.onClose,
+  });
+
+  final int currentStep;
+  final int totalSteps;
+  final String title;
+  final VoidCallback onClose;
+
+  @override
+  State<_WizardNavAnimatedColumn> createState() =>
+      _WizardNavAnimatedColumnState();
+}
+
+class _WizardNavAnimatedColumnState extends State<_WizardNavAnimatedColumn>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fade;
+  late Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: AppAnimations.fadeDown,
+    );
+    _fade = CurvedAnimation(
+      parent: _controller,
+      curve: AppAnimations.standardCurve,
+    );
+    _slide =
+        Tween<Offset>(
+          begin: const Offset(0, -0.06),
+          end: Offset.zero,
+        ).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: AppAnimations.standardCurve,
+          ),
+        );
+    _controller.forward();
+  }
+
+  @override
+  void didUpdateWidget(covariant _WizardNavAnimatedColumn oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentStep != widget.currentStep) {
+      _controller.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _fade,
+      child: SlideTransition(
+        position: _slide,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
+          child: Column(
+            children: [
+              SizedBox(
+                height: kToolbarHeight - 8,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: _PlanTripCloseButton(onPressed: widget.onClose),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 48),
+                      child: Text(
+                        widget.title,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: FontFamily.b612,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 17,
+                          color: PersonalizationColors.textPrimary,
+                          height: 1.2,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: PremiumStepIndicator(
+                  current: widget.currentStep + 1,
+                  total: widget.totalSteps,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PlanTripCloseButton extends StatelessWidget {
+  const _PlanTripCloseButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        customBorder: const CircleBorder(),
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: ColorName.primary.withValues(alpha: 0.12),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+              BoxShadow(
+                color: ColorName.secondary.withValues(alpha: 0.08),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: const Icon(
+            Icons.close_rounded,
+            size: 22,
+            color: PersonalizationColors.textPrimary,
+          ),
+        ),
+      ),
+    );
   }
 }
