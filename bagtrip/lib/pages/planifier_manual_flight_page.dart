@@ -23,6 +23,7 @@ class PlanifierManualFlightPage extends StatelessWidget {
         if (prefill != null) {
           bloc.add(
             InitWithPrefilledData(
+              tripId: prefill!.tripId,
               departureAirport: prefill!.originIata != null
                   ? {
                       'iataCode': prefill!.originIata,

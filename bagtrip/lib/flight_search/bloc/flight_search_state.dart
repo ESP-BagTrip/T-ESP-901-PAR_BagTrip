@@ -6,6 +6,7 @@ sealed class FlightSearchState {}
 final class FlightSearchInitial extends FlightSearchState {}
 
 final class FlightSearchLoaded extends FlightSearchState {
+  final String? tripId;
   final int tripTypeIndex;
   final int adults;
   final int children;
@@ -23,6 +24,7 @@ final class FlightSearchLoaded extends FlightSearchState {
   final bool showValidationErrors;
 
   FlightSearchLoaded({
+    this.tripId,
     this.tripTypeIndex = 0,
     this.adults = 1,
     this.children = 0,
@@ -42,6 +44,7 @@ final class FlightSearchLoaded extends FlightSearchState {
            multiDestSegments ?? [const FlightSegment(), const FlightSegment()];
 
   FlightSearchLoaded copyWith({
+    String? tripId,
     int? tripTypeIndex,
     int? adults,
     int? children,
@@ -60,6 +63,7 @@ final class FlightSearchLoaded extends FlightSearchState {
     bool? showValidationErrors,
   }) {
     return FlightSearchLoaded(
+      tripId: tripId ?? this.tripId,
       tripTypeIndex: tripTypeIndex ?? this.tripTypeIndex,
       adults: adults ?? this.adults,
       children: children ?? this.children,

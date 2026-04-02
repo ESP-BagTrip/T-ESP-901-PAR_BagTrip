@@ -499,6 +499,8 @@
   "baggagePacked": "Packed",
   "baggageSwipeToPack": "Swipe to pack",
   "baggageUnpack": "Unpack",
+  "baggageEditItemTitle": "Edit item",
+  "baggageItemUpdated": "Item updated",
   "baggageItemName": "Item name",
   "fieldRequired": "This field is required",
   "accommodationsTitle": "Accommodations",
@@ -1255,6 +1257,17 @@
   "backTooltip": "Back",
   "closeTooltip": "Close",
   "deleteFlightTooltip": "Delete flight",
+  "editFlight": "Edit flight",
+  "editFlightTooltip": "Edit this flight",
+  "multiDestResults": "Results by segment",
+  "segmentLabel": "Segment {index}",
+  "@segmentLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "deleteAccommodationTooltip": "Delete accommodation",
   "removeAccessTooltip": "Remove access",
   "inviteTooltip": "Invite",

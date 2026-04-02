@@ -2420,6 +2420,18 @@ abstract class AppLocalizations {
   /// **'Déballer'**
   String get baggageUnpack;
 
+  /// No description provided for @baggageEditItemTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier l\'élément'**
+  String get baggageEditItemTitle;
+
+  /// No description provided for @baggageItemUpdated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Élément modifié'**
+  String get baggageItemUpdated;
+
   /// No description provided for @baggageItemName.
   ///
   /// In fr, this message translates to:
@@ -5546,6 +5558,30 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Supprimer le vol'**
   String get deleteFlightTooltip;
+
+  /// No description provided for @editFlight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le vol'**
+  String get editFlight;
+
+  /// No description provided for @editFlightTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier ce vol'**
+  String get editFlightTooltip;
+
+  /// No description provided for @multiDestResults.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résultats par segment'**
+  String get multiDestResults;
+
+  /// No description provided for @segmentLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Segment {index}'**
+  String segmentLabel(int index);
 
   /// No description provided for @deleteAccommodationTooltip.
   ///

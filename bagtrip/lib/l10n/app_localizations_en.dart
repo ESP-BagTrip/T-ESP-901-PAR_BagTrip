@@ -1246,6 +1246,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get baggageUnpack => 'Unpack';
 
   @override
+  String get baggageEditItemTitle => 'Edit item';
+
+  @override
+  String get baggageItemUpdated => 'Item updated';
+
+  @override
   String get baggageItemName => 'Item name';
 
   @override
@@ -2938,6 +2944,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteFlightTooltip => 'Delete flight';
+
+  @override
+  String get editFlight => 'Edit flight';
+
+  @override
+  String get editFlightTooltip => 'Edit this flight';
+
+  @override
+  String get multiDestResults => 'Results by segment';
+
+  @override
+  String segmentLabel(int index) {
+    return 'Segment $index';
+  }
 
   @override
   String get deleteAccommodationTooltip => 'Delete accommodation';

@@ -1,4 +1,5 @@
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/flight_search/models/flight_search_prefill.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -64,7 +65,9 @@ class AddFlightSheet extends StatelessWidget {
             subtitle: l10n.searchFlightOptionSubtitle,
             onTap: () {
               Navigator.of(context).pop();
-              const TripFlightSearchRoute().go(context);
+              TripFlightSearchRoute(
+                $extra: FlightSearchPrefill(tripId: tripId),
+              ).go(context);
             },
           ),
           const SizedBox(height: 12),

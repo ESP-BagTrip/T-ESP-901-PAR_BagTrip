@@ -99,6 +99,12 @@ class FlightSearchResultView extends StatelessWidget {
             );
           }
 
+          // Multi-destination: show tabbed results per segment
+          if (state.segmentResults != null &&
+              state.segmentResults!.isNotEmpty) {
+            return _MultiDestResults(state: state);
+          }
+
           return SingleChildScrollView(
             child: Column(
               children: [
@@ -141,6 +147,123 @@ class FlightSearchResultView extends StatelessWidget {
         }
 
         return const SizedBox.shrink();
+      },
+    );
+  }
+}
+
+class _MultiDestResults extends StatefulWidget {
+  final FlightSearchResultLoaded state;
+
+  const _MultiDestResults({required this.state});
+
+  @override
+  State<_MultiDestResults> createState() => _MultiDestResultsState();
+}
+
+class _MultiDestResultsState extends State<_MultiDestResults>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(
+      length: widget.state.segmentResults!.length,
+      vsync: this,
+    );
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final segResults = widget.state.segmentResults!;
+    final segLabels = widget.state.segmentLabels ?? [];
+    final l10n = AppLocalizations.of(context)!;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.space8),
+          child: Text(
+            l10n.multiDestResults,
+            style: const TextStyle(
+              fontFamily: FontFamily.b612,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: ColorName.primary,
+            ),
+          ),
+        ),
+        TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          labelColor: ColorName.primary,
+          unselectedLabelColor: ColorName.hint,
+          indicatorColor: ColorName.primary,
+          labelStyle: const TextStyle(
+            fontFamily: FontFamily.b612,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+          tabs: [
+            for (int i = 0; i < segResults.length; i++)
+              Tab(
+                text: i < segLabels.length
+                    ? segLabels[i]
+                    : l10n.segmentLabel(i + 1),
+              ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.space8),
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.6,
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              for (int i = 0; i < segResults.length; i++)
+                _buildSegmentFlightList(segResults[i] ?? []),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSegmentFlightList(List<dynamic> flights) {
+    if (flights.isEmpty) {
+      return Center(
+        child: Text(
+          AppLocalizations.of(context)!.noFlightsFoundTitle,
+          style: const TextStyle(
+            fontFamily: FontFamily.b612,
+            fontSize: 16,
+            color: ColorName.hint,
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: flights.length,
+      itemBuilder: (context, index) {
+        final flight = flights[index];
+        return FlightCard(
+          flight: flight,
+          isSelected: false,
+          onTap: () {
+            if (context.mounted) {
+              context.read<FlightSearchResultBloc>().add(SelectFlight(flight));
+              FlightResultDetailsRoute($extra: flight).push(context);
+            }
+          },
+        );
       },
     );
   }

@@ -499,6 +499,8 @@
   "baggagePacked": "Emball\u00e9s",
   "baggageSwipeToPack": "Glisser pour emballer",
   "baggageUnpack": "D\u00e9baller",
+  "baggageEditItemTitle": "Modifier l'\u00e9l\u00e9ment",
+  "baggageItemUpdated": "\u00c9l\u00e9ment modifi\u00e9",
   "baggageItemName": "Nom de l'\u00e9l\u00e9ment",
   "fieldRequired": "Ce champ est requis",
   "accommodationsTitle": "Hébergements",
@@ -1255,6 +1257,17 @@
   "backTooltip": "Retour",
   "closeTooltip": "Fermer",
   "deleteFlightTooltip": "Supprimer le vol",
+  "editFlight": "Modifier le vol",
+  "editFlightTooltip": "Modifier ce vol",
+  "multiDestResults": "Résultats par segment",
+  "segmentLabel": "Segment {index}",
+  "@segmentLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "deleteAccommodationTooltip": "Supprimer l'hebergement",
   "removeAccessTooltip": "Retirer l'acces",
   "inviteTooltip": "Inviter",

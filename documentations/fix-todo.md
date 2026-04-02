@@ -124,32 +124,32 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | ~~Pas de tests helpers in-trip~~            | ~~`classifyTodayActivities`, `detectAndTransitionTrips`, `detectEndedTrips` non testes~~ | `bagtrip/test/`                                        | ✅ Tests existants + 9 nouveaux tests timezone (`destination_time_test.dart` + groupe timezone-aware dans `today_activities_test.dart`) |
 
 
-### Vols & Transports
+### ~~Vols & Transports~~ ✅ Resolu
 
 
-| Element                   | Description                                                       | Fichier                                        |
-| ------------------------- | ----------------------------------------------------------------- | ---------------------------------------------- |
-| Multi-destination backend | Formulaire Flutter complet mais backend ne prend qu'un segment    | `bagtrip/lib/service/location_service.dart:29` |
-| Pas de PATCH vol manuel   | Vols manuels non modifiables                                      | `api/src/api/flights/manual/routes.py`         |
-| Recherches non persistees | Mobile utilise le proxy non-persiste au lieu du endpoint persiste | `bagtrip/lib/flight_search/`                   |
+| Element                   | Description                                                       | Fichier                                        | Statut |
+| ------------------------- | ----------------------------------------------------------------- | ---------------------------------------------- | ------ |
+| ~~Multi-destination backend~~ | ~~Formulaire Flutter complet mais backend ne prend qu'un segment~~    | `api/src/api/flights/searches/routes.py` | ✅ `POST /searches/multi` avec N appels Amadeus paralleles + persistence + UI tabs par segment |
+| ~~Pas de PATCH vol manuel~~   | ~~Vols manuels non modifiables~~                                      | `api/src/api/flights/manual/routes.py`         | ✅ `PATCH /{tripId}/flights/manual/{flightId}` + form edit mode + sync BudgetItem |
+| ~~Recherches non persistees~~ | ~~Mobile utilise le proxy non-persiste au lieu du endpoint persiste~~ | `bagtrip/lib/flight_search/`                   | ✅ Flutter utilise `POST /trips/{tripId}/flights/searches` (persiste) quand tripId disponible, fallback proxy sinon |
 
 
-### Hebergements
+### ~~Hebergements~~ ✅ Resolu
 
 
-| Element                      | Description                                  | Fichier                                  |
-| ---------------------------- | -------------------------------------------- | ---------------------------------------- |
-| Pas de booking hotel Amadeus | Search only — pas de reservation             | `api/src/integrations/amadeus/hotels.py` |
-| Suggestions IA hebergement   | Endpoint backend non visible dans les routes | `api/src/api/accommodations/routes.py`   |
+| Element                      | Description                                  | Fichier                                  | Statut |
+| ---------------------------- | -------------------------------------------- | ---------------------------------------- | ------ |
+| ~~Pas de booking hotel Amadeus~~ | ~~Search only — pas de reservation~~     | `api/src/integrations/amadeus/hotels.py` | ✅ Search-only by design. Vestiges booking admin-panel supprimes. Docstrings clarifies. |
+| ~~Suggestions IA hebergement~~   | ~~Endpoint backend non visible dans les routes~~ | `api/src/api/accommodations/routes.py`   | ✅ `POST /v1/trips/{tripId}/accommodations/suggest` + LLM prompt + quota guard |
 
 
-### Bagages & Budget
+### ~~Bagages & Budget~~ ✅ Resolu
 
 
-| Element                         | Description                                                        | Fichier                                      |
-| ------------------------------- | ------------------------------------------------------------------ | -------------------------------------------- |
-| Edition item bagages impossible | PATCH existe cote API mais mobile ne l'utilise que pour `isPacked` | `bagtrip/lib/baggage/bloc/baggage_bloc.dart` |
-| Endpoint estimation IA budget   | Non visible dans les routes budget                                 | `api/src/api/budget_items/routes.py`         |
+| Element                         | Description                                                        | Fichier                                      | Statut |
+| ------------------------------- | ------------------------------------------------------------------ | -------------------------------------------- | ------ |
+| ~~Edition item bagages impossible~~ | ~~PATCH existe cote API mais mobile ne l'utilise que pour `isPacked`~~ | `bagtrip/lib/baggage/bloc/baggage_bloc.dart` | ✅ `UpdateBaggageItem` event + `BaggageEditForm` bottom sheet (name, qty, category) + tap-to-edit + `AdaptiveContextMenu` iOS |
+| ~~Endpoint estimation IA budget~~   | ~~Non visible dans les routes budget~~                                 | `api/src/api/budget_items/routes.py`         | ✅ `POST /v1/trips/{tripId}/budget/estimate` (AI quota guard + budget_node) + `POST /v1/trips/{tripId}/budget/estimate/accept` (set trip budget_total) |
 
 
 ### Notifications
@@ -397,7 +397,7 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | Priorite | Nombre |
 |----------|--------|
 | P0 | 3 (17 - 3 securite ✅ - 6 features ✅ - 4 UX critique ✅ - 1 home & trip detail ✅) |
-| P1 | 43 (62 - 6 creation voyage & IA ✅ - 6 home & trip detail ✅ - 3 donnees non persistees ✅ - 4 activites & in-trip ✅) |
+| P1 | 40 (62 - 6 creation voyage & IA ✅ - 6 home & trip detail ✅ - 3 donnees non persistees ✅ - 4 activites & in-trip ✅ - 3 vols & transports ✅) |
 | P2 | 80+ |
 | **Total** | **~160** |
 
@@ -412,7 +412,7 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | Creation voyage & IA | ~~2~~ 0 ✅ | ~~6~~ 0 ✅ | 6 |
 | Home & Trip Detail | ~~1~~ 0 ✅ | ~~5~~ 0 ✅ | 5 |
 | Activites & In-Trip | 0 | ~~4~~ 0 ✅ | 5 |
-| Vols & Transports | 0 | 3 | 5 |
+| Vols & Transports | 0 | ~~3~~ 0 ✅ | 5 |
 | Hebergements | 0 | 2 | 4 |
 | Bagages & Budget | 1 | 2 | 7 |
 | Notifications | 3 | 5 | 5 |

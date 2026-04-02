@@ -120,3 +120,82 @@ class TestFlightSearchService:
                 mock_db_session, uuid.uuid4(), uuid.uuid4()
             )
         assert exc.value.code == "SEARCH_NOT_FOUND"
+
+    @patch("src.services.flight_search_service.amadeus_client")
+    @pytest.mark.asyncio
+    async def test_create_multi_dest_search_success(self, mock_amadeus, mock_db_session):
+        """Test multi-destination search with 2 segments."""
+        trip_id = uuid.uuid4()
+
+        mock_response = MagicMock()
+        mock_response.data = [
+            {
+                "id": "1",
+                "source": "GDS",
+                "validatingAirlineCodes": ["AF"],
+                "price": {
+                    "grandTotal": "200.00",
+                    "base": "160.00",
+                    "currency": "EUR",
+                },
+            }
+        ]
+        mock_response.model_dump.return_value = {"data": mock_response.data}
+
+        mock_amadeus.search_flight_offers = AsyncMock(return_value=mock_response)
+
+        segments = [
+            {"originIata": "CDG", "destinationIata": "NRT", "departureDate": date(2027, 6, 1)},
+            {"originIata": "NRT", "destinationIata": "BKK", "departureDate": date(2027, 6, 5)},
+        ]
+
+        results = await FlightSearchService.create_multi_dest_search(
+            mock_db_session, trip_id, segments, adults=1
+        )
+
+        assert len(results) == 2
+        # Each segment should produce a (search, offers) tuple
+        for search, offers in results:
+            assert search.trip_id == trip_id
+            assert len(offers) == 1
+            assert offers[0].grand_total == 200.0
+
+        # Amadeus should be called twice (once per segment)
+        assert mock_amadeus.search_flight_offers.call_count == 2
+        mock_db_session.commit.assert_called_once()
+
+    @patch("src.services.flight_search_service.amadeus_client")
+    @pytest.mark.asyncio
+    async def test_create_multi_dest_search_partial_failure(self, mock_amadeus, mock_db_session):
+        """Test multi-dest where one segment fails — other still succeeds."""
+        trip_id = uuid.uuid4()
+
+        mock_good_response = MagicMock()
+        mock_good_response.data = [
+            {
+                "id": "1",
+                "source": "GDS",
+                "validatingAirlineCodes": ["AF"],
+                "price": {"grandTotal": "100.00", "base": "80.00", "currency": "EUR"},
+            }
+        ]
+        mock_good_response.model_dump.return_value = {"data": mock_good_response.data}
+
+        # First call succeeds, second raises an exception
+        mock_amadeus.search_flight_offers = AsyncMock(
+            side_effect=[mock_good_response, Exception("Amadeus timeout")]
+        )
+
+        segments = [
+            {"originIata": "CDG", "destinationIata": "NRT", "departureDate": date(2027, 6, 1)},
+            {"originIata": "NRT", "destinationIata": "BKK", "departureDate": date(2027, 6, 5)},
+        ]
+
+        results = await FlightSearchService.create_multi_dest_search(
+            mock_db_session, trip_id, segments, adults=1
+        )
+
+        # Only 1 segment should succeed
+        assert len(results) == 1
+        search, offers = results[0]
+        assert search.origin_iata == "CDG"

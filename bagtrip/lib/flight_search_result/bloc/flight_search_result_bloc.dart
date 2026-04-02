@@ -5,6 +5,7 @@ import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/flight_search_result/models/flight.dart';
 import 'package:bagtrip/flight_search/models/flight_segment.dart';
 import 'package:bagtrip/config/service_locator.dart';
+import 'package:bagtrip/repositories/transport_repository.dart';
 import 'package:bagtrip/service/location_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
@@ -16,10 +17,15 @@ part 'flight_search_result_state.dart';
 class FlightSearchResultBloc
     extends Bloc<FlightSearchResultEvent, FlightSearchResultState> {
   final LocationService _locationService;
+  final TransportRepository _transportRepository;
 
-  FlightSearchResultBloc({LocationService? locationService})
-    : _locationService = locationService ?? getIt<LocationService>(),
-      super(FlightSearchResultInitial()) {
+  FlightSearchResultBloc({
+    LocationService? locationService,
+    TransportRepository? transportRepository,
+  }) : _locationService = locationService ?? getIt<LocationService>(),
+       _transportRepository =
+           transportRepository ?? getIt<TransportRepository>(),
+       super(FlightSearchResultInitial()) {
     on<LoadFlights>(_onLoadFlights);
     on<FilterFlightsByPrice>(_onFilterFlightsByPrice);
     on<SortFlights>(_onSortFlights);
@@ -45,6 +51,62 @@ class FlightSearchResultBloc
     );
   }
 
+  Future<Result<List<Flight>>> _searchFlights({
+    required String? tripId,
+    required String departureCode,
+    required String arrivalCode,
+    required String departureDate,
+    String? returnDate,
+    required int adults,
+    required int children,
+    required int infants,
+    required String travelClass,
+    List<FlightSegment>? multiDestSegments,
+  }) async {
+    // Use persisted endpoint when we have a tripId
+    if (tripId != null) {
+      final result = await _transportRepository.searchFlightsPersisted(
+        tripId: tripId,
+        originIata: departureCode,
+        destinationIata: arrivalCode,
+        departureDate: departureDate,
+        returnDate: returnDate,
+        adults: adults,
+        children: children > 0 ? children : null,
+        infants: infants > 0 ? infants : null,
+        travelClass: travelClass,
+        currency: 'EUR',
+      );
+      switch (result) {
+        case Success(:final data):
+          final flights = data.amadeusData
+              .map(
+                (json) => Flight.fromAmadeusJson(
+                  json,
+                  dictionaries: data.dictionaries,
+                ),
+              )
+              .toList();
+          return Success(flights);
+        case Failure(:final error):
+          return Failure(error);
+      }
+    }
+
+    // Fallback to proxy endpoint (no trip context)
+    return _locationService.searchFlights(
+      departureCode: departureCode,
+      arrivalCode: arrivalCode,
+      departureDate: departureDate,
+      returnDate: returnDate,
+      adults: adults,
+      children: children,
+      infants: infants,
+      travelClass: travelClass,
+      multiDestSegments: multiDestSegments,
+    );
+  }
+
   Future<void> _onLoadFlights(
     LoadFlights event,
     Emitter<FlightSearchResultState> emit,
@@ -57,7 +119,89 @@ class FlightSearchResultBloc
         ? dateFormatter.format(event.returnDate!)
         : null;
 
-    final result = await _locationService.searchFlights(
+    // Multi-destination: use dedicated endpoint
+    final hasMultiDest =
+        event.multiDestSegments != null &&
+        event.multiDestSegments!.length > 1 &&
+        event.tripId != null;
+
+    if (hasMultiDest) {
+      final segments = event.multiDestSegments!
+          .map(
+            (seg) => {
+              'originIata': seg.departureAirport?['iataCode'] as String? ?? '',
+              'destinationIata':
+                  seg.arrivalAirport?['iataCode'] as String? ?? '',
+              'departureDate': seg.departureDate != null
+                  ? dateFormatter.format(seg.departureDate!)
+                  : '',
+            },
+          )
+          .toList();
+
+      final result = await _transportRepository.searchMultiDestFlights(
+        tripId: event.tripId!,
+        segments: segments,
+        adults: event.adults,
+        children: event.children > 0 ? event.children : null,
+        infants: event.infants > 0 ? event.infants : null,
+        travelClass: event.travelClass.toUpperCase(),
+        currency: 'EUR',
+      );
+      if (isClosed) return;
+
+      switch (result) {
+        case Success(:final data):
+          final segResults = <int, List<Flight>>{};
+          final segLabels = <String>[];
+          final allFlights = <Flight>[];
+
+          for (int i = 0; i < data.length; i++) {
+            final segFlights = data[i].amadeusData
+                .map(
+                  (json) => Flight.fromAmadeusJson(
+                    json,
+                    dictionaries: data[i].dictionaries,
+                  ),
+                )
+                .toList();
+            segResults[i] = segFlights;
+            allFlights.addAll(segFlights);
+
+            final seg = event.multiDestSegments![i];
+            final from = seg.departureAirport?['iataCode'] as String? ?? '???';
+            final to = seg.arrivalAirport?['iataCode'] as String? ?? '???';
+            segLabels.add('$from → $to');
+          }
+
+          emit(
+            FlightSearchResultLoaded(
+              flights: allFlights,
+              filteredFlights: allFlights,
+              maxPrice: event.maxPrice,
+              tripId: event.tripId,
+              departureDate: event.departureDate,
+              returnDate: event.returnDate,
+              departureCode: event.departureCode,
+              arrivalCode: event.arrivalCode,
+              adults: event.adults,
+              children: event.children,
+              infants: event.infants,
+              travelClass: event.travelClass,
+              multiDestSegments: event.multiDestSegments,
+              segmentResults: segResults,
+              segmentLabels: segLabels,
+            ),
+          );
+        case Failure(:final error):
+          emit(FlightSearchResultError(error));
+      }
+      return;
+    }
+
+    // Single segment search (persisted or proxy)
+    final result = await _searchFlights(
+      tripId: event.tripId,
       departureCode: event.departureCode,
       arrivalCode: event.arrivalCode,
       departureDate: departureDateStr,
@@ -84,6 +228,7 @@ class FlightSearchResultBloc
             flights: data,
             filteredFlights: filteredFlights,
             maxPrice: event.maxPrice,
+            tripId: event.tripId,
             departureDate: event.departureDate,
             returnDate: event.returnDate,
             departureCode: event.departureCode,
@@ -179,7 +324,8 @@ class FlightSearchResultBloc
         ? dateFormatter.format(newReturnDate)
         : null;
 
-    final result = await _locationService.searchFlights(
+    final result = await _searchFlights(
+      tripId: current.tripId,
       departureCode: current.departureCode,
       arrivalCode: current.arrivalCode,
       departureDate: departureDateStr,
@@ -267,6 +413,7 @@ class FlightSearchResultBloc
             filteredFlights: filteredFlights,
             maxPrice: current.maxPrice,
             sortBy: current.sortBy,
+            tripId: current.tripId,
             departureDate: newDepartureDate,
             returnDate: newReturnDate,
             departureCode: current.departureCode,

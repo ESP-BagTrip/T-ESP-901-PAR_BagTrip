@@ -26,11 +26,9 @@ class LocationService {
     List<FlightSegment>? multiDestSegments,
   }) async {
     try {
-      if (multiDestSegments != null && multiDestSegments.isNotEmpty) {
-        // TODO: Implement multi-destination search when backend supports it
-        // For now, we can either throw or just search for the first segment
-        // throw UnimplementedError("Multi-destination search not yet supported by backend");
-      }
+      // Multi-destination search is handled by the persisted endpoint
+      // via TransportRepository.searchMultiDestFlights() — this method
+      // only handles single-segment proxy searches as a fallback.
 
       final queryParameters = {
         'originLocationCode': departureCode,

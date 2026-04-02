@@ -30,6 +30,7 @@ class FlightSearchResultPage extends StatelessWidget {
         create: (context) => FlightSearchResultBloc()
           ..add(
             LoadFlights(
+              tripId: arguments.tripId,
               departureCode: arguments.departureCode,
               arrivalCode: arguments.arrivalCode,
               departureDate: arguments.departureDate,

@@ -10,6 +10,7 @@ from src.api.flights.manual.schemas import (
     ManualFlightCreateRequest,
     ManualFlightListResponse,
     ManualFlightResponse,
+    ManualFlightUpdateRequest,
 )
 from src.config.database import get_db
 from src.services.manual_flight_service import ManualFlightService
@@ -86,6 +87,50 @@ async def get_manual_flight(
         flight = ManualFlightService.get_manual_flight_by_id(db, flightId, access.trip.id)
         if not flight:
             raise AppError("FLIGHT_NOT_FOUND", 404, "Manual flight not found")
+        return ManualFlightResponse.model_validate(flight)
+    except AppError as e:
+        raise create_http_exception(e) from e
+
+
+@router.patch(
+    "/{tripId}/flights/manual/{flightId}",
+    response_model=ManualFlightResponse,
+    summary="Update manual flight",
+    description="Update a manual flight's information",
+)
+async def update_manual_flight(
+    request: ManualFlightUpdateRequest,
+    flightId: UUID = Path(..., description="Flight ID"),
+    access: TripAccess = Depends(get_trip_owner_access),
+    db: Session = Depends(get_db),
+):
+    """Mettre à jour un vol manuel."""
+    try:
+        # Build kwargs only for fields that were explicitly set in the request
+        update_data = request.model_dump(exclude_unset=True)
+        kwargs = {}
+        field_mapping = {
+            "flightNumber": "flight_number",
+            "airline": "airline",
+            "departureAirport": "departure_airport",
+            "arrivalAirport": "arrival_airport",
+            "departureDate": "departure_date",
+            "arrivalDate": "arrival_date",
+            "price": "price",
+            "currency": "currency",
+            "notes": "notes",
+            "flightType": "flight_type",
+        }
+        for camel, snake in field_mapping.items():
+            if camel in update_data:
+                kwargs[snake] = update_data[camel]
+
+        flight = ManualFlightService.update_manual_flight(
+            db=db,
+            flight_id=flightId,
+            trip=access.trip,
+            **kwargs,
+        )
         return ManualFlightResponse.model_validate(flight)
     except AppError as e:
         raise create_http_exception(e) from e

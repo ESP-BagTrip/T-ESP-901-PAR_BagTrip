@@ -22,6 +22,21 @@ class ManualFlightCreateRequest(BaseModel):
     flightType: str = "MAIN"
 
 
+class ManualFlightUpdateRequest(BaseModel):
+    """Requête de mise à jour partielle d'un vol manuel."""
+
+    flightNumber: str | None = None
+    airline: str | None = None
+    departureAirport: str | None = None
+    arrivalAirport: str | None = None
+    departureDate: datetime | None = None
+    arrivalDate: datetime | None = None
+    price: Decimal | None = None
+    currency: str | None = None
+    notes: str | None = None
+    flightType: str | None = None
+
+
 class ManualFlightResponse(BaseModel):
     """Réponse vol manuel."""
 

@@ -75,6 +75,10 @@ class TestCreateFlightSearch:
         # Mock FlightSearchService.create_search
         mock_search = MagicMock()
         mock_search.id = uuid4()
+        mock_search.amadeus_response = {
+            "data": [{"id": "1", "price": {"grandTotal": "100.00"}}],
+            "dictionaries": {"carriers": {"AF": "Air France"}},
+        }
 
         mock_offer = MagicMock()
         mock_offer.id = uuid4()
@@ -104,6 +108,10 @@ class TestCreateFlightSearch:
         assert len(data["offers"]) == 1
         assert data["offers"][0]["id"] == str(mock_offer.id)
         assert data["offers"][0]["summary"]["stops"] == 1
+        # Verify amadeusData and dictionaries are included
+        assert data["amadeusData"] is not None
+        assert len(data["amadeusData"]) == 1
+        assert data["dictionaries"]["carriers"]["AF"] == "Air France"
 
         mock_service.create_search.assert_called_once()
 
@@ -168,3 +176,83 @@ class TestGetFlightSearch:
 
         assert response.status_code == 404
         assert response.json()["detail"]["code"] == "SEARCH_NOT_FOUND"
+
+
+@patch("src.api.flights.searches.routes.FlightSearchService")
+class TestCreateMultiDestSearch:
+
+    def test_multi_dest_success_two_segments(self, mock_service, client, mock_trip_id, trip_access):
+        # Build two mock segment results
+        results = []
+        for origin, dest in [("CDG", "NRT"), ("NRT", "BKK")]:
+            mock_search = MagicMock()
+            mock_search.id = uuid4()
+            mock_search.amadeus_response = {
+                "data": [{"id": "1", "price": {"grandTotal": "500.00"}}],
+                "dictionaries": {"carriers": {"AF": "Air France"}},
+            }
+            mock_offer = MagicMock()
+            mock_offer.id = uuid4()
+            mock_offer.grand_total = 500.0
+            mock_offer.currency = "EUR"
+            mock_offer.offer_json = {
+                "itineraries": [{"segments": [{"id": "1"}]}]
+            }
+            results.append((mock_search, [mock_offer]))
+
+        mock_service.create_multi_dest_search = AsyncMock(return_value=results)
+
+        payload = {
+            "segments": [
+                {"originIata": "CDG", "destinationIata": "NRT", "departureDate": "2027-06-01"},
+                {"originIata": "NRT", "destinationIata": "BKK", "departureDate": "2027-06-05"},
+            ],
+            "adults": 1,
+            "currency": "EUR",
+        }
+
+        response = client.post(
+            f"/v1/trips/{mock_trip_id}/flights/searches/multi",
+            json=payload,
+        )
+
+        assert response.status_code == 201
+        data = response.json()
+        assert len(data["segments"]) == 2
+        assert data["segments"][0]["amadeusData"] is not None
+        assert data["segments"][1]["amadeusData"] is not None
+
+        mock_service.create_multi_dest_search.assert_called_once()
+
+    def test_multi_dest_empty_segments_rejected(self, mock_service, client, mock_trip_id, trip_access):
+        payload = {
+            "segments": [],
+            "adults": 1,
+        }
+
+        response = client.post(
+            f"/v1/trips/{mock_trip_id}/flights/searches/multi",
+            json=payload,
+        )
+
+        assert response.status_code == 422
+
+    def test_multi_dest_error(self, mock_service, client, mock_trip_id, trip_access):
+        mock_service.create_multi_dest_search = AsyncMock(
+            side_effect=AppError("SEARCH_FAILED", 400, "Search failed")
+        )
+
+        payload = {
+            "segments": [
+                {"originIata": "CDG", "destinationIata": "NRT", "departureDate": "2027-06-01"},
+            ],
+            "adults": 1,
+        }
+
+        response = client.post(
+            f"/v1/trips/{mock_trip_id}/flights/searches/multi",
+            json=payload,
+        )
+
+        assert response.status_code == 400
+        assert response.json()["detail"]["code"] == "SEARCH_FAILED"
