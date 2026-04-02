@@ -1,0 +1,98 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  # ========================================
+  # PR VALIDATION
+  # ========================================
+  pr-validation:
+    name: PR Validation
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check PR title format
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            chore
+            ci
+            build
+          requireScope: false
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: |
+            The subject "{subject}" found in the pull request title "{title}"
+            should not start with an uppercase character.
+
+  # ========================================
+  # SIZE ANALYSIS
+  # ========================================
+  size-analysis:
+    name: PR Size Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Analyze PR size
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { execSync } = require('child_process');
+            const base = context.payload.pull_request.base.ref;
+
+            const stats = execSync(`git diff --stat origin/${base}...HEAD`, { encoding: 'utf8' });
+            const lines = stats.trim().split('\n');
+            const summary = lines[lines.length - 1];
+
+            const match = summary.match(/(\d+) files? changed(?:, (\d+) insertions?\(\+\))?(?:, (\d+) deletions?\(-\))?/);
+
+            if (match) {
+              const files = parseInt(match[1]);
+              const insertions = parseInt(match[2] || '0');
+              const deletions = parseInt(match[3] || '0');
+              const totalChanges = insertions + deletions;
+
+              let size = 'XS';
+              if (totalChanges > 1000) size = 'XL';
+              else if (totalChanges > 500) size = 'L';
+              else if (totalChanges > 100) size = 'M';
+              else if (totalChanges > 10) size = 'S';
+
+              const comment = `## PR Size Analysis\n\n**Size: ${size}**\n\n- Files changed: ${files}\n- Lines added: ${insertions}\n- Lines removed: ${deletions}\n- Total changes: ${totalChanges}\n\n${totalChanges > 500 ? 'This is a large PR. Consider breaking it down.' : 'Good size for review.'}`;
+
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment,
+              });
+
+              await github.rest.issues.addLabels({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: [`size/${size.toLowerCase()}`],
+              });
+            }
