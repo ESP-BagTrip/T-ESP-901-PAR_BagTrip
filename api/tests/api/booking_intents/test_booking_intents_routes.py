@@ -224,30 +224,6 @@ class TestBookBookingIntent:
         mock_orchestrator.book.assert_called_once()
 
     @patch("src.api.booking_intents.book_routes.BookingOrchestratorService")
-    def test_book_hotel_success(self, mock_orchestrator, client, override_get_current_user, override_get_db, mock_booking_intent):
-        """Test booking with hotel intent — route always returns flight amadeus shape."""
-        mock_booking_intent.type = "hotel"
-        mock_booking_intent.amadeus_booking_id = "HOTEL_123"
-        mock_booking_intent.amadeus_order_id = None
-        mock_booking_intent.status = "CONFIRMED"
-        mock_orchestrator.book = AsyncMock(return_value=mock_booking_intent)
-
-        intent_id = mock_booking_intent.id
-
-        payload = {
-            "travelerIds": [],
-            "contacts": []
-        }
-
-        response = client.post(f"/v1/booking-intents/{intent_id}/book", json=payload)
-
-        assert response.status_code == 201
-        data = response.json()
-        # The route always returns flight type with orderId
-        assert data["amadeus"]["type"] == "flight"
-        assert data["amadeus"]["orderId"] is None
-
-    @patch("src.api.booking_intents.book_routes.BookingOrchestratorService")
     def test_book_error(self, mock_orchestrator, client, override_get_current_user, override_get_db):
         """Test booking with error."""
         mock_orchestrator.book = AsyncMock(side_effect=AppError("ERROR", 400, "Booking failed"))

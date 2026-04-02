@@ -58,3 +58,9 @@ class AccommodationListResponse(BaseModel):
     """Réponse liste d'hébergements."""
 
     items: list[AccommodationResponse]
+
+
+class AccommodationSuggestResponse(BaseModel):
+    """Réponse suggestions IA d'hébergements."""
+
+    accommodations: list[dict]

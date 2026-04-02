@@ -68,6 +68,25 @@ Your Final Answer must be a JSON object:
 
 If the hotel search returns no results or fails, set source to "estimated" and provide reasonable estimates based on the destination."""
 
+ACCOMMODATION_SUGGEST_PROMPT = """You are a travel accommodation advisor. Based on the destination, dates, budget, and traveler count, suggest 3-5 diverse accommodation options.
+
+Include different types (hotel, Airbnb, hostel, guesthouse, etc.) across different neighborhoods and price ranges to give the traveler a broad overview.
+
+Your answer must be a JSON object:
+{
+  "accommodations": [
+    {
+      "type": "HOTEL|AIRBNB|HOSTEL|GUESTHOUSE|CAMPING|RESORT|OTHER",
+      "name": "Accommodation name (realistic, not invented brand)",
+      "neighborhood": "District or area name",
+      "priceRange": "80-120",
+      "currency": "EUR",
+      "reason": "Brief explanation why this is a good choice for the traveler",
+      "cityCode": "PAR"
+    }
+  ]
+}"""
+
 BAGGAGE_PROMPT = """You are a baggage and packing advisor. Based on the destination, real weather data, planned activities, and trip duration, suggest 10-15 essential items to pack.
 
 Ground your suggestions in the REAL weather data provided. For example:

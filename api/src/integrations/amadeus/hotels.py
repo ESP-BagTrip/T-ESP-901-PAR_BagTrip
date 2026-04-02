@@ -1,4 +1,4 @@
-"""Recherche d'hôtels Amadeus."""
+"""Recherche d'hôtels Amadeus — discovery only, no booking."""
 
 import httpx
 

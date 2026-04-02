@@ -9,11 +9,15 @@ from src.api.accommodations.schemas import (
     AccommodationCreateRequest,
     AccommodationListResponse,
     AccommodationResponse,
+    AccommodationSuggestResponse,
     AccommodationUpdateRequest,
 )
+from src.api.auth.plan_guard import require_ai_quota
 from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access
 from src.config.database import get_db
+from src.models.user import User
 from src.services.accommodations_service import AccommodationsService
+from src.services.plan_service import PlanService
 from src.utils.errors import AppError, create_http_exception
 
 router = APIRouter(prefix="/v1/trips", tags=["Accommodations"])
@@ -70,6 +74,26 @@ async def list_accommodations(
                 item.currency = None
                 item.bookingReference = None
         return AccommodationListResponse(items=items)
+    except AppError as e:
+        raise create_http_exception(e) from e
+
+
+@router.post(
+    "/{tripId}/accommodations/suggest",
+    response_model=AccommodationSuggestResponse,
+    summary="AI accommodation suggestions",
+    description="Get AI-powered accommodation suggestions for a trip",
+)
+async def suggest_accommodations(
+    access: TripAccess = Depends(get_trip_owner_access),
+    current_user: User = Depends(require_ai_quota),
+    db: Session = Depends(get_db),
+):
+    """Suggestions IA d'hébergements pour un trip."""
+    try:
+        suggestions = await AccommodationsService.suggest_accommodations(db, access.trip)
+        PlanService.increment_ai_generation(db, current_user)
+        return AccommodationSuggestResponse(accommodations=suggestions)
     except AppError as e:
         raise create_http_exception(e) from e
 
