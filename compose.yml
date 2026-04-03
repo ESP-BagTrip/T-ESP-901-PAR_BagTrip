@@ -45,6 +45,7 @@ services:
     command: >
       sh -c "
         uv sync &&
+        uv run alembic upgrade head &&
         uv run uvicorn src.main:app --host 0.0.0.0 --port 3000 --reload
       "
 

@@ -101,6 +101,7 @@ dev_dependencies:
   bloc_test: ^10.0.0
   mocktail: ^1.0.4
   go_router_builder: ^4.1.1
+  dead_code_analyzer: ^1.1.2
 
 flutter_gen:
   output: lib/gen/ # Optional (default: lib/gen/)
@@ -157,6 +158,19 @@ flutter:
         - asset: assets/fonts/B612-BoldItalic.ttf
           weight: 700
           style: italic
+    
+    - family: DMSerifDisplay
+      fonts:
+        - asset: assets/fonts/DMSerifDisplay-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/DMSerifDisplay-Italic.ttf
+          weight: 400
+          style: italic
+
+    - family: DMSans
+      fonts:
+        - asset: assets/fonts/DMSans-Regular.ttf
+          weight: 400
 
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package

@@ -76,16 +76,16 @@ class OnboardingHomeView extends StatelessWidget {
                         ? l10n.homeGreeting(name)
                         : l10n.homeWelcomeTitle,
                     style: TextStyle(
-                      fontFamily: FontFamily.b612,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
+                      fontFamily: FontFamily.dMSerifDisplay,
+                      fontSize: 30,
+                      fontWeight: FontWeight.w500,
                       color: Theme.of(context).colorScheme.onSurface,
                       letterSpacing: 0.3,
                     ),
                     textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.space8),
+                const SizedBox(height: AppSpacing.space16),
 
                 // Subtitle
                 StaggeredFadeIn(
@@ -95,15 +95,15 @@ class OnboardingHomeView extends StatelessWidget {
                   child: Text(
                     l10n.homeWelcomeSubtitle,
                     style: TextStyle(
-                      fontFamily: FontFamily.b612,
-                      fontSize: 16,
+                      fontFamily: FontFamily.dMSans,
+                      fontSize: 14,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      height: 1.5,
+                      height: 1.7,
                     ),
                     textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.space48),
+                const SizedBox(height: AppSpacing.space32),
 
                 // Primary CTA
                 StaggeredFadeIn(
@@ -125,11 +125,11 @@ class OnboardingHomeView extends StatelessWidget {
                     child: Text(
                       l10n.onboardingInspirationTitle.toUpperCase(),
                       style: TextStyle(
-                        fontFamily: FontFamily.b612,
-                        fontSize: 12,
+                        fontFamily: FontFamily.dMSerifDisplay,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.onSurface,
-                        letterSpacing: 0.5,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        letterSpacing: 1,
                       ),
                     ),
                   ),
@@ -186,14 +186,14 @@ class _WelcomeCta extends StatelessWidget {
         borderRadius: AppRadius.large24,
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 20),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [ColorName.primary, ColorName.secondary],
             ),
-            borderRadius: AppRadius.large24,
+            borderRadius: AppRadius.pill,
             boxShadow: [
               BoxShadow(
                 color: ColorName.primary.withValues(alpha: 0.35),
@@ -208,17 +208,17 @@ class _WelcomeCta extends StatelessWidget {
               const Icon(
                 Icons.auto_awesome,
                 color: ColorName.surface,
-                size: 22,
+                size: 24,
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: AppSpacing.space8),
               Text(
                 l10n.homeCreateFirstTrip,
                 style: const TextStyle(
-                  fontFamily: FontFamily.b612,
-                  fontSize: 17,
+                  fontFamily: FontFamily.dMSerifDisplay,
+                  fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: ColorName.surface,
-                  letterSpacing: 0.3,
+                  letterSpacing: 0.5,
                 ),
               ),
             ],
@@ -250,15 +250,15 @@ class _InspirationCard extends StatelessWidget {
         },
         borderRadius: AppRadius.large16,
         child: Container(
-          width: 140,
-          height: 180,
+          width: 160,
+          height: 200,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: destination.gradient,
             ),
-            borderRadius: AppRadius.large16,
+            borderRadius: AppRadius.large24,
             boxShadow: [
               BoxShadow(
                 color: destination.gradient.first.withValues(alpha: 0.25),
