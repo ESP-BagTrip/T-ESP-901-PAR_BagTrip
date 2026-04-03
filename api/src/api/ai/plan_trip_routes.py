@@ -16,6 +16,7 @@ from src.api.auth.middleware import get_current_user
 from src.api.auth.plan_guard import require_ai_quota
 from src.config.database import get_db
 from src.config.env import settings
+from src.models.accommodation import Accommodation
 from src.models.activity import Activity
 from src.models.baggage_item import BaggageItem
 from src.models.user import User
@@ -98,6 +99,8 @@ async def _trip_plan_generator(request: PlanTripRequest, user_id: str, db: Sessi
         "departure_date": request.departureDate or "",
         "return_date": request.returnDate or "",
         "origin_city": request.originCity or "",
+        "destination_city": request.destinationCity or "",
+        "destination_iata": request.destinationIata or "",
         "travel_style": request.travelStyle or "",
         "season": request.season or "",
         "nb_travelers": request.nbTravelers or 1,
@@ -375,6 +378,19 @@ async def accept_plan(
                     validation_status="SUGGESTED",
                 )
                 db.add(activity)
+
+        # --- Persist accommodations ---
+        accommodations_data = suggestion.get("accommodations", [])
+        for acc in accommodations_data:
+            accommodation = Accommodation(
+                trip_id=trip.id,
+                name=acc.get("name", "Hébergement"),
+                address=acc.get("address"),
+                price_per_night=acc.get("price_per_night"),
+                currency=acc.get("currency", "EUR"),
+                notes=acc.get("notes"),
+            )
+            db.add(accommodation)
 
         # --- Persist baggage items (AI-generated or i18n defaults) ---
         ai_baggage = suggestion.get("baggage", [])

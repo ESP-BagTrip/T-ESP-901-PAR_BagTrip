@@ -13,6 +13,73 @@ async def destination_research_node(state: TripPlanState) -> dict:
     """Research destinations using Amadeus + Open-Meteo via ReAct tools."""
     logger.info("=== Destination Research Node ===")
 
+    # If the user already selected a destination, skip LLM and resolve weather only
+    dest_city = state.get("destination_city", "")
+    dest_iata = state.get("destination_iata", "")
+    if dest_city:
+        logger.info("Using pre-selected destination", {"city": dest_city, "iata": dest_iata})
+
+        # Resolve IATA if missing
+        iata = dest_iata
+        if not iata:
+            try:
+                resolve_tool = TOOL_REGISTRY.get("resolve_iata_code")
+                if resolve_tool:
+                    iata_result = await resolve_tool["fn"](city=dest_city)
+                    iata = iata_result.get("iata", "") if isinstance(iata_result, dict) else ""
+            except Exception:
+                iata = ""
+
+        # Get weather for the destination
+        weather = {}
+        try:
+            weather_tool = TOOL_REGISTRY.get("get_weather")
+            if weather_tool and iata:
+                weather = await weather_tool["fn"](iata_code=iata)
+                if not isinstance(weather, dict):
+                    weather = {}
+        except Exception:
+            weather = {}
+
+        selected = {
+            "city": dest_city,
+            "country": "",
+            "iata": iata,
+            "weather": weather,
+        }
+
+        # Resolve origin IATA
+        origin_iata = ""
+        if state.get("origin_city"):
+            try:
+                resolve_tool = TOOL_REGISTRY.get("resolve_iata_code")
+                if resolve_tool:
+                    origin_result = await resolve_tool["fn"](city=state["origin_city"])
+                    origin_iata = (
+                        origin_result.get("iata", "") if isinstance(origin_result, dict) else ""
+                    )
+            except Exception:
+                pass
+
+        return {
+            "destinations": [selected],
+            "origin_iata": origin_iata,
+            "selected_destination": {
+                "city": dest_city,
+                "country": "",
+                "iata": iata,
+                "lat": 0,
+                "lon": 0,
+            },
+            "weather_data": weather,
+            "events": [
+                {
+                    "event": "destinations",
+                    "data": {"destinations": [selected], "origin_iata": origin_iata},
+                },
+            ],
+        }
+
     # Build user prompt from state
     parts = []
     if state.get("origin_city"):

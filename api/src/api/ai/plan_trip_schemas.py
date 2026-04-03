@@ -39,6 +39,8 @@ class PlanTripRequest(BaseModel):
     departureDate: str | None = Field(None, description="YYYY-MM-DD")
     returnDate: str | None = Field(None, description="YYYY-MM-DD")
     originCity: str | None = None
+    destinationCity: str | None = None
+    destinationIata: str | None = None
     travelStyle: str | None = None
     nbTravelers: int | None = 1
     dateMode: str | None = None

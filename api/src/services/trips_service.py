@@ -69,6 +69,7 @@ class TripsService:
             date_mode=date_mode or DateMode.EXACT,
         )
         db.add(trip)
+        db.flush()
 
         # Auto-add creator as first traveler
         user = db.query(User).filter(User.id == user_id).first()

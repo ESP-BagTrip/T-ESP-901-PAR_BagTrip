@@ -28,6 +28,8 @@ abstract class AiRepository {
     String? departureDate,
     String? returnDate,
     String? originCity,
+    String? destinationCity,
+    String? destinationIata,
     String? mode,
   });
 }

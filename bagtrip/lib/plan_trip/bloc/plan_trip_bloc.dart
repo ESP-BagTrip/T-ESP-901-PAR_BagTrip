@@ -4,6 +4,7 @@ import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/plan_trip/models/ai_destination.dart';
+import 'package:bagtrip/plan_trip/helpers/budget_estimation.dart';
 import 'package:bagtrip/plan_trip/models/budget_preset.dart';
 import 'package:bagtrip/plan_trip/models/date_mode.dart';
 import 'package:bagtrip/plan_trip/models/duration_preset.dart';
@@ -423,6 +424,8 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
           departureDate: params['departureDate'] as String?,
           returnDate: params['returnDate'] as String?,
           originCity: params['originCity'] as String?,
+          destinationCity: params['destinationCity'] as String?,
+          destinationIata: params['destinationIata'] as String?,
         )
         .listen(
           (sseEvent) {
@@ -560,6 +563,16 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     final dest = state.selectedManualDestination;
     final title = dest?.name ?? 'Mon voyage';
 
+    double? budgetTotal;
+    if (state.budgetPreset != null && state.tripDurationDays != null) {
+      final range = estimateBudget(
+        preset: state.budgetPreset!,
+        nbTravelers: state.nbTravelers,
+        days: state.tripDurationDays!,
+      );
+      budgetTotal = range.max;
+    }
+
     final result = await _tripRepository.createTrip(
       title: title,
       destinationName: dest?.name,
@@ -567,6 +580,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       startDate: state.startDate,
       endDate: state.endDate,
       nbTravelers: state.nbTravelers,
+      budgetTotal: budgetTotal,
     );
     if (isClosed) return;
 
@@ -654,6 +668,14 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       returnDate = state.endDate!.toIso8601String().split('T')[0];
     }
 
+    // Resolve destination from manual or AI selection
+    final destName =
+        state.selectedManualDestination?.name ??
+        state.selectedAiDestination?.city;
+    final destIata =
+        state.selectedManualDestination?.iataCode ??
+        state.selectedAiDestination?.iata;
+
     return {
       'durationDays': state.tripDurationDays,
       'departureDate': departureDate,
@@ -663,6 +685,8 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       'originCity': state.originCity,
       'dateMode': state.dateMode.name,
       'budgetPreset': state.budgetPreset?.name,
+      if (destName != null) 'destinationCity': destName,
+      if (destIata != null) 'destinationIata': destIata,
       if (travelTypes != null) 'travelTypes': travelTypes,
       if (companions != null) 'companions': companions,
       if (constraints != null) 'constraints': constraints,
@@ -774,8 +798,11 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
   /// Convert [TripPlan] to suggestion format for `/ai/plan-trip/accept`.
   Map<String, dynamic> _tripPlanToSuggestion(TripPlan plan) {
     return {
-      'destination': plan.destinationCity,
-      'destinationCountry': plan.destinationCountry,
+      'destination': {
+        'city': plan.destinationCity,
+        'country': plan.destinationCountry,
+        if (plan.destinationIata != null) 'iata': plan.destinationIata,
+      },
       'durationDays': plan.durationDays,
       'budgetEur': plan.budgetEur,
       'description':
@@ -789,6 +816,23 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
           'category': i < plan.dayCategories.length
               ? plan.dayCategories[i]
               : 'OTHER',
+        };
+      }),
+      if (plan.accommodationName.isNotEmpty)
+        'accommodations': [
+          {
+            'name': plan.accommodationName,
+            'price_per_night': plan.accommodationPrice,
+            'currency': 'EUR',
+            'source': plan.accommodationSource,
+          },
+        ],
+      'baggage': List.generate(plan.essentialItems.length, (i) {
+        return {
+          'name': plan.essentialItems[i],
+          'reason': i < plan.essentialReasons.length
+              ? plan.essentialReasons[i]
+              : '',
         };
       }),
       'matchReason': 'Planned with real-time data',

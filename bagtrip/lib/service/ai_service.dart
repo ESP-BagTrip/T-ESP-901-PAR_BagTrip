@@ -113,6 +113,8 @@ class AiRepositoryImpl implements AiRepository {
     String? departureDate,
     String? returnDate,
     String? originCity,
+    String? destinationCity,
+    String? destinationIata,
     String? mode,
   }) async* {
     final token = await _storageService.getToken();
@@ -127,6 +129,8 @@ class AiRepositoryImpl implements AiRepository {
       if (departureDate != null) 'departureDate': departureDate,
       if (returnDate != null) 'returnDate': returnDate,
       if (originCity != null) 'originCity': originCity,
+      if (destinationCity != null) 'destinationCity': destinationCity,
+      if (destinationIata != null) 'destinationIata': destinationIata,
       if (mode != null) 'mode': mode,
     };
 
