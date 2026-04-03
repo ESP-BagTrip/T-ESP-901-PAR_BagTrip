@@ -148,9 +148,9 @@ class _LoginPageContentState extends State<_LoginPageContent> {
     final l10n = AppLocalizations.of(context)!;
     const horizontalPadding = 24.0;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final scaffoldBackground = isDark
-        ? ColorName.primaryTrueDark
-        : PersonalizationColors.gradientStart;
+    final scaffoldBackground = PersonalizationColors.gradientStartOf(
+      Theme.of(context).brightness,
+    );
     final titleColor = isDark ? AppColors.surface : AppColors.primaryTrueDark;
     final subtitleColor = isDark ? AppColors.hint : AppColors.textMutedLight;
     final surfaceColor = isDark ? AppColors.surfaceDark : AppColors.surface;

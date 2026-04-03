@@ -10,7 +10,7 @@ class AgentService {
   AgentService({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
 
   /// Chat with the agent (SSE streaming).
-  /// TODO: Implement in Epic 6.
+  /// BLOCKED: Requires SSE infrastructure (Epic 6).
   Stream<Map<String, dynamic>> chat({
     required String tripId,
     required String conversationId,
@@ -21,7 +21,6 @@ class AgentService {
   }
 
   /// Quick action (SELECT/BOOK).
-  /// TODO: Implement in Epic 6.
   Future<Result<Map<String, dynamic>>> action({
     required String tripId,
     required String conversationId,

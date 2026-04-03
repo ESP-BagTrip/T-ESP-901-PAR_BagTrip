@@ -214,21 +214,21 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | E2E non executes en CI           | Tests integration Flutter non lances en CI               | `.github/workflows/ci.yml` |
 
 
-### Technique mobile
+### ~~Technique mobile~~ ✅ Resolu
 
 
-| Element                               | Description                                              | Fichier                                                    |
-| ------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------- |
-| Cache activites/bagages/budget absent | Seuls trips et weather sont caches                       | `bagtrip/lib/config/service_locator.dart`                  |
-| Queue d'ecriture offline absente      | Ecritures echouent silencieusement en offline            | `bagtrip/lib/core/cache/`                                  |
-| `PersonalizationColors` sans dark     | Couleurs uniquement light — illisible en dark mode       | `bagtrip/lib/design/personalization_colors.dart`           |
-| `AppColors` statique non theme-aware  | Couleurs `static const` — ne s'adaptent pas au dark mode | `bagtrip/lib/design/app_colors.dart`                       |
-| Tests parite ARB absents              | Pas de test automatise EN/FR                             | `bagtrip/test/`                                            |
-| Semantics formulaires absents         | Pas de labels VoiceOver sur les champs de saisie         | `bagtrip/lib/components/adaptive/`                         |
-| Deep links notifications limites      | 3 ecrans sur ~10 geres                                   | `bagtrip/lib/notifications/widgets/notification_card.dart` |
-| MapRoute placeholder                  | Pointe vers `MapComingSoonView`                          | `bagtrip/lib/navigation/route_definitions.dart:330`        |
-| `AgentService` non implemente         | Deux methodes marquees TODO                              | `bagtrip/lib/service/agent_service.dart`                   |
-| Tests integration repositories cached | Pas de tests verifiant le fallback offline               | `bagtrip/test/`                                            |
+| Element                               | Description                                              | Fichier                                                    | Statut |
+| ------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------- | ------ |
+| ~~Cache activites/bagages/budget absent~~ | ~~Seuls trips et weather sont caches~~                       | `bagtrip/lib/config/service_locator.dart`                  | ✅ `CachedActivityRepository`, `CachedBaggageRepository`, `CachedBudgetRepository` avec fallback offline cache Hive |
+| ~~Queue d'ecriture offline absente~~      | ~~Ecritures echouent silencieusement en offline~~            | `bagtrip/lib/core/cache/`                                  | ✅ `OfflineWriteQueue` (Hive persistent, FIFO replay on reconnect), integre dans les 3 cached repos |
+| ~~`PersonalizationColors` sans dark~~     | ~~Couleurs uniquement light — illisible en dark mode~~       | `bagtrip/lib/design/personalization_colors.dart`           | ✅ Variantes dark + resolvers `*Of(Brightness)`, 12 pages cles migrees (scaffold/gradient backgrounds) |
+| ~~`AppColors` statique non theme-aware~~  | ~~Couleurs `static const` — ne s'adaptent pas au dark mode~~ | `bagtrip/lib/design/app_colors.dart`                       | ✅ Resolvers `*Of(Brightness)` pour categories budget + text colors |
+| ~~Tests parite ARB absents~~              | ~~Pas de test automatise EN/FR~~                             | `bagtrip/test/`                                            | ✅ `test/l10n/arb_parity_test.dart` verifie parite cles EN/FR + JSON valide |
+| ~~Semantics formulaires absents~~         | ~~Pas de labels VoiceOver sur les champs de saisie~~         | `bagtrip/lib/components/adaptive/`                         | ✅ `Semantics(textField/button)` sur `AdaptiveTextField` + `AdaptiveButton` (label preserve en loading) |
+| ~~Deep links notifications limites~~      | ~~3 ecrans sur ~10 geres~~                                   | `bagtrip/lib/notifications/widgets/notification_card.dart` | ✅ 10/10 ecrans geres (ajoute `shares` + `post-trip`) |
+| ~~MapRoute placeholder~~                  | ~~Pointe vers `MapComingSoonView`~~                          | `bagtrip/lib/navigation/route_definitions.dart:330`        | ✅ Deja resolu — pointe vers `TripLocationsPage` |
+| ~~`AgentService` non implemente~~         | ~~Deux methodes marquees TODO~~                              | `bagtrip/lib/service/agent_service.dart`                   | ✅ `action()` implemente (TODO retire), `chat()` bloque Epic 6 (clarifie) |
+| ~~Tests integration repositories cached~~ | ~~Pas de tests verifiant le fallback offline~~               | `bagtrip/test/`                                            | ✅ 33 tests (3 fichiers) couvrant online/offline/cache-hit/miss + invalidation writes + 8 tests OfflineWriteQueue |
 
 
 ### Technique API

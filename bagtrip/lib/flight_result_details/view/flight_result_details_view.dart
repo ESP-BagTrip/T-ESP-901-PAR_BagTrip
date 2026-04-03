@@ -22,10 +22,11 @@ class FlightResultDetailsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     return Scaffold(
-      backgroundColor: PersonalizationColors.gradientStart,
+      backgroundColor: PersonalizationColors.gradientStartOf(brightness),
       appBar: AppBar(
-        backgroundColor: PersonalizationColors.gradientStart,
+        backgroundColor: PersonalizationColors.gradientStartOf(brightness),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: ColorName.secondary),
@@ -72,11 +73,11 @@ class FlightResultDetailsView extends StatelessWidget {
           }
         },
         child: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: PersonalizationColors.backgroundGradient,
+              colors: PersonalizationColors.backgroundGradientOf(brightness),
             ),
           ),
           child: BlocBuilder<FlightResultDetailsBloc, FlightResultDetailsState>(

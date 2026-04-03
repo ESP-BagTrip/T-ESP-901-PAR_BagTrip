@@ -27,6 +27,10 @@ import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:bagtrip/service/settings_storage.dart';
 import 'package:bagtrip/service/cached_trip_repository.dart';
 import 'package:bagtrip/service/cached_weather_repository.dart';
+import 'package:bagtrip/service/cached_activity_repository.dart';
+import 'package:bagtrip/service/cached_baggage_repository.dart';
+import 'package:bagtrip/service/cached_budget_repository.dart';
+import 'package:bagtrip/core/cache/offline_write_queue.dart';
 import 'package:bagtrip/service/weather_service.dart';
 import 'package:bagtrip/core/cache/cache_service.dart';
 import 'package:bagtrip/core/cache/connectivity_service.dart';
@@ -50,6 +54,13 @@ void setupServiceLocator() {
   getIt.registerLazySingleton<CrashlyticsService>(() => CrashlyticsService());
   getIt.registerLazySingleton<CacheService>(() => CacheService());
   getIt.registerLazySingleton<ConnectivityService>(() => ConnectivityService());
+
+  getIt.registerLazySingleton<OfflineWriteQueue>(
+    () => OfflineWriteQueue(
+      cache: getIt<CacheService>(),
+      connectivity: getIt<ConnectivityService>(),
+    ),
+  );
 
   // 2. ApiClient (depends on StorageService)
   getIt.registerLazySingleton<ApiClient>(
@@ -78,10 +89,20 @@ void setupServiceLocator() {
     () => BookingRepositoryImpl(apiClient: getIt<ApiClient>()),
   );
   getIt.registerLazySingleton<ActivityRepository>(
-    () => ActivityRepositoryImpl(apiClient: getIt<ApiClient>()),
+    () => CachedActivityRepository(
+      remote: ActivityRepositoryImpl(apiClient: getIt<ApiClient>()),
+      cache: getIt<CacheService>(),
+      connectivity: getIt<ConnectivityService>(),
+      queue: getIt<OfflineWriteQueue>(),
+    ),
   );
   getIt.registerLazySingleton<BudgetRepository>(
-    () => BudgetRepositoryImpl(apiClient: getIt<ApiClient>()),
+    () => CachedBudgetRepository(
+      remote: BudgetRepositoryImpl(apiClient: getIt<ApiClient>()),
+      cache: getIt<CacheService>(),
+      connectivity: getIt<ConnectivityService>(),
+      queue: getIt<OfflineWriteQueue>(),
+    ),
   );
   getIt.registerLazySingleton<TripRepository>(
     () => CachedTripRepository(
@@ -97,7 +118,12 @@ void setupServiceLocator() {
     () => AccommodationRepositoryImpl(apiClient: getIt<ApiClient>()),
   );
   getIt.registerLazySingleton<BaggageRepository>(
-    () => BaggageRepositoryImpl(apiClient: getIt<ApiClient>()),
+    () => CachedBaggageRepository(
+      remote: BaggageRepositoryImpl(apiClient: getIt<ApiClient>()),
+      cache: getIt<CacheService>(),
+      connectivity: getIt<ConnectivityService>(),
+      queue: getIt<OfflineWriteQueue>(),
+    ),
   );
   getIt.registerLazySingleton<TravelerRepository>(
     () => TravelerRepositoryImpl(apiClient: getIt<ApiClient>()),

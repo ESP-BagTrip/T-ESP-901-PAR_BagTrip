@@ -16,6 +16,7 @@ class PlanifierManualFlightPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final brightness = Theme.of(context).brightness;
 
     return BlocProvider(
       create: (context) {
@@ -45,7 +46,7 @@ class PlanifierManualFlightPage extends StatelessWidget {
         return bloc;
       },
       child: Scaffold(
-        backgroundColor: PersonalizationColors.gradientStart,
+        backgroundColor: PersonalizationColors.gradientStartOf(brightness),
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
@@ -61,7 +62,7 @@ class PlanifierManualFlightPage extends StatelessWidget {
           centerTitle: true,
           elevation: 0,
           scrolledUnderElevation: 0,
-          backgroundColor: PersonalizationColors.gradientStart,
+          backgroundColor: PersonalizationColors.gradientStartOf(brightness),
           foregroundColor: PersonalizationColors.textPrimary,
         ),
         body: const SafeArea(
