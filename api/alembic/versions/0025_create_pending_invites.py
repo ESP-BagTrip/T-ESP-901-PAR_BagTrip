@@ -1,7 +1,7 @@
 """Create pending_invites table for link-based invitations.
 
-Revision ID: 0024
-Revises: 0023
+Revision ID: 0025
+Revises: 0024
 Create Date: 2026-04-02
 
 """
@@ -9,8 +9,8 @@ Create Date: 2026-04-02
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0024"
-down_revision = "0023"
+revision = "0025"
+down_revision = "0024"
 branch_labels = None
 depends_on = None
 
