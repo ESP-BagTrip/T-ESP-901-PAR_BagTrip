@@ -3131,7 +3131,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeGreeting.
   ///
   /// In fr, this message translates to:
-  /// **'Bon voyage, {name}'**
+  /// **'Bienvenue, {name}'**
   String homeGreeting(String name);
 
   /// No description provided for @homeWelcomeTitle.

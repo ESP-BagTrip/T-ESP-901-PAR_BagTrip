@@ -70,13 +70,13 @@ class FlexibleDatePicker extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(4),
+      padding: AppSpacing.allEdgeInsetSpace4,
       decoration: BoxDecoration(
         color: ColorName.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: AppRadius.pill,
         boxShadow: [
           BoxShadow(
-            color: ColorName.primary.withValues(alpha: 0.1),
+            color: ColorName.primary.withValues(alpha: 0.2),
             blurRadius: 16,
             offset: const Offset(0, 4),
             spreadRadius: -2,
@@ -86,7 +86,7 @@ class FlexibleDatePicker extends StatelessWidget {
       child: Row(
         children: [
           for (var i = 0; i < _modes.length; i++) ...[
-            if (i > 0) const SizedBox(width: 4),
+            if (i > 0) const SizedBox(width: 0),
             Expanded(
               child: _SegmentChip(
                 label: labels[_modes[i]]!,
@@ -147,29 +147,27 @@ class _SegmentChip extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: AppRadius.pill,
         child: AnimatedContainer(
           duration: AppAnimations.microInteraction,
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
           decoration: BoxDecoration(
             color: selected
-                ? const Color(0xFFF2F2F7)
+                ? ColorName.secondary.withValues(alpha: 0.1)
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: AppRadius.pill,
           ),
           alignment: Alignment.center,
           child: Text(
             label,
             textAlign: TextAlign.center,
-            maxLines: 2,
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontFamily: FontFamily.b612,
-              fontSize: 13,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-              color: selected
-                  ? ColorName.primaryTrueDark
-                  : ColorName.hint,
+              fontFamily: FontFamily.dMSans,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: selected ? ColorName.primaryDark : ColorName.hint,
             ),
           ),
         ),
@@ -279,9 +277,7 @@ class _ExactDateContentState extends State<_ExactDateContent> {
     final l10n = widget.l10n;
     final now = DateTime.now();
     final firstDate = DateUtils.dateOnly(now);
-    final lastDate = DateUtils.dateOnly(
-      now.add(const Duration(days: 365)),
-    );
+    final lastDate = DateUtils.dateOnly(now.add(const Duration(days: 365)));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -364,7 +360,7 @@ class _DateCard extends StatelessWidget {
           duration: AppAnimations.microInteraction,
           decoration: BoxDecoration(
             color: ColorName.surface,
-            borderRadius: AppRadius.large16,
+            borderRadius: AppRadius.large24,
             border: Border.all(
               color: isActive
                   ? ColorName.secondary.withValues(alpha: 0.45)
@@ -382,7 +378,7 @@ class _DateCard extends StatelessWidget {
                 : null,
           ),
           child: ClipRRect(
-            borderRadius: AppRadius.large16,
+            borderRadius: AppRadius.large24,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
@@ -408,30 +404,22 @@ class _DateCard extends StatelessWidget {
                         label.toUpperCase(),
                         style: const TextStyle(
                           fontFamily: FontFamily.b612,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
                           color: ColorName.secondary,
-                          letterSpacing: 0.4,
+                          letterSpacing: 0.8,
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.space4),
-                      Text(
-                        '—',
-                        style: TextStyle(
-                          fontFamily: FontFamily.b612,
-                          fontSize: 13,
-                          color: ColorName.hint.withValues(alpha: 0.7),
-                        ),
-                      ),
+                      const SizedBox(height: AppSpacing.space8),
                       const SizedBox(height: 2),
                       Text(
                         hasDate ? formattedDate : placeholder,
                         style: TextStyle(
-                          fontFamily: FontFamily.b612,
-                          fontSize: 15,
+                          fontFamily: FontFamily.dMSerifDisplay,
+                          fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: hasDate
-                              ? ColorName.primaryTrueDark
+                              ? ColorName.primaryDark
                               : ColorName.hint,
                         ),
                       ),

@@ -26,119 +26,109 @@ class StepDatesView extends StatelessWidget {
             AppSpacing.space22,
             AppSpacing.space22,
             AppSpacing.space22,
-            40,
+            AppSpacing.space40,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-            Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        ColorName.secondary.withValues(alpha: 0.22),
-                        ColorName.primary.withValues(alpha: 0.14),
-                      ],
+              Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      borderRadius: AppRadius.pill,
+                      border: Border.all(color: ColorName.secondary),
                     ),
-                    border: Border.all(
-                      color: ColorName.secondary.withValues(alpha: 0.25),
+                    child: const Icon(
+                      Icons.calendar_today_rounded,
+                      size: 20,
+                      color: ColorName.secondary,
                     ),
                   ),
-                  child: const Icon(
-                    Icons.calendar_today_rounded,
-                    size: 20,
-                    color: ColorName.secondary,
+                  const SizedBox(width: AppSpacing.space12),
+                  Text(
+                    l10n.datesLabel,
+                    style: const TextStyle(
+                      fontFamily: FontFamily.b612,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: ColorName.secondary,
+                      letterSpacing: 1.2,
+                    ),
                   ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.space16),
+
+              FlexibleDatePicker(
+                mode: state.dateMode,
+                onModeChanged: (mode) => context.read<PlanTripBloc>().add(
+                  PlanTripEvent.setDateMode(mode),
                 ),
-                const SizedBox(width: AppSpacing.space12),
-                Text(
-                  l10n.datesLabel,
-                  style: const TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: ColorName.secondary,
-                    letterSpacing: 1.6,
+                startDate: state.startDate,
+                endDate: state.endDate,
+                onDatesChanged: (start, end) {
+                  if (start != null && end != null) {
+                    context.read<PlanTripBloc>().add(
+                      PlanTripEvent.setExactDates(start, end),
+                    );
+                  }
+                },
+                selectedMonth: state.preferredMonth,
+                selectedYear: state.preferredYear,
+                onMonthSelected: (month, year) => context
+                    .read<PlanTripBloc>()
+                    .add(PlanTripEvent.setMonthPreference(month, year)),
+                selectedDuration: state.flexibleDuration,
+                onDurationChanged: (preset) => context.read<PlanTripBloc>().add(
+                  PlanTripEvent.setFlexibleDuration(preset),
+                ),
+              ),
+
+              if (state.areDatesValid) ...[
+                const SizedBox(height: AppSpacing.space24),
+                Center(
+                  child: _ScaleInBadge(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.space16,
+                        vertical: AppSpacing.space12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: ColorName.surface,
+                        borderRadius: AppRadius.pill,
+                        border: Border.all(color: ColorName.primarySoftLight),
+                        boxShadow: [
+                          BoxShadow(
+                            color: ColorName.primary.withValues(alpha: 0.05),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: _buildBadgeContent(
+                        context: context,
+                        state: state,
+                        l10n: l10n,
+                      ),
+                    ),
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: AppSpacing.space16),
 
-            FlexibleDatePicker(
-              mode: state.dateMode,
-              onModeChanged: (mode) => context.read<PlanTripBloc>().add(
-                PlanTripEvent.setDateMode(mode),
-              ),
-              startDate: state.startDate,
-              endDate: state.endDate,
-              onDatesChanged: (start, end) {
-                if (start != null && end != null) {
+              const SizedBox(height: AppSpacing.space32),
+
+              _ContinueButton(
+                enabled: state.areDatesValid,
+                onPressed: () {
+                  AppHaptics.medium();
                   context.read<PlanTripBloc>().add(
-                    PlanTripEvent.setExactDates(start, end),
+                    const PlanTripEvent.nextStep(),
                   );
-                }
-              },
-              selectedMonth: state.preferredMonth,
-              selectedYear: state.preferredYear,
-              onMonthSelected: (month, year) => context
-                  .read<PlanTripBloc>()
-                  .add(PlanTripEvent.setMonthPreference(month, year)),
-              selectedDuration: state.flexibleDuration,
-              onDurationChanged: (preset) => context.read<PlanTripBloc>().add(
-                PlanTripEvent.setFlexibleDuration(preset),
-              ),
-            ),
-
-            if (state.areDatesValid) ...[
-              const SizedBox(height: AppSpacing.space24),
-              Center(
-                child: _ScaleInBadge(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.space16,
-                      vertical: AppSpacing.space12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: ColorName.surface,
-                      borderRadius: AppRadius.pill,
-                      border: Border.all(color: ColorName.primarySoftLight),
-                      boxShadow: [
-                        BoxShadow(
-                          color: ColorName.primary.withValues(alpha: 0.08),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: _buildBadgeContent(
-                      context: context,
-                      state: state,
-                      l10n: l10n,
-                    ),
-                  ),
-                ),
+                },
               ),
             ],
-
-            const SizedBox(height: AppSpacing.space32),
-
-            _ContinueButton(
-              enabled: state.areDatesValid,
-              onPressed: () {
-                AppHaptics.medium();
-                context.read<PlanTripBloc>().add(
-                  const PlanTripEvent.nextStep(),
-                );
-              },
-            ),
-          ],
           ),
         );
       },
@@ -285,16 +275,17 @@ class _ContinueButtonState extends State<_ContinueButton> {
     final l10n = AppLocalizations.of(context)!;
 
     final child = Container(
-      constraints: const BoxConstraints(minHeight: 44),
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.space15),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(
         gradient: widget.enabled
             ? const LinearGradient(
                 colors: [ColorName.primary, ColorName.secondary],
               )
             : null,
-        color: widget.enabled ? null : const Color(0xFFE8EAED),
-        borderRadius: AppRadius.large16,
+        color: widget.enabled
+            ? null
+            : ColorName.secondary.withValues(alpha: 0.1),
+        borderRadius: AppRadius.pill,
         boxShadow: widget.enabled
             ? [
                 BoxShadow(
@@ -309,10 +300,12 @@ class _ContinueButtonState extends State<_ContinueButton> {
         color: Colors.transparent,
         child: InkWell(
           onTap: widget.enabled ? widget.onPressed : null,
-          borderRadius: AppRadius.large16,
+          borderRadius: AppRadius.pill,
           child: Center(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space22),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.space22,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -320,7 +313,7 @@ class _ContinueButtonState extends State<_ContinueButton> {
                     l10n.continueButton,
                     style: TextStyle(
                       fontSize: 16,
-                      fontFamily: FontFamily.b612,
+                      fontFamily: FontFamily.dMSerifDisplay,
                       fontWeight: FontWeight.w600,
                       color: widget.enabled
                           ? ColorName.surface
@@ -329,7 +322,10 @@ class _ContinueButtonState extends State<_ContinueButton> {
                   ),
                   const SizedBox(width: 8),
                   TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0, end: _hover && widget.enabled ? 1 : 0),
+                    tween: Tween(
+                      begin: 0,
+                      end: _hover && widget.enabled ? 1 : 0,
+                    ),
                     duration: AppAnimations.microInteraction,
                     builder: (context, t, child) {
                       return Transform.translate(
@@ -339,7 +335,7 @@ class _ContinueButtonState extends State<_ContinueButton> {
                     },
                     child: Icon(
                       Icons.arrow_forward_rounded,
-                      size: 22,
+                      size: 20,
                       color: widget.enabled
                           ? ColorName.surface
                           : ColorName.hint,

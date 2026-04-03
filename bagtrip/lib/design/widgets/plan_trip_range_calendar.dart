@@ -1,6 +1,5 @@
 import 'package:bagtrip/design/app_animations.dart';
 import 'package:bagtrip/design/app_haptics.dart';
-import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -50,9 +49,7 @@ class _PlanTripRangeCalendarState extends State<PlanTripRangeCalendar> {
   @override
   void initState() {
     super.initState();
-    final anchor = widget.selectedStart ??
-        widget.selectedEnd ??
-        DateTime.now();
+    final anchor = widget.selectedStart ?? widget.selectedEnd ?? DateTime.now();
     _visibleMonth = DateTime(anchor.year, anchor.month);
     if (_visibleMonth.isBefore(
       DateTime(widget.firstDate.year, widget.firstDate.month),
@@ -90,9 +87,7 @@ class _PlanTripRangeCalendarState extends State<PlanTripRangeCalendar> {
 
   void _goNext() {
     final next = DateTime(_visibleMonth.year, _visibleMonth.month + 1);
-    if (!next.isAfter(
-      DateTime(widget.lastDate.year, widget.lastDate.month),
-    )) {
+    if (!next.isAfter(DateTime(widget.lastDate.year, widget.lastDate.month))) {
       final page = _pageForMonth(next);
       _pageController.animateToPage(
         page,
@@ -118,95 +113,95 @@ class _PlanTripRangeCalendarState extends State<PlanTripRangeCalendar> {
         final gridHeight = 6 * cellW + 8;
 
         return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: ColorName.surface,
-        borderRadius: AppRadius.large20,
-        boxShadow: [
-          BoxShadow(
-            color: ColorName.primary.withValues(alpha: 0.12),
-            blurRadius: 24,
-            offset: const Offset(0, 6),
-            spreadRadius: -1,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: ColorName.surface,
+            borderRadius: AppRadius.large24,
+            boxShadow: [
+              BoxShadow(
+                color: ColorName.primary.withValues(alpha: 0.12),
+                blurRadius: 24,
+                offset: const Offset(0, 6),
+                spreadRadius: -1,
+              ),
+            ],
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: AppRadius.large20,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: AppSpacing.horizontalSpace16.add(
-                const EdgeInsets.only(top: 12, bottom: 8),
-              ),
-              child: Row(
-                children: [
-                  _CircleChevron(
-                    icon: Icons.chevron_left_rounded,
-                    enabled: canPrev,
-                    onTap: _goPrev,
+          child: ClipRRect(
+            borderRadius: AppRadius.large20,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: AppSpacing.horizontalSpace16.add(
+                    const EdgeInsets.only(top: 12, bottom: 8),
                   ),
-                  Expanded(
-                    child: AnimatedSwitcher(
-                      duration: AppAnimations.microInteraction,
-                      switchInCurve: Curves.easeOut,
-                      switchOutCurve: Curves.easeIn,
-                      transitionBuilder: (child, anim) => FadeTransition(
-                        opacity: anim,
-                        child: SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0, 0.06),
-                            end: Offset.zero,
-                          ).animate(anim),
-                          child: child,
+                  child: Row(
+                    children: [
+                      _CircleChevron(
+                        icon: Icons.chevron_left_rounded,
+                        enabled: canPrev,
+                        onTap: _goPrev,
+                      ),
+                      Expanded(
+                        child: AnimatedSwitcher(
+                          duration: AppAnimations.microInteraction,
+                          switchInCurve: Curves.easeOut,
+                          switchOutCurve: Curves.easeIn,
+                          transitionBuilder: (child, anim) => FadeTransition(
+                            opacity: anim,
+                            child: SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0, 0.06),
+                                end: Offset.zero,
+                              ).animate(anim),
+                              child: child,
+                            ),
+                          ),
+                          child: Text(
+                            DateFormat(
+                              'MMMM yyyy',
+                              locale,
+                            ).format(_visibleMonth),
+                            key: ValueKey(_visibleMonth),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontFamily: FontFamily.dMSerifDisplay,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                              color: ColorName.primaryDark,
+                            ),
+                          ),
                         ),
                       ),
-                      child: Text(
-                        DateFormat('MMMM yyyy', locale).format(_visibleMonth),
-                        key: ValueKey(_visibleMonth),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontFamily: FontFamily.b612,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 17,
-                          color: PersonalizationColors.textPrimary,
-                        ),
+                      _CircleChevron(
+                        icon: Icons.chevron_right_rounded,
+                        enabled: canNext,
+                        onTap: _goNext,
                       ),
-                    ),
+                    ],
                   ),
-                  _CircleChevron(
-                    icon: Icons.chevron_right_rounded,
-                    enabled: canNext,
-                    onTap: _goNext,
+                ),
+                _buildWeekdayRow(locale),
+                SizedBox(
+                  height: gridHeight,
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: _monthTotal,
+                    onPageChanged: (i) {
+                      setState(() {
+                        _visibleMonth = _monthFromPage(i);
+                      });
+                    },
+                    itemBuilder: (context, index) {
+                      return _buildMonthGrid(context, _monthFromPage(index));
+                    },
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 12),
+              ],
             ),
-            _buildWeekdayRow(locale),
-            SizedBox(
-              height: gridHeight,
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: _monthTotal,
-                onPageChanged: (i) {
-                  setState(() {
-                    _visibleMonth = _monthFromPage(i);
-                  });
-                },
-                itemBuilder: (context, index) {
-                  return _buildMonthGrid(
-                    context,
-                    _monthFromPage(index),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 12),
-          ],
-        ),
-      ),
-    );
+          ),
+        );
       },
     );
   }
@@ -246,7 +241,7 @@ class _PlanTripRangeCalendarState extends State<PlanTripRangeCalendar> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cellW = constraints.maxWidth / 7;
+        final cellW = constraints.maxWidth / 8;
 
         final daysInMonth = DateUtils.getDaysInMonth(
           monthDate.year,
@@ -284,12 +279,7 @@ class _PlanTripRangeCalendarState extends State<PlanTripRangeCalendar> {
         final rows = <TableRow>[];
         for (int r = 0; r < cells.length / 7; r++) {
           rows.add(
-            TableRow(
-              children: [
-                for (int c = 0; c < 7; c++)
-                  cells[r * 7 + c],
-              ],
-            ),
+            TableRow(children: [for (int c = 0; c < 7; c++) cells[r * 7 + c]]),
           );
         }
 
@@ -329,7 +319,7 @@ class _CircleChevron extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: enabled
-                ? ColorName.primaryLight.withValues(alpha: 0.6)
+                ? ColorName.secondary.withValues(alpha: 0.1)
                 : ColorName.primary.withValues(alpha: 0.06),
             shape: BoxShape.circle,
           ),
@@ -384,8 +374,7 @@ class _DayCell extends StatelessWidget {
 
     bool inBetween = false;
     if (s != null && e != null) {
-      inBetween =
-          dateOnly.isAfter(s) && dateOnly.isBefore(e);
+      inBetween = dateOnly.isAfter(s) && dateOnly.isBefore(e);
     }
 
     final showCircle = isStart || isEnd;
@@ -397,7 +386,6 @@ class _DayCell extends StatelessWidget {
         height: cellSize,
         width: cellSize,
         child: Stack(
-          fit: StackFit.expand,
           alignment: Alignment.center,
           children: [
             if (inBetween)
@@ -406,7 +394,7 @@ class _DayCell extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: ColorName.secondary.withValues(alpha: 0.18),
+                      color: ColorName.secondary.withValues(alpha: 0.1),
                     ),
                   ),
                 ),
@@ -434,8 +422,8 @@ class _DayCell extends StatelessWidget {
                 child: Text(
                   '$day',
                   style: const TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 15,
+                    fontFamily: FontFamily.dMSans,
+                    fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: ColorName.surface,
                   ),
@@ -448,16 +436,16 @@ class _DayCell extends StatelessWidget {
                   Text(
                     '$day',
                     style: TextStyle(
-                      fontFamily: FontFamily.b612,
-                      fontSize: 15,
+                      fontFamily: isToday ? FontFamily.b612 : FontFamily.dMSans,
+                      fontSize: 14,
                       fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
                       color: isDisabled
                           ? ColorName.hint
                           : (inBetween
-                                ? ColorName.primaryTrueDark
+                                ? ColorName.primaryDark
                                 : (isToday
-                                      ? ColorName.primary
-                                      : ColorName.primaryTrueDark)),
+                                      ? ColorName.secondary
+                                      : ColorName.primaryDark)),
                     ),
                   ),
                   if (isToday && !showCircle && !inBetween)
