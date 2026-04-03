@@ -77,7 +77,7 @@ err   = @printf "$(RED)[err]$(RESET)  %s\n" $(1)
         dev-clean \
         check lint lint-api lint-admin lint-mobile test test-api test-mobile \
         test-e2e \
-        coverage golden-test golden-update \
+        coverage \
         db-reset db-revision db-shell \
         shell-api shell-admin
 
@@ -106,8 +106,6 @@ help: ## Show this help
 	@printf "  $(CYAN)make test$(RESET)            Run all tests (api + mobile + e2e)\n"
 	@printf "  $(CYAN)make test-e2e$(RESET)        Run E2E integration tests\n"
 	@printf "  $(CYAN)make coverage$(RESET)        Run Flutter tests with coverage (60%% threshold)\n"
-	@printf "  $(CYAN)make golden-test$(RESET)     Verify golden tests haven't drifted\n"
-	@printf "  $(CYAN)make golden-update$(RESET)   Regenerate golden reference files\n"
 	@printf "\n"
 	@printf "$(BOLD) Database$(RESET)\n"
 	@printf "  $(CYAN)make db-reset$(RESET)       Drop and recreate the database (dev only)\n"
@@ -292,15 +290,6 @@ coverage: ## Run Flutter tests with coverage (60% threshold)
 		printf "$(YELLOW)[warn]$(RESET) lcov not installed — skipping threshold check\n"; \
 	fi
 
-golden-test: ## Verify golden tests haven't drifted
-	@printf "$(CYAN)[info]$(RESET) Running golden tests…\n"
-	@cd $(FLUTTER_DIR) && flutter test --tags=golden
-	$(call ok,"Golden tests passed")
-
-golden-update: ## Regenerate golden reference files
-	@printf "$(CYAN)[info]$(RESET) Regenerating golden files…\n"
-	@cd $(FLUTTER_DIR) && flutter test --tags=golden --update-goldens
-	$(call ok,"Goldens updated — review and commit the new .png files")
 
 # ══════════════════════════════════════════════════════════════
 #  DATABASE

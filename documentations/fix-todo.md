@@ -223,7 +223,6 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | Queue d'ecriture offline absente      | Ecritures echouent silencieusement en offline            | `bagtrip/lib/core/cache/`                                  |
 | `PersonalizationColors` sans dark     | Couleurs uniquement light — illisible en dark mode       | `bagtrip/lib/design/personalization_colors.dart`           |
 | `AppColors` statique non theme-aware  | Couleurs `static const` — ne s'adaptent pas au dark mode | `bagtrip/lib/design/app_colors.dart`                       |
-| Golden tests light-only               | Aucune variante dark mode                                | `bagtrip/test/goldens/golden_helpers.dart`                 |
 | Tests parite ARB absents              | Pas de test automatise EN/FR                             | `bagtrip/test/`                                            |
 | Semantics formulaires absents         | Pas de labels VoiceOver sur les champs de saisie         | `bagtrip/lib/components/adaptive/`                         |
 | Deep links notifications limites      | 3 ecrans sur ~10 geres                                   | `bagtrip/lib/notifications/widgets/notification_card.dart` |

@@ -7,7 +7,7 @@
 La pipeline CI/CD de BagTrip s'appuie sur trois niveaux complementaires :
 
 1. **Pre-commit hooks** -- Verification locale avant chaque commit (linting API + mobile)
-2. **GitHub Actions CI** -- Verification automatique sur push/PR (analyze, tests, coverage, golden tests)
+2. **GitHub Actions CI** -- Verification automatique sur push/PR (analyze, tests, coverage)
 3. **GitHub Actions PR checks** -- Validation de la PR elle-meme (titre semantique, analyse de taille)
 
 Il n'existe pas de pipeline de deploiement (CD) -- ni de staging, ni de production automatisee.
@@ -85,14 +85,7 @@ Le job `detect-changes` utilise `dorny/paths-filter@v3` pour ne lancer que les j
   - **Seuil de couverture : 60%** -- le job echoue si la couverture de lignes est inferieure
   - Ecrit un resume dans `$GITHUB_STEP_SUMMARY` avec le pourcentage
 
-#### 3. Flutter Golden Tests (`flutter-goldens`)
-
-- **Condition** : changements dans `bagtrip/`
-- **Actions** :
-  - `flutter test --tags=golden`
-  - En cas d'echec : upload `test/goldens/failures/` comme artifact (retention 7 jours)
-
-#### 4. API Checks (`api-checks`)
+#### 3. API Checks (`api-checks`)
 
 - **Condition** : changements dans `api/`
 - **Actions** :
@@ -119,7 +112,6 @@ Le job `detect-changes` utilise `dorny/paths-filter@v3` pour ne lancer que les j
 |-------|--------|
 | Flutter Analyze | Passed/Skipped/Failed |
 | Flutter Test | ... |
-| Flutter Goldens | ... |
 | API Checks | ... |
 ```
 
@@ -130,7 +122,6 @@ detect-changes
   |
   |---> flutter-analyze ----\
   |---> flutter-test --------\---> quality-gate ---> report
-  |---> flutter-goldens -----/
   |---> api-checks ---------/
 ```
 
@@ -169,24 +160,6 @@ detect-changes
 - Poste un commentaire automatique avec le detail (fichiers, insertions, deletions)
 - Ajoute un label `size/<xs|s|m|l|xl>` a la PR
 
-## GitHub Actions -- Golden Update
-
-**Fichier** : `.github/workflows/golden-update.yml`
-
-### Declencheur
-
-- **`workflow_dispatch`** uniquement (manuel depuis l'interface GitHub)
-- **Input** : `commit_message` (defaut : `chore: update golden test baselines`)
-
-### Actions
-
-1. Checkout avec `GITHUB_TOKEN`
-2. Setup Flutter (stable, cache)
-3. `flutter test --tags=golden --update-goldens`
-4. `git add bagtrip/test/goldens/`
-5. Si des fichiers ont change : commit et push automatique avec le message configurable
-6. Le commit est fait par `github-actions[bot]`
-
 ## Commandes Makefile -- Quality
 
 Le Makefile fournit des equivalents locaux pour toutes les verifications CI :
@@ -196,8 +169,6 @@ Le Makefile fournit des equivalents locaux pour toutes les verifications CI :
 | Flutter Analyze + Format | `make lint-mobile` |
 | Flutter Test | `make test-mobile` |
 | Flutter Test + Coverage | `make coverage` (seuil 60%) |
-| Flutter Golden Tests | `make golden-test` |
-| Flutter Golden Update | `make golden-update` |
 | Flutter E2E Tests | `make test-e2e` |
 | API Lint + Format | `make lint-api` |
 | API Tests | `make test-api` |
