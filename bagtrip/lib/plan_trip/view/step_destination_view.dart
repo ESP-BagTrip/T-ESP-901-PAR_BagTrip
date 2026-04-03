@@ -69,7 +69,12 @@ class _StepDestinationViewState extends State<StepDestinationView> {
         final query = _searchController.text.trim();
 
         return ListView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.space22,
+            AppSpacing.space22,
+            AppSpacing.space22,
+            40,
+          ),
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           children: [
             // Section header

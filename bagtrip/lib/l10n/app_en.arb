@@ -794,6 +794,37 @@
       "count": {"type": "int"}
     }
   },
+  "travelerTypeAdults": "Adults",
+  "travelerTypeChildren": "Children",
+  "travelerTypeBabies": "Babies",
+  "travelerAgeAdultsSubtitle": "Ages 13+",
+  "travelerAgeChildrenSubtitle": "Ages 3–12",
+  "travelerAgeBabiesSubtitle": "Ages 0–2",
+  "travelerSegmentAdult": "{count, plural, =1{1 adult} other{{count} adults}}",
+  "@travelerSegmentAdult": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "travelerSegmentChild": "{count, plural, =1{1 child} other{{count} children}}",
+  "@travelerSegmentChild": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "travelerSegmentBaby": "{count, plural, =1{1 baby} other{{count} babies}}",
+  "@travelerSegmentBaby": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "planTripDurationDaysNights": "{days} days · {nights} nights",
+  "@planTripDurationDaysNights": {
+    "placeholders": {
+      "days": {"type": "int"},
+      "nights": {"type": "int"}
+    }
+  },
   "budgetLabel": "BUDGET",
   "budgetPresetBackpacker": "Backpacker",
   "budgetPresetBackpackerDesc": "30–60 €/day",

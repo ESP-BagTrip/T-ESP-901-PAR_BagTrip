@@ -11,10 +11,14 @@ class StepSummaryItem {
   final String label;
   final String value;
 
+  /// Optional second line (e.g. exact date range under duration).
+  final String? subtitle;
+
   const StepSummaryItem({
     required this.icon,
     required this.label,
     required this.value,
+    this.subtitle,
   });
 }
 
@@ -57,10 +61,10 @@ class _StepHeaderState extends State<StepHeader> {
     return GestureDetector(
       onTap: _toggle,
       child: Container(
-        padding: AppSpacing.allEdgeInsetSpace16,
+        padding: AppSpacing.allEdgeInsetSpace12,
         decoration: BoxDecoration(
           color: ColorName.surface,
-          borderRadius: AppRadius.large16,
+          borderRadius: AppRadius.large13,
           border: Border.all(color: ColorName.primarySoftLight),
           boxShadow: [
             BoxShadow(
@@ -93,25 +97,61 @@ class _StepHeaderState extends State<StepHeader> {
                 Icon(widget.items[i].icon, size: 16, color: AppColors.primary),
                 const SizedBox(width: AppSpacing.space4),
                 Flexible(
-                  child: Text(
-                    widget.items[i].value,
-                    style: const TextStyle(
-                      fontFamily: FontFamily.b612,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: ColorName.primaryTrueDark,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
+                  child: _collapsedValueText(widget.items[i]),
                 ),
               ],
             ],
           ),
         ),
         const SizedBox(width: AppSpacing.space8),
-        const Icon(Icons.keyboard_arrow_down, size: 20, color: AppColors.hint),
+        const Icon(Icons.keyboard_arrow_down, size: 18, color: AppColors.hint),
       ],
+    );
+  }
+
+  Widget _collapsedValueText(StepSummaryItem item) {
+    if (item.subtitle != null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            item.value,
+            style: const TextStyle(
+              fontFamily: FontFamily.b612,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: ColorName.primaryTrueDark,
+              height: 1.2,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+          Text(
+            item.subtitle!,
+            style: const TextStyle(
+              fontFamily: FontFamily.b612,
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+              color: ColorName.hint,
+              height: 1.2,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ],
+      );
+    }
+    return Text(
+      item.value,
+      style: const TextStyle(
+        fontFamily: FontFamily.b612,
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: ColorName.primaryTrueDark,
+      ),
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1,
     );
   }
 
@@ -167,6 +207,18 @@ class _StepHeaderState extends State<StepHeader> {
                   color: ColorName.primaryTrueDark,
                 ),
               ),
+              if (item.subtitle != null) ...[
+                const SizedBox(height: AppSpacing.space4),
+                Text(
+                  item.subtitle!,
+                  style: const TextStyle(
+                    fontFamily: FontFamily.b612,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                    color: ColorName.hint,
+                  ),
+                ),
+              ],
             ],
           ),
         ),

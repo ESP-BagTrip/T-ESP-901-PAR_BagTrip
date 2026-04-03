@@ -53,7 +53,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     on<PlanTripSetMonthPreference>(_onSetMonthPreference);
     on<PlanTripSetFlexibleDuration>(_onSetFlexibleDuration);
     // Step 1 — Travelers + Budget
-    on<PlanTripSetTravelers>(_onSetTravelers);
+    on<PlanTripSetTravelerCounts>(_onSetTravelerCounts);
     on<PlanTripSetBudgetPreset>(_onSetBudgetPreset);
     // Step 2 — Destination
     on<PlanTripSearchDestination>(_onSearchDestination);
@@ -140,11 +140,31 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
   // Step 1 — Travelers + Budget
   // ---------------------------------------------------------------------------
 
-  void _onSetTravelers(
-    PlanTripSetTravelers event,
+  static const int _maxTravelersPerCategory = 10;
+
+  void _onSetTravelerCounts(
+    PlanTripSetTravelerCounts event,
     Emitter<PlanTripState> emit,
   ) {
-    emit(state.copyWith(nbTravelers: event.count));
+    final adults = (event.adults ?? state.nbAdults).clamp(
+      1,
+      _maxTravelersPerCategory,
+    );
+    final children = (event.children ?? state.nbChildren).clamp(
+      0,
+      _maxTravelersPerCategory,
+    );
+    final babies = (event.babies ?? state.nbBabies).clamp(
+      0,
+      _maxTravelersPerCategory,
+    );
+    emit(
+      state.copyWith(
+        nbAdults: adults,
+        nbChildren: children,
+        nbBabies: babies,
+      ),
+    );
   }
 
   void _onSetBudgetPreset(

@@ -2041,6 +2041,62 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get travelerTypeAdults => 'Adultes';
+
+  @override
+  String get travelerTypeChildren => 'Enfants';
+
+  @override
+  String get travelerTypeBabies => 'Bébés';
+
+  @override
+  String get travelerAgeAdultsSubtitle => '13 ans et plus';
+
+  @override
+  String get travelerAgeChildrenSubtitle => '3 à 12 ans';
+
+  @override
+  String get travelerAgeBabiesSubtitle => '0 à 2 ans';
+
+  @override
+  String travelerSegmentAdult(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count adultes',
+      one: '1 adulte',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String travelerSegmentChild(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count enfants',
+      one: '1 enfant',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String travelerSegmentBaby(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bébés',
+      one: '1 bébé',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String planTripDurationDaysNights(int days, int nights) {
+    return '$days jours · $nights nuits';
+  }
+
+  @override
   String get budgetLabel => 'BUDGET';
 
   @override

@@ -3872,6 +3872,66 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 voyageur} other{{count} voyageurs}}'**
   String travelerCountLabel(int count);
 
+  /// No description provided for @travelerTypeAdults.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adultes'**
+  String get travelerTypeAdults;
+
+  /// No description provided for @travelerTypeChildren.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enfants'**
+  String get travelerTypeChildren;
+
+  /// No description provided for @travelerTypeBabies.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bébés'**
+  String get travelerTypeBabies;
+
+  /// No description provided for @travelerAgeAdultsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'13 ans et plus'**
+  String get travelerAgeAdultsSubtitle;
+
+  /// No description provided for @travelerAgeChildrenSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'3 à 12 ans'**
+  String get travelerAgeChildrenSubtitle;
+
+  /// No description provided for @travelerAgeBabiesSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'0 à 2 ans'**
+  String get travelerAgeBabiesSubtitle;
+
+  /// No description provided for @travelerSegmentAdult.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 adulte} other{{count} adultes}}'**
+  String travelerSegmentAdult(int count);
+
+  /// No description provided for @travelerSegmentChild.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 enfant} other{{count} enfants}}'**
+  String travelerSegmentChild(int count);
+
+  /// No description provided for @travelerSegmentBaby.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 bébé} other{{count} bébés}}'**
+  String travelerSegmentBaby(int count);
+
+  /// No description provided for @planTripDurationDaysNights.
+  ///
+  /// In fr, this message translates to:
+  /// **'{days} jours · {nights} nuits'**
+  String planTripDurationDaysNights(int days, int nights);
+
   /// No description provided for @budgetLabel.
   ///
   /// In fr, this message translates to:

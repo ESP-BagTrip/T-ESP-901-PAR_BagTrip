@@ -1,5 +1,7 @@
 import 'package:bagtrip/design/app_animations.dart';
+import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
+import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/premium_step_indicator.dart';
 import 'package:bagtrip/design/widgets/step_header.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -7,18 +9,19 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
-import 'package:bagtrip/plan_trip/models/location_result.dart';
-import 'package:bagtrip/plan_trip/models/duration_preset.dart';
 import 'package:bagtrip/plan_trip/models/budget_preset.dart';
+import 'package:bagtrip/plan_trip/models/date_mode.dart';
+import 'package:bagtrip/plan_trip/models/duration_preset.dart';
+import 'package:bagtrip/plan_trip/models/location_result.dart';
+import 'package:bagtrip/plan_trip/view/step_ai_proposals_view.dart';
 import 'package:bagtrip/plan_trip/view/step_dates_view.dart';
 import 'package:bagtrip/plan_trip/view/step_destination_view.dart';
-import 'package:bagtrip/plan_trip/view/step_ai_proposals_view.dart';
 import 'package:bagtrip/plan_trip/view/step_generation_view.dart';
 import 'package:bagtrip/plan_trip/view/step_review_view.dart';
 import 'package:bagtrip/plan_trip/view/step_travelers_budget_view.dart';
-import 'package:bagtrip/design/app_haptics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 class PlanTripFlowPage extends StatefulWidget {
   const PlanTripFlowPage({super.key, this.initialDestination});
@@ -104,8 +107,12 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
                   ),
                   if (state.currentStep > 0 && state.currentStep < 4)
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: StepHeader(items: _buildSummaryItems(state, l10n)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.space22,
+                      ),
+                      child: StepHeader(
+                        items: _buildSummaryItems(context, state, l10n),
+                      ),
                     ),
                   Expanded(
                     child: PageView(
@@ -143,6 +150,7 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
   }
 
   List<StepSummaryItem> _buildSummaryItems(
+    BuildContext context,
     PlanTripState state,
     AppLocalizations l10n,
   ) {
@@ -152,7 +160,8 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
         StepSummaryItem(
           icon: Icons.calendar_today_rounded,
           label: l10n.datesLabel,
-          value: _datesSummary(state, l10n),
+          value: _datesPrimaryLine(state, l10n),
+          subtitle: _datesSubtitleLine(state, context),
         ),
       );
     }
@@ -190,6 +199,28 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
       }
     }
     return items;
+  }
+
+  String _datesPrimaryLine(PlanTripState state, AppLocalizations l10n) {
+    if (state.dateMode == DateMode.exact &&
+        state.startDate != null &&
+        state.endDate != null) {
+      final days = state.endDate!.difference(state.startDate!).inDays;
+      final nights = days > 0 ? days - 1 : 0;
+      return l10n.planTripDurationDaysNights(days, nights);
+    }
+    return _datesSummary(state, l10n);
+  }
+
+  String? _datesSubtitleLine(PlanTripState state, BuildContext context) {
+    if (state.dateMode == DateMode.exact &&
+        state.startDate != null &&
+        state.endDate != null) {
+      final locale = Localizations.localeOf(context).toString();
+      final fmt = DateFormat.yMMMd(locale);
+      return '${fmt.format(state.startDate!)} → ${fmt.format(state.endDate!)}';
+    }
+    return null;
   }
 
   String _datesSummary(PlanTripState state, AppLocalizations l10n) {
@@ -255,11 +286,8 @@ class _WizardNavAnimatedColumnState extends State<_WizardNavAnimatedColumn>
       parent: _controller,
       curve: AppAnimations.standardCurve,
     );
-    _slide =
-        Tween<Offset>(
-          begin: const Offset(0, -0.06),
-          end: Offset.zero,
-        ).animate(
+    _slide = Tween<Offset>(begin: const Offset(0, -0.06), end: Offset.zero)
+        .animate(
           CurvedAnimation(
             parent: _controller,
             curve: AppAnimations.standardCurve,

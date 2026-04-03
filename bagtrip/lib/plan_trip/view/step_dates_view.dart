@@ -22,7 +22,12 @@ class StepDatesView extends StatelessWidget {
     return BlocBuilder<PlanTripBloc, PlanTripState>(
       builder: (context, state) {
         return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.space22,
+            AppSpacing.space22,
+            AppSpacing.space22,
+            40,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -280,7 +285,8 @@ class _ContinueButtonState extends State<_ContinueButton> {
     final l10n = AppLocalizations.of(context)!;
 
     final child = Container(
-      height: 56,
+      constraints: const BoxConstraints(minHeight: 44),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.space15),
       decoration: BoxDecoration(
         gradient: widget.enabled
             ? const LinearGradient(
@@ -288,7 +294,7 @@ class _ContinueButtonState extends State<_ContinueButton> {
               )
             : null,
         color: widget.enabled ? null : const Color(0xFFE8EAED),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: AppRadius.large16,
         boxShadow: widget.enabled
             ? [
                 BoxShadow(
@@ -303,10 +309,10 @@ class _ContinueButtonState extends State<_ContinueButton> {
         color: Colors.transparent,
         child: InkWell(
           onTap: widget.enabled ? widget.onPressed : null,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: AppRadius.large16,
           child: Center(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space22),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

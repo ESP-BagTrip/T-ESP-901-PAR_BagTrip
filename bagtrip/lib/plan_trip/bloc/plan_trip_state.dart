@@ -17,7 +17,9 @@ abstract class PlanTripState with _$PlanTripState {
     DurationPreset? flexibleDuration,
 
     // Step 1 — Travelers + Budget
-    @Default(1) int nbTravelers,
+    @Default(1) int nbAdults,
+    @Default(0) int nbChildren,
+    @Default(0) int nbBabies,
     BudgetPreset? budgetPreset,
 
     // Step 2 — Destination
@@ -43,6 +45,9 @@ abstract class PlanTripState with _$PlanTripState {
     @Default(false) bool isManualFlow,
     String? error,
   }) = _PlanTripState;
+
+  /// Total travelers for API and budget (sum of breakdown).
+  int get nbTravelers => nbAdults + nbChildren + nbBabies;
 
   /// Whether dates are valid based on the current [dateMode].
   bool get areDatesValid => switch (dateMode) {
