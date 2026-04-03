@@ -78,7 +78,7 @@ err   = @printf "$(RED)[err]$(RESET)  %s\n" $(1)
         check lint lint-api lint-admin lint-mobile test test-api test-mobile \
         test-e2e \
         coverage golden-test golden-update \
-        db-migrate db-revision db-shell \
+        db-reset db-revision db-shell \
         shell-api shell-admin
 
 # ══════════════════════════════════════════════════════════════
@@ -110,7 +110,7 @@ help: ## Show this help
 	@printf "  $(CYAN)make golden-update$(RESET)   Regenerate golden reference files\n"
 	@printf "\n"
 	@printf "$(BOLD) Database$(RESET)\n"
-	@printf "  $(CYAN)make db-migrate$(RESET)      Run Alembic migrations (upgrade head)\n"
+	@printf "  $(CYAN)make db-reset$(RESET)       Drop and recreate the database (dev only)\n"
 	@printf "  $(CYAN)make db-revision$(RESET)     Create new Alembic revision (MSG=...)\n"
 	@printf "  $(CYAN)make db-shell$(RESET)        Open psql shell in db container\n"
 	@printf "\n"
@@ -306,10 +306,16 @@ golden-update: ## Regenerate golden reference files
 #  DATABASE
 # ══════════════════════════════════════════════════════════════
 
-db-migrate: ## Run Alembic migrations (upgrade head)
+db-reset: ## Drop and recreate the database (dev only)
+	@printf "$(YELLOW)[warn]$(RESET) This will destroy all data in the database.\n"
+	@printf "Continue? [y/N] " && read ans && [ "$${ans}" = "y" ] || (printf "$(CYAN)[info]$(RESET) Aborted\n" && exit 1)
+	@printf "$(CYAN)[info]$(RESET) Dropping database…\n"
+	@$(COMPOSE) exec db psql -U $${POSTGRES_USER:-postgres} -c "DROP DATABASE IF EXISTS $${POSTGRES_DB:-bagtrip};"
+	@$(COMPOSE) exec db psql -U $${POSTGRES_USER:-postgres} -c "CREATE DATABASE $${POSTGRES_DB:-bagtrip};"
+	$(call ok,"Database recreated")
 	@printf "$(CYAN)[info]$(RESET) Running migrations…\n"
 	@$(COMPOSE) exec api uv run alembic upgrade head
-	$(call ok,"Migrations applied")
+	$(call ok,"Migrations applied — database is fresh")
 
 db-revision: ## Create Alembic revision (MSG="description")
 	@if [ -z "$(MSG)" ]; then \

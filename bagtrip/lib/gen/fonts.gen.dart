@@ -13,4 +13,10 @@ class FontFamily {
 
   /// Font family: B612
   static const String b612 = 'B612';
+
+  /// Font family: DMSans
+  static const String dMSans = 'DMSans';
+
+  /// Font family: DMSerifDisplay
+  static const String dMSerifDisplay = 'DMSerifDisplay';
 }
