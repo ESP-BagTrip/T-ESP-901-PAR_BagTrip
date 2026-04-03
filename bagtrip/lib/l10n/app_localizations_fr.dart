@@ -1466,6 +1466,35 @@ class AppLocalizationsFr extends AppLocalizations {
   String get postTripCreateTrip => 'Créer ce voyage';
 
   @override
+  String postTripSuggestionDuration(int days) {
+    return '$days jours';
+  }
+
+  @override
+  String postTripSuggestionBudget(String amount) {
+    return '$amount€';
+  }
+
+  @override
+  String get feedbackNoReviews => 'Aucun avis';
+
+  @override
+  String feedbackHighlightsPrefix(String highlights) {
+    return 'Points forts : $highlights';
+  }
+
+  @override
+  String feedbackLowlightsPrefix(String lowlights) {
+    return 'À améliorer : $lowlights';
+  }
+
+  @override
+  String get feedbackRecommends => 'Recommande';
+
+  @override
+  String get feedbackNotRecommends => 'Ne recommande pas';
+
+  @override
   String get filterCabinBagIncluded => 'Bagage cabine inclus';
 
   @override

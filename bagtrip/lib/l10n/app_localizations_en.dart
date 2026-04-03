@@ -1451,6 +1451,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postTripCreateTrip => 'Create this trip';
 
   @override
+  String postTripSuggestionDuration(int days) {
+    return '$days days';
+  }
+
+  @override
+  String postTripSuggestionBudget(String amount) {
+    return '$amount€';
+  }
+
+  @override
+  String get feedbackNoReviews => 'No reviews';
+
+  @override
+  String feedbackHighlightsPrefix(String highlights) {
+    return 'Highlights: $highlights';
+  }
+
+  @override
+  String feedbackLowlightsPrefix(String lowlights) {
+    return 'To improve: $lowlights';
+  }
+
+  @override
+  String get feedbackRecommends => 'Recommends';
+
+  @override
+  String get feedbackNotRecommends => 'Does not recommend';
+
+  @override
   String get filterCabinBagIncluded => 'Cabin bag included';
 
   @override

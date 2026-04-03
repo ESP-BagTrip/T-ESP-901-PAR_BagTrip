@@ -16,6 +16,7 @@ class ActivityCreateRequest(BaseModel):
     category: ActivityCategory | None = None
     estimatedCost: float | None = None
     isBooked: bool | None = None
+    isDone: bool | None = None
     validationStatus: str | None = None
 
     @model_validator(mode="after")
@@ -35,6 +36,7 @@ class ActivityUpdateRequest(BaseModel):
     category: ActivityCategory | None = None
     estimatedCost: float | None = None
     isBooked: bool | None = None
+    isDone: bool | None = None
     validationStatus: str | None = None
 
     @model_validator(mode="after")
@@ -56,6 +58,7 @@ class ActivityResponse(BaseModel):
     category: str
     estimatedCost: float | None = Field(default=None, alias="estimated_cost")
     isBooked: bool = Field(alias="is_booked")
+    isDone: bool = Field(default=False, alias="is_done")
     validationStatus: str = Field(default="MANUAL", alias="validation_status")
     createdAt: dt.datetime = Field(alias="created_at")
     updatedAt: dt.datetime = Field(alias="updated_at")

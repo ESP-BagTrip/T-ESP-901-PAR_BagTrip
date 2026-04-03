@@ -182,16 +182,16 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | ~~Tests backend paiements absents~~ | ~~Aucun test pour les routes paiement/subscription/webhooks~~ | `api/`                                        | ✅ Tests subscription routes (6), subscription service (7), webhook subscription events (5), refund route/service/webhook (9), Stripe client refund (2) = 29 nouveaux tests |
 
 
-### Post-trip
+### ~~Post-trip~~ ✅ Resolu
 
 
-| Element                               | Description                                                       | Fichier                                                            |
-| ------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------ |
-| CTA "Creer ce voyage" non fonctionnel | Fait juste `Navigator.pop()` au lieu de pre-remplir un formulaire | `bagtrip/lib/feedback/view/post_trip_suggestion_view.dart:104-106` |
-| `activitiesCompleted` trompeur        | Base sur `isBooked` au lieu d'un champ "done"                     | `bagtrip/lib/post_trip/bloc/post_trip_bloc.dart:61`                |
-| Navigation post-completion non geree  | `completedTripId` emis mais navigation non implementee            | `bagtrip/lib/home/bloc/home_bloc.dart:273-286`                     |
-| Tests post-trip absents               | Pas de tests `FeedbackBloc` ni `PostTripBloc`                     | `bagtrip/test/`                                                    |
-| Strings en dur FeedbackListView       | "Points forts", "A ameliorer", "Recommande", "Aucun avis"         | `bagtrip/lib/feedback/view/feedback_list_view.dart`                |
+| Element                               | Description                                                       | Fichier                                                            | Statut |
+| ------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------ | ------ |
+| ~~CTA "Creer ce voyage" non fonctionnel~~ | ~~Fait juste `Navigator.pop()` au lieu de pre-remplir un formulaire~~ | `bagtrip/lib/feedback/view/post_trip_suggestion_view.dart:104-106` | ✅ CTA navigue vers `PlanTripRoute` avec destination pre-remplie via `LocationResult` |
+| ~~`activitiesCompleted` trompeur~~        | ~~Base sur `isBooked` au lieu d'un champ "done"~~                     | `bagtrip/lib/post_trip/bloc/post_trip_bloc.dart:61`                | ✅ Champ `is_done` ajoute (migration 0024), `activitiesCompleted` utilise `isDone` |
+| ~~Navigation post-completion non geree~~  | ~~`completedTripId` emis mais navigation non implementee~~            | `bagtrip/lib/home/bloc/home_bloc.dart:273-286`                     | ✅ Deja implemente dans `home_view.dart:30-42` (BlocListener → PostTripRoute) |
+| ~~Tests post-trip absents~~               | ~~Pas de tests `FeedbackBloc` ni `PostTripBloc`~~                     | `bagtrip/test/`                                                    | ✅ Tests existants + test `isDone` ajoute |
+| ~~Strings en dur FeedbackListView~~       | ~~"Points forts", "A ameliorer", "Recommande", "Aucun avis"~~         | `bagtrip/lib/feedback/view/feedback_list_view.dart`                | ✅ 7 cles l10n ajoutees (EN/FR) |
 
 
 ### Profil
@@ -397,7 +397,7 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | Priorite | Nombre |
 |----------|--------|
 | P0 | 3 (17 - 3 securite ✅ - 6 features ✅ - 4 UX critique ✅ - 1 home & trip detail ✅) |
-| P1 | 31 (62 - 6 creation voyage & IA ✅ - 6 home & trip detail ✅ - 3 donnees non persistees ✅ - 4 activites & in-trip ✅ - 3 vols & transports ✅ - 5 notifications ✅ - 2 partage ✅ - 2 paiements ✅) |
+| P1 | 26 (62 - 6 creation voyage & IA ✅ - 6 home & trip detail ✅ - 3 donnees non persistees ✅ - 4 activites & in-trip ✅ - 3 vols & transports ✅ - 5 notifications ✅ - 2 partage ✅ - 2 paiements ✅ - 5 post-trip ✅) |
 | P2 | 80+ |
 | **Total** | **~160** |
 
@@ -418,7 +418,7 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 | Notifications | 3 | ~~5~~ 0 ✅ | 5 |
 | Partage | 0 | ~~2~~ 0 ✅ | 6 |
 | Paiements | ~~2~~ 0 ✅ | ~~2~~ 0 ✅ | 5 |
-| Post-trip | 0 | 5 | 3 |
+| Post-trip | 0 | ~~5~~ 0 ✅ | 3 |
 | Profil | 0 | 2 | 2 |
 | Technique mobile | 1 | 11 | 25+ |
 | Technique API | 0 | 6 | 15+ |

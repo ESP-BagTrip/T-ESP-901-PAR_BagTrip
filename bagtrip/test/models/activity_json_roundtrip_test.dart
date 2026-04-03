@@ -17,6 +17,7 @@ void main() {
         'category': 'CULTURE',
         'estimated_cost': 22.50,
         'is_booked': true,
+        'is_done': true,
         'validation_status': 'VALIDATED',
         'suggested_day': 3,
         'created_at': '2024-05-01T10:00:00.000',
@@ -42,6 +43,7 @@ void main() {
       expect(second.category, ActivityCategory.culture);
       expect(second.estimatedCost, 22.50);
       expect(second.isBooked, true);
+      expect(second.isDone, true);
       expect(second.validationStatus, ValidationStatus.validated);
       expect(second.suggestedDay, 3);
       expect(second.createdAt, DateTime.parse('2024-05-01T10:00:00.000'));
@@ -63,6 +65,7 @@ void main() {
       expect(second, first);
       expect(second.category, ActivityCategory.other);
       expect(second.isBooked, false);
+      expect(second.isDone, false);
       expect(second.validationStatus, ValidationStatus.manual);
       expect(second.description, isNull);
       expect(second.startTime, isNull);

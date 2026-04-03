@@ -2810,6 +2810,48 @@ abstract class AppLocalizations {
   /// **'Créer ce voyage'**
   String get postTripCreateTrip;
 
+  /// No description provided for @postTripSuggestionDuration.
+  ///
+  /// In fr, this message translates to:
+  /// **'{days} jours'**
+  String postTripSuggestionDuration(int days);
+
+  /// No description provided for @postTripSuggestionBudget.
+  ///
+  /// In fr, this message translates to:
+  /// **'{amount}€'**
+  String postTripSuggestionBudget(String amount);
+
+  /// No description provided for @feedbackNoReviews.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun avis'**
+  String get feedbackNoReviews;
+
+  /// No description provided for @feedbackHighlightsPrefix.
+  ///
+  /// In fr, this message translates to:
+  /// **'Points forts : {highlights}'**
+  String feedbackHighlightsPrefix(String highlights);
+
+  /// No description provided for @feedbackLowlightsPrefix.
+  ///
+  /// In fr, this message translates to:
+  /// **'À améliorer : {lowlights}'**
+  String feedbackLowlightsPrefix(String lowlights);
+
+  /// No description provided for @feedbackRecommends.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recommande'**
+  String get feedbackRecommends;
+
+  /// No description provided for @feedbackNotRecommends.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ne recommande pas'**
+  String get feedbackNotRecommends;
+
   /// No description provided for @filterCabinBagIncluded.
   ///
   /// In fr, this message translates to:

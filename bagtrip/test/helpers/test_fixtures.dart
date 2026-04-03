@@ -116,6 +116,8 @@ Activity makeActivity({
   String? endTime,
   ActivityCategory category = ActivityCategory.culture,
   ValidationStatus validationStatus = ValidationStatus.manual,
+  bool isBooked = false,
+  bool isDone = false,
 }) {
   return Activity(
     id: id,
@@ -126,6 +128,8 @@ Activity makeActivity({
     endTime: endTime,
     category: category,
     validationStatus: validationStatus,
+    isBooked: isBooked,
+    isDone: isDone,
   );
 }
 
@@ -275,6 +279,7 @@ TripFeedback makeTripFeedback({
   String userId = 'user-1',
   int overallRating = 4,
   String? highlights = 'Great food',
+  String? lowlights,
   bool wouldRecommend = true,
 }) {
   return TripFeedback(
@@ -283,6 +288,7 @@ TripFeedback makeTripFeedback({
     userId: userId,
     overallRating: overallRating,
     highlights: highlights,
+    lowlights: lowlights,
     wouldRecommend: wouldRecommend,
   );
 }
