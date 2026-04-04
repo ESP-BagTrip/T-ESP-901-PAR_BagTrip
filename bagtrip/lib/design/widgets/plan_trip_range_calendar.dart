@@ -109,7 +109,7 @@ class _PlanTripRangeCalendarState extends State<PlanTripRangeCalendar> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cellW = constraints.maxWidth / 7;
+        final cellW = constraints.maxWidth / 8;
         final gridHeight = 6 * cellW + 8;
 
         return Container(
