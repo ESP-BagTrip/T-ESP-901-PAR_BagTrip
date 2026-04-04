@@ -47,10 +47,10 @@ class CompactTravelerStepper extends StatelessWidget {
               child: Text(
                 '$value',
                 style: TextStyle(
-                  fontFamily: FontFamily.b612,
-                  fontSize: 15,
+                  fontFamily: FontFamily.dMSerifDisplay,
+                  fontSize: 16,
                   fontWeight: value > 0 ? FontWeight.w700 : FontWeight.w500,
-                  color: value > 0 ? ColorName.primaryTrueDark : ColorName.hint,
+                  color: value > 0 ? ColorName.primaryDark : ColorName.hint,
                 ),
               ),
             ),

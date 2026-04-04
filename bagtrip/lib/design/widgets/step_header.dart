@@ -94,11 +94,13 @@ class _StepHeaderState extends State<StepHeader> {
             children: [
               for (int i = 0; i < widget.items.length; i++) ...[
                 if (i > 0) const SizedBox(width: AppSpacing.space8),
-                Icon(widget.items[i].icon, size: 16, color: AppColors.primary),
-                const SizedBox(width: AppSpacing.space4),
-                Flexible(
-                  child: _collapsedValueText(widget.items[i]),
+                Icon(
+                  widget.items[i].icon,
+                  size: 16,
+                  color: AppColors.secondary,
                 ),
+                const SizedBox(width: AppSpacing.space16),
+                Flexible(child: _collapsedValueText(widget.items[i])),
               ],
             ],
           ),
@@ -118,10 +120,10 @@ class _StepHeaderState extends State<StepHeader> {
           Text(
             item.value,
             style: const TextStyle(
-              fontFamily: FontFamily.b612,
-              fontSize: 13,
+              fontFamily: FontFamily.dMSerifDisplay,
+              fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: ColorName.primaryTrueDark,
+              color: ColorName.primaryDark,
               height: 1.2,
             ),
             overflow: TextOverflow.ellipsis,
@@ -130,11 +132,10 @@ class _StepHeaderState extends State<StepHeader> {
           Text(
             item.subtitle!,
             style: const TextStyle(
-              fontFamily: FontFamily.b612,
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
+              fontFamily: FontFamily.dMSans,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
               color: ColorName.hint,
-              height: 1.2,
             ),
             overflow: TextOverflow.ellipsis,
             maxLines: 1,

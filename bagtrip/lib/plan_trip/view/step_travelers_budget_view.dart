@@ -68,13 +68,13 @@ class StepTravelersBudgetView extends StatelessWidget {
               l10n.travelersLabel,
               style: const TextStyle(
                 fontFamily: FontFamily.b612,
-                fontSize: 10.5,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: ColorName.secondary,
-                letterSpacing: 1.6,
+                letterSpacing: 1.2,
               ),
             ),
-            const SizedBox(height: AppSpacing.space12),
+            const SizedBox(height: AppSpacing.space16),
 
             TravelerBreakdownCard(
               nbAdults: state.nbAdults,
@@ -92,7 +92,7 @@ class StepTravelersBudgetView extends StatelessWidget {
             ),
 
             if (detailChip.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.space12),
+              const SizedBox(height: AppSpacing.space4),
               Align(
                 alignment: Alignment.centerRight,
                 child: Container(
@@ -118,19 +118,19 @@ class StepTravelersBudgetView extends StatelessWidget {
               ),
             ],
 
-            const SizedBox(height: AppSpacing.space32),
+            const SizedBox(height: AppSpacing.space16),
 
             Text(
               l10n.budgetLabel,
               style: const TextStyle(
                 fontFamily: FontFamily.b612,
-                fontSize: 10.5,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: ColorName.secondary,
                 letterSpacing: 1.6,
               ),
             ),
-            const SizedBox(height: AppSpacing.space12),
+            const SizedBox(height: AppSpacing.space16),
 
             BudgetPresetList(
               options: budgetOptions,

@@ -26,7 +26,7 @@ class BudgetPresetList extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: ColorName.surface,
-          borderRadius: AppRadius.large16,
+          borderRadius: AppRadius.large24,
           border: Border.all(color: ColorName.primarySoftLight),
           boxShadow: [
             BoxShadow(
@@ -138,8 +138,9 @@ class _BudgetPresetRowState extends State<_BudgetPresetRow>
           ),
           child: Row(
             children: [
+              const SizedBox(width: AppSpacing.space8),
               Text(o.emoji, style: const TextStyle(fontSize: 18)),
-              const SizedBox(width: AppSpacing.space12),
+              const SizedBox(width: AppSpacing.space16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,18 +148,18 @@ class _BudgetPresetRowState extends State<_BudgetPresetRow>
                     Text(
                       o.label,
                       style: const TextStyle(
-                        fontFamily: FontFamily.b612,
+                        fontFamily: FontFamily.dMSerifDisplay,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: ColorName.onSurface,
+                        color: ColorName.primaryDark,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.space4),
                     Text(
                       o.range,
                       style: const TextStyle(
-                        fontFamily: FontFamily.b612,
-                        fontSize: 13,
+                        fontFamily: FontFamily.dMSans,
+                        fontSize: 14,
                         color: ColorName.hint,
                       ),
                     ),

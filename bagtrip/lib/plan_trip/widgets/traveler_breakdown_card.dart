@@ -33,7 +33,7 @@ class TravelerBreakdownCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: ColorName.surface,
-        borderRadius: AppRadius.large16,
+        borderRadius: AppRadius.large24,
         border: Border.all(color: ColorName.primarySoftLight),
         boxShadow: [
           BoxShadow(
@@ -111,18 +111,18 @@ class _Row extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontFamily: FontFamily.b612,
+                    fontFamily: FontFamily.dMSerifDisplay,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: ColorName.onSurface,
+                    color: ColorName.primaryDark,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.space4),
                 Text(
                   subtitle,
                   style: const TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 13,
+                    fontFamily: FontFamily.dMSans,
+                    fontSize: 14,
                     fontWeight: FontWeight.w400,
                     color: ColorName.hint,
                   ),
