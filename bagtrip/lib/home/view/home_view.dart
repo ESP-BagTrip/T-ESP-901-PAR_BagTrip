@@ -4,8 +4,7 @@ import 'package:bagtrip/design/app_animations.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/view/active_trip_home_view.dart';
-import 'package:bagtrip/home/view/onboarding_home_view.dart';
-import 'package:bagtrip/home/view/trip_manager_home_view.dart';
+import 'package:bagtrip/home/view/idle_home_view.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
@@ -24,7 +23,7 @@ class HomeView extends StatelessWidget {
           listeners: [
             BlocListener<HomeBloc, HomeState>(
               listenWhen: (prev, curr) =>
-                  prev is HomeTripManager && curr is HomeActiveTrip,
+                  prev is HomeIdle && curr is HomeActiveTrip,
               listener: (context, state) => AppHaptics.success(),
             ),
             BlocListener<HomeBloc, HomeState>(
@@ -80,20 +79,15 @@ class HomeView extends StatelessWidget {
         message: toUserFriendlyMessage(error, AppLocalizations.of(context)!),
         onRetry: () => context.read<HomeBloc>().add(LoadHome()),
       ),
-      HomeNewUser() => RefreshIndicator(
-        key: const ValueKey('home-new-user'),
+      HomeIdle() => RefreshIndicator(
+        key: const ValueKey('home-idle'),
         onRefresh: () => _refresh(context),
-        child: OnboardingHomeView(state: state),
+        child: IdleHomeView(state: state),
       ),
       HomeActiveTrip() => RefreshIndicator(
         key: const ValueKey('home-active-trip'),
         onRefresh: () => _refresh(context),
         child: ActiveTripHomeView(state: state),
-      ),
-      HomeTripManager() => RefreshIndicator(
-        key: const ValueKey('home-trip-manager'),
-        onRefresh: () => _refresh(context),
-        child: TripManagerHomeView(state: state),
       ),
     };
   }

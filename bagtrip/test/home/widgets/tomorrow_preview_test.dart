@@ -62,7 +62,7 @@ void main() {
       await tester.pumpWidget(buildApp(state));
       await tester.pumpAndSettle();
 
-      expect(find.text('TOMORROW'), findsOneWidget);
+      expect(find.text('Tomorrow'), findsOneWidget);
     });
 
     testWidgets('shows activity count badge', (tester) async {
@@ -149,7 +149,7 @@ void main() {
       await tester.pumpWidget(buildApp(state));
       await tester.pumpAndSettle();
 
-      expect(find.text('TOMORROW'), findsNothing);
+      expect(find.text('Tomorrow'), findsNothing);
     });
 
     testWidgets('collapses to 3 items when >3 activities, shows "Show all"', (

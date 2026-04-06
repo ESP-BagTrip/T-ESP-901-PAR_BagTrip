@@ -170,18 +170,18 @@ void main() {
     );
 
     blocTest<HomeBloc, HomeState>(
-      'app launch with no trips → HomeNewUser emitted',
+      'app launch with no trips → HomeIdle emitted',
       build: () {
         stubUserAndTrips();
         return buildBloc();
       },
       act: (bloc) => bloc.add(LoadHome()),
       wait: const Duration(milliseconds: 300),
-      expect: () => [isA<HomeLoading>(), isA<HomeNewUser>()],
+      expect: () => [isA<HomeLoading>(), isA<HomeIdle>()],
     );
 
     blocTest<HomeBloc, HomeState>(
-      'app launch with future trip only → HomeTripManager, not active',
+      'app launch with future trip only → HomeIdle, not active',
       build: () {
         final futureTrip = makeTrip(
           id: 'future-trip',
@@ -196,9 +196,9 @@ void main() {
       },
       act: (bloc) => bloc.add(LoadHome()),
       wait: const Duration(milliseconds: 300),
-      expect: () => [isA<HomeLoading>(), isA<HomeTripManager>()],
+      expect: () => [isA<HomeLoading>(), isA<HomeIdle>()],
       verify: (bloc) {
-        final state = bloc.state as HomeTripManager;
+        final state = bloc.state as HomeIdle;
         expect(state.nextTrip?.id, 'future-trip');
       },
     );

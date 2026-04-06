@@ -261,7 +261,7 @@ void stubAuthenticated(MockContainer mocks, {User? user}) {
   ).thenAnswer((_) async => 'test-token');
 }
 
-/// Stubs home with no trips → HomeNewUser.
+/// Stubs home with no trips → HomeIdle (no trips).
 void stubEmptyHome(MockContainer mocks) {
   _stubTripsPaginated(mocks);
 }
@@ -290,7 +290,7 @@ void stubActiveTripHome(
   }
 }
 
-/// Stubs home with planned/completed trips → HomeTripManager.
+/// Stubs home with planned/completed trips → HomeIdle (with trips).
 void stubTripManagerHome(
   MockContainer mocks, {
   List<Trip> planned = const [],

@@ -127,15 +127,14 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
 
       // Section header is always present regardless of time-dependent actions
-      expect(find.textContaining('QUICK ACTIONS'), findsOneWidget);
+      expect(find.textContaining('Quick actions'), findsOneWidget);
     });
 
-    testWidgets('PlanTripCta visible', (tester) async {
+    testWidgets('PlanTripCta not visible in active trip view', (tester) async {
       await tester.pumpWidget(buildApp());
       await tester.pump(const Duration(seconds: 1));
 
-      await tester.scrollUntilVisible(find.text('Plan a trip'), 200);
-      expect(find.text('Plan a trip'), findsOneWidget);
+      expect(find.text('Plan a trip'), findsNothing);
     });
 
     testWidgets('weather shown when present', (tester) async {

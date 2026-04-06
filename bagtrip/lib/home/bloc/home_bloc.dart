@@ -186,9 +186,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       pendingCompletionTrip = endResult.endedTrips.first;
     }
 
-    // ── Decision tree ──────────────────────────────────────────────
+    // ── Decision tree ──────────��──────────────────────���────────────
     if (totalTrips == 0 && mutableOngoing.isEmpty) {
-      emit(HomeNewUser(user: user));
+      emit(HomeIdle(user: user));
       return;
     }
 
@@ -266,7 +266,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         : null;
 
     emit(
-      HomeTripManager(
+      HomeIdle(
         user: user,
         nextTrip: nextTrip,
         nextTripCompletion: tripCompletion(nextTrip),

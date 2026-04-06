@@ -156,14 +156,14 @@ void main() {
     );
 
     blocTest<HomeBloc, HomeState>(
-      'HomeNewUser is emitted when totalTrips is 0',
+      'HomeIdle is emitted when totalTrips is 0',
       build: () {
         stubUserSuccess();
         stubTrips();
         return buildBloc();
       },
       act: (bloc) => bloc.add(LoadHome()),
-      expect: () => [isA<HomeLoading>(), isA<HomeNewUser>()],
+      expect: () => [isA<HomeLoading>(), isA<HomeIdle>()],
     );
 
     blocTest<HomeBloc, HomeState>(
@@ -178,7 +178,7 @@ void main() {
       act: (bloc) => bloc.add(LoadHome()),
       expect: () => [
         isA<HomeLoading>(),
-        isA<HomeNewUser>().having((s) => s.displayName, 'displayName', 'Jean'),
+        isA<HomeIdle>().having((s) => s.displayName, 'displayName', 'Jean'),
       ],
     );
   });
@@ -239,11 +239,7 @@ void main() {
       act: (bloc) => bloc.add(LoadHome()),
       expect: () => [
         isA<HomeLoading>(),
-        isA<HomeTripManager>().having(
-          (s) => s.user.id,
-          'user.id (fallback)',
-          '',
-        ),
+        isA<HomeIdle>().having((s) => s.user.id, 'user.id (fallback)', ''),
       ],
     );
   });
@@ -273,7 +269,7 @@ void main() {
         isA<HomeLoading>(),
         isA<HomeError>(),
         isA<HomeLoading>(),
-        isA<HomeTripManager>().having(
+        isA<HomeIdle>().having(
           (s) => s.user.email,
           'user after retry',
           'test@example.com',
@@ -293,7 +289,7 @@ void main() {
         bloc.add(LoadHome());
       },
       verify: (bloc) {
-        expect(bloc.state, isA<HomeNewUser>());
+        expect(bloc.state, isA<HomeIdle>());
       },
     );
   });

@@ -15,15 +15,35 @@ class HomeError extends HomeState {
 // 3 contextual loaded states
 // ---------------------------------------------------------------------------
 
-class HomeNewUser extends HomeState {
+class HomeIdle extends HomeState {
   final User user;
+  final List<Trip> upcomingTrips;
+  final List<Trip> completedTrips;
+  final Trip? nextTrip;
+  final int nextTripCompletion;
 
-  HomeNewUser({required this.user});
+  HomeIdle({
+    required this.user,
+    this.upcomingTrips = const [],
+    this.completedTrips = const [],
+    this.nextTrip,
+    this.nextTripCompletion = 0,
+  });
 
   String get displayName {
     final full = user.fullName ?? '';
     if (full.isEmpty) return '';
     return full.split(' ').first;
+  }
+
+  bool get isNewUser => upcomingTrips.isEmpty && completedTrips.isEmpty;
+
+  bool get hasNextTrip => nextTrip != null;
+
+  int? get daysUntilNextTrip {
+    if (nextTrip?.startDate == null) return null;
+    final days = nextTrip!.startDate!.difference(DateTime.now()).inDays;
+    return days < 0 ? 0 : days;
   }
 }
 
@@ -76,35 +96,5 @@ class HomeActiveTrip extends HomeState {
       end.day,
     ).difference(DateTime(start.year, start.month, start.day)).inDays;
     return diff < 1 ? 1 : diff + 1;
-  }
-}
-
-class HomeTripManager extends HomeState {
-  final User user;
-  final Trip? nextTrip;
-  final int nextTripCompletion;
-  final List<Trip> upcomingTrips;
-  final List<Trip> completedTrips;
-
-  HomeTripManager({
-    required this.user,
-    this.nextTrip,
-    this.nextTripCompletion = 0,
-    this.upcomingTrips = const [],
-    this.completedTrips = const [],
-  });
-
-  String get displayName {
-    final full = user.fullName ?? '';
-    if (full.isEmpty) return '';
-    return full.split(' ').first;
-  }
-
-  bool get hasNextTrip => nextTrip != null;
-
-  int? get daysUntilNextTrip {
-    if (nextTrip?.startDate == null) return null;
-    final days = nextTrip!.startDate!.difference(DateTime.now()).inDays;
-    return days < 0 ? 0 : days;
   }
 }

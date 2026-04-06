@@ -704,11 +704,37 @@
       "name": {"type": "String"}
     }
   },
+  "homeGreetingMorning": "Bonjour,\n{name}",
+  "@homeGreetingMorning": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "homeGreetingAfternoon": "Bon après-midi,\n{name}",
+  "@homeGreetingAfternoon": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "homeGreetingEvening": "Bonsoir,\n{name}",
+  "@homeGreetingEvening": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
   "homeWelcomeTitle": "Prêt à voyager ?",
-  "homeWelcomeSubtitle": "Créez votre premier voyage en quelques étapes. Manuel ou assisté par l'IA — à vous de choisir.",
+  "homeSubtitleEmpty": "Quelle sera ta prochaine destination ?",
+  "homeSubtitleOneTrip": "1 voyage planifié",
+  "homeSubtitleTrips": "{count} voyages planifiés",
+  "@homeSubtitleTrips": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "homeCreateFirstTrip": "Créer mon premier voyage",
   "planTripCta": "Planifier un voyage",
-  "planTripCtaSubtitle": "Manuel ou assisté par l'IA",
+  "homeCtaAiOrManual": "IA ou manuel",
+  "homeCtaStartPlanning": "Commencer",
   "inspireMe": "Inspire-moi",
   "datesLabel": "DATES",
   "suggestedDuration": "Durée suggérée",
@@ -946,9 +972,6 @@
       }
     }
   },
-  "onboardingInspirationTitle": "Inspirez-vous",
-  "onboardingInspirationSubtitle": "Destinations populaires",
-  "tripManagerCompletedSection": "Voyages passés",
   "tripCardNoDestination": "Pas de destination",
   "tripCardNoTitle": "Voyage sans titre",
   "activeTripsViewTrip": "Voir le voyage",

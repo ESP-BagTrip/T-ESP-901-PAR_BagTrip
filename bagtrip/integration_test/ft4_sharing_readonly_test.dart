@@ -45,8 +45,8 @@ void main() {
 
       await pumpTestApp(tester, existingMocks: mocks);
 
-      // Verify HomeTripManager renders
-      expect(f.homeTripManager, findsOneWidget);
+      // Verify HomeIdle renders
+      expect(f.homeIdle, findsOneWidget);
 
       // Programmatic share creation (simulates what UI would trigger)
       await mocks.tripShare.createShare(
@@ -107,8 +107,8 @@ void main() {
 
       await pumpTestApp(tester, existingMocks: mocks);
 
-      // Verify HomeTripManager renders
-      expect(f.homeTripManager, findsOneWidget);
+      // Verify HomeIdle renders
+      expect(f.homeIdle, findsOneWidget);
 
       // Verify shares list returns VIEWER role
       final shares = await mocks.tripShare.getSharesByTrip('trip-viewer');

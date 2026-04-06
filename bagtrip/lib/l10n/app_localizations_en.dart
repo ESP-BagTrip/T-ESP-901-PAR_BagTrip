@@ -1692,11 +1692,33 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String homeGreetingMorning(String name) {
+    return 'Good morning,\n$name';
+  }
+
+  @override
+  String homeGreetingAfternoon(String name) {
+    return 'Good afternoon,\n$name';
+  }
+
+  @override
+  String homeGreetingEvening(String name) {
+    return 'Good evening,\n$name';
+  }
+
+  @override
   String get homeWelcomeTitle => 'Ready to travel?';
 
   @override
-  String get homeWelcomeSubtitle =>
-      'Create your first trip in a few steps. Manual or AI-assisted — your choice.';
+  String get homeSubtitleEmpty => 'Where will you go next?';
+
+  @override
+  String get homeSubtitleOneTrip => '1 trip planned';
+
+  @override
+  String homeSubtitleTrips(int count) {
+    return '$count trips planned';
+  }
 
   @override
   String get homeCreateFirstTrip => 'Create my first trip';
@@ -1705,7 +1727,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planTripCta => 'Plan a trip';
 
   @override
-  String get planTripCtaSubtitle => 'Manual or AI-assisted';
+  String get homeCtaAiOrManual => 'AI or manual';
+
+  @override
+  String get homeCtaStartPlanning => 'Start planning';
 
   @override
   String get inspireMe => 'Inspire me';
@@ -2257,15 +2282,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String homeTripCompletion(int percent) {
     return '$percent% ready';
   }
-
-  @override
-  String get onboardingInspirationTitle => 'Get inspired';
-
-  @override
-  String get onboardingInspirationSubtitle => 'Popular destinations';
-
-  @override
-  String get tripManagerCompletedSection => 'Past adventures';
 
   @override
   String get tripCardNoDestination => 'No destination';

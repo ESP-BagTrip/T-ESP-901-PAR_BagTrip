@@ -704,11 +704,37 @@
       "name": {"type": "String"}
     }
   },
+  "homeGreetingMorning": "Good morning,\n{name}",
+  "@homeGreetingMorning": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "homeGreetingAfternoon": "Good afternoon,\n{name}",
+  "@homeGreetingAfternoon": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "homeGreetingEvening": "Good evening,\n{name}",
+  "@homeGreetingEvening": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
   "homeWelcomeTitle": "Ready to travel?",
-  "homeWelcomeSubtitle": "Create your first trip in a few steps. Manual or AI-assisted — your choice.",
+  "homeSubtitleEmpty": "Where will you go next?",
+  "homeSubtitleOneTrip": "1 trip planned",
+  "homeSubtitleTrips": "{count} trips planned",
+  "@homeSubtitleTrips": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "homeCreateFirstTrip": "Create my first trip",
   "planTripCta": "Plan a trip",
-  "planTripCtaSubtitle": "Manual or AI-assisted",
+  "homeCtaAiOrManual": "AI or manual",
+  "homeCtaStartPlanning": "Start planning",
   "inspireMe": "Inspire me",
   "datesLabel": "DATES",
   "suggestedDuration": "Suggested duration",
@@ -946,9 +972,6 @@
       }
     }
   },
-  "onboardingInspirationTitle": "Get inspired",
-  "onboardingInspirationSubtitle": "Popular destinations",
-  "tripManagerCompletedSection": "Past adventures",
   "tripCardNoDestination": "No destination",
   "tripCardNoTitle": "Untitled trip",
   "activeTripsViewTrip": "View trip",

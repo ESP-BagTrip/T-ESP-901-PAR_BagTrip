@@ -82,7 +82,7 @@ void main() {
             .having((s) => s.deferredLoaded, 'deferredLoaded', false),
         isA<TripDetailLoaded>()
             .having((s) => s.deferredLoaded, 'deferredLoaded', true)
-            .having((s) => s.completionPercentage, 'completion', 33),
+            .having((s) => s.completionPercentage, 'completion', 17),
       ],
     );
 

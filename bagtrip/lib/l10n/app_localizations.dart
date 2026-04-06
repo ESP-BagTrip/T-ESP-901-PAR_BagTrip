@@ -3236,17 +3236,47 @@ abstract class AppLocalizations {
   /// **'Bienvenue, {name}'**
   String homeGreeting(String name);
 
+  /// No description provided for @homeGreetingMorning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bonjour,\n{name}'**
+  String homeGreetingMorning(String name);
+
+  /// No description provided for @homeGreetingAfternoon.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bon après-midi,\n{name}'**
+  String homeGreetingAfternoon(String name);
+
+  /// No description provided for @homeGreetingEvening.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bonsoir,\n{name}'**
+  String homeGreetingEvening(String name);
+
   /// No description provided for @homeWelcomeTitle.
   ///
   /// In fr, this message translates to:
   /// **'Prêt à voyager ?'**
   String get homeWelcomeTitle;
 
-  /// No description provided for @homeWelcomeSubtitle.
+  /// No description provided for @homeSubtitleEmpty.
   ///
   /// In fr, this message translates to:
-  /// **'Créez votre premier voyage en quelques étapes. Manuel ou assisté par l\'IA — à vous de choisir.'**
-  String get homeWelcomeSubtitle;
+  /// **'Quelle sera ta prochaine destination ?'**
+  String get homeSubtitleEmpty;
+
+  /// No description provided for @homeSubtitleOneTrip.
+  ///
+  /// In fr, this message translates to:
+  /// **'1 voyage planifié'**
+  String get homeSubtitleOneTrip;
+
+  /// No description provided for @homeSubtitleTrips.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} voyages planifiés'**
+  String homeSubtitleTrips(int count);
 
   /// No description provided for @homeCreateFirstTrip.
   ///
@@ -3260,11 +3290,17 @@ abstract class AppLocalizations {
   /// **'Planifier un voyage'**
   String get planTripCta;
 
-  /// No description provided for @planTripCtaSubtitle.
+  /// No description provided for @homeCtaAiOrManual.
   ///
   /// In fr, this message translates to:
-  /// **'Manuel ou assisté par l\'IA'**
-  String get planTripCtaSubtitle;
+  /// **'IA ou manuel'**
+  String get homeCtaAiOrManual;
+
+  /// No description provided for @homeCtaStartPlanning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commencer'**
+  String get homeCtaStartPlanning;
 
   /// No description provided for @inspireMe.
   ///
@@ -4303,24 +4339,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{percent}% prêt'**
   String homeTripCompletion(int percent);
-
-  /// No description provided for @onboardingInspirationTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Inspirez-vous'**
-  String get onboardingInspirationTitle;
-
-  /// No description provided for @onboardingInspirationSubtitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Destinations populaires'**
-  String get onboardingInspirationSubtitle;
-
-  /// No description provided for @tripManagerCompletedSection.
-  ///
-  /// In fr, this message translates to:
-  /// **'Voyages passés'**
-  String get tripManagerCompletedSection;
 
   /// No description provided for @tripCardNoDestination.
   ///

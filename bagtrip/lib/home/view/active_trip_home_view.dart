@@ -17,7 +17,6 @@ import 'package:bagtrip/home/widgets/active_trip_hero.dart';
 import 'package:bagtrip/home/widgets/now_indicator_row.dart';
 import 'package:bagtrip/home/helpers/camera_launcher.dart';
 import 'package:bagtrip/home/widgets/quick_actions_bar.dart';
-import 'package:bagtrip/home/widgets/shared_home_widgets.dart';
 import 'package:bagtrip/home/widgets/weather_detail_sheet.dart';
 import 'package:bagtrip/home/widgets/timeline_activity_row.dart';
 import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
@@ -198,7 +197,7 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
             child: Padding(
               padding: hPadding.copyWith(top: AppSpacing.space32),
               child: Text(
-                l10n.homeTodayActivities.toUpperCase(),
+                l10n.homeTodayActivities,
                 style: TextStyle(
                   fontFamily: FontFamily.b612,
                   fontSize: 12,
@@ -263,7 +262,7 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
                         Row(
                           children: [
                             Text(
-                              l10n.activeTripsTomorrow.toUpperCase(),
+                              l10n.activeTripsTomorrow,
                               style: TextStyle(
                                 fontFamily: FontFamily.b612,
                                 fontSize: 12,
@@ -347,7 +346,7 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        l10n.activeTripsQuickActions.toUpperCase(),
+                        l10n.activeTripsQuickActions,
                         style: TextStyle(
                           fontFamily: FontFamily.b612,
                           fontSize: 12,
@@ -394,14 +393,6 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
                 ),
               );
             },
-          ),
-        ),
-
-        // Plan trip CTA
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: hPadding.copyWith(top: AppSpacing.space24),
-            child: PlanTripCta(l10n: l10n),
           ),
         ),
 
