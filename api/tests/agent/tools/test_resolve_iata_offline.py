@@ -1,6 +1,6 @@
 """Unit tests for resolve_iata_code using offline aviation data."""
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 

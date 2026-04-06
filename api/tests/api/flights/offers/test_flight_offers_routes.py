@@ -1,6 +1,6 @@
 """Unit tests for the flight offers routes."""
 
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
 import pytest
@@ -8,13 +8,19 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
-from src.api.flights.offers.routes import router as flight_offers_router
-from src.models.user import User
-from src.models.flight_offer import FlightOffer
-from src.utils.errors import AppError
 from src.api.auth.middleware import get_current_user
-from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access, get_trip_editor_access
+from src.api.auth.trip_access import (
+    TripAccess,
+    TripRole,
+    get_trip_access,
+    get_trip_editor_access,
+    get_trip_owner_access,
+)
+from src.api.flights.offers.routes import router as flight_offers_router
 from src.config.database import get_db
+from src.models.flight_offer import FlightOffer
+from src.models.user import User
+from src.utils.errors import AppError
 
 # Setup the test app
 app = FastAPI()

@@ -154,7 +154,7 @@ class TestLoadSettings:
         """Test successful loading."""
         mock_instance = MagicMock()
         mock_settings_cls.return_value = mock_instance
-        
+
         result = _load_settings()
         assert result == mock_instance
 
@@ -162,7 +162,7 @@ class TestLoadSettings:
     def test_load_settings_validation_error(self, mock_settings_cls):
         """Test loading with validation error exits the program."""
         mock_settings_cls.side_effect = ValidationError.from_exception_data("Settings", [])
-        
+
         with pytest.raises(SystemExit) as exc_info:
             _load_settings()
         assert exc_info.value.code == 1
@@ -171,7 +171,7 @@ class TestLoadSettings:
     def test_load_settings_generic_error(self, mock_settings_cls):
         """Test loading with generic error exits the program."""
         mock_settings_cls.side_effect = Exception("Unknown error")
-        
+
         with pytest.raises(SystemExit) as exc_info:
             _load_settings()
         assert exc_info.value.code == 1

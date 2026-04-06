@@ -31,7 +31,7 @@ class TestAdminService:
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow(),
         )
-        
+
         # Configure mock query
         mock_query = mock_db_session.query.return_value
         mock_query.order_by.return_value.count.return_value = 1
@@ -45,7 +45,7 @@ class TestAdminService:
         assert total == 1
         assert total_pages == 1
         assert items[0]["email"] == "test@example.com"
-        
+
         # Verify pagination logic (limit=0 case)
         items, total, total_pages = AdminService.get_all_users(mock_db_session, limit=0)
         assert total_pages == 0
@@ -60,7 +60,7 @@ class TestAdminService:
             updated_at=datetime.utcnow(),
         )
         user_email = "test@example.com"
-        
+
         mock_query = mock_db_session.query.return_value
         mock_query.join.return_value.order_by.return_value.count.return_value = 1
         mock_query.join.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [(trip, user_email)]
@@ -83,7 +83,7 @@ class TestAdminService:
         )
         trip_title = "Paris Trip"
         user_email = "test@example.com"
-        
+
         mock_query = mock_db_session.query.return_value
         mock_query.join.return_value.join.return_value.order_by.return_value.count.return_value = 1
         mock_query.join.return_value.join.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [(traveler, trip_title, user_email)]
@@ -107,7 +107,7 @@ class TestAdminService:
         )
         trip_title = "Paris Trip"
         user_email = "test@example.com"
-        
+
         mock_query = mock_db_session.query.return_value
         mock_query.join.return_value.join.return_value.order_by.return_value.count.return_value = 1
         mock_query.join.return_value.join.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [(order, trip_title, user_email)]

@@ -9,12 +9,18 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
+from src.api.auth.middleware import get_current_user
+from src.api.auth.trip_access import (
+    TripAccess,
+    TripRole,
+    get_trip_access,
+    get_trip_editor_access,
+    get_trip_owner_access,
+)
 from src.api.flights.searches.routes import router as flight_searches_router
+from src.config.database import get_db
 from src.models.user import User
 from src.utils.errors import AppError
-from src.api.auth.middleware import get_current_user
-from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access, get_trip_editor_access
-from src.config.database import get_db
 
 # Setup the test app
 app = FastAPI()
@@ -186,7 +192,7 @@ class TestCreateMultiDestSearch:
     def test_multi_dest_success_two_segments(self, mock_service, client, mock_trip_id, trip_access):
         # Build two mock segment results
         results = []
-        for origin, dest in [("CDG", "NRT"), ("NRT", "BKK")]:
+        for _origin, _dest in [("CDG", "NRT"), ("NRT", "BKK")]:
             mock_search = MagicMock()
             mock_search.id = uuid4()
             mock_search.amadeus_response = {

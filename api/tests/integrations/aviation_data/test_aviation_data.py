@@ -2,8 +2,8 @@
 
 import pytest
 
-from src.integrations.aviation_data.service import AviationDataService
 from src.integrations.amadeus.types import Location
+from src.integrations.aviation_data.service import AviationDataService
 
 
 @pytest.fixture

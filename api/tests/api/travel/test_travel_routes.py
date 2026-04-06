@@ -1,19 +1,18 @@
 """Unit tests for the travel routes."""
 
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from src.api.travel.routes import router as travel_router
 from src.integrations.amadeus.types import (
     Location,
-    LocationSelf,
-    LocationGeoCode,
     LocationAddress,
+    LocationGeoCode,
+    LocationSelf,
 )
-from src.utils.errors import AppError
 
 # Setup the test app
 app = FastAPI()

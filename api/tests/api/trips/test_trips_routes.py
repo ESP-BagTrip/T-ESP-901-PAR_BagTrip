@@ -1,7 +1,7 @@
 """Unit tests for the trips routes."""
 
 import uuid
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -9,9 +9,9 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
-from src.api.trips.routes import router as trips_router
 from src.api.auth.middleware import get_current_user
 from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access
+from src.api.trips.routes import router as trips_router
 from src.config.database import get_db
 from src.models.user import User
 from src.utils.errors import AppError
@@ -91,8 +91,8 @@ def mock_trip():
     trip.date_mode = "EXACT"
     trip.archived_at = None
     trip.role = None
-    trip.created_at = datetime.now(timezone.utc)
-    trip.updated_at = datetime.now(timezone.utc)
+    trip.created_at = datetime.now(UTC)
+    trip.updated_at = datetime.now(UTC)
     return trip
 
 

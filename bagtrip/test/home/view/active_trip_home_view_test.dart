@@ -44,7 +44,7 @@ void main() {
       await tester.pumpWidget(buildApp(fullName: 'Alice Smith'));
       await tester.pump(const Duration(seconds: 1));
 
-      expect(find.text('Welcome back, Alice'), findsOneWidget);
+      expect(find.text('Welcome, Alice'), findsOneWidget);
     });
 
     testWidgets('greeting fallback when no name', (tester) async {

@@ -8,8 +8,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.api.auth.routes import router as auth_router
 from src.api.auth.middleware import get_current_user
+from src.api.auth.routes import router as auth_router
 from src.config.database import get_db
 from src.models.user import User
 

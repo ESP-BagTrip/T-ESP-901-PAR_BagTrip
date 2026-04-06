@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.models.booking_intent import BookingIntent
-from src.models.user import User
 from src.models.flight_offer import FlightOffer
+from src.models.user import User
 from src.services.stripe_payments_service import StripePaymentsService
 from src.utils.errors import AppError
 
@@ -30,7 +30,7 @@ class TestStripePaymentsService:
         intent_id = uuid.uuid4()
         user_id = uuid.uuid4()
         offer_id = uuid.uuid4()
-        
+
         # Mock intent
         intent = BookingIntent(
             id=intent_id,
@@ -43,10 +43,10 @@ class TestStripePaymentsService:
             selected_offer_type="flight_offer",
             selected_offer_id=offer_id
         )
-        
+
         # Mock user
         user = User(id=user_id, stripe_customer_id="cus_123")
-        
+
         # Mock Flight Offer
         flight_offer = FlightOffer(
             id=offer_id,
@@ -63,26 +63,26 @@ class TestStripePaymentsService:
             validating_airline_codes="AF",
             amadeus_offer_id="1"
         )
-        
+
         mock_db_session.query.return_value.filter.return_value.first.side_effect = [intent, user, flight_offer]
-        
+
         # Mock product ID
         mock_products.get_product_id.return_value = "prod_123"
-        
+
         # Mock Stripe response
         mock_pi = MagicMock()
         mock_pi.id = "pi_123"
         mock_pi.client_secret = "secret_123"
         mock_pi.status = "requires_payment_method"
         mock_client.create_payment_intent.return_value = mock_pi
-        
+
         result = StripePaymentsService.create_manual_capture_payment_intent(
             mock_db_session, intent_id, user_id
         )
-        
+
         assert result["stripePaymentIntentId"] == "pi_123"
         assert intent.stripe_payment_intent_id == "pi_123"
-        
+
         # Check metadata description
         call_args = mock_client.create_payment_intent.call_args
         assert "Flight: PAR → PAR" in call_args[1]["description"]
@@ -92,7 +92,7 @@ class TestStripePaymentsService:
         """Test error when intent status is invalid."""
         intent = BookingIntent(status="AUTHORIZED")
         mock_db_session.query.return_value.filter.return_value.first.return_value = intent
-        
+
         with pytest.raises(AppError) as exc:
             StripePaymentsService.create_manual_capture_payment_intent(
                 mock_db_session, uuid.uuid4(), uuid.uuid4()
@@ -103,9 +103,9 @@ class TestStripePaymentsService:
         """Test error when user has no stripe ID."""
         intent = BookingIntent(status="INIT")
         user = User(stripe_customer_id=None)
-        
+
         mock_db_session.query.return_value.filter.return_value.first.side_effect = [intent, user]
-        
+
         with pytest.raises(AppError) as exc:
             StripePaymentsService.create_manual_capture_payment_intent(
                 mock_db_session, uuid.uuid4(), uuid.uuid4()
@@ -121,15 +121,15 @@ class TestStripePaymentsService:
             stripe_payment_intent_id="pi_123"
         )
         mock_db_session.query.return_value.filter.return_value.first.return_value = intent
-        
+
         mock_pi = MagicMock()
         mock_pi.latest_charge = "ch_123"
         mock_client.capture_payment_intent.return_value = mock_pi
-        
+
         result = StripePaymentsService.capture_payment(
             mock_db_session, intent.id, uuid.uuid4()
         )
-        
+
         assert result.status == "CAPTURED"
         assert result.stripe_charge_id == "ch_123"
 
@@ -142,11 +142,11 @@ class TestStripePaymentsService:
             stripe_payment_intent_id="pi_123"
         )
         mock_db_session.query.return_value.filter.return_value.first.return_value = intent
-        
+
         result = StripePaymentsService.cancel_payment(
             mock_db_session, intent.id, uuid.uuid4()
         )
-        
+
         assert result.status == "CANCELLED"
         mock_client.cancel_payment_intent.assert_called_once_with("pi_123")
 

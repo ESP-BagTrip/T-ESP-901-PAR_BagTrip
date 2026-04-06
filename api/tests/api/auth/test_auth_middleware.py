@@ -1,15 +1,13 @@
 """Unit tests for the auth middleware."""
 
-import os
 import uuid
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from fastapi import HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials
 from jose import jwt
-from unittest.mock import MagicMock
 
 from src.api.auth.middleware import get_current_user, verify_jwt_token
 from src.config.env import settings
@@ -25,7 +23,7 @@ def create_test_token(user_id: str, expire_delta: timedelta = None) -> str:
         expire = datetime.utcnow() + expire_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
-    
+
     payload = {"userId": user_id, "exp": expire}
     return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
 
@@ -49,7 +47,7 @@ class TestVerifyJwtToken:
         # Create token expired 1 minute ago
         token = create_test_token(user_id, expire_delta=timedelta(minutes=-1))
         assert verify_jwt_token(token) is None
-    
+
     def test_verify_wrong_secret(self):
         """Test verification of a token signed with wrong secret."""
         user_id = str(uuid.uuid4())

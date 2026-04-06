@@ -72,9 +72,9 @@ class TestIdempotencyCacheMemory:
 class TestIdempotencyCacheRedis:
     def _make_redis_cache(self, mock_redis):
         """Create an IdempotencyCache with a mocked Redis backend."""
-        with patch("src.config.env.settings", MagicMock(REDIS_URL="redis://localhost:6379/0")):
-            with patch("redis.from_url", return_value=mock_redis):
-                cache = IdempotencyCache(ttl_seconds=60)
+        with patch("src.config.env.settings", MagicMock(REDIS_URL="redis://localhost:6379/0")), \
+             patch("redis.from_url", return_value=mock_redis):
+            cache = IdempotencyCache(ttl_seconds=60)
         return cache
 
     def test_get_from_redis(self):

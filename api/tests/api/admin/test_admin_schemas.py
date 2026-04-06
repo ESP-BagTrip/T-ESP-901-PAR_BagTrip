@@ -1,6 +1,6 @@
 """Tests pour les schémas admin."""
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from uuid import uuid4
 
 from src.api.admin.schemas import (
@@ -18,7 +18,7 @@ class TestAdminSchemas:
     def test_admin_list_response(self):
         """Test du schéma générique AdminListResponse."""
         user_id = uuid4()
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         user = AdminUserResponse(
             id=user_id,
             email="test@example.com",
@@ -39,7 +39,7 @@ class TestAdminSchemas:
         assert response.page == 1
         assert response.limit == 10
         assert response.totalPages == 1
-        
+
         # Test alias serialization
         data = response.model_dump(by_alias=True)
         assert data["total_pages"] == 1
@@ -47,8 +47,8 @@ class TestAdminSchemas:
     def test_admin_user_response(self):
         """Test du schéma AdminUserResponse."""
         user_id = uuid4()
-        now = datetime.now(timezone.utc)
-        
+        now = datetime.now(UTC)
+
         # Test creation with aliased arguments (as if from DB model via from_attributes or direct init)
         # Note: direct init uses field names (createdAt) or aliases (created_at) depending on populate_by_name config
         response = AdminUserResponse(
@@ -73,7 +73,7 @@ class TestAdminSchemas:
         """Test du schéma AdminTripResponse."""
         trip_id = uuid4()
         user_id = uuid4()
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         today = date.today()
 
         response = AdminTripResponse(
@@ -111,7 +111,7 @@ class TestAdminSchemas:
         """Test du schéma AdminTravelerResponse."""
         traveler_id = uuid4()
         trip_id = uuid4()
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         birth_date = date(1990, 1, 1)
 
         response = AdminTravelerResponse(
@@ -145,7 +145,7 @@ class TestAdminSchemas:
         booking_id = uuid4()
         trip_id = uuid4()
         offer_id = uuid4()
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         response = AdminFlightBookingResponse(
             id=booking_id,

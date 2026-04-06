@@ -1,11 +1,10 @@
+import importlib.util
 import os
 import sys
 from unittest.mock import MagicMock
 
 # Mock stripe if not installed
-try:
-    import stripe
-except ImportError:
+if importlib.util.find_spec("stripe") is None:
     sys.modules["stripe"] = MagicMock()
 
 # Set dummy environment variables to satisfy Pydantic validation during collection

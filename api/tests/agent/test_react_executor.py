@@ -10,7 +10,6 @@ import pytest
 
 from src.agent.react_executor import parse_react_output, react_execute
 
-
 # ---------------------------------------------------------------------------
 # parse_react_output — Final Answer
 # ---------------------------------------------------------------------------
@@ -258,8 +257,8 @@ class TestReactExecute:
         mock_llm = AsyncMock(
             return_value='Thought: done.\nFinal Answer: {"city": "Paris"}'
         )
-        with patch("src.agent.react_executor.LLMService") as MockLLM:
-            MockLLM.return_value.acall_llm_messages = mock_llm
+        with patch("src.agent.react_executor.LLMService") as mock_llm_cls:
+            mock_llm_cls.return_value.acall_llm_messages = mock_llm
             result = await react_execute(
                 agent_instruction="Find a destination",
                 user_prompt="I want to go somewhere warm",
@@ -293,8 +292,8 @@ class TestReactExecute:
                 )
             return 'Final Answer: {"iata": "CDG", "city": "Paris"}'
 
-        with patch("src.agent.react_executor.LLMService") as MockLLM:
-            MockLLM.return_value.acall_llm_messages = AsyncMock(
+        with patch("src.agent.react_executor.LLMService") as mock_llm_cls:
+            mock_llm_cls.return_value.acall_llm_messages = AsyncMock(
                 side_effect=mock_llm_side_effect
             )
             result = await react_execute(
@@ -323,8 +322,8 @@ class TestReactExecute:
             # After seeing the error observation, LLM gives final answer
             return 'Final Answer: {"error": "tool not found"}'
 
-        with patch("src.agent.react_executor.LLMService") as MockLLM:
-            MockLLM.return_value.acall_llm_messages = AsyncMock(
+        with patch("src.agent.react_executor.LLMService") as mock_llm_cls:
+            mock_llm_cls.return_value.acall_llm_messages = AsyncMock(
                 side_effect=mock_llm_side_effect
             )
             result = await react_execute(
@@ -360,8 +359,8 @@ class TestReactExecute:
             }
         }
 
-        with patch("src.agent.react_executor.LLMService") as MockLLM:
-            MockLLM.return_value.acall_llm_messages = AsyncMock(
+        with patch("src.agent.react_executor.LLMService") as mock_llm_cls:
+            mock_llm_cls.return_value.acall_llm_messages = AsyncMock(
                 side_effect=mock_llm_side_effect
             )
             result = await react_execute(
@@ -379,8 +378,8 @@ class TestReactExecute:
     @pytest.mark.asyncio
     async def test_llm_call_failure_returns_error(self):
         """If LLM call raises, returns error dict."""
-        with patch("src.agent.react_executor.LLMService") as MockLLM:
-            MockLLM.return_value.acall_llm_messages = AsyncMock(
+        with patch("src.agent.react_executor.LLMService") as mock_llm_cls:
+            mock_llm_cls.return_value.acall_llm_messages = AsyncMock(
                 side_effect=RuntimeError("LLM unavailable")
             )
             result = await react_execute(
@@ -413,8 +412,8 @@ class TestReactExecute:
                 return 'Action: bad_tool\nAction Input: {"wrong": "params"}'
             return 'Final Answer: {"recovered": true}'
 
-        with patch("src.agent.react_executor.LLMService") as MockLLM:
-            MockLLM.return_value.acall_llm_messages = AsyncMock(
+        with patch("src.agent.react_executor.LLMService") as mock_llm_cls:
+            mock_llm_cls.return_value.acall_llm_messages = AsyncMock(
                 side_effect=mock_llm_side_effect
             )
             result = await react_execute(
@@ -433,8 +432,8 @@ class TestReactExecute:
         async def slow_llm(messages):
             await asyncio.sleep(999)
 
-        with patch("src.agent.react_executor.LLMService") as MockLLM:
-            MockLLM.return_value.acall_llm_messages = slow_llm
+        with patch("src.agent.react_executor.LLMService") as mock_llm_cls:
+            mock_llm_cls.return_value.acall_llm_messages = slow_llm
             with patch("src.agent.react_executor.settings") as mock_settings:
                 mock_settings.LLM_CALL_TIMEOUT_SECONDS = 0.1
                 result = await react_execute(
@@ -463,8 +462,8 @@ class TestReactExecute:
 
         tool_registry = {"tool": {"description": "test", "fn": AsyncMock(return_value={})}}
 
-        with patch("src.agent.react_executor.LLMService") as MockLLM:
-            MockLLM.return_value.acall_llm_messages = llm_side_effect
+        with patch("src.agent.react_executor.LLMService") as mock_llm_cls:
+            mock_llm_cls.return_value.acall_llm_messages = llm_side_effect
             with patch("src.agent.react_executor.settings") as mock_settings:
                 mock_settings.LLM_CALL_TIMEOUT_SECONDS = 0.1
                 result = await react_execute(

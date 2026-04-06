@@ -1,41 +1,39 @@
 """Unit tests for the Amadeus integration."""
 
-import json
 import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 import httpx
+import pytest
 
-from src.integrations.amadeus.client import AmadeusClient, amadeus_client
 from src.integrations.amadeus.auth import fetch_token
+from src.integrations.amadeus.client import AmadeusClient
 from src.integrations.amadeus.flights import (
-    search_flight_offers,
-    search_flight_destinations,
-    search_flight_cheapest_dates,
     confirm_flight_price,
     create_flight_order,
-)
-from src.integrations.amadeus.locations import (
-    search_locations_by_keyword,
-    search_location_by_id,
-    search_location_nearest,
+    search_flight_cheapest_dates,
+    search_flight_destinations,
+    search_flight_offers,
 )
 from src.integrations.amadeus.hotels import (
     search_hotel_list,
     search_hotel_offers,
 )
+from src.integrations.amadeus.locations import (
+    search_location_by_id,
+    search_location_nearest,
+    search_locations_by_keyword,
+)
 from src.integrations.amadeus.types import (
-    FlightOffer,
-    FlightOrderTraveler,
-    LocationKeywordSearchQuery,
-    LocationIdSearchQuery,
-    LocationNearestSearchQuery,
-    FlightOfferSearchQuery,
-    FlightInspirationSearchQuery,
     FlightCheapestDateSearchQuery,
+    FlightInspirationSearchQuery,
+    FlightOffer,
+    FlightOfferSearchQuery,
     HotelListSearchQuery,
     HotelOffersSearchQuery,
+    LocationIdSearchQuery,
+    LocationKeywordSearchQuery,
+    LocationNearestSearchQuery,
 )
 from src.utils.errors import AppError
 
@@ -43,9 +41,9 @@ from src.utils.errors import AppError
 @pytest.fixture
 def mock_token():
     """Mock the fetch_token function."""
-    with patch("src.integrations.amadeus.auth._token_cache", None):
-        with patch("src.integrations.amadeus.auth.fetch_token", return_value="test_token") as mock:
-            yield mock
+    with patch("src.integrations.amadeus.auth._token_cache", None), \
+         patch("src.integrations.amadeus.auth.fetch_token", return_value="test_token") as mock:
+        yield mock
 
 
 @pytest.fixture
@@ -64,28 +62,27 @@ class TestAmadeusAuth:
     @pytest.mark.asyncio
     async def test_fetch_token_success(self):
         """Test successful token retrieval."""
-        with patch("src.integrations.amadeus.auth.settings") as mock_settings:
+        with patch("src.integrations.amadeus.auth.settings") as mock_settings, \
+             patch("httpx.AsyncClient") as mock_client_cls:
             mock_settings.AMADEUS_BASE_URL = "https://test.api.amadeus.com"
             mock_settings.AMADEUS_CLIENT_ID = "client_id"
             mock_settings.AMADEUS_CLIENT_SECRET = "client_secret"
+            mock_client = AsyncMock()
+            mock_client_cls.return_value.__aenter__.return_value = mock_client
 
-            with patch("httpx.AsyncClient") as mock_client_cls:
-                mock_client = AsyncMock()
-                mock_client_cls.return_value.__aenter__.return_value = mock_client
+            mock_response = MagicMock()
+            mock_response.status_code = 200
+            mock_response.json.return_value = {
+                "access_token": "new_token",
+                "expires_in": 1800,
+                "token_type": "Bearer"
+            }
+            mock_client.post.return_value = mock_response
 
-                mock_response = MagicMock()
-                mock_response.status_code = 200
-                mock_response.json.return_value = {
-                    "access_token": "new_token",
-                    "expires_in": 1800,
-                    "token_type": "Bearer"
-                }
-                mock_client.post.return_value = mock_response
-
-                with patch("src.integrations.amadeus.auth._token_cache", None):
-                    token = await fetch_token()
-                    assert token == "new_token"
-                    mock_client.post.assert_called_once()
+            with patch("src.integrations.amadeus.auth._token_cache", None):
+                token = await fetch_token()
+                assert token == "new_token"
+                mock_client.post.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_fetch_token_cached(self):
@@ -103,78 +100,78 @@ class TestAmadeusAuth:
         past_time = (time.time() - 1000) * 1000
         cache = {"access_token": "expired_token", "expires_at": past_time}
 
-        with patch("src.integrations.amadeus.auth._token_cache", cache):
-            with patch("src.integrations.amadeus.auth.settings"):
-                with patch("httpx.AsyncClient") as mock_client_cls:
-                    mock_client = AsyncMock()
-                    mock_client_cls.return_value.__aenter__.return_value = mock_client
+        with patch("src.integrations.amadeus.auth._token_cache", cache), \
+             patch("src.integrations.amadeus.auth.settings"), \
+             patch("httpx.AsyncClient") as mock_client_cls:
+            mock_client = AsyncMock()
+            mock_client_cls.return_value.__aenter__.return_value = mock_client
 
-                    mock_response = MagicMock()
-                    mock_response.status_code = 200
-                    mock_response.json.return_value = {"access_token": "fresh_token", "expires_in": 1800}
-                    mock_client.post.return_value = mock_response
+            mock_response = MagicMock()
+            mock_response.status_code = 200
+            mock_response.json.return_value = {"access_token": "fresh_token", "expires_in": 1800}
+            mock_client.post.return_value = mock_response
 
-                    token = await fetch_token()
-                    assert token == "fresh_token"
+            token = await fetch_token()
+            assert token == "fresh_token"
 
     @pytest.mark.asyncio
     async def test_fetch_token_error(self):
         """Test token retrieval error handling."""
-        with patch("src.integrations.amadeus.auth.settings"):
-            with patch("httpx.AsyncClient") as mock_client_cls:
-                mock_client = AsyncMock()
-                mock_client_cls.return_value.__aenter__.return_value = mock_client
+        with patch("src.integrations.amadeus.auth.settings"), \
+             patch("httpx.AsyncClient") as mock_client_cls:
+            mock_client = AsyncMock()
+            mock_client_cls.return_value.__aenter__.return_value = mock_client
 
-                mock_response = MagicMock()
-                mock_response.status_code = 400
-                mock_response.text = "Error"
-                mock_client.post.return_value = mock_response
+            mock_response = MagicMock()
+            mock_response.status_code = 400
+            mock_response.text = "Error"
+            mock_client.post.return_value = mock_response
 
-                with patch("src.integrations.amadeus.auth._token_cache", None):
-                    with pytest.raises(AppError) as exc_info:
-                        await fetch_token()
-                    assert exc_info.value.status_code == 502
-                    assert exc_info.value.code == "UPSTREAM_AUTH_ERROR"
+            with patch("src.integrations.amadeus.auth._token_cache", None), \
+                 pytest.raises(AppError) as exc_info:
+                await fetch_token()
+            assert exc_info.value.status_code == 502
+            assert exc_info.value.code == "UPSTREAM_AUTH_ERROR"
 
     @pytest.mark.asyncio
     async def test_fetch_token_missing_token_in_response(self):
         """Test response with missing access_token."""
-        with patch("src.integrations.amadeus.auth.settings"):
-            with patch("httpx.AsyncClient") as mock_client_cls:
-                mock_client = AsyncMock()
-                mock_client_cls.return_value.__aenter__.return_value = mock_client
+        with patch("src.integrations.amadeus.auth.settings"), \
+             patch("httpx.AsyncClient") as mock_client_cls:
+            mock_client = AsyncMock()
+            mock_client_cls.return_value.__aenter__.return_value = mock_client
 
-                mock_response = MagicMock()
-                mock_response.status_code = 200
-                mock_response.json.return_value = {"foo": "bar"}  # No access_token
-                mock_client.post.return_value = mock_response
+            mock_response = MagicMock()
+            mock_response.status_code = 200
+            mock_response.json.return_value = {"foo": "bar"}  # No access_token
+            mock_client.post.return_value = mock_response
 
-                with patch("src.integrations.amadeus.auth._token_cache", None):
-                    with pytest.raises(AppError) as exc_info:
-                        await fetch_token()
-                    assert exc_info.value.status_code == 502
-                    assert "missing access_token" in str(exc_info.value)
+            with patch("src.integrations.amadeus.auth._token_cache", None), \
+                 pytest.raises(AppError) as exc_info:
+                await fetch_token()
+            assert exc_info.value.status_code == 502
+            assert "missing access_token" in str(exc_info.value)
 
     @pytest.mark.asyncio
     async def test_fetch_token_http_error(self):
         """Test HTTP error during token fetch."""
-        with patch("src.integrations.amadeus.auth.settings"):
-            with patch("httpx.AsyncClient") as mock_client_cls:
-                mock_client = AsyncMock()
-                mock_client_cls.return_value.__aenter__.return_value = mock_client
+        with patch("src.integrations.amadeus.auth.settings"), \
+             patch("httpx.AsyncClient") as mock_client_cls:
+            mock_client = AsyncMock()
+            mock_client_cls.return_value.__aenter__.return_value = mock_client
 
-                # Mock request object on exception
-                mock_request = MagicMock()
-                mock_request.url = "http://test.url"
-                error = httpx.HTTPError("Network Error")
-                error.request = mock_request
-                mock_client.post.side_effect = error
+            # Mock request object on exception
+            mock_request = MagicMock()
+            mock_request.url = "http://test.url"
+            error = httpx.HTTPError("Network Error")
+            error.request = mock_request
+            mock_client.post.side_effect = error
 
-                with patch("src.integrations.amadeus.auth._token_cache", None):
-                    with pytest.raises(AppError) as exc_info:
-                        await fetch_token()
-                    assert exc_info.value.status_code == 503
-                    assert exc_info.value.code == "UPSTREAM_UNAVAILABLE"
+            with patch("src.integrations.amadeus.auth._token_cache", None), \
+                 pytest.raises(AppError) as exc_info:
+                await fetch_token()
+            assert exc_info.value.status_code == 503
+            assert exc_info.value.code == "UPSTREAM_UNAVAILABLE"
 
 
 class TestAmadeusLocations:

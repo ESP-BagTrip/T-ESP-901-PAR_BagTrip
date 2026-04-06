@@ -1,7 +1,8 @@
 """Unit tests for the main application entry point."""
 
+import contextlib
 import sys
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -26,10 +27,10 @@ def client():
     # We need to mock lifespan migrations as they run on startup
     with patch("src.migrations.migrate_trips_table.migrate_trips_table"), \
          patch("src.services.stripe_products_service.StripeProductsService.initialize_products"), \
-         patch("src.seeds.create_admin.create_default_admin"):
+         patch("src.seeds.create_admin.create_default_admin"), \
+         TestClient(app, raise_server_exceptions=False) as client:
         # raise_server_exceptions=False allows testing 500 responses
-        with TestClient(app, raise_server_exceptions=False) as client:
-            yield client
+        yield client
 
 
 class TestMainEndpoints:
@@ -69,7 +70,7 @@ class TestExceptionHandlers:
         """Test AppError logging in DEBUG mode."""
         original_level = logger.level
         logger.level = LogLevel.DEBUG
-        
+
         try:
             with patch.object(logger, "error") as mock_log:
                 @app.get("/test-app-error-debug")
@@ -99,7 +100,7 @@ class TestExceptionHandlers:
         """Test handling of generic Exception in DEBUG mode."""
         original_level = logger.level
         logger.level = LogLevel.DEBUG
-        
+
         try:
             @app.get("/test-general-error-debug")
             def raise_general_error_debug():
@@ -124,32 +125,32 @@ class TestLifespan:
         """Test successful startup and shutdown."""
         app_mock = MagicMock()
 
-        with patch("src.main.check_database_connection") as mock_check_db:
-            with patch("src.migrations.migrate_trips_table.migrate_trips_table") as mock_migrate_trips:
-                with patch("src.services.stripe_products_service.StripeProductsService.initialize_products") as mock_stripe_init:
-                    with patch("src.seeds.create_admin.create_default_admin") as mock_create_admin:
+        with patch("src.main.check_database_connection") as mock_check_db, \
+             patch("src.migrations.migrate_trips_table.migrate_trips_table") as mock_migrate_trips, \
+             patch("src.services.stripe_products_service.StripeProductsService.initialize_products") as mock_stripe_init, \
+             patch("src.seeds.create_admin.create_default_admin") as mock_create_admin:
 
-                        async with lifespan(app_mock):
-                            pass
+            async with lifespan(app_mock):
+                pass
 
-                        mock_check_db.assert_called_once()
-                        mock_migrate_trips.assert_called_once()
-                        mock_stripe_init.assert_called_once()
-                        mock_create_admin.assert_called_once()
+            mock_check_db.assert_called_once()
+            mock_migrate_trips.assert_called_once()
+            mock_stripe_init.assert_called_once()
+            mock_create_admin.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_lifespan_migration_errors(self):
         """Test lifespan handles migration errors gracefully."""
         app_mock = MagicMock()
 
-        with patch("src.main.check_database_connection"):
-            with patch("src.migrations.migrate_trips_table.migrate_trips_table", side_effect=Exception("Trips migration failed")):
-                with patch("src.services.stripe_products_service.StripeProductsService.initialize_products", side_effect=Exception("Stripe init failed")):
-                    with patch("src.seeds.create_admin.create_default_admin", side_effect=Exception("Admin seed failed")):
+        with patch("src.main.check_database_connection"), \
+             patch("src.migrations.migrate_trips_table.migrate_trips_table", side_effect=Exception("Trips migration failed")), \
+             patch("src.services.stripe_products_service.StripeProductsService.initialize_products", side_effect=Exception("Stripe init failed")), \
+             patch("src.seeds.create_admin.create_default_admin", side_effect=Exception("Admin seed failed")):
 
-                        # Should not raise exception
-                        async with lifespan(app_mock):
-                            pass
+            # Should not raise exception
+            async with lifespan(app_mock):
+                pass
 
 
 class TestMainBlock:
@@ -158,17 +159,16 @@ class TestMainBlock:
     def test_main_execution(self):
         """Test execution when run as script."""
         with patch("uvicorn.run") as mock_run:
-            from src.config.env import settings
             import runpy
-            
-            with patch.object(sys, 'argv', ["main.py"]):
+
+            from src.config.env import settings
+
+            with patch.object(sys, 'argv', ["main.py"]), \
+                 patch("src.main.app", MagicMock()), \
+                 contextlib.suppress(SystemExit):
                 # Mock app to avoid side effects during re-import
-                with patch("src.main.app", MagicMock()): 
-                    try:
-                        runpy.run_module("src.main", run_name="__main__")
-                    except SystemExit:
-                        pass
-            
+                runpy.run_module("src.main", run_name="__main__")
+
             mock_run.assert_called_once()
             args, kwargs = mock_run.call_args
             assert args[0] == "src.main:app"

@@ -29,7 +29,7 @@ class TestBookingOrchestratorService:
         user_id = uuid.uuid4()
         offer_id = uuid.uuid4()
         traveler_id = uuid.uuid4()
-        
+
         # Mock intent
         intent = BookingIntent(
             id=intent_id,
@@ -39,7 +39,7 @@ class TestBookingOrchestratorService:
             status="AUTHORIZED",
             selected_offer_id=offer_id
         )
-        
+
         # Valid FlightOffer structure
         valid_offer_json = {
             "type": "flight-offer",
@@ -101,10 +101,10 @@ class TestBookingOrchestratorService:
             id=offer_id,
             offer_json=valid_offer_json
         )
-        
+
         # Mock traveler
         traveler = TripTraveler(
-            id=traveler_id, 
+            id=traveler_id,
             trip_id=intent.trip_id,
             first_name="John",
             last_name="Doe",
@@ -114,23 +114,23 @@ class TestBookingOrchestratorService:
         # Fix date_of_birth to be a date object
         from datetime import date
         traveler.date_of_birth = date(1990, 1, 1)
-        
+
         # Setup DB queries
         mock_db_session.query.return_value.filter.return_value.first.side_effect = [
             intent, flight_offer, traveler
         ]
-        
+
         # Mock Amadeus response
         mock_response = MagicMock()
         mock_response.data = {"id": "ORDER_123"}
-        
+
         # Ensure create_flight_order is an AsyncMock
         mock_amadeus.create_flight_order = AsyncMock(return_value=mock_response)
-        
+
         result = await BookingOrchestratorService.book(
             mock_db_session, intent_id, user_id, traveler_ids=[traveler_id]
         )
-        
+
         assert result.status == "BOOKED"
         assert result.amadeus_order_id == "ORDER_123"
         mock_db_session.add.assert_called() # FlightOrder added
@@ -140,7 +140,7 @@ class TestBookingOrchestratorService:
         """Test booking flight without selected offer."""
         intent = BookingIntent(id=uuid.uuid4(), status="AUTHORIZED", type="flight", selected_offer_id=None)
         mock_db_session.query.return_value.filter.return_value.first.return_value = intent
-        
+
         with pytest.raises(AppError) as exc:
             await BookingOrchestratorService.book(mock_db_session, intent.id, uuid.uuid4())
         assert exc.value.code == "MISSING_OFFER"
@@ -149,7 +149,7 @@ class TestBookingOrchestratorService:
     async def test_book_intent_not_found(self, mock_db_session):
         """Test error when intent not found."""
         mock_db_session.query.return_value.filter.return_value.first.return_value = None
-        
+
         with pytest.raises(AppError) as exc:
             await BookingOrchestratorService.book(mock_db_session, uuid.uuid4(), uuid.uuid4())
         assert exc.value.code == "BOOKING_INTENT_NOT_FOUND"
@@ -159,7 +159,7 @@ class TestBookingOrchestratorService:
         """Test error when intent status is not AUTHORIZED."""
         intent = BookingIntent(status="INIT")
         mock_db_session.query.return_value.filter.return_value.first.return_value = intent
-        
+
         with pytest.raises(AppError) as exc:
             await BookingOrchestratorService.book(mock_db_session, uuid.uuid4(), uuid.uuid4())
         assert exc.value.code == "INVALID_STATUS"
@@ -169,11 +169,11 @@ class TestBookingOrchestratorService:
         """Test rollback on error."""
         intent = BookingIntent(status="AUTHORIZED", type="flight")
         mock_db_session.query.return_value.filter.return_value.first.return_value = intent
-        
+
         # Simulate error during processing (missing offer)
         with pytest.raises(AppError):
             await BookingOrchestratorService.book(mock_db_session, uuid.uuid4(), uuid.uuid4())
-            
+
         mock_db_session.rollback.assert_called()
         assert intent.status == "FAILED"
 
@@ -182,7 +182,7 @@ class TestBookingOrchestratorService:
         """Test error for invalid intent type."""
         intent = BookingIntent(status="AUTHORIZED", type="car_rental")
         mock_db_session.query.return_value.filter.return_value.first.return_value = intent
-        
+
         with pytest.raises(AppError) as exc:
             await BookingOrchestratorService.book(mock_db_session, uuid.uuid4(), uuid.uuid4())
         assert exc.value.code == "INVALID_TYPE"
