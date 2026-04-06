@@ -163,11 +163,11 @@ jobs:
 
       - name: Lint (ruff check)
         working-directory: api
-        run: uv run ruff check .
+        run: uv run ruff check src/
 
       - name: Format check (ruff format)
         working-directory: api
-        run: uv run ruff format --check .
+        run: uv run ruff format --check src/
 
       - name: Run tests with coverage
         working-directory: api
