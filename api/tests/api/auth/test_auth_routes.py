@@ -120,7 +120,7 @@ class TestRegister:
         assert response.json()["detail"] == "User already exists"
 
 
-    def test_register_integrity_error(self, client, override_get_db, mock_db_session):
+    def test_register_integrity_error(self, client, override_get_db, mock_db_session, mock_stripe_client):
         """Test registration race condition handling (IntegrityError)."""
         from sqlalchemy.exc import IntegrityError
 
