@@ -65,6 +65,7 @@ Trip makeTrip({
   int? nbTravelers = 2,
   DateTime? startDate,
   DateTime? endDate,
+  double? budgetTotal,
 }) {
   return Trip(
     id: id,
@@ -76,6 +77,7 @@ Trip makeTrip({
     nbTravelers: nbTravelers,
     startDate: startDate ?? DateTime(2024, 6),
     endDate: endDate ?? DateTime(2024, 6, 7),
+    budgetTotal: budgetTotal,
   );
 }
 

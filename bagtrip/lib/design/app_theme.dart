@@ -53,7 +53,7 @@ class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          minimumSize: const Size.fromHeight(AppSize.height42),
+          minimumSize: const Size(0, AppSize.height42),
           padding: AppSpacing.allEdgeInsetSpace8,
           shape: const RoundedRectangleBorder(borderRadius: AppRadius.large16),
         ),
@@ -120,7 +120,7 @@ class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          minimumSize: const Size.fromHeight(AppSize.height42),
+          minimumSize: const Size(0, AppSize.height42),
           padding: AppSpacing.allEdgeInsetSpace8,
           shape: const RoundedRectangleBorder(borderRadius: AppRadius.large16),
         ),

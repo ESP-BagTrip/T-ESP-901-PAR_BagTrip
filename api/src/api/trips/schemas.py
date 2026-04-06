@@ -76,6 +76,7 @@ class TripResponse(BaseModel):
     createdAt: datetime = Field(alias="created_at")
     updatedAt: datetime = Field(alias="updated_at")
     role: str | None = None
+    completionPercentage: int = Field(default=0, alias="completion_percentage")
 
     class Config:
         from_attributes = True

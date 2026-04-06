@@ -1,6 +1,5 @@
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/models/baggage_item.dart';
-import 'package:bagtrip/models/budget_item.dart';
 import 'package:bagtrip/models/manual_flight.dart';
 import 'package:bagtrip/models/accommodation.dart';
 import 'package:bagtrip/models/trip.dart';
@@ -38,7 +37,6 @@ CompletionResult tripDetailCompletion({
   required List<Accommodation> accommodations,
   required List<Activity> activities,
   required List<BaggageItem> baggageItems,
-  BudgetSummary? budgetSummary,
 }) {
   final segments = <CompletionSegmentType, bool>{
     CompletionSegmentType.dates: trip.startDate != null && trip.endDate != null,
@@ -46,7 +44,8 @@ CompletionResult tripDetailCompletion({
     CompletionSegmentType.accommodation: accommodations.isNotEmpty,
     CompletionSegmentType.activities: activities.length >= 3,
     CompletionSegmentType.baggage: baggageItems.length >= 5,
-    CompletionSegmentType.budget: budgetSummary != null,
+    CompletionSegmentType.budget:
+        trip.budgetTotal != null && trip.budgetTotal! > 0,
   };
 
   final filled = segments.values.where((v) => v).length;

@@ -8,67 +8,19 @@ void main() {
       expect(tripCompletion(null), 0);
     });
 
-    test('returns 0 when all fields are null/default', () {
+    test('returns 0 when completionPercentage is default', () {
       const trip = Trip(id: 'empty');
       expect(tripCompletion(trip), 0);
     });
 
-    test('returns 40 when 2/5 fields are filled', () {
-      final trip = Trip(
-        id: 'partial',
-        startDate: DateTime(2024, 6),
-        destinationName: 'Paris',
-      );
-      expect(tripCompletion(trip), 40);
+    test('returns server-computed completionPercentage', () {
+      const trip = Trip(id: 'partial', completionPercentage: 33);
+      expect(tripCompletion(trip), 33);
     });
 
-    test('returns 100 when all fields are filled', () {
-      final trip = Trip(
-        id: 'full',
-        startDate: DateTime(2024, 6),
-        endDate: DateTime(2024, 6, 7),
-        destinationName: 'Paris',
-        nbTravelers: 2,
-        budgetTotal: 1500,
-      );
+    test('returns 100 when completionPercentage is 100', () {
+      const trip = Trip(id: 'full', completionPercentage: 100);
       expect(tripCompletion(trip), 100);
-    });
-
-    test('empty destinationName does not count', () {
-      final trip = Trip(
-        id: 'empty-dest',
-        startDate: DateTime(2024, 6),
-        destinationName: '',
-      );
-      expect(tripCompletion(trip), 20);
-    });
-
-    test('nbTravelers = 0 does not count', () {
-      final trip = Trip(
-        id: 'zero-travelers',
-        startDate: DateTime(2024, 6),
-        nbTravelers: 0,
-      );
-      expect(tripCompletion(trip), 20);
-    });
-
-    test('budgetTotal = 0 does not count', () {
-      final trip = Trip(
-        id: 'zero-budget',
-        startDate: DateTime(2024, 6),
-        budgetTotal: 0,
-      );
-      expect(tripCompletion(trip), 20);
-    });
-
-    test('returns 60 when 3/5 fields are filled', () {
-      final trip = Trip(
-        id: 'three',
-        startDate: DateTime(2024, 6),
-        endDate: DateTime(2024, 6, 7),
-        nbTravelers: 3,
-      );
-      expect(tripCompletion(trip), 60);
     });
   });
 }

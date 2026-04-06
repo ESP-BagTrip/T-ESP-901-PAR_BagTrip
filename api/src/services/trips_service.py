@@ -4,7 +4,7 @@ from datetime import UTC, date, datetime
 from math import ceil
 from uuid import UUID
 
-from sqlalchemy import literal_column, update
+from sqlalchemy import func, literal_column, update
 from sqlalchemy.orm import Session
 
 from src.enums import DateMode, FlightOrderStatus, NotificationType, TripOrigin, TripStatus
@@ -135,6 +135,70 @@ class TripsService:
         total_pages = ceil(total / limit) if limit > 0 else 0
         items = query.offset((page - 1) * limit).limit(limit).all()
         return items, total, total_pages
+
+    @staticmethod
+    def compute_completion_batch(
+        db: Session,
+        trips: list[Trip],
+    ) -> dict[UUID, int]:
+        """Compute completion percentage for a batch of trips.
+
+        6 segments (~16.67% each):
+        - Dates: start_date AND end_date non-null
+        - Flights: at least 1 manual_flight
+        - Accommodations: at least 1 accommodation
+        - Activities: 3+ activities
+        - Baggage: 5+ baggage items
+        - Budget: budget_total > 0
+        """
+        if not trips:
+            return {}
+
+        trip_ids = [t.id for t in trips]
+
+        flights_counts = dict(
+            db.query(ManualFlight.trip_id, func.count())
+            .filter(ManualFlight.trip_id.in_(trip_ids))
+            .group_by(ManualFlight.trip_id)
+            .all()
+        )
+        accommodations_counts = dict(
+            db.query(Accommodation.trip_id, func.count())
+            .filter(Accommodation.trip_id.in_(trip_ids))
+            .group_by(Accommodation.trip_id)
+            .all()
+        )
+        activities_counts = dict(
+            db.query(Activity.trip_id, func.count())
+            .filter(Activity.trip_id.in_(trip_ids))
+            .group_by(Activity.trip_id)
+            .all()
+        )
+        baggage_counts = dict(
+            db.query(BaggageItem.trip_id, func.count())
+            .filter(BaggageItem.trip_id.in_(trip_ids))
+            .group_by(BaggageItem.trip_id)
+            .all()
+        )
+
+        result: dict[UUID, int] = {}
+        for trip in trips:
+            filled = 0
+            if trip.start_date is not None and trip.end_date is not None:
+                filled += 1
+            if flights_counts.get(trip.id, 0) > 0:
+                filled += 1
+            if accommodations_counts.get(trip.id, 0) > 0:
+                filled += 1
+            if activities_counts.get(trip.id, 0) >= 3:
+                filled += 1
+            if baggage_counts.get(trip.id, 0) >= 5:
+                filled += 1
+            if trip.budget_total is not None and float(trip.budget_total) > 0:
+                filled += 1
+            result[trip.id] = round(filled / 6 * 100)
+
+        return result
 
     @staticmethod
     def get_trip_by_id(db: Session, trip_id: UUID, user_id: UUID) -> Trip | None:

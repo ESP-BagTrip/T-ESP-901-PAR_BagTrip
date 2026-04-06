@@ -55,6 +55,7 @@ abstract class Trip with _$Trip {
     double? budgetTotal,
     String? origin,
     String? role,
+    @Default(0) int completionPercentage,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _Trip;

@@ -170,7 +170,6 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
       accommodations: accommodations,
       activities: current.activities,
       baggageItems: baggageItems,
-      budgetSummary: budgetSummary,
     );
 
     emit(
@@ -321,7 +320,6 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
       accommodations: accommodations,
       activities: activities,
       baggageItems: baggageItems,
-      budgetSummary: budgetSummary,
     );
 
     emit(
@@ -508,7 +506,6 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
       accommodations: loaded.accommodations,
       activities: loaded.activities,
       baggageItems: loaded.baggageItems,
-      budgetSummary: loaded.budgetSummary,
     );
     emit(loaded.copyWith(trip: updatedTrip, completionResult: completion));
 
@@ -564,7 +561,6 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
       accommodations: loaded.accommodations,
       activities: loaded.activities,
       baggageItems: loaded.baggageItems,
-      budgetSummary: loaded.budgetSummary,
     );
     emit(
       loaded.copyWith(flights: updatedFlights, completionResult: completion),
@@ -588,7 +584,6 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
       accommodations: loaded.accommodations,
       activities: loaded.activities,
       baggageItems: loaded.baggageItems,
-      budgetSummary: loaded.budgetSummary,
     );
     emit(
       loaded.copyWith(flights: updatedFlights, completionResult: completion),
@@ -624,7 +619,6 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
       accommodations: updatedAccommodations,
       activities: loaded.activities,
       baggageItems: loaded.baggageItems,
-      budgetSummary: loaded.budgetSummary,
     );
     emit(
       loaded.copyWith(
@@ -671,7 +665,6 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
       accommodations: loaded.accommodations,
       activities: loaded.activities,
       baggageItems: updatedItems,
-      budgetSummary: loaded.budgetSummary,
     );
     emit(
       loaded.copyWith(baggageItems: updatedItems, completionResult: completion),
@@ -708,7 +701,6 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
       accommodations: loaded.accommodations,
       activities: loaded.activities,
       baggageItems: updatedItems,
-      budgetSummary: loaded.budgetSummary,
     );
     emit(
       loaded.copyWith(baggageItems: updatedItems, completionResult: completion),
