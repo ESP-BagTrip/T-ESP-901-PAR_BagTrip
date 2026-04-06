@@ -698,7 +698,7 @@
   "settingsTitle": "Réglages",
   "personalInfoPageTitle": "Informations personnelles",
   "travelPreferencesTitle": "Préférences de voyage",
-  "homeGreeting": "Bon voyage, {name}",
+  "homeGreeting": "Bienvenue, {name}",
   "@homeGreeting": {
     "placeholders": {
       "name": {"type": "String"}
