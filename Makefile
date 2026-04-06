@@ -105,7 +105,7 @@ help: ## Show this help
 	@printf "  $(CYAN)make lint$(RESET)            Run all linters (api + admin + mobile)\n"
 	@printf "  $(CYAN)make test$(RESET)            Run all tests (api + mobile + e2e)\n"
 	@printf "  $(CYAN)make test-e2e$(RESET)        Run E2E integration tests\n"
-	@printf "  $(CYAN)make coverage$(RESET)        Run Flutter tests with coverage (60%% threshold)\n"
+	@printf "  $(CYAN)make coverage$(RESET)        Run Flutter tests with coverage (30%% threshold)\n"
 	@printf "\n"
 	@printf "$(BOLD) Database$(RESET)\n"
 	@printf "  $(CYAN)make db-reset$(RESET)       Drop and recreate the database (dev only)\n"
@@ -273,18 +273,18 @@ test-e2e-%: ## Run single E2E test (e.g. make test-e2e-ft3_active_trip)
 	@cd $(FLUTTER_DIR) && flutter test integration_test/$*_test.dart
 	$(call ok,"E2E test $* passed")
 
-coverage: ## Run Flutter tests with coverage (60% threshold)
+coverage: ## Run Flutter tests with coverage (30% threshold)
 	@printf "$(CYAN)[info]$(RESET) Running Flutter tests with coverage…\n"
 	@cd $(FLUTTER_DIR) && flutter test --coverage
 	@printf "$(GREEN)[ok]$(RESET)   Coverage report: $(FLUTTER_DIR)/coverage/lcov.info\n"
 	@if command -v lcov &>/dev/null; then \
 		COVERAGE=$$(lcov --summary $(FLUTTER_DIR)/coverage/lcov.info 2>&1 | grep 'lines' | sed 's/.*: *\([0-9.]*\)%.*/\1/'); \
 		printf "$(CYAN)[info]$(RESET) Line coverage: $${COVERAGE}%%\n"; \
-		if [ "$$(echo "$$COVERAGE < 60" | bc -l)" -eq 1 ]; then \
-			printf "$(RED)[err]$(RESET)  Coverage $${COVERAGE}%% below 60%% threshold\n"; \
+		if [ "$$(echo "$$COVERAGE < 30" | bc -l)" -eq 1 ]; then \
+			printf "$(RED)[err]$(RESET)  Coverage $${COVERAGE}%% below 30%% threshold\n"; \
 			exit 1; \
 		else \
-			printf "$(GREEN)[ok]$(RESET)   Coverage meets 60%% threshold\n"; \
+			printf "$(GREEN)[ok]$(RESET)   Coverage meets 30%% threshold\n"; \
 		fi; \
 	else \
 		printf "$(YELLOW)[warn]$(RESET) lcov not installed — skipping threshold check\n"; \

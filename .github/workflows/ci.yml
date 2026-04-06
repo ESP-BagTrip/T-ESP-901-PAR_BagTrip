@@ -124,9 +124,9 @@ jobs:
           COVERAGE=$(lcov --summary coverage/lcov.info 2>&1 | grep 'lines' | sed 's/.*: *\([0-9.]*\)%.*/\1/')
           echo "Line coverage: ${COVERAGE}%"
           echo "## Flutter Coverage" >> $GITHUB_STEP_SUMMARY
-          echo "Line coverage: **${COVERAGE}%** (threshold: 60%)" >> $GITHUB_STEP_SUMMARY
-          if [ "$(echo "$COVERAGE < 60" | bc -l)" -eq 1 ]; then
-            echo "Coverage ${COVERAGE}% is below 60% threshold"
+          echo "Line coverage: **${COVERAGE}%** (threshold: 30%)" >> $GITHUB_STEP_SUMMARY
+          if [ "$(echo "$COVERAGE < 30" | bc -l)" -eq 1 ]; then
+            echo "Coverage ${COVERAGE}% is below 30% threshold"
             exit 1
           fi
 

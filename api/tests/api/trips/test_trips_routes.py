@@ -84,6 +84,7 @@ def mock_trip():
     trip.status = "PLANNED"
     trip.description = None
     trip.destination_name = "Paris"
+    trip.destination_timezone = None
     trip.nb_travelers = 1
     trip.cover_image_url = None
     trip.budget_total = None
