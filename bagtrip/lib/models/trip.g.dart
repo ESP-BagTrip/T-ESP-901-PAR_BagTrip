@@ -22,7 +22,7 @@ _Trip _$TripFromJson(Map<String, dynamic> json) => _Trip(
       ? TripStatus.draft
       : const TripStatusConverter().fromJson(json['status'] as String),
   description: json['description'] as String?,
-  destinationName: json['destinationName'] as String?,
+  destinationName: json['destination_name'] as String?,
   destinationTimezone: json['destination_timezone'] as String?,
   nbTravelers: (json['nb_travelers'] as num?)?.toInt(),
   coverImageUrl: json['cover_image_url'] as String?,
@@ -47,7 +47,7 @@ Map<String, dynamic> _$TripToJson(_Trip instance) => <String, dynamic>{
   'end_date': instance.endDate?.toIso8601String(),
   'status': const TripStatusConverter().toJson(instance.status),
   'description': instance.description,
-  'destinationName': instance.destinationName,
+  'destination_name': instance.destinationName,
   'destination_timezone': instance.destinationTimezone,
   'nb_travelers': instance.nbTravelers,
   'cover_image_url': instance.coverImageUrl,

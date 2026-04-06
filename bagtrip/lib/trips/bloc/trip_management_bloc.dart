@@ -48,7 +48,7 @@ class TripManagementBloc
   ) async {
     // Preserve other tabs' data
     final currentTabs = state is TripsTabLoaded
-        ? (state as TripsTabLoaded).tabs
+        ? Map<String, TripTabData>.from((state as TripsTabLoaded).tabs)
         : <String, TripTabData>{};
 
     if (event.page == 1 && currentTabs.isEmpty) {
@@ -60,15 +60,20 @@ class TripManagementBloc
       status: event.status,
     );
     if (isClosed) return;
+
+    // Re-read state after await to pick up tabs added by concurrent handlers
+    final freshTabs = state is TripsTabLoaded
+        ? Map<String, TripTabData>.from((state as TripsTabLoaded).tabs)
+        : currentTabs;
+
     switch (result) {
       case Success(:final data):
-        final updatedTabs = Map<String, TripTabData>.from(currentTabs);
-        updatedTabs[event.status] = TripTabData(
+        freshTabs[event.status] = TripTabData(
           trips: data.items,
           currentPage: data.page,
           totalPages: data.totalPages,
         );
-        emit(TripsTabLoaded(tabs: updatedTabs));
+        emit(TripsTabLoaded(tabs: freshTabs));
       case Failure(:final error):
         emit(TripError(error: error));
     }

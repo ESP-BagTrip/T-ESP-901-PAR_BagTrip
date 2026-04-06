@@ -48,7 +48,7 @@ abstract class Trip with _$Trip {
     DateTime? endDate,
     @TripStatusConverter() @Default(TripStatus.draft) TripStatus status,
     String? description,
-    @JsonKey(name: 'destinationName') String? destinationName,
+    @JsonKey(name: 'destination_name') String? destinationName,
     String? destinationTimezone,
     int? nbTravelers,
     String? coverImageUrl,

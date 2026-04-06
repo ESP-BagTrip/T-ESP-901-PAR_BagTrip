@@ -120,7 +120,10 @@ class TripManagerHomeView extends StatelessWidget {
             index: 3,
             child: Padding(
               padding: const EdgeInsets.only(top: AppSpacing.space8),
-              child: _TripsSection(l10n: l10n),
+              child: _TripsSection(
+                l10n: l10n,
+                initialTabIndex: state.upcomingTrips.isNotEmpty ? 1 : 2,
+              ),
             ),
           ),
         ),
@@ -156,8 +159,9 @@ class TripManagerHomeView extends StatelessWidget {
 
 class _TripsSection extends StatefulWidget {
   final AppLocalizations l10n;
+  final int initialTabIndex;
 
-  const _TripsSection({required this.l10n});
+  const _TripsSection({required this.l10n, this.initialTabIndex = 0});
 
   @override
   State<_TripsSection> createState() => _TripsSectionState();
@@ -170,7 +174,11 @@ class _TripsSectionState extends State<_TripsSection>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(
+      length: 3,
+      vsync: this,
+      initialIndex: widget.initialTabIndex,
+    );
   }
 
   @override
