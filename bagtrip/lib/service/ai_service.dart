@@ -59,6 +59,7 @@ class AiRepositoryImpl implements AiRepository {
     Map<String, dynamic> suggestion, {
     String? startDate,
     String? endDate,
+    String? dateMode,
   }) async {
     try {
       final response = await _apiClient.post(
@@ -67,6 +68,7 @@ class AiRepositoryImpl implements AiRepository {
           'suggestion': suggestion,
           if (startDate != null) 'startDate': startDate,
           if (endDate != null) 'endDate': endDate,
+          if (dateMode != null) 'dateMode': dateMode,
         },
       );
       if (response.statusCode == 200) {

@@ -70,6 +70,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     // Step 5 — Review
     on<PlanTripCreateTrip>(_onCreateTrip);
     on<PlanTripBackToProposals>(_onBackToProposals);
+    on<PlanTripUpdateReviewDates>(_onUpdateReviewDates);
   }
 
   // ---------------------------------------------------------------------------
@@ -606,19 +607,16 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
 
     final suggestion = _tripPlanToSuggestion(plan);
 
-    String? startDateStr;
-    String? endDateStr;
-    if (state.startDate != null) {
-      startDateStr = state.startDate!.toIso8601String().split('T')[0];
-    }
-    if (state.endDate != null) {
-      endDateStr = state.endDate!.toIso8601String().split('T')[0];
-    }
+    // Always derive dates (handles month/flexible modes)
+    final (start, end) = state.representativeDates;
+    final startDateStr = start.toIso8601String().split('T')[0];
+    final endDateStr = end.toIso8601String().split('T')[0];
 
     final result = await _aiRepository.acceptInspiration(
       suggestion,
       startDate: startDateStr,
       endDate: endDateStr,
+      dateMode: state.dateMode.name,
     );
     if (isClosed) return;
 
@@ -648,6 +646,19 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     );
   }
 
+  void _onUpdateReviewDates(
+    PlanTripUpdateReviewDates event,
+    Emitter<PlanTripState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        startDate: event.start,
+        endDate: event.end,
+        dateMode: DateMode.exact,
+      ),
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
@@ -658,15 +669,10 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     String? companions,
     String? constraints,
   }) {
-    String? departureDate;
-    String? returnDate;
-
-    if (state.startDate != null) {
-      departureDate = state.startDate!.toIso8601String().split('T')[0];
-    }
-    if (state.endDate != null) {
-      returnDate = state.endDate!.toIso8601String().split('T')[0];
-    }
+    // Always derive dates via representativeDates (handles all modes)
+    final (start, end) = state.representativeDates;
+    final departureDate = start.toIso8601String().split('T')[0];
+    final returnDate = end.toIso8601String().split('T')[0];
 
     // Resolve destination from manual or AI selection
     final destName =
@@ -677,7 +683,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         state.selectedAiDestination?.iata;
 
     return {
-      'durationDays': state.tripDurationDays,
+      'durationDays': state.effectiveDurationDays,
       'departureDate': departureDate,
       'returnDate': returnDate,
       'budgetRange': state.budgetPreset?.name,
@@ -685,6 +691,8 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       'originCity': state.originCity,
       'dateMode': state.dateMode.name,
       'budgetPreset': state.budgetPreset?.name,
+      if (state.preferredMonth != null) 'preferredMonth': state.preferredMonth,
+      if (state.preferredYear != null) 'preferredYear': state.preferredYear,
       if (destName != null) 'destinationCity': destName,
       if (destIata != null) 'destinationIata': destIata,
       if (travelTypes != null) 'travelTypes': travelTypes,
@@ -765,10 +773,29 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         .map((b) => (b['reason'] ?? '') as String)
         .toList();
 
-    // Budget total
-    final totalMin = (budget['total_min'] as num?)?.toInt() ?? 0;
-    final totalMax = (budget['total_max'] as num?)?.toInt() ?? 0;
-    final budgetEur = totalMax > 0 ? totalMax : totalMin;
+    // Budget total — sum breakdown categories for consistency with chart
+    int budgetEur = 0;
+    for (final key in [
+      'flights',
+      'accommodation',
+      'meals',
+      'transport',
+      'activities',
+    ]) {
+      final value = budget[key];
+      if (value is Map) {
+        final raw = value['amount'];
+        if (raw is num) budgetEur += raw.toInt();
+      } else if (value is num) {
+        budgetEur += value.toInt();
+      }
+    }
+    if (budgetEur == 0) {
+      // Fallback to LLM totals if no breakdown entries
+      final totalMax = (budget['total_max'] as num?)?.toInt() ?? 0;
+      final totalMin = (budget['total_min'] as num?)?.toInt() ?? 0;
+      budgetEur = totalMax > 0 ? totalMax : totalMin;
+    }
 
     return TripPlan(
       destinationCity: dest['city'] as String? ?? '',
@@ -827,6 +854,13 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
             'source': plan.accommodationSource,
           },
         ],
+      if (plan.flightRoute.isNotEmpty && plan.flightPrice > 0)
+        'flight': {
+          'route': plan.flightRoute,
+          'details': plan.flightDetails,
+          'price': plan.flightPrice,
+          'source': plan.flightSource,
+        },
       'baggage': List.generate(plan.essentialItems.length, (i) {
         return {
           'name': plan.essentialItems[i],

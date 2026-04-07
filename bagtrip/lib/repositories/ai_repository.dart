@@ -13,6 +13,7 @@ abstract class AiRepository {
     Map<String, dynamic> suggestion, {
     String? startDate,
     String? endDate,
+    String? dateMode,
   });
   Future<Result<Map<String, dynamic>>> getPostTripSuggestion();
 

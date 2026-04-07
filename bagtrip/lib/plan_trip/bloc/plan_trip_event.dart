@@ -43,4 +43,6 @@ sealed class PlanTripEvent with _$PlanTripEvent {
   // Step 5 — Review
   const factory PlanTripEvent.createTrip() = PlanTripCreateTrip;
   const factory PlanTripEvent.backToProposals() = PlanTripBackToProposals;
+  const factory PlanTripEvent.updateReviewDates(DateTime start, DateTime end) =
+      PlanTripUpdateReviewDates;
 }

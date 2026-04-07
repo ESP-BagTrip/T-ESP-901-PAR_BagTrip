@@ -4298,6 +4298,18 @@ abstract class AppLocalizations {
   /// **'TEMPS FORTS'**
   String get reviewHighlightsLabel;
 
+  /// No description provided for @reviewSectionDates.
+  ///
+  /// In fr, this message translates to:
+  /// **'DATES'**
+  String get reviewSectionDates;
+
+  /// No description provided for @reviewDatesSuggested.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dates suggérées — appuyez pour ajuster'**
+  String get reviewDatesSuggested;
+
   /// No description provided for @reviewEssentialReason.
   ///
   /// In fr, this message translates to:

@@ -10,6 +10,7 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:bagtrip/plan_trip/widgets/accommodation_preview_card.dart';
+import 'package:intl/intl.dart';
 import 'package:bagtrip/plan_trip/widgets/budget_breakdown_chart.dart';
 import 'package:bagtrip/plan_trip/widgets/day_activities_tab.dart';
 import 'package:bagtrip/plan_trip/widgets/flight_preview_card.dart';
@@ -166,6 +167,22 @@ class _StepReviewViewState extends State<StepReviewView> {
                       const SizedBox(height: AppSpacing.space24),
                     ],
 
+                    // Dates section
+                    StaggeredFadeIn(
+                      index: 0,
+                      child: _SectionLabel(label: l10n.reviewSectionDates),
+                    ),
+                    const SizedBox(height: AppSpacing.space8),
+                    StaggeredFadeIn(
+                      index: 0,
+                      child: _DatesSummaryCard(
+                        dates: state.representativeDates,
+                        isRepresentative: state.areDatesRepresentative,
+                        onEdit: () => _showDateEditor(context, state),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.space24),
+
                     // Flight section
                     if (plan.flightRoute.isNotEmpty) ...[
                       StaggeredFadeIn(
@@ -269,7 +286,6 @@ class _StepReviewViewState extends State<StepReviewView> {
                       const SizedBox(height: AppSpacing.space8),
                       BudgetBreakdownChart(
                         budgetBreakdown: plan.budgetBreakdown,
-                        totalBudget: plan.budgetEur,
                         animationIndex: 5,
                       ),
                       const SizedBox(height: AppSpacing.space32),
@@ -379,6 +395,25 @@ class _StepReviewViewState extends State<StepReviewView> {
     );
   }
 
+  Future<void> _showDateEditor(
+    BuildContext context,
+    PlanTripState state,
+  ) async {
+    final (start, end) = state.representativeDates;
+    final now = DateTime.now();
+    final range = await showDateRangePicker(
+      context: context,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 730)),
+      initialDateRange: DateTimeRange(start: start, end: end),
+    );
+    if (range != null && context.mounted) {
+      context.read<PlanTripBloc>().add(
+        PlanTripEvent.updateReviewDates(range.start, range.end),
+      );
+    }
+  }
+
   String _weatherLabel(Map<String, dynamic> weather) {
     final temp = weather['avg_temp_c'] ?? weather['temperature'];
     if (temp != null) return '$temp°C';
@@ -438,6 +473,81 @@ class _FrostedChip extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _DatesSummaryCard extends StatelessWidget {
+  const _DatesSummaryCard({
+    required this.dates,
+    required this.isRepresentative,
+    required this.onEdit,
+  });
+
+  final (DateTime, DateTime) dates;
+  final bool isRepresentative;
+  final VoidCallback onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).languageCode;
+    final fmt = DateFormat('d MMM yyyy', locale);
+    final (start, end) = dates;
+
+    return GestureDetector(
+      onTap: onEdit,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(AppSpacing.space16),
+        decoration: BoxDecoration(
+          color: ColorName.surface,
+          borderRadius: AppRadius.large16,
+          border: Border.all(color: ColorName.primarySoftLight),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.calendar_today_rounded,
+              size: 20,
+              color: AppColors.primary,
+            ),
+            const SizedBox(width: AppSpacing.space12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${fmt.format(start)} — ${fmt.format(end)}',
+                    style: const TextStyle(
+                      fontFamily: FontFamily.b612,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: PersonalizationColors.textPrimary,
+                    ),
+                  ),
+                  if (isRepresentative) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.reviewDatesSuggested,
+                      style: const TextStyle(
+                        fontFamily: FontFamily.b612,
+                        fontSize: 11,
+                        color: PersonalizationColors.textTertiary,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.edit_outlined,
+              size: 16,
+              color: PersonalizationColors.textTertiary,
+            ),
+          ],
+        ),
       ),
     );
   }

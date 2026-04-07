@@ -106,3 +106,4 @@ class BudgetPreset(StrEnum):
 class FlightType(StrEnum):
     MAIN = "MAIN"
     INTERNAL = "INTERNAL"
+    AI_SUGGESTED = "AI_SUGGESTED"

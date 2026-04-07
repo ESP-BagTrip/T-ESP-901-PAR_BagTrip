@@ -19,6 +19,7 @@ from src.config.env import settings
 from src.models.accommodation import Accommodation
 from src.models.activity import Activity
 from src.models.baggage_item import BaggageItem
+from src.models.manual_flight import ManualFlight
 from src.models.user import User
 from src.services.plan_service import PlanService
 from src.services.trips_service import TripsService
@@ -90,14 +91,29 @@ async def _trip_plan_generator(request: PlanTripRequest, user_id: str, db: Sessi
     )
 
     # Build initial state
+    dep_date = request.departureDate or ""
+    ret_date = request.returnDate or ""
+    duration = request.durationDays or 7
+
+    # Safety net: derive dates for month/flexible modes if client didn't send them
+    if not dep_date or not ret_date:
+        if request.preferredMonth and request.preferredYear:
+            start = date(request.preferredYear, request.preferredMonth, 15)
+            dep_date = str(start)
+            ret_date = str(start + timedelta(days=duration))
+        elif request.dateMode in ("month", "flexible"):
+            start = date.today() + timedelta(days=30)
+            dep_date = str(start)
+            ret_date = str(start + timedelta(days=duration))
+
     initial_state: TripPlanState = {
         "travel_types": request.travelTypes or "",
         "budget_range": request.budgetRange or "",
-        "duration_days": request.durationDays or 7,
+        "duration_days": duration,
         "companions": request.companions or "solo",
         "constraints": request.constraints or "",
-        "departure_date": request.departureDate or "",
-        "return_date": request.returnDate or "",
+        "departure_date": dep_date,
+        "return_date": ret_date,
         "origin_city": request.originCity or "",
         "destination_city": request.destinationCity or "",
         "destination_iata": request.destinationIata or "",
@@ -275,6 +291,21 @@ def _get_default_baggage(lang: str) -> list[dict]:
     return _DEFAULT_BAGGAGE_I18N.get(lang, _DEFAULT_BAGGAGE_I18N["en"])
 
 
+def _parse_flight_route(route: str) -> tuple[str | None, str | None]:
+    """Extract departure and arrival IATA codes from a route string.
+
+    Handles formats like "CDG → JTR", "CDG -> JTR", "CDG - JTR".
+    """
+    import re
+
+    codes = re.findall(r"\b([A-Z]{3})\b", route.upper())
+    if len(codes) >= 2:
+        return codes[0], codes[1]
+    if len(codes) == 1:
+        return codes[0], None
+    return None, None
+
+
 @router.post("/plan-trip/accept")
 async def accept_plan(
     request: AcceptPlanRequest,
@@ -324,6 +355,16 @@ async def accept_plan(
         if not cover_image_url:
             cover_image_url = unsplash_client.get_fallback_url(destination_name)
 
+        # Resolve dates (safety net for month/flexible modes)
+        start_date_value = request.startDate
+        end_date_value = request.endDate
+        if not start_date_value or not end_date_value:
+            duration = suggestion.get("durationDays", 7) or 7
+            start_date_value = start_date_value or str(date.today() + timedelta(days=30))
+            end_date_value = end_date_value or str(
+                date.fromisoformat(start_date_value) + timedelta(days=duration)
+            )
+
         trip = TripsService.create_trip(
             db=db,
             user_id=current_user.id,
@@ -333,19 +374,20 @@ async def accept_plan(
             destination_name=destination_name,
             description=suggestion.get("description"),
             budget_total=suggestion.get("budgetEur"),
-            start_date=request.startDate,
-            end_date=request.endDate,
+            start_date=start_date_value,
+            end_date=end_date_value,
             origin="AI",
             cover_image_url=cover_image_url,
+            date_mode=request.dateMode or "EXACT",
         )
 
         # --- Create activities with intelligent scheduling ---
         activities_data = suggestion.get("activities", [])
         if activities_data:
             trip_start = None
-            if request.startDate:
+            if start_date_value:
                 with contextlib.suppress(ValueError):
-                    trip_start = date.fromisoformat(request.startDate)
+                    trip_start = date.fromisoformat(start_date_value)
 
             duration_days = suggestion.get("durationDays", len(activities_data)) or len(
                 activities_data
@@ -391,6 +433,22 @@ async def accept_plan(
                 notes=acc.get("notes"),
             )
             db.add(accommodation)
+
+        # --- Persist AI-suggested flight ---
+        flight_data = suggestion.get("flight")
+        if flight_data and isinstance(flight_data, dict):
+            dep_airport, arr_airport = _parse_flight_route(flight_data.get("route", ""))
+            flight = ManualFlight(
+                trip_id=trip.id,
+                flight_number="TBD",
+                departure_airport=dep_airport,
+                arrival_airport=arr_airport,
+                price=flight_data.get("price"),
+                currency="EUR",
+                notes=f"AI suggestion ({flight_data.get('source', 'estimated')})",
+                flight_type="AI_SUGGESTED",
+            )
+            db.add(flight)
 
         # --- Persist baggage items (AI-generated or i18n defaults) ---
         ai_baggage = suggestion.get("baggage", [])

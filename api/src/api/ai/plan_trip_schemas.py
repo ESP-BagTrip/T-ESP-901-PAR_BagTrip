@@ -45,6 +45,8 @@ class PlanTripRequest(BaseModel):
     nbTravelers: int | None = 1
     dateMode: str | None = None
     budgetPreset: str | None = None
+    preferredMonth: int | None = Field(None, description="1-12, for dateMode=month")
+    preferredYear: int | None = Field(None, description="e.g. 2027, for dateMode=month")
     mode: str | None = Field(None, description="'full' (default) or 'destinations_only'")
 
 
@@ -58,4 +60,5 @@ class AcceptPlanRequest(BaseModel):
     suggestion: dict
     startDate: str | None = None
     endDate: str | None = None
+    dateMode: str | None = Field(None, description="EXACT, MONTH, or FLEXIBLE")
     selectedDestinationIndex: int = Field(0, description="Index in destinations list (0 = primary)")

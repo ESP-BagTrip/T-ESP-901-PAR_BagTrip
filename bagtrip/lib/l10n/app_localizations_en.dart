@@ -2255,6 +2255,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reviewHighlightsLabel => 'HIGHLIGHTS';
 
   @override
+  String get reviewSectionDates => 'DATES';
+
+  @override
+  String get reviewDatesSuggested => 'Suggested dates — tap to adjust';
+
+  @override
   String reviewEssentialReason(String reason) {
     return 'Why: $reason';
   }
