@@ -93,8 +93,6 @@ class _StepDestinationViewState extends State<StepDestinationView> {
         }
       },
       builder: (context, state) {
-        final query = _searchController.text.trim();
-
         return ListView(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.space22,
