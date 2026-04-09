@@ -171,37 +171,55 @@ class _MyAppState extends State<MyApp> {
         BlocProvider(create: (context) => NotificationBloc()),
         BlocProvider(create: (context) => ConnectivityBloc()),
       ],
-      child: AuthListener(
-        router: appRouter,
-        child: BlocBuilder<SettingsBloc, SettingsState>(
-          builder: (context, settingsState) {
-            final ThemeMode themeMode = switch (settingsState.selectedTheme) {
-              'dark' => ThemeMode.dark,
-              'light' => ThemeMode.light,
-              _ => ThemeMode.system,
-            };
-            final Locale locale = switch (settingsState.selectedLanguage) {
-              'English' => const Locale('en'),
-              _ => const Locale('fr'),
-            };
+      child: BlocListener<AuthBloc, AuthState>(
+        // Reset all user-scoped blocs when the authenticated user changes,
+        // otherwise stale data from the previous session leaks across logout/login
+        // (HomeBloc, UserProfileBloc, etc. only refetch when their state is Initial).
+        listenWhen: (prev, curr) {
+          // login (any non-success → success)
+          if (curr is AuthSuccess && prev is! AuthSuccess) return true;
+          // logout (loading → initial)
+          if (curr is AuthInitial && prev is AuthLoading) return true;
+          return false;
+        },
+        listener: (context, state) {
+          context.read<HomeBloc>().add(ResetHome());
+          context.read<UserProfileBloc>().add(ResetUserProfile());
+          context.read<TripManagementBloc>().add(ResetTripManagement());
+          context.read<NotificationBloc>().add(ResetNotifications());
+        },
+        child: AuthListener(
+          router: appRouter,
+          child: BlocBuilder<SettingsBloc, SettingsState>(
+            builder: (context, settingsState) {
+              final ThemeMode themeMode = switch (settingsState.selectedTheme) {
+                'dark' => ThemeMode.dark,
+                'light' => ThemeMode.light,
+                _ => ThemeMode.system,
+              };
+              final Locale locale = switch (settingsState.selectedLanguage) {
+                'English' => const Locale('en'),
+                _ => const Locale('fr'),
+              };
 
-            return MaterialApp.router(
-              builder: (context, child) =>
-                  SnackBarScope(child: child ?? const SizedBox.shrink()),
-              theme: AppTheme.light().copyWith(
-                cupertinoOverrideTheme: AppTheme.cupertinoLight(),
-              ),
-              darkTheme: AppTheme.dark().copyWith(
-                cupertinoOverrideTheme: AppTheme.cupertinoDark(),
-              ),
-              themeMode: themeMode,
-              locale: locale,
-              routerConfig: appRouter,
-              scrollBehavior: const _AdaptiveScrollBehavior(),
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-            );
-          },
+              return MaterialApp.router(
+                builder: (context, child) =>
+                    SnackBarScope(child: child ?? const SizedBox.shrink()),
+                theme: AppTheme.light().copyWith(
+                  cupertinoOverrideTheme: AppTheme.cupertinoLight(),
+                ),
+                darkTheme: AppTheme.dark().copyWith(
+                  cupertinoOverrideTheme: AppTheme.cupertinoDark(),
+                ),
+                themeMode: themeMode,
+                locale: locale,
+                routerConfig: appRouter,
+                scrollBehavior: const _AdaptiveScrollBehavior(),
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+              );
+            },
+          ),
         ),
       ),
     );

@@ -22,6 +22,11 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     on<MarkNotificationRead>(_onMarkNotificationRead);
     on<MarkAllRead>(_onMarkAllRead);
     on<NotificationReceived>(_onNotificationReceived);
+    on<ResetNotifications>(_onReset);
+  }
+
+  void _onReset(ResetNotifications event, Emitter<NotificationState> emit) {
+    emit(NotificationInitial());
   }
 
   Future<void> _onLoadNotifications(

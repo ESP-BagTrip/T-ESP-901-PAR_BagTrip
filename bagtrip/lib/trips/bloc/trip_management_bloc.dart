@@ -23,6 +23,11 @@ class TripManagementBloc
     on<LoadTripHome>(_onLoadTripHome);
     on<UpdateTripStatus>(_onUpdateTripStatus);
     on<DeleteTrip>(_onDeleteTrip);
+    on<ResetTripManagement>(_onReset);
+  }
+
+  void _onReset(ResetTripManagement event, Emitter<TripManagementState> emit) {
+    emit(TripManagementInitial());
   }
 
   final TripRepository _tripRepository;

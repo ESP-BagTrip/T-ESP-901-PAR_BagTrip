@@ -57,6 +57,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
        super(HomeInitial()) {
     on<LoadHome>(_onLoadHome);
     on<RefreshHome>(_onRefreshHome);
+    on<ResetHome>(_onResetHome);
     on<ConfirmTripCompletion>(_onConfirmTripCompletion);
     on<DismissTripCompletion>(_onDismissTripCompletion);
     on<_ConnectivityRestored>(_onConnectivityRestored);
@@ -80,6 +81,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     Emitter<HomeState> emit,
   ) async {
     await _fetchAndEmitContextualState(emit);
+  }
+
+  void _onResetHome(ResetHome event, Emitter<HomeState> emit) {
+    _pendingOfflineTransitions = [];
+    emit(HomeInitial());
   }
 
   Future<void> _fetchAndEmitContextualState(Emitter<HomeState> emit) async {
