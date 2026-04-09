@@ -1,0 +1,12 @@
+{
+	auto_https off
+	admin off
+}
+
+http://bagtrip.fr {
+	reverse_proxy admin:8000
+}
+
+http://api.bagtrip.fr {
+	reverse_proxy api:3000
+}
