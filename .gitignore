@@ -66,3 +66,6 @@ CLAUDE.md
 # ===== Sonarqube =====
 .scannerwork/
 
+# ===== Production secrets =====
+secrets/
+
