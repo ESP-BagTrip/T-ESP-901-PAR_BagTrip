@@ -95,9 +95,7 @@ export function DataTable<T>({
                   key={header.id}
                   className="text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   onClick={
-                    header.column.getCanSort()
-                      ? header.column.getToggleSortingHandler()
-                      : undefined
+                    header.column.getCanSort() ? header.column.getToggleSortingHandler() : undefined
                   }
                 >
                   <div className="flex items-center space-x-1">

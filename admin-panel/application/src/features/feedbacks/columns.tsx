@@ -13,9 +13,7 @@ export const feedbacksColumns: ColumnDef<Feedback>[] = [
   {
     accessorKey: 'trip_title',
     header: 'Trip',
-    cell: ({ row }) => (
-      <span className="text-gray-900">{row.getValue('trip_title') || '—'}</span>
-    ),
+    cell: ({ row }) => <span className="text-gray-900">{row.getValue('trip_title') || '—'}</span>,
   },
   {
     accessorKey: 'user_email',
@@ -27,7 +25,12 @@ export const feedbacksColumns: ColumnDef<Feedback>[] = [
     header: 'Note',
     cell: ({ row }) => {
       const rating = row.getValue('overall_rating') as number
-      return <span className="text-gray-900">{'★'.repeat(rating)}{'☆'.repeat(5 - rating)}</span>
+      return (
+        <span className="text-gray-900">
+          {'★'.repeat(rating)}
+          {'☆'.repeat(5 - rating)}
+        </span>
+      )
     },
   },
   {
@@ -36,9 +39,7 @@ export const feedbacksColumns: ColumnDef<Feedback>[] = [
     cell: ({ row }) => {
       const text = row.getValue('highlights') as string | null
       return (
-        <span className="text-gray-700 text-xs max-w-[200px] truncate block">
-          {text || '—'}
-        </span>
+        <span className="text-gray-700 text-xs max-w-[200px] truncate block">{text || '—'}</span>
       )
     },
   },
@@ -48,9 +49,7 @@ export const feedbacksColumns: ColumnDef<Feedback>[] = [
     cell: ({ row }) => {
       const text = row.getValue('lowlights') as string | null
       return (
-        <span className="text-gray-700 text-xs max-w-[200px] truncate block">
-          {text || '—'}
-        </span>
+        <span className="text-gray-700 text-xs max-w-[200px] truncate block">{text || '—'}</span>
       )
     },
   },

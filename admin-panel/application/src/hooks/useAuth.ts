@@ -16,7 +16,7 @@ const isAdminUser = (user: User | null | undefined): boolean => user?.plan === '
 
 export class NotAdminError extends Error {
   constructor() {
-    super("Accès réservé aux administrateurs.")
+    super('Accès réservé aux administrateurs.')
     this.name = 'NotAdminError'
   }
 }

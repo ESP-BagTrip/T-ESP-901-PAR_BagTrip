@@ -4,7 +4,7 @@ import { usePaginatedQuery } from '@/shared/hooks/usePaginatedQuery'
 export function useActivitiesTab({ enabled }: { enabled: boolean }) {
   return usePaginatedQuery({
     queryKey: ['admin', 'activities'],
-    queryFn: (params) => adminService.getAllActivities(params),
+    queryFn: params => adminService.getAllActivities(params),
     enabled,
   })
 }
