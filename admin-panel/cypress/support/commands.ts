@@ -1,32 +1,43 @@
 // ***********************************************
-// This example commands.ts shows you how to
-// create various custom commands and overwrite
-// existing commands.
-//
-// For more comprehensive examples of custom
-// commands please read more here:
-// https://on.cypress.io/custom-commands
+// Custom commands for BagTrip admin E2E tests.
 // ***********************************************
 
-// Custom command to login as admin
-Cypress.Commands.add('loginAsAdmin', () => {
-  cy.request({
-    method: 'POST',
-    url: `${Cypress.env('API_URL') || 'http://localhost:3001/api'}/admin/auth/login`,
-    body: {
-      email: 'admin@bagtrip.com',
-      password: 'admin123',
-    },
-  }).then(response => {
-    window.localStorage.setItem('admin_token', response.body.token)
+/**
+ * UI-based login: fills and submits the /login form, waits for
+ * the /app redirect. Uses ADMIN_EMAIL + ADMIN_PASSWORD env vars
+ * with dev defaults.
+ */
+Cypress.Commands.add('login', (email?: string, password?: string) => {
+  const adminEmail = email ?? Cypress.env('ADMIN_EMAIL') ?? 'admin@bagtrip.com'
+  const adminPassword = password ?? Cypress.env('ADMIN_PASSWORD') ?? 'admin123'
+
+  cy.visit('/login')
+  cy.get('input#email').type(adminEmail)
+  cy.get('input#password').type(adminPassword)
+  cy.contains('button', 'Se connecter').click()
+  cy.url().should('include', '/app')
+})
+
+/**
+ * Visit a protected `/app/*` route, logging in first if necessary.
+ */
+Cypress.Commands.add('visitApp', (path: string = '/app') => {
+  cy.getCookie('access_token').then(cookie => {
+    if (!cookie) {
+      cy.login()
+    }
+    cy.visit(path)
   })
 })
 
-// Custom command to visit dashboard (requires login)
-Cypress.Commands.add('visitDashboard', () => {
-  cy.loginAsAdmin()
-  cy.visit('/dashboard')
-})
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Cypress {
+    interface Chainable {
+      login(email?: string, password?: string): Chainable<void>
+      visitApp(path?: string): Chainable<void>
+    }
+  }
+}
 
-// Example of overwriting existing command
-// Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+export {}

@@ -1,12 +1,24 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { adminService } from '@/services'
-import { usersService } from '@/services'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { adminService, usersService } from '@/services'
 
 interface SendNotificationModalProps {
   open: boolean
@@ -76,85 +88,86 @@ export function SendNotificationModal({ open, onClose }: SendNotificationModalPr
     )
   }
 
-  if (!open) return null
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Envoyer une notification</h2>
+    <Dialog open={open} onOpenChange={next => !next && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Envoyer une notification</DialogTitle>
+          <DialogDescription>
+            Diffuse une notification push aux utilisateurs sélectionnés.
+          </DialogDescription>
+        </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Titre</label>
-              <Input
-                value={title}
-                onChange={e => setTitle(e.target.value)}
-                placeholder="Titre de la notification"
-                maxLength={200}
-              />
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="notif-title">Titre</Label>
+            <Input
+              id="notif-title"
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              placeholder="Titre de la notification"
+              maxLength={200}
+            />
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
-              <textarea
-                value={body}
-                onChange={e => setBody(e.target.value)}
-                placeholder="Corps du message"
-                maxLength={1000}
-                rows={3}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="notif-body">Message</Label>
+            <Textarea
+              id="notif-body"
+              value={body}
+              onChange={e => setBody(e.target.value)}
+              placeholder="Corps du message"
+              maxLength={1000}
+              rows={3}
+            />
+          </div>
 
-            <div>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={sendToAll}
-                  onChange={e => setSendToAll(e.target.checked)}
-                  className="rounded"
-                />
-                Envoyer à tous les utilisateurs
-              </label>
-            </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="notif-all"
+              checked={sendToAll}
+              onCheckedChange={checked => setSendToAll(checked === true)}
+            />
+            <Label htmlFor="notif-all" className="cursor-pointer font-normal">
+              Envoyer à tous les utilisateurs
+            </Label>
+          </div>
 
-            {!sendToAll && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Utilisateurs ({selectedUserIds.length} sélectionné
-                  {selectedUserIds.length > 1 ? 's' : ''})
-                </label>
-                <div className="max-h-40 overflow-y-auto border rounded-md p-2 space-y-1">
+          {!sendToAll && (
+            <div className="space-y-1.5">
+              <Label>
+                Utilisateurs ({selectedUserIds.length} sélectionné
+                {selectedUserIds.length > 1 ? 's' : ''})
+              </Label>
+              <ScrollArea className="h-40 rounded-md border border-border">
+                <div className="space-y-1 p-2">
                   {users.map(user => (
                     <label
                       key={user.id}
-                      className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded"
+                      className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-sm hover:bg-muted"
                     >
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={selectedUserIds.includes(user.id)}
-                        onChange={() => toggleUser(user.id)}
-                        className="rounded"
+                        onCheckedChange={() => toggleUser(user.id)}
                       />
-                      {user.email}
+                      <span className="truncate">{user.email}</span>
                     </label>
                   ))}
                 </div>
-              </div>
-            )}
-
-            <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={onClose} disabled={sending}>
-                Annuler
-              </Button>
-              <Button type="submit" disabled={sending}>
-                {sending ? 'Envoi...' : 'Envoyer'}
-              </Button>
+              </ScrollArea>
             </div>
-          </form>
-        </div>
-      </div>
-    </div>
+          )}
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose} disabled={sending}>
+              Annuler
+            </Button>
+            <Button type="submit" disabled={sending}>
+              {sending ? 'Envoi...' : 'Envoyer'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }

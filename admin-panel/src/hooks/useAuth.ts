@@ -53,7 +53,7 @@ export const useAuth = () => {
     },
     onSuccess: data => {
       queryClient.setQueryData(QUERY_KEYS.currentUser, data.user)
-      router.push('/dashboard')
+      router.push('/app')
     },
   })
 

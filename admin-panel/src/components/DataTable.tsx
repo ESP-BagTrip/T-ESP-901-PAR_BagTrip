@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import {
   ColumnDef,
   flexRender,
@@ -9,8 +10,8 @@ import {
   SortingState,
   useReactTable,
 } from '@tanstack/react-table'
-import { useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
+
 import {
   Table,
   TableBody,
@@ -21,6 +22,7 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { cn } from '@/lib/utils'
 
 interface DataTableProps<T> {
   data: T[]
@@ -33,6 +35,7 @@ interface DataTableProps<T> {
     total_pages: number
   }
   onPaginationChange?: (page: number, limit: number) => void
+  emptyLabel?: string
 }
 
 export function DataTable<T>({
@@ -41,6 +44,7 @@ export function DataTable<T>({
   isLoading = false,
   pagination,
   onPaginationChange,
+  emptyLabel = 'Aucune donnée disponible',
 }: DataTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([])
 
@@ -51,16 +55,15 @@ export function DataTable<T>({
     getPaginationRowModel: pagination ? undefined : getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
-    state: {
-      sorting,
-    },
+    state: { sorting },
     manualPagination: !!pagination,
     pageCount: pagination?.total_pages ?? 0,
   })
 
   const currentPage = pagination?.page ?? table.getState().pagination.pageIndex + 1
-  const total_pages = pagination?.total_pages ?? table.getPageCount()
+  const totalPages = pagination?.total_pages ?? table.getPageCount()
   const total = pagination?.total ?? data.length
+  const limit = pagination?.limit ?? 10
 
   const handlePageChange = (newPage: number) => {
     if (pagination && onPaginationChange) {
@@ -72,45 +75,51 @@ export function DataTable<T>({
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="p-4 space-y-3">
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-3/4" />
+      <div className="rounded-md border border-border bg-card shadow-xs">
+        <div className="space-y-3 p-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className={cn('h-8', i === 5 ? 'w-3/4' : 'w-full')} />
+          ))}
         </div>
       </div>
     )
   }
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
+    <div className="overflow-hidden rounded-md border border-border bg-card shadow-xs">
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map(headerGroup => (
-            <TableRow key={headerGroup.id} className="bg-gray-50">
-              {headerGroup.headers.map(header => (
-                <TableHead
-                  key={header.id}
-                  className="text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={
-                    header.column.getCanSort() ? header.column.getToggleSortingHandler() : undefined
-                  }
-                >
-                  <div className="flex items-center space-x-1">
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                    {header.column.getCanSort() && (
-                      <span className="text-gray-400">
-                        {{
-                          asc: '↑',
-                          desc: '↓',
-                        }[header.column.getIsSorted() as string] ?? '↕'}
-                      </span>
+            <TableRow key={headerGroup.id} className="bg-muted/40 hover:bg-muted/40">
+              {headerGroup.headers.map(header => {
+                const canSort = header.column.getCanSort()
+                const sortDir = header.column.getIsSorted() as false | 'asc' | 'desc'
+                return (
+                  <TableHead
+                    key={header.id}
+                    className={cn(
+                      'h-10 text-[11px] font-medium uppercase tracking-wider text-muted-foreground',
+                      canSort && 'cursor-pointer select-none hover:text-foreground'
                     )}
-                  </div>
-                </TableHead>
-              ))}
+                    onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
+                  >
+                    <span className="flex items-center gap-1">
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      {canSort && (
+                        <span aria-hidden="true" className="text-muted-foreground">
+                          {sortDir === 'asc' ? (
+                            <ArrowUp className="size-3" />
+                          ) : sortDir === 'desc' ? (
+                            <ArrowDown className="size-3" />
+                          ) : (
+                            <ArrowUpDown className="size-3 opacity-50" />
+                          )}
+                        </span>
+                      )}
+                    </span>
+                  </TableHead>
+                )
+              })}
             </TableRow>
           ))}
         </TableHeader>
@@ -119,16 +128,16 @@ export function DataTable<T>({
             <TableRow>
               <TableCell
                 colSpan={columns.length}
-                className="h-24 text-center text-sm text-gray-500"
+                className="h-24 text-center text-sm text-muted-foreground"
               >
-                Aucune donnée disponible
+                {emptyLabel}
               </TableCell>
             </TableRow>
           ) : (
             table.getRowModel().rows.map(row => (
               <TableRow key={row.id}>
                 {row.getVisibleCells().map(cell => (
-                  <TableCell key={cell.id} className="whitespace-nowrap text-sm text-gray-900">
+                  <TableCell key={cell.id} className="whitespace-nowrap text-sm text-foreground">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
@@ -138,67 +147,50 @@ export function DataTable<T>({
         </TableBody>
       </Table>
 
-      {(pagination || total_pages > 1) && (
-        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-          <div className="flex-1 flex justify-between sm:hidden">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage <= 1}
-            >
-              Précédent
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage >= total_pages}
-            >
-              Suivant
-            </Button>
-          </div>
-          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-gray-700">
-                Affichage de{' '}
-                <span className="font-medium">
-                  {(currentPage - 1) * (pagination?.limit ?? 10) + 1}
-                </span>{' '}
-                à{' '}
-                <span className="font-medium">
-                  {Math.min(currentPage * (pagination?.limit ?? 10), total)}
-                </span>{' '}
-                sur <span className="font-medium">{total}</span> résultats
-              </p>
-            </div>
-            <div>
-              <nav
-                className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
-                aria-label="Pagination"
-              >
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="rounded-r-none"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage <= 1}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
-                  Page {currentPage} sur {total_pages}
+      {(pagination || totalPages > 1) && (
+        <div className="flex items-center justify-between gap-4 border-t border-border bg-background px-4 py-3">
+          <p className="text-xs text-muted-foreground">
+            {total > 0 ? (
+              <>
+                <span className="font-medium tabular-nums text-foreground">
+                  {(currentPage - 1) * limit + 1}
                 </span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="rounded-l-none"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage >= total_pages}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </nav>
+                {' – '}
+                <span className="font-medium tabular-nums text-foreground">
+                  {Math.min(currentPage * limit, total)}
+                </span>
+                {' sur '}
+                <span className="font-medium tabular-nums text-foreground">{total}</span>
+              </>
+            ) : (
+              'Aucun résultat'
+            )}
+          </p>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">
+              Page <span className="font-medium tabular-nums text-foreground">{currentPage}</span>
+              {' / '}
+              <span className="font-medium tabular-nums text-foreground">{totalPages || 1}</span>
+            </span>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon-sm"
+                aria-label="Page précédente"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage <= 1}
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                aria-label="Page suivante"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage >= totalPages}
+              >
+                <ChevronRight className="size-4" />
+              </Button>
             </div>
           </div>
         </div>

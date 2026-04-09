@@ -2,6 +2,8 @@
 
 import { Toaster } from 'sonner'
 import { QueryProvider } from './QueryProvider'
+import { ThemeProvider } from './ThemeProvider'
+import { TooltipProvider } from '@/components/ui/tooltip'
 
 interface ProvidersProps {
   children: React.ReactNode
@@ -9,9 +11,13 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <QueryProvider>
-      {children}
-      <Toaster richColors position="top-right" />
-    </QueryProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <QueryProvider>
+        <TooltipProvider delayDuration={300}>
+          {children}
+          <Toaster richColors position="top-right" />
+        </TooltipProvider>
+      </QueryProvider>
+    </ThemeProvider>
   )
 }

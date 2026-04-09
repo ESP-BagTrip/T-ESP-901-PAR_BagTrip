@@ -3,10 +3,13 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
+
 import { NotAdminError, useAuth } from '@/hooks'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { loginSchema } from '@/lib/validations/auth'
 import type { LoginCredentials } from '@/types'
 
@@ -23,10 +26,7 @@ export default function LoginPage() {
   })
 
   const onSubmit = (data: LoginCredentials) => {
-    login({
-      email: data.email,
-      password: data.password,
-    })
+    login({ email: data.email, password: data.password })
   }
 
   const errorMessage = loginError
@@ -38,64 +38,72 @@ export default function LoginPage() {
     : null
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">BagTrip Admin</h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Connectez-vous avec votre compte administrateur
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
+      <div className="w-full max-w-sm space-y-8">
+        <header className="space-y-2 text-center">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            BagTrip{' '}
+            <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+              Admin
+            </span>
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Connectez-vous avec votre compte administrateur.
           </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="sr-only">
-                Adresse email
-              </label>
-              <Input {...register('email')} type="email" placeholder="Adresse email" />
-              {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
+        </header>
+
+        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div className="space-y-1.5">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              {...register('email')}
+              type="email"
+              placeholder="you@bagtrip.app"
+              autoComplete="email"
+              aria-invalid={!!errors.email}
+            />
+            {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="password">Mot de passe</Label>
+            <div className="relative">
+              <Input
+                id="password"
+                {...register('password')}
+                type={showPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                autoComplete="current-password"
+                aria-invalid={!!errors.password}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:text-foreground"
+              >
+                {showPassword ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
+              </button>
             </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Mot de passe
-              </label>
-              <div className="relative">
-                <Input
-                  {...register('password')}
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Mot de passe"
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <Eye className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
-                  )}
-                </button>
-              </div>
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
-              )}
-            </div>
+            {errors.password && (
+              <p className="text-xs text-destructive">{errors.password.message}</p>
+            )}
           </div>
 
           {errorMessage && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="text-sm text-red-700">{errorMessage}</div>
-            </div>
+            <Alert variant="destructive">
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
           )}
 
           <Button type="submit" className="w-full" disabled={isLoggingIn}>
             {isLoggingIn ? (
-              <div className="flex items-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Connexion...
-              </div>
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Connexion…
+              </>
             ) : (
               'Se connecter'
             )}

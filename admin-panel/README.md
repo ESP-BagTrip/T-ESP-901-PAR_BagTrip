@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BagTrip Admin Panel
 
-## Getting Started
+Console admin pour monitorer le SaaS BagTrip (planification de voyages avec IA).
 
-First, run the development server:
+Stack : Next.js 15 App Router · React 19 · TypeScript strict · Tailwind CSS v4 · shadcn/ui · TanStack Query/Table · next-themes · Cypress + Vitest.
+
+## Quickstart
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:8000
 ```
 
-Open [http://localhost:8000](http://localhost:8000) with your browser to see the result.
+Le dev server a besoin de l'API FastAPI + Postgres. Depuis la racine du monorepo :
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+make dev-docker    # Postgres + Redis + API + admin panel
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Connexion : créer un compte avec `plan = ADMIN` (seed via `api/src/seeds/create_admin.py`) puis `/login`.
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run dev           # Next dev sur :8000 (Turbopack)
+npm run build         # Next build (prod)
+npm run start         # Next start
+npm run lint          # ESLint (next lint)
+npm run type-check    # tsc --noEmit
+npm run format        # Prettier write
+npm run format:check  # Prettier check
+npm run check-all     # type-check + lint + format:check
+npm run test          # Vitest run (unit)
+npm run test:watch    # Vitest watch
+npm run test:ui       # Vitest UI
+npm run cypress:open  # Cypress interactif
+npm run cypress:run   # Cypress headless
+npm run test:e2e      # Cypress + serveur local (start-server-and-test)
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `src/app/` — routes Next.js App Router. La landing publique vit sur `/`, la console admin sous `/app/*` (protégée par middleware).
+- `src/components/` — primitives shadcn (`ui/`), charpente (`layout/`), charts (`charts/`), providers.
+- `src/features/<entity>/` — `columns.tsx` + `hooks.ts` par entité (users, trips, …).
+- `src/config/navigation.ts` — source unique consommée par Sidebar, Breadcrumb, CommandPalette.
+- `src/styles/tokens.css` — design tokens (`@theme` Tailwind v4 + light/dark surfaces).
+- `src/middleware.ts` — protection `/app/*` + redirect legacy `/dashboard → /app`.
 
-## Deploy on Vercel
+## Documentation
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- [`ADMIN_UI.md`](./ADMIN_UI.md) — guide design system, conventions, comment ajouter une page, dette connue.
+- `CLAUDE.md` (racine monorepo) — contexte général du projet.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Testing
+
+- **Unit** : Vitest sur les utilitaires purs (`src/utils/*.test.ts`, `src/hooks/*.test.ts`). 32 tests.
+- **E2E** : Cypress (`cypress/e2e/*.cy.ts`) — landing, auth, shell, overview, users CRUD.

@@ -17,19 +17,31 @@ export const formatRelativeTime = (date: string | Date): string => {
   return formatDistanceToNow(dateObject, { addSuffix: true, locale: fr })
 }
 
-export const formatCurrency = (amount: number, currency = 'EUR'): string => {
+export const formatCurrency = (
+  amount: number | null | undefined,
+  opts: { currency?: string; precise?: boolean } = {}
+): string => {
+  if (amount == null || !Number.isFinite(amount)) return '—'
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
-    currency,
+    currency: opts.currency ?? 'EUR',
+    maximumFractionDigits: opts.precise ? 2 : 0,
   }).format(amount)
 }
 
-export const formatNumber = (num: number): string => {
-  return new Intl.NumberFormat('fr-FR').format(num)
+export const formatNumber = (num: number | null | undefined): string => {
+  if (num == null || !Number.isFinite(num)) return '—'
+  return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(num)
 }
 
-export const formatPercentage = (value: number, decimals = 1): string => {
+export const formatPercentage = (value: number | null | undefined, decimals = 1): string => {
+  if (value == null || !Number.isFinite(value)) return '—'
   return `${value.toFixed(decimals)}%`
+}
+
+export const formatRating = (value: number | null | undefined): string => {
+  if (value == null || !Number.isFinite(value)) return '—'
+  return `${value.toFixed(1)} / 5`
 }
 
 export const truncateText = (text: string, maxLength: number): string => {
