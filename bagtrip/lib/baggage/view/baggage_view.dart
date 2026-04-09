@@ -1,5 +1,6 @@
 import 'package:bagtrip/baggage/bloc/baggage_bloc.dart';
 import 'package:bagtrip/baggage/widgets/baggage_add_form.dart';
+import 'package:bagtrip/baggage/widgets/baggage_edit_form.dart';
 import 'package:bagtrip/baggage/widgets/baggage_celebration.dart';
 import 'package:bagtrip/baggage/widgets/baggage_item_tile.dart';
 import 'package:bagtrip/baggage/widgets/baggage_progress_header.dart';
@@ -265,6 +266,9 @@ class BaggageView extends StatelessWidget {
                           TogglePacked(tripId: tripId, item: item),
                         );
                       },
+                      onEdit: canEdit
+                          ? () => _showEditForm(context, item)
+                          : null,
                       onDelete: canEdit
                           ? () {
                               context.read<BaggageBloc>().add(
@@ -318,6 +322,7 @@ class BaggageView extends StatelessWidget {
                         TogglePacked(tripId: tripId, item: item),
                       );
                     },
+                    onEdit: canEdit ? () => _showEditForm(context, item) : null,
                     onDelete: canEdit
                         ? () {
                             context.read<BaggageBloc>().add(
@@ -350,6 +355,19 @@ class BaggageView extends StatelessWidget {
       builder: (_) => BlocProvider.value(
         value: bloc,
         child: BaggageAddForm(tripId: tripId),
+      ),
+    );
+  }
+
+  void _showEditForm(BuildContext context, BaggageItem item) {
+    final bloc = context.read<BaggageBloc>();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => BlocProvider.value(
+        value: bloc,
+        child: BaggageEditForm(tripId: tripId, item: item),
       ),
     );
   }

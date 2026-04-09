@@ -42,6 +42,7 @@ Trip makeTrip({
   String? title = 'Paris Trip',
   TripStatus status = TripStatus.draft,
   String? destinationName = 'Paris',
+  String? destinationTimezone,
   int? nbTravelers = 2,
   DateTime? startDate,
   DateTime? endDate,
@@ -52,6 +53,7 @@ Trip makeTrip({
     title: title,
     status: status,
     destinationName: destinationName,
+    destinationTimezone: destinationTimezone,
     nbTravelers: nbTravelers,
     startDate: startDate ?? DateTime(2024, 6),
     endDate: endDate ?? DateTime(2024, 6, 7),
@@ -259,7 +261,7 @@ void stubAuthenticated(MockContainer mocks, {User? user}) {
   ).thenAnswer((_) async => 'test-token');
 }
 
-/// Stubs home with no trips → HomeNewUser.
+/// Stubs home with no trips → HomeIdle (no trips).
 void stubEmptyHome(MockContainer mocks) {
   _stubTripsPaginated(mocks);
 }
@@ -288,7 +290,7 @@ void stubActiveTripHome(
   }
 }
 
-/// Stubs home with planned/completed trips → HomeTripManager.
+/// Stubs home with planned/completed trips → HomeIdle (with trips).
 void stubTripManagerHome(
   MockContainer mocks, {
   List<Trip> planned = const [],

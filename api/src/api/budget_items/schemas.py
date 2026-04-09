@@ -44,6 +44,17 @@ class BudgetItemListResponse(BaseModel):
     items: list[BudgetItemResponse]
 
 
+class BudgetEstimateResponse(BaseModel):
+    estimation: dict
+
+
+class AcceptEstimateRequest(BaseModel):
+    budget_total: float = Field(..., alias="budget_total", gt=0)
+
+    class Config:
+        populate_by_name = True
+
+
 class BudgetSummaryResponse(BaseModel):
     totalBudget: float = Field(alias="total_budget")
     totalSpent: float = Field(alias="total_spent")

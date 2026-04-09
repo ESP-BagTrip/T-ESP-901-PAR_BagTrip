@@ -286,46 +286,49 @@ class _BudgetDashboard extends StatelessWidget {
         // ── Action buttons ──
         if (isOwner && !isCompleted) ...[
           const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () {
-                  final bloc = context.read<TripDetailBloc>();
-                  _showAddExpenseSheet(context, bloc, tripId);
-                },
-                child: Text(
-                  l10n.addExpense,
-                  style: const TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: ColorName.primary,
+          Align(
+            alignment: Alignment.centerRight,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    final bloc = context.read<TripDetailBloc>();
+                    _showAddExpenseSheet(context, bloc, tripId);
+                  },
+                  child: Text(
+                    l10n.addExpense,
+                    style: const TextStyle(
+                      fontFamily: FontFamily.b612,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: ColorName.primary,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.space8),
-              TextButton(
-                onPressed: () async {
-                  await BudgetRoute(
-                    tripId: tripId,
-                    role: trip.role ?? 'OWNER',
-                    isCompleted: isCompleted,
-                  ).push(context);
-                  if (!context.mounted) return;
-                  context.read<TripDetailBloc>().add(RefreshTripDetail());
-                },
-                child: Text(
-                  l10n.budgetManageAll,
-                  style: const TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: ColorName.primary,
+                const SizedBox(width: AppSpacing.space8),
+                TextButton(
+                  onPressed: () async {
+                    await BudgetRoute(
+                      tripId: tripId,
+                      role: trip.role ?? 'OWNER',
+                      isCompleted: isCompleted,
+                    ).push(context);
+                    if (!context.mounted) return;
+                    context.read<TripDetailBloc>().add(RefreshTripDetail());
+                  },
+                  child: Text(
+                    l10n.budgetManageAll,
+                    style: const TextStyle(
+                      fontFamily: FontFamily.b612,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: ColorName.primary,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ],

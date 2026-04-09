@@ -6,6 +6,7 @@ sealed class FlightSearchState {}
 final class FlightSearchInitial extends FlightSearchState {}
 
 final class FlightSearchLoaded extends FlightSearchState {
+  final String? tripId;
   final int tripTypeIndex;
   final int adults;
   final int children;
@@ -19,10 +20,11 @@ final class FlightSearchLoaded extends FlightSearchState {
   final double? maxPrice;
   final List<Map<String, dynamic>>? searchResults;
   final bool isLoading;
-  final String? errorMessage;
+  final AppError? error;
   final bool showValidationErrors;
 
   FlightSearchLoaded({
+    this.tripId,
     this.tripTypeIndex = 0,
     this.adults = 1,
     this.children = 0,
@@ -36,12 +38,13 @@ final class FlightSearchLoaded extends FlightSearchState {
     this.maxPrice,
     this.searchResults,
     this.isLoading = false,
-    this.errorMessage,
+    this.error,
     this.showValidationErrors = false,
   }) : multiDestSegments =
            multiDestSegments ?? [const FlightSegment(), const FlightSegment()];
 
   FlightSearchLoaded copyWith({
+    String? tripId,
     int? tripTypeIndex,
     int? adults,
     int? children,
@@ -55,11 +58,12 @@ final class FlightSearchLoaded extends FlightSearchState {
     double? maxPrice,
     List<Map<String, dynamic>>? searchResults,
     bool? isLoading,
-    String? errorMessage,
+    AppError? error,
     bool clearError = false,
     bool? showValidationErrors,
   }) {
     return FlightSearchLoaded(
+      tripId: tripId ?? this.tripId,
       tripTypeIndex: tripTypeIndex ?? this.tripTypeIndex,
       adults: adults ?? this.adults,
       children: children ?? this.children,
@@ -73,7 +77,7 @@ final class FlightSearchLoaded extends FlightSearchState {
       maxPrice: maxPrice ?? this.maxPrice,
       searchResults: searchResults ?? this.searchResults,
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      error: clearError ? null : (error ?? this.error),
       showValidationErrors: showValidationErrors ?? this.showValidationErrors,
     );
   }

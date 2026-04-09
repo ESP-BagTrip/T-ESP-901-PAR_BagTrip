@@ -1,4 +1,8 @@
-"""Client unifié Amadeus exposant toutes les méthodes."""
+"""Client unifié Amadeus pour vols et hôtels.
+
+Les recherches de locations (aéroports, villes, codes IATA) sont gérées
+par le module aviation_data (données offline).
+"""
 
 from .flights import (
     confirm_flight_price,
@@ -11,11 +15,6 @@ from .hotels import (
     search_hotel_list,
     search_hotel_offers,
 )
-from .locations import (
-    search_location_by_id,
-    search_location_nearest,
-    search_locations_by_keyword,
-)
 from .types import (
     FlightCheapestDateSearchQuery,
     FlightInspirationSearchQuery,
@@ -24,27 +23,11 @@ from .types import (
     FlightOrderTraveler,
     HotelListSearchQuery,
     HotelOffersSearchQuery,
-    LocationIdSearchQuery,
-    LocationKeywordSearchQuery,
-    LocationNearestSearchQuery,
 )
 
 
 class AmadeusClient:
-    """Client unifié pour les appels Amadeus."""
-
-    # Location methods
-    async def search_locations_by_keyword(self, query: LocationKeywordSearchQuery):
-        """Recherche de locations par mot-clé."""
-        return await search_locations_by_keyword(query)
-
-    async def search_location_by_id(self, query: LocationIdSearchQuery):
-        """Recherche de location par ID."""
-        return await search_location_by_id(query)
-
-    async def search_location_nearest(self, query: LocationNearestSearchQuery):
-        """Recherche de locations les plus proches."""
-        return await search_location_nearest(query)
+    """Client unifié pour les appels Amadeus (vols + hôtels)."""
 
     # Flight methods
     async def search_flight_offers(self, query: FlightOfferSearchQuery):

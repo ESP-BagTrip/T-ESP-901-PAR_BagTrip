@@ -5,9 +5,11 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Path, status
 from sqlalchemy.orm import Session
 
-from src.api.auth.trip_access import TripAccess, get_trip_owner_access
+from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access
 from src.api.shares.schemas import (
+    PendingInviteResponse,
     ShareCreateRequest,
+    ShareCreateResponse,
     ShareListResponse,
     ShareResponse,
 )
@@ -20,10 +22,10 @@ router = APIRouter(prefix="/v1/trips", tags=["Shares"])
 
 @router.post(
     "/{tripId}/shares",
-    response_model=ShareResponse,
+    response_model=ShareCreateResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Share a trip",
-    description="Invite a user by email to join a trip",
+    description="Invite a user by email to join a trip. Creates a pending invite if user is not registered.",
 )
 async def create_share(
     request: ShareCreateRequest,
@@ -38,8 +40,9 @@ async def create_share(
             owner_user_id=access.trip.user_id,
             email=request.email,
             message=request.message,
+            role=request.role,
         )
-        return ShareResponse(**share)
+        return ShareCreateResponse(**share)
     except AppError as e:
         raise create_http_exception(e) from e
 
@@ -48,16 +51,24 @@ async def create_share(
     "/{tripId}/shares",
     response_model=ShareListResponse,
     summary="List shares",
-    description="Get all shares for a trip",
+    description="Get all shares and pending invites for a trip",
 )
 async def list_shares(
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_access),
     db: Session = Depends(get_db),
 ):
     """Lister les partages d'un trip."""
     try:
         shares = TripShareService.get_shares_by_trip(db, access.trip.id)
-        return ShareListResponse(items=[ShareResponse(**s) for s in shares])
+        pending = (
+            TripShareService.get_pending_invites_by_trip(db, access.trip.id)
+            if access.role == TripRole.OWNER
+            else []
+        )
+        return ShareListResponse(
+            items=[ShareResponse(**s) for s in shares],
+            pendingInvites=[PendingInviteResponse(**p) for p in pending],
+        )
     except AppError as e:
         raise create_http_exception(e) from e
 
@@ -76,5 +87,23 @@ async def delete_share(
     """Révoquer un partage de trip."""
     try:
         TripShareService.delete_share(db, shareId, access.trip.id)
+    except AppError as e:
+        raise create_http_exception(e) from e
+
+
+@router.delete(
+    "/{tripId}/pending-invites/{inviteId}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Revoke a pending invite",
+    description="Cancel a pending invitation",
+)
+async def delete_pending_invite(
+    inviteId: UUID = Path(..., description="Pending Invite ID"),
+    access: TripAccess = Depends(get_trip_owner_access),
+    db: Session = Depends(get_db),
+):
+    """Révoquer une invitation en attente."""
+    try:
+        TripShareService.delete_pending_invite(db, inviteId, access.trip.id)
     except AppError as e:
         raise create_http_exception(e) from e

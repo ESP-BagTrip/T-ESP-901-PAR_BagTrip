@@ -8,11 +8,13 @@ abstract class TripShare with _$TripShare {
   const factory TripShare({
     required String id,
     required String tripId,
-    required String userId,
+    String? userId,
     @Default('VIEWER') String role,
     DateTime? invitedAt,
     required String userEmail,
     String? userFullName,
+    @Default('active') String status,
+    @JsonKey(name: 'invite_token') String? inviteToken,
   }) = _TripShare;
 
   factory TripShare.fromJson(Map<String, dynamic> json) =>

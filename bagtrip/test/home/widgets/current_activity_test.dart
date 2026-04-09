@@ -102,7 +102,7 @@ void main() {
       await tester.pumpWidget(buildApp(makeActiveState()));
       await tester.pumpAndSettle();
 
-      expect(find.text("TODAY'S SCHEDULE"), findsOneWidget);
+      expect(find.text("Today's schedule"), findsOneWidget);
     });
 
     testWidgets('shows quick actions section', (tester) async {
@@ -110,7 +110,7 @@ void main() {
       await tester.pumpWidget(buildApp(makeActiveState()));
       await tester.pumpAndSettle();
 
-      expect(find.text('QUICK ACTIONS'), findsOneWidget);
+      expect(find.text('Quick actions'), findsOneWidget);
     });
 
     testWidgets('creates TodayTickCubit for live updates', (tester) async {

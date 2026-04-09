@@ -59,6 +59,7 @@ class PersonalizationBloc
       String? budget;
       String? companions;
       String? travelFrequency;
+      String? constraints;
 
       final profileResult = await _profileRepository.getProfile();
       if (isClosed) return;
@@ -68,6 +69,8 @@ class PersonalizationBloc
         style = profile.travelStyle;
         budget = profile.budget;
         companions = profile.companions;
+        travelFrequency = profile.travelFrequency;
+        constraints = profile.medicalConstraints;
       } else {
         // Fallback to local storage
         final typesStr = await _storage.getTravelTypes(user.id);
@@ -85,12 +88,17 @@ class PersonalizationBloc
         budget = localBudget.isEmpty ? null : localBudget;
         companions = localCompanions.isEmpty ? null : localCompanions;
       }
-      final freq = await _storage.getTravelFrequency(user.id);
-      if (isClosed) return;
-      travelFrequency = freq.isEmpty ? null : freq;
-      final constr = await _storage.getConstraints(user.id);
-      if (isClosed) return;
-      final String? constraints = constr.isEmpty ? null : constr;
+      // Fallback to local storage for fields not yet populated from API
+      if (travelFrequency == null || travelFrequency.isEmpty) {
+        final freq = await _storage.getTravelFrequency(user.id);
+        if (isClosed) return;
+        travelFrequency = freq.isEmpty ? null : freq;
+      }
+      if (constraints == null || constraints.isEmpty) {
+        final constr = await _storage.getConstraints(user.id);
+        if (isClosed) return;
+        constraints = constr.isEmpty ? null : constr;
+      }
 
       final welcomeSeen = await _storage.hasSeenPersonalizationWelcome(user.id);
       if (isClosed) return;
@@ -262,6 +270,8 @@ class PersonalizationBloc
       travelStyle: current.travelStyle ?? 'flexible',
       budget: current.budget,
       companions: current.companions,
+      travelFrequency: current.travelFrequency,
+      medicalConstraints: current.constraints,
     );
     if (isClosed) return;
 

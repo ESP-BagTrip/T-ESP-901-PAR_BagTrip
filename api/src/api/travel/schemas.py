@@ -10,27 +10,6 @@ from ...integrations.amadeus.types import (
 )
 
 
-# Location schemas
-class LocationKeywordSearchQuery(BaseModel):
-    """Requête de recherche de location par mot-clé."""
-
-    subType: str = Field(..., min_length=1, description="CITY,AIRPORT")
-    keyword: str = Field(..., min_length=1)
-
-
-class LocationIdSearchQuery(BaseModel):
-    """Requête de recherche de location par ID."""
-
-    id: str = Field(..., min_length=1)
-
-
-class LocationNearestSearchQuery(BaseModel):
-    """Requête de recherche de location la plus proche."""
-
-    latitude: float = Field(..., ge=-90, le=90)
-    longitude: float = Field(..., ge=-180, le=180)
-
-
 class LocationSearchResult(BaseModel):
     """Résultat de recherche de locations."""
 

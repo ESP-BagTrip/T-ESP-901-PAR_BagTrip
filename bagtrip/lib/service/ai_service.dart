@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:bagtrip/core/app_error.dart';
@@ -8,8 +9,6 @@ import 'package:bagtrip/service/api_client.dart';
 import 'package:bagtrip/service/storage_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_client_sse/constants/sse_request_type_enum.dart';
-import 'package:flutter_client_sse/flutter_client_sse.dart';
 
 class AiRepositoryImpl implements AiRepository {
   final ApiClient _apiClient;
@@ -28,8 +27,31 @@ class AiRepositoryImpl implements AiRepository {
     String? season,
     String? constraints,
   }) async {
-    // Legacy endpoint removed — AI planning now uses planTripStream().
-    return const Success([]);
+    try {
+      await for (final event in planTripStream(
+        travelTypes: travelTypes,
+        budgetRange: budgetRange,
+        durationDays: durationDays,
+        companions: companions,
+        constraints: constraints,
+        mode: 'destinations_only',
+      )) {
+        final type = event['event'] as String?;
+        final data = event['data'] as Map<String, dynamic>? ?? {};
+
+        // Return immediately when we receive destinations
+        if (type == 'destinations' || type == 'complete') {
+          final destinations = data['destinations'] as List? ?? [];
+          return Success(destinations.cast<Map<String, dynamic>>());
+        }
+
+        // Stop waiting on terminal events
+        if (type == 'done' || type == 'error') break;
+      }
+      return const Success([]);
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
   }
 
   @override
@@ -37,6 +59,7 @@ class AiRepositoryImpl implements AiRepository {
     Map<String, dynamic> suggestion, {
     String? startDate,
     String? endDate,
+    String? dateMode,
   }) async {
     try {
       final response = await _apiClient.post(
@@ -45,6 +68,7 @@ class AiRepositoryImpl implements AiRepository {
           'suggestion': suggestion,
           if (startDate != null) 'startDate': startDate,
           if (endDate != null) 'endDate': endDate,
+          if (dateMode != null) 'dateMode': dateMode,
         },
       );
       if (response.statusCode == 200) {
@@ -91,6 +115,9 @@ class AiRepositoryImpl implements AiRepository {
     String? departureDate,
     String? returnDate,
     String? originCity,
+    String? destinationCity,
+    String? destinationIata,
+    String? mode,
   }) async* {
     final token = await _storageService.getToken();
     final url = '${_apiClient.baseUrl}/ai/plan-trip/stream';
@@ -104,39 +131,70 @@ class AiRepositoryImpl implements AiRepository {
       if (departureDate != null) 'departureDate': departureDate,
       if (returnDate != null) 'returnDate': returnDate,
       if (originCity != null) 'originCity': originCity,
+      if (destinationCity != null) 'destinationCity': destinationCity,
+      if (destinationIata != null) 'destinationIata': destinationIata,
+      if (mode != null) 'mode': mode,
     };
 
     if (kDebugMode) debugPrint('[SSE] Connecting to $url');
 
-    final sseStream = SSEClient.subscribeToSSE(
-      method: SSERequestType.POST,
-      url: url,
-      header: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'text/event-stream',
-        'Content-Type': 'application/json',
-      },
-      body: body,
+    // Use Dio with ResponseType.stream for real streaming (flutter_client_sse
+    // buffers the entire response on some platforms).
+    final dio = Dio();
+    final response = await dio.post<ResponseBody>(
+      url,
+      data: body,
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'text/event-stream',
+          'Content-Type': 'application/json',
+        },
+        responseType: ResponseType.stream,
+      ),
     );
 
-    await for (final event in sseStream) {
-      if (event.data == null || event.data!.isEmpty) continue;
+    // Parse the SSE stream line by line
+    String currentEvent = '';
+    String currentData = '';
 
-      final eventType = event.event ?? 'message';
+    final byteStream = response.data!.stream;
+    final lines = byteStream
+        .cast<List<int>>()
+        .transform(utf8.decoder)
+        .transform(const LineSplitter());
 
-      // Skip heartbeats
-      if (eventType == 'heartbeat') continue;
+    await for (final chunk in lines) {
+      if (chunk.isEmpty) {
+        // Empty line = end of SSE event block
+        if (currentData.isNotEmpty) {
+          final eventType = currentEvent.isNotEmpty ? currentEvent : 'message';
 
-      try {
-        final data = json.decode(event.data!) as Map<String, dynamic>;
-        yield {'event': eventType, 'data': data};
-      } catch (e) {
-        if (kDebugMode) {
-          debugPrint('[SSE] Failed to parse event data: ${event.data}');
+          if (eventType != 'heartbeat') {
+            try {
+              final data = json.decode(currentData) as Map<String, dynamic>;
+              if (kDebugMode) debugPrint('[SSE] Event: $eventType');
+              yield {'event': eventType, 'data': data};
+            } catch (e) {
+              if (kDebugMode) {
+                debugPrint('[SSE] Failed to parse: $currentData');
+              }
+            }
+          }
         }
+        currentEvent = '';
+        currentData = '';
+        continue;
+      }
+
+      if (chunk.startsWith('event: ')) {
+        currentEvent = chunk.substring(7);
+      } else if (chunk.startsWith('data: ')) {
+        currentData += chunk.substring(6);
       }
     }
 
+    dio.close();
     if (kDebugMode) debugPrint('[SSE] Stream closed');
   }
 }

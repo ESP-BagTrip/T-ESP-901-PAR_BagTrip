@@ -4,6 +4,7 @@ import 'package:bagtrip/core/logged_failure.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/flight_search_result/models/flight.dart';
 import 'package:bagtrip/flight_search/models/flight_segment.dart';
+import 'package:bagtrip/service/api_client.dart';
 import 'package:dio/dio.dart';
 
 class LocationService {
@@ -25,11 +26,9 @@ class LocationService {
     List<FlightSegment>? multiDestSegments,
   }) async {
     try {
-      if (multiDestSegments != null && multiDestSegments.isNotEmpty) {
-        // TODO: Implement multi-destination search when backend supports it
-        // For now, we can either throw or just search for the first segment
-        // throw UnimplementedError("Multi-destination search not yet supported by backend");
-      }
+      // Multi-destination search is handled by the persisted endpoint
+      // via TransportRepository.searchMultiDestFlights() — this method
+      // only handles single-segment proxy searches as a fallback.
 
       final queryParameters = {
         'originLocationCode': departureCode,
@@ -84,9 +83,7 @@ class LocationService {
         ),
       );
     } on DioException catch (e) {
-      return loggedFailure(
-        NetworkError('Error searching flights: ${e.message}'),
-      );
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
       return loggedFailure(
         UnknownError('Error searching flights: $e', originalError: e),
@@ -154,27 +151,26 @@ class LocationService {
         }
       }
 
-      // Return valid results even when status code is not 200.
-      if (results != null && results.isNotEmpty) {
-        _searchCache[cacheKey] = results;
+      // Return valid results (including empty list) when parsing succeeded.
+      if (results != null) {
+        if (results.isNotEmpty) {
+          _searchCache[cacheKey] = results;
+        }
         return Success(results);
       }
 
-      // No results with 200 means invalid response format.
-      if (response.statusCode == 200) {
+      // Could not parse any results — non-200 means upstream error.
+      if (response.statusCode != 200) {
         return loggedFailure(
-          const ServerError(
-            'Unexpected response shape when fetching locations',
+          ServerError(
+            'Failed to fetch locations: HTTP ${response.statusCode}',
+            statusCode: response.statusCode,
           ),
         );
       }
 
-      return loggedFailure(
-        ServerError(
-          'Failed to fetch locations: HTTP ${response.statusCode}',
-          statusCode: response.statusCode,
-        ),
-      );
+      // 200 but unrecognized shape — return empty list rather than error.
+      return const Success([]);
     } on DioException catch (e) {
       // For Dio errors, check if response body contains usable data.
       if (e.response?.data != null) {
@@ -214,9 +210,7 @@ class LocationService {
         }
       }
 
-      return loggedFailure(
-        NetworkError('Error searching locations: ${e.message}'),
-      );
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
       return loggedFailure(
         UnknownError('Error searching locations: $e', originalError: e),

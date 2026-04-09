@@ -14,12 +14,13 @@ class FlightSearchResultPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     return Scaffold(
-      backgroundColor: PersonalizationColors.gradientStart,
+      backgroundColor: PersonalizationColors.gradientStartOf(brightness),
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.searchResults),
         elevation: 0,
-        backgroundColor: PersonalizationColors.gradientStart,
+        backgroundColor: PersonalizationColors.gradientStartOf(brightness),
         foregroundColor: PersonalizationColors.textPrimary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -30,6 +31,7 @@ class FlightSearchResultPage extends StatelessWidget {
         create: (context) => FlightSearchResultBloc()
           ..add(
             LoadFlights(
+              tripId: arguments.tripId,
               departureCode: arguments.departureCode,
               arrivalCode: arguments.arrivalCode,
               departureDate: arguments.departureDate,

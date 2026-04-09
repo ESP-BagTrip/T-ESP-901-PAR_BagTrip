@@ -7,9 +7,11 @@ import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/transports/bloc/transport_bloc.dart';
+import 'package:bagtrip/models/manual_flight.dart';
 import 'package:bagtrip/transports/widgets/add_flight_sheet.dart';
 import 'package:bagtrip/transports/widgets/flight_card.dart';
 import 'package:bagtrip/transports/widgets/main_flights_section.dart';
+import 'package:bagtrip/transports/widgets/manual_flight_form.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -103,6 +105,9 @@ class TransportsView extends StatelessWidget {
                   SliverToBoxAdapter(
                     child: MainFlightsSection(
                       flights: state.mainFlights,
+                      onEdit: isOwner && !isCompleted
+                          ? (flight) => _showEditSheet(context, flight)
+                          : null,
                       onDelete: isOwner && !isCompleted
                           ? (id) => context.read<TransportBloc>().add(
                               DeleteManualFlight(tripId: tripId, flightId: id),
@@ -142,6 +147,9 @@ class TransportsView extends StatelessWidget {
                           child: FlightCard(
                             flight: flight,
                             compact: true,
+                            onEdit: isOwner && !isCompleted
+                                ? () => _showEditSheet(context, flight)
+                                : null,
                             onDelete: isOwner && !isCompleted
                                 ? () => context.read<TransportBloc>().add(
                                     DeleteManualFlight(
@@ -189,6 +197,18 @@ class TransportsView extends StatelessWidget {
       builder: (_) => BlocProvider.value(
         value: context.read<TransportBloc>(),
         child: AddFlightSheet(tripId: tripId, parentContext: context),
+      ),
+    );
+  }
+
+  void _showEditSheet(BuildContext context, ManualFlight flight) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => BlocProvider.value(
+        value: context.read<TransportBloc>(),
+        child: ManualFlightForm(tripId: tripId, existing: flight),
       ),
     );
   }

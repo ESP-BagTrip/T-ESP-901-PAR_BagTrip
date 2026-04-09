@@ -66,6 +66,7 @@ class TripResponse(BaseModel):
     status: str | None = None
     description: str | None = None
     destinationName: str | None = Field(default=None, alias="destination_name")
+    destinationTimezone: str | None = Field(default=None, alias="destination_timezone")
     nbTravelers: int | None = Field(default=None, alias="nb_travelers")
     coverImageUrl: str | None = Field(default=None, alias="cover_image_url")
     budgetTotal: float | None = Field(default=None, alias="budget_total")
@@ -75,6 +76,7 @@ class TripResponse(BaseModel):
     createdAt: datetime = Field(alias="created_at")
     updatedAt: datetime = Field(alias="updated_at")
     role: str | None = None
+    completionPercentage: int = Field(default=0, alias="completion_percentage")
 
     class Config:
         from_attributes = True

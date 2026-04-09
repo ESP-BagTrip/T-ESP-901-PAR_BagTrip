@@ -12,6 +12,9 @@ class DestinationCarousel extends StatefulWidget {
   final int? selectedIndex;
   final ValueChanged<int>? onPageChanged;
   final double viewportFraction;
+  final bool showIndicators;
+  final double? height;
+  final int initialPage;
 
   const DestinationCarousel({
     super.key,
@@ -20,6 +23,9 @@ class DestinationCarousel extends StatefulWidget {
     this.selectedIndex,
     this.onPageChanged,
     this.viewportFraction = 0.85,
+    this.showIndicators = true,
+    this.height,
+    this.initialPage = 0,
   });
 
   @override
@@ -33,7 +39,7 @@ class _DestinationCarouselState extends State<DestinationCarousel> {
   @override
   void initState() {
     super.initState();
-    _currentPage = widget.selectedIndex ?? 0;
+    _currentPage = widget.selectedIndex ?? widget.initialPage;
     _pageController = PageController(
       viewportFraction: widget.viewportFraction,
       initialPage: _currentPage,
@@ -58,7 +64,7 @@ class _DestinationCarouselState extends State<DestinationCarousel> {
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
-          height: 320,
+          height: widget.height ?? 320,
           child: PageView.builder(
             controller: _pageController,
             itemCount: widget.itemCount,
@@ -82,30 +88,32 @@ class _DestinationCarouselState extends State<DestinationCarousel> {
             },
           ),
         ),
-        const SizedBox(height: AppSpacing.space16),
-        // Dot indicators
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(widget.itemCount, (i) {
-            final isActive = i == _currentPage;
-            return Padding(
-              padding: EdgeInsets.only(
-                right: i < widget.itemCount - 1 ? AppSpacing.space8 : 0,
-              ),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: isActive ? 20 : 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: isActive
-                      ? ColorName.primary
-                      : ColorName.primarySoftLight,
-                  borderRadius: BorderRadius.circular(4),
+        if (widget.showIndicators) ...[
+          const SizedBox(height: AppSpacing.space16),
+          // Dot indicators
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(widget.itemCount, (i) {
+              final isActive = i == _currentPage;
+              return Padding(
+                padding: EdgeInsets.only(
+                  right: i < widget.itemCount - 1 ? AppSpacing.space8 : 0,
                 ),
-              ),
-            );
-          }),
-        ),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: isActive ? 20 : 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? ColorName.primary
+                        : ColorName.primarySoftLight,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
       ],
     );
   }

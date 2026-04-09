@@ -222,7 +222,7 @@ Couvre :
 | Persistance du theme | Le choix de theme n'est pas persiste. Au redemarrage, il revient a `'system'`. (`bagtrip/lib/settings/bloc/settings_bloc.dart`) | P0 |
 | PersonalizationColors sans variante dark | `PersonalizationColors` (`bagtrip/lib/design/personalization_colors.dart`) n'a pas de variantes dark. Le `scaffoldBackgroundColor` du theme light utilise `gradientStart` (#F0F4FA) mais les couleurs de personnalisation restent claires dans le dark mode. | P1 |
 | AppColors statiques | `AppColors` n'est pas theme-aware : toutes les couleurs sont des `static const`. Les composants qui utilisent `AppColors.textSecondary` directement (au lieu de `Theme.of(context).colorScheme`) n'adaptent pas leur couleur au dark mode. | P1 |
-| Tests widget dark mode | Aucun test widget ne verifie le rendu en dark mode. Les golden tests utilisent uniquement `AppTheme.light()`. (`bagtrip/test/goldens/golden_helpers.dart`) | P1 |
+| Tests widget dark mode | Aucun test widget ne verifie le rendu en dark mode. | P1 |
 | Composants avec couleurs en dur | Certains composants pourraient utiliser des couleurs hardcodees (ex: `Colors.white`, `Colors.transparent` dans les bottom sheets) au lieu de couleurs theme-aware. | P2 |
 | Transition animee | Le changement de theme est instantane (rebuild complet). Une `AnimatedTheme` ou transition progressive pourrait ameliorer l'UX. | P2 |
 | Contraste dark mode | Seule `textSecondaryDark` (4.5:1 sur `primaryTrueDark`) est verifiee par les tests de contraste. Les autres combinaisons de couleurs du dark theme ne sont pas auditee. (`bagtrip/test/accessibility/contrast_audit_test.dart`) | P1 |

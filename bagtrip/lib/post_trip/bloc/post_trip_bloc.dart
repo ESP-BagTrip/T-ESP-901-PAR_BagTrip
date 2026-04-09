@@ -58,7 +58,7 @@ class PostTripBloc extends Bloc<PostTripEvent, PostTripState> {
         ? activitiesResult.data
         : <Activity>[];
 
-    final activitiesCompleted = activities.where((a) => a.isBooked).length;
+    final activitiesCompleted = activities.where((a) => a.isDone).length;
 
     final categoriesExplored = activities.map((a) => a.category).toSet();
 

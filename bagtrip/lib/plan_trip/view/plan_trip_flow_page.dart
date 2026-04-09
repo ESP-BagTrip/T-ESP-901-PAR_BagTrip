@@ -87,8 +87,9 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
           }
         },
         builder: (context, state) {
+          final brightness = Theme.of(context).brightness;
           return Scaffold(
-            backgroundColor: PersonalizationColors.gradientStart,
+            backgroundColor: PersonalizationColors.gradientStartOf(brightness),
             appBar: AppBar(
               leading: IconButton(
                 icon: const Icon(Icons.close_rounded, size: 22),
@@ -106,7 +107,9 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
               centerTitle: true,
               elevation: 0,
               scrolledUnderElevation: 0,
-              backgroundColor: PersonalizationColors.gradientStart,
+              backgroundColor: PersonalizationColors.gradientStartOf(
+                brightness,
+              ),
               foregroundColor: PersonalizationColors.textPrimary,
             ),
             body: SafeArea(

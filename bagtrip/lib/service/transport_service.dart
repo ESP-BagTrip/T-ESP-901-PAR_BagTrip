@@ -88,6 +88,132 @@ class TransportRepositoryImpl implements TransportRepository {
   }
 
   @override
+  Future<Result<ManualFlight>> updateManualFlight(
+    String tripId,
+    String flightId,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      final response = await _apiClient.patch(
+        '/trips/$tripId/flights/manual/$flightId',
+        data: data,
+      );
+      if (response.statusCode == 200) {
+        return Success(ManualFlight.fromJson(response.data));
+      }
+      return loggedFailure(
+        UnknownError('update manual flight failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<List<PersistedFlightSearchResult>>> searchMultiDestFlights({
+    required String tripId,
+    required List<Map<String, dynamic>> segments,
+    required int adults,
+    int? children,
+    int? infants,
+    String? travelClass,
+    String? currency,
+  }) async {
+    try {
+      final body = <String, dynamic>{
+        'segments': segments,
+        'adults': adults,
+        if (children != null && children > 0) 'children': children,
+        if (infants != null && infants > 0) 'infants': infants,
+        if (travelClass != null) 'travelClass': travelClass,
+        if (currency != null) 'currency': currency,
+      };
+      final response = await _apiClient.post(
+        '/trips/$tripId/flights/searches/multi',
+        data: body,
+      );
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = response.data;
+        final segmentsList = data['segments'] as List<dynamic>? ?? [];
+        final results = segmentsList.map<PersistedFlightSearchResult>((seg) {
+          return PersistedFlightSearchResult(
+            searchId: seg['searchId'] ?? '',
+            amadeusData: seg['amadeusData'] is List
+                ? seg['amadeusData'] as List<dynamic>
+                : [],
+            dictionaries: seg['dictionaries'] is Map
+                ? Map<String, dynamic>.from(seg['dictionaries'] as Map)
+                : null,
+          );
+        }).toList();
+        return Success(results);
+      }
+      return loggedFailure(
+        UnknownError('multi-dest flight search failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<PersistedFlightSearchResult>> searchFlightsPersisted({
+    required String tripId,
+    required String originIata,
+    required String destinationIata,
+    required String departureDate,
+    String? returnDate,
+    required int adults,
+    int? children,
+    int? infants,
+    String? travelClass,
+    String? currency,
+  }) async {
+    try {
+      final body = <String, dynamic>{
+        'originIata': originIata,
+        'destinationIata': destinationIata,
+        'departureDate': departureDate,
+        'adults': adults,
+        if (returnDate != null) 'returnDate': returnDate,
+        if (children != null && children > 0) 'children': children,
+        if (infants != null && infants > 0) 'infants': infants,
+        if (travelClass != null) 'travelClass': travelClass,
+        if (currency != null) 'currency': currency,
+      };
+      final response = await _apiClient.post(
+        '/trips/$tripId/flights/searches',
+        data: body,
+      );
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = response.data;
+        return Success(
+          PersistedFlightSearchResult(
+            searchId: data['searchId'] ?? '',
+            amadeusData: data['amadeusData'] is List
+                ? data['amadeusData'] as List<dynamic>
+                : [],
+            dictionaries: data['dictionaries'] is Map
+                ? Map<String, dynamic>.from(data['dictionaries'] as Map)
+                : null,
+          ),
+        );
+      }
+      return loggedFailure(
+        UnknownError('persisted flight search failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
   Future<Result<FlightInfo>> lookupFlight(String flightNumber) async {
     try {
       final code = flightNumber.toUpperCase().trim();

@@ -48,6 +48,7 @@ void main() {
           'category': 'CULTURE',
           'estimated_cost': 25.50,
           'is_booked': true,
+          'is_done': true,
           'created_at': '2024-01-15T10:30:00.000',
           'updated_at': '2024-02-20T14:00:00.000',
         };
@@ -65,6 +66,7 @@ void main() {
         expect(activity.category, ActivityCategory.culture);
         expect(activity.estimatedCost, 25.50);
         expect(activity.isBooked, true);
+        expect(activity.isDone, true);
         expect(activity.createdAt, DateTime.parse('2024-01-15T10:30:00.000'));
         expect(activity.updatedAt, DateTime.parse('2024-02-20T14:00:00.000'));
       });
@@ -90,6 +92,7 @@ void main() {
         expect(activity.category, ActivityCategory.other);
         expect(activity.estimatedCost, isNull);
         expect(activity.isBooked, false);
+        expect(activity.isDone, false);
         expect(activity.createdAt, isNull);
         expect(activity.updatedAt, isNull);
       });
@@ -109,6 +112,7 @@ void main() {
           category: ActivityCategory.culture,
           estimatedCost: 17.0,
           isBooked: true,
+          isDone: true,
           createdAt: DateTime.parse('2024-01-01T00:00:00.000'),
           updatedAt: DateTime.parse('2024-03-01T00:00:00.000'),
         );

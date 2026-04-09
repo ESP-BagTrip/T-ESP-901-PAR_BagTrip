@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
@@ -10,6 +11,7 @@ class BaggageItemTile extends StatefulWidget {
   final BaggageItem item;
   final bool isReadOnly;
   final VoidCallback onToggle;
+  final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
   const BaggageItemTile({
@@ -17,6 +19,7 @@ class BaggageItemTile extends StatefulWidget {
     required this.item,
     this.isReadOnly = false,
     required this.onToggle,
+    this.onEdit,
     this.onDelete,
   });
 
@@ -186,70 +189,89 @@ class _BaggageItemTileState extends State<BaggageItemTile>
 
     if (widget.isReadOnly) return tile;
 
-    return Dismissible(
-      key: ValueKey(widget.item.id),
-      direction: widget.onDelete != null
-          ? DismissDirection.horizontal
-          : DismissDirection.startToEnd,
-      confirmDismiss: (direction) async {
-        if (direction == DismissDirection.startToEnd) {
-          AppHaptics.light();
-          widget.onToggle();
-          return false;
-        } else {
-          AppHaptics.medium();
-          widget.onDelete?.call();
-          return false;
-        }
-      },
-      background: Container(
-        margin: const EdgeInsets.only(bottom: AppSpacing.space4),
-        decoration: const BoxDecoration(
-          color: AppColors.success,
-          borderRadius: AppRadius.large16,
+    final contextActions = <AdaptiveContextAction>[
+      if (widget.onEdit != null)
+        AdaptiveContextAction(
+          label: l10n.baggageEditItemTitle,
+          icon: Icons.edit_outlined,
+          onPressed: widget.onEdit!,
         ),
-        alignment: Alignment.centerLeft,
-        padding: AppSpacing.horizontalSpace16,
-        child: Row(
-          children: [
-            const Icon(Icons.check, color: Colors.white),
-            const SizedBox(width: AppSpacing.space8),
-            Text(
-              isPacked ? l10n.baggageUnpack : l10n.baggageSwipeToPack,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
+      if (widget.onDelete != null)
+        AdaptiveContextAction(
+          label: l10n.baggageDeleteTitle,
+          icon: Icons.delete_outline,
+          onPressed: widget.onDelete!,
+          isDestructive: true,
         ),
-      ),
-      secondaryBackground: widget.onDelete != null
-          ? Container(
-              margin: const EdgeInsets.only(bottom: AppSpacing.space4),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.error,
-                borderRadius: AppRadius.large16,
+    ];
+
+    return AdaptiveContextMenu(
+      actions: contextActions,
+      child: Dismissible(
+        key: ValueKey(widget.item.id),
+        direction: widget.onDelete != null
+            ? DismissDirection.horizontal
+            : DismissDirection.startToEnd,
+        confirmDismiss: (direction) async {
+          if (direction == DismissDirection.startToEnd) {
+            AppHaptics.light();
+            widget.onToggle();
+            return false;
+          } else {
+            AppHaptics.medium();
+            widget.onDelete?.call();
+            return false;
+          }
+        },
+        background: Container(
+          margin: const EdgeInsets.only(bottom: AppSpacing.space4),
+          decoration: const BoxDecoration(
+            color: AppColors.success,
+            borderRadius: AppRadius.large16,
+          ),
+          alignment: Alignment.centerLeft,
+          padding: AppSpacing.horizontalSpace16,
+          child: Row(
+            children: [
+              const Icon(Icons.check, color: Colors.white),
+              const SizedBox(width: AppSpacing.space8),
+              Text(
+                isPacked ? l10n.baggageUnpack : l10n.baggageSwipeToPack,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-              alignment: Alignment.centerRight,
-              padding: AppSpacing.horizontalSpace16,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    l10n.baggageSwipeToDelete,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
+            ],
+          ),
+        ),
+        secondaryBackground: widget.onDelete != null
+            ? Container(
+                margin: const EdgeInsets.only(bottom: AppSpacing.space4),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.error,
+                  borderRadius: AppRadius.large16,
+                ),
+                alignment: Alignment.centerRight,
+                padding: AppSpacing.horizontalSpace16,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      l10n.baggageSwipeToDelete,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: AppSpacing.space8),
-                  const Icon(Icons.delete_outline, color: Colors.white),
-                ],
-              ),
-            )
-          : null,
-      child: tile,
+                    const SizedBox(width: AppSpacing.space8),
+                    const Icon(Icons.delete_outline, color: Colors.white),
+                  ],
+                ),
+              )
+            : null,
+        child: GestureDetector(onTap: widget.onEdit, child: tile),
+      ),
     );
   }
 }

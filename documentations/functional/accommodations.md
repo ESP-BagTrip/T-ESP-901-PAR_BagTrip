@@ -131,8 +131,8 @@ HotelOfferResultResponse :
 
 | Element | Description | Priorite |
 |---------|-------------|----------|
-| Booking hotel Amadeus | La recherche d'hotels et la consultation d'offres sont implementees, mais il n'y a pas de flux de reservation hotel (pas de `BookingIntent` type hotel, pas de `HotelOrder`). L'utilisateur ne peut que voir les prix et creer manuellement un hebergement. | P1 |
-| Suggestions IA — endpoint backend | L'event `SuggestAccommodations` appelle `repository.suggestAccommodations()` mais l'endpoint backend dedie pour les suggestions d'hebergement IA n'est pas visible dans les routes `accommodations/routes.py`. A verifier si c'est gere par un endpoint AI generique. | P1 |
+| ~~Booking hotel Amadeus~~ | ~~Pas de flux de reservation hotel via Amadeus~~ | ✅ Search-only by design. Vestiges booking supprimes. Users book externally + input manuel via CRUD accommodations. |
+| ~~Suggestions IA — endpoint backend~~ | ~~Endpoint backend non visible dans les routes~~ | ✅ `POST /v1/trips/{tripId}/accommodations/suggest` ajoute avec quota IA + `PlanService.increment_ai_generation` |
 | Pas de lien hotel → accommodation | Quand un utilisateur trouve un hotel via la recherche Amadeus, il n'y a pas de flux automatique pour pre-remplir le formulaire `CreateAccommodation` avec les donnees de l'hotel (nom, adresse, prix). | P2 |
 | Photos hotels | Les reponses Amadeus ne contiennent pas de photos. Pas d'integration avec une API de photos (Unsplash est present dans les integrations mais pour les trips, pas les hotels). | P2 |
 | Tests widget HotelSearchSheet | Pas de fichier de test dedie pour `HotelSearchSheet` dans `test/accommodations/`. | P2 |

@@ -6,6 +6,7 @@ abstract class TripShareRepository {
     String tripId, {
     required String email,
     String? message,
+    String role = 'VIEWER',
   });
   Future<Result<List<TripShare>>> getSharesByTrip(String tripId);
   Future<Result<void>> deleteShare(String tripId, String shareId);

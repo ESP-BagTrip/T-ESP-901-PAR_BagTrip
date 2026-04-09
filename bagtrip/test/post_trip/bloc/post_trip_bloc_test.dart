@@ -116,6 +116,37 @@ void main() {
     );
 
     blocTest<PostTripBloc, PostTripState>(
+      'activitiesCompleted counts isDone, not isBooked',
+      build: () {
+        when(() => mockTripRepo.getTripById(any())).thenAnswer(
+          (_) async => Success(makeTrip(status: TripStatus.completed)),
+        );
+        when(() => mockActivityRepo.getActivities(any())).thenAnswer(
+          (_) async => Success([
+            makeActivity(id: 'a1', isDone: true),
+            makeActivity(id: 'a2', isBooked: true),
+            makeActivity(id: 'a3'),
+          ]),
+        );
+        when(
+          () => mockBudgetRepo.getBudgetSummary(any()),
+        ).thenAnswer((_) async => Success(makeBudgetSummary()));
+        return PostTripBloc(
+          tripRepository: mockTripRepo,
+          activityRepository: mockActivityRepo,
+          budgetRepository: mockBudgetRepo,
+        );
+      },
+      act: (bloc) => bloc.add(LoadPostTripStats(tripId: 'trip-1')),
+      expect: () => [isA<PostTripLoading>(), isA<PostTripLoaded>()],
+      verify: (bloc) {
+        final state = bloc.state as PostTripLoaded;
+        expect(state.activitiesCompleted, 1);
+        expect(state.totalActivities, 3);
+      },
+    );
+
+    blocTest<PostTripBloc, PostTripState>(
       'emits PostTripError when trip fetch fails',
       build: () {
         when(

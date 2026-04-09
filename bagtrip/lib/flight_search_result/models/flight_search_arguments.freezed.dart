@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$FlightSearchArguments {
 
- String get departureCode; String get arrivalCode; DateTime get departureDate; DateTime? get returnDate; int get adults; int get children; int get infants; String get travelClass; List<FlightSegment>? get multiDestSegments; double? get maxPrice;
+ String? get tripId; String get departureCode; String get arrivalCode; DateTime get departureDate; DateTime? get returnDate; int get adults; int get children; int get infants; String get travelClass; List<FlightSegment>? get multiDestSegments; double? get maxPrice;
 /// Create a copy of FlightSearchArguments
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $FlightSearchArgumentsCopyWith<FlightSearchArguments> get copyWith => _$FlightSe
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FlightSearchArguments&&(identical(other.departureCode, departureCode) || other.departureCode == departureCode)&&(identical(other.arrivalCode, arrivalCode) || other.arrivalCode == arrivalCode)&&(identical(other.departureDate, departureDate) || other.departureDate == departureDate)&&(identical(other.returnDate, returnDate) || other.returnDate == returnDate)&&(identical(other.adults, adults) || other.adults == adults)&&(identical(other.children, children) || other.children == children)&&(identical(other.infants, infants) || other.infants == infants)&&(identical(other.travelClass, travelClass) || other.travelClass == travelClass)&&const DeepCollectionEquality().equals(other.multiDestSegments, multiDestSegments)&&(identical(other.maxPrice, maxPrice) || other.maxPrice == maxPrice));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FlightSearchArguments&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.departureCode, departureCode) || other.departureCode == departureCode)&&(identical(other.arrivalCode, arrivalCode) || other.arrivalCode == arrivalCode)&&(identical(other.departureDate, departureDate) || other.departureDate == departureDate)&&(identical(other.returnDate, returnDate) || other.returnDate == returnDate)&&(identical(other.adults, adults) || other.adults == adults)&&(identical(other.children, children) || other.children == children)&&(identical(other.infants, infants) || other.infants == infants)&&(identical(other.travelClass, travelClass) || other.travelClass == travelClass)&&const DeepCollectionEquality().equals(other.multiDestSegments, multiDestSegments)&&(identical(other.maxPrice, maxPrice) || other.maxPrice == maxPrice));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,departureCode,arrivalCode,departureDate,returnDate,adults,children,infants,travelClass,const DeepCollectionEquality().hash(multiDestSegments),maxPrice);
+int get hashCode => Object.hash(runtimeType,tripId,departureCode,arrivalCode,departureDate,returnDate,adults,children,infants,travelClass,const DeepCollectionEquality().hash(multiDestSegments),maxPrice);
 
 @override
 String toString() {
-  return 'FlightSearchArguments(departureCode: $departureCode, arrivalCode: $arrivalCode, departureDate: $departureDate, returnDate: $returnDate, adults: $adults, children: $children, infants: $infants, travelClass: $travelClass, multiDestSegments: $multiDestSegments, maxPrice: $maxPrice)';
+  return 'FlightSearchArguments(tripId: $tripId, departureCode: $departureCode, arrivalCode: $arrivalCode, departureDate: $departureDate, returnDate: $returnDate, adults: $adults, children: $children, infants: $infants, travelClass: $travelClass, multiDestSegments: $multiDestSegments, maxPrice: $maxPrice)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $FlightSearchArgumentsCopyWith<$Res>  {
   factory $FlightSearchArgumentsCopyWith(FlightSearchArguments value, $Res Function(FlightSearchArguments) _then) = _$FlightSearchArgumentsCopyWithImpl;
 @useResult
 $Res call({
- String departureCode, String arrivalCode, DateTime departureDate, DateTime? returnDate, int adults, int children, int infants, String travelClass, List<FlightSegment>? multiDestSegments, double? maxPrice
+ String? tripId, String departureCode, String arrivalCode, DateTime departureDate, DateTime? returnDate, int adults, int children, int infants, String travelClass, List<FlightSegment>? multiDestSegments, double? maxPrice
 });
 
 
@@ -62,9 +62,10 @@ class _$FlightSearchArgumentsCopyWithImpl<$Res>
 
 /// Create a copy of FlightSearchArguments
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? departureCode = null,Object? arrivalCode = null,Object? departureDate = null,Object? returnDate = freezed,Object? adults = null,Object? children = null,Object? infants = null,Object? travelClass = null,Object? multiDestSegments = freezed,Object? maxPrice = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? tripId = freezed,Object? departureCode = null,Object? arrivalCode = null,Object? departureDate = null,Object? returnDate = freezed,Object? adults = null,Object? children = null,Object? infants = null,Object? travelClass = null,Object? multiDestSegments = freezed,Object? maxPrice = freezed,}) {
   return _then(_self.copyWith(
-departureCode: null == departureCode ? _self.departureCode : departureCode // ignore: cast_nullable_to_non_nullable
+tripId: freezed == tripId ? _self.tripId : tripId // ignore: cast_nullable_to_non_nullable
+as String?,departureCode: null == departureCode ? _self.departureCode : departureCode // ignore: cast_nullable_to_non_nullable
 as String,arrivalCode: null == arrivalCode ? _self.arrivalCode : arrivalCode // ignore: cast_nullable_to_non_nullable
 as String,departureDate: null == departureDate ? _self.departureDate : departureDate // ignore: cast_nullable_to_non_nullable
 as DateTime,returnDate: freezed == returnDate ? _self.returnDate : returnDate // ignore: cast_nullable_to_non_nullable
@@ -159,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String departureCode,  String arrivalCode,  DateTime departureDate,  DateTime? returnDate,  int adults,  int children,  int infants,  String travelClass,  List<FlightSegment>? multiDestSegments,  double? maxPrice)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? tripId,  String departureCode,  String arrivalCode,  DateTime departureDate,  DateTime? returnDate,  int adults,  int children,  int infants,  String travelClass,  List<FlightSegment>? multiDestSegments,  double? maxPrice)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _FlightSearchArguments() when $default != null:
-return $default(_that.departureCode,_that.arrivalCode,_that.departureDate,_that.returnDate,_that.adults,_that.children,_that.infants,_that.travelClass,_that.multiDestSegments,_that.maxPrice);case _:
+return $default(_that.tripId,_that.departureCode,_that.arrivalCode,_that.departureDate,_that.returnDate,_that.adults,_that.children,_that.infants,_that.travelClass,_that.multiDestSegments,_that.maxPrice);case _:
   return orElse();
 
 }
@@ -180,10 +181,10 @@ return $default(_that.departureCode,_that.arrivalCode,_that.departureDate,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String departureCode,  String arrivalCode,  DateTime departureDate,  DateTime? returnDate,  int adults,  int children,  int infants,  String travelClass,  List<FlightSegment>? multiDestSegments,  double? maxPrice)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? tripId,  String departureCode,  String arrivalCode,  DateTime departureDate,  DateTime? returnDate,  int adults,  int children,  int infants,  String travelClass,  List<FlightSegment>? multiDestSegments,  double? maxPrice)  $default,) {final _that = this;
 switch (_that) {
 case _FlightSearchArguments():
-return $default(_that.departureCode,_that.arrivalCode,_that.departureDate,_that.returnDate,_that.adults,_that.children,_that.infants,_that.travelClass,_that.multiDestSegments,_that.maxPrice);case _:
+return $default(_that.tripId,_that.departureCode,_that.arrivalCode,_that.departureDate,_that.returnDate,_that.adults,_that.children,_that.infants,_that.travelClass,_that.multiDestSegments,_that.maxPrice);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,10 +201,10 @@ return $default(_that.departureCode,_that.arrivalCode,_that.departureDate,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String departureCode,  String arrivalCode,  DateTime departureDate,  DateTime? returnDate,  int adults,  int children,  int infants,  String travelClass,  List<FlightSegment>? multiDestSegments,  double? maxPrice)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? tripId,  String departureCode,  String arrivalCode,  DateTime departureDate,  DateTime? returnDate,  int adults,  int children,  int infants,  String travelClass,  List<FlightSegment>? multiDestSegments,  double? maxPrice)?  $default,) {final _that = this;
 switch (_that) {
 case _FlightSearchArguments() when $default != null:
-return $default(_that.departureCode,_that.arrivalCode,_that.departureDate,_that.returnDate,_that.adults,_that.children,_that.infants,_that.travelClass,_that.multiDestSegments,_that.maxPrice);case _:
+return $default(_that.tripId,_that.departureCode,_that.arrivalCode,_that.departureDate,_that.returnDate,_that.adults,_that.children,_that.infants,_that.travelClass,_that.multiDestSegments,_that.maxPrice);case _:
   return null;
 
 }
@@ -215,9 +216,10 @@ return $default(_that.departureCode,_that.arrivalCode,_that.departureDate,_that.
 
 
 class _FlightSearchArguments implements FlightSearchArguments {
-  const _FlightSearchArguments({required this.departureCode, required this.arrivalCode, required this.departureDate, this.returnDate, required this.adults, required this.children, required this.infants, required this.travelClass, final  List<FlightSegment>? multiDestSegments, this.maxPrice}): _multiDestSegments = multiDestSegments;
+  const _FlightSearchArguments({this.tripId, required this.departureCode, required this.arrivalCode, required this.departureDate, this.returnDate, required this.adults, required this.children, required this.infants, required this.travelClass, final  List<FlightSegment>? multiDestSegments, this.maxPrice}): _multiDestSegments = multiDestSegments;
   
 
+@override final  String? tripId;
 @override final  String departureCode;
 @override final  String arrivalCode;
 @override final  DateTime departureDate;
@@ -247,16 +249,16 @@ _$FlightSearchArgumentsCopyWith<_FlightSearchArguments> get copyWith => __$Fligh
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _FlightSearchArguments&&(identical(other.departureCode, departureCode) || other.departureCode == departureCode)&&(identical(other.arrivalCode, arrivalCode) || other.arrivalCode == arrivalCode)&&(identical(other.departureDate, departureDate) || other.departureDate == departureDate)&&(identical(other.returnDate, returnDate) || other.returnDate == returnDate)&&(identical(other.adults, adults) || other.adults == adults)&&(identical(other.children, children) || other.children == children)&&(identical(other.infants, infants) || other.infants == infants)&&(identical(other.travelClass, travelClass) || other.travelClass == travelClass)&&const DeepCollectionEquality().equals(other._multiDestSegments, _multiDestSegments)&&(identical(other.maxPrice, maxPrice) || other.maxPrice == maxPrice));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _FlightSearchArguments&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.departureCode, departureCode) || other.departureCode == departureCode)&&(identical(other.arrivalCode, arrivalCode) || other.arrivalCode == arrivalCode)&&(identical(other.departureDate, departureDate) || other.departureDate == departureDate)&&(identical(other.returnDate, returnDate) || other.returnDate == returnDate)&&(identical(other.adults, adults) || other.adults == adults)&&(identical(other.children, children) || other.children == children)&&(identical(other.infants, infants) || other.infants == infants)&&(identical(other.travelClass, travelClass) || other.travelClass == travelClass)&&const DeepCollectionEquality().equals(other._multiDestSegments, _multiDestSegments)&&(identical(other.maxPrice, maxPrice) || other.maxPrice == maxPrice));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,departureCode,arrivalCode,departureDate,returnDate,adults,children,infants,travelClass,const DeepCollectionEquality().hash(_multiDestSegments),maxPrice);
+int get hashCode => Object.hash(runtimeType,tripId,departureCode,arrivalCode,departureDate,returnDate,adults,children,infants,travelClass,const DeepCollectionEquality().hash(_multiDestSegments),maxPrice);
 
 @override
 String toString() {
-  return 'FlightSearchArguments(departureCode: $departureCode, arrivalCode: $arrivalCode, departureDate: $departureDate, returnDate: $returnDate, adults: $adults, children: $children, infants: $infants, travelClass: $travelClass, multiDestSegments: $multiDestSegments, maxPrice: $maxPrice)';
+  return 'FlightSearchArguments(tripId: $tripId, departureCode: $departureCode, arrivalCode: $arrivalCode, departureDate: $departureDate, returnDate: $returnDate, adults: $adults, children: $children, infants: $infants, travelClass: $travelClass, multiDestSegments: $multiDestSegments, maxPrice: $maxPrice)';
 }
 
 
@@ -267,7 +269,7 @@ abstract mixin class _$FlightSearchArgumentsCopyWith<$Res> implements $FlightSea
   factory _$FlightSearchArgumentsCopyWith(_FlightSearchArguments value, $Res Function(_FlightSearchArguments) _then) = __$FlightSearchArgumentsCopyWithImpl;
 @override @useResult
 $Res call({
- String departureCode, String arrivalCode, DateTime departureDate, DateTime? returnDate, int adults, int children, int infants, String travelClass, List<FlightSegment>? multiDestSegments, double? maxPrice
+ String? tripId, String departureCode, String arrivalCode, DateTime departureDate, DateTime? returnDate, int adults, int children, int infants, String travelClass, List<FlightSegment>? multiDestSegments, double? maxPrice
 });
 
 
@@ -284,9 +286,10 @@ class __$FlightSearchArgumentsCopyWithImpl<$Res>
 
 /// Create a copy of FlightSearchArguments
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? departureCode = null,Object? arrivalCode = null,Object? departureDate = null,Object? returnDate = freezed,Object? adults = null,Object? children = null,Object? infants = null,Object? travelClass = null,Object? multiDestSegments = freezed,Object? maxPrice = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? tripId = freezed,Object? departureCode = null,Object? arrivalCode = null,Object? departureDate = null,Object? returnDate = freezed,Object? adults = null,Object? children = null,Object? infants = null,Object? travelClass = null,Object? multiDestSegments = freezed,Object? maxPrice = freezed,}) {
   return _then(_FlightSearchArguments(
-departureCode: null == departureCode ? _self.departureCode : departureCode // ignore: cast_nullable_to_non_nullable
+tripId: freezed == tripId ? _self.tripId : tripId // ignore: cast_nullable_to_non_nullable
+as String?,departureCode: null == departureCode ? _self.departureCode : departureCode // ignore: cast_nullable_to_non_nullable
 as String,arrivalCode: null == arrivalCode ? _self.arrivalCode : arrivalCode // ignore: cast_nullable_to_non_nullable
 as String,departureDate: null == departureDate ? _self.departureDate : departureDate // ignore: cast_nullable_to_non_nullable
 as DateTime,returnDate: freezed == returnDate ? _self.returnDate : returnDate // ignore: cast_nullable_to_non_nullable

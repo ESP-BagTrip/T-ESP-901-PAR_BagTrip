@@ -1,5 +1,6 @@
 import 'package:bagtrip/components/adaptive/adaptive_date_picker.dart';
 import 'package:bagtrip/components/adaptive/adaptive_time_picker.dart';
+import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -76,6 +77,17 @@ class _ActivityFormState extends State<ActivityForm> {
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
+    if (_startTime != null && _endTime != null) {
+      final startMinutes = _startTime!.hour * 60 + _startTime!.minute;
+      final endMinutes = _endTime!.hour * 60 + _endTime!.minute;
+      if (endMinutes <= startMinutes) {
+        AppSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context)!.activityEndTimeBeforeStartTime,
+        );
+        return;
+      }
+    }
     final data = <String, dynamic>{
       'title': _titleController.text,
       'date': DateFormat('yyyy-MM-dd').format(_date),

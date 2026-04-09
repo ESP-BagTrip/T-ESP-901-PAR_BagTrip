@@ -56,7 +56,7 @@
 | [Internationalisation](./technical/mobile/i18n.md) | Internationalisation EN/FR |
 | [Accessibilite](./technical/mobile/accessibility.md) | VoiceOver, WCAG AA, Dynamic Type |
 | [Dark mode](./technical/mobile/dark-mode.md) | Implementation dark mode |
-| [Tests](./technical/mobile/testing.md) | Strategies de test, coverage, golden tests |
+| [Tests](./technical/mobile/testing.md) | Strategies de test, coverage |
 
 ---
 

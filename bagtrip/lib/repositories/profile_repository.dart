@@ -8,6 +8,8 @@ abstract class ProfileRepository {
     String? travelStyle,
     String? budget,
     String? companions,
+    String? travelFrequency,
+    String? medicalConstraints,
   });
   Future<Result<ProfileCompletion>> checkCompletion();
 }

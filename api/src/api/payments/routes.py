@@ -2,7 +2,7 @@
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Depends, HTTPException, Path
 from sqlalchemy.orm import Session
 
 from src.api.auth.middleware import get_current_user
@@ -11,8 +11,11 @@ from src.api.payments.schemas import (
     PaymentAuthorizeResponse,
     PaymentCancelResponse,
     PaymentCaptureResponse,
+    PaymentRefundRequest,
+    PaymentRefundResponse,
 )
 from src.config.database import get_db
+from src.config.env import settings
 from src.models.user import User
 from src.services.stripe_payments_service import StripePaymentsService
 from src.utils.errors import AppError, create_http_exception
@@ -104,6 +107,37 @@ async def cancel_payment(
 
 
 @router.post(
+    "/{intentId}/payment/refund",
+    response_model=PaymentRefundResponse,
+    summary="Refund payment",
+    description="Refund a captured Stripe payment (full or partial)",
+)
+async def refund_payment(
+    request: PaymentRefundRequest,
+    intentId: UUID = Path(..., description="Booking Intent ID"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Rembourser un paiement capturé."""
+    try:
+        booking_intent = StripePaymentsService.refund_payment(
+            db=db,
+            intent_id=intentId,
+            user_id=current_user.id,
+            amount=request.amount,
+            reason=request.reason,
+        )
+        return PaymentRefundResponse(
+            bookingIntent={
+                "id": str(booking_intent.id),
+                "status": booking_intent.status,
+            }
+        )
+    except AppError as e:
+        raise create_http_exception(e) from e
+
+
+@router.post(
     "/{intentId}/payment/confirm-test",
     response_model=PaymentAuthorizeResponse,
     summary="[TEST] Confirm payment with test card",
@@ -115,6 +149,8 @@ async def confirm_payment_test(
     db: Session = Depends(get_db),
 ):
     """Confirmer un paiement avec une carte de test pour POC."""
+    if settings.NODE_ENV == "production":
+        raise HTTPException(status_code=404, detail="Not found")
     try:
         result = StripePaymentsService.confirm_payment_with_test_card(
             db=db,

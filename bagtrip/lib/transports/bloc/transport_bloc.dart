@@ -18,6 +18,7 @@ class TransportBloc extends Bloc<TransportEvent, TransportState> {
       super(TransportInitial()) {
     on<LoadTransports>(_onLoadTransports);
     on<CreateManualFlight>(_onCreateManualFlight);
+    on<UpdateManualFlight>(_onUpdateManualFlight);
     on<DeleteManualFlight>(_onDeleteManualFlight);
     on<LookupFlightInfo>(_onLookupFlightInfo);
     on<ClearFlightLookup>(_onClearFlightLookup);
@@ -52,6 +53,24 @@ class TransportBloc extends Bloc<TransportEvent, TransportState> {
   ) async {
     final result = await _transportRepository.createManualFlight(
       event.tripId,
+      event.data,
+    );
+    if (isClosed) return;
+    switch (result) {
+      case Success():
+        add(LoadTransports(tripId: event.tripId));
+      case Failure(:final error):
+        emit(TransportError(error: error));
+    }
+  }
+
+  Future<void> _onUpdateManualFlight(
+    UpdateManualFlight event,
+    Emitter<TransportState> emit,
+  ) async {
+    final result = await _transportRepository.updateManualFlight(
+      event.tripId,
+      event.flightId,
       event.data,
     );
     if (isClosed) return;

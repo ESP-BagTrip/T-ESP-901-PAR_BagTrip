@@ -109,12 +109,6 @@ export interface BookingIntentBookRequestFlight {
   contacts: Array<Record<string, unknown>>
 }
 
-export interface BookingIntentBookRequestHotel {
-  checkIn: string
-  checkOut: string
-  guests: number
-}
-
 export interface BookingIntentBookResponse {
   bookingIntent: Record<string, unknown>
   amadeus: Record<string, unknown>

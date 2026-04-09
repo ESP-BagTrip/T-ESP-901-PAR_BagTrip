@@ -74,14 +74,15 @@ class _SubscriptionSuccessPageState extends State<SubscriptionSuccessPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
+    final brightness = Theme.of(context).brightness;
     return Scaffold(
-      backgroundColor: PersonalizationColors.gradientStart,
+      backgroundColor: PersonalizationColors.gradientStartOf(brightness),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: PersonalizationColors.backgroundGradient,
+            colors: PersonalizationColors.backgroundGradientOf(brightness),
           ),
         ),
         child: SafeArea(

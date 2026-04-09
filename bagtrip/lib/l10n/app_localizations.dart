@@ -1994,6 +1994,30 @@ abstract class AppLocalizations {
   /// **'Réservé'**
   String get activityBooked;
 
+  /// No description provided for @activityDeleteTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer l\'activité'**
+  String get activityDeleteTitle;
+
+  /// No description provided for @activityDeleteConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Êtes-vous sûr de vouloir supprimer cette activité ?'**
+  String get activityDeleteConfirm;
+
+  /// No description provided for @activityDeleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activité supprimée'**
+  String get activityDeleted;
+
+  /// No description provided for @activityEndTimeBeforeStartTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'heure de fin doit être après l\'heure de début'**
+  String get activityEndTimeBeforeStartTime;
+
   /// No description provided for @categoryVisit.
   ///
   /// In fr, this message translates to:
@@ -2246,6 +2270,30 @@ abstract class AppLocalizations {
   /// **'Il y a {count} jours'**
   String notificationsDaysAgo(int count);
 
+  /// No description provided for @notificationsJustNow.
+  ///
+  /// In fr, this message translates to:
+  /// **'À l\'instant'**
+  String get notificationsJustNow;
+
+  /// No description provided for @notificationsMinutesAgo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il y a {count} min'**
+  String notificationsMinutesAgo(int count);
+
+  /// No description provided for @notificationsHoursAgo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il y a {count}h'**
+  String notificationsHoursAgo(int count);
+
+  /// No description provided for @notificationsShortDaysAgo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il y a {count}j'**
+  String notificationsShortDaysAgo(int count);
+
   /// No description provided for @baggageTitle.
   ///
   /// In fr, this message translates to:
@@ -2395,6 +2443,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Déballer'**
   String get baggageUnpack;
+
+  /// No description provided for @baggageEditItemTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier l\'élément'**
+  String get baggageEditItemTitle;
+
+  /// No description provided for @baggageItemUpdated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Élément modifié'**
+  String get baggageItemUpdated;
 
   /// No description provided for @baggageItemName.
   ///
@@ -2749,6 +2809,48 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Créer ce voyage'**
   String get postTripCreateTrip;
+
+  /// No description provided for @postTripSuggestionDuration.
+  ///
+  /// In fr, this message translates to:
+  /// **'{days} jours'**
+  String postTripSuggestionDuration(int days);
+
+  /// No description provided for @postTripSuggestionBudget.
+  ///
+  /// In fr, this message translates to:
+  /// **'{amount}€'**
+  String postTripSuggestionBudget(String amount);
+
+  /// No description provided for @feedbackNoReviews.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun avis'**
+  String get feedbackNoReviews;
+
+  /// No description provided for @feedbackHighlightsPrefix.
+  ///
+  /// In fr, this message translates to:
+  /// **'Points forts : {highlights}'**
+  String feedbackHighlightsPrefix(String highlights);
+
+  /// No description provided for @feedbackLowlightsPrefix.
+  ///
+  /// In fr, this message translates to:
+  /// **'À améliorer : {lowlights}'**
+  String feedbackLowlightsPrefix(String lowlights);
+
+  /// No description provided for @feedbackRecommends.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recommande'**
+  String get feedbackRecommends;
+
+  /// No description provided for @feedbackNotRecommends.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ne recommande pas'**
+  String get feedbackNotRecommends;
 
   /// No description provided for @filterCabinBagIncluded.
   ///
@@ -3131,8 +3233,26 @@ abstract class AppLocalizations {
   /// No description provided for @homeGreeting.
   ///
   /// In fr, this message translates to:
-  /// **'Bon voyage, {name}'**
+  /// **'Bienvenue, {name}'**
   String homeGreeting(String name);
+
+  /// No description provided for @homeGreetingMorning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bonjour,\n{name}'**
+  String homeGreetingMorning(String name);
+
+  /// No description provided for @homeGreetingAfternoon.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bon après-midi,\n{name}'**
+  String homeGreetingAfternoon(String name);
+
+  /// No description provided for @homeGreetingEvening.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bonsoir,\n{name}'**
+  String homeGreetingEvening(String name);
 
   /// No description provided for @homeWelcomeTitle.
   ///
@@ -3140,11 +3260,23 @@ abstract class AppLocalizations {
   /// **'Prêt à voyager ?'**
   String get homeWelcomeTitle;
 
-  /// No description provided for @homeWelcomeSubtitle.
+  /// No description provided for @homeSubtitleEmpty.
   ///
   /// In fr, this message translates to:
-  /// **'Créez votre premier voyage en quelques étapes. Manuel ou assisté par l\'IA — à vous de choisir.'**
-  String get homeWelcomeSubtitle;
+  /// **'Quelle sera ta prochaine destination ?'**
+  String get homeSubtitleEmpty;
+
+  /// No description provided for @homeSubtitleOneTrip.
+  ///
+  /// In fr, this message translates to:
+  /// **'1 voyage planifié'**
+  String get homeSubtitleOneTrip;
+
+  /// No description provided for @homeSubtitleTrips.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} voyages planifiés'**
+  String homeSubtitleTrips(int count);
 
   /// No description provided for @homeCreateFirstTrip.
   ///
@@ -3158,11 +3290,17 @@ abstract class AppLocalizations {
   /// **'Planifier un voyage'**
   String get planTripCta;
 
-  /// No description provided for @planTripCtaSubtitle.
+  /// No description provided for @homeCtaAiOrManual.
   ///
   /// In fr, this message translates to:
-  /// **'Manuel ou assisté par l\'IA'**
-  String get planTripCtaSubtitle;
+  /// **'IA ou manuel'**
+  String get homeCtaAiOrManual;
+
+  /// No description provided for @homeCtaStartPlanning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commencer'**
+  String get homeCtaStartPlanning;
 
   /// No description provided for @inspireMe.
   ///
@@ -4160,6 +4298,18 @@ abstract class AppLocalizations {
   /// **'TEMPS FORTS'**
   String get reviewHighlightsLabel;
 
+  /// No description provided for @reviewSectionDates.
+  ///
+  /// In fr, this message translates to:
+  /// **'DATES'**
+  String get reviewSectionDates;
+
+  /// No description provided for @reviewDatesSuggested.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dates suggérées — appuyez pour ajuster'**
+  String get reviewDatesSuggested;
+
   /// No description provided for @reviewEssentialReason.
   ///
   /// In fr, this message translates to:
@@ -4201,24 +4351,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{percent}% prêt'**
   String homeTripCompletion(int percent);
-
-  /// No description provided for @onboardingInspirationTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Inspirez-vous'**
-  String get onboardingInspirationTitle;
-
-  /// No description provided for @onboardingInspirationSubtitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Destinations populaires'**
-  String get onboardingInspirationSubtitle;
-
-  /// No description provided for @tripManagerCompletedSection.
-  ///
-  /// In fr, this message translates to:
-  /// **'Voyages passés'**
-  String get tripManagerCompletedSection;
 
   /// No description provided for @tripCardNoDestination.
   ///
@@ -5252,6 +5384,54 @@ abstract class AppLocalizations {
   /// **'Envoyer l\'invitation'**
   String get shareInviteSendButton;
 
+  /// No description provided for @shareRoleViewer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lecteur'**
+  String get shareRoleViewer;
+
+  /// No description provided for @shareRoleEditor.
+  ///
+  /// In fr, this message translates to:
+  /// **'Éditeur'**
+  String get shareRoleEditor;
+
+  /// No description provided for @shareInviteRoleLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rôle'**
+  String get shareInviteRoleLabel;
+
+  /// No description provided for @shareInvitePendingTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Invitation envoyée'**
+  String get shareInvitePendingTitle;
+
+  /// No description provided for @shareInvitePendingMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette personne n\'est pas encore inscrite. Elle aura accès en s\'inscrivant.'**
+  String get shareInvitePendingMessage;
+
+  /// No description provided for @shareInviteCopyLink.
+  ///
+  /// In fr, this message translates to:
+  /// **'Copier le lien d\'invitation'**
+  String get shareInviteCopyLink;
+
+  /// No description provided for @shareInviteLinkCopied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lien d\'invitation copié'**
+  String get shareInviteLinkCopied;
+
+  /// No description provided for @sharePendingBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente'**
+  String get sharePendingBadge;
+
   /// No description provided for @shareErrorUserNotFound.
   ///
   /// In fr, this message translates to:
@@ -5523,6 +5703,30 @@ abstract class AppLocalizations {
   /// **'Supprimer le vol'**
   String get deleteFlightTooltip;
 
+  /// No description provided for @editFlight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le vol'**
+  String get editFlight;
+
+  /// No description provided for @editFlightTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier ce vol'**
+  String get editFlightTooltip;
+
+  /// No description provided for @multiDestResults.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résultats par segment'**
+  String get multiDestResults;
+
+  /// No description provided for @segmentLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Segment {index}'**
+  String segmentLabel(int index);
+
   /// No description provided for @deleteAccommodationTooltip.
   ///
   /// In fr, this message translates to:
@@ -5582,6 +5786,138 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Chargement'**
   String get loadingButton;
+
+  /// No description provided for @forgotPasswordTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réinitialiser le mot de passe'**
+  String get forgotPasswordTitle;
+
+  /// No description provided for @forgotPasswordSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.'**
+  String get forgotPasswordSubtitle;
+
+  /// No description provided for @forgotPasswordSendButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer le lien'**
+  String get forgotPasswordSendButton;
+
+  /// No description provided for @forgotPasswordSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Si cette adresse existe, un lien de réinitialisation a été envoyé. Vérifiez votre boîte de réception.'**
+  String get forgotPasswordSuccess;
+
+  /// No description provided for @deleteAccountButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer mon compte'**
+  String get deleteAccountButton;
+
+  /// No description provided for @deleteAccountConfirmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer le compte ?'**
+  String get deleteAccountConfirmTitle;
+
+  /// No description provided for @deleteAccountConfirmMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cela supprimera définitivement votre compte et toutes les données associées. Cette action est irréversible.'**
+  String get deleteAccountConfirmMessage;
+
+  /// No description provided for @deleteAccountConfirmAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer définitivement'**
+  String get deleteAccountConfirmAction;
+
+  /// No description provided for @bookFlight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réserver ce vol'**
+  String get bookFlight;
+
+  /// No description provided for @weatherSheetTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Météo'**
+  String get weatherSheetTitle;
+
+  /// No description provided for @weatherSheetTemperature.
+  ///
+  /// In fr, this message translates to:
+  /// **'Température'**
+  String get weatherSheetTemperature;
+
+  /// No description provided for @weatherSheetRainProbability.
+  ///
+  /// In fr, this message translates to:
+  /// **'Probabilité de pluie'**
+  String get weatherSheetRainProbability;
+
+  /// No description provided for @weatherSheetUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Données météo indisponibles'**
+  String get weatherSheetUnavailable;
+
+  /// No description provided for @photoLaunchFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'ouvrir l\'appareil photo'**
+  String get photoLaunchFailed;
+
+  /// No description provided for @mapLocationsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lieux du voyage'**
+  String get mapLocationsTitle;
+
+  /// No description provided for @mapNoLocations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun lieu ajouté'**
+  String get mapNoLocations;
+
+  /// No description provided for @mapDestination.
+  ///
+  /// In fr, this message translates to:
+  /// **'Destination'**
+  String get mapDestination;
+
+  /// No description provided for @mapActivities.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activités'**
+  String get mapActivities;
+
+  /// No description provided for @mapAccommodations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hébergements'**
+  String get mapAccommodations;
+
+  /// No description provided for @notFoundTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Page introuvable'**
+  String get notFoundTitle;
+
+  /// No description provided for @notFoundSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'La page que vous recherchez n\'existe pas ou a été déplacée.'**
+  String get notFoundSubtitle;
+
+  /// No description provided for @notFoundCta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour à l\'accueil'**
+  String get notFoundCta;
 }
 
 class _AppLocalizationsDelegate

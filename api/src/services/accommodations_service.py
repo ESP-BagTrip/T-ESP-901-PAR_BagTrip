@@ -12,6 +12,7 @@ from src.models.budget_item import BudgetItem
 from src.models.trip import Trip
 from src.services.budget_item_service import BudgetItemService
 from src.utils.errors import AppError
+from src.utils.logger import logger
 
 
 class AccommodationsService:
@@ -185,3 +186,42 @@ class AccommodationsService:
 
         db.delete(accommodation)
         db.commit()
+
+    @staticmethod
+    async def suggest_accommodations(db: Session, trip: Trip) -> list[dict]:
+        """Generate AI accommodation suggestions for a trip."""
+        from src.agent.prompts import ACCOMMODATION_SUGGEST_PROMPT
+        from src.services.llm_service import LLMService
+
+        parts = [f"Destination: {trip.destination_name or 'Unknown'}"]
+
+        if trip.destination_iata:
+            parts.append(f"IATA code: {trip.destination_iata}")
+
+        if trip.start_date and trip.end_date:
+            duration = (trip.end_date - trip.start_date).days + 1
+            parts.append(f"Trip duration: {duration} days ({trip.start_date} to {trip.end_date})")
+
+        if trip.nb_travelers:
+            parts.append(f"Number of travelers: {trip.nb_travelers}")
+
+        if trip.budget_total:
+            parts.append(f"Total budget: {trip.budget_total} EUR")
+
+        # Dedup: list existing accommodations
+        existing = AccommodationsService.get_accommodations_by_trip(db, trip.id)
+        if existing:
+            names = [a.name for a in existing]
+            parts.append(f"Already added (avoid duplicates): {', '.join(names)}")
+
+        user_prompt = "\n".join(parts)
+
+        llm = LLMService()
+        try:
+            result = await llm.acall_llm(ACCOMMODATION_SUGGEST_PROMPT, user_prompt)
+            accommodations = result.get("accommodations", [])
+        except Exception as e:
+            logger.error("Accommodation suggest LLM call failed", {"error": str(e)})
+            accommodations = []
+
+        return accommodations

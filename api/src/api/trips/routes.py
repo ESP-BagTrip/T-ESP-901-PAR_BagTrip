@@ -27,6 +27,17 @@ from src.utils.errors import AppError, create_http_exception
 router = APIRouter(prefix="/v1/trips", tags=["Trips"])
 
 
+def _enrich_with_completion(
+    db: Session,
+    trips: list,
+    responses: list[TripResponse],
+) -> None:
+    """Set completionPercentage on TripResponse items using batch computation."""
+    completions = TripsService.compute_completion_batch(db, trips)
+    for resp, trip_obj in zip(responses, trips, strict=True):
+        resp.completionPercentage = completions.get(trip_obj.id, 0)
+
+
 @router.post(
     "",
     response_model=TripResponse,
@@ -68,6 +79,7 @@ async def create_trip(
         )
         resp = TripResponse.model_validate(trip)
         resp.role = "OWNER"
+        _enrich_with_completion(db, [trip], [resp])
         return resp
     except AppError as e:
         raise create_http_exception(e) from e
@@ -98,10 +110,13 @@ async def list_trips(
             status=status,
         )
         items = []
+        trip_objects = []
         for trip, role in rows:
             resp = TripResponse.model_validate(trip)
             resp.role = role
             items.append(resp)
+            trip_objects.append(trip)
+        _enrich_with_completion(db, trip_objects, items)
         return TripPaginatedResponse(
             items=items,
             total=total,
@@ -129,10 +144,13 @@ async def get_grouped_trips(
         result = {}
         for key, rows in grouped.items():
             items = []
+            trip_objects = []
             for trip, role in rows:
                 resp = TripResponse.model_validate(trip)
                 resp.role = role
                 items.append(resp)
+                trip_objects.append(trip)
+            _enrich_with_completion(db, trip_objects, items)
             result[key] = items
         return TripGroupedResponse(
             ongoing=result["ongoing"],
@@ -169,6 +187,7 @@ async def get_trip(
 
         trip_resp = TripResponse.model_validate(trip)
         trip_resp.role = access.role.value
+        _enrich_with_completion(db, [trip], [trip_resp])
 
         return TripDetailResponse(
             trip=trip_resp,
@@ -191,8 +210,10 @@ async def get_trip_home(
     """Récupérer les données de la page d'accueil d'un trip."""
     try:
         data = TripsService.get_trip_home(db, access.trip)
-        trip_resp = TripResponse.model_validate(data["trip"])
+        trip_obj = data["trip"]
+        trip_resp = TripResponse.model_validate(trip_obj)
         trip_resp.role = access.role.value
+        _enrich_with_completion(db, [trip_obj], [trip_resp])
         if access.role == TripRole.VIEWER:
             data["stats"]["totalExpenses"] = 0
         return TripHomeResponse(
@@ -235,6 +256,7 @@ async def update_trip(
         )
         resp = TripResponse.model_validate(trip)
         resp.role = "OWNER"
+        _enrich_with_completion(db, [trip], [resp])
         return resp
     except AppError as e:
         raise create_http_exception(e) from e
@@ -275,6 +297,7 @@ async def update_trip_status(
 
         resp = TripResponse.model_validate(trip)
         resp.role = "OWNER"
+        _enrich_with_completion(db, [trip], [resp])
         return resp
     except AppError as e:
         raise create_http_exception(e) from e

@@ -27,6 +27,8 @@ class TripPlanState(TypedDict, total=False):
     nb_travelers: int
     budget_preset: str
     date_mode: str
+    destination_city: str  # Pre-selected destination (manual flow)
+    destination_iata: str  # Pre-selected destination IATA code
 
     # === Destination research output ===
     origin_iata: str  # Resolved IATA for user's origin city
