@@ -23,6 +23,8 @@ final class TripDetailLoaded extends TripDetailState {
   final List<Map<String, dynamic>>? daySuggestions;
   final int? suggestionsForDay;
   final bool deferredLoaded;
+  final AppError? operationError;
+  final Map<String, AppError> sectionErrors;
 
   TripDetailLoaded({
     required this.trip,
@@ -41,12 +43,16 @@ final class TripDetailLoaded extends TripDetailState {
     this.daySuggestions,
     this.suggestionsForDay,
     this.deferredLoaded = false,
+    this.operationError,
+    this.sectionErrors = const {},
   });
 
   int get completionPercentage => completionResult.percentage;
 
   bool get isViewer => userRole == 'VIEWER';
   bool get isOwner => userRole == 'OWNER';
+  bool get isEditor => userRole == 'EDITOR';
+  bool get canEdit => (isOwner || isEditor) && !isCompleted;
   bool get isCompleted => trip.status == TripStatus.completed;
 
   int get totalDays {
@@ -56,7 +62,7 @@ final class TripDetailLoaded extends TripDetailState {
 
   int? get daysUntilTrip {
     if (trip.startDate == null) return null;
-    final now = DateTime.now();
+    final now = nowInDestination(trip.destinationTimezone);
     final today = DateTime(now.year, now.month, now.day);
     final start = DateTime(
       trip.startDate!.year,
@@ -69,7 +75,7 @@ final class TripDetailLoaded extends TripDetailState {
 
   int? get currentDay {
     if (trip.startDate == null) return null;
-    final now = DateTime.now();
+    final now = nowInDestination(trip.destinationTimezone);
     final today = DateTime(now.year, now.month, now.day);
     final start = DateTime(
       trip.startDate!.year,
@@ -82,7 +88,7 @@ final class TripDetailLoaded extends TripDetailState {
 
   bool get isOngoing {
     if (trip.startDate == null || trip.endDate == null) return false;
-    final now = DateTime.now();
+    final now = nowInDestination(trip.destinationTimezone);
     final today = DateTime(now.year, now.month, now.day);
     final start = DateTime(
       trip.startDate!.year,
@@ -121,6 +127,10 @@ final class TripDetailLoaded extends TripDetailState {
     int? suggestionsForDay,
     bool clearSuggestionsForDay = false,
     bool? deferredLoaded,
+    AppError? operationError,
+    bool clearOperationError = false,
+    Map<String, AppError>? sectionErrors,
+    bool clearSectionErrors = false,
   }) {
     return TripDetailLoaded(
       trip: trip ?? this.trip,
@@ -149,6 +159,12 @@ final class TripDetailLoaded extends TripDetailState {
           ? null
           : (suggestionsForDay ?? this.suggestionsForDay),
       deferredLoaded: deferredLoaded ?? this.deferredLoaded,
+      operationError: clearOperationError
+          ? null
+          : (operationError ?? this.operationError),
+      sectionErrors: clearSectionErrors
+          ? const {}
+          : (sectionErrors ?? this.sectionErrors),
     );
   }
 }

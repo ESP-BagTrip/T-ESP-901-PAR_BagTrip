@@ -27,11 +27,13 @@ class OnboardingPage extends StatelessWidget {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: PersonalizationColors.backgroundGradient,
+            colors: PersonalizationColors.backgroundGradientOf(
+              Theme.of(context).brightness,
+            ),
           ),
         ),
         child: SafeArea(

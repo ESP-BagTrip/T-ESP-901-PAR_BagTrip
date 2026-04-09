@@ -1,23 +1,28 @@
 import 'package:bagtrip/design/app_animations.dart';
+import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
+import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/premium_step_indicator.dart';
 import 'package:bagtrip/design/widgets/step_header.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
-import 'package:bagtrip/plan_trip/models/location_result.dart';
-import 'package:bagtrip/plan_trip/models/duration_preset.dart';
+import 'package:bagtrip/plan_trip/helpers/traveler_breakdown_format.dart';
 import 'package:bagtrip/plan_trip/models/budget_preset.dart';
+import 'package:bagtrip/plan_trip/models/date_mode.dart';
+import 'package:bagtrip/plan_trip/models/duration_preset.dart';
+import 'package:bagtrip/plan_trip/models/location_result.dart';
+import 'package:bagtrip/plan_trip/view/step_ai_proposals_view.dart';
 import 'package:bagtrip/plan_trip/view/step_dates_view.dart';
 import 'package:bagtrip/plan_trip/view/step_destination_view.dart';
-import 'package:bagtrip/plan_trip/view/step_ai_proposals_view.dart';
 import 'package:bagtrip/plan_trip/view/step_generation_view.dart';
 import 'package:bagtrip/plan_trip/view/step_review_view.dart';
 import 'package:bagtrip/plan_trip/view/step_travelers_budget_view.dart';
-import 'package:bagtrip/design/app_haptics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 class PlanTripFlowPage extends StatefulWidget {
   const PlanTripFlowPage({super.key, this.initialDestination});
@@ -89,42 +94,31 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
         builder: (context, state) {
           return Scaffold(
             backgroundColor: PersonalizationColors.gradientStart,
-            appBar: AppBar(
-              leading: IconButton(
-                icon: const Icon(Icons.close_rounded, size: 22),
-                onPressed: () => const HomeRoute().go(context),
-              ),
-              title: Text(
-                _stepTitle(state.currentStep, l10n),
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontFamily: FontFamily.b612,
-                  fontSize: 16,
-                  color: PersonalizationColors.textPrimary,
-                ),
-              ),
-              centerTitle: true,
-              elevation: 0,
-              scrolledUnderElevation: 0,
-              backgroundColor: PersonalizationColors.gradientStart,
-              foregroundColor: PersonalizationColors.textPrimary,
-            ),
             body: SafeArea(
               left: false,
               right: false,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: PremiumStepIndicator(
-                      current: state.currentStep + 1,
-                      total: state.totalSteps,
+                  _WizardNavAnimatedColumn(
+                    currentStep: state.currentStep,
+                    totalSteps: state.totalSteps,
+                    title: _stepTitle(state.currentStep, l10n),
+                    showBack: state.currentStep > 0,
+                    onBack: () => context.read<PlanTripBloc>().add(
+                      const PlanTripEvent.previousStep(),
                     ),
+                    onClose: () => const HomeRoute().go(context),
                   ),
                   if (state.currentStep > 0 && state.currentStep < 4)
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: StepHeader(items: _buildSummaryItems(state, l10n)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.space16,
+                      ),
+                      child: StepHeader(
+                        enrichedSplitCollapsed: state.currentStep == 2,
+                        items: _buildSummaryItems(context, state, l10n),
+                      ),
                     ),
                   Expanded(
                     child: PageView(
@@ -162,6 +156,7 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
   }
 
   List<StepSummaryItem> _buildSummaryItems(
+    BuildContext context,
     PlanTripState state,
     AppLocalizations l10n,
   ) {
@@ -171,7 +166,8 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
         StepSummaryItem(
           icon: Icons.calendar_today_rounded,
           label: l10n.datesLabel,
-          value: _datesSummary(state, l10n),
+          value: _datesPrimaryLine(state, l10n),
+          subtitle: _datesSubtitleLine(state, context),
         ),
       );
     }
@@ -181,6 +177,12 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
           icon: Icons.people_outline_rounded,
           label: l10n.travelersLabel,
           value: l10n.travelerCountLabel(state.nbTravelers),
+          subtitle: formatTravelerBreakdownDetail(
+            l10n,
+            nbAdults: state.nbAdults,
+            nbChildren: state.nbChildren,
+            nbBabies: state.nbBabies,
+          ),
         ),
       );
       if (state.budgetPreset != null) {
@@ -211,6 +213,28 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
     return items;
   }
 
+  String _datesPrimaryLine(PlanTripState state, AppLocalizations l10n) {
+    if (state.dateMode == DateMode.exact &&
+        state.startDate != null &&
+        state.endDate != null) {
+      final days = state.endDate!.difference(state.startDate!).inDays;
+      final nights = days > 0 ? days - 1 : 0;
+      return l10n.planTripDurationDaysNights(days, nights);
+    }
+    return _datesSummary(state, l10n);
+  }
+
+  String? _datesSubtitleLine(PlanTripState state, BuildContext context) {
+    if (state.dateMode == DateMode.exact &&
+        state.startDate != null &&
+        state.endDate != null) {
+      final locale = Localizations.localeOf(context).toString();
+      final fmt = DateFormat.yMMMd(locale);
+      return '${fmt.format(state.startDate!)} → ${fmt.format(state.endDate!)}';
+    }
+    return null;
+  }
+
   String _datesSummary(PlanTripState state, AppLocalizations l10n) {
     if (state.startDate != null && state.endDate != null) {
       return '${state.endDate!.difference(state.startDate!).inDays} ${l10n.days}';
@@ -236,5 +260,222 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
       BudgetPreset.premium => l10n.budgetPresetPremium,
       BudgetPreset.noLimit => l10n.budgetPresetNoLimit,
     };
+  }
+}
+
+class _WizardNavAnimatedColumn extends StatefulWidget {
+  const _WizardNavAnimatedColumn({
+    required this.currentStep,
+    required this.totalSteps,
+    required this.title,
+    required this.showBack,
+    required this.onBack,
+    required this.onClose,
+  });
+
+  final int currentStep;
+  final int totalSteps;
+  final String title;
+  final bool showBack;
+  final VoidCallback onBack;
+  final VoidCallback onClose;
+
+  @override
+  State<_WizardNavAnimatedColumn> createState() =>
+      _WizardNavAnimatedColumnState();
+}
+
+class _WizardNavAnimatedColumnState extends State<_WizardNavAnimatedColumn>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fade;
+  late Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: AppAnimations.fadeDown,
+    );
+    _fade = CurvedAnimation(
+      parent: _controller,
+      curve: AppAnimations.standardCurve,
+    );
+    _slide = Tween<Offset>(begin: const Offset(0, -0.06), end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: AppAnimations.standardCurve,
+          ),
+        );
+    _controller.forward();
+  }
+
+  @override
+  void didUpdateWidget(covariant _WizardNavAnimatedColumn oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentStep != widget.currentStep) {
+      _controller.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _fade,
+      child: SlideTransition(
+        position: _slide,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.space16,
+            AppSpacing.space4,
+            AppSpacing.space16,
+            0,
+          ),
+          child: Column(
+            children: [
+              SizedBox(
+                height: kToolbarHeight - 8,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (widget.showBack) ...[
+                            _PlanTripBackButton(onPressed: widget.onBack),
+                            const SizedBox(width: AppSpacing.space8),
+                          ],
+                          _PlanTripCloseButton(onPressed: widget.onClose),
+                          const SizedBox(width: AppSpacing.space8),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 48),
+                      child: Text(
+                        widget.title,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: FontFamily.b612,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 17,
+                          color: PersonalizationColors.textPrimary,
+                          height: 1.2,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: PremiumStepIndicator(
+                  current: widget.currentStep + 1,
+                  total: widget.totalSteps,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PlanTripCloseButton extends StatelessWidget {
+  const _PlanTripCloseButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        customBorder: const CircleBorder(),
+        child: Container(
+          width: AppSpacing.space40,
+          height: AppSpacing.space40,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: ColorName.primary.withValues(alpha: 0.12),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+              BoxShadow(
+                color: ColorName.secondary.withValues(alpha: 0.08),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: const Icon(
+            Icons.close_rounded,
+            size: 20,
+            color: PersonalizationColors.textPrimary,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PlanTripBackButton extends StatelessWidget {
+  const _PlanTripBackButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        customBorder: const CircleBorder(),
+        child: Container(
+          width: AppSpacing.space40,
+          height: AppSpacing.space40,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: ColorName.primary.withValues(alpha: 0.12),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+              BoxShadow(
+                color: ColorName.secondary.withValues(alpha: 0.08),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: const Icon(
+            Icons.arrow_back_rounded,
+            size: 22,
+            color: PersonalizationColors.textPrimary,
+          ),
+        ),
+      ),
+    );
   }
 }

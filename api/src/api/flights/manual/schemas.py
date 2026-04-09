@@ -1,7 +1,6 @@
 """Schémas Pydantic pour les vols manuels."""
 
 from datetime import datetime
-from decimal import Decimal
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -16,10 +15,25 @@ class ManualFlightCreateRequest(BaseModel):
     arrivalAirport: str | None = None
     departureDate: datetime | None = None
     arrivalDate: datetime | None = None
-    price: Decimal | None = None
+    price: float | None = None
     currency: str | None = None
     notes: str | None = None
     flightType: str = "MAIN"
+
+
+class ManualFlightUpdateRequest(BaseModel):
+    """Requête de mise à jour partielle d'un vol manuel."""
+
+    flightNumber: str | None = None
+    airline: str | None = None
+    departureAirport: str | None = None
+    arrivalAirport: str | None = None
+    departureDate: datetime | None = None
+    arrivalDate: datetime | None = None
+    price: float | None = None
+    currency: str | None = None
+    notes: str | None = None
+    flightType: str | None = None
 
 
 class ManualFlightResponse(BaseModel):
@@ -33,7 +47,7 @@ class ManualFlightResponse(BaseModel):
     arrivalAirport: str | None = Field(None, alias="arrival_airport")
     departureDate: datetime | None = Field(None, alias="departure_date")
     arrivalDate: datetime | None = Field(None, alias="arrival_date")
-    price: Decimal | None = None
+    price: float | None = None
     currency: str | None = None
     notes: str | None = None
     flightType: str = Field(..., alias="flight_type")

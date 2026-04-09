@@ -17,6 +17,8 @@ _TravelerProfile _$TravelerProfileFromJson(Map<String, dynamic> json) =>
       travelStyle: json['travelStyle'] as String?,
       budget: json['budget'] as String?,
       companions: json['companions'] as String?,
+      travelFrequency: json['travelFrequency'] as String?,
+      medicalConstraints: json['medicalConstraints'] as String?,
       isCompleted: json['isCompleted'] as bool? ?? false,
       createdAt: json['createdAt'] == null
           ? null
@@ -33,6 +35,8 @@ Map<String, dynamic> _$TravelerProfileToJson(_TravelerProfile instance) =>
       'travelStyle': instance.travelStyle,
       'budget': instance.budget,
       'companions': instance.companions,
+      'travelFrequency': instance.travelFrequency,
+      'medicalConstraints': instance.medicalConstraints,
       'isCompleted': instance.isCompleted,
       'createdAt': instance.createdAt?.toIso8601String(),
       'updatedAt': instance.updatedAt?.toIso8601String(),

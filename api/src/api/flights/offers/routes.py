@@ -5,7 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Path
 from sqlalchemy.orm import Session
 
-from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access
+from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_editor_access
 from src.api.flights.offers.schemas import FlightOfferPriceResponse, FlightOfferResponse
 from src.config.database import get_db
 from src.models.flight_offer import FlightOffer
@@ -64,7 +64,7 @@ async def get_flight_offer(
 )
 async def price_flight_offer(
     offerDbId: UUID = Path(..., description="Offer DB ID"),
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     """Repricer une offre de vol selon PLAN.md."""

@@ -95,9 +95,7 @@ class AuthRepositoryImpl implements AuthRepository {
           ),
         );
       }
-      return loggedFailure(
-        NetworkError(e.message ?? 'Network error', originalError: e),
-      );
+      return loggedFailure(ApiClient.mapDioError(e));
     } catch (e) {
       return loggedFailure(
         UnknownError('getCurrentUser failed', originalError: e),
@@ -229,6 +227,44 @@ class AuthRepositoryImpl implements AuthRepository {
       }
       return loggedFailure(
         UnknownError('update failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<void>> forgotPassword(String email) async {
+    try {
+      final response = await _apiClient.post(
+        '/auth/forgot-password',
+        data: {'email': email},
+      );
+      if (response.statusCode == 200) {
+        return const Success(null);
+      }
+      return loggedFailure(
+        UnknownError('forgot password failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<void>> deleteAccount() async {
+    try {
+      final response = await _apiClient.delete('/auth/me');
+      if (response.statusCode == 204) {
+        await _storageService.clearAll();
+        return const Success(null);
+      }
+      return loggedFailure(
+        UnknownError('delete account failed: ${response.statusCode}'),
       );
     } on DioException catch (e) {
       return loggedFailure(ApiClient.mapDioError(e));

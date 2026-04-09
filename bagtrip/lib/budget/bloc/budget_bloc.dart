@@ -21,6 +21,7 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
     on<DeleteBudgetItem>(_onDeleteBudgetItem);
     on<EstimateBudget>(_onEstimateBudget);
     on<AcceptBudgetEstimate>(_onAcceptBudgetEstimate);
+    on<RefreshBudgetSummary>(_onRefreshBudgetSummary);
   }
 
   Future<void> _onLoadBudget(
@@ -65,6 +66,7 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
               summary: current.summary,
             ),
           );
+          add(RefreshBudgetSummary(tripId: event.tripId));
         } else {
           add(LoadBudget(tripId: event.tripId));
         }
@@ -91,6 +93,7 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
               .map((i) => i.id == data.id ? data : i)
               .toList();
           emit(BudgetLoaded(items: updated, summary: current.summary));
+          add(RefreshBudgetSummary(tripId: event.tripId));
         } else {
           add(LoadBudget(tripId: event.tripId));
         }
@@ -116,6 +119,7 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
               .where((i) => i.id != event.itemId)
               .toList();
           emit(BudgetLoaded(items: updated, summary: current.summary));
+          add(RefreshBudgetSummary(tripId: event.tripId));
         } else {
           add(LoadBudget(tripId: event.tripId));
         }
@@ -177,6 +181,27 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
         add(LoadBudget(tripId: event.tripId));
       case Failure(:final error):
         emit(BudgetError(error: error));
+    }
+  }
+
+  Future<void> _onRefreshBudgetSummary(
+    RefreshBudgetSummary event,
+    Emitter<BudgetState> emit,
+  ) async {
+    final current = state;
+    if (current is! BudgetLoaded) return;
+
+    final result = await _budgetRepository.getBudgetSummary(event.tripId);
+    if (isClosed) return;
+
+    final latest = state;
+    if (latest is! BudgetLoaded) return;
+
+    switch (result) {
+      case Success(:final data):
+        emit(BudgetLoaded(items: latest.items, summary: data));
+      case Failure():
+        break;
     }
   }
 }

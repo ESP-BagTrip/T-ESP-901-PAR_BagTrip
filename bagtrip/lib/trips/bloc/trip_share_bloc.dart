@@ -1,5 +1,6 @@
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
+import 'package:bagtrip/models/pending_invite.dart';
 import 'package:bagtrip/models/trip_share.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/trip_share_repository.dart';
@@ -44,10 +45,14 @@ class TripShareBloc extends Bloc<TripShareEvent, TripShareState> {
       event.tripId,
       email: event.email,
       message: event.message,
+      role: event.role,
     );
     if (isClosed) return;
     switch (result) {
-      case Success():
+      case Success(:final data):
+        if (data.status == 'pending' && data.inviteToken != null) {
+          emit(TripShareInvitePending(inviteToken: data.inviteToken!));
+        }
         add(LoadShares(tripId: event.tripId));
       case Failure(:final error):
         if (error is QuotaExceededError) {

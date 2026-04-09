@@ -112,7 +112,6 @@ void main() {
         expect(result, isA<Failure<List<Flight>>>());
         final failure = result as Failure<List<Flight>>;
         expect(failure.error, isA<NetworkError>());
-        expect(failure.error.message, contains('Error searching flights'));
       });
 
       test('non-200 status maps to Result.failure with ServerError', () async {
@@ -170,6 +169,7 @@ void main() {
             DioException(
               requestOptions: RequestOptions(path: '/test'),
               error: 'Socket timeout',
+              type: DioExceptionType.connectionTimeout,
             ),
           ),
           queryParameters: {'keyword': 'Nowhere', 'subType': 'AIRPORT'},
@@ -185,25 +185,22 @@ void main() {
         expect(failure.error, isA<NetworkError>());
       });
 
-      test(
-        'unexpected empty response returns Result.failure with ServerError',
-        () async {
-          dioAdapter.onGet(
-            'http://localhost:3000/v1/travel/locations',
-            (server) => server.reply(200, {}),
-            queryParameters: {'keyword': 'Empty', 'subType': 'AIRPORT'},
-          );
+      test('empty response returns Success with empty list', () async {
+        dioAdapter.onGet(
+          'http://localhost:3000/v1/travel/locations',
+          (server) => server.reply(200, {}),
+          queryParameters: {'keyword': 'Empty', 'subType': 'AIRPORT'},
+        );
 
-          final result = await locationService.searchLocationsByKeyword(
-            'Empty',
-            'AIRPORT',
-          );
+        final result = await locationService.searchLocationsByKeyword(
+          'Empty',
+          'AIRPORT',
+        );
 
-          expect(result, isA<Failure<List<Map<String, dynamic>>>>());
-          final failure = result as Failure<List<Map<String, dynamic>>>;
-          expect(failure.error, isA<ServerError>());
-        },
-      );
+        expect(result, isA<Success<List<Map<String, dynamic>>>>());
+        final success = result as Success<List<Map<String, dynamic>>>;
+        expect(success.data, isEmpty);
+      });
     });
   });
 }

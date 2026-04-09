@@ -377,6 +377,8 @@ void main() {
             travelStyle: any(named: 'travelStyle'),
             budget: any(named: 'budget'),
             companions: any(named: 'companions'),
+            travelFrequency: any(named: 'travelFrequency'),
+            medicalConstraints: any(named: 'medicalConstraints'),
           ),
         ).thenAnswer((_) async => Success(makeTravelerProfile()));
         return buildBloc();
@@ -414,6 +416,8 @@ void main() {
             travelStyle: 'comfort',
             budget: 'medium',
             companions: 'couple',
+            travelFrequency: 'monthly',
+            medicalConstraints: 'none',
           ),
         ).called(1);
       },

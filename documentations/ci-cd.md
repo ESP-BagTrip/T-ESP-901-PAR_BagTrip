@@ -1,16 +1,16 @@
 # CI/CD -- Workflows, Hooks, Quality Gates
 
-> Derniere mise a jour : 2026-03-26
+> Derniere mise a jour : 2026-04-09
 
 ## Vue d'ensemble
 
-La pipeline CI/CD de BagTrip s'appuie sur trois niveaux complementaires :
+La pipeline CI/CD de BagTrip s'appuie sur cinq niveaux complementaires :
 
 1. **Pre-commit hooks** -- Verification locale avant chaque commit (linting API + mobile)
-2. **GitHub Actions CI** -- Verification automatique sur push/PR (analyze, tests, coverage, golden tests)
+2. **GitHub Actions CI Quality Gates** -- Verification automatique sur push/PR (lint, tests, coverage)
 3. **GitHub Actions PR checks** -- Validation de la PR elle-meme (titre semantique, analyse de taille)
-
-Il n'existe pas de pipeline de deploiement (CD) -- ni de staging, ni de production automatisee.
+4. **SonarQube self-hosted** -- Analyse statique + quality gate via `sonar.bagtrip.fr`
+5. **GitHub Actions CD** -- Deploiement automatique apres CI : `main` -> production, `develop` -> pre-production
 
 ## Pre-commit hooks
 
@@ -50,7 +50,7 @@ Le script `setup-pre-commit.sh` tente l'installation via `uv tool install`, `pip
 
 ### Declencheurs
 
-- **Push** sur : `main`, `develop`, `feat/SMP-54-add-postgresql-prisma`
+- **Push** sur : `main`, `develop`, plus quelques branches feat historiques
 - **Pull request** vers les memes branches
 - **Concurrence** : `ci-${{ github.ref }}` avec `cancel-in-progress: true` (annule les runs en cours sur la meme branche)
 
@@ -85,14 +85,7 @@ Le job `detect-changes` utilise `dorny/paths-filter@v3` pour ne lancer que les j
   - **Seuil de couverture : 60%** -- le job echoue si la couverture de lignes est inferieure
   - Ecrit un resume dans `$GITHUB_STEP_SUMMARY` avec le pourcentage
 
-#### 3. Flutter Golden Tests (`flutter-goldens`)
-
-- **Condition** : changements dans `bagtrip/`
-- **Actions** :
-  - `flutter test --tags=golden`
-  - En cas d'echec : upload `test/goldens/failures/` comme artifact (retention 7 jours)
-
-#### 4. API Checks (`api-checks`)
+#### 3. API Checks (`api-checks`)
 
 - **Condition** : changements dans `api/`
 - **Actions** :
@@ -119,7 +112,6 @@ Le job `detect-changes` utilise `dorny/paths-filter@v3` pour ne lancer que les j
 |-------|--------|
 | Flutter Analyze | Passed/Skipped/Failed |
 | Flutter Test | ... |
-| Flutter Goldens | ... |
 | API Checks | ... |
 ```
 
@@ -129,9 +121,111 @@ Le job `detect-changes` utilise `dorny/paths-filter@v3` pour ne lancer que les j
 detect-changes
   |
   |---> flutter-analyze ----\
-  |---> flutter-test --------\---> quality-gate ---> report
-  |---> flutter-goldens -----/
+  |---> flutter-test --------\---> sonar ---> quality-gate ---> report
   |---> api-checks ---------/
+```
+
+## SonarQube self-hosted
+
+**Instance** : `https://sonar.bagtrip.fr` (self-hosted SonarQube Community 26.x). Le CI publie les analyses sur cette instance, qui remplace l'usage initial de SonarCloud.
+
+### Job `sonar` dans `ci.yml`
+
+- **Action** : `SonarSource/sonarqube-scan-action@v4`
+- **Declencheur** : apres `flutter-test` ou `api-checks` avec succes
+- **Variables d'environnement** :
+  - `SONAR_TOKEN` -- token `PROJECT_ANALYSIS_TOKEN` scope au projet `bagtrip` (secret GitHub Actions)
+  - `SONAR_HOST_URL` -- `https://sonar.bagtrip.fr` (secret GitHub Actions)
+- **Coverage agregee** : downloads des artifacts `flutter-coverage` et `api-coverage` vers les chemins attendus par `sonar-project.properties`
+
+### Configuration (`sonar-project.properties`)
+
+```properties
+sonar.projectKey=ESP-BagTrip_T-ESP-901-PAR_BagTrip
+sonar.projectName=BagTrip
+sonar.sources=api/src,admin-panel/application/src,bagtrip/lib
+sonar.tests=api/tests,bagtrip/test
+sonar.python.coverage.reportPaths=api/coverage.xml
+sonar.javascript.lcov.reportPaths=admin-panel/application/coverage/lcov.info
+sonar.dart.lcov.reportPaths=bagtrip/coverage/lcov.info
+```
+
+La cle `sonar.organization` (utile uniquement sur SonarCloud) a ete retiree lors de la migration.
+
+### Acces utilisateur
+
+Le projet `bagtrip` est en visibilite **private**. Seuls les comptes explicitement provisionnes peuvent le consulter (5 comptes individuels, permissions `user` + `codeviewer`). Aucun compte n'a de permission globale.
+
+## GitHub Actions -- CD (deploiement automatique)
+
+**Fichier** : `.github/workflows/cd.yml`
+
+### Declencheurs
+
+- **`workflow_run`** sur la completion de `CI Quality Gates`
+- **Branches** : `main`, `develop`
+- **Condition** : ne s'execute que si la conclusion CI est `success`
+
+### Jobs
+
+#### 1. `deploy-production` (main -> /opt/bagtrip)
+
+- **Condition** : `workflow_run.head_branch == 'main' && conclusion == 'success'`
+- **Concurrence** : `deploy-production` avec `cancel-in-progress: true` (annule les deploys en cours)
+- **Action** : `appleboy/ssh-action@v1` -> SSH sur le VPS en tant que `deploy`
+- **Script** :
+  1. `cd /opt/bagtrip`
+  2. `git fetch origin main && git reset --hard origin/main`
+  3. `docker compose -f compose.prod.yml --env-file .env.production up -d --build`
+  4. Smoke test : `curl --resolve api.bagtrip.fr:8081:127.0.0.1 -H 'Host: api.bagtrip.fr' http://127.0.0.1:8081/health`
+
+#### 2. `deploy-preprod` (develop -> /opt/bagtrip-preprod)
+
+- **Condition** : `workflow_run.head_branch == 'develop' && conclusion == 'success'`
+- **Concurrence** : `deploy-preprod` avec `cancel-in-progress: true`
+- **Specificite** : avant chaque deploy, la base pre-prod est **droppee et restauree depuis la prod** pour qu'elle reflete les donnees courantes.
+- **Script** :
+  1. `cd /opt/bagtrip-preprod`
+  2. `git fetch origin develop && git reset --hard origin/develop`
+  3. `docker compose down`
+  4. `docker compose up -d postgres` (uniquement la BDD pre-prod, pour pouvoir restaurer)
+  5. `dropdb` puis `createdb` la BDD `bagtrip` pre-prod
+  6. `pg_dump -U bagtrip -d bagtrip --no-owner --no-acl` (depuis le conteneur prod) piped vers `psql -U bagtrip -d bagtrip` (vers le conteneur pre-prod)
+  7. `docker compose up -d --build` (l'API rejoue `alembic upgrade head` sur les donnees clonees -- no-op si pas de nouvelle migration)
+  8. Smoke test : `curl --resolve api.dev.bagtrip.fr:8082:127.0.0.1 -H 'Host: api.dev.bagtrip.fr' http://127.0.0.1:8082/health`
+
+### Secrets requis
+
+| Secret | Usage |
+|--------|-------|
+| `OVH_HOST` | IP / hostname du VPS |
+| `OVH_USER` | Utilisateur SSH (`deploy`) |
+| `OVH_SSH_KEY` | Cle privee ed25519 dediee BagTrip CD |
+| `SONAR_TOKEN` | Token analyse SonarQube (PROJECT_ANALYSIS_TOKEN) |
+| `SONAR_HOST_URL` | `https://sonar.bagtrip.fr` |
+
+### Diagramme du flux complet
+
+```
+push develop                   push main
+     |                              |
+     v                              v
+CI Quality Gates             CI Quality Gates
+   (lint + tests +              (lint + tests +
+    sonar scan)                  sonar scan)
+     |                              |
+     v                              v
+  success?                       success?
+     |                              |
+     v                              v
+deploy-preprod                 deploy-production
+ (clone prod data,              (rebuild & restart
+  rebuild & restart              /opt/bagtrip)
+  /opt/bagtrip-preprod)
+     |                              |
+     v                              v
+https://dev.bagtrip.fr         https://bagtrip.fr
+https://api.dev.bagtrip.fr     https://api.bagtrip.fr
 ```
 
 ## GitHub Actions -- PR Checks
@@ -169,24 +263,6 @@ detect-changes
 - Poste un commentaire automatique avec le detail (fichiers, insertions, deletions)
 - Ajoute un label `size/<xs|s|m|l|xl>` a la PR
 
-## GitHub Actions -- Golden Update
-
-**Fichier** : `.github/workflows/golden-update.yml`
-
-### Declencheur
-
-- **`workflow_dispatch`** uniquement (manuel depuis l'interface GitHub)
-- **Input** : `commit_message` (defaut : `chore: update golden test baselines`)
-
-### Actions
-
-1. Checkout avec `GITHUB_TOKEN`
-2. Setup Flutter (stable, cache)
-3. `flutter test --tags=golden --update-goldens`
-4. `git add bagtrip/test/goldens/`
-5. Si des fichiers ont change : commit et push automatique avec le message configurable
-6. Le commit est fait par `github-actions[bot]`
-
 ## Commandes Makefile -- Quality
 
 Le Makefile fournit des equivalents locaux pour toutes les verifications CI :
@@ -196,8 +272,6 @@ Le Makefile fournit des equivalents locaux pour toutes les verifications CI :
 | Flutter Analyze + Format | `make lint-mobile` |
 | Flutter Test | `make test-mobile` |
 | Flutter Test + Coverage | `make coverage` (seuil 60%) |
-| Flutter Golden Tests | `make golden-test` |
-| Flutter Golden Update | `make golden-update` |
 | Flutter E2E Tests | `make test-e2e` |
 | API Lint + Format | `make lint-api` |
 | API Tests | `make test-api` |
@@ -237,12 +311,12 @@ La commande `npm run check-all` enchaine : `type-check` -> `lint` -> `format:che
 
 | Element | Description | Priorite |
 |---------|-------------|----------|
-| Pipeline de deploiement (CD) | Aucun workflow de deploiement n'existe. Pas de deploy vers un serveur, PaaS, ou container registry. Les fichiers `.env.prod.example` et les variables de production sont documentes mais aucune automation de deploiement n'est en place. | P0 |
 | Tests admin-panel en CI | Le workflow `ci.yml` ne couvre pas l'admin-panel. Ni le lint, ni les tests Cypress, ni le type-check ne sont executes en CI. Le `detect-changes` ne filtre pas `admin-panel/`. | P0 |
 | Hook pre-commit admin-panel | `.pre-commit-config.yaml` ne couvre que `api/` et `bagtrip/`. L'admin-panel n'a aucun hook pre-commit. | P1 |
-| Branch protection rules | Les workflows definissent un `quality-gate` mais aucune configuration de branch protection n'est visible dans le repo. Il faut configurer GitHub pour exiger le passage du quality-gate avant merge. | P1 |
+| Branch protection rules | Les workflows definissent un `quality-gate` mais aucune configuration de branch protection n'est visible dans le repo. Il faut configurer GitHub pour exiger le passage du quality-gate (et idealement du job CD) avant merge. | P1 |
+| Rollback automatique CD | Les jobs CD ne savent pas rollback : si le smoke test echoue apres `compose up`, le service est dans un etat casse jusqu'a intervention manuelle. Idealement, capturer l'image courante avant le `up` et la redeployer si le healthcheck echoue. | P1 |
 | E2E tests en CI | Les tests E2E Flutter (`integration_test/`) ne sont pas executes en CI. `make test` les inclut en local mais le workflow `ci.yml` n'a pas de job dedie (necessiterait un simulateur iOS/Android ou un device farm). | P1 |
 | Couverture API | Aucun seuil de couverture n'est configure pour l'API (pytest). Seul Flutter a un seuil a 60%. | P2 |
-| Notifications d'echec CI | Aucune integration Slack/Discord/email pour les echecs CI. Les developpeurs doivent verifier manuellement sur GitHub. | P2 |
+| Notifications d'echec CI/CD | Aucune integration Slack/Discord/email pour les echecs CI ou CD. Les developpeurs doivent verifier manuellement sur GitHub. | P2 |
 | Cache Docker layers en CI | Les jobs CI ne utilisent pas de cache Docker. Les images sont reconstruites a chaque run. Cela n'affecte pas les jobs actuels (qui n'utilisent pas Docker) mais serait necessaire si des tests d'integration avec la BDD etaient ajoutes. | P2 |
 | Dependabot / Renovate | Aucune automation de mise a jour des dependances n'est configuree (ni `.github/dependabot.yml`, ni `renovate.json`). | P2 |

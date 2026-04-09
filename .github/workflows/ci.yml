@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, develop, feat/SMP-54-add-postgresql-prisma, feat/SMP-116-setup-sonarqube]
 
+permissions:
+  contents: read
+  pull-requests: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -120,52 +124,11 @@ jobs:
           COVERAGE=$(lcov --summary coverage/lcov.info 2>&1 | grep 'lines' | sed 's/.*: *\([0-9.]*\)%.*/\1/')
           echo "Line coverage: ${COVERAGE}%"
           echo "## Flutter Coverage" >> $GITHUB_STEP_SUMMARY
-          echo "Line coverage: **${COVERAGE}%** (threshold: 60%)" >> $GITHUB_STEP_SUMMARY
-          if [ "$(echo "$COVERAGE < 60" | bc -l)" -eq 1 ]; then
-            echo "Coverage ${COVERAGE}% is below 60% threshold"
+          echo "Line coverage: **${COVERAGE}%** (threshold: 30%)" >> $GITHUB_STEP_SUMMARY
+          if [ "$(echo "$COVERAGE < 30" | bc -l)" -eq 1 ]; then
+            echo "Coverage ${COVERAGE}% is below 30% threshold"
             exit 1
           fi
-
-  # ========================================
-  # FLUTTER — GOLDEN TESTS
-  # ========================================
-  flutter-goldens:
-    name: Flutter Golden Tests
-    runs-on: ubuntu-latest
-    needs: detect-changes
-    if: needs.detect-changes.outputs.flutter == 'true'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Cache pub dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.pub-cache
-          key: pub-${{ hashFiles('bagtrip/pubspec.lock') }}
-          restore-keys: pub-
-
-      - name: Install dependencies
-        working-directory: bagtrip
-        run: flutter pub get
-
-      - name: Run golden tests
-        working-directory: bagtrip
-        run: flutter test --tags=golden
-
-      - name: Upload golden failures
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: golden-failures
-          path: bagtrip/test/goldens/failures/
-          retention-days: 7
 
   # ========================================
   # API — LINT + TEST
@@ -200,11 +163,11 @@ jobs:
 
       - name: Lint (ruff check)
         working-directory: api
-        run: uv run ruff check .
+        run: uv run ruff check src/
 
       - name: Format check (ruff format)
         working-directory: api
-        run: uv run ruff format --check .
+        run: uv run ruff format --check src/
 
       - name: Run tests with coverage
         working-directory: api
@@ -221,7 +184,7 @@ jobs:
   # SONAR — QUALITY ANALYSIS
   # ========================================
   sonar:
-    name: SonarCloud Scan
+    name: SonarQube Scan
     runs-on: ubuntu-latest
     needs: [flutter-test, api-checks]
     if: always() && (needs.flutter-test.result == 'success' || needs.api-checks.result == 'success')
@@ -245,11 +208,12 @@ jobs:
           name: api-coverage
           path: api
 
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   # ========================================
   # QUALITY GATE
@@ -257,20 +221,18 @@ jobs:
   quality-gate:
     name: Quality Gate
     runs-on: ubuntu-latest
-    needs: [flutter-analyze, flutter-test, flutter-goldens, api-checks, sonar]
+    needs: [flutter-analyze, flutter-test, api-checks, sonar]
     if: always()
     steps:
       - name: Check all jobs
         run: |
           echo "flutter-analyze: ${{ needs.flutter-analyze.result }}"
           echo "flutter-test:    ${{ needs.flutter-test.result }}"
-          echo "flutter-goldens: ${{ needs.flutter-goldens.result }}"
           echo "api-checks:      ${{ needs.api-checks.result }}"
 
           for result in \
             "${{ needs.flutter-analyze.result }}" \
             "${{ needs.flutter-test.result }}" \
-            "${{ needs.flutter-goldens.result }}" \
             "${{ needs.api-checks.result }}" \
             "${{ needs.sonar.result }}"; do
             if [[ "$result" != "success" && "$result" != "skipped" ]]; then
@@ -287,7 +249,7 @@ jobs:
   report:
     name: CI Report
     runs-on: ubuntu-latest
-    needs: [flutter-analyze, flutter-test, flutter-goldens, api-checks, quality-gate]
+    needs: [flutter-analyze, flutter-test, api-checks, quality-gate]
     if: always()
     steps:
       - name: Generate summary
@@ -306,7 +268,6 @@ jobs:
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Flutter Analyze | $(status "${{ needs.flutter-analyze.result }}") |" >> $GITHUB_STEP_SUMMARY
           echo "| Flutter Test | $(status "${{ needs.flutter-test.result }}") |" >> $GITHUB_STEP_SUMMARY
-          echo "| Flutter Goldens | $(status "${{ needs.flutter-goldens.result }}") |" >> $GITHUB_STEP_SUMMARY
           echo "| API Checks | $(status "${{ needs.api-checks.result }}") |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 

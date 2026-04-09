@@ -8,10 +8,4 @@ export const loginSchema = z.object({
     .min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
 })
 
-export const registerSchema = loginSchema.extend({
-  fullName: z.string().optional(),
-  phone: z.string().optional(),
-})
-
 export type LoginFormValues = z.infer<typeof loginSchema>
-export type RegisterFormValues = z.infer<typeof registerSchema>

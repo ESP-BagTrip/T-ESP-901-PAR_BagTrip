@@ -1,5 +1,9 @@
+import 'dart:async';
+
+import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/trip.dart';
+import 'package:bagtrip/models/user.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
 import 'package:bagtrip/plan_trip/models/ai_destination.dart';
 import 'package:bagtrip/plan_trip/models/budget_preset.dart';
@@ -17,14 +21,12 @@ Trip _makeTrip() =>
     const Trip(id: 'trip-1', title: 'Barcelona', status: TripStatus.planned);
 
 void main() {
-  late MockLocationService mockLocationService;
   late MockTripRepository mockTripRepo;
   late MockAiRepository mockAiRepo;
   late MockAuthRepository mockAuthRepo;
   late MockPersonalizationStorage mockStorage;
 
   setUp(() {
-    mockLocationService = MockLocationService();
     mockTripRepo = MockTripRepository();
     mockAiRepo = MockAiRepository();
     mockAuthRepo = MockAuthRepository();
@@ -32,7 +34,6 @@ void main() {
   });
 
   PlanTripBloc buildBloc() => PlanTripBloc(
-    locationService: mockLocationService,
     tripRepository: mockTripRepo,
     aiRepository: mockAiRepo,
     authRepository: mockAuthRepo,
@@ -44,6 +45,9 @@ void main() {
       final bloc = buildBloc();
       expect(bloc.state.currentStep, 0);
       expect(bloc.state.dateMode, DateMode.exact);
+      expect(bloc.state.nbAdults, 1);
+      expect(bloc.state.nbChildren, 0);
+      expect(bloc.state.nbBabies, 0);
       expect(bloc.state.nbTravelers, 1);
       expect(bloc.state.isManualFlow, false);
       expect(bloc.state.searchResults, isEmpty);
@@ -112,7 +116,7 @@ void main() {
     blocTest<PlanTripBloc, PlanTripState>(
       'NextStep clears error',
       build: buildBloc,
-      seed: () => const PlanTripState(error: 'some error'),
+      seed: () => const PlanTripState(error: UnknownError('some error')),
       act: (bloc) => bloc.add(const PlanTripEvent.nextStep()),
       expect: () => [
         isA<PlanTripState>()
@@ -224,7 +228,10 @@ void main() {
     });
 
     test('tripDurationDays from flexible preset', () {
-      const state = PlanTripState(flexibleDuration: DurationPreset.twoWeeks);
+      const state = PlanTripState(
+        dateMode: DateMode.flexible,
+        flexibleDuration: DurationPreset.twoWeeks,
+      );
       expect(state.tripDurationDays, 14);
     });
 
@@ -240,11 +247,13 @@ void main() {
 
   group('travelers & budget', () {
     blocTest<PlanTripBloc, PlanTripState>(
-      'SetTravelers updates count',
+      'SetTravelerCounts updates adults',
       build: buildBloc,
-      act: (bloc) => bloc.add(const PlanTripEvent.setTravelers(3)),
+      act: (bloc) => bloc.add(const PlanTripEvent.setTravelerCounts(adults: 3)),
       expect: () => [
-        isA<PlanTripState>().having((s) => s.nbTravelers, 'count', 3),
+        isA<PlanTripState>()
+            .having((s) => s.nbAdults, 'adults', 3)
+            .having((s) => s.nbTravelers, 'total', 3),
       ],
     );
 
@@ -293,34 +302,15 @@ void main() {
     );
 
     blocTest<PlanTripBloc, PlanTripState>(
-      'successful search populates results',
-      build: () {
-        when(
-          () => mockLocationService.searchLocationsByKeyword(
-            'Paris',
-            'CITY,AIRPORT',
-          ),
-        ).thenAnswer(
-          (_) async => const Success([
-            {
-              'name': 'Paris CDG',
-              'iataCode': 'CDG',
-              'city': 'Paris',
-              'countryCode': 'FR',
-              'countryName': 'France',
-              'subType': 'AIRPORT',
-            },
-          ]),
-        );
-        return buildBloc();
-      },
+      'successful search populates results from manual catalog',
+      build: buildBloc,
       act: (bloc) => bloc.add(const PlanTripEvent.searchDestination('Paris')),
       expect: () => [
-        isA<PlanTripState>().having((s) => s.isSearching, 'searching', true),
         isA<PlanTripState>()
             .having((s) => s.isSearching, 'searching', false)
             .having((s) => s.searchResults.length, 'count', 1)
-            .having((s) => s.searchResults.first.iataCode, 'iata', 'CDG'),
+            .having((s) => s.searchResults.first.name, 'name', 'Paris')
+            .having((s) => s.searchResults.first.iataCode, 'iata', 'PAR'),
       ],
     );
 
@@ -396,7 +386,7 @@ void main() {
         ),
         startDate: DateTime(2026, 5),
         endDate: DateTime(2026, 5, 8),
-        nbTravelers: 2,
+        nbAdults: 2,
       ),
       act: (bloc) => bloc.add(const PlanTripEvent.createTrip()),
       expect: () => [
@@ -482,6 +472,190 @@ void main() {
     test('nextStepAfterDestination for manual is 4', () {
       const state = PlanTripState(isManualFlow: true);
       expect(state.nextStepAfterDestination, 4);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Step 4 — SSE Stream Lifecycle
+  // ─────────────────────────────────────────────────────────────────────────
+
+  group('SSE stream lifecycle', () {
+    const testUser = User(
+      id: 'user-1',
+      email: 'test@test.com',
+      aiGenerationsRemaining: 5,
+    );
+
+    void stubForGeneration({
+      required MockAuthRepository authRepo,
+      required MockPersonalizationStorage storage,
+      required MockAiRepository aiRepo,
+      required StreamController<Map<String, dynamic>> controller,
+    }) {
+      when(
+        () => authRepo.getCurrentUser(),
+      ).thenAnswer((_) async => const Success(testUser));
+      when(() => storage.getTravelTypes(any())).thenAnswer((_) async => '');
+      when(() => storage.getCompanions(any())).thenAnswer((_) async => '');
+      when(() => storage.getConstraints(any())).thenAnswer((_) async => '');
+      when(
+        () => aiRepo.planTripStream(
+          travelTypes: any(named: 'travelTypes'),
+          budgetRange: any(named: 'budgetRange'),
+          durationDays: any(named: 'durationDays'),
+          companions: any(named: 'companions'),
+          constraints: any(named: 'constraints'),
+          departureDate: any(named: 'departureDate'),
+          returnDate: any(named: 'returnDate'),
+          originCity: any(named: 'originCity'),
+        ),
+      ).thenAnswer((_) => controller.stream);
+    }
+
+    test('startGeneration assigns _sseSubscription via listen', () async {
+      final controller = StreamController<Map<String, dynamic>>();
+      stubForGeneration(
+        authRepo: mockAuthRepo,
+        storage: mockStorage,
+        aiRepo: mockAiRepo,
+        controller: controller,
+      );
+
+      final bloc = buildBloc();
+      bloc.add(const PlanTripEvent.startGeneration());
+
+      // Allow the bloc event handler to start
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      // Stream should be active — send an event to prove it
+      controller.add({
+        'event': 'progress',
+        'data': {'message': 'Working...'},
+      });
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(bloc.state.generationMessage, 'Working...');
+
+      // Close stream to let the handler complete
+      await controller.close();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await bloc.close();
+    });
+
+    test('backToProposals cancels running SSE stream', () async {
+      final controller = StreamController<Map<String, dynamic>>();
+      stubForGeneration(
+        authRepo: mockAuthRepo,
+        storage: mockStorage,
+        aiRepo: mockAiRepo,
+        controller: controller,
+      );
+
+      final bloc = buildBloc();
+      bloc.add(const PlanTripEvent.startGeneration());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      // Stream should be listening
+      expect(controller.hasListener, isTrue);
+
+      // Back to proposals should cancel the stream
+      bloc.add(const PlanTripEvent.backToProposals());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(controller.hasListener, isFalse);
+      expect(bloc.state.generatedPlan, isNull);
+      expect(bloc.state.generationProgress, 0.0);
+
+      await controller.close();
+      await bloc.close();
+    });
+
+    test('close() cancels running SSE stream', () async {
+      final controller = StreamController<Map<String, dynamic>>();
+      stubForGeneration(
+        authRepo: mockAuthRepo,
+        storage: mockStorage,
+        aiRepo: mockAiRepo,
+        controller: controller,
+      );
+
+      final bloc = buildBloc();
+      bloc.add(const PlanTripEvent.startGeneration());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(controller.hasListener, isTrue);
+
+      await bloc.close();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(controller.hasListener, isFalse);
+      await controller.close();
+    });
+
+    test('SSE stream error emits generationError', () async {
+      final controller = StreamController<Map<String, dynamic>>();
+      stubForGeneration(
+        authRepo: mockAuthRepo,
+        storage: mockStorage,
+        aiRepo: mockAiRepo,
+        controller: controller,
+      );
+
+      final bloc = buildBloc();
+      bloc.add(const PlanTripEvent.startGeneration());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      controller.addError(Exception('SSE connection lost'));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(bloc.state.generationError, isNotNull);
+
+      await controller.close();
+      await bloc.close();
+    });
+
+    test('retryGeneration cancels existing stream', () async {
+      final controller1 = StreamController<Map<String, dynamic>>();
+      final controller2 = StreamController<Map<String, dynamic>>();
+      var callCount = 0;
+
+      when(
+        () => mockAuthRepo.getCurrentUser(),
+      ).thenAnswer((_) async => const Success(testUser));
+      when(() => mockStorage.getTravelTypes(any())).thenAnswer((_) async => '');
+      when(() => mockStorage.getCompanions(any())).thenAnswer((_) async => '');
+      when(() => mockStorage.getConstraints(any())).thenAnswer((_) async => '');
+      when(
+        () => mockAiRepo.planTripStream(
+          travelTypes: any(named: 'travelTypes'),
+          budgetRange: any(named: 'budgetRange'),
+          durationDays: any(named: 'durationDays'),
+          companions: any(named: 'companions'),
+          constraints: any(named: 'constraints'),
+          departureDate: any(named: 'departureDate'),
+          returnDate: any(named: 'returnDate'),
+          originCity: any(named: 'originCity'),
+        ),
+      ).thenAnswer((_) {
+        callCount++;
+        return callCount == 1 ? controller1.stream : controller2.stream;
+      });
+
+      final bloc = buildBloc();
+      bloc.add(const PlanTripEvent.startGeneration());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(controller1.hasListener, isTrue);
+
+      // Retry cancels the first stream and starts a new one
+      bloc.add(const PlanTripEvent.retryGeneration());
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      expect(controller1.hasListener, isFalse);
+      expect(controller2.hasListener, isTrue);
+
+      await controller1.close();
+      await controller2.close();
+      await bloc.close();
     });
   });
 }

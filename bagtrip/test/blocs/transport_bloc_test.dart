@@ -112,6 +112,57 @@ void main() {
       expect: () => [isA<TransportError>()],
     );
 
+    // ── UpdateManualFlight ──────────────────────────────────────────────
+
+    blocTest<TransportBloc, TransportState>(
+      'UpdateManualFlight success triggers LoadTransports',
+      build: () {
+        when(
+          () => mockTransportRepo.updateManualFlight(any(), any(), any()),
+        ).thenAnswer((_) async => Success(makeManualFlight()));
+        when(
+          () => mockTransportRepo.getManualFlights(any()),
+        ).thenAnswer((_) async => Success([makeManualFlight()]));
+        return TransportBloc(transportRepository: mockTransportRepo);
+      },
+      act: (bloc) => bloc.add(
+        UpdateManualFlight(
+          tripId: 'trip-1',
+          flightId: 'flight-1',
+          data: {'airline': 'Air France'},
+        ),
+      ),
+      expect: () => [isA<TransportLoading>(), isA<TransportsLoaded>()],
+      verify: (_) {
+        verify(
+          () => mockTransportRepo.updateManualFlight('trip-1', 'flight-1', {
+            'airline': 'Air France',
+          }),
+        ).called(1);
+        verify(() => mockTransportRepo.getManualFlights('trip-1')).called(1);
+      },
+    );
+
+    blocTest<TransportBloc, TransportState>(
+      'UpdateManualFlight failure emits TransportError',
+      build: () {
+        when(
+          () => mockTransportRepo.updateManualFlight(any(), any(), any()),
+        ).thenAnswer(
+          (_) async => const Failure(NotFoundError('Flight not found')),
+        );
+        return TransportBloc(transportRepository: mockTransportRepo);
+      },
+      act: (bloc) => bloc.add(
+        UpdateManualFlight(
+          tripId: 'trip-1',
+          flightId: 'flight-1',
+          data: {'airline': 'Air France'},
+        ),
+      ),
+      expect: () => [isA<TransportError>()],
+    );
+
     // ── DeleteManualFlight ──────────────────────────────────────────────
 
     blocTest<TransportBloc, TransportState>(

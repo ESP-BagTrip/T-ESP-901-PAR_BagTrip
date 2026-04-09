@@ -1,7 +1,12 @@
+import 'package:bagtrip/auth/bloc/auth_bloc.dart';
 import 'package:bagtrip/components/adaptive/adaptive_app_bar.dart';
+import 'package:bagtrip/components/adaptive/adaptive_dialog.dart'
+    show showAdaptiveAlertDialog;
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -12,6 +17,7 @@ import 'package:bagtrip/profile/widgets/logout_button.dart';
 import 'package:bagtrip/profile/widgets/profile_footer.dart';
 import 'package:bagtrip/profile/widgets/profile_header_card.dart';
 import 'package:bagtrip/profile/widgets/profile_section_card.dart';
+import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -87,6 +93,8 @@ class ProfileView extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.space24),
                 const LogoutButton(),
+                const SizedBox(height: AppSpacing.space8),
+                _buildDeleteAccountButton(context, l10n),
                 const SizedBox(height: AppSpacing.space24),
                 const ProfileFooter(),
               ],
@@ -110,6 +118,41 @@ class ProfileView extends StatelessWidget {
           return const SizedBox.shrink();
         },
       ),
+    );
+  }
+
+  Widget _buildDeleteAccountButton(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) {
+    return SizedBox(
+      width: double.infinity,
+      child: TextButton(
+        onPressed: () => _confirmDeleteAccount(context, l10n),
+        style: TextButton.styleFrom(foregroundColor: Colors.red),
+        child: Text(l10n.deleteAccountButton),
+      ),
+    );
+  }
+
+  void _confirmDeleteAccount(BuildContext context, AppLocalizations l10n) {
+    showAdaptiveAlertDialog(
+      context: context,
+      title: l10n.deleteAccountConfirmTitle,
+      content: l10n.deleteAccountConfirmMessage,
+      confirmLabel: l10n.deleteAccountConfirmAction,
+      cancelLabel: MaterialLocalizations.of(context).cancelButtonLabel,
+      isDestructive: true,
+      onConfirm: () async {
+        final result = await getIt<AuthRepository>().deleteAccount();
+        if (!context.mounted) return;
+        switch (result) {
+          case Success():
+            context.read<AuthBloc>().add(LogoutRequested());
+          case Failure():
+            break;
+        }
+      },
     );
   }
 

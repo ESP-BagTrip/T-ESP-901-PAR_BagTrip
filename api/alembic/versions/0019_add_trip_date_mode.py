@@ -8,6 +8,7 @@ Supports 3 modes: EXACT (default), MONTH, FLEXIBLE.
 """
 
 import sqlalchemy as sa
+
 from alembic import op
 
 revision = "0019"

@@ -1021,6 +1021,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activityBooked => 'Booked';
 
   @override
+  String get activityDeleteTitle => 'Delete activity';
+
+  @override
+  String get activityDeleteConfirm =>
+      'Are you sure you want to delete this activity?';
+
+  @override
+  String get activityDeleted => 'Activity deleted';
+
+  @override
+  String get activityEndTimeBeforeStartTime =>
+      'End time must be after start time';
+
+  @override
   String get categoryVisit => 'Visit';
 
   @override
@@ -1154,6 +1168,24 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get notificationsJustNow => 'Just now';
+
+  @override
+  String notificationsMinutesAgo(int count) {
+    return '$count min ago';
+  }
+
+  @override
+  String notificationsHoursAgo(int count) {
+    return '${count}h ago';
+  }
+
+  @override
+  String notificationsShortDaysAgo(int count) {
+    return '${count}d ago';
+  }
+
+  @override
   String get baggageTitle => 'Luggage';
 
   @override
@@ -1230,6 +1262,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get baggageUnpack => 'Unpack';
+
+  @override
+  String get baggageEditItemTitle => 'Edit item';
+
+  @override
+  String get baggageItemUpdated => 'Item updated';
 
   @override
   String get baggageItemName => 'Item name';
@@ -1411,6 +1449,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get postTripCreateTrip => 'Create this trip';
+
+  @override
+  String postTripSuggestionDuration(int days) {
+    return '$days days';
+  }
+
+  @override
+  String postTripSuggestionBudget(String amount) {
+    return '$amount€';
+  }
+
+  @override
+  String get feedbackNoReviews => 'No reviews';
+
+  @override
+  String feedbackHighlightsPrefix(String highlights) {
+    return 'Highlights: $highlights';
+  }
+
+  @override
+  String feedbackLowlightsPrefix(String lowlights) {
+    return 'To improve: $lowlights';
+  }
+
+  @override
+  String get feedbackRecommends => 'Recommends';
+
+  @override
+  String get feedbackNotRecommends => 'Does not recommend';
 
   @override
   String get filterCabinBagIncluded => 'Cabin bag included';
@@ -1621,15 +1688,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String homeGreeting(String name) {
-    return 'Welcome back, $name';
+    return 'Welcome, $name';
+  }
+
+  @override
+  String homeGreetingMorning(String name) {
+    return 'Good morning,\n$name';
+  }
+
+  @override
+  String homeGreetingAfternoon(String name) {
+    return 'Good afternoon,\n$name';
+  }
+
+  @override
+  String homeGreetingEvening(String name) {
+    return 'Good evening,\n$name';
   }
 
   @override
   String get homeWelcomeTitle => 'Ready to travel?';
 
   @override
-  String get homeWelcomeSubtitle =>
-      'Create your first trip in a few steps. Manual or AI-assisted — your choice.';
+  String get homeSubtitleEmpty => 'Where will you go next?';
+
+  @override
+  String get homeSubtitleOneTrip => '1 trip planned';
+
+  @override
+  String homeSubtitleTrips(int count) {
+    return '$count trips planned';
+  }
 
   @override
   String get homeCreateFirstTrip => 'Create my first trip';
@@ -1638,13 +1727,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planTripCta => 'Plan a trip';
 
   @override
-  String get planTripCtaSubtitle => 'Manual or AI-assisted';
+  String get homeCtaAiOrManual => 'AI or manual';
+
+  @override
+  String get homeCtaStartPlanning => 'Start planning';
 
   @override
   String get inspireMe => 'Inspire me';
 
   @override
   String get datesLabel => 'DATES';
+
+  @override
+  String get datesChooseDatePlaceholder => 'Choose a date';
+
+  @override
+  String tripNightsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nights',
+      one: '1 night',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get suggestedDuration => 'Suggested duration';
@@ -2005,6 +2111,62 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get travelerTypeAdults => 'Adults';
+
+  @override
+  String get travelerTypeChildren => 'Children';
+
+  @override
+  String get travelerTypeBabies => 'Babies';
+
+  @override
+  String get travelerAgeAdultsSubtitle => 'Ages 13+';
+
+  @override
+  String get travelerAgeChildrenSubtitle => 'Ages 3–12';
+
+  @override
+  String get travelerAgeBabiesSubtitle => 'Ages 0–2';
+
+  @override
+  String travelerSegmentAdult(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count adults',
+      one: '1 adult',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String travelerSegmentChild(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count children',
+      one: '1 child',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String travelerSegmentBaby(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count babies',
+      one: '1 baby',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String planTripDurationDaysNights(int days, int nights) {
+    return '$days days · $nights nights';
+  }
+
+  @override
   String get budgetLabel => 'BUDGET';
 
   @override
@@ -2039,6 +2201,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get destinationSectionLabel => 'DESTINATION';
+
+  @override
+  String get destinationPopularSectionLabel => 'POPULAR RIGHT NOW';
 
   @override
   String get destinationOrSeparator => 'OR';
@@ -2163,6 +2328,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reviewHighlightsLabel => 'HIGHLIGHTS';
 
   @override
+  String get reviewSectionDates => 'DATES';
+
+  @override
+  String get reviewDatesSuggested => 'Suggested dates — tap to adjust';
+
+  @override
   String reviewEssentialReason(String reason) {
     return 'Why: $reason';
   }
@@ -2190,15 +2361,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String homeTripCompletion(int percent) {
     return '$percent% ready';
   }
-
-  @override
-  String get onboardingInspirationTitle => 'Get inspired';
-
-  @override
-  String get onboardingInspirationSubtitle => 'Popular destinations';
-
-  @override
-  String get tripManagerCompletedSection => 'Past adventures';
 
   @override
   String get tripCardNoDestination => 'No destination';
@@ -2771,6 +2933,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareInviteSendButton => 'Send invite';
 
   @override
+  String get shareRoleViewer => 'Viewer';
+
+  @override
+  String get shareRoleEditor => 'Editor';
+
+  @override
+  String get shareInviteRoleLabel => 'Role';
+
+  @override
+  String get shareInvitePendingTitle => 'Invitation sent';
+
+  @override
+  String get shareInvitePendingMessage =>
+      'This person isn\'t registered yet. They\'ll get access when they sign up.';
+
+  @override
+  String get shareInviteCopyLink => 'Copy invite link';
+
+  @override
+  String get shareInviteLinkCopied => 'Invite link copied';
+
+  @override
+  String get sharePendingBadge => 'Pending';
+
+  @override
   String get shareErrorUserNotFound =>
       'This person must create an account first';
 
@@ -2926,6 +3113,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteFlightTooltip => 'Delete flight';
 
   @override
+  String get editFlight => 'Edit flight';
+
+  @override
+  String get editFlightTooltip => 'Edit this flight';
+
+  @override
+  String get multiDestResults => 'Results by segment';
+
+  @override
+  String segmentLabel(int index) {
+    return 'Segment $index';
+  }
+
+  @override
   String get deleteAccommodationTooltip => 'Delete accommodation';
 
   @override
@@ -2958,4 +3159,74 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loadingButton => 'Loading';
+
+  @override
+  String get forgotPasswordTitle => 'Reset password';
+
+  @override
+  String get forgotPasswordSubtitle =>
+      'Enter your email address and we will send you a link to reset your password.';
+
+  @override
+  String get forgotPasswordSendButton => 'Send reset link';
+
+  @override
+  String get forgotPasswordSuccess =>
+      'If this email exists, a reset link has been sent. Check your inbox.';
+
+  @override
+  String get deleteAccountButton => 'Delete my account';
+
+  @override
+  String get deleteAccountConfirmTitle => 'Delete account?';
+
+  @override
+  String get deleteAccountConfirmMessage =>
+      'This will permanently delete your account and all associated data. This action cannot be undone.';
+
+  @override
+  String get deleteAccountConfirmAction => 'Delete permanently';
+
+  @override
+  String get bookFlight => 'Book this flight';
+
+  @override
+  String get weatherSheetTitle => 'Weather';
+
+  @override
+  String get weatherSheetTemperature => 'Temperature';
+
+  @override
+  String get weatherSheetRainProbability => 'Rain probability';
+
+  @override
+  String get weatherSheetUnavailable => 'Weather data is unavailable';
+
+  @override
+  String get photoLaunchFailed => 'Could not open camera';
+
+  @override
+  String get mapLocationsTitle => 'Trip Locations';
+
+  @override
+  String get mapNoLocations => 'No locations added yet';
+
+  @override
+  String get mapDestination => 'Destination';
+
+  @override
+  String get mapActivities => 'Activities';
+
+  @override
+  String get mapAccommodations => 'Accommodations';
+
+  @override
+  String get notFoundTitle => 'Page not found';
+
+  @override
+  String get notFoundSubtitle =>
+      'The page you are looking for doesn\'t exist or has been moved.';
+
+  @override
+  String get notFoundCta => 'Return home';
 }

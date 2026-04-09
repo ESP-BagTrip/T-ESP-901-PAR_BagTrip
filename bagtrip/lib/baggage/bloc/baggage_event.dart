@@ -55,6 +55,22 @@ class DismissSuggestion extends BaggageEvent {
   DismissSuggestion({required this.suggestion});
 }
 
+class UpdateBaggageItem extends BaggageEvent {
+  final String tripId;
+  final String itemId;
+  final String name;
+  final int quantity;
+  final String category;
+
+  UpdateBaggageItem({
+    required this.tripId,
+    required this.itemId,
+    required this.name,
+    required this.quantity,
+    required this.category,
+  });
+}
+
 class ReorderBaggageItem extends BaggageEvent {
   final int oldIndex;
   final int newIndex;

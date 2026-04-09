@@ -61,7 +61,7 @@ T-ESP-901-81605-PAR_Gospalaga/
 | Cache | Hive (TTL 15min) |
 | Assets | FlutterGen (couleurs, images, fonts) |
 | i18n | flutter_localizations (EN + FR) |
-| Tests | flutter test + golden tests + integration tests |
+| Tests | flutter test + integration tests |
 
 ### Admin Panel (`admin-panel/application/`)
 

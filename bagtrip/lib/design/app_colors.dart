@@ -82,6 +82,24 @@ class AppColors {
   ); // indigo.shade800
   static const Color categoryOtherDark = Color(0xFF424242); // grey.shade800
 
+  // --- Budget category resolvers (brightness-aware) ---
+  static Color categoryFlightOf(Brightness b) =>
+      b == Brightness.dark ? categoryFlightDark : categoryFlight;
+  static Color categoryAccommodationOf(Brightness b) =>
+      b == Brightness.dark ? categoryAccommodationDark : categoryAccommodation;
+  static Color categoryFoodOf(Brightness b) =>
+      b == Brightness.dark ? categoryFoodDark : categoryFood;
+  static Color categoryActivityOf(Brightness b) =>
+      b == Brightness.dark ? categoryActivityDark : categoryActivity;
+  static Color categoryTransportOf(Brightness b) =>
+      b == Brightness.dark ? categoryTransportDark : categoryTransport;
+  static Color categoryOtherOf(Brightness b) =>
+      b == Brightness.dark ? categoryOtherDark : categoryOther;
+
+  // --- Text resolvers (brightness-aware) ---
+  static Color textSecondaryOf(Brightness b) =>
+      b == Brightness.dark ? textSecondaryDark : textSecondary;
+
   // --- Feedback / rating ---
   static const Color starRating = Color(0xFFFFC107); // amber
 

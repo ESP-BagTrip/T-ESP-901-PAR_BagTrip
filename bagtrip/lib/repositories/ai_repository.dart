@@ -13,11 +13,13 @@ abstract class AiRepository {
     Map<String, dynamic> suggestion, {
     String? startDate,
     String? endDate,
+    String? dateMode,
   });
   Future<Result<Map<String, dynamic>>> getPostTripSuggestion();
 
   /// Stream trip planning events via SSE from the multi-agent pipeline.
   /// Each emitted map has: {"event": "...", "data": {...}}
+  /// [mode] can be 'full' (default) or 'destinations_only'.
   Stream<Map<String, dynamic>> planTripStream({
     String? travelTypes,
     String? budgetRange,
@@ -27,5 +29,8 @@ abstract class AiRepository {
     String? departureDate,
     String? returnDate,
     String? originCity,
+    String? destinationCity,
+    String? destinationIata,
+    String? mode,
   });
 }

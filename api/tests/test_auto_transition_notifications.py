@@ -62,6 +62,8 @@ def test_trip_started_notification_sent_on_planned_to_ongoing():
         ]
         assert len(trip_started_calls) == 1
         assert trip_started_calls[0].kwargs["title"] == "Bon voyage !"
+        # Verify screen value uses camelCase (matches Flutter deep link switch)
+        assert trip_started_calls[0].kwargs["data"]["screen"] == "tripHome"
 
 
 def test_trip_started_notification_includes_trip_title():

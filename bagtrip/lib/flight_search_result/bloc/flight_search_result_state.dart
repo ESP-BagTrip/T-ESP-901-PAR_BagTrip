@@ -14,6 +14,7 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
   final double? maxPrice;
   final String sortBy;
   final int selectedDateIndex;
+  final String? tripId;
   final DateTime departureDate;
   final DateTime? returnDate;
   // Store original search parameters for date change
@@ -24,6 +25,9 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
   final int infants;
   final String travelClass;
   final List<FlightSegment>? multiDestSegments;
+  // Multi-destination results (one list per segment)
+  final Map<int, List<Flight>>? segmentResults;
+  final List<String>? segmentLabels;
   // Filters
   final String? priceSort; // 'lowest' or 'highest'
   final String? selectedAirline;
@@ -39,6 +43,7 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
     this.maxPrice,
     this.sortBy = 'price',
     this.selectedDateIndex = 0,
+    this.tripId,
     required this.departureDate,
     this.returnDate,
     required this.departureCode,
@@ -48,6 +53,8 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
     required this.infants,
     required this.travelClass,
     this.multiDestSegments,
+    this.segmentResults,
+    this.segmentLabels,
     this.priceSort,
     this.selectedAirline,
     this.cabinBagIncluded,
@@ -63,6 +70,7 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
     double? maxPrice,
     String? sortBy,
     int? selectedDateIndex,
+    String? tripId,
     DateTime? departureDate,
     DateTime? returnDate,
     String? departureCode,
@@ -72,6 +80,8 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
     int? infants,
     String? travelClass,
     List<FlightSegment>? multiDestSegments,
+    Map<int, List<Flight>>? segmentResults,
+    List<String>? segmentLabels,
     String? priceSort,
     String? selectedAirline,
     bool? cabinBagIncluded,
@@ -86,6 +96,7 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
       maxPrice: maxPrice ?? this.maxPrice,
       sortBy: sortBy ?? this.sortBy,
       selectedDateIndex: selectedDateIndex ?? this.selectedDateIndex,
+      tripId: tripId ?? this.tripId,
       departureDate: departureDate ?? this.departureDate,
       returnDate: returnDate ?? this.returnDate,
       departureCode: departureCode ?? this.departureCode,
@@ -95,6 +106,8 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
       infants: infants ?? this.infants,
       travelClass: travelClass ?? this.travelClass,
       multiDestSegments: multiDestSegments ?? this.multiDestSegments,
+      segmentResults: segmentResults ?? this.segmentResults,
+      segmentLabels: segmentLabels ?? this.segmentLabels,
       priceSort: priceSort ?? this.priceSort,
       selectedAirline: selectedAirline ?? this.selectedAirline,
       cabinBagIncluded: cabinBagIncluded ?? this.cabinBagIncluded,
@@ -106,7 +119,7 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
 }
 
 final class FlightSearchResultError extends FlightSearchResultState {
-  final String message;
+  final AppError error;
 
-  FlightSearchResultError(this.message);
+  FlightSearchResultError(this.error);
 }

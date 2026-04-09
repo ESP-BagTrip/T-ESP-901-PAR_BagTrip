@@ -1,13 +1,15 @@
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/budget_chip_selector.dart';
+import 'package:bagtrip/design/widgets/budget_preset_list.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
 import 'package:bagtrip/plan_trip/helpers/budget_estimation.dart';
+import 'package:bagtrip/plan_trip/helpers/traveler_breakdown_format.dart';
 import 'package:bagtrip/plan_trip/models/budget_preset.dart';
-import 'package:bagtrip/plan_trip/widgets/traveler_stepper.dart';
+import 'package:bagtrip/plan_trip/widgets/traveler_breakdown_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -47,97 +49,94 @@ class StepTravelersBudgetView extends StatelessWidget {
             ? BudgetPreset.values.indexOf(state.budgetPreset!)
             : null;
 
+        final detailChip = formatTravelerBreakdownDetail(
+          l10n,
+          nbAdults: state.nbAdults,
+          nbChildren: state.nbChildren,
+          nbBabies: state.nbBabies,
+        );
+
         return ListView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.space16,
+            AppSpacing.space16,
+            AppSpacing.space16,
+            AppSpacing.space16,
+          ),
           children: [
-            // Travelers header
-            Row(
-              children: [
-                const Icon(
-                  Icons.people_outline_rounded,
-                  size: 18,
-                  color: ColorName.secondary,
-                ),
-                const SizedBox(width: AppSpacing.space8),
-                Text(
-                  l10n.travelersLabel,
-                  style: const TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: ColorName.secondary,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
+            Text(
+              l10n.travelersLabel,
+              style: const TextStyle(
+                fontFamily: FontFamily.b612,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: ColorName.secondary,
+                letterSpacing: 1.2,
+              ),
             ),
             const SizedBox(height: AppSpacing.space16),
 
-            // TravelerStepper
-            TravelerStepper(
-              value: state.nbTravelers,
-              onChanged: (count) => context.read<PlanTripBloc>().add(
-                PlanTripEvent.setTravelers(count),
+            TravelerBreakdownCard(
+              nbAdults: state.nbAdults,
+              nbChildren: state.nbChildren,
+              nbBabies: state.nbBabies,
+              onAdultsChanged: (v) => context.read<PlanTripBloc>().add(
+                PlanTripEvent.setTravelerCounts(adults: v),
+              ),
+              onChildrenChanged: (v) => context.read<PlanTripBloc>().add(
+                PlanTripEvent.setTravelerCounts(children: v),
+              ),
+              onBabiesChanged: (v) => context.read<PlanTripBloc>().add(
+                PlanTripEvent.setTravelerCounts(babies: v),
               ),
             ),
 
-            // Travelers count badge
-            const SizedBox(height: AppSpacing.space16),
-            Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.space16,
-                  vertical: AppSpacing.space8,
-                ),
-                decoration: BoxDecoration(
-                  color: ColorName.surface,
-                  borderRadius: AppRadius.pill,
-                  border: Border.all(color: ColorName.primarySoftLight),
-                ),
-                child: Text(
-                  l10n.travelerCountLabel(state.nbTravelers),
-                  style: const TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: ColorName.primaryTrueDark,
+            if (detailChip.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.space4),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.space12,
+                    vertical: AppSpacing.space8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: ColorName.secondary.withValues(alpha: 0.05),
+                    borderRadius: AppRadius.pill,
+                    border: Border.all(color: ColorName.secondary),
+                  ),
+                  child: Text(
+                    detailChip,
+                    style: const TextStyle(
+                      fontFamily: FontFamily.b612,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: ColorName.primaryTrueDark,
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
 
-            const SizedBox(height: AppSpacing.space32),
+            const SizedBox(height: AppSpacing.space16),
 
-            // Budget header
-            Row(
-              children: [
-                const Icon(
-                  Icons.account_balance_wallet_outlined,
-                  size: 18,
-                  color: ColorName.secondary,
-                ),
-                const SizedBox(width: AppSpacing.space8),
-                Text(
-                  l10n.budgetLabel,
-                  style: const TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: ColorName.secondary,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
+            Text(
+              l10n.budgetLabel,
+              style: const TextStyle(
+                fontFamily: FontFamily.b612,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: ColorName.secondary,
+                letterSpacing: 1.6,
+              ),
             ),
             const SizedBox(height: AppSpacing.space16),
 
-            // Budget chip selector
-            BudgetChipSelector(
+            BudgetPresetList(
               options: budgetOptions,
               selectedIndex: selectedBudgetIndex,
               onSelected: (index) {
                 final preset = BudgetPreset.values[index];
-                // Toggle: tapping same preset deselects
                 if (state.budgetPreset == preset) {
                   context.read<PlanTripBloc>().add(
                     const PlanTripEvent.setBudgetPreset(null),
@@ -150,7 +149,6 @@ class StepTravelersBudgetView extends StatelessWidget {
               },
             ),
 
-            // Budget estimation badge
             if (state.budgetPreset != null &&
                 state.tripDurationDays != null) ...[
               const SizedBox(height: AppSpacing.space16),
@@ -163,7 +161,17 @@ class StepTravelersBudgetView extends StatelessWidget {
 
             const SizedBox(height: AppSpacing.space16),
 
-            // Skip link
+            _ContinueButton(
+              onPressed: () {
+                AppHaptics.medium();
+                context.read<PlanTripBloc>().add(
+                  const PlanTripEvent.nextStep(),
+                );
+              },
+            ),
+
+            const SizedBox(height: AppSpacing.space16),
+
             Center(
               child: TextButton(
                 onPressed: () {
@@ -177,24 +185,12 @@ class StepTravelersBudgetView extends StatelessWidget {
                 child: Text(
                   l10n.budgetSkipLabel,
                   style: const TextStyle(
-                    fontFamily: FontFamily.b612,
+                    fontFamily: FontFamily.dMSans,
                     fontSize: 14,
-                    color: ColorName.hint,
+                    color: ColorName.primaryDark,
                   ),
                 ),
               ),
-            ),
-
-            const SizedBox(height: AppSpacing.space16),
-
-            // Continue button (always enabled)
-            _ContinueButton(
-              onPressed: () {
-                AppHaptics.medium();
-                context.read<PlanTripBloc>().add(
-                  const PlanTripEvent.nextStep(),
-                );
-              },
             ),
           ],
         );
@@ -272,12 +268,13 @@ class _ContinueButton extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Container(
-      height: 56,
+      constraints: const BoxConstraints(minHeight: 44),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.space15),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [ColorName.primary, ColorName.secondary],
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: AppRadius.pill,
         boxShadow: [
           BoxShadow(
             color: ColorName.primary.withValues(alpha: 0.3),
@@ -290,13 +287,13 @@ class _ContinueButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: AppRadius.pill,
           child: Center(
             child: Text(
               l10n.continueButton,
               style: const TextStyle(
                 fontSize: 16,
-                fontFamily: FontFamily.b612,
+                fontFamily: FontFamily.dMSerifDisplay,
                 fontWeight: FontWeight.w600,
                 color: ColorName.surface,
               ),

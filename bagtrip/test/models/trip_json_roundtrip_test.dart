@@ -14,7 +14,7 @@ void main() {
         'end_date': '2024-07-30T00:00:00.000',
         'status': 'planned',
         'description': 'Two weeks exploring Japanese culture and cuisine',
-        'destinationName': 'Tokyo',
+        'destination_name': 'Tokyo',
         'nb_travelers': 3,
         'cover_image_url': 'https://cdn.example.com/trips/tokyo-cover.jpg',
         'budget_total': 4500.75,

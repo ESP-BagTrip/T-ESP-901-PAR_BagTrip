@@ -4,8 +4,7 @@ import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/view/active_trip_home_view.dart';
 import 'package:bagtrip/home/view/home_view.dart';
-import 'package:bagtrip/home/view/onboarding_home_view.dart';
-import 'package:bagtrip/home/view/trip_manager_home_view.dart';
+import 'package:bagtrip/home/view/idle_home_view.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
@@ -67,11 +66,11 @@ void main() {
       expect(find.byIcon(Icons.refresh), findsOneWidget);
     });
 
-    testWidgets('NewUser renders OnboardingHomeView', (tester) async {
-      await tester.pumpWidget(buildApp(HomeNewUser(user: makeUser())));
+    testWidgets('Idle (no trips) renders IdleHomeView', (tester) async {
+      await tester.pumpWidget(buildApp(HomeIdle(user: makeUser())));
       await tester.pump(const Duration(seconds: 1));
 
-      expect(find.byType(OnboardingHomeView), findsOneWidget);
+      expect(find.byType(IdleHomeView), findsOneWidget);
     });
 
     testWidgets('ActiveTrip renders ActiveTripHomeView', (tester) async {
@@ -93,10 +92,10 @@ void main() {
       expect(find.byType(ActiveTripHomeView), findsOneWidget);
     });
 
-    testWidgets('TripManager renders TripManagerHomeView', (tester) async {
+    testWidgets('Idle (with trips) renders IdleHomeView', (tester) async {
       await tester.pumpWidget(
         buildApp(
-          HomeTripManager(
+          HomeIdle(
             user: makeUser(),
             upcomingTrips: [makeTrip(status: TripStatus.planned)],
           ),
@@ -104,11 +103,11 @@ void main() {
       );
       await tester.pump(const Duration(seconds: 1));
 
-      expect(find.byType(TripManagerHomeView), findsOneWidget);
+      expect(find.byType(IdleHomeView), findsOneWidget);
     });
 
     testWidgets('AnimatedSwitcher is in widget tree', (tester) async {
-      await tester.pumpWidget(buildApp(HomeNewUser(user: makeUser())));
+      await tester.pumpWidget(buildApp(HomeIdle(user: makeUser())));
       await tester.pump();
 
       expect(find.byType(AnimatedSwitcher), findsOneWidget);

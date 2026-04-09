@@ -11,10 +11,14 @@ class StepSummaryItem {
   final String label;
   final String value;
 
+  /// Optional second line (e.g. exact date range under duration).
+  final String? subtitle;
+
   const StepSummaryItem({
     required this.icon,
     required this.label,
     required this.value,
+    this.subtitle,
   });
 }
 
@@ -27,11 +31,16 @@ class StepHeader extends StatefulWidget {
   final bool initiallyExpanded;
   final VoidCallback? onToggle;
 
+  /// When true, collapsed state shows dates | travelers in two columns with a
+  /// thin divider (expects at least two items: dates, then travelers).
+  final bool enrichedSplitCollapsed;
+
   const StepHeader({
     super.key,
     required this.items,
     this.initiallyExpanded = false,
     this.onToggle,
+    this.enrichedSplitCollapsed = false,
   });
 
   @override
@@ -60,7 +69,7 @@ class _StepHeaderState extends State<StepHeader> {
         padding: AppSpacing.allEdgeInsetSpace16,
         decoration: BoxDecoration(
           color: ColorName.surface,
-          borderRadius: AppRadius.large16,
+          borderRadius: AppRadius.large24,
           border: Border.all(color: ColorName.primarySoftLight),
           boxShadow: [
             BoxShadow(
@@ -83,6 +92,9 @@ class _StepHeaderState extends State<StepHeader> {
   }
 
   Widget _buildCollapsed() {
+    if (widget.enrichedSplitCollapsed && widget.items.length >= 2) {
+      return _buildEnrichedSplitCollapsed(widget.items[0], widget.items[1]);
+    }
     return Row(
       children: [
         Expanded(
@@ -90,28 +102,155 @@ class _StepHeaderState extends State<StepHeader> {
             children: [
               for (int i = 0; i < widget.items.length; i++) ...[
                 if (i > 0) const SizedBox(width: AppSpacing.space8),
-                Icon(widget.items[i].icon, size: 16, color: AppColors.primary),
-                const SizedBox(width: AppSpacing.space4),
-                Flexible(
-                  child: Text(
-                    widget.items[i].value,
-                    style: const TextStyle(
-                      fontFamily: FontFamily.b612,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: ColorName.primaryTrueDark,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
+                Icon(
+                  widget.items[i].icon,
+                  size: 16,
+                  color: AppColors.secondary,
                 ),
+                const SizedBox(width: AppSpacing.space16),
+                Flexible(child: _collapsedValueText(widget.items[i])),
               ],
             ],
           ),
         ),
         const SizedBox(width: AppSpacing.space8),
-        const Icon(Icons.keyboard_arrow_down, size: 20, color: AppColors.hint),
+        const Icon(Icons.keyboard_arrow_down, size: 18, color: AppColors.hint),
       ],
+    );
+  }
+
+  Widget _buildEnrichedSplitCollapsed(
+    StepSummaryItem dates,
+    StepSummaryItem travelers,
+  ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: _enrichedSplitBlock(
+            icon: dates.icon,
+            primary: dates.value,
+            secondary: dates.subtitle,
+          ),
+        ),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.space8),
+          child: SizedBox(
+            height: 44,
+            child: VerticalDivider(width: 1, color: ColorName.primarySoftLight),
+          ),
+        ),
+        Expanded(
+          child: _enrichedSplitBlock(
+            icon: travelers.icon,
+            primary: travelers.value,
+            secondary: travelers.subtitle,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.space4),
+        const Padding(
+          padding: EdgeInsets.only(top: 2),
+          child: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            size: 18,
+            color: AppColors.hint,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _enrichedSplitBlock({
+    required IconData icon,
+    required String primary,
+    required String? secondary,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: AppColors.secondary),
+        const SizedBox(width: AppSpacing.space8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                primary,
+                style: const TextStyle(
+                  fontFamily: FontFamily.dMSans,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: ColorName.primaryTrueDark,
+                  height: 1.2,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (secondary != null && secondary.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  secondary,
+                  style: const TextStyle(
+                    fontFamily: FontFamily.dMSans,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    color: ColorName.hint,
+                    height: 1.2,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _collapsedValueText(StepSummaryItem item) {
+    if (item.subtitle != null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            item.value,
+            style: const TextStyle(
+              fontFamily: FontFamily.dMSerifDisplay,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: ColorName.primaryDark,
+              height: 1.2,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+          Text(
+            item.subtitle!,
+            style: const TextStyle(
+              fontFamily: FontFamily.dMSans,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: ColorName.hint,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ],
+      );
+    }
+    return Text(
+      item.value,
+      style: const TextStyle(
+        fontFamily: FontFamily.b612,
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: ColorName.primaryTrueDark,
+      ),
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1,
     );
   }
 
@@ -167,6 +306,18 @@ class _StepHeaderState extends State<StepHeader> {
                   color: ColorName.primaryTrueDark,
                 ),
               ),
+              if (item.subtitle != null) ...[
+                const SizedBox(height: AppSpacing.space4),
+                Text(
+                  item.subtitle!,
+                  style: const TextStyle(
+                    fontFamily: FontFamily.b612,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                    color: ColorName.hint,
+                  ),
+                ),
+              ],
             ],
           ),
         ),

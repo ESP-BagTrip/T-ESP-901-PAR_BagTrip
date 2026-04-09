@@ -1,4 +1,5 @@
 import 'package:bagtrip/activities/bloc/activity_bloc.dart';
+import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
@@ -187,12 +188,25 @@ class ActivitiesView extends StatelessWidget {
                         isViewer: role == 'VIEWER' || isCompleted,
                         onEdit: () =>
                             _showForm(context, tripId, activity: activity),
-                        onDelete: () => context.read<ActivityBloc>().add(
-                          DeleteActivity(
-                            tripId: tripId,
-                            activityId: activity.id,
-                          ),
-                        ),
+                        onDelete: () {
+                          final l10n = AppLocalizations.of(context)!;
+                          showAdaptiveAlertDialog(
+                            context: context,
+                            title: l10n.activityDeleteTitle,
+                            content: l10n.activityDeleteConfirm,
+                            confirmLabel: l10n.deleteButton,
+                            cancelLabel: l10n.cancelButton,
+                            isDestructive: true,
+                            onConfirm: () {
+                              context.read<ActivityBloc>().add(
+                                DeleteActivity(
+                                  tripId: tripId,
+                                  activityId: activity.id,
+                                ),
+                              );
+                            },
+                          );
+                        },
                         onValidate: () => _showValidateModal(context, activity),
                       ),
                     ),

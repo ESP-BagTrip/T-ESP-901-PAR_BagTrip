@@ -22,12 +22,14 @@ _Trip _$TripFromJson(Map<String, dynamic> json) => _Trip(
       ? TripStatus.draft
       : const TripStatusConverter().fromJson(json['status'] as String),
   description: json['description'] as String?,
-  destinationName: json['destinationName'] as String?,
+  destinationName: json['destination_name'] as String?,
+  destinationTimezone: json['destination_timezone'] as String?,
   nbTravelers: (json['nb_travelers'] as num?)?.toInt(),
   coverImageUrl: json['cover_image_url'] as String?,
   budgetTotal: (json['budget_total'] as num?)?.toDouble(),
   origin: json['origin'] as String?,
   role: json['role'] as String?,
+  completionPercentage: (json['completion_percentage'] as num?)?.toInt() ?? 0,
   createdAt: json['created_at'] == null
       ? null
       : DateTime.parse(json['created_at'] as String),
@@ -46,12 +48,14 @@ Map<String, dynamic> _$TripToJson(_Trip instance) => <String, dynamic>{
   'end_date': instance.endDate?.toIso8601String(),
   'status': const TripStatusConverter().toJson(instance.status),
   'description': instance.description,
-  'destinationName': instance.destinationName,
+  'destination_name': instance.destinationName,
+  'destination_timezone': instance.destinationTimezone,
   'nb_travelers': instance.nbTravelers,
   'cover_image_url': instance.coverImageUrl,
   'budget_total': instance.budgetTotal,
   'origin': instance.origin,
   'role': instance.role,
+  'completion_percentage': instance.completionPercentage,
   'created_at': instance.createdAt?.toIso8601String(),
   'updated_at': instance.updatedAt?.toIso8601String(),
 };

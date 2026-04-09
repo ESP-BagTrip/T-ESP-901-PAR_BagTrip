@@ -1,4 +1,9 @@
-"""Routes pour la recherche d'hôtels via Amadeus."""
+"""Routes pour la recherche d'hôtels via Amadeus.
+
+Search-only hotel discovery. No booking/reservation via Amadeus is supported.
+Users book accommodations externally and record them via the
+/v1/trips/{tripId}/accommodations CRUD endpoints.
+"""
 
 from fastapi import APIRouter, Depends, Query
 

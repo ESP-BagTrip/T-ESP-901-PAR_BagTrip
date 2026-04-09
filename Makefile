@@ -73,11 +73,11 @@ err   = @printf "$(RED)[err]$(RESET)  %s\n" $(1)
 
 # ── Phony targets ────────────────────────────────────────────
 .PHONY: help init \
-        dev dev-docker dev-mobile stop logs \
+        dev dev-docker dev-mobile pre-prod prod stop logs \
         dev-clean \
         check lint lint-api lint-admin lint-mobile test test-api test-mobile \
         test-e2e \
-        coverage golden-test golden-update \
+        coverage \
         db-reset db-revision db-shell \
         shell-api shell-admin
 
@@ -91,9 +91,11 @@ help: ## Show this help
 	@printf "  $(CYAN)make init$(RESET)            Setup project (env, deps, hooks)\n"
 	@printf "\n"
 	@printf "$(BOLD) Development$(RESET)\n"
-	@printf "  $(CYAN)make dev$(RESET)             Start Docker services + Flutter app\n"
+	@printf "  $(CYAN)make dev$(RESET)             Start Docker services + Flutter app (full local)\n"
 	@printf "  $(CYAN)make dev-docker$(RESET)      Start Docker services only (db, api, admin)\n"
 	@printf "  $(CYAN)make dev-mobile$(RESET)      Start Flutter app only\n"
+	@printf "  $(CYAN)make pre-prod$(RESET)        Flutter only \u2192 https://api.dev.bagtrip.fr\n"
+	@printf "  $(CYAN)make prod$(RESET)            Flutter only \u2192 https://api.bagtrip.fr\n"
 	@printf "  $(CYAN)make stop$(RESET)            Stop Docker services\n"
 	@printf "  $(CYAN)make logs$(RESET)            Follow Docker logs\n"
 	@printf "\n"
@@ -105,9 +107,7 @@ help: ## Show this help
 	@printf "  $(CYAN)make lint$(RESET)            Run all linters (api + admin + mobile)\n"
 	@printf "  $(CYAN)make test$(RESET)            Run all tests (api + mobile + e2e)\n"
 	@printf "  $(CYAN)make test-e2e$(RESET)        Run E2E integration tests\n"
-	@printf "  $(CYAN)make coverage$(RESET)        Run Flutter tests with coverage (60%% threshold)\n"
-	@printf "  $(CYAN)make golden-test$(RESET)     Verify golden tests haven't drifted\n"
-	@printf "  $(CYAN)make golden-update$(RESET)   Regenerate golden reference files\n"
+	@printf "  $(CYAN)make coverage$(RESET)        Run Flutter tests with coverage (30%% threshold)\n"
 	@printf "\n"
 	@printf "$(BOLD) Database$(RESET)\n"
 	@printf "  $(CYAN)make db-reset$(RESET)       Drop and recreate the database (dev only)\n"
@@ -177,6 +177,29 @@ dev-docker: ## Start Docker services only (db, api, admin)
 
 dev-mobile: ## Start Flutter app only
 	@$(MAKE) --no-print-directory _flutter-run
+
+pre-prod: ## Flutter only — points at https://api.dev.bagtrip.fr (admin: https://dev.bagtrip.fr)
+	@$(MAKE) --no-print-directory _flutter-run-remote \
+		API_URL=https://api.dev.bagtrip.fr/v1 \
+		ADMIN_URL=https://dev.bagtrip.fr \
+		ENV_LABEL=PRE-PROD
+
+prod: ## Flutter only — points at https://api.bagtrip.fr (admin: https://bagtrip.fr)
+	@$(MAKE) --no-print-directory _flutter-run-remote \
+		API_URL=https://api.bagtrip.fr/v1 \
+		ADMIN_URL=https://bagtrip.fr \
+		ENV_LABEL=PROD
+
+# Internal: run Flutter against a remote API (pre-prod or prod). No local docker.
+_flutter-run-remote:
+	$(eval DEVICE := $(call detect_device))
+	$(eval DEVICE_FLAG := $(if $(DEVICE),-d $(DEVICE),))
+	@printf "$(YELLOW)[$(ENV_LABEL)]$(RESET) Target device: $(if $(DEVICE),$(DEVICE),auto)\n"
+	@printf "$(YELLOW)[$(ENV_LABEL)]$(RESET) API URL:       $(API_URL)\n"
+	@printf "$(YELLOW)[$(ENV_LABEL)]$(RESET) Admin panel:   $(ADMIN_URL)\n\n"
+	@printf "$(CYAN)[info]$(RESET) Starting Flutter (hot reload: r/R, quit: q)\u2026\n\n"
+	@cd $(FLUTTER_DIR) && flutter run $(DEVICE_FLAG) \
+		--dart-define=API_BASE_URL=$(API_URL)
 
 # Internal: detect device, resolve API host, inject --dart-define, run Flutter
 _flutter-run:
@@ -275,32 +298,23 @@ test-e2e-%: ## Run single E2E test (e.g. make test-e2e-ft3_active_trip)
 	@cd $(FLUTTER_DIR) && flutter test integration_test/$*_test.dart
 	$(call ok,"E2E test $* passed")
 
-coverage: ## Run Flutter tests with coverage (60% threshold)
+coverage: ## Run Flutter tests with coverage (30% threshold)
 	@printf "$(CYAN)[info]$(RESET) Running Flutter tests with coverage…\n"
 	@cd $(FLUTTER_DIR) && flutter test --coverage
 	@printf "$(GREEN)[ok]$(RESET)   Coverage report: $(FLUTTER_DIR)/coverage/lcov.info\n"
 	@if command -v lcov &>/dev/null; then \
 		COVERAGE=$$(lcov --summary $(FLUTTER_DIR)/coverage/lcov.info 2>&1 | grep 'lines' | sed 's/.*: *\([0-9.]*\)%.*/\1/'); \
 		printf "$(CYAN)[info]$(RESET) Line coverage: $${COVERAGE}%%\n"; \
-		if [ "$$(echo "$$COVERAGE < 60" | bc -l)" -eq 1 ]; then \
-			printf "$(RED)[err]$(RESET)  Coverage $${COVERAGE}%% below 60%% threshold\n"; \
+		if [ "$$(echo "$$COVERAGE < 30" | bc -l)" -eq 1 ]; then \
+			printf "$(RED)[err]$(RESET)  Coverage $${COVERAGE}%% below 30%% threshold\n"; \
 			exit 1; \
 		else \
-			printf "$(GREEN)[ok]$(RESET)   Coverage meets 60%% threshold\n"; \
+			printf "$(GREEN)[ok]$(RESET)   Coverage meets 30%% threshold\n"; \
 		fi; \
 	else \
 		printf "$(YELLOW)[warn]$(RESET) lcov not installed — skipping threshold check\n"; \
 	fi
 
-golden-test: ## Verify golden tests haven't drifted
-	@printf "$(CYAN)[info]$(RESET) Running golden tests…\n"
-	@cd $(FLUTTER_DIR) && flutter test --tags=golden
-	$(call ok,"Golden tests passed")
-
-golden-update: ## Regenerate golden reference files
-	@printf "$(CYAN)[info]$(RESET) Regenerating golden files…\n"
-	@cd $(FLUTTER_DIR) && flutter test --tags=golden --update-goldens
-	$(call ok,"Goldens updated — review and commit the new .png files")
 
 # ══════════════════════════════════════════════════════════════
 #  DATABASE

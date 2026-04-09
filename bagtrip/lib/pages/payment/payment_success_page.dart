@@ -7,20 +7,22 @@ import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:flutter/material.dart';
 
 class PaymentSuccessPage extends StatelessWidget {
-  const PaymentSuccessPage({super.key});
+  final String? intentId;
+  const PaymentSuccessPage({super.key, this.intentId});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
+    final brightness = Theme.of(context).brightness;
     return Scaffold(
-      backgroundColor: PersonalizationColors.gradientStart,
+      backgroundColor: PersonalizationColors.gradientStartOf(brightness),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: PersonalizationColors.backgroundGradient,
+            colors: PersonalizationColors.backgroundGradientOf(brightness),
           ),
         ),
         child: SafeArea(
@@ -56,6 +58,17 @@ class PaymentSuccessPage extends StatelessWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
+                  if (intentId != null) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      'Ref: ${intentId!.substring(0, intentId!.length.clamp(0, 8))}',
+                      style: const TextStyle(
+                        fontFamily: FontFamily.b612,
+                        fontSize: 12,
+                        color: ColorName.hint,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,

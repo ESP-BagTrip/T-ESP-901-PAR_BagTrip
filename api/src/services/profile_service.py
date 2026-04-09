@@ -24,6 +24,7 @@ class ProfileService:
         budget: str | None = None,
         companions: str | None = None,
         medical_constraints: str | None = None,
+        travel_frequency: str | None = None,
     ) -> TravelerProfile:
         """Créer ou mettre à jour le profil voyageur (upsert)."""
         profile = db.query(TravelerProfile).filter(TravelerProfile.user_id == user_id).first()
@@ -42,6 +43,8 @@ class ProfileService:
             profile.companions = companions
         if medical_constraints is not None:
             profile.medical_constraints = medical_constraints
+        if travel_frequency is not None:
+            profile.travel_frequency = travel_frequency
 
         # Calculer is_completed : tous les champs doivent être renseignés
         profile.is_completed = all(

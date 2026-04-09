@@ -1,4 +1,4 @@
-"""Tool wrappers for agent nodes — Amadeus + Open-Meteo."""
+"""Tool wrappers for agent nodes — Amadeus + Open-Meteo + offline aviation data."""
 
 from __future__ import annotations
 
@@ -12,8 +12,8 @@ from src.integrations.amadeus.types import (
     FlightOfferSearchQuery,
     HotelListSearchQuery,
     HotelOffersSearchQuery,
-    LocationKeywordSearchQuery,
 )
+from src.integrations.aviation_data import aviation_data_service
 from src.utils.idempotency import idempotency_cache
 from src.utils.logger import logger
 
@@ -22,42 +22,34 @@ _amadeus_semaphore = asyncio.Semaphore(3)
 
 
 # ---------------------------------------------------------------------------
-# resolve_iata_code
+# resolve_iata_code — offline (no Amadeus call)
 # ---------------------------------------------------------------------------
 
 
 async def resolve_iata_code(city_name: str) -> dict:
-    """Resolve a city name to its IATA airport code via Amadeus.
+    """Resolve a city name to its IATA airport code using offline data.
 
     Returns: {"iata": "CDG", "city": "Paris", "country": "France",
               "lat": 49.0, "lon": 2.55}
     """
-    cache_key_params = {"city_name": city_name}
-    cached = idempotency_cache.get("resolve_iata_code", cache_key_params)
-    if cached is not None:
-        return cached
-
     try:
-        async with _amadeus_semaphore:
-            locations = await amadeus_client.search_locations_by_keyword(
-                LocationKeywordSearchQuery(subType="CITY,AIRPORT", keyword=city_name)
-            )
+        locations = aviation_data_service.search_by_keyword(
+            city_name, sub_type="CITY,AIRPORT", limit=1
+        )
         if not locations:
             return {"error": f"No IATA code found for '{city_name}'"}
 
         loc = locations[0]
-        result = {
+        return {
             "iata": loc.iataCode or loc.address.cityCode,
             "city": loc.address.cityName,
             "country": loc.address.countryName,
             "lat": loc.geoCode.latitude,
             "lon": loc.geoCode.longitude,
         }
-        idempotency_cache.set("resolve_iata_code", cache_key_params, result)
-        return result
     except Exception as e:
         logger.error("resolve_iata_code failed", {"city": city_name, "error": str(e)})
-        return {"error": f"Amadeus location search failed: {e}"}
+        return {"error": f"Location search failed: {e}"}
 
 
 # ---------------------------------------------------------------------------
