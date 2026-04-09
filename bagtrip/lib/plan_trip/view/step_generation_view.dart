@@ -91,7 +91,7 @@ class _StepGenerationViewState extends State<StepGenerationView>
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space24),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space22),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -137,7 +137,12 @@ class _StepGenerationViewState extends State<StepGenerationView>
     final progressPercent = (state.generationProgress * 100).round();
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.space22,
+        AppSpacing.space22,
+        AppSpacing.space22,
+        40,
+      ),
       children: [
         // Pulsing AI avatar
         Center(child: _PulsingAiAvatar(controller: _pulseController)),

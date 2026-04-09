@@ -1739,6 +1739,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get datesLabel => 'DATES';
 
   @override
+  String get datesChooseDatePlaceholder => 'Choose a date';
+
+  @override
+  String tripNightsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nights',
+      one: '1 night',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get suggestedDuration => 'Suggested duration';
 
   @override
@@ -2097,6 +2111,62 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get travelerTypeAdults => 'Adults';
+
+  @override
+  String get travelerTypeChildren => 'Children';
+
+  @override
+  String get travelerTypeBabies => 'Babies';
+
+  @override
+  String get travelerAgeAdultsSubtitle => 'Ages 13+';
+
+  @override
+  String get travelerAgeChildrenSubtitle => 'Ages 3–12';
+
+  @override
+  String get travelerAgeBabiesSubtitle => 'Ages 0–2';
+
+  @override
+  String travelerSegmentAdult(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count adults',
+      one: '1 adult',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String travelerSegmentChild(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count children',
+      one: '1 child',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String travelerSegmentBaby(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count babies',
+      one: '1 baby',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String planTripDurationDaysNights(int days, int nights) {
+    return '$days days · $nights nights';
+  }
+
+  @override
   String get budgetLabel => 'BUDGET';
 
   @override
@@ -2131,6 +2201,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get destinationSectionLabel => 'DESTINATION';
+
+  @override
+  String get destinationPopularSectionLabel => 'POPULAR RIGHT NOW';
 
   @override
   String get destinationOrSeparator => 'OR';

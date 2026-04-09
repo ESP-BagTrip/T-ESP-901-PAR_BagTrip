@@ -737,6 +737,15 @@
   "homeCtaStartPlanning": "Commencer",
   "inspireMe": "Inspire-moi",
   "datesLabel": "DATES",
+  "datesChooseDatePlaceholder": "Choisir une date",
+  "tripNightsCount": "{count, plural, =1{1 nuit} other{{count} nuits}}",
+  "@tripNightsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "suggestedDuration": "Durée suggérée",
   "days": "jours",
   "reviewTitle": "Récapitulatif",
@@ -863,6 +872,37 @@
       "count": {"type": "int"}
     }
   },
+  "travelerTypeAdults": "Adultes",
+  "travelerTypeChildren": "Enfants",
+  "travelerTypeBabies": "Bébés",
+  "travelerAgeAdultsSubtitle": "13 ans et plus",
+  "travelerAgeChildrenSubtitle": "3 à 12 ans",
+  "travelerAgeBabiesSubtitle": "0 à 2 ans",
+  "travelerSegmentAdult": "{count, plural, =1{1 adulte} other{{count} adultes}}",
+  "@travelerSegmentAdult": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "travelerSegmentChild": "{count, plural, =1{1 enfant} other{{count} enfants}}",
+  "@travelerSegmentChild": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "travelerSegmentBaby": "{count, plural, =1{1 bébé} other{{count} bébés}}",
+  "@travelerSegmentBaby": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "planTripDurationDaysNights": "{days} jours · {nights} nuits",
+  "@planTripDurationDaysNights": {
+    "placeholders": {
+      "days": {"type": "int"},
+      "nights": {"type": "int"}
+    }
+  },
   "budgetLabel": "BUDGET",
   "budgetPresetBackpacker": "Routard",
   "budgetPresetBackpackerDesc": "30–60 €/jour",
@@ -875,6 +915,7 @@
   "budgetEstimationLabel": "TOTAL ESTIMÉ",
   "budgetSkipLabel": "Je verrai plus tard",
   "destinationSectionLabel": "DESTINATION",
+  "destinationPopularSectionLabel": "POPULAIRES EN CE MOMENT",
   "destinationOrSeparator": "OU",
   "destinationNoResults": "Aucun résultat trouvé",
   "destinationAiLoading": "Notre IA cherche pour vous...",

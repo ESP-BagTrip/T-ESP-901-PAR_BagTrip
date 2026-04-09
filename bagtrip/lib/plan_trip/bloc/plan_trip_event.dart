@@ -17,7 +17,11 @@ sealed class PlanTripEvent with _$PlanTripEvent {
       PlanTripSetFlexibleDuration;
 
   // Step 1 — Travelers + Budget
-  const factory PlanTripEvent.setTravelers(int count) = PlanTripSetTravelers;
+  const factory PlanTripEvent.setTravelerCounts({
+    int? adults,
+    int? children,
+    int? babies,
+  }) = PlanTripSetTravelerCounts;
   const factory PlanTripEvent.setBudgetPreset(BudgetPreset? preset) =
       PlanTripSetBudgetPreset;
   const factory PlanTripEvent.setOriginCity(String city) =

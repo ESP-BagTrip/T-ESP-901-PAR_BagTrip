@@ -1,7 +1,8 @@
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
 import 'package:bagtrip/plan_trip/models/budget_preset.dart';
 import 'package:bagtrip/plan_trip/view/step_travelers_budget_view.dart';
-import 'package:bagtrip/plan_trip/widgets/traveler_stepper.dart';
+import 'package:bagtrip/design/widgets/budget_preset_list.dart';
+import 'package:bagtrip/plan_trip/widgets/traveler_breakdown_card.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -46,17 +47,18 @@ void main() {
   }
 
   group('StepTravelersBudgetView', () {
-    testWidgets('renders TravelerStepper', (tester) async {
+    testWidgets('renders TravelerBreakdownCard', (tester) async {
       await tester.pumpWidget(buildApp(const PlanTripState()));
       await tester.pumpAndSettle();
 
-      expect(find.byType(TravelerStepper), findsOneWidget);
+      expect(find.byType(TravelerBreakdownCard), findsOneWidget);
     });
 
-    testWidgets('renders 4 budget cards', (tester) async {
+    testWidgets('renders budget preset list', (tester) async {
       await tester.pumpWidget(buildApp(const PlanTripState()));
       await tester.pumpAndSettle();
 
+      expect(find.byType(BudgetPresetList), findsOneWidget);
       expect(find.text('Backpacker'), findsOneWidget);
       expect(find.text('Comfortable'), findsOneWidget);
       expect(find.text('Premium'), findsOneWidget);
@@ -74,6 +76,11 @@ void main() {
       await tester.pumpWidget(buildApp(state));
       await tester.pumpAndSettle();
 
+      await tester.scrollUntilVisible(
+        find.text('ESTIMATED TOTAL'),
+        500,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(find.text('ESTIMATED TOTAL'), findsOneWidget);
       // 1 traveler * 7 days: 210 – 420 €
       expect(find.text('210 – 420 €'), findsOneWidget);
@@ -96,6 +103,11 @@ void main() {
       await tester.pumpWidget(buildApp(const PlanTripState()));
       await tester.pumpAndSettle();
 
+      await tester.scrollUntilVisible(
+        find.text("I'll decide later"),
+        500,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.tap(find.text("I'll decide later"));
       await tester.pump();
 
@@ -109,6 +121,11 @@ void main() {
       await tester.pumpWidget(buildApp(const PlanTripState()));
       await tester.pumpAndSettle();
 
+      await tester.scrollUntilVisible(
+        find.text('Continue'),
+        500,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.tap(find.text('Continue'));
       await tester.pump();
 

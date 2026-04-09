@@ -4,6 +4,7 @@ import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/premium_cta_button.dart';
 import 'package:bagtrip/design/widgets/premium_step_indicator.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/personalization/bloc/personalization_bloc.dart';
 import 'package:bagtrip/personalization/widgets/budget_step_content.dart';
 import 'package:bagtrip/personalization/widgets/companions_step_content.dart';
@@ -13,7 +14,6 @@ import 'package:bagtrip/personalization/widgets/travel_types_step_content.dart';
 import 'package:bagtrip/personalization/widgets/welcome_step_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:go_router/go_router.dart';
 
 /// Welcome = 0, content steps 1–5 = companions, budget, interests, frequency, constraints.

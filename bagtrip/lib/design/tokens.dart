@@ -19,7 +19,13 @@ class AppSpacing {
   static const double space4 = 4.0;
   static const double space8 = 8.0;
   static const double space12 = 12.0;
+
+  /// Primary CTA vertical padding (Plan trip wizard).
+  static const double space15 = 15.0;
   static const double space16 = 16.0;
+
+  /// Horizontal margin for Plan trip wizard screens (Ive-style density).
+  static const double space22 = 22.0;
   static const double space24 = 24.0;
   static const double space32 = 32.0;
   static const double space40 = 40.0;
@@ -57,6 +63,9 @@ class AppSpacing {
   static const EdgeInsets verticalSpace16 = EdgeInsets.symmetric(
     vertical: space16,
   );
+  static const EdgeInsets verticalSpace15 = EdgeInsets.symmetric(
+    vertical: space15,
+  );
 
   // --- space12 EdgeInsets ---
   static const EdgeInsets allEdgeInsetSpace12 = EdgeInsets.all(space12);
@@ -80,6 +89,9 @@ class AppSpacing {
   static const EdgeInsets horizontalSpace24 = EdgeInsets.symmetric(
     horizontal: space24,
   );
+  static const EdgeInsets horizontalSpace22 = EdgeInsets.symmetric(
+    horizontal: space22,
+  );
 
   // --- Additional directional EdgeInsets ---
   static const EdgeInsets onlyTopSpace24 = EdgeInsets.only(top: space24);
@@ -93,6 +105,9 @@ class AppRadius {
   static const double cornerRaidus4 = 4.0;
   static const double cornerRaidus8 = 8.0;
   static const double cornerRaidus16 = 16.0;
+
+  /// Context pill (Plan trip step header).
+  static const double cornerRadius13 = 13.0;
   static const double cornerRadius20 = 20.0;
   static const double cornerRadius24 = 24.0;
   static const double cornerRadius28 = 28.0;
@@ -106,6 +121,9 @@ class AppRadius {
   );
   static const BorderRadius large16 = BorderRadius.all(
     Radius.circular(cornerRaidus16),
+  );
+  static const BorderRadius large13 = BorderRadius.all(
+    Radius.circular(cornerRadius13),
   );
   static const BorderRadius large20 = BorderRadius.all(
     Radius.circular(cornerRadius20),
