@@ -1,12 +1,22 @@
 # Infrastructure -- Docker, Compose, Makefile, Scripts
 
-> Derniere mise a jour : 2026-03-26
+> Derniere mise a jour : 2026-04-09
 
 ## Vue d'ensemble
 
-L'infrastructure de developpement BagTrip repose sur Docker Compose pour orchestrer les services backend, et un Makefile racine comme point d'entree unique pour toutes les commandes. Le mobile Flutter tourne nativement sur la machine hote (pas de conteneur). Aucune infrastructure de production (Dockerfiles prod, orchestrateur, CDN, etc.) n'est en place.
+L'infrastructure BagTrip repose sur Docker Compose et un Makefile racine comme point d'entree unique. Le mobile Flutter tourne nativement sur la machine hote (pas de conteneur).
 
-## Docker Compose (`compose.yml`)
+Trois environnements coexistent :
+
+| Environnement | Branche | Stack | URLs publiques |
+|---------------|---------|-------|----------------|
+| **Dev local** | n'importe quelle branche | `compose.yml` (Dockerfile.dev, hot reload) | `http://localhost:3000` / `http://localhost:8000` |
+| **Pre-production** | `develop` (auto) | `compose.prod.yml` sur `/opt/bagtrip-preprod` | `https://dev.bagtrip.fr` / `https://api.dev.bagtrip.fr` |
+| **Production** | `main` (auto) | `compose.prod.yml` sur `/opt/bagtrip` | `https://bagtrip.fr` / `https://api.bagtrip.fr` |
+
+Le pipeline CD (cf. [`ci-cd.md`](../ci-cd.md)) deploie automatiquement chaque push sur `develop`/`main` apres passage du Quality Gate.
+
+## Docker Compose dev (`compose.yml`)
 
 Le fichier `compose.yml` definit 3 services (+ 1 commente) :
 
@@ -53,6 +63,64 @@ Le volume `postgres_data` est declare au niveau du compose. Les identifiants par
 - **Variables** : `NEXT_PUBLIC_API_URL=http://localhost:3000`, `WATCHPACK_POLLING=true` (hot reload Docker)
 - **Port** : 8000 (Next.js dev avec Turbopack)
 
+## Docker Compose production (`compose.prod.yml`)
+
+Le meme fichier `compose.prod.yml` est utilise pour la production et la pre-production. Les valeurs specifiques par environnement sont injectees via `.env.production` (jamais commit, owne `deploy:deploy`, mode `0600` sur le VPS).
+
+### Services
+
+| Service | Image / Build | Port loopback | Notes |
+|---------|--------------|---------------|-------|
+| `postgres` | `postgres:15-alpine` | -- | Volume `postgres_data`, `pg_isready` healthcheck |
+| `redis` | `redis:7-alpine` | -- | RDB save 60s, `redis-cli ping` healthcheck |
+| `api` | Build `api/Dockerfile` (multi-stage uv) | -- (`expose: 3000`) | `alembic upgrade head` au demarrage, healthcheck `curl /health` |
+| `admin` | Build `admin-panel/application/Dockerfile` (multi-stage Next.js standalone) | -- (`expose: 8000`) | `NEXT_PUBLIC_API_URL` inline au build via build-arg |
+| `caddy` | `caddy:2-alpine` | `127.0.0.1:${CADDY_HOST_PORT}:80` | Reverse proxy interne, route `bagtrip.fr` -> admin et `api.bagtrip.fr` -> api par Host header |
+
+### Variables surchargeables (env -> defaut prod)
+
+| Variable | Defaut (prod) | Pre-prod |
+|----------|---------------|----------|
+| `CADDY_HOST_PORT` | `8081` | `8082` |
+| `API_ALLOWED_ORIGINS` | `https://bagtrip.fr` | `https://dev.bagtrip.fr` |
+| `API_COOKIE_DOMAIN` | `.bagtrip.fr` | `.dev.bagtrip.fr` |
+| `ADMIN_NEXT_PUBLIC_API_URL` | `https://api.bagtrip.fr` | `https://api.dev.bagtrip.fr` |
+
+### Variables forcees (jamais surchargees, definies dans le compose)
+
+`NODE_ENV=production`, `PORT=3000`, `DATABASE_URL`, `REDIS_URL=redis://redis:6379/0`, `COOKIE_SECURE=true`. Cela evite que `.env.production` puisse les casser par erreur.
+
+### Variables sensibles (`.env.production`)
+
+| Variable | Source |
+|----------|--------|
+| `AMADEUS_CLIENT_ID` / `AMADEUS_CLIENT_SECRET` | https://developers.amadeus.com (test mode) |
+| `LLM_API_KEY` | OVH GPT-OSS endpoint |
+| `JWT_SECRET` | `openssl rand -base64 64` |
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Generes au setup, distincts entre prod et pre-prod |
+| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Stripe test mode |
+
+`AMADEUS_BASE_URL` n'est pas force : il garde le defaut du code (`https://test.api.amadeus.com`) puisque les cles sont en mode test.
+
+### Reverse proxy interne (`Caddyfile`)
+
+```Caddyfile
+{
+    auto_https off
+    admin off
+}
+
+http://bagtrip.fr, http://dev.bagtrip.fr {
+    reverse_proxy admin:8000
+}
+
+http://api.bagtrip.fr, http://api.dev.bagtrip.fr {
+    reverse_proxy api:3000
+}
+```
+
+Multi-host syntax : le meme Caddyfile sert prod et pre-prod. Le proxy edge global (sur le VPS, hors de ce repo) preserve le `Host` header et route les flux vers `127.0.0.1:8081` (prod) ou `127.0.0.1:8082` (pre-prod), termine le TLS Let's Encrypt et ajoute les headers de securite (HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy).
+
 ## Makefile racine
 
 Le Makefile (`/Makefile`) est le point d'entree principal. Variables cles :
@@ -77,9 +145,11 @@ API_PORT     := 3000
 
 | Commande | Description |
 |----------|-------------|
-| `make dev` | Lance Docker services (`compose up -d --build`) + Flutter app |
+| `make dev` | Lance Docker services (`compose up -d --build`) + Flutter app (full local) |
 | `make dev-docker` | Lance Docker services uniquement (db, api, admin) |
 | `make dev-mobile` | Lance Flutter uniquement (auto-detecte le device + API host) |
+| `make pre-prod` | Lance Flutter pointant vers `https://api.dev.bagtrip.fr` (admin remote sur `https://dev.bagtrip.fr`) |
+| `make prod` | Lance Flutter pointant vers `https://api.bagtrip.fr` (admin remote sur `https://bagtrip.fr`) |
 | `make stop` | `compose down` |
 | `make logs` | `compose logs -f` |
 | `make dev-clean` | Supprime volumes Docker, caches Flutter, node_modules, __pycache__ (avec confirmation) |
@@ -162,17 +232,23 @@ Variables requises (3) :
 
 Variables optionnelles : `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `LANGCHAIN_API_KEY`, `UNSPLASH_ACCESS_KEY`.
 
-### Production (`.env.prod.example`)
+### Production / pre-prod (`.env.production`)
 
-Variables supplementaires requises en production :
-- `DATABASE_URL` -- URL complete PostgreSQL
-- `JWT_SECRET` -- secret JWT (minimum 64 caracteres, genere via `openssl rand -base64 64`)
-- `JWT_ACCESS_TOKEN_EXPIRE_MINUTES`, `JWT_REFRESH_TOKEN_EXPIRE_DAYS`
-- `AMADEUS_BASE_URL` -- production endpoint (`https://api.amadeus.com`)
-- `LLM_MODEL` -- `gpt-oss-120b`
-- `LLM_API_BASE` -- endpoint OVH
-- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` -- cles live
-- `GOOGLE_FIREBASE_PROJECT_ID`, `GOOGLE_OAUTH_CLIENT_ID`, `APPLE_BUNDLE_ID`
+Le fichier `.env.production` n'est jamais commit (gitignore via `.env.*`). Il vit uniquement sur le VPS, owne `deploy:deploy`, mode `0600`.
+
+Source de verite des variables : [`api/src/config/env.py`](../../api/src/config/env.py) (Pydantic Settings, validateurs stricts). Le fichier `.env.prod.example` historique est obsolete -- ne pas s'y fier.
+
+Variables sensibles a fournir :
+
+- `AMADEUS_CLIENT_ID`, `AMADEUS_CLIENT_SECRET` -- cles Amadeus
+- `LLM_API_KEY` -- cle OVH GPT-OSS
+- `JWT_SECRET` -- genere via `openssl rand -base64 64`
+- `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`
+- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
+
+Variables d'environnement (overrides pre-prod) -- cf. section "Docker Compose production" plus haut.
+
+Variables forcees par le compose (jamais a mettre dans `.env.production`) : `NODE_ENV`, `DATABASE_URL`, `REDIS_URL`, `ALLOWED_ORIGINS`, `COOKIE_DOMAIN`, `COOKIE_SECURE`.
 
 ### Admin Panel (`admin-panel/application/.env.local.example`)
 
@@ -183,11 +259,9 @@ Variables supplementaires requises en production :
 
 | Element | Description | Priorite |
 |---------|-------------|----------|
-| Dockerfile production API | `api/Dockerfile.dev` existe mais aucun `Dockerfile` ou `Dockerfile.prod` n'est present. Le Dockerfile dev monte des volumes et utilise `--reload`, inadapte pour la production. | P0 |
-| Dockerfile production admin | `admin-panel/application/Dockerfile.dev` utilise `npm run dev`. Aucun Dockerfile avec `npm run build` + `npm run start` n'existe. | P0 |
-| Compose production | Aucun `compose.prod.yml`. Pas de configuration pour les replicas, health checks Docker, restart policies (sauf `always` sur `db`), ni de reverse proxy/load balancer. | P0 |
-| Health check Docker | Seul le service `db` a `restart: always`. Aucun service n'a de `healthcheck:` Docker natif. L'API expose `/health` mais ce n'est pas utilise par Compose. | P1 |
-| Migrations automatiques au demarrage | Les migrations Alembic ne sont pas executees automatiquement au lancement du conteneur API. Il faut lancer `make db-migrate` manuellement apres `make dev-docker`. | P1 |
+| Backup BDD prod | Aucun script de backup/restore PostgreSQL n'est present dans `scripts/`. La pre-prod fait un dump-and-restore depuis la prod a chaque deploy (cf. `cd.yml`), mais aucun snapshot regulier de la prod elle-meme n'est en place. | P1 |
 | Mobile web desactive | Le service `mobile-web` est commente dans `compose.yml`. Le Dockerfile Flutter web n'est pas present dans `bagtrip/`. | P2 |
-| Backup BDD | Aucun script de backup/restore PostgreSQL n'est present dans `scripts/`. | P1 |
-| Securite .env | Le fichier `.env` est present dans le repo (visible dans le git status). Il devrait etre dans `.gitignore` (verifier qu'il ne contient pas de secrets commites). | P0 |
+| Monitoring / alerting | Aucun systeme d'alerting (Uptime Kuma, healthchecks.io, Sentry...) sur les endpoints prod et pre-prod. Seul le smoke test `curl /health` du job CD valide le deploy. | P1 |
+| Logs centralises | Seul `docker logs` est disponible. Pas de Loki / Datadog / etc. | P2 |
+| Scaling horizontal API | Les schedulers (`trip_status_job`, `notification_job`) tournent in-process. Une seconde instance API enverrait des notifications en double. Pour scaler il faudrait extraire vers Celery/Temporal ou un lock applicatif. | P2 |
+| Rotation des secrets | Les secrets dans `.env.production` (JWT_SECRET, POSTGRES_PASSWORD) sont generes une fois au setup. Aucun mecanisme de rotation n'est en place. | P2 |

@@ -14,11 +14,11 @@ ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 ADMIN_FULL_NAME = os.environ.get("ADMIN_FULL_NAME", "Admin BagTrip")
 
 DEV_ADMINS = [
-    {"email": "yanis@bagtrip.com", "password": "yanis123", "full_name": "Yanis"},
-    {"email": "mickael@bagtrip.com", "password": "mickael123", "full_name": "Mickael"},
-    {"email": "jean@bagtrip.com", "password": "jean123", "full_name": "Jean"},
-    {"email": "aurelien@bagtrip.com", "password": "aurelien123", "full_name": "Aurelien"},
-    {"email": "adrien@bagtrip.com", "password": "adrien123", "full_name": "Adrien"},
+    {"email": "yanis@bagtrip.fr", "password": "yanis123", "full_name": "Yanis"},
+    {"email": "mickael@bagtrip.fr", "password": "mickael123", "full_name": "Mickael"},
+    {"email": "jean@bagtrip.fr", "password": "jean123", "full_name": "Jean"},
+    {"email": "aurelien@bagtrip.fr", "password": "aurelien123", "full_name": "Aurelien"},
+    {"email": "adrien@bagtrip.fr", "password": "adrien123", "full_name": "Adrien"},
 ]
 
 

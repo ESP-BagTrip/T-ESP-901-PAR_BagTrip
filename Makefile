@@ -73,7 +73,7 @@ err   = @printf "$(RED)[err]$(RESET)  %s\n" $(1)
 
 # ── Phony targets ────────────────────────────────────────────
 .PHONY: help init \
-        dev dev-docker dev-mobile stop logs \
+        dev dev-docker dev-mobile pre-prod prod stop logs \
         dev-clean \
         check lint lint-api lint-admin lint-mobile test test-api test-mobile \
         test-e2e \
@@ -91,9 +91,11 @@ help: ## Show this help
 	@printf "  $(CYAN)make init$(RESET)            Setup project (env, deps, hooks)\n"
 	@printf "\n"
 	@printf "$(BOLD) Development$(RESET)\n"
-	@printf "  $(CYAN)make dev$(RESET)             Start Docker services + Flutter app\n"
+	@printf "  $(CYAN)make dev$(RESET)             Start Docker services + Flutter app (full local)\n"
 	@printf "  $(CYAN)make dev-docker$(RESET)      Start Docker services only (db, api, admin)\n"
 	@printf "  $(CYAN)make dev-mobile$(RESET)      Start Flutter app only\n"
+	@printf "  $(CYAN)make pre-prod$(RESET)        Flutter only \u2192 https://api.dev.bagtrip.fr\n"
+	@printf "  $(CYAN)make prod$(RESET)            Flutter only \u2192 https://api.bagtrip.fr\n"
 	@printf "  $(CYAN)make stop$(RESET)            Stop Docker services\n"
 	@printf "  $(CYAN)make logs$(RESET)            Follow Docker logs\n"
 	@printf "\n"
@@ -175,6 +177,29 @@ dev-docker: ## Start Docker services only (db, api, admin)
 
 dev-mobile: ## Start Flutter app only
 	@$(MAKE) --no-print-directory _flutter-run
+
+pre-prod: ## Flutter only — points at https://api.dev.bagtrip.fr (admin: https://dev.bagtrip.fr)
+	@$(MAKE) --no-print-directory _flutter-run-remote \
+		API_URL=https://api.dev.bagtrip.fr/v1 \
+		ADMIN_URL=https://dev.bagtrip.fr \
+		ENV_LABEL=PRE-PROD
+
+prod: ## Flutter only — points at https://api.bagtrip.fr (admin: https://bagtrip.fr)
+	@$(MAKE) --no-print-directory _flutter-run-remote \
+		API_URL=https://api.bagtrip.fr/v1 \
+		ADMIN_URL=https://bagtrip.fr \
+		ENV_LABEL=PROD
+
+# Internal: run Flutter against a remote API (pre-prod or prod). No local docker.
+_flutter-run-remote:
+	$(eval DEVICE := $(call detect_device))
+	$(eval DEVICE_FLAG := $(if $(DEVICE),-d $(DEVICE),))
+	@printf "$(YELLOW)[$(ENV_LABEL)]$(RESET) Target device: $(if $(DEVICE),$(DEVICE),auto)\n"
+	@printf "$(YELLOW)[$(ENV_LABEL)]$(RESET) API URL:       $(API_URL)\n"
+	@printf "$(YELLOW)[$(ENV_LABEL)]$(RESET) Admin panel:   $(ADMIN_URL)\n\n"
+	@printf "$(CYAN)[info]$(RESET) Starting Flutter (hot reload: r/R, quit: q)\u2026\n\n"
+	@cd $(FLUTTER_DIR) && flutter run $(DEVICE_FLAG) \
+		--dart-define=API_BASE_URL=$(API_URL)
 
 # Internal: detect device, resolve API host, inject --dart-define, run Flutter
 _flutter-run:

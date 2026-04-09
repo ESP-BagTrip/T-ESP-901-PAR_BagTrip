@@ -1,0 +1,16 @@
+{
+	auto_https off
+	admin off
+}
+
+# Same Caddyfile is used by both prod (/opt/bagtrip) and pre-prod
+# (/opt/bagtrip-preprod) stacks. The edge Caddy preserves the Host
+# header, so we route by hostname to admin/api regardless of env.
+
+http://bagtrip.fr, http://dev.bagtrip.fr {
+	reverse_proxy admin:8000
+}
+
+http://api.bagtrip.fr, http://api.dev.bagtrip.fr {
+	reverse_proxy api:3000
+}
