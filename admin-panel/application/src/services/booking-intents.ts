@@ -36,5 +36,4 @@ export const bookingIntentsService = {
     )
     return response.data
   },
-
 }

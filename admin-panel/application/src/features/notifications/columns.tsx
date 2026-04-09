@@ -18,9 +18,7 @@ export const notificationsColumns: ColumnDef<AdminNotification>[] = [
   {
     accessorKey: 'trip_title',
     header: 'Trip',
-    cell: ({ row }) => (
-      <span className="text-gray-900">{row.getValue('trip_title') || '—'}</span>
-    ),
+    cell: ({ row }) => <span className="text-gray-900">{row.getValue('trip_title') || '—'}</span>,
   },
   {
     accessorKey: 'type',

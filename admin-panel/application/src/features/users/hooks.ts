@@ -4,7 +4,7 @@ import { usePaginatedQuery } from '@/shared/hooks/usePaginatedQuery'
 export function useUsersTab({ enabled }: { enabled: boolean }) {
   return usePaginatedQuery({
     queryKey: ['users'],
-    queryFn: (params) => usersService.getUsers(params),
+    queryFn: params => usersService.getUsers(params),
     enabled,
   })
 }

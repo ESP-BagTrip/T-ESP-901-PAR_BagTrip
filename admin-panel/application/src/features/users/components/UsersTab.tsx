@@ -22,7 +22,7 @@ export default function UsersTab({ isActive }: { isActive: boolean }) {
             }
           : undefined
       }
-      onPaginationChange={(newPage) => setPage(newPage)}
+      onPaginationChange={newPage => setPage(newPage)}
     />
   )
 }

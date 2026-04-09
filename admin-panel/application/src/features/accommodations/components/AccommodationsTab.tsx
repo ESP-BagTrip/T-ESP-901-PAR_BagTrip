@@ -22,7 +22,7 @@ export default function AccommodationsTab({ isActive }: { isActive: boolean }) {
             }
           : undefined
       }
-      onPaginationChange={(newPage) => setPage(newPage)}
+      onPaginationChange={newPage => setPage(newPage)}
     />
   )
 }

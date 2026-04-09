@@ -51,9 +51,7 @@ export const adminService = {
     return response.data
   },
 
-  async getAllBookingIntents(
-    params?: QueryParams
-  ): Promise<AdminListResponse<AdminBookingIntent>> {
+  async getAllBookingIntents(params?: QueryParams): Promise<AdminListResponse<AdminBookingIntent>> {
     const response = await apiClient.get<AdminListResponse<AdminBookingIntent>>(
       API_ENDPOINTS.ADMIN.BOOKING_INTENTS,
       { params }
@@ -61,9 +59,7 @@ export const adminService = {
     return response.data
   },
 
-  async getAllFlightSearches(
-    params?: QueryParams
-  ): Promise<AdminListResponse<AdminFlightSearch>> {
+  async getAllFlightSearches(params?: QueryParams): Promise<AdminListResponse<AdminFlightSearch>> {
     const response = await apiClient.get<AdminListResponse<AdminFlightSearch>>(
       API_ENDPOINTS.ADMIN.FLIGHT_SEARCHES,
       { params }
@@ -71,9 +67,7 @@ export const adminService = {
     return response.data
   },
 
-  async getAllAccommodations(
-    params?: QueryParams
-  ): Promise<AdminListResponse<AdminAccommodation>> {
+  async getAllAccommodations(params?: QueryParams): Promise<AdminListResponse<AdminAccommodation>> {
     const response = await apiClient.get<AdminListResponse<AdminAccommodation>>(
       API_ENDPOINTS.ADMIN.ACCOMMODATIONS,
       { params }
@@ -81,9 +75,7 @@ export const adminService = {
     return response.data
   },
 
-  async getAllBaggageItems(
-    params?: QueryParams
-  ): Promise<AdminListResponse<AdminBaggageItem>> {
+  async getAllBaggageItems(params?: QueryParams): Promise<AdminListResponse<AdminBaggageItem>> {
     const response = await apiClient.get<AdminListResponse<AdminBaggageItem>>(
       API_ENDPOINTS.ADMIN.BAGGAGE_ITEMS,
       { params }

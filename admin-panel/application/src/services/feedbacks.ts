@@ -6,10 +6,9 @@ import type { QueryParams } from '@/types'
 
 export const feedbacksService = {
   async getFeedbacks(params?: QueryParams): Promise<AdminListResponse<Feedback>> {
-    const response = await apiClient.get<AdminListResponse<Feedback>>(
-      API_ENDPOINTS.FEEDBACKS,
-      { params }
-    )
+    const response = await apiClient.get<AdminListResponse<Feedback>>(API_ENDPOINTS.FEEDBACKS, {
+      params,
+    })
     return response.data
   },
 

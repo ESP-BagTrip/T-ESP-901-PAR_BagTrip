@@ -63,11 +63,7 @@ export default function LoginPage() {
               <label htmlFor="email" className="sr-only">
                 Adresse email
               </label>
-              <Input
-                {...register('email')}
-                type="email"
-                placeholder="Adresse email"
-              />
+              <Input {...register('email')} type="email" placeholder="Adresse email" />
               {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
             </div>
             {isRegisterMode && (
@@ -86,11 +82,7 @@ export default function LoginPage() {
                   <label htmlFor="phone" className="sr-only">
                     Téléphone
                   </label>
-                  <Input
-                    {...register('phone')}
-                    type="tel"
-                    placeholder="Téléphone (optionnel)"
-                  />
+                  <Input {...register('phone')} type="tel" placeholder="Téléphone (optionnel)" />
                 </div>
               </>
             )}
@@ -131,11 +123,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isLoggingIn || isRegistering}
-          >
+          <Button type="submit" className="w-full" disabled={isLoggingIn || isRegistering}>
             {isLoggingIn || isRegistering ? (
               <div className="flex items-center">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
