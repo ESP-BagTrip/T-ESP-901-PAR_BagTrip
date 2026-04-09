@@ -63,22 +63,6 @@ class _CreateTripCardState extends State<CreateTripCard>
             horizontal: AppSpacing.space8,
             vertical: AppSpacing.space4,
           ),
-          decoration: BoxDecoration(
-            borderRadius: AppRadius.large28,
-            boxShadow: [
-              BoxShadow(
-                color: ColorName.primaryTrueDark.withValues(alpha: 0.4),
-                blurRadius: 40,
-                offset: const Offset(0, 16),
-                spreadRadius: -8,
-              ),
-              BoxShadow(
-                color: ColorName.primaryTrueDark.withValues(alpha: 0.2),
-                blurRadius: 14,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
           child: ClipRRect(
             borderRadius: AppRadius.large28,
             child: Stack(
