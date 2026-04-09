@@ -403,6 +403,10 @@
   "activityCategory": "Cat\u00e9gorie",
   "activityEstimatedCost": "Co\u00fbt estim\u00e9",
   "activityBooked": "R\u00e9serv\u00e9",
+  "activityDeleteTitle": "Supprimer l'activit\u00e9",
+  "activityDeleteConfirm": "\u00cates-vous s\u00fbr de vouloir supprimer cette activit\u00e9 ?",
+  "activityDeleted": "Activit\u00e9 supprim\u00e9e",
+  "activityEndTimeBeforeStartTime": "L'heure de fin doit \u00eatre apr\u00e8s l'heure de d\u00e9but",
   "categoryVisit": "Visite",
   "categoryRestaurant": "Restaurant",
   "categoryTransport": "Transport",
@@ -464,6 +468,25 @@
       "count": {"type": "int"}
     }
   },
+  "notificationsJustNow": "À l'instant",
+  "notificationsMinutesAgo": "Il y a {count} min",
+  "@notificationsMinutesAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "notificationsHoursAgo": "Il y a {count}h",
+  "@notificationsHoursAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "notificationsShortDaysAgo": "Il y a {count}j",
+  "@notificationsShortDaysAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "baggageTitle": "Bagages",
   "baggageSuggestionsTooltip": "Suggestions IA",
   "baggageCategoryDocuments": "Documents",
@@ -495,6 +518,8 @@
   "baggagePacked": "Emball\u00e9s",
   "baggageSwipeToPack": "Glisser pour emballer",
   "baggageUnpack": "D\u00e9baller",
+  "baggageEditItemTitle": "Modifier l'\u00e9l\u00e9ment",
+  "baggageItemUpdated": "\u00c9l\u00e9ment modifi\u00e9",
   "baggageItemName": "Nom de l'\u00e9l\u00e9ment",
   "fieldRequired": "Ce champ est requis",
   "accommodationsTitle": "Hébergements",
@@ -554,6 +579,33 @@
   "postTripBasedOnPreferences": "Basé sur vos préférences",
   "postTripProposedActivities": "Activités proposées",
   "postTripCreateTrip": "Créer ce voyage",
+  "postTripSuggestionDuration": "{days} jours",
+  "@postTripSuggestionDuration": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "postTripSuggestionBudget": "{amount}€",
+  "@postTripSuggestionBudget": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "feedbackNoReviews": "Aucun avis",
+  "feedbackHighlightsPrefix": "Points forts : {highlights}",
+  "@feedbackHighlightsPrefix": {
+    "placeholders": {
+      "highlights": { "type": "String" }
+    }
+  },
+  "feedbackLowlightsPrefix": "À améliorer : {lowlights}",
+  "@feedbackLowlightsPrefix": {
+    "placeholders": {
+      "lowlights": { "type": "String" }
+    }
+  },
+  "feedbackRecommends": "Recommande",
+  "feedbackNotRecommends": "Ne recommande pas",
   "filterCabinBagIncluded": "Bagage cabine inclus",
   "filterCheckedBagIncluded": "Bagage soute inclus",
   "filterReset": "Réinitialiser",
@@ -652,11 +704,37 @@
       "name": {"type": "String"}
     }
   },
+  "homeGreetingMorning": "Bonjour,\n{name}",
+  "@homeGreetingMorning": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "homeGreetingAfternoon": "Bon après-midi,\n{name}",
+  "@homeGreetingAfternoon": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "homeGreetingEvening": "Bonsoir,\n{name}",
+  "@homeGreetingEvening": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
   "homeWelcomeTitle": "Prêt à voyager ?",
-  "homeWelcomeSubtitle": "Créez votre premier voyage en quelques étapes. Manuel ou assisté par l'IA — à vous de choisir.",
+  "homeSubtitleEmpty": "Quelle sera ta prochaine destination ?",
+  "homeSubtitleOneTrip": "1 voyage planifié",
+  "homeSubtitleTrips": "{count} voyages planifiés",
+  "@homeSubtitleTrips": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "homeCreateFirstTrip": "Créer mon premier voyage",
   "planTripCta": "Planifier un voyage",
-  "planTripCtaSubtitle": "Manuel ou assisté par l'IA",
+  "homeCtaAiOrManual": "IA ou manuel",
+  "homeCtaStartPlanning": "Commencer",
   "inspireMe": "Inspire-moi",
   "datesLabel": "DATES",
   "suggestedDuration": "Durée suggérée",
@@ -856,6 +934,8 @@
     }
   },
   "reviewHighlightsLabel": "TEMPS FORTS",
+  "reviewSectionDates": "DATES",
+  "reviewDatesSuggested": "Dates suggérées — appuyez pour ajuster",
   "reviewEssentialReason": "Pourquoi : {reason}",
   "@reviewEssentialReason": {
     "placeholders": {
@@ -894,9 +974,6 @@
       }
     }
   },
-  "onboardingInspirationTitle": "Inspirez-vous",
-  "onboardingInspirationSubtitle": "Destinations populaires",
-  "tripManagerCompletedSection": "Voyages passés",
   "tripCardNoDestination": "Pas de destination",
   "tripCardNoTitle": "Voyage sans titre",
   "activeTripsViewTrip": "Voir le voyage",
@@ -1167,6 +1244,14 @@
   "shareInviteMessageLabel": "Message (optionnel)",
   "shareInviteMessageHint": "Ajouter un message personnel...",
   "shareInviteSendButton": "Envoyer l'invitation",
+  "shareRoleViewer": "Lecteur",
+  "shareRoleEditor": "Éditeur",
+  "shareInviteRoleLabel": "Rôle",
+  "shareInvitePendingTitle": "Invitation envoyée",
+  "shareInvitePendingMessage": "Cette personne n'est pas encore inscrite. Elle aura accès en s'inscrivant.",
+  "shareInviteCopyLink": "Copier le lien d'invitation",
+  "shareInviteLinkCopied": "Lien d'invitation copié",
+  "sharePendingBadge": "En attente",
   "shareErrorUserNotFound": "Cette personne doit d'abord créer un compte",
   "shareErrorAlreadyShared": "Déjà partagé avec cette personne",
   "shareErrorSelfShare": "Vous ne pouvez pas partager un voyage avec vous-même",
@@ -1251,6 +1336,17 @@
   "backTooltip": "Retour",
   "closeTooltip": "Fermer",
   "deleteFlightTooltip": "Supprimer le vol",
+  "editFlight": "Modifier le vol",
+  "editFlightTooltip": "Modifier ce vol",
+  "multiDestResults": "Résultats par segment",
+  "segmentLabel": "Segment {index}",
+  "@segmentLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "deleteAccommodationTooltip": "Supprimer l'hebergement",
   "removeAccessTooltip": "Retirer l'acces",
   "inviteTooltip": "Inviter",
@@ -1271,5 +1367,27 @@
       "count": {"type": "int"}
     }
   },
-  "loadingButton": "Chargement"
+  "loadingButton": "Chargement",
+  "forgotPasswordTitle": "Réinitialiser le mot de passe",
+  "forgotPasswordSubtitle": "Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.",
+  "forgotPasswordSendButton": "Envoyer le lien",
+  "forgotPasswordSuccess": "Si cette adresse existe, un lien de réinitialisation a été envoyé. Vérifiez votre boîte de réception.",
+  "deleteAccountButton": "Supprimer mon compte",
+  "deleteAccountConfirmTitle": "Supprimer le compte ?",
+  "deleteAccountConfirmMessage": "Cela supprimera définitivement votre compte et toutes les données associées. Cette action est irréversible.",
+  "deleteAccountConfirmAction": "Supprimer définitivement",
+  "bookFlight": "Réserver ce vol",
+  "weatherSheetTitle": "Météo",
+  "weatherSheetTemperature": "Température",
+  "weatherSheetRainProbability": "Probabilité de pluie",
+  "weatherSheetUnavailable": "Données météo indisponibles",
+  "photoLaunchFailed": "Impossible d'ouvrir l'appareil photo",
+  "mapLocationsTitle": "Lieux du voyage",
+  "mapNoLocations": "Aucun lieu ajouté",
+  "mapDestination": "Destination",
+  "mapActivities": "Activités",
+  "mapAccommodations": "Hébergements",
+  "notFoundTitle": "Page introuvable",
+  "notFoundSubtitle": "La page que vous recherchez n'existe pas ou a été déplacée.",
+  "notFoundCta": "Retour à l'accueil"
 }

@@ -67,7 +67,7 @@ class _TripSharesViewState extends State<TripSharesView> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final isOwner = widget.role != 'VIEWER';
+    final isOwner = widget.role == 'OWNER';
 
     return Scaffold(
       appBar: AppBar(

@@ -8,6 +8,7 @@ Supports check-in/check-out times (not just dates).
 """
 
 import sqlalchemy as sa
+
 from alembic import op
 
 # revision identifiers, used by Alembic.

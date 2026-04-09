@@ -29,6 +29,7 @@ class Trip(Base):
     origin = Column(String, nullable=True, default="MANUAL")
     cover_image_url = Column(String, nullable=True)
     destination_name = Column(String, nullable=True)
+    destination_timezone = Column(String, nullable=True)
     nb_travelers = Column(Integer, nullable=True, default=1)
     date_mode = Column(String, nullable=False, server_default="EXACT", default=DateMode.EXACT)
     archived_at = Column(DateTime(timezone=True), nullable=True)

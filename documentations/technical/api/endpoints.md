@@ -105,6 +105,8 @@ Fichier : `api/src/api/budget_items/routes.py`
 | GET | `/{tripId}/budget-items/{itemId}` | Oui | Owner | Detail d'un poste (viewers: 403) |
 | PUT | `/{tripId}/budget-items/{itemId}` | Oui | Owner | Mise a jour complete |
 | DELETE | `/{tripId}/budget-items/{itemId}` | Oui | Owner | Suppression |
+| POST | `/{tripId}/budget/estimate` | Oui | Owner (AI quota) | Estimation IA du budget (budget_node + Amadeus) |
+| POST | `/{tripId}/budget/estimate/accept` | Oui | Owner | Accepter l'estimation et definir le budget total |
 
 La creation/maj/suppression declenche `check_and_send_budget_alert()` (notification si seuil franchi).
 
@@ -175,6 +177,7 @@ Fichier : `api/src/api/flights/manual/routes.py`
 | POST | `/{tripId}/flights/manual` | Oui | Owner | Creer un vol manuel |
 | GET | `/{tripId}/flights/manual` | Oui | Owner+Viewer | Lister les vols manuels |
 | GET | `/{tripId}/flights/manual/{flightId}` | Oui | Owner+Viewer | Detail d'un vol manuel |
+| PATCH | `/{tripId}/flights/manual/{flightId}` | Oui | Owner | Mise a jour d'un vol manuel |
 | DELETE | `/{tripId}/flights/manual/{flightId}` | Oui | Owner | Supprimer un vol manuel |
 
 ## Flight Info (`/v1/travel/flights`)
@@ -335,6 +338,6 @@ Fichier : `api/src/api/booking/routes.py`
 | Routes travel sans authentification | Les routes `/v1/travel/locations`, `/flight/offers`, etc. ne requierent pas d'authentification. Fichier : `api/src/api/travel/routes.py` | P1 |
 | Pagination manquante | `accommodations`, `baggage`, `shares`, `feedback`, `manual_flights` retournent toutes les entites sans pagination. Fichiers : routes respectives | P2 |
 | Validation de schemas incomplete | Certains champs de creation de trip ne sont pas valides (ex: format de date `startDate`, `endDate` pas de validation ISO). Fichier : `api/src/api/trips/schemas.py` | P2 |
-| Pas de route PATCH pour manual flights | Les vols manuels ne peuvent pas etre mis a jour, seulement crees/supprimes. Fichier : `api/src/api/flights/manual/routes.py` | P2 |
+| ~~Pas de route PATCH pour manual flights~~ | ~~Les vols manuels ne pouvaient pas etre mis a jour.~~ ✅ `PATCH /{tripId}/flights/manual/{flightId}` ajoute | ~~P2~~ ✅ |
 | Suppression des routes depreciees | 3 endpoints `/v1/booking/*` sont marques deprecated mais toujours actifs. Fichier : `api/src/api/booking/routes.py` | P2 |
 | Documentation OpenAPI incomplete | Certaines routes n'ont pas de `summary`/`description` (ex: budget_items, activities). Fichiers : routes respectives | P2 |

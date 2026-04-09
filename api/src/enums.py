@@ -47,6 +47,7 @@ class BaggageCategory(StrEnum):
 
 class ShareRole(StrEnum):
     VIEWER = "VIEWER"
+    EDITOR = "EDITOR"
 
 
 class FlightOrderStatus(StrEnum):
@@ -63,6 +64,7 @@ class BookingIntentStatus(StrEnum):
     FAILED = "FAILED"
     CANCELLED = "CANCELLED"
     PAYMENT_CAPTURE_FAILED = "PAYMENT_CAPTURE_FAILED"
+    REFUNDED = "REFUNDED"
 
 
 class BookingIntentType(StrEnum):
@@ -104,3 +106,4 @@ class BudgetPreset(StrEnum):
 class FlightType(StrEnum):
     MAIN = "MAIN"
     INTERNAL = "INTERNAL"
+    AI_SUGGESTED = "AI_SUGGESTED"

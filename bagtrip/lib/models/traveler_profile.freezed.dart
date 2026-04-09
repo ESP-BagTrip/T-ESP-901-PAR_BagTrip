@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TravelerProfile {
 
- String get id;@JsonKey(name: 'travelTypes') List<String> get travelTypes;@JsonKey(name: 'travelStyle') String? get travelStyle; String? get budget; String? get companions;@JsonKey(name: 'isCompleted') bool get isCompleted;@JsonKey(name: 'createdAt') DateTime? get createdAt;@JsonKey(name: 'updatedAt') DateTime? get updatedAt;
+ String get id;@JsonKey(name: 'travelTypes') List<String> get travelTypes;@JsonKey(name: 'travelStyle') String? get travelStyle; String? get budget; String? get companions;@JsonKey(name: 'travelFrequency') String? get travelFrequency;@JsonKey(name: 'medicalConstraints') String? get medicalConstraints;@JsonKey(name: 'isCompleted') bool get isCompleted;@JsonKey(name: 'createdAt') DateTime? get createdAt;@JsonKey(name: 'updatedAt') DateTime? get updatedAt;
 /// Create a copy of TravelerProfile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $TravelerProfileCopyWith<TravelerProfile> get copyWith => _$TravelerProfileCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TravelerProfile&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other.travelTypes, travelTypes)&&(identical(other.travelStyle, travelStyle) || other.travelStyle == travelStyle)&&(identical(other.budget, budget) || other.budget == budget)&&(identical(other.companions, companions) || other.companions == companions)&&(identical(other.isCompleted, isCompleted) || other.isCompleted == isCompleted)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TravelerProfile&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other.travelTypes, travelTypes)&&(identical(other.travelStyle, travelStyle) || other.travelStyle == travelStyle)&&(identical(other.budget, budget) || other.budget == budget)&&(identical(other.companions, companions) || other.companions == companions)&&(identical(other.travelFrequency, travelFrequency) || other.travelFrequency == travelFrequency)&&(identical(other.medicalConstraints, medicalConstraints) || other.medicalConstraints == medicalConstraints)&&(identical(other.isCompleted, isCompleted) || other.isCompleted == isCompleted)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,const DeepCollectionEquality().hash(travelTypes),travelStyle,budget,companions,isCompleted,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,const DeepCollectionEquality().hash(travelTypes),travelStyle,budget,companions,travelFrequency,medicalConstraints,isCompleted,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'TravelerProfile(id: $id, travelTypes: $travelTypes, travelStyle: $travelStyle, budget: $budget, companions: $companions, isCompleted: $isCompleted, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'TravelerProfile(id: $id, travelTypes: $travelTypes, travelStyle: $travelStyle, budget: $budget, companions: $companions, travelFrequency: $travelFrequency, medicalConstraints: $medicalConstraints, isCompleted: $isCompleted, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $TravelerProfileCopyWith<$Res>  {
   factory $TravelerProfileCopyWith(TravelerProfile value, $Res Function(TravelerProfile) _then) = _$TravelerProfileCopyWithImpl;
 @useResult
 $Res call({
- String id,@JsonKey(name: 'travelTypes') List<String> travelTypes,@JsonKey(name: 'travelStyle') String? travelStyle, String? budget, String? companions,@JsonKey(name: 'isCompleted') bool isCompleted,@JsonKey(name: 'createdAt') DateTime? createdAt,@JsonKey(name: 'updatedAt') DateTime? updatedAt
+ String id,@JsonKey(name: 'travelTypes') List<String> travelTypes,@JsonKey(name: 'travelStyle') String? travelStyle, String? budget, String? companions,@JsonKey(name: 'travelFrequency') String? travelFrequency,@JsonKey(name: 'medicalConstraints') String? medicalConstraints,@JsonKey(name: 'isCompleted') bool isCompleted,@JsonKey(name: 'createdAt') DateTime? createdAt,@JsonKey(name: 'updatedAt') DateTime? updatedAt
 });
 
 
@@ -65,13 +65,15 @@ class _$TravelerProfileCopyWithImpl<$Res>
 
 /// Create a copy of TravelerProfile
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? travelTypes = null,Object? travelStyle = freezed,Object? budget = freezed,Object? companions = freezed,Object? isCompleted = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? travelTypes = null,Object? travelStyle = freezed,Object? budget = freezed,Object? companions = freezed,Object? travelFrequency = freezed,Object? medicalConstraints = freezed,Object? isCompleted = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,travelTypes: null == travelTypes ? _self.travelTypes : travelTypes // ignore: cast_nullable_to_non_nullable
 as List<String>,travelStyle: freezed == travelStyle ? _self.travelStyle : travelStyle // ignore: cast_nullable_to_non_nullable
 as String?,budget: freezed == budget ? _self.budget : budget // ignore: cast_nullable_to_non_nullable
 as String?,companions: freezed == companions ? _self.companions : companions // ignore: cast_nullable_to_non_nullable
+as String?,travelFrequency: freezed == travelFrequency ? _self.travelFrequency : travelFrequency // ignore: cast_nullable_to_non_nullable
+as String?,medicalConstraints: freezed == medicalConstraints ? _self.medicalConstraints : medicalConstraints // ignore: cast_nullable_to_non_nullable
 as String?,isCompleted: null == isCompleted ? _self.isCompleted : isCompleted // ignore: cast_nullable_to_non_nullable
 as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -160,10 +162,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'travelTypes')  List<String> travelTypes, @JsonKey(name: 'travelStyle')  String? travelStyle,  String? budget,  String? companions, @JsonKey(name: 'isCompleted')  bool isCompleted, @JsonKey(name: 'createdAt')  DateTime? createdAt, @JsonKey(name: 'updatedAt')  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'travelTypes')  List<String> travelTypes, @JsonKey(name: 'travelStyle')  String? travelStyle,  String? budget,  String? companions, @JsonKey(name: 'travelFrequency')  String? travelFrequency, @JsonKey(name: 'medicalConstraints')  String? medicalConstraints, @JsonKey(name: 'isCompleted')  bool isCompleted, @JsonKey(name: 'createdAt')  DateTime? createdAt, @JsonKey(name: 'updatedAt')  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TravelerProfile() when $default != null:
-return $default(_that.id,_that.travelTypes,_that.travelStyle,_that.budget,_that.companions,_that.isCompleted,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.travelTypes,_that.travelStyle,_that.budget,_that.companions,_that.travelFrequency,_that.medicalConstraints,_that.isCompleted,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -181,10 +183,10 @@ return $default(_that.id,_that.travelTypes,_that.travelStyle,_that.budget,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'travelTypes')  List<String> travelTypes, @JsonKey(name: 'travelStyle')  String? travelStyle,  String? budget,  String? companions, @JsonKey(name: 'isCompleted')  bool isCompleted, @JsonKey(name: 'createdAt')  DateTime? createdAt, @JsonKey(name: 'updatedAt')  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'travelTypes')  List<String> travelTypes, @JsonKey(name: 'travelStyle')  String? travelStyle,  String? budget,  String? companions, @JsonKey(name: 'travelFrequency')  String? travelFrequency, @JsonKey(name: 'medicalConstraints')  String? medicalConstraints, @JsonKey(name: 'isCompleted')  bool isCompleted, @JsonKey(name: 'createdAt')  DateTime? createdAt, @JsonKey(name: 'updatedAt')  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _TravelerProfile():
-return $default(_that.id,_that.travelTypes,_that.travelStyle,_that.budget,_that.companions,_that.isCompleted,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.travelTypes,_that.travelStyle,_that.budget,_that.companions,_that.travelFrequency,_that.medicalConstraints,_that.isCompleted,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,10 +203,10 @@ return $default(_that.id,_that.travelTypes,_that.travelStyle,_that.budget,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'travelTypes')  List<String> travelTypes, @JsonKey(name: 'travelStyle')  String? travelStyle,  String? budget,  String? companions, @JsonKey(name: 'isCompleted')  bool isCompleted, @JsonKey(name: 'createdAt')  DateTime? createdAt, @JsonKey(name: 'updatedAt')  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'travelTypes')  List<String> travelTypes, @JsonKey(name: 'travelStyle')  String? travelStyle,  String? budget,  String? companions, @JsonKey(name: 'travelFrequency')  String? travelFrequency, @JsonKey(name: 'medicalConstraints')  String? medicalConstraints, @JsonKey(name: 'isCompleted')  bool isCompleted, @JsonKey(name: 'createdAt')  DateTime? createdAt, @JsonKey(name: 'updatedAt')  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _TravelerProfile() when $default != null:
-return $default(_that.id,_that.travelTypes,_that.travelStyle,_that.budget,_that.companions,_that.isCompleted,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.travelTypes,_that.travelStyle,_that.budget,_that.companions,_that.travelFrequency,_that.medicalConstraints,_that.isCompleted,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -216,7 +218,7 @@ return $default(_that.id,_that.travelTypes,_that.travelStyle,_that.budget,_that.
 @JsonSerializable()
 
 class _TravelerProfile implements TravelerProfile {
-  const _TravelerProfile({required this.id, @JsonKey(name: 'travelTypes') final  List<String> travelTypes = const [], @JsonKey(name: 'travelStyle') this.travelStyle, this.budget, this.companions, @JsonKey(name: 'isCompleted') this.isCompleted = false, @JsonKey(name: 'createdAt') this.createdAt, @JsonKey(name: 'updatedAt') this.updatedAt}): _travelTypes = travelTypes;
+  const _TravelerProfile({required this.id, @JsonKey(name: 'travelTypes') final  List<String> travelTypes = const [], @JsonKey(name: 'travelStyle') this.travelStyle, this.budget, this.companions, @JsonKey(name: 'travelFrequency') this.travelFrequency, @JsonKey(name: 'medicalConstraints') this.medicalConstraints, @JsonKey(name: 'isCompleted') this.isCompleted = false, @JsonKey(name: 'createdAt') this.createdAt, @JsonKey(name: 'updatedAt') this.updatedAt}): _travelTypes = travelTypes;
   factory _TravelerProfile.fromJson(Map<String, dynamic> json) => _$TravelerProfileFromJson(json);
 
 @override final  String id;
@@ -230,6 +232,8 @@ class _TravelerProfile implements TravelerProfile {
 @override@JsonKey(name: 'travelStyle') final  String? travelStyle;
 @override final  String? budget;
 @override final  String? companions;
+@override@JsonKey(name: 'travelFrequency') final  String? travelFrequency;
+@override@JsonKey(name: 'medicalConstraints') final  String? medicalConstraints;
 @override@JsonKey(name: 'isCompleted') final  bool isCompleted;
 @override@JsonKey(name: 'createdAt') final  DateTime? createdAt;
 @override@JsonKey(name: 'updatedAt') final  DateTime? updatedAt;
@@ -247,16 +251,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TravelerProfile&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other._travelTypes, _travelTypes)&&(identical(other.travelStyle, travelStyle) || other.travelStyle == travelStyle)&&(identical(other.budget, budget) || other.budget == budget)&&(identical(other.companions, companions) || other.companions == companions)&&(identical(other.isCompleted, isCompleted) || other.isCompleted == isCompleted)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TravelerProfile&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other._travelTypes, _travelTypes)&&(identical(other.travelStyle, travelStyle) || other.travelStyle == travelStyle)&&(identical(other.budget, budget) || other.budget == budget)&&(identical(other.companions, companions) || other.companions == companions)&&(identical(other.travelFrequency, travelFrequency) || other.travelFrequency == travelFrequency)&&(identical(other.medicalConstraints, medicalConstraints) || other.medicalConstraints == medicalConstraints)&&(identical(other.isCompleted, isCompleted) || other.isCompleted == isCompleted)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,const DeepCollectionEquality().hash(_travelTypes),travelStyle,budget,companions,isCompleted,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,const DeepCollectionEquality().hash(_travelTypes),travelStyle,budget,companions,travelFrequency,medicalConstraints,isCompleted,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'TravelerProfile(id: $id, travelTypes: $travelTypes, travelStyle: $travelStyle, budget: $budget, companions: $companions, isCompleted: $isCompleted, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'TravelerProfile(id: $id, travelTypes: $travelTypes, travelStyle: $travelStyle, budget: $budget, companions: $companions, travelFrequency: $travelFrequency, medicalConstraints: $medicalConstraints, isCompleted: $isCompleted, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -267,7 +271,7 @@ abstract mixin class _$TravelerProfileCopyWith<$Res> implements $TravelerProfile
   factory _$TravelerProfileCopyWith(_TravelerProfile value, $Res Function(_TravelerProfile) _then) = __$TravelerProfileCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@JsonKey(name: 'travelTypes') List<String> travelTypes,@JsonKey(name: 'travelStyle') String? travelStyle, String? budget, String? companions,@JsonKey(name: 'isCompleted') bool isCompleted,@JsonKey(name: 'createdAt') DateTime? createdAt,@JsonKey(name: 'updatedAt') DateTime? updatedAt
+ String id,@JsonKey(name: 'travelTypes') List<String> travelTypes,@JsonKey(name: 'travelStyle') String? travelStyle, String? budget, String? companions,@JsonKey(name: 'travelFrequency') String? travelFrequency,@JsonKey(name: 'medicalConstraints') String? medicalConstraints,@JsonKey(name: 'isCompleted') bool isCompleted,@JsonKey(name: 'createdAt') DateTime? createdAt,@JsonKey(name: 'updatedAt') DateTime? updatedAt
 });
 
 
@@ -284,13 +288,15 @@ class __$TravelerProfileCopyWithImpl<$Res>
 
 /// Create a copy of TravelerProfile
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? travelTypes = null,Object? travelStyle = freezed,Object? budget = freezed,Object? companions = freezed,Object? isCompleted = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? travelTypes = null,Object? travelStyle = freezed,Object? budget = freezed,Object? companions = freezed,Object? travelFrequency = freezed,Object? medicalConstraints = freezed,Object? isCompleted = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_TravelerProfile(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,travelTypes: null == travelTypes ? _self._travelTypes : travelTypes // ignore: cast_nullable_to_non_nullable
 as List<String>,travelStyle: freezed == travelStyle ? _self.travelStyle : travelStyle // ignore: cast_nullable_to_non_nullable
 as String?,budget: freezed == budget ? _self.budget : budget // ignore: cast_nullable_to_non_nullable
 as String?,companions: freezed == companions ? _self.companions : companions // ignore: cast_nullable_to_non_nullable
+as String?,travelFrequency: freezed == travelFrequency ? _self.travelFrequency : travelFrequency // ignore: cast_nullable_to_non_nullable
+as String?,medicalConstraints: freezed == medicalConstraints ? _self.medicalConstraints : medicalConstraints // ignore: cast_nullable_to_non_nullable
 as String?,isCompleted: null == isCompleted ? _self.isCompleted : isCompleted // ignore: cast_nullable_to_non_nullable
 as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable

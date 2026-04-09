@@ -19,6 +19,7 @@ import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/repositories/trip_repository.dart';
 import 'package:bagtrip/repositories/weather_repository.dart';
 import 'package:bagtrip/service/trip_notification_scheduler.dart';
+import 'package:bagtrip/utils/destination_time.dart';
 import 'package:bloc/bloc.dart';
 
 part 'home_event.dart';
@@ -32,6 +33,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final WeatherRepository _weatherRepository;
   final TripNotificationScheduler _scheduler;
   final PostTripDismissalStorage _dismissalStorage;
+
+  List<String> _pendingOfflineTransitions = [];
+  StreamSubscription<bool>? _connectivitySub;
 
   HomeBloc({
     TripRepository? tripRepository,
@@ -53,8 +57,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
        super(HomeInitial()) {
     on<LoadHome>(_onLoadHome);
     on<RefreshHome>(_onRefreshHome);
+    on<ResetHome>(_onResetHome);
     on<ConfirmTripCompletion>(_onConfirmTripCompletion);
     on<DismissTripCompletion>(_onDismissTripCompletion);
+    on<_ConnectivityRestored>(_onConnectivityRestored);
+
+    _connectivitySub = _connectivityService.onConnectivityChanged.listen((
+      online,
+    ) {
+      if (online && _pendingOfflineTransitions.isNotEmpty) {
+        add(_ConnectivityRestored());
+      }
+    });
   }
 
   Future<void> _onLoadHome(LoadHome event, Emitter<HomeState> emit) async {
@@ -67,6 +81,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     Emitter<HomeState> emit,
   ) async {
     await _fetchAndEmitContextualState(emit);
+  }
+
+  void _onResetHome(ResetHome event, Emitter<HomeState> emit) {
+    _pendingOfflineTransitions = [];
+    emit(HomeInitial());
   }
 
   Future<void> _fetchAndEmitContextualState(Emitter<HomeState> emit) async {
@@ -142,6 +161,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       }
     }
 
+    // Track offline transitions for replay on reconnect
+    if (!_connectivityService.isOnline &&
+        detectionResult.transitionedTrips.isNotEmpty) {
+      _pendingOfflineTransitions = detectionResult.transitionedTrips
+          .map((t) => t.id)
+          .toList();
+    }
+
     // Schedule notifications for newly transitioned trips (fire-and-forget)
     for (final trip in detectionResult.transitionedTrips) {
       unawaited(
@@ -165,9 +192,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       pendingCompletionTrip = endResult.endedTrips.first;
     }
 
-    // ── Decision tree ──────────────────────────────────────────────
+    // ── Decision tree ──────────��──────────────────────���────────────
     if (totalTrips == 0 && mutableOngoing.isEmpty) {
-      emit(HomeNewUser(user: user));
+      emit(HomeIdle(user: user));
       return;
     }
 
@@ -186,7 +213,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
       List<Activity> todayActivities = [];
       if (activitiesResult is Success<List<Activity>>) {
-        final now = DateTime.now();
+        final now = nowInDestination(activeTrip.destinationTimezone);
         final today = DateTime(now.year, now.month, now.day);
         todayActivities =
             activitiesResult.data.where((a) {
@@ -200,9 +227,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       }
 
       String? weatherSummary;
+      WeatherSummary? weatherData;
       if (weatherResult is Success<WeatherSummary>) {
         final w = weatherResult.data;
         weatherSummary = '${w.avgTempC.round()}°C · ${w.description}';
+        weatherData = w;
       }
 
       // Schedule ongoing trip notifications (idempotent, fire-and-forget)
@@ -218,6 +247,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           activeTrip: activeTrip,
           todayActivities: todayActivities,
           weatherSummary: weatherSummary,
+          weatherData: weatherData,
           allActivities: activitiesResult is Success<List<Activity>>
               ? activitiesResult.data
               : [],
@@ -242,7 +272,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         : null;
 
     emit(
-      HomeTripManager(
+      HomeIdle(
         user: user,
         nextTrip: nextTrip,
         nextTripCompletion: tripCompletion(nextTrip),
@@ -303,6 +333,34 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       }
     }
     add(RefreshHome());
+  }
+
+  Future<void> _onConnectivityRestored(
+    _ConnectivityRestored event,
+    Emitter<HomeState> emit,
+  ) async {
+    final pending = List<String>.from(_pendingOfflineTransitions);
+    final synced = <String>[];
+
+    for (final tripId in pending) {
+      final result = await _tripRepository.updateTripStatus(tripId, 'ongoing');
+      if (isClosed) return;
+      if (result is Success) {
+        synced.add(tripId);
+      }
+    }
+
+    _pendingOfflineTransitions.removeWhere(synced.contains);
+
+    if (synced.isNotEmpty) {
+      add(RefreshHome());
+    }
+  }
+
+  @override
+  Future<void> close() {
+    _connectivitySub?.cancel();
+    return super.close();
   }
 
   Trip _pickEarliestTrip(List<Trip> trips) {

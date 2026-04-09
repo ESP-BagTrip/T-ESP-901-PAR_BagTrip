@@ -15,6 +15,7 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
     : _bookingRepository = bookingRepository ?? getIt<BookingRepository>(),
       super(BookingInitial()) {
     on<LoadBookings>(_onLoadBookings);
+    on<CreateBookingIntent>(_onCreateBookingIntent);
     on<AuthorizePayment>(_onAuthorizePayment);
     on<PresentPaymentSheet>(_onPresentPaymentSheet);
     on<CapturePayment>(_onCapturePayment);
@@ -38,6 +39,24 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
         );
       case Failure(:final error):
         emit(BookingError(error: error));
+    }
+  }
+
+  Future<void> _onCreateBookingIntent(
+    CreateBookingIntent event,
+    Emitter<BookingState> emit,
+  ) async {
+    emit(PaymentAuthorizing());
+    final result = await _bookingRepository.createBookingIntent(
+      tripId: event.tripId,
+      flightOfferId: event.flightOfferId,
+    );
+    if (isClosed) return;
+    switch (result) {
+      case Success(:final data):
+        add(AuthorizePayment(intentId: data));
+      case Failure(:final error):
+        emit(PaymentFailed(error: error));
     }
   }
 

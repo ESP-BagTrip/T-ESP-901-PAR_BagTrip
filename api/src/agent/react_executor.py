@@ -11,12 +11,14 @@ the ReAct (Reason + Act) pattern manually:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import re
 from typing import Any
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
+from src.config.env import settings
 from src.services.llm_service import LLMService
 from src.utils.logger import logger
 
@@ -103,9 +105,27 @@ def parse_react_output(llm_output: str) -> tuple[str, dict] | str:
                 tool_input = {"raw": raw_input}
         return (tool_name, tool_input)
 
-    # Neither found — treat the whole output as a final answer attempt
-    logger.warn("ReAct parse: no Action or Final Answer found, treating as final answer")
-    return llm_output.strip()
+    # Neither found — try to extract JSON object with "destinations" key
+    # Some LLMs return raw JSON without the ReAct format
+    stripped = llm_output.strip()
+    stripped = re.sub(r"^```(?:json)?\s*\n?", "", stripped)
+    stripped = re.sub(r"\n?```\s*$", "", stripped)
+
+    # Try to find a JSON object in the output
+    json_match = re.search(r"\{[\s\S]*\"destinations\"[\s\S]*\}", stripped)
+    if json_match:
+        try:
+            parsed_json = json.loads(json_match.group(0))
+            logger.info("ReAct parse: extracted JSON with destinations from raw output")
+            return json.dumps(parsed_json)
+        except json.JSONDecodeError:
+            pass
+
+    logger.warn(
+        "ReAct parse: no Action or Final Answer found, treating as final answer",
+        {"raw_output_preview": stripped[:300]},
+    )
+    return stripped
 
 
 async def react_execute(
@@ -131,14 +151,28 @@ async def react_execute(
     for iteration in range(max_iterations):
         logger.info(f"ReAct iteration {iteration + 1}/{max_iterations}")
 
-        # Call LLM
+        # Call LLM (with per-call timeout)
         try:
-            raw_response = await llm_service.acall_llm_messages(messages)
+            raw_response = await asyncio.wait_for(
+                llm_service.acall_llm_messages(messages),
+                timeout=settings.LLM_CALL_TIMEOUT_SECONDS,
+            )
+        except TimeoutError:
+            logger.error(
+                "ReAct LLM call timed out",
+                {"iteration": iteration + 1, "timeout": settings.LLM_CALL_TIMEOUT_SECONDS},
+            )
+            return {"error": f"LLM call timed out after {settings.LLM_CALL_TIMEOUT_SECONDS}s"}
         except Exception as e:
             logger.error("ReAct LLM call failed", {"error": str(e)})
             return {"error": f"LLM call failed: {e}"}
 
         messages.append(AIMessage(content=raw_response))
+
+        logger.info(
+            f"ReAct LLM response (iter {iteration + 1})",
+            {"preview": raw_response[:500]},
+        )
 
         # Parse the output
         parsed = parse_react_output(raw_response)
@@ -185,7 +219,10 @@ async def react_execute(
     )
 
     try:
-        raw_response = await llm_service.acall_llm_messages(messages)
+        raw_response = await asyncio.wait_for(
+            llm_service.acall_llm_messages(messages),
+            timeout=settings.LLM_CALL_TIMEOUT_SECONDS,
+        )
         parsed = parse_react_output(raw_response)
         if isinstance(parsed, str):
             try:
@@ -193,5 +230,7 @@ async def react_execute(
             except json.JSONDecodeError:
                 return {"raw_answer": parsed}
         return {"error": "Failed to get final answer after max iterations"}
+    except TimeoutError:
+        return {"error": f"Final LLM call timed out after {settings.LLM_CALL_TIMEOUT_SECONDS}s"}
     except Exception as e:
         return {"error": f"Final LLM call failed: {e}"}

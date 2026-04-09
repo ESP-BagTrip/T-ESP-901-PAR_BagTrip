@@ -4,7 +4,7 @@
 
 ## Vue d'ensemble
 
-BagTrip dispose d'une suite de tests a cinq niveaux : tests unitaires (BLoC, models, helpers), tests de repository, tests de widget, golden tests visuels, tests d'accessibilite, et tests d'integration E2E. Le projet totalise environ 149 fichiers de test unitaire/widget dans `bagtrip/test/` et 5 fichiers d'integration E2E dans `bagtrip/integration_test/`, representant ~27 000 lignes de code de test. Le framework principal est `flutter_test` avec `bloc_test` pour les BLoCs et `mocktail` pour les mocks.
+BagTrip dispose d'une suite de tests a quatre niveaux : tests unitaires (BLoC, models, helpers), tests de repository, tests de widget, tests d'accessibilite, et tests d'integration E2E. Le projet totalise environ 149 fichiers de test unitaire/widget dans `bagtrip/test/` et 5 fichiers d'integration E2E dans `bagtrip/integration_test/`, representant ~27 000 lignes de code de test. Le framework principal est `flutter_test` avec `bloc_test` pour les BLoCs et `mocktail` pour les mocks.
 
 ## Organisation du repertoire de test
 
@@ -19,7 +19,6 @@ bagtrip/test/
 ├── design/                 # Tests design system (animations, haptics, widgets)
 │   └── widgets/            # AI suggestion card, budget chip, destination carousel, etc.
 ├── flight_search/          # Tests flight search
-├── goldens/                # Golden tests visuels (5 fichiers)
 ├── helpers/                # Mocks partages (MockApiClient, MockStorageService, etc.)
 ├── home/                   # Tests home (cubits, helpers, widgets, views)
 ├── integration/            # Tests d'integration (auth flow, trip creation, in-trip, post-trip)
@@ -124,43 +123,6 @@ await tester.pumpWidget(
 
 **Composants testes** : AppSnackbar, BottomTabBar, ErrorView, LoadingView, PaginatedList, TripCard, TripHeroHeader, TimelineActivityCard, FlightBoardingPassCard, BaggageChecklistCard, AccommodationBookingCard, NowIndicator, CurrentActivity, QuickExpense, TomorrowPreview, CompletedTripsCarousel, ShareInvite, ViewerReadonly.
 
-## Golden tests
-
-**Repertoire** : `bagtrip/test/goldens/`
-
-Tests de regression visuelle avec `matchesGoldenFile()`. Tagged `@Tags(['golden'])` pour execution selective.
-
-**Helpers** (`golden_helpers.dart`) :
-```dart
-const goldenSurfaceSize = Size(400, 800);
-
-Widget goldenWrapper(Widget child) {
-  return MaterialApp(
-    theme: AppTheme.light(),
-    locale: const Locale('en'),
-    debugShowCheckedModeBanner: false,
-    home: Scaffold(body: Center(child: child)),
-  );
-}
-
-Future<void> setGoldenSize(WidgetTester tester) async {
-  await tester.binding.setSurfaceSize(goldenSurfaceSize);
-  addTearDown(() => tester.binding.setSurfaceSize(null));
-}
-```
-
-**Golden tests existants** :
-
-| Fichier | Composant | Variantes |
-|---------|-----------|-----------|
-| `elegant_empty_state_golden_test.dart` | ElegantEmptyState | default, with CTA, with secondary action |
-| `adaptive_button_golden_test.dart` | AdaptiveButton | default, loading, disabled |
-| `primary_button_golden_test.dart` | PrimaryButton | variantes visuelles |
-| `status_badge_golden_test.dart` | StatusBadge | variantes de statut |
-| `budget_chip_selector_golden_test.dart` | BudgetChipSelector | variantes |
-
-**Execution** : `flutter test --tags golden` ou `flutter test --update-goldens` pour mettre a jour les fichiers de reference.
-
 ## Tests d'accessibilite
 
 **Repertoire** : `bagtrip/test/accessibility/`
@@ -250,12 +212,6 @@ class MockLocationService extends Mock implements LocationService {}
 # Tous les tests unitaires/widget
 flutter test
 
-# Tests avec tags
-flutter test --tags golden
-
-# Mise a jour des goldens
-flutter test --update-goldens
-
 # Tests d'integration E2E
 flutter test integration_test/
 
@@ -267,13 +223,11 @@ flutter test --coverage
 
 | Element | Description | Priorite |
 |---------|-------------|----------|
-| Golden tests dark mode | Tous les golden tests utilisent `AppTheme.light()`. Aucune variante dark. (`bagtrip/test/goldens/golden_helpers.dart`) | P1 |
 | Test de l'OfflineBanner | Pas de test widget verifiant l'affichage du bandeau offline avec `ConnectivityBloc`. | P1 |
 | Tests du PlanTrip flow complet | Le flow PlanTrip est teste partiellement (vues et widgets individuels dans `test/plan_trip/`) mais pas le parcours multi-etapes complet en E2E. | P1 |
 | Coverage report et seuil | Pas de seuil de coverage configure (`--min-coverage`) dans le CI. Pas de rapport de coverage visible. | P1 |
 | Tests de performance | Pas de `flutter drive` ou benchmark pour mesurer les temps de rendu, la taille de frame, ou la consommation memoire. | P2 |
 | Tests de regression l10n | Pas de test verifiant la parite des cles entre `app_en.arb` et `app_fr.arb`. | P2 |
 | Mock de MethodChannel | Les tests E2E mockent les repositories via GetIt mais pas les platform channels (camera, file picker, etc.). Les features natives ne sont pas testees. | P2 |
-| Tests de snapshot multi-resolution | Les golden tests utilisent une seule taille (`400x800`). Pas de test sur petits ecrans (iPhone SE) ni tablettes. | P2 |
 | Test de navigation deep link en E2E | `test/navigation/deep_link_test.dart` existe mais le deep link n'est pas teste dans le context E2E complet avec auth. | P2 |
 | Tests de concurrence cache | Le `CacheService` n'est pas teste pour les acces concurrents (deux reads/writes simultanees sur la meme box). | P2 |

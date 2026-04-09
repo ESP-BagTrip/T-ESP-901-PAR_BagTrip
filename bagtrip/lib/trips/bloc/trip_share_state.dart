@@ -8,7 +8,13 @@ class TripShareLoading extends TripShareState {}
 
 class TripShareLoaded extends TripShareState {
   final List<TripShare> shares;
-  TripShareLoaded({required this.shares});
+  final List<PendingInvite> pendingInvites;
+  TripShareLoaded({required this.shares, this.pendingInvites = const []});
+}
+
+class TripShareInvitePending extends TripShareState {
+  final String inviteToken;
+  TripShareInvitePending({required this.inviteToken});
 }
 
 class TripShareError extends TripShareState {

@@ -82,7 +82,7 @@ void main() {
             .having((s) => s.deferredLoaded, 'deferredLoaded', false),
         isA<TripDetailLoaded>()
             .having((s) => s.deferredLoaded, 'deferredLoaded', true)
-            .having((s) => s.completionPercentage, 'completion', 33),
+            .having((s) => s.completionPercentage, 'completion', 17),
       ],
     );
 
@@ -412,7 +412,9 @@ void main() {
         isA<TripDetailLoaded>(),
         // Optimistic update
         isA<TripDetailLoaded>(),
-        // Rollback
+        // Rollback with operationError
+        isA<TripDetailLoaded>(),
+        // Rollback cleared
         isA<TripDetailLoaded>(),
       ],
     );
@@ -451,12 +453,14 @@ void main() {
           'activities.length',
           0,
         ),
-        // Rollback
+        // Rollback with operationError
         isA<TripDetailLoaded>().having(
           (s) => s.activities.length,
           'activities.length',
           1,
         ),
+        // Rollback cleared
+        isA<TripDetailLoaded>(),
       ],
     );
 
@@ -550,12 +554,14 @@ void main() {
           'trip.title',
           'New Title',
         ),
-        // Rollback
+        // Rollback with operationError
         isA<TripDetailLoaded>().having(
           (s) => s.trip.title,
           'trip.title',
           'Paris Trip',
         ),
+        // Rollback cleared
+        isA<TripDetailLoaded>(),
       ],
     );
 
@@ -633,12 +639,14 @@ void main() {
           'trip.startDate',
           DateTime(2024, 7),
         ),
-        // Rollback
+        // Rollback with operationError
         isA<TripDetailLoaded>().having(
           (s) => s.trip.startDate,
           'trip.startDate',
           DateTime(2024, 6),
         ),
+        // Rollback cleared
+        isA<TripDetailLoaded>(),
       ],
     );
 
@@ -924,7 +932,7 @@ void main() {
         isA<TripDetailLoaded>(),
         // Optimistic update
         isA<TripDetailLoaded>(),
-        // Rollback
+        // Rollback with operationError
         isA<TripDetailLoaded>().having(
           (s) => s.activities.every(
             (a) => a.validationStatus == ValidationStatus.suggested,
@@ -932,6 +940,8 @@ void main() {
           'all suggested',
           true,
         ),
+        // Rollback cleared
+        isA<TripDetailLoaded>(),
       ],
     );
 
@@ -1051,12 +1061,14 @@ void main() {
           'activity.date',
           DateTime(2024, 6, 3),
         ),
-        // Rollback
+        // Rollback with operationError
         isA<TripDetailLoaded>().having(
           (s) => s.activities.first.date,
           'activity.date',
           DateTime(2024, 6),
         ),
+        // Rollback cleared
+        isA<TripDetailLoaded>(),
       ],
     );
 
@@ -1347,12 +1359,14 @@ void main() {
           'totalSpent',
           500,
         ),
-        // Rollback
+        // Rollback with operationError
         isA<TripDetailLoaded>().having(
           (s) => s.budgetSummary?.totalSpent,
           'totalSpent',
           400,
         ),
+        // Rollback cleared
+        isA<TripDetailLoaded>(),
       ],
     );
 
@@ -1425,12 +1439,14 @@ void main() {
           'isPacked',
           true,
         ),
-        // Rollback
+        // Rollback with operationError
         isA<TripDetailLoaded>().having(
           (s) => s.baggageItems.first.isPacked,
           'isPacked',
           false,
         ),
+        // Rollback cleared
+        isA<TripDetailLoaded>(),
       ],
     );
 

@@ -23,6 +23,7 @@ La feature Bagages fournit une checklist interactive pour preparer ses affaires 
 | `SuggestBaggage` | Appelle l'IA pour des suggestions contextualisees. Preserve la liste courante pendant le chargement |
 | `AcceptSuggestion` | Accepte une suggestion IA : cree l'item en base puis recharge la liste, retire la suggestion acceptee |
 | `DismissSuggestion` | Rejette une suggestion (retrait de la liste locale, pas d'appel API) |
+| `UpdateBaggageItem` | Met a jour un item existant (nom, quantite, categorie) via PATCH. Owner only |
 | `ReorderBaggageItem` | Reordonne les items non-packed par drag & drop (local uniquement, pas persiste) |
 
 ### Etats
@@ -68,8 +69,9 @@ Definies dans `api/src/enums.py` sous `BaggageCategory` :
 | `BaggagePage` | `baggage/view/baggage_page.dart` | Cree le BlocProvider et fire `LoadBaggage` |
 | `BaggageView` | `baggage/view/baggage_view.dart` | UI principale |
 | `BaggageProgressHeader` | `baggage/widgets/baggage_progress_header.dart` | Arc de progression circulaire (CustomPaint) + barre lineaire + compteur "X/Y" |
-| `BaggageItemTile` | `baggage/widgets/baggage_item_tile.dart` | Ligne d'un item avec checkbox |
+| `BaggageItemTile` | `baggage/widgets/baggage_item_tile.dart` | Ligne d'un item avec checkbox, tap-to-edit, `AdaptiveContextMenu` iOS (edit + delete) |
 | `BaggageAddForm` | `baggage/widgets/baggage_add_form.dart` | Formulaire d'ajout (nom, quantite, categorie) |
+| `BaggageEditForm` | `baggage/widgets/baggage_edit_form.dart` | Formulaire d'edition d'un item existant (nom, quantite, categorie), pre-rempli |
 | `BaggageSuggestionCard` | `baggage/widgets/baggage_suggestion_card.dart` | Carte de suggestion IA avec boutons accepter/rejeter et animation fade-out |
 | `BaggageCelebration` | `baggage/widgets/baggage_celebration.dart` | Animation de celebration quand tout est packed |
 
@@ -164,7 +166,7 @@ BaggageSuggestionListResponse :
 | Element | Description | Priorite |
 |---------|-------------|----------|
 | Persistence du reordonnancement | L'event `ReorderBaggageItem` reordonne les items localement dans le bloc mais ne persiste pas l'ordre cote API (pas de champ `position`/`order` dans le modele). A la prochaine ouverture, l'ordre est perdu. (`bagtrip/lib/baggage/bloc/baggage_bloc.dart:270-287`) | P2 |
-| Edition d'un item existant | Le mobile n'expose pas de formulaire d'edition pour modifier le nom, la quantite ou la categorie d'un item existant. L'endpoint PATCH existe cote API mais le Flutter ne l'utilise que pour toggler `isPacked`. | P1 |
+| ~~Edition d'un item existant~~ | ~~Le mobile n'expose pas de formulaire d'edition.~~ ✅ `UpdateBaggageItem` event + `BaggageEditForm` bottom sheet (nom, qte, categorie) + tap-to-edit + `AdaptiveContextMenu` iOS | ~~P1~~ ✅ |
 | Partage de checklist entre voyageurs | Les viewers peuvent voir la checklist mais pas contribuer. Pas de notion de "checklist partagee" ou d'assignation d'items a des voyageurs specifiques. | P2 |
 | Export/impression de la checklist | Pas de fonctionnalite d'export PDF ou de partage de la checklist. | P2 |
 | Tri et filtrage par categorie | L'UI n'offre pas de filtre par categorie (DOCUMENTS, CLOTHING, etc.). Les items sont affiches dans l'ordre non-packed puis packed. | P2 |

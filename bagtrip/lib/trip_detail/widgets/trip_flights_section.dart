@@ -288,6 +288,7 @@ class _EmptyState extends StatelessWidget {
                 onTap: () async {
                   await TripFlightSearchRoute(
                     $extra: FlightSearchPrefill(
+                      tripId: trip.id,
                       originIata: trip.originIata,
                       destinationIata: trip.destinationIata,
                       departureDate: trip.startDate,

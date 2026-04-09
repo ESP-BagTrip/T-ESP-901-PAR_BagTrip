@@ -23,3 +23,5 @@ class NotificationReceived extends NotificationEvent {
   final String body;
   NotificationReceived({required this.title, required this.body});
 }
+
+class ResetNotifications extends NotificationEvent {}

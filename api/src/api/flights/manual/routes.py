@@ -5,11 +5,12 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Path, status
 from sqlalchemy.orm import Session
 
-from src.api.auth.trip_access import TripAccess, get_trip_access, get_trip_owner_access
+from src.api.auth.trip_access import TripAccess, get_trip_access, get_trip_editor_access
 from src.api.flights.manual.schemas import (
     ManualFlightCreateRequest,
     ManualFlightListResponse,
     ManualFlightResponse,
+    ManualFlightUpdateRequest,
 )
 from src.config.database import get_db
 from src.services.manual_flight_service import ManualFlightService
@@ -27,7 +28,7 @@ router = APIRouter(prefix="/v1/trips", tags=["Manual Flights"])
 )
 async def create_manual_flight(
     request: ManualFlightCreateRequest,
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     """Créer un vol manuel."""
@@ -91,6 +92,50 @@ async def get_manual_flight(
         raise create_http_exception(e) from e
 
 
+@router.patch(
+    "/{tripId}/flights/manual/{flightId}",
+    response_model=ManualFlightResponse,
+    summary="Update manual flight",
+    description="Update a manual flight's information",
+)
+async def update_manual_flight(
+    request: ManualFlightUpdateRequest,
+    flightId: UUID = Path(..., description="Flight ID"),
+    access: TripAccess = Depends(get_trip_editor_access),
+    db: Session = Depends(get_db),
+):
+    """Mettre à jour un vol manuel."""
+    try:
+        # Build kwargs only for fields that were explicitly set in the request
+        update_data = request.model_dump(exclude_unset=True)
+        kwargs = {}
+        field_mapping = {
+            "flightNumber": "flight_number",
+            "airline": "airline",
+            "departureAirport": "departure_airport",
+            "arrivalAirport": "arrival_airport",
+            "departureDate": "departure_date",
+            "arrivalDate": "arrival_date",
+            "price": "price",
+            "currency": "currency",
+            "notes": "notes",
+            "flightType": "flight_type",
+        }
+        for camel, snake in field_mapping.items():
+            if camel in update_data:
+                kwargs[snake] = update_data[camel]
+
+        flight = ManualFlightService.update_manual_flight(
+            db=db,
+            flight_id=flightId,
+            trip=access.trip,
+            **kwargs,
+        )
+        return ManualFlightResponse.model_validate(flight)
+    except AppError as e:
+        raise create_http_exception(e) from e
+
+
 @router.delete(
     "/{tripId}/flights/manual/{flightId}",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -99,7 +144,7 @@ async def get_manual_flight(
 )
 async def delete_manual_flight(
     flightId: UUID = Path(..., description="Flight ID"),
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     """Supprimer un vol manuel."""

@@ -1,7 +1,6 @@
 """Schémas Pydantic pour les accommodations."""
 
 from datetime import datetime
-from decimal import Decimal
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -14,7 +13,7 @@ class AccommodationCreateRequest(BaseModel):
     address: str | None = None
     checkIn: datetime | None = None
     checkOut: datetime | None = None
-    pricePerNight: Decimal | None = None
+    pricePerNight: float | None = None
     currency: str | None = None
     bookingReference: str | None = None
     notes: str | None = None
@@ -27,7 +26,7 @@ class AccommodationUpdateRequest(BaseModel):
     address: str | None = None
     checkIn: datetime | None = None
     checkOut: datetime | None = None
-    pricePerNight: Decimal | None = None
+    pricePerNight: float | None = None
     currency: str | None = None
     bookingReference: str | None = None
     notes: str | None = None
@@ -42,7 +41,7 @@ class AccommodationResponse(BaseModel):
     address: str | None = None
     checkIn: datetime | None = Field(None, alias="check_in")
     checkOut: datetime | None = Field(None, alias="check_out")
-    pricePerNight: Decimal | None = Field(None, alias="price_per_night")
+    pricePerNight: float | None = Field(None, alias="price_per_night")
     currency: str | None = None
     bookingReference: str | None = Field(None, alias="booking_reference")
     notes: str | None = None
@@ -58,3 +57,9 @@ class AccommodationListResponse(BaseModel):
     """Réponse liste d'hébergements."""
 
     items: list[AccommodationResponse]
+
+
+class AccommodationSuggestResponse(BaseModel):
+    """Réponse suggestions IA d'hébergements."""
+
+    accommodations: list[dict]

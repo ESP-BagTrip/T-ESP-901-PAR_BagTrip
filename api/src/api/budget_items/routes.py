@@ -3,8 +3,11 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Path, status
 from sqlalchemy.orm import Session
 
-from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access
+from src.api.auth.plan_guard import require_ai_quota
+from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_editor_access
 from src.api.budget_items.schemas import (
+    AcceptEstimateRequest,
+    BudgetEstimateResponse,
     BudgetItemCreateRequest,
     BudgetItemListResponse,
     BudgetItemResponse,
@@ -12,8 +15,10 @@ from src.api.budget_items.schemas import (
     BudgetSummaryResponse,
 )
 from src.config.database import get_db
+from src.models.user import User
 from src.services.budget_item_service import BudgetItemService
 from src.services.notification_service import NotificationService
+from src.services.trips_service import TripsService
 from src.utils.errors import AppError, create_http_exception
 
 router = APIRouter(prefix="/v1/trips", tags=["BudgetItems"])
@@ -26,7 +31,7 @@ router = APIRouter(prefix="/v1/trips", tags=["BudgetItems"])
 )
 async def create_budget_item(
     request: BudgetItemCreateRequest,
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     try:
@@ -101,7 +106,7 @@ async def get_budget_item(
 async def update_budget_item(
     request: BudgetItemUpdateRequest,
     itemId: UUID = Path(..., description="Budget item ID"),
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     try:
@@ -127,11 +132,93 @@ async def update_budget_item(
 )
 async def delete_budget_item(
     itemId: UUID = Path(..., description="Budget item ID"),
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     try:
         BudgetItemService.delete(db, access.trip, itemId)
         NotificationService.check_and_send_budget_alert(db, access.trip)
+    except AppError as e:
+        raise create_http_exception(e) from e
+
+
+@router.post(
+    "/{tripId}/budget/estimate",
+    response_model=BudgetEstimateResponse,
+    summary="AI budget estimation",
+    description="Get an AI-powered budget estimation for a trip",
+)
+async def estimate_budget(
+    access: TripAccess = Depends(get_trip_editor_access),
+    current_user: User = Depends(require_ai_quota),
+    db: Session = Depends(get_db),
+):
+    """Estimate budget using AI based on trip data."""
+    from src.agent.nodes.budget import budget_node
+    from src.services.plan_service import PlanService
+
+    try:
+        trip = access.trip
+
+        # Build state from existing trip data
+        state = {}
+        if trip.destination_name:
+            state["selected_destination"] = {
+                "city": trip.destination_name,
+                "iata": trip.destination_iata or "",
+                "country": "",
+            }
+        if trip.origin_iata:
+            state["origin_city"] = trip.origin_iata
+        if trip.start_date:
+            state["departure_date"] = str(trip.start_date)
+        if trip.end_date:
+            state["return_date"] = str(trip.end_date)
+        if trip.start_date and trip.end_date:
+            state["duration_days"] = (trip.end_date - trip.start_date).days
+        if trip.nb_travelers:
+            state["nb_travelers"] = trip.nb_travelers
+
+        # Include existing activities and accommodations
+        activities = [
+            {"name": a.title, "estimated_cost": a.estimated_cost} for a in trip.activities
+        ]
+        if activities:
+            state["activities"] = activities
+
+        accommodations = [
+            {"name": a.name, "price_per_night": a.price_per_night} for a in trip.accommodations
+        ]
+        if accommodations:
+            state["accommodations"] = accommodations
+
+        result = await budget_node(state)
+        estimation = result.get("budget_estimation", {})
+
+        PlanService.increment_ai_generation(db, current_user)
+        return BudgetEstimateResponse(estimation=estimation)
+    except AppError as e:
+        raise create_http_exception(e) from e
+
+
+@router.post(
+    "/{tripId}/budget/estimate/accept",
+    summary="Accept AI budget estimation",
+    description="Accept the AI budget estimation and set the trip budget total",
+)
+async def accept_budget_estimate(
+    request: AcceptEstimateRequest,
+    access: TripAccess = Depends(get_trip_editor_access),
+    db: Session = Depends(get_db),
+):
+    """Accept AI budget estimation and update trip budget_total."""
+    try:
+        TripsService.update_trip(
+            db=db,
+            trip=access.trip,
+            budget_total=request.budget_total,
+        )
+        NotificationService.check_and_send_budget_alert(db, access.trip)
+        return {"success": True}
     except AppError as e:
         raise create_http_exception(e) from e

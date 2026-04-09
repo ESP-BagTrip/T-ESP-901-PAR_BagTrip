@@ -3,6 +3,9 @@
 import httpx
 
 from src.config.env import settings
+from src.integrations.amadeus.errors import raise_amadeus_connection_error, raise_for_amadeus_status
+from src.integrations.amadeus.retry import amadeus_retry
+from src.utils.errors import AppError
 from src.utils.logger import logger
 
 from .auth import fetch_token
@@ -14,6 +17,7 @@ from .types import (
 )
 
 
+@amadeus_retry
 async def search_locations_by_keyword(query: LocationKeywordSearchQuery) -> list[Location]:
     """
     Appel Reference Data Locations: GET /v1/reference-data/locations
@@ -51,7 +55,7 @@ async def search_locations_by_keyword(query: LocationKeywordSearchQuery) -> list
                 "Amadeus location search failed",
                 {"status": response.status_code, "data": response.text},
             )
-            raise Exception(f"Amadeus location search failed: {response.status_code}")
+            raise_for_amadeus_status(response, "location keyword search")
 
         data = response.json()
         locations_data = data.get("data", [])
@@ -63,9 +67,10 @@ async def search_locations_by_keyword(query: LocationKeywordSearchQuery) -> list
 
     except httpx.HTTPError as error:
         logger.error("Amadeus location search failed", {"message": str(error)})
-        raise Exception(f"Amadeus location search failed: {str(error)}") from error
+        raise_amadeus_connection_error(error, "location keyword search")
 
 
+@amadeus_retry
 async def search_location_by_id(query: LocationIdSearchQuery) -> Location:
     """
     Recherche une location par son ID.
@@ -99,13 +104,13 @@ async def search_location_by_id(query: LocationIdSearchQuery) -> Location:
                 "Amadeus location search failed",
                 {"status": response.status_code, "data": response.text},
             )
-            raise Exception(f"Amadeus location search failed: {response.status_code}")
+            raise_for_amadeus_status(response, "location ID search")
 
         data = response.json()
         location_data = data.get("data")
 
         if not location_data:
-            raise Exception("Location not found")
+            raise AppError("NOT_FOUND", 404, "Location not found")
 
         location = Location(**location_data)
         logger.info("Location search completed successfully", {"location": location.id})
@@ -113,9 +118,10 @@ async def search_location_by_id(query: LocationIdSearchQuery) -> Location:
 
     except httpx.HTTPError as error:
         logger.error("Amadeus location search failed", {"message": str(error)})
-        raise Exception(f"Amadeus location search failed: {str(error)}") from error
+        raise_amadeus_connection_error(error, "location ID search")
 
 
+@amadeus_retry
 async def search_location_nearest(query: LocationNearestSearchQuery) -> list[Location]:
     """
     Recherche les aéroports les plus proches d'une position géographique.
@@ -153,7 +159,7 @@ async def search_location_nearest(query: LocationNearestSearchQuery) -> list[Loc
                 "Amadeus location nearest search failed",
                 {"status": response.status_code, "data": response.text},
             )
-            raise Exception(f"Amadeus location nearest search failed: {response.status_code}")
+            raise_for_amadeus_status(response, "location nearest search")
 
         data = response.json()
         locations_data = data.get("data", [])
@@ -167,4 +173,4 @@ async def search_location_nearest(query: LocationNearestSearchQuery) -> list[Loc
 
     except httpx.HTTPError as error:
         logger.error("Amadeus location nearest search failed", {"message": str(error)})
-        raise Exception(f"Amadeus location nearest search failed: {str(error)}") from error
+        raise_amadeus_connection_error(error, "location nearest search")

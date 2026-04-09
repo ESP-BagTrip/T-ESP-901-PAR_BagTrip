@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
+
+from src.config.env import settings
 from src.utils.logger import logger
 
 _NODE_FIELD_MAP = {
@@ -16,7 +19,10 @@ async def with_retry(node_fn, state, node_name: str, max_retries: int = 1):
     last_error = None
     for attempt in range(max_retries + 1):
         try:
-            return await node_fn(state)
+            return await asyncio.wait_for(
+                node_fn(state),
+                timeout=settings.NODE_TIMEOUT_SECONDS,
+            )
         except Exception as e:
             last_error = e
             if attempt < max_retries:

@@ -33,12 +33,9 @@ Classe `AmadeusClient` qui expose une interface unifiee. Instance globale : `ama
 
 ### Modules
 
-#### Locations (`locations.py`)
-- `search_locations_by_keyword(query)` — Recherche par mot-cle (GET `/v1/reference-data/locations`)
-- `search_location_by_id(query)` — Recherche par ID (GET `/v1/reference-data/locations/{id}`)
-- `search_location_nearest(query)` — Airports proches (GET `/v1/reference-data/locations/airports`)
+#### Locations
 
-Retourne des objets `LocationResult` avec `iataCode`, `address` (cityName, countryName), `geoCode` (lat, lon).
+Les recherches de locations (aeroports, villes, codes IATA) sont gerees par le module **Aviation Data** offline. Voir la section [Aviation Data](#aviation-data-offline) ci-dessous.
 
 #### Flights (`flights.py`)
 - `search_flight_offers(query)` — Offres de vols (GET `/v2/shopping/flight-offers`)
@@ -74,6 +71,50 @@ Un `asyncio.Semaphore(3)` dans `tools.py` limite les appels Amadeus concurrents 
 | `AMADEUS_CLIENT_ID` | (requis) | Client ID Amadeus |
 | `AMADEUS_CLIENT_SECRET` | (requis) | Client Secret Amadeus |
 | `AMADEUS_BASE_URL` | `https://test.api.amadeus.com` | URL de base (test ou production) |
+
+## Aviation Data (Offline)
+
+**Fichier** : `api/src/integrations/aviation_data/`
+
+Module de donnees aeroportuaires offline qui remplace les appels Amadeus pour les donnees de reference (aeroports, villes, codes IATA). Base sur le package Python `airportsdata` (28 428 aeroports, 7 884 avec code IATA, licence MIT).
+
+### Motivation
+
+L'API Amadeus Self-Service impose un quota de ~2 000 requetes/mois (tier test). Les donnees de reference (noms d'aeroports, codes IATA, coordonnees) sont **statiques** et n'ont pas besoin d'etre appelees via une API payante avec rate-limiting.
+
+### Service (`service.py`)
+
+Classe `AviationDataService` — instance globale `aviation_data_service` :
+
+| Methode | Description |
+|---------|-------------|
+| `search_by_keyword(keyword, sub_type, limit)` | Recherche par mot-cle (nom, ville, code IATA) avec ranking intelligent |
+| `get_by_id(iata_code)` | Lookup O(1) par code IATA |
+| `search_nearest(latitude, longitude, limit)` | Aeroports les plus proches (distance haversine) |
+
+Toutes les methodes retournent des objets `Location` (meme modele Pydantic qu'Amadeus) pour une compatibilite totale avec le frontend.
+
+### Ranking de recherche
+
+La recherche par mot-cle utilise un scoring a 8 niveaux :
+1. Exact IATA match
+2. City exact + "International" dans le nom
+3. City exact
+4. IATA starts with keyword
+5. City starts with + International
+6. City starts with
+7. Name starts with
+8. Contains dans city ou name
+
+### Utilisation
+
+- **Routes travel** : `/v1/travel/locations`, `/locations/{id}`, `/locations/nearest`
+- **Agent IA** : `resolve_iata_code()` dans `api/src/agent/tools.py`
+- **Cache vols** : TTLCache (15 min) sur `/v1/travel/flight/offers` pour deduplication
+
+### Environnement
+
+Aucune variable d'environnement requise — les donnees sont embarquees dans le package `airportsdata`.
 
 ## AirLabs
 
@@ -284,4 +325,3 @@ Service meteo gratuit, sans cle API. Utilise pour obtenir des previsions reelles
 | Pas de monitoring des webhooks | Les erreurs de traitement des webhooks Stripe sont persistees dans `processing_error` mais pas d'alerte. Fichier : `api/src/services/stripe_webhooks_service.py` | P2 |
 | Cache Unsplash non distribue | Le cache Unsplash est in-memory (dict). En multi-instance, chaque worker refait les requetes. Fichier : `api/src/integrations/unsplash/client.py` | P2 |
 | AirLabs cache synchrone | Le client AirLabs utilise `httpx` synchrone (pas async). Fichier : `api/src/integrations/airlabs/client.py` ligne 37 | P2 |
-| Pas de gestion du rate-limit Amadeus 429 | Si Amadeus retourne 429, le client ne fait pas de retry avec backoff. Le semaphore limite a 3 appels concurrents mais pas de retry. Fichier : `api/src/agent/tools.py` | P1 |

@@ -2,6 +2,7 @@ import 'package:bagtrip/navigation/app_shell.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/config/service_locator.dart';
+import 'package:bagtrip/pages/not_found_page.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:go_router/go_router.dart';
 
@@ -70,4 +71,5 @@ final GoRouter appRouter = GoRouter(
     $paymentCancelRoute,
     $paymentResultRoute,
   ],
+  errorBuilder: (context, state) => const NotFoundPage(),
 );

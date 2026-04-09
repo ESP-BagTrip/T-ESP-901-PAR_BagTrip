@@ -17,7 +17,7 @@ void main() {
   });
 
   group('FT2 — Manual trip creation and enrichment', () {
-    testWidgets('existing user with trips → HomeTripManager renders', (
+    testWidgets('existing user with trips → IdleHomeView renders', (
       tester,
     ) async {
       final existingTrip = makeTrip(
@@ -32,9 +32,8 @@ void main() {
 
       await pumpTestApp(tester, existingMocks: mocks);
 
-      expect(f.homeTripManager, findsOneWidget);
-      expect(f.tripManagerHomeView, findsOneWidget);
-      expect(f.homeNewUser, findsNothing);
+      expect(f.homeIdle, findsOneWidget);
+      expect(f.idleHomeView, findsOneWidget);
     });
 
     testWidgets(
@@ -80,11 +79,11 @@ void main() {
 
         await pumpTestApp(tester, existingMocks: mocks);
 
-        expect(f.homeTripManager, findsOneWidget);
+        expect(f.homeIdle, findsOneWidget);
 
         // Simulate manual trip creation via TripManagementBloc
         final tripMgmtBloc = tester
-            .element(f.homeTripManager)
+            .element(f.homeIdle)
             .read<TripManagementBloc>();
 
         tripMgmtBloc.add(
@@ -172,7 +171,7 @@ void main() {
 
         await pumpTestApp(tester, existingMocks: mocks);
 
-        expect(f.homeTripManager, findsOneWidget);
+        expect(f.homeIdle, findsOneWidget);
 
         // Simulate adding activity
         await mocks.activity.createActivity(trip.id, {

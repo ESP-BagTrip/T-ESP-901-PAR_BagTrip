@@ -19,6 +19,7 @@ class BaggageBloc extends Bloc<BaggageEvent, BaggageState> {
     on<TogglePacked>(_onTogglePacked);
     on<DeleteBaggageItem>(_onDeleteBaggageItem);
     on<CreateBaggageItem>(_onCreateBaggageItem);
+    on<UpdateBaggageItem>(_onUpdateBaggageItem);
     on<SuggestBaggage>(_onSuggestBaggage);
     on<AcceptSuggestion>(_onAcceptSuggestion);
     on<DismissSuggestion>(_onDismissSuggestion);
@@ -143,6 +144,36 @@ class BaggageBloc extends Bloc<BaggageEvent, BaggageState> {
         final current = state;
         if (current is BaggageLoaded) {
           final updated = [...current.items, data];
+          emit(_rebuildLoaded(updated, suggestions: current.suggestions));
+        } else {
+          add(LoadBaggage(tripId: event.tripId));
+        }
+      case Failure(:final error):
+        emit(BaggageError(error: error));
+    }
+  }
+
+  Future<void> _onUpdateBaggageItem(
+    UpdateBaggageItem event,
+    Emitter<BaggageState> emit,
+  ) async {
+    final result = await _baggageRepository.updateBaggageItem(
+      event.tripId,
+      event.itemId,
+      {
+        'name': event.name,
+        'quantity': event.quantity,
+        'category': event.category,
+      },
+    );
+    if (isClosed) return;
+    switch (result) {
+      case Success(:final data):
+        final current = state;
+        if (current is BaggageLoaded) {
+          final updated = current.items
+              .map((i) => i.id == data.id ? data : i)
+              .toList();
           emit(_rebuildLoaded(updated, suggestions: current.suggestions));
         } else {
           add(LoadBaggage(tripId: event.tripId));

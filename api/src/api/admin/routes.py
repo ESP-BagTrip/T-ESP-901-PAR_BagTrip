@@ -66,9 +66,7 @@ async def list_all_users(
     except AppError as e:
         raise create_http_exception(e) from e
     except Exception as e:
-        raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to fetch users: {str(e)}")
-        ) from e
+        raise create_http_exception(AppError("INTERNAL_ERROR", 500, "Failed to fetch users")) from e
 
 
 @router.get(
@@ -96,9 +94,7 @@ async def list_all_trips(
     except AppError as e:
         raise create_http_exception(e) from e
     except Exception as e:
-        raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to fetch trips: {str(e)}")
-        ) from e
+        raise create_http_exception(AppError("INTERNAL_ERROR", 500, "Failed to fetch trips")) from e
 
 
 @router.get(
@@ -127,7 +123,7 @@ async def list_all_travelers(
         raise create_http_exception(e) from e
     except Exception as e:
         raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to fetch travelers: {str(e)}")
+            AppError("INTERNAL_ERROR", 500, "Failed to fetch travelers")
         ) from e
 
 
@@ -157,7 +153,7 @@ async def list_all_flight_bookings(
         raise create_http_exception(e) from e
     except Exception as e:
         raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to fetch flight bookings: {str(e)}")
+            AppError("INTERNAL_ERROR", 500, "Failed to fetch flight bookings")
         ) from e
 
 
@@ -189,7 +185,7 @@ async def list_all_traveler_profiles(
         raise create_http_exception(e) from e
     except Exception as e:
         raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to fetch traveler profiles: {str(e)}")
+            AppError("INTERNAL_ERROR", 500, "Failed to fetch traveler profiles")
         ) from e
 
 
@@ -219,7 +215,7 @@ async def list_all_booking_intents(
         raise create_http_exception(e) from e
     except Exception as e:
         raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to fetch booking intents: {str(e)}")
+            AppError("INTERNAL_ERROR", 500, "Failed to fetch booking intents")
         ) from e
 
 
@@ -249,7 +245,7 @@ async def list_all_flight_searches(
         raise create_http_exception(e) from e
     except Exception as e:
         raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to fetch flight searches: {str(e)}")
+            AppError("INTERNAL_ERROR", 500, "Failed to fetch flight searches")
         ) from e
 
 
@@ -279,7 +275,7 @@ async def list_all_accommodations(
         raise create_http_exception(e) from e
     except Exception as e:
         raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to fetch accommodations: {str(e)}")
+            AppError("INTERNAL_ERROR", 500, "Failed to fetch accommodations")
         ) from e
 
 
@@ -309,7 +305,7 @@ async def list_all_activities(
         raise create_http_exception(e) from e
     except Exception as e:
         raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to fetch activities: {str(e)}")
+            AppError("INTERNAL_ERROR", 500, "Failed to fetch activities")
         ) from e
 
 
@@ -339,7 +335,7 @@ async def list_all_budget_items(
         raise create_http_exception(e) from e
     except Exception as e:
         raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to fetch budget items: {str(e)}")
+            AppError("INTERNAL_ERROR", 500, "Failed to fetch budget items")
         ) from e
 
 
@@ -369,7 +365,7 @@ async def list_all_baggage_items(
         raise create_http_exception(e) from e
     except Exception as e:
         raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to fetch baggage items: {str(e)}")
+            AppError("INTERNAL_ERROR", 500, "Failed to fetch baggage items")
         ) from e
 
 
@@ -399,7 +395,7 @@ async def list_all_trip_shares(
         raise create_http_exception(e) from e
     except Exception as e:
         raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to fetch trip shares: {str(e)}")
+            AppError("INTERNAL_ERROR", 500, "Failed to fetch trip shares")
         ) from e
 
 
@@ -429,7 +425,7 @@ async def list_all_feedbacks(
         raise create_http_exception(e) from e
     except Exception as e:
         raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to fetch feedbacks: {str(e)}")
+            AppError("INTERNAL_ERROR", 500, "Failed to fetch feedbacks")
         ) from e
 
 
@@ -459,7 +455,7 @@ async def list_all_notifications(
         raise create_http_exception(e) from e
     except Exception as e:
         raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to fetch notifications: {str(e)}")
+            AppError("INTERNAL_ERROR", 500, "Failed to fetch notifications")
         ) from e
 
 
@@ -481,7 +477,7 @@ async def delete_feedback(
         raise create_http_exception(e) from e
     except Exception as e:
         raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to delete feedback: {str(e)}")
+            AppError("INTERNAL_ERROR", 500, "Failed to delete feedback")
         ) from e
 
 
@@ -504,7 +500,7 @@ async def update_user_plan(
         raise create_http_exception(e) from e
     except Exception as e:
         raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to update user plan: {str(e)}")
+            AppError("INTERNAL_ERROR", 500, "Failed to update user plan")
         ) from e
 
 
@@ -525,9 +521,11 @@ async def export_users_csv(
             media_type="text/csv",
             headers={"Content-Disposition": "attachment; filename=users.csv"},
         )
+    except AppError as e:
+        raise create_http_exception(e) from e
     except Exception as e:
         raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to export users: {str(e)}")
+            AppError("INTERNAL_ERROR", 500, "Failed to export users")
         ) from e
 
 
@@ -544,9 +542,11 @@ async def get_dashboard_metrics(
     try:
         metrics = AdminService.get_dashboard_metrics(db)
         return {"data": metrics}
+    except AppError as e:
+        raise create_http_exception(e) from e
     except Exception as e:
         raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to fetch metrics: {str(e)}")
+            AppError("INTERNAL_ERROR", 500, "Failed to fetch metrics")
         ) from e
 
 
@@ -564,9 +564,11 @@ async def get_users_chart(
     try:
         data = AdminService.get_users_chart(db, period)
         return {"data": data}
+    except AppError as e:
+        raise create_http_exception(e) from e
     except Exception as e:
         raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to fetch users chart: {str(e)}")
+            AppError("INTERNAL_ERROR", 500, "Failed to fetch users chart")
         ) from e
 
 
@@ -584,9 +586,11 @@ async def get_revenue_chart(
     try:
         data = AdminService.get_revenue_chart(db, period)
         return {"data": data}
+    except AppError as e:
+        raise create_http_exception(e) from e
     except Exception as e:
         raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to fetch revenue chart: {str(e)}")
+            AppError("INTERNAL_ERROR", 500, "Failed to fetch revenue chart")
         ) from e
 
 
@@ -603,9 +607,11 @@ async def get_feedbacks_chart(
     try:
         data = AdminService.get_feedbacks_chart(db)
         return {"data": data}
+    except AppError as e:
+        raise create_http_exception(e) from e
     except Exception as e:
         raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to fetch feedbacks chart: {str(e)}")
+            AppError("INTERNAL_ERROR", 500, "Failed to fetch feedbacks chart")
         ) from e
 
 
@@ -633,7 +639,9 @@ async def send_notification(
             "message": f"{len(notifications)} notification(s) sent",
             "count": len(notifications),
         }
+    except AppError as e:
+        raise create_http_exception(e) from e
     except Exception as e:
         raise create_http_exception(
-            AppError("INTERNAL_ERROR", 500, f"Failed to send notifications: {str(e)}")
+            AppError("INTERNAL_ERROR", 500, "Failed to send notifications")
         ) from e

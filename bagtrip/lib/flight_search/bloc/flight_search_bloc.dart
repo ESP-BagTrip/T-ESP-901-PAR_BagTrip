@@ -1,5 +1,6 @@
 // ignore_for_file: depend_on_referenced_packages
 
+import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/flight_search/models/flight_segment.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/core/result.dart';
@@ -69,7 +70,7 @@ class FlightSearchBloc extends Bloc<FlightSearchEvent, FlightSearchState> {
           ),
         );
       case Failure(:final error):
-        emit(current.copyWith(isLoading: false, errorMessage: error.message));
+        emit(current.copyWith(isLoading: false, error: error));
     }
   }
 
@@ -95,7 +96,7 @@ class FlightSearchBloc extends Bloc<FlightSearchEvent, FlightSearchState> {
           ),
         );
       case Failure(:final error):
-        emit(current.copyWith(isLoading: false, errorMessage: error.message));
+        emit(current.copyWith(isLoading: false, error: error));
     }
   }
 
@@ -258,7 +259,12 @@ class FlightSearchBloc extends Bloc<FlightSearchEvent, FlightSearchState> {
     try {
       emit(current.copyWith(isLoading: false));
     } catch (e) {
-      emit(current.copyWith(isLoading: false, errorMessage: e.toString()));
+      emit(
+        current.copyWith(
+          isLoading: false,
+          error: UnknownError('Failed to search flights', originalError: e),
+        ),
+      );
     }
   }
 
@@ -288,6 +294,7 @@ class FlightSearchBloc extends Bloc<FlightSearchEvent, FlightSearchState> {
   ) async {
     emit(
       FlightSearchLoaded(
+        tripId: event.tripId,
         departureAirport: event.departureAirport,
         arrivalAirport: event.arrivalAirport,
         departureDate: event.departureDate,

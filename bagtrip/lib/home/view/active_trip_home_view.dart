@@ -15,8 +15,9 @@ import 'package:bagtrip/home/helpers/today_activities.dart';
 import 'package:bagtrip/home/widgets/quick_expense_sheet.dart';
 import 'package:bagtrip/home/widgets/active_trip_hero.dart';
 import 'package:bagtrip/home/widgets/now_indicator_row.dart';
+import 'package:bagtrip/home/helpers/camera_launcher.dart';
 import 'package:bagtrip/home/widgets/quick_actions_bar.dart';
-import 'package:bagtrip/home/widgets/shared_home_widgets.dart';
+import 'package:bagtrip/home/widgets/weather_detail_sheet.dart';
 import 'package:bagtrip/home/widgets/timeline_activity_row.dart';
 import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -35,6 +36,7 @@ class ActiveTripHomeView extends StatefulWidget {
 class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
   String? _previousCurrentActivityId;
   bool _completionDialogShown = false;
+  final _tomorrowSectionKey = GlobalKey();
 
   @override
   void didUpdateWidget(covariant ActiveTripHomeView oldWidget) {
@@ -88,7 +90,9 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => TodayTickCubit(),
+      create: (_) => TodayTickCubit(
+        destinationTimezone: widget.state.activeTrip.destinationTimezone,
+      ),
       child: BlocBuilder<TodayTickCubit, DateTime>(
         builder: (context, tickNow) {
           return _buildContent(context, tickNow);
@@ -193,7 +197,7 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
             child: Padding(
               padding: hPadding.copyWith(top: AppSpacing.space32),
               child: Text(
-                l10n.homeTodayActivities.toUpperCase(),
+                l10n.homeTodayActivities,
                 style: TextStyle(
                   fontFamily: FontFamily.b612,
                   fontSize: 12,
@@ -243,6 +247,7 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
         // Tomorrow section
         if (result.tomorrowActivities.isNotEmpty) ...[
           SliverToBoxAdapter(
+            key: _tomorrowSectionKey,
             child: Builder(
               builder: (context) {
                 final itemCount = _countTimelineItems(allTimeline, result);
@@ -257,7 +262,7 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
                         Row(
                           children: [
                             Text(
-                              l10n.activeTripsTomorrow.toUpperCase(),
+                              l10n.activeTripsTomorrow,
                               style: TextStyle(
                                 fontFamily: FontFamily.b612,
                                 fontSize: 12,
@@ -341,7 +346,7 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        l10n.activeTripsQuickActions.toUpperCase(),
+                        l10n.activeTripsQuickActions,
                         style: TextStyle(
                           fontFamily: FontFamily.b612,
                           fontSize: 12,
@@ -366,20 +371,28 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
                             : null,
                         onExpenseTap: () =>
                             _showQuickExpenseSheet(context, trip.id),
+                        onWeatherTap: () => showWeatherDetailSheet(
+                          context,
+                          weather: widget.state.weatherData,
+                          destinationName: trip.destinationName,
+                        ),
+                        onPhotoTap: () => launchCamera(context),
+                        onTomorrowTap: () {
+                          final ctx = _tomorrowSectionKey.currentContext;
+                          if (ctx != null) {
+                            Scrollable.ensureVisible(
+                              ctx,
+                              duration: const Duration(milliseconds: 400),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        },
                       ),
                     ],
                   ),
                 ),
               );
             },
-          ),
-        ),
-
-        // Plan trip CTA
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: hPadding.copyWith(top: AppSpacing.space24),
-            child: PlanTripCta(l10n: l10n),
           ),
         ),
 

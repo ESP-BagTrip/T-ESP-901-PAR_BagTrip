@@ -1,6 +1,8 @@
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
+import 'package:bagtrip/plan_trip/models/location_result.dart';
 import 'package:flutter/material.dart';
 
 class PostTripSuggestionView extends StatelessWidget {
@@ -40,9 +42,21 @@ class PostTripSuggestionView extends StatelessWidget {
             const SizedBox(height: AppSpacing.space8),
             Row(
               children: [
-                Chip(label: Text('$duration jours')),
+                Chip(
+                  label: Text(
+                    AppLocalizations.of(
+                      context,
+                    )!.postTripSuggestionDuration(duration as int),
+                  ),
+                ),
                 const SizedBox(width: AppSpacing.space8),
-                Chip(label: Text('$budget\u20ac')),
+                Chip(
+                  label: Text(
+                    AppLocalizations.of(
+                      context,
+                    )!.postTripSuggestionBudget(budget.toString()),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: AppSpacing.space16),
@@ -101,8 +115,13 @@ class PostTripSuggestionView extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  // Navigate to trip creation or back to trips
-                  Navigator.of(context).pop();
+                  final location = LocationResult(
+                    name: destination,
+                    iataCode: '',
+                    city: destination,
+                    countryName: country,
+                  );
+                  PlanTripRoute($extra: location).go(context);
                 },
                 icon: const Icon(Icons.flight_takeoff),
                 label: Text(AppLocalizations.of(context)!.postTripCreateTrip),

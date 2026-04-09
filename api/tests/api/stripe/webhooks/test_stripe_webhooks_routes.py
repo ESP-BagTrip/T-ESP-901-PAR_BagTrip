@@ -35,7 +35,7 @@ def override_get_db(mock_db_session):
     """Override the get_db dependency."""
     def _get_db():
         yield mock_db_session
-    
+
     app.dependency_overrides[get_db] = _get_db
     yield
     app.dependency_overrides = {}
@@ -52,20 +52,20 @@ class TestHandleStripeWebhook:
     ):
         """Test successful webhook processing with STRIPE_WEBHOOK_SECRET."""
         mock_settings.STRIPE_WEBHOOK_SECRET = "whsec_test"
-        
+
         mock_event = MagicMock()
         mock_construct.return_value = mock_event
-        
+
         mock_stripe_event = MagicMock()
         mock_stripe_event.stripe_event_id = "evt_123"
         mock_process.return_value = mock_stripe_event
-        
+
         response = client.post(
             "/v1/stripe/webhooks",
             content=json.dumps({"id": "evt_123"}),
             headers={"stripe-signature": "sig_123"}
         )
-        
+
         assert response.status_code == 200
         assert response.json() == {"received": True, "event_id": "evt_123"}
         mock_construct.assert_called_once()
@@ -79,20 +79,20 @@ class TestHandleStripeWebhook:
     ):
         """Test successful webhook processing without STRIPE_WEBHOOK_SECRET."""
         mock_settings.STRIPE_WEBHOOK_SECRET = None
-        
+
         mock_event = MagicMock()
         mock_construct_from.return_value = mock_event
-        
+
         mock_stripe_event = MagicMock()
         mock_stripe_event.stripe_event_id = "evt_123"
         mock_process.return_value = mock_stripe_event
-        
+
         response = client.post(
             "/v1/stripe/webhooks",
             content=json.dumps({"id": "evt_123"}),
             headers={"stripe-signature": "sig_123"}
         )
-        
+
         assert response.status_code == 200
         assert response.json() == {"received": True, "event_id": "evt_123"}
         mock_construct_from.assert_called_once()
@@ -104,13 +104,13 @@ class TestHandleStripeWebhook:
     ):
         """Test webhook processing with invalid JSON payload."""
         mock_settings.STRIPE_WEBHOOK_SECRET = None
-        
+
         response = client.post(
             "/v1/stripe/webhooks",
             content="invalid json",
             headers={"stripe-signature": "sig_123"}
         )
-        
+
         assert response.status_code == 400
         assert response.json() == {"error": "Invalid payload"}
 
@@ -122,13 +122,13 @@ class TestHandleStripeWebhook:
         """Test webhook processing with invalid signature."""
         mock_settings.STRIPE_WEBHOOK_SECRET = "whsec_test"
         mock_construct.side_effect = stripe.error.SignatureVerificationError("Invalid sig", "sig")
-        
+
         response = client.post(
             "/v1/stripe/webhooks",
             content=json.dumps({"id": "evt_123"}),
             headers={"stripe-signature": "invalid_sig"}
         )
-        
+
         assert response.status_code == 400
         assert response.json() == {"error": "Invalid signature"}
 
@@ -140,12 +140,12 @@ class TestHandleStripeWebhook:
         """Test webhook processing with internal server error."""
         mock_settings.STRIPE_WEBHOOK_SECRET = None
         mock_process.side_effect = Exception("Internal Error")
-        
+
         response = client.post(
             "/v1/stripe/webhooks",
             content=json.dumps({"id": "evt_123"}),
             headers={"stripe-signature": "sig_123"}
         )
-        
+
         assert response.status_code == 500
         assert response.json() == {"error": "Internal Error"}

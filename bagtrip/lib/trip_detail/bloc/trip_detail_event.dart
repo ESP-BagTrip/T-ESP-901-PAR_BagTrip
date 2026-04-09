@@ -117,3 +117,8 @@ final class CreateBudgetItemFromDetail extends TripDetailEvent {
   final Map<String, dynamic> data;
   CreateBudgetItemFromDetail({required this.data});
 }
+
+final class RetryDeferredSection extends TripDetailEvent {
+  final String section;
+  RetryDeferredSection({required this.section});
+}

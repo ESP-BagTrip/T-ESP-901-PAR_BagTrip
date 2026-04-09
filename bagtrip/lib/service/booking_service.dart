@@ -36,11 +36,37 @@ class BookingRepositoryImpl implements BookingRepository {
   }
 
   @override
+  Future<Result<String>> createBookingIntent({
+    required String tripId,
+    required String flightOfferId,
+  }) async {
+    try {
+      final response = await _apiClient.post(
+        '/trips/$tripId/booking-intents',
+        data: {'type': 'FLIGHT', 'flightOfferId': flightOfferId},
+      );
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final id = response.data['id'] as String;
+        return Success(id);
+      }
+      return loggedFailure(
+        UnknownError('create booking intent failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
   Future<Result<PaymentAuthorizeResponse>> authorizePayment(
     String intentId,
   ) async {
     try {
-      final response = await _apiClient.post('/booking/$intentId/authorize');
+      final response = await _apiClient.post(
+        '/booking-intents/$intentId/payment/authorize',
+      );
       if (response.statusCode == 200) {
         return Success(
           PaymentAuthorizeResponse.fromJson(
@@ -61,7 +87,9 @@ class BookingRepositoryImpl implements BookingRepository {
   @override
   Future<Result<void>> capturePayment(String intentId) async {
     try {
-      final response = await _apiClient.post('/booking/$intentId/capture');
+      final response = await _apiClient.post(
+        '/booking-intents/$intentId/payment/capture',
+      );
       if (response.statusCode == 200) {
         return const Success(null);
       }
@@ -78,7 +106,9 @@ class BookingRepositoryImpl implements BookingRepository {
   @override
   Future<Result<void>> cancelPayment(String intentId) async {
     try {
-      final response = await _apiClient.post('/booking/$intentId/cancel');
+      final response = await _apiClient.post(
+        '/booking-intents/$intentId/payment/cancel',
+      );
       if (response.statusCode == 200) {
         return const Success(null);
       }

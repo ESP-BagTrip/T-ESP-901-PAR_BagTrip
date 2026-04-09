@@ -16,10 +16,12 @@ from src.api.auth.middleware import get_current_user
 from src.api.auth.schemas import (
     AppleSignInRequest,
     AuthResponse,
+    ForgotPasswordRequest,
     GoogleSignInRequest,
     LoginRequest,
     LogoutRequest,
     RefreshTokenRequest,
+    ResetPasswordRequest,
     SignupRequest,
     UpdateUserRequest,
     UserResponse,
@@ -31,6 +33,7 @@ from src.models.refresh_token import RefreshToken
 from src.models.user import User
 from src.services.plan_service import PlanService
 from src.utils.cookies import clear_auth_cookies, set_auth_cookies
+from src.utils.errors import AppError
 from src.utils.logger import logger
 
 router = APIRouter(prefix="/v1/auth", tags=["Auth"])
@@ -126,14 +129,28 @@ async def register(request: SignupRequest, response: Response, db: Session = Dep
             user.stripe_customer_id = stripe_customer.id
             logger.info(f"Created Stripe customer {stripe_customer.id} for user {user.id}")
         except Exception as e:
-            # Log l'erreur mais continue la création de l'utilisateur
-            logger.warning(
+            logger.error(
                 f"Failed to create Stripe customer for user {user.id}: {e}",
                 exc_info=True,
             )
+            db.rollback()
+            raise AppError(
+                "STRIPE_CUSTOMER_CREATION_FAILED",
+                503,
+                "Failed to create payment profile. Please try again.",
+            ) from e
 
         db.commit()
         db.refresh(user)
+
+        # Claim pending invites for newly registered user
+        try:
+            from src.services.trip_share_service import TripShareService
+
+            TripShareService.claim_pending_invites(db, email=user.email, user_id=user.id)
+        except Exception:
+            pass  # Best-effort, don't block registration
+
     except IntegrityError:
         db.rollback()
         raise HTTPException(
@@ -419,13 +436,27 @@ async def google_sign_in(
                 user.stripe_customer_id = stripe_customer.id
                 logger.info(f"Created Stripe customer {stripe_customer.id} for user {user.id}")
             except Exception as e:
-                logger.warning(
+                logger.error(
                     f"Failed to create Stripe customer for user {user.id}: {e}",
                     exc_info=True,
                 )
+                db.rollback()
+                raise AppError(
+                    "STRIPE_CUSTOMER_CREATION_FAILED",
+                    503,
+                    "Failed to create payment profile. Please try again.",
+                ) from e
 
             db.commit()
             db.refresh(user)
+
+            # Claim pending invites for newly registered user
+            try:
+                from src.services.trip_share_service import TripShareService
+
+                TripShareService.claim_pending_invites(db, email=user.email, user_id=user.id)
+            except Exception:
+                pass  # Best-effort
         else:
             # Mettre à jour le nom si nécessaire
             if full_name and not user.full_name:
@@ -457,6 +488,8 @@ async def google_sign_in(
                 plan_expires_at=user.plan_expires_at,
             ),
         )
+    except AppError:
+        raise
     except jwt.JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -564,13 +597,27 @@ async def apple_sign_in(
                 user.stripe_customer_id = stripe_customer.id
                 logger.info(f"Created Stripe customer {stripe_customer.id} for user {user.id}")
             except Exception as e:
-                logger.warning(
+                logger.error(
                     f"Failed to create Stripe customer for user {user.id}: {e}",
                     exc_info=True,
                 )
+                db.rollback()
+                raise AppError(
+                    "STRIPE_CUSTOMER_CREATION_FAILED",
+                    503,
+                    "Failed to create payment profile. Please try again.",
+                ) from e
 
             db.commit()
             db.refresh(user)
+
+            # Claim pending invites for newly registered user
+            try:
+                from src.services.trip_share_service import TripShareService
+
+                TripShareService.claim_pending_invites(db, email=user.email, user_id=user.id)
+            except Exception:
+                pass  # Best-effort
 
         # Generate tokens
         access_token, expires_in = create_access_token(str(user.id))
@@ -596,6 +643,8 @@ async def apple_sign_in(
                 plan_expires_at=user.plan_expires_at,
             ),
         )
+    except AppError:
+        raise
     except jwt.JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -722,4 +771,128 @@ async def logout_all(
     db.commit()
 
     clear_auth_cookies(response)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/forgot-password",
+    summary="Request a password reset",
+    description="Send a password reset token (POC: token is logged server-side)",
+)
+async def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    """Request password reset — always returns 200 to avoid leaking user existence."""
+    user = db.query(User).filter(User.email == request.email).first()
+    if user:
+        token = secrets.token_urlsafe(32)
+        user.password_reset_token = token
+        user.password_reset_expires = datetime.now(UTC) + timedelta(hours=1)
+        db.commit()
+        logger.info(f"[POC] Password reset token for {request.email}: {token}")
+    return {"message": "If this email exists, a reset link has been sent."}
+
+
+@router.post(
+    "/reset-password",
+    summary="Reset password with token",
+    description="Reset the password using a valid reset token",
+)
+async def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db)):
+    """Reset password using a valid, non-expired token."""
+    user = (
+        db.query(User)
+        .filter(
+            User.password_reset_token == request.token,
+            User.password_reset_expires > datetime.now(UTC),
+        )
+        .first()
+    )
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token",
+        )
+    user.password_hash = bcrypt.hashpw(
+        request.new_password.encode("utf-8"), bcrypt.gensalt()
+    ).decode("utf-8")
+    user.password_reset_token = None
+    user.password_reset_expires = None
+    db.commit()
+    return {"message": "Password updated successfully."}
+
+
+@router.delete(
+    "/me",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete account (RGPD)",
+    description="Permanently delete the user account and all associated data",
+)
+async def delete_me(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Hard-delete user, cascade all related data, and remove Stripe customer."""
+    from src.models.accommodation import Accommodation
+    from src.models.activity import Activity
+    from src.models.baggage_item import BaggageItem
+    from src.models.booking_intent import BookingIntent
+    from src.models.budget_item import BudgetItem
+    from src.models.device_token import DeviceToken
+    from src.models.feedback import Feedback
+    from src.models.flight_offer import FlightOffer
+    from src.models.flight_order import FlightOrder
+    from src.models.flight_search import FlightSearch
+    from src.models.manual_flight import ManualFlight
+    from src.models.notification import Notification
+    from src.models.traveler import TripTraveler
+    from src.models.traveler_profile import TravelerProfile
+    from src.models.trip import Trip
+    from src.models.trip_share import TripShare
+
+    user_id = current_user.id
+
+    # 1. Delete Stripe customer (best-effort)
+    if current_user.stripe_customer_id:
+        try:
+            StripeClient.delete_customer(current_user.stripe_customer_id)
+        except Exception as e:
+            logger.error(f"Failed to delete Stripe customer: {e}")
+
+    # 2. Delete user-owned trips and their children
+    trip_ids = [t.id for t in db.query(Trip.id).filter(Trip.user_id == user_id).all()]
+    if trip_ids:
+        for model in [
+            Activity,
+            Accommodation,
+            BaggageItem,
+            BudgetItem,
+            FlightSearch,
+            FlightOffer,
+            FlightOrder,
+            ManualFlight,
+            TripTraveler,
+            TripShare,
+            Feedback,
+            BookingIntent,
+            Notification,
+        ]:
+            db.query(model).filter(model.trip_id.in_(trip_ids)).delete(synchronize_session=False)
+        db.query(Trip).filter(Trip.id.in_(trip_ids)).delete(synchronize_session=False)
+
+    # 3. Delete direct user children
+    db.query(BookingIntent).filter(BookingIntent.user_id == user_id).delete(
+        synchronize_session=False
+    )
+    db.query(DeviceToken).filter(DeviceToken.user_id == user_id).delete(synchronize_session=False)
+    db.query(Notification).filter(Notification.user_id == user_id).delete(synchronize_session=False)
+    db.query(RefreshToken).filter(RefreshToken.user_id == user_id).delete(synchronize_session=False)
+    db.query(TripShare).filter(TripShare.user_id == user_id).delete(synchronize_session=False)
+    db.query(Feedback).filter(Feedback.user_id == user_id).delete(synchronize_session=False)
+    db.query(TravelerProfile).filter(TravelerProfile.user_id == user_id).delete(
+        synchronize_session=False
+    )
+
+    # 4. Delete user
+    db.delete(current_user)
+    db.commit()
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)

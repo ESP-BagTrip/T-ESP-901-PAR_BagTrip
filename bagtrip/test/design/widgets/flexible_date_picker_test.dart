@@ -1,6 +1,7 @@
 import 'package:bagtrip/design/widgets/flexible_date_picker.dart';
 import 'package:bagtrip/plan_trip/models/date_mode.dart';
 import 'package:bagtrip/plan_trip/models/duration_preset.dart';
+import 'package:bagtrip/plan_trip/widgets/month_grid_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -86,9 +87,9 @@ void main() {
       await tester.pumpWidget(buildApp(mode: DateMode.month));
       await tester.pumpAndSettle();
 
-      // MonthGridPicker renders 12 cells in a GridView
+      // MonthGridPicker + DurationChipSelector both use GridView
       final gridFinder = find.byType(GridView);
-      expect(gridFinder, findsOneWidget);
+      expect(gridFinder, findsNWidgets(2));
     });
 
     testWidgets('month selection fires callback with month and year', (
@@ -107,9 +108,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Tap a visible month cell in the grid
-      final gestureDetectors = find.byType(GestureDetector);
-      await tester.tap(gestureDetectors.last);
+      // Tap a month cell inside MonthGridPicker (find by ancestor)
+      final monthGridGestures = find.descendant(
+        of: find.byType(MonthGridPicker),
+        matching: find.byType(GestureDetector),
+      );
+      await tester.tap(monthGridGestures.last);
       await tester.pump();
 
       // The callback should have been called
