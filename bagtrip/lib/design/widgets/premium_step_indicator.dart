@@ -38,7 +38,7 @@ class PremiumStepIndicator extends StatelessWidget {
               width: isCurrent ? 28 : 8,
               height: 8,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: AppRadius.small4,
                 gradient: isCurrent
                     ? LinearGradient(
                         colors: currentStepColor != null
