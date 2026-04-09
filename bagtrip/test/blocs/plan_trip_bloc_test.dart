@@ -228,7 +228,10 @@ void main() {
     });
 
     test('tripDurationDays from flexible preset', () {
-      const state = PlanTripState(flexibleDuration: DurationPreset.twoWeeks);
+      const state = PlanTripState(
+        dateMode: DateMode.flexible,
+        flexibleDuration: DurationPreset.twoWeeks,
+      );
       expect(state.tripDurationDays, 14);
     });
 
