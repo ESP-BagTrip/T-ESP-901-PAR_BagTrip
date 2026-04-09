@@ -18,3 +18,9 @@ repos:
         language: system
         pass_filenames: false
         files: ^bagtrip/
+      - id: admin-lint-format
+        name: "admin: prettier && eslint --fix && tsc --noEmit"
+        entry: bash -lc 'cd admin-panel/application && npm run format && npm run lint:fix && rm -rf .next/types && npm run type-check'
+        language: system
+        pass_filenames: false
+        files: ^admin-panel/

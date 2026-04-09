@@ -39,7 +39,7 @@ export function SendNotificationModal({ open, onClose }: SendNotificationModalPr
     let userIds: string[]
     if (sendToAll) {
       const allUsers = await usersService.getUsers({ page: 1, limit: 10000 })
-      userIds = allUsers.data.map((u) => u.id)
+      userIds = allUsers.data.map(u => u.id)
     } else {
       userIds = selectedUserIds
     }
@@ -71,8 +71,8 @@ export function SendNotificationModal({ open, onClose }: SendNotificationModalPr
   }
 
   const toggleUser = (userId: string) => {
-    setSelectedUserIds((prev) =>
-      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+    setSelectedUserIds(prev =>
+      prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
     )
   }
 
@@ -89,7 +89,7 @@ export function SendNotificationModal({ open, onClose }: SendNotificationModalPr
               <label className="block text-sm font-medium text-gray-700 mb-1">Titre</label>
               <Input
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={e => setTitle(e.target.value)}
                 placeholder="Titre de la notification"
                 maxLength={200}
               />
@@ -99,7 +99,7 @@ export function SendNotificationModal({ open, onClose }: SendNotificationModalPr
               <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
               <textarea
                 value={body}
-                onChange={(e) => setBody(e.target.value)}
+                onChange={e => setBody(e.target.value)}
                 placeholder="Corps du message"
                 maxLength={1000}
                 rows={3}
@@ -112,7 +112,7 @@ export function SendNotificationModal({ open, onClose }: SendNotificationModalPr
                 <input
                   type="checkbox"
                   checked={sendToAll}
-                  onChange={(e) => setSendToAll(e.target.checked)}
+                  onChange={e => setSendToAll(e.target.checked)}
                   className="rounded"
                 />
                 Envoyer à tous les utilisateurs
@@ -126,8 +126,11 @@ export function SendNotificationModal({ open, onClose }: SendNotificationModalPr
                   {selectedUserIds.length > 1 ? 's' : ''})
                 </label>
                 <div className="max-h-40 overflow-y-auto border rounded-md p-2 space-y-1">
-                  {users.map((user) => (
-                    <label key={user.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded">
+                  {users.map(user => (
+                    <label
+                      key={user.id}
+                      className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded"
+                    >
                       <input
                         type="checkbox"
                         checked={selectedUserIds.includes(user.id)}

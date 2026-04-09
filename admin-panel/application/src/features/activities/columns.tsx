@@ -13,9 +13,7 @@ export const activitiesColumns: ColumnDef<AdminActivity>[] = [
   {
     accessorKey: 'trip_title',
     header: 'Trip',
-    cell: ({ row }) => (
-      <span className="text-gray-900">{row.getValue('trip_title') || '—'}</span>
-    ),
+    cell: ({ row }) => <span className="text-gray-900">{row.getValue('trip_title') || '—'}</span>,
   },
   {
     accessorKey: 'user_email',

@@ -33,11 +33,7 @@ export class TabErrorBoundary extends Component<Props, State> {
           <p className="text-sm text-gray-600 mb-4">
             {this.state.error?.message || 'Une erreur inattendue est survenue.'}
           </p>
-          <Button
-            onClick={() => this.setState({ hasError: false, error: null })}
-          >
-            Réessayer
-          </Button>
+          <Button onClick={() => this.setState({ hasError: false, error: null })}>Réessayer</Button>
         </div>
       )
     }
