@@ -92,6 +92,10 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
           }
         },
         builder: (context, state) {
+          final isGenerationStep = state.currentStep == 4;
+          final showWizardIndicator = state.currentStep < 4;
+          final indicatorCurrent = (state.currentStep + 1).clamp(1, 4).toInt();
+
           return Scaffold(
             backgroundColor: PersonalizationColors.gradientStart,
             body: SafeArea(
@@ -105,10 +109,28 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
                     totalSteps: state.totalSteps,
                     title: _stepTitle(state.currentStep, l10n),
                     showBack: state.currentStep > 0,
-                    onBack: () => context.read<PlanTripBloc>().add(
-                      const PlanTripEvent.previousStep(),
-                    ),
-                    onClose: () => const HomeRoute().go(context),
+                    showStepIndicator: showWizardIndicator,
+                    indicatorCurrent: indicatorCurrent,
+                    indicatorTotal: 4,
+                    onBack: () {
+                      if (isGenerationStep) {
+                        context.read<PlanTripBloc>().add(
+                          const PlanTripEvent.backToProposals(),
+                        );
+                        return;
+                      }
+                      context.read<PlanTripBloc>().add(
+                        const PlanTripEvent.previousStep(),
+                      );
+                    },
+                    onClose: () {
+                      if (isGenerationStep) {
+                        context.read<PlanTripBloc>().add(
+                          const PlanTripEvent.backToProposals(),
+                        );
+                      }
+                      const HomeRoute().go(context);
+                    },
                   ),
                   if (state.currentStep > 0 && state.currentStep < 4)
                     Padding(
@@ -269,6 +291,9 @@ class _WizardNavAnimatedColumn extends StatefulWidget {
     required this.totalSteps,
     required this.title,
     required this.showBack,
+    required this.showStepIndicator,
+    required this.indicatorCurrent,
+    required this.indicatorTotal,
     required this.onBack,
     required this.onClose,
   });
@@ -277,6 +302,9 @@ class _WizardNavAnimatedColumn extends StatefulWidget {
   final int totalSteps;
   final String title;
   final bool showBack;
+  final bool showStepIndicator;
+  final int indicatorCurrent;
+  final int indicatorTotal;
   final VoidCallback onBack;
   final VoidCallback onClose;
 
@@ -379,13 +407,14 @@ class _WizardNavAnimatedColumnState extends State<_WizardNavAnimatedColumn>
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: PremiumStepIndicator(
-                  current: widget.currentStep + 1,
-                  total: widget.totalSteps,
+              if (widget.showStepIndicator)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: PremiumStepIndicator(
+                    current: widget.indicatorCurrent,
+                    total: widget.indicatorTotal,
+                  ),
                 ),
-              ),
             ],
           ),
         ),
