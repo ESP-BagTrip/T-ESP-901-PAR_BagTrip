@@ -82,10 +82,13 @@ jobs:
             PROD_PG_PWD=$(grep '^POSTGRES_PASSWORD=' "$PROD_DIR/.env.production"    | cut -d= -f2-)
             PRE_PG_PWD=$(grep '^POSTGRES_PASSWORD='  "$PREPROD_DIR/.env.production" | cut -d= -f2-)
 
-            # 4. Drop & recreate the preprod 'bagtrip' database
+            # 4. Drop & recreate the preprod 'bagtrip' database.
+            #    DROP DATABASE cannot run inside a transaction, so we use the
+            #    dropdb/createdb wrappers (each manages its own connection).
             docker exec -e PGPASSWORD="$PRE_PG_PWD" bagtrip-preprod-postgres-1 \
-              psql -U bagtrip -d postgres -v ON_ERROR_STOP=1 -c \
-              'DROP DATABASE IF EXISTS bagtrip; CREATE DATABASE bagtrip;'
+              dropdb -U bagtrip --if-exists bagtrip
+            docker exec -e PGPASSWORD="$PRE_PG_PWD" bagtrip-preprod-postgres-1 \
+              createdb -U bagtrip bagtrip
 
             # 5. Pipe pg_dump (prod) → psql (preprod)
             docker exec -e PGPASSWORD="$PROD_PG_PWD" bagtrip-postgres-1 \
