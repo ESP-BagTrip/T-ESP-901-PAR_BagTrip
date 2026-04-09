@@ -85,7 +85,12 @@ class _StepReviewViewState extends State<StepReviewView> {
                     ),
                     // Content overlay
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.space22,
+                        0,
+                        AppSpacing.space22,
+                        AppSpacing.space24,
+                      ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.end,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,7 +146,9 @@ class _StepReviewViewState extends State<StepReviewView> {
             // Body content
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.space22,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -347,7 +354,7 @@ class _StepReviewViewState extends State<StepReviewView> {
 
   Widget _buildShimmer() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.space22),
       child: Column(
         children: [
           // Hero shimmer

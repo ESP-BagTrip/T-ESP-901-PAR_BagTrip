@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_animations.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/flexible_date_picker.dart';
@@ -20,104 +21,173 @@ class StepDatesView extends StatelessWidget {
 
     return BlocBuilder<PlanTripBloc, PlanTripState>(
       builder: (context, state) {
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-          children: [
-            // Header
-            Row(
-              children: [
-                const Icon(
-                  Icons.calendar_today_rounded,
-                  size: 18,
-                  color: ColorName.secondary,
-                ),
-                const SizedBox(width: AppSpacing.space8),
-                Text(
-                  l10n.datesLabel,
-                  style: const TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: ColorName.secondary,
-                    letterSpacing: 0.5,
+        return SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.space22,
+            AppSpacing.space22,
+            AppSpacing.space22,
+            AppSpacing.space40,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      borderRadius: AppRadius.pill,
+                      border: Border.all(color: ColorName.secondary),
+                    ),
+                    child: const Icon(
+                      Icons.calendar_today_rounded,
+                      size: 20,
+                      color: ColorName.secondary,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.space16),
-
-            // FlexibleDatePicker
-            FlexibleDatePicker(
-              mode: state.dateMode,
-              onModeChanged: (mode) => context.read<PlanTripBloc>().add(
-                PlanTripEvent.setDateMode(mode),
-              ),
-              startDate: state.startDate,
-              endDate: state.endDate,
-              onDatesChanged: (start, end) {
-                if (start != null && end != null) {
-                  context.read<PlanTripBloc>().add(
-                    PlanTripEvent.setExactDates(start, end),
-                  );
-                }
-              },
-              selectedMonth: state.preferredMonth,
-              selectedYear: state.preferredYear,
-              onMonthSelected: (month, year) => context
-                  .read<PlanTripBloc>()
-                  .add(PlanTripEvent.setMonthPreference(month, year)),
-              selectedDuration: state.flexibleDuration,
-              onDurationChanged: (preset) => context.read<PlanTripBloc>().add(
-                PlanTripEvent.setFlexibleDuration(preset),
-              ),
-            ),
-
-            // Dynamic resume badge
-            if (state.areDatesValid) ...[
-              const SizedBox(height: AppSpacing.space24),
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.space16,
-                    vertical: AppSpacing.space8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: ColorName.surface,
-                    borderRadius: AppRadius.pill,
-                    border: Border.all(color: ColorName.primarySoftLight),
-                  ),
-                  child: Text(
-                    _buildResume(state, l10n, context),
+                  const SizedBox(width: AppSpacing.space12),
+                  Text(
+                    l10n.datesLabel,
                     style: const TextStyle(
                       fontFamily: FontFamily.b612,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: ColorName.primaryTrueDark,
+                      color: ColorName.secondary,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.space16),
+
+              FlexibleDatePicker(
+                mode: state.dateMode,
+                onModeChanged: (mode) => context.read<PlanTripBloc>().add(
+                  PlanTripEvent.setDateMode(mode),
+                ),
+                startDate: state.startDate,
+                endDate: state.endDate,
+                onDatesChanged: (start, end) {
+                  if (start != null && end != null) {
+                    context.read<PlanTripBloc>().add(
+                      PlanTripEvent.setExactDates(start, end),
+                    );
+                  }
+                },
+                selectedMonth: state.preferredMonth,
+                selectedYear: state.preferredYear,
+                onMonthSelected: (month, year) => context
+                    .read<PlanTripBloc>()
+                    .add(PlanTripEvent.setMonthPreference(month, year)),
+                selectedDuration: state.flexibleDuration,
+                onDurationChanged: (preset) => context.read<PlanTripBloc>().add(
+                  PlanTripEvent.setFlexibleDuration(preset),
+                ),
+              ),
+
+              if (state.areDatesValid) ...[
+                const SizedBox(height: AppSpacing.space24),
+                Center(
+                  child: _ScaleInBadge(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.space16,
+                        vertical: AppSpacing.space12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: ColorName.surface,
+                        borderRadius: AppRadius.pill,
+                        border: Border.all(color: ColorName.primarySoftLight),
+                        boxShadow: [
+                          BoxShadow(
+                            color: ColorName.primary.withValues(alpha: 0.05),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: _buildBadgeContent(
+                        context: context,
+                        state: state,
+                        l10n: l10n,
+                      ),
                     ),
                   ),
                 ),
+              ],
+
+              const SizedBox(height: AppSpacing.space32),
+
+              _ContinueButton(
+                enabled: state.areDatesValid,
+                onPressed: () {
+                  AppHaptics.medium();
+                  context.read<PlanTripBloc>().add(
+                    const PlanTripEvent.nextStep(),
+                  );
+                },
               ),
             ],
-
-            const SizedBox(height: AppSpacing.space32),
-
-            // Continue button
-            _ContinueButton(
-              enabled: state.areDatesValid,
-              onPressed: () {
-                AppHaptics.medium();
-                context.read<PlanTripBloc>().add(
-                  const PlanTripEvent.nextStep(),
-                );
-              },
-            ),
-          ],
+          ),
         );
       },
     );
   }
 
-  String _buildResume(
+  static Widget _buildBadgeContent({
+    required BuildContext context,
+    required PlanTripState state,
+    required AppLocalizations l10n,
+  }) {
+    final locale = Localizations.localeOf(context).toString();
+
+    if (state.dateMode == DateMode.exact &&
+        state.startDate != null &&
+        state.endDate != null) {
+      final nights = state.endDate!.difference(state.startDate!).inDays;
+      final fmt = DateFormat('d MMM yyyy', locale);
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            l10n.tripNightsCount(nights),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontFamily: FontFamily.b612,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: ColorName.primaryTrueDark,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${fmt.format(state.startDate!)} – ${fmt.format(state.endDate!)}',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: FontFamily.b612,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: ColorName.primaryTrueDark.withValues(alpha: 0.75),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Text(
+      _resumeLine(state, l10n, context),
+      textAlign: TextAlign.center,
+      style: const TextStyle(
+        fontFamily: FontFamily.b612,
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: ColorName.primaryTrueDark,
+      ),
+    );
+  }
+
+  static String _resumeLine(
     PlanTripState state,
     AppLocalizations l10n,
     BuildContext context,
@@ -149,52 +219,142 @@ class StepDatesView extends StatelessWidget {
   }
 }
 
-class _ContinueButton extends StatelessWidget {
+class _ScaleInBadge extends StatefulWidget {
+  const _ScaleInBadge({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_ScaleInBadge> createState() => _ScaleInBadgeState();
+}
+
+class _ScaleInBadgeState extends State<_ScaleInBadge>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: AppAnimations.badgeScaleIn,
+    );
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaleTransition(
+      scale: CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
+      child: widget.child,
+    );
+  }
+}
+
+class _ContinueButton extends StatefulWidget {
+  const _ContinueButton({required this.onPressed, this.enabled = true});
+
   final VoidCallback onPressed;
   final bool enabled;
 
-  const _ContinueButton({required this.onPressed, this.enabled = true});
+  @override
+  State<_ContinueButton> createState() => _ContinueButtonState();
+}
+
+class _ContinueButtonState extends State<_ContinueButton> {
+  bool _hover = false;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Opacity(
-      opacity: enabled ? 1.0 : 0.5,
-      child: Container(
-        height: 56,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [ColorName.primary, ColorName.secondary],
-          ),
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: ColorName.primary.withValues(alpha: 0.3),
-              offset: const Offset(0, 6),
-              blurRadius: 16,
-            ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: enabled ? onPressed : null,
-            borderRadius: BorderRadius.circular(24),
-            child: Center(
-              child: Text(
-                l10n.continueButton,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontFamily: FontFamily.b612,
-                  fontWeight: FontWeight.w600,
-                  color: ColorName.surface,
+    final child = Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      decoration: BoxDecoration(
+        gradient: widget.enabled
+            ? const LinearGradient(
+                colors: [ColorName.primary, ColorName.secondary],
+              )
+            : null,
+        color: widget.enabled
+            ? null
+            : ColorName.secondary.withValues(alpha: 0.1),
+        borderRadius: AppRadius.pill,
+        boxShadow: widget.enabled
+            ? [
+                BoxShadow(
+                  color: ColorName.primary.withValues(alpha: 0.3),
+                  offset: const Offset(0, 6),
+                  blurRadius: 16,
                 ),
+              ]
+            : null,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: widget.enabled ? widget.onPressed : null,
+          borderRadius: AppRadius.pill,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.space22,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    l10n.continueButton,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontFamily: FontFamily.dMSerifDisplay,
+                      fontWeight: FontWeight.w600,
+                      color: widget.enabled
+                          ? ColorName.surface
+                          : ColorName.hint,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(
+                      begin: 0,
+                      end: _hover && widget.enabled ? 1 : 0,
+                    ),
+                    duration: AppAnimations.microInteraction,
+                    builder: (context, t, child) {
+                      return Transform.translate(
+                        offset: Offset(4 * t, 0),
+                        child: child,
+                      );
+                    },
+                    child: Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 20,
+                      color: widget.enabled
+                          ? ColorName.surface
+                          : ColorName.hint,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
         ),
       ),
+    );
+
+    return MouseRegion(
+      onEnter: (_) {
+        if (widget.enabled) setState(() => _hover = true);
+      },
+      onExit: (_) => setState(() => _hover = false),
+      child: child,
     );
   }
 }

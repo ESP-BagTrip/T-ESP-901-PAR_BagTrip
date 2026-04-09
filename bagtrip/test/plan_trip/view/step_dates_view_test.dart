@@ -53,6 +53,7 @@ void main() {
       expect(find.text('Exact dates'), findsOneWidget);
       expect(find.text('DEPART'), findsOneWidget);
       expect(find.text('RETURN'), findsOneWidget);
+      expect(find.text('Continue'), findsOneWidget);
     });
 
     testWidgets('renders month mode with grid', (tester) async {
@@ -83,7 +84,7 @@ void main() {
 
       final continueBtn = find.text('Continue');
       expect(continueBtn, findsOneWidget);
-
+      await tester.ensureVisible(continueBtn);
       await tester.tap(continueBtn);
       await tester.pump();
 
@@ -98,7 +99,9 @@ void main() {
       await tester.pumpWidget(buildApp(state));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Continue'));
+      final continueBtn = find.text('Continue');
+      await tester.ensureVisible(continueBtn);
+      await tester.tap(continueBtn);
       await tester.pump();
 
       verify(() => mockBloc.add(const PlanTripEvent.nextStep())).called(1);

@@ -114,7 +114,12 @@ class _StepAiProposalsViewState extends State<StepAiProposalsView>
               children: [
                 // Section header
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.space22,
+                    AppSpacing.space22,
+                    AppSpacing.space22,
+                    0,
+                  ),
                   child: Row(
                     children: [
                       const Icon(
@@ -195,7 +200,12 @@ class _StepAiProposalsViewState extends State<StepAiProposalsView>
 
                 // "Choose this destination" CTA
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.space22,
+                    0,
+                    AppSpacing.space22,
+                    AppSpacing.space24,
+                  ),
                   child: _ChooseButton(
                     onPressed: _selectedCardIndex == null ? _onChoose : null,
                   ),

@@ -21,14 +21,12 @@ Trip _makeTrip() =>
     const Trip(id: 'trip-1', title: 'Barcelona', status: TripStatus.planned);
 
 void main() {
-  late MockLocationService mockLocationService;
   late MockTripRepository mockTripRepo;
   late MockAiRepository mockAiRepo;
   late MockAuthRepository mockAuthRepo;
   late MockPersonalizationStorage mockStorage;
 
   setUp(() {
-    mockLocationService = MockLocationService();
     mockTripRepo = MockTripRepository();
     mockAiRepo = MockAiRepository();
     mockAuthRepo = MockAuthRepository();
@@ -36,7 +34,6 @@ void main() {
   });
 
   PlanTripBloc buildBloc() => PlanTripBloc(
-    locationService: mockLocationService,
     tripRepository: mockTripRepo,
     aiRepository: mockAiRepo,
     authRepository: mockAuthRepo,
@@ -48,6 +45,9 @@ void main() {
       final bloc = buildBloc();
       expect(bloc.state.currentStep, 0);
       expect(bloc.state.dateMode, DateMode.exact);
+      expect(bloc.state.nbAdults, 1);
+      expect(bloc.state.nbChildren, 0);
+      expect(bloc.state.nbBabies, 0);
       expect(bloc.state.nbTravelers, 1);
       expect(bloc.state.isManualFlow, false);
       expect(bloc.state.searchResults, isEmpty);
@@ -247,11 +247,13 @@ void main() {
 
   group('travelers & budget', () {
     blocTest<PlanTripBloc, PlanTripState>(
-      'SetTravelers updates count',
+      'SetTravelerCounts updates adults',
       build: buildBloc,
-      act: (bloc) => bloc.add(const PlanTripEvent.setTravelers(3)),
+      act: (bloc) => bloc.add(const PlanTripEvent.setTravelerCounts(adults: 3)),
       expect: () => [
-        isA<PlanTripState>().having((s) => s.nbTravelers, 'count', 3),
+        isA<PlanTripState>()
+            .having((s) => s.nbAdults, 'adults', 3)
+            .having((s) => s.nbTravelers, 'total', 3),
       ],
     );
 
@@ -300,34 +302,15 @@ void main() {
     );
 
     blocTest<PlanTripBloc, PlanTripState>(
-      'successful search populates results',
-      build: () {
-        when(
-          () => mockLocationService.searchLocationsByKeyword(
-            'Paris',
-            'CITY,AIRPORT',
-          ),
-        ).thenAnswer(
-          (_) async => const Success([
-            {
-              'name': 'Paris CDG',
-              'iataCode': 'CDG',
-              'city': 'Paris',
-              'countryCode': 'FR',
-              'countryName': 'France',
-              'subType': 'AIRPORT',
-            },
-          ]),
-        );
-        return buildBloc();
-      },
+      'successful search populates results from manual catalog',
+      build: buildBloc,
       act: (bloc) => bloc.add(const PlanTripEvent.searchDestination('Paris')),
       expect: () => [
-        isA<PlanTripState>().having((s) => s.isSearching, 'searching', true),
         isA<PlanTripState>()
             .having((s) => s.isSearching, 'searching', false)
             .having((s) => s.searchResults.length, 'count', 1)
-            .having((s) => s.searchResults.first.iataCode, 'iata', 'CDG'),
+            .having((s) => s.searchResults.first.name, 'name', 'Paris')
+            .having((s) => s.searchResults.first.iataCode, 'iata', 'PAR'),
       ],
     );
 
@@ -403,7 +386,7 @@ void main() {
         ),
         startDate: DateTime(2026, 5),
         endDate: DateTime(2026, 5, 8),
-        nbTravelers: 2,
+        nbAdults: 2,
       ),
       act: (bloc) => bloc.add(const PlanTripEvent.createTrip()),
       expect: () => [
