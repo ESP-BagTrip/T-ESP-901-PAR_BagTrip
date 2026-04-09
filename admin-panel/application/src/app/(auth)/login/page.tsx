@@ -4,49 +4,38 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Eye, EyeOff } from 'lucide-react'
-import { useAuth } from '@/hooks'
+import { NotAdminError, useAuth } from '@/hooks'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { loginSchema, registerSchema } from '@/lib/validations/auth'
-import type { LoginCredentials, RegisterCredentials } from '@/types'
+import { loginSchema } from '@/lib/validations/auth'
+import type { LoginCredentials } from '@/types'
 
 export default function LoginPage() {
-  const {
-    login,
-    register: registerUser,
-    isLoggingIn,
-    isRegistering,
-    loginError,
-    registerError,
-  } = useAuth()
+  const { login, isLoggingIn, loginError } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
-  const [isRegisterMode, setIsRegisterMode] = useState(false)
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginCredentials & RegisterCredentials>({
-    resolver: zodResolver(isRegisterMode ? registerSchema : loginSchema),
+  } = useForm<LoginCredentials>({
+    resolver: zodResolver(loginSchema),
   })
 
-  const onSubmit = (data: LoginCredentials & RegisterCredentials) => {
-    if (isRegisterMode) {
-      registerUser({
-        email: data.email,
-        password: data.password,
-        fullName: data.fullName,
-        phone: data.phone,
-      })
-    } else {
-      login({
-        email: data.email,
-        password: data.password,
-      })
-    }
+  const onSubmit = (data: LoginCredentials) => {
+    login({
+      email: data.email,
+      password: data.password,
+    })
   }
 
-  const error = loginError || registerError
+  const errorMessage = loginError
+    ? loginError instanceof NotAdminError
+      ? loginError.message
+      : loginError instanceof Error
+        ? loginError.message
+        : 'Une erreur est survenue'
+    : null
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -54,7 +43,7 @@ export default function LoginPage() {
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">BagTrip Admin</h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            {isRegisterMode ? 'Créer un nouveau compte' : 'Connectez-vous à votre compte'}
+            Connectez-vous avec votre compte administrateur
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
@@ -70,30 +59,6 @@ export default function LoginPage() {
               />
               {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
             </div>
-            {isRegisterMode && (
-              <>
-                <div>
-                  <label htmlFor="fullName" className="sr-only">
-                    Nom complet
-                  </label>
-                  <Input
-                    {...register('fullName')}
-                    type="text"
-                    placeholder="Nom complet (optionnel)"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="phone" className="sr-only">
-                    Téléphone
-                  </label>
-                  <Input
-                    {...register('phone')}
-                    type="tel"
-                    placeholder="Téléphone (optionnel)"
-                  />
-                </div>
-              </>
-            )}
             <div>
               <label htmlFor="password" className="sr-only">
                 Mot de passe
@@ -123,42 +88,26 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {error && (
+          {errorMessage && (
             <div className="rounded-md bg-red-50 p-4">
-              <div className="text-sm text-red-700">
-                {error instanceof Error ? error.message : 'Une erreur est survenue'}
-              </div>
+              <div className="text-sm text-red-700">{errorMessage}</div>
             </div>
           )}
 
           <Button
             type="submit"
             className="w-full"
-            disabled={isLoggingIn || isRegistering}
+            disabled={isLoggingIn}
           >
-            {isLoggingIn || isRegistering ? (
+            {isLoggingIn ? (
               <div className="flex items-center">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                {isRegistering ? 'Inscription...' : 'Connexion...'}
+                Connexion...
               </div>
-            ) : isRegisterMode ? (
-              "S'inscrire"
             ) : (
               'Se connecter'
             )}
           </Button>
-
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={() => setIsRegisterMode(!isRegisterMode)}
-              className="text-sm text-blue-600 hover:text-blue-500"
-            >
-              {isRegisterMode
-                ? 'Déjà un compte ? Se connecter'
-                : "Pas encore de compte ? S'inscrire"}
-            </button>
-          </div>
         </form>
       </div>
     </div>
