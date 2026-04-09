@@ -1,0 +1,104 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: [CI Quality Gates]
+    types: [completed]
+    branches: [main, develop]
+
+jobs:
+  # ─────────────────────────────────────────────────────────────
+  #  PRODUCTION  (main → /opt/bagtrip)
+  # ─────────────────────────────────────────────────────────────
+  deploy-production:
+    name: Deploy production
+    runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: true
+    steps:
+      - name: SSH deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.OVH_HOST }}
+          username: ${{ secrets.OVH_USER }}
+          key: ${{ secrets.OVH_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd /opt/bagtrip
+            git fetch origin main
+            git reset --hard origin/main
+            docker compose -f compose.prod.yml --env-file .env.production up -d --build
+            sleep 10
+            curl -fsS --max-time 30 \
+              --resolve api.bagtrip.fr:8081:127.0.0.1 \
+              -H 'Host: api.bagtrip.fr' \
+              http://127.0.0.1:8081/health
+
+  # ─────────────────────────────────────────────────────────────
+  #  PRE-PRODUCTION  (develop → /opt/bagtrip-preprod)
+  #  Each deploy: dump prod DB → restore into preprod, then up.
+  # ─────────────────────────────────────────────────────────────
+  deploy-preprod:
+    name: Deploy pre-prod
+    runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'develop'
+    concurrency:
+      group: deploy-preprod
+      cancel-in-progress: true
+    steps:
+      - name: SSH deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.OVH_HOST }}
+          username: ${{ secrets.OVH_USER }}
+          key: ${{ secrets.OVH_SSH_KEY }}
+          script: |
+            set -euo pipefail
+
+            PREPROD_DIR=/opt/bagtrip-preprod
+            PROD_DIR=/opt/bagtrip
+            COMPOSE="docker compose -f compose.prod.yml --env-file .env.production"
+
+            cd "$PREPROD_DIR"
+            git fetch origin develop
+            git reset --hard origin/develop
+
+            # 1. Stop preprod (release DB connections)
+            $COMPOSE down
+
+            # 2. Start ONLY preprod postgres so we can restore into it
+            $COMPOSE up -d postgres
+            until docker exec bagtrip-preprod-postgres-1 pg_isready -U bagtrip >/dev/null 2>&1; do
+              sleep 1
+            done
+
+            # 3. Read postgres passwords from each .env.production
+            PROD_PG_PWD=$(grep '^POSTGRES_PASSWORD=' "$PROD_DIR/.env.production"    | cut -d= -f2-)
+            PRE_PG_PWD=$(grep '^POSTGRES_PASSWORD='  "$PREPROD_DIR/.env.production" | cut -d= -f2-)
+
+            # 4. Drop & recreate the preprod 'bagtrip' database
+            docker exec -e PGPASSWORD="$PRE_PG_PWD" bagtrip-preprod-postgres-1 \
+              psql -U bagtrip -d postgres -v ON_ERROR_STOP=1 -c \
+              'DROP DATABASE IF EXISTS bagtrip; CREATE DATABASE bagtrip;'
+
+            # 5. Pipe pg_dump (prod) → psql (preprod)
+            docker exec -e PGPASSWORD="$PROD_PG_PWD" bagtrip-postgres-1 \
+              pg_dump -U bagtrip -d bagtrip --no-owner --no-acl --clean --if-exists | \
+            docker exec -i -e PGPASSWORD="$PRE_PG_PWD" bagtrip-preprod-postgres-1 \
+              psql -U bagtrip -d bagtrip -v ON_ERROR_STOP=1 -q
+
+            # 6. Bring up everything else (api will run alembic upgrade head
+            #    on top of the cloned data — no-op if no new migrations).
+            $COMPOSE up -d --build
+
+            sleep 10
+            curl -fsS --max-time 30 \
+              --resolve api.dev.bagtrip.fr:8082:127.0.0.1 \
+              -H 'Host: api.dev.bagtrip.fr' \
+              http://127.0.0.1:8082/health
