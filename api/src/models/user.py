@@ -25,6 +25,8 @@ class User(Base):
     plan_expires_at = Column(DateTime(timezone=True), nullable=True)
     ai_generations_count = Column(Integer, nullable=False, server_default="0")
     ai_generations_reset_at = Column(DateTime(timezone=True), nullable=True)
+    password_reset_token = Column(String, nullable=True)
+    password_reset_expires = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(
         DateTime(timezone=True),

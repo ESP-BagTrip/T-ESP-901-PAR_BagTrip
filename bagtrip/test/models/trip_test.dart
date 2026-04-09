@@ -85,7 +85,7 @@ void main() {
           'end_date': '2024-06-10T00:00:00.000',
           'status': 'ongoing',
           'description': 'A lovely trip to Paris',
-          'destinationName': 'Paris',
+          'destination_name': 'Paris',
           'nb_travelers': 2,
           'cover_image_url': 'https://example.com/img.jpg',
           'budget_total': 3000.50,

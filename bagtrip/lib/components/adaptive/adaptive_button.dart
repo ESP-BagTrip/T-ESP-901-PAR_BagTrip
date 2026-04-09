@@ -21,13 +21,44 @@ class AdaptiveButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (AdaptivePlatform.isIOS) {
-      return SizedBox(
+      return Semantics(
+        button: true,
+        label: label,
+        enabled: !isLoading && onPressed != null,
+        child: SizedBox(
+          width: double.infinity,
+          child: CupertinoButton.filled(
+            onPressed: isLoading ? null : onPressed,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            child: isLoading
+                ? const CupertinoActivityIndicator(color: CupertinoColors.white)
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (icon != null) ...[icon!, const SizedBox(width: 8)],
+                      Text(label),
+                    ],
+                  ),
+          ),
+        ),
+      );
+    }
+
+    return Semantics(
+      button: true,
+      label: label,
+      enabled: !isLoading && onPressed != null,
+      child: SizedBox(
         width: double.infinity,
-        child: CupertinoButton.filled(
+        child: ElevatedButton(
           onPressed: isLoading ? null : onPressed,
-          padding: const EdgeInsets.symmetric(vertical: 14),
           child: isLoading
-              ? const CupertinoActivityIndicator(color: CupertinoColors.white)
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
               : Row(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -37,27 +68,6 @@ class AdaptiveButton extends StatelessWidget {
                   ],
                 ),
         ),
-      );
-    }
-
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
-        child: isLoading
-            ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (icon != null) ...[icon!, const SizedBox(width: 8)],
-                  Text(label),
-                ],
-              ),
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/plan_trip/models/ai_destination.dart';
+import 'package:bagtrip/plan_trip/helpers/budget_estimation.dart';
 import 'package:bagtrip/plan_trip/models/budget_preset.dart';
 import 'package:bagtrip/plan_trip/models/date_mode.dart';
 import 'package:bagtrip/plan_trip/models/duration_preset.dart';
@@ -52,6 +53,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     // Step 1 — Travelers + Budget
     on<PlanTripSetTravelerCounts>(_onSetTravelerCounts);
     on<PlanTripSetBudgetPreset>(_onSetBudgetPreset);
+    on<PlanTripSetOriginCity>(_onSetOriginCity);
     // Step 2 — Destination
     on<PlanTripSearchDestination>(_onSearchDestination);
     on<PlanTripSelectManualDestination>(_onSelectManualDestination);
@@ -65,6 +67,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     // Step 5 — Review
     on<PlanTripCreateTrip>(_onCreateTrip);
     on<PlanTripBackToProposals>(_onBackToProposals);
+    on<PlanTripUpdateReviewDates>(_onUpdateReviewDates);
   }
 
   // ---------------------------------------------------------------------------
@@ -156,11 +159,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       _maxTravelersPerCategory,
     );
     emit(
-      state.copyWith(
-        nbAdults: adults,
-        nbChildren: children,
-        nbBabies: babies,
-      ),
+      state.copyWith(nbAdults: adults, nbChildren: children, nbBabies: babies),
     );
   }
 
@@ -169,6 +168,13 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     Emitter<PlanTripState> emit,
   ) {
     emit(state.copyWith(budgetPreset: event.preset));
+  }
+
+  void _onSetOriginCity(
+    PlanTripSetOriginCity event,
+    Emitter<PlanTripState> emit,
+  ) {
+    emit(state.copyWith(originCity: event.city));
   }
 
   // ---------------------------------------------------------------------------
@@ -186,11 +192,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
 
     final results = ManualDestinationCatalog.search(event.query);
     emit(
-      state.copyWith(
-        isSearching: false,
-        searchResults: results,
-        error: null,
-      ),
+      state.copyWith(isSearching: false, searchResults: results, error: null),
     );
   }
 
@@ -272,27 +274,48 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         case Success(:final data):
           final suggestions = data.map((m) {
             return AiDestination(
-              city: m['destination'] as String? ?? '',
-              country: m['destinationCountry'] as String? ?? '',
+              city: m['city'] as String? ?? m['destination'] as String? ?? '',
+              country:
+                  m['country'] as String? ??
+                  m['destinationCountry'] as String? ??
+                  '',
               iata: m['iata'] as String?,
-              matchReason: m['matchReason'] as String?,
+              matchReason:
+                  m['match_reason'] as String? ?? m['matchReason'] as String?,
             );
           }).toList();
-          emit(
-            state.copyWith(
-              isLoadingAiSuggestions: false,
-              aiSuggestions: suggestions,
-              isManualFlow: false,
-            ),
-          );
+          if (suggestions.isEmpty) {
+            emit(
+              state.copyWith(
+                isLoadingAiSuggestions: false,
+                error: const UnknownError(
+                  'No destinations found. Try adjusting your preferences.',
+                ),
+              ),
+            );
+          } else {
+            emit(
+              state.copyWith(
+                isLoadingAiSuggestions: false,
+                aiSuggestions: suggestions,
+                isManualFlow: false,
+              ),
+            );
+          }
         case Failure(:final error):
-          emit(
-            state.copyWith(isLoadingAiSuggestions: false, error: error.message),
-          );
+          emit(state.copyWith(isLoadingAiSuggestions: false, error: error));
       }
     } catch (e) {
       if (isClosed) return;
-      emit(state.copyWith(isLoadingAiSuggestions: false, error: e.toString()));
+      emit(
+        state.copyWith(
+          isLoadingAiSuggestions: false,
+          error: UnknownError(
+            'Failed to load AI suggestions',
+            originalError: e,
+          ),
+        ),
+      );
     }
   }
 
@@ -363,13 +386,39 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       ),
     );
 
-    // Build SSE params
-    final params = _buildSseParams();
+    // Load personalization prefs for SSE params
+    final userId = user?.id ?? '';
+    String? travelTypes;
+    String? companions;
+    String? constraints;
 
-    // Start SSE stream
-    try {
-      await emit.forEach<Map<String, dynamic>>(
-        _aiRepository.planTripStream(
+    if (userId.isNotEmpty) {
+      travelTypes = await _storage.getTravelTypes(userId);
+      if (isClosed) return;
+      companions = await _storage.getCompanions(userId);
+      if (isClosed) return;
+      constraints = await _storage.getConstraints(userId);
+      if (isClosed) return;
+
+      if (travelTypes.isEmpty) travelTypes = null;
+      if (companions.isEmpty) companions = null;
+      if (constraints.isEmpty) constraints = null;
+    }
+
+    // Build SSE params
+    final params = _buildSseParams(
+      travelTypes: travelTypes,
+      companions: companions,
+      constraints: constraints,
+    );
+
+    // Start SSE stream with proper cancellation support
+    await _cancelSseStream();
+
+    final completer = Completer<void>();
+
+    _sseSubscription = _aiRepository
+        .planTripStream(
           travelTypes: params['travelTypes'] as String?,
           budgetRange: params['budgetRange'] as String?,
           durationDays: params['durationDays'] as int?,
@@ -377,13 +426,30 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
           constraints: params['constraints'] as String?,
           departureDate: params['departureDate'] as String?,
           returnDate: params['returnDate'] as String?,
-        ),
-        onData: (sseEvent) => _handleSseEvent(sseEvent),
-      );
-    } catch (e) {
-      if (isClosed) return;
-      emit(state.copyWith(generationError: e.toString()));
-    }
+          originCity: params['originCity'] as String?,
+          destinationCity: params['destinationCity'] as String?,
+          destinationIata: params['destinationIata'] as String?,
+        )
+        .listen(
+          (sseEvent) {
+            if (!isClosed) {
+              emit(_handleSseEvent(sseEvent));
+            }
+          },
+          onError: (Object error) {
+            if (!isClosed) {
+              emit(state.copyWith(generationError: 'Generation failed'));
+            }
+            if (!completer.isCompleted) completer.complete();
+          },
+          onDone: () {
+            if (!completer.isCompleted) completer.complete();
+          },
+          cancelOnError: true,
+        );
+
+    // Keep handler alive so emit remains valid (bloc ^9 requirement)
+    await completer.future;
   }
 
   PlanTripState _handleSseEvent(Map<String, dynamic> sseEvent) {
@@ -500,6 +566,16 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     final dest = state.selectedManualDestination;
     final title = dest?.name ?? 'Mon voyage';
 
+    double? budgetTotal;
+    if (state.budgetPreset != null && state.tripDurationDays != null) {
+      final range = estimateBudget(
+        preset: state.budgetPreset!,
+        nbTravelers: state.nbTravelers,
+        days: state.tripDurationDays!,
+      );
+      budgetTotal = range.max;
+    }
+
     final result = await _tripRepository.createTrip(
       title: title,
       destinationName: dest?.name,
@@ -507,6 +583,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       startDate: state.startDate,
       endDate: state.endDate,
       nbTravelers: state.nbTravelers,
+      budgetTotal: budgetTotal,
     );
     if (isClosed) return;
 
@@ -514,7 +591,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       case Success(:final data):
         emit(state.copyWith(isCreating: false, createdTripId: data.id));
       case Failure(:final error):
-        emit(state.copyWith(isCreating: false, error: error.message));
+        emit(state.copyWith(isCreating: false, error: error));
     }
   }
 
@@ -522,26 +599,26 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     final plan = state.generatedPlan;
     if (plan == null) {
       emit(
-        state.copyWith(isCreating: false, error: 'Aucune proposition générée.'),
+        state.copyWith(
+          isCreating: false,
+          error: const ServerError('No plan generated'),
+        ),
       );
       return;
     }
 
     final suggestion = _tripPlanToSuggestion(plan);
 
-    String? startDateStr;
-    String? endDateStr;
-    if (state.startDate != null) {
-      startDateStr = state.startDate!.toIso8601String().split('T')[0];
-    }
-    if (state.endDate != null) {
-      endDateStr = state.endDate!.toIso8601String().split('T')[0];
-    }
+    // Always derive dates (handles month/flexible modes)
+    final (start, end) = state.representativeDates;
+    final startDateStr = start.toIso8601String().split('T')[0];
+    final endDateStr = end.toIso8601String().split('T')[0];
 
     final result = await _aiRepository.acceptInspiration(
       suggestion,
       startDate: startDateStr,
       endDate: endDateStr,
+      dateMode: state.dateMode.name,
     );
     if (isClosed) return;
 
@@ -551,23 +628,15 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
             data['id']?.toString() ?? data['tripId']?.toString() ?? '';
         emit(state.copyWith(isCreating: false, createdTripId: tripId));
       case Failure(:final error):
-        if (error is QuotaExceededError) {
-          emit(
-            state.copyWith(
-              isCreating: false,
-              error: 'AI generation quota exceeded',
-            ),
-          );
-        } else {
-          emit(state.copyWith(isCreating: false, error: error.message));
-        }
+        emit(state.copyWith(isCreating: false, error: error));
     }
   }
 
-  void _onBackToProposals(
+  Future<void> _onBackToProposals(
     PlanTripBackToProposals event,
     Emitter<PlanTripState> emit,
-  ) {
+  ) async {
+    await _cancelSseStream();
     emit(
       state.copyWith(
         currentStep: state.isManualFlow ? 2 : 3,
@@ -579,29 +648,58 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     );
   }
 
+  void _onUpdateReviewDates(
+    PlanTripUpdateReviewDates event,
+    Emitter<PlanTripState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        startDate: event.start,
+        endDate: event.end,
+        dateMode: DateMode.exact,
+      ),
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
 
   /// Collect wizard data into SSE request params.
-  Map<String, dynamic> _buildSseParams() {
-    String? departureDate;
-    String? returnDate;
+  Map<String, dynamic> _buildSseParams({
+    String? travelTypes,
+    String? companions,
+    String? constraints,
+  }) {
+    // Always derive dates via representativeDates (handles all modes)
+    final (start, end) = state.representativeDates;
+    final departureDate = start.toIso8601String().split('T')[0];
+    final returnDate = end.toIso8601String().split('T')[0];
 
-    if (state.startDate != null) {
-      departureDate = state.startDate!.toIso8601String().split('T')[0];
-    }
-    if (state.endDate != null) {
-      returnDate = state.endDate!.toIso8601String().split('T')[0];
-    }
-
-    final budgetRange = state.budgetPreset?.name;
+    // Resolve destination from manual or AI selection
+    final destName =
+        state.selectedManualDestination?.name ??
+        state.selectedAiDestination?.city;
+    final destIata =
+        state.selectedManualDestination?.iataCode ??
+        state.selectedAiDestination?.iata;
 
     return {
-      'durationDays': state.tripDurationDays,
+      'durationDays': state.effectiveDurationDays,
       'departureDate': departureDate,
       'returnDate': returnDate,
-      'budgetRange': budgetRange,
+      'budgetRange': state.budgetPreset?.name,
+      'nbTravelers': state.nbTravelers,
+      'originCity': state.originCity,
+      'dateMode': state.dateMode.name,
+      'budgetPreset': state.budgetPreset?.name,
+      if (state.preferredMonth != null) 'preferredMonth': state.preferredMonth,
+      if (state.preferredYear != null) 'preferredYear': state.preferredYear,
+      if (destName != null) 'destinationCity': destName,
+      if (destIata != null) 'destinationIata': destIata,
+      if (travelTypes != null) 'travelTypes': travelTypes,
+      if (companions != null) 'companions': companions,
+      if (constraints != null) 'constraints': constraints,
     };
   }
 
@@ -677,10 +775,29 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         .map((b) => (b['reason'] ?? '') as String)
         .toList();
 
-    // Budget total
-    final totalMin = (budget['total_min'] as num?)?.toInt() ?? 0;
-    final totalMax = (budget['total_max'] as num?)?.toInt() ?? 0;
-    final budgetEur = totalMax > 0 ? totalMax : totalMin;
+    // Budget total — sum breakdown categories for consistency with chart
+    int budgetEur = 0;
+    for (final key in [
+      'flights',
+      'accommodation',
+      'meals',
+      'transport',
+      'activities',
+    ]) {
+      final value = budget[key];
+      if (value is Map) {
+        final raw = value['amount'];
+        if (raw is num) budgetEur += raw.toInt();
+      } else if (value is num) {
+        budgetEur += value.toInt();
+      }
+    }
+    if (budgetEur == 0) {
+      // Fallback to LLM totals if no breakdown entries
+      final totalMax = (budget['total_max'] as num?)?.toInt() ?? 0;
+      final totalMin = (budget['total_min'] as num?)?.toInt() ?? 0;
+      budgetEur = totalMax > 0 ? totalMax : totalMin;
+    }
 
     return TripPlan(
       destinationCity: dest['city'] as String? ?? '',
@@ -710,8 +827,11 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
   /// Convert [TripPlan] to suggestion format for `/ai/plan-trip/accept`.
   Map<String, dynamic> _tripPlanToSuggestion(TripPlan plan) {
     return {
-      'destination': plan.destinationCity,
-      'destinationCountry': plan.destinationCountry,
+      'destination': {
+        'city': plan.destinationCity,
+        'country': plan.destinationCountry,
+        if (plan.destinationIata != null) 'iata': plan.destinationIata,
+      },
       'durationDays': plan.durationDays,
       'budgetEur': plan.budgetEur,
       'description':
@@ -727,13 +847,42 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
               : 'OTHER',
         };
       }),
+      if (plan.accommodationName.isNotEmpty)
+        'accommodations': [
+          {
+            'name': plan.accommodationName,
+            'price_per_night': plan.accommodationPrice,
+            'currency': 'EUR',
+            'source': plan.accommodationSource,
+          },
+        ],
+      if (plan.flightRoute.isNotEmpty && plan.flightPrice > 0)
+        'flight': {
+          'route': plan.flightRoute,
+          'details': plan.flightDetails,
+          'price': plan.flightPrice,
+          'source': plan.flightSource,
+        },
+      'baggage': List.generate(plan.essentialItems.length, (i) {
+        return {
+          'name': plan.essentialItems[i],
+          'reason': i < plan.essentialReasons.length
+              ? plan.essentialReasons[i]
+              : '',
+        };
+      }),
       'matchReason': 'Planned with real-time data',
     };
   }
 
+  Future<void> _cancelSseStream() async {
+    await _sseSubscription?.cancel();
+    _sseSubscription = null;
+  }
+
   @override
-  Future<void> close() {
-    _sseSubscription?.cancel();
+  Future<void> close() async {
+    await _cancelSseStream();
     return super.close();
   }
 }

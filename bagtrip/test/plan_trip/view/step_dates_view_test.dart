@@ -62,7 +62,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(GridView), findsOneWidget);
+      // Month grid + duration chip selector
+      expect(find.byType(GridView), findsNWidgets(2));
     });
 
     testWidgets('renders flexible mode with 4 duration cards', (tester) async {

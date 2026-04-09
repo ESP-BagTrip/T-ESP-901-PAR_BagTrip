@@ -115,11 +115,11 @@ class _StepAiProposalsViewState extends State<StepAiProposalsView>
                 // Section header
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.space22,
-                  AppSpacing.space22,
-                  AppSpacing.space22,
-                  0,
-                ),
+                    AppSpacing.space22,
+                    AppSpacing.space22,
+                    AppSpacing.space22,
+                    0,
+                  ),
                   child: Row(
                     children: [
                       const Icon(

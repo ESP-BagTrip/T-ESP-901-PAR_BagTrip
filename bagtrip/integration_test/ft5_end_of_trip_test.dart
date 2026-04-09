@@ -176,7 +176,7 @@ void main() {
       final homeBloc = tester.element(f.homeActiveTrip).read<HomeBloc>();
 
       // After ConfirmTripCompletion, the bloc calls RefreshHome
-      // which re-fetches trips. Re-stub: no trips at all → HomeNewUser
+      // which re-fetches trips. Re-stub: no trips at all → HomeIdle
       // (avoids Hero tag collision between TripCard and TripHeroHeader
       // during PostTripRoute transition)
       _stubTripsPaginatedRaw(mocks);

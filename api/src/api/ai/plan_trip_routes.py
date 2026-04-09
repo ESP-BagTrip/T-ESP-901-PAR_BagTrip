@@ -15,13 +15,17 @@ from src.api.ai.plan_trip_schemas import AcceptPlanRequest, PlanTripRequest
 from src.api.auth.middleware import get_current_user
 from src.api.auth.plan_guard import require_ai_quota
 from src.config.database import get_db
+from src.config.env import settings
+from src.models.accommodation import Accommodation
 from src.models.activity import Activity
 from src.models.baggage_item import BaggageItem
+from src.models.manual_flight import ManualFlight
 from src.models.user import User
 from src.services.plan_service import PlanService
 from src.services.trips_service import TripsService
 from src.utils.errors import AppError, create_http_exception
 from src.utils.logger import logger
+from src.utils.timeout import async_generator_with_timeout
 
 router = APIRouter(prefix="/v1/ai", tags=["AI Trip Planning"])
 
@@ -32,11 +36,49 @@ def _sse_event(event: str, data: dict) -> str:
     return f"event: {event}\ndata: {json_data}\n\n"
 
 
+_QUICK_DESTINATIONS_PROMPT = """Suggest 3-4 travel destinations as a JSON object.
+Consider the user's preferences and return ONLY a valid JSON object (no explanation):
+{
+  "destinations": [
+    {"city": "...", "country": "...", "match_reason": "Short reason why this matches"}
+  ]
+}"""
+
+
+async def _quick_destination_suggestions(state: dict) -> list[dict]:
+    """Single LLM call to get destination suggestions — no tools, no ReAct."""
+    from src.services.llm_service import LLMService
+
+    parts = []
+    if state.get("travel_types"):
+        parts.append(f"Preferences: {state['travel_types']}")
+    if state.get("budget_range") or state.get("budget_preset"):
+        parts.append(f"Budget: {state.get('budget_preset') or state.get('budget_range')}")
+    if state.get("duration_days"):
+        parts.append(f"Duration: {state['duration_days']} days")
+    if state.get("companions"):
+        parts.append(f"Traveling with: {state['companions']}")
+    if state.get("season"):
+        parts.append(f"Season: {state['season']}")
+    if state.get("constraints"):
+        parts.append(f"Constraints: {state['constraints']}")
+    if state.get("nb_travelers"):
+        parts.append(f"Travelers: {state['nb_travelers']}")
+
+    user_prompt = "\n".join(parts) if parts else "Suggest diverse travel destinations."
+
+    llm_service = LLMService()
+    result = await llm_service.acall_llm(_QUICK_DESTINATIONS_PROMPT, user_prompt)
+    destinations = result.get("destinations", [])
+    logger.info("Quick destination suggestions", {"count": len(destinations)})
+    return destinations
+
+
 async def _trip_plan_generator(request: PlanTripRequest, user_id: str, db: Session):
     """Async generator that runs the LangGraph pipeline and yields SSE events."""
 
     # Import here to avoid circular imports at module level
-    from src.agent.graph import destinations_only_graph, graph
+    from src.agent.graph import graph
     from src.agent.state import TripPlanState
 
     # Send initial progress
@@ -49,15 +91,32 @@ async def _trip_plan_generator(request: PlanTripRequest, user_id: str, db: Sessi
     )
 
     # Build initial state
+    dep_date = request.departureDate or ""
+    ret_date = request.returnDate or ""
+    duration = request.durationDays or 7
+
+    # Safety net: derive dates for month/flexible modes if client didn't send them
+    if not dep_date or not ret_date:
+        if request.preferredMonth and request.preferredYear:
+            start = date(request.preferredYear, request.preferredMonth, 15)
+            dep_date = str(start)
+            ret_date = str(start + timedelta(days=duration))
+        elif request.dateMode in ("month", "flexible"):
+            start = date.today() + timedelta(days=30)
+            dep_date = str(start)
+            ret_date = str(start + timedelta(days=duration))
+
     initial_state: TripPlanState = {
         "travel_types": request.travelTypes or "",
         "budget_range": request.budgetRange or "",
-        "duration_days": request.durationDays or 7,
+        "duration_days": duration,
         "companions": request.companions or "solo",
         "constraints": request.constraints or "",
-        "departure_date": request.departureDate or "",
-        "return_date": request.returnDate or "",
+        "departure_date": dep_date,
+        "return_date": ret_date,
         "origin_city": request.originCity or "",
+        "destination_city": request.destinationCity or "",
+        "destination_iata": request.destinationIata or "",
         "travel_style": request.travelStyle or "",
         "season": request.season or "",
         "nb_travelers": request.nbTravelers or 1,
@@ -75,15 +134,33 @@ async def _trip_plan_generator(request: PlanTripRequest, user_id: str, db: Sessi
         },
     )
 
+    # Fast path for destinations_only: single LLM call, no ReAct/tools
+    if request.mode == "destinations_only":
+        try:
+            destinations = await _quick_destination_suggestions(initial_state)
+            yield _sse_event("destinations", {"destinations": destinations})
+            yield _sse_event(
+                "complete",
+                {"destinations": destinations, "mode": "destinations_only"},
+            )
+        except Exception as e:
+            logger.error("Quick destination suggestions failed", {"error": str(e)})
+            yield _sse_event("error", {"message": str(e)})
+        yield _sse_event("done", {"status": "complete"})
+        return
+
     # Select graph based on mode
-    active_graph = destinations_only_graph if request.mode == "destinations_only" else graph
+    active_graph = graph
 
     # Run the graph with streaming
     last_heartbeat = asyncio.get_event_loop().time()
     sent_events = set()  # Track which event types we've already sent
 
     try:
-        async for event in active_graph.astream(initial_state, stream_mode="updates"):
+        async for event in async_generator_with_timeout(
+            active_graph.astream(initial_state, stream_mode="updates"),
+            total_timeout_seconds=settings.GRAPH_TIMEOUT_SECONDS,
+        ):
             # event is a dict: {node_name: state_update}
             for node_name, update in event.items():
                 node_events = update.get("events", [])
@@ -143,6 +220,15 @@ async def _trip_plan_generator(request: PlanTripRequest, user_id: str, db: Sessi
         except Exception as e:
             logger.warn(f"Failed to increment AI generation count: {e}")
 
+    except TimeoutError:
+        logger.error(
+            "Trip planning graph timed out",
+            {"timeout_seconds": settings.GRAPH_TIMEOUT_SECONDS},
+        )
+        yield _sse_event(
+            "error",
+            {"message": "Trip planning timed out. Please try again."},
+        )
     except Exception as e:
         logger.error("Trip planning graph failed", {"error": str(e)})
         yield _sse_event("error", {"message": str(e)})
@@ -205,6 +291,21 @@ def _get_default_baggage(lang: str) -> list[dict]:
     return _DEFAULT_BAGGAGE_I18N.get(lang, _DEFAULT_BAGGAGE_I18N["en"])
 
 
+def _parse_flight_route(route: str) -> tuple[str | None, str | None]:
+    """Extract departure and arrival IATA codes from a route string.
+
+    Handles formats like "CDG → JTR", "CDG -> JTR", "CDG - JTR".
+    """
+    import re
+
+    codes = re.findall(r"\b([A-Z]{3})\b", route.upper())
+    if len(codes) >= 2:
+        return codes[0], codes[1]
+    if len(codes) == 1:
+        return codes[0], None
+    return None, None
+
+
 @router.post("/plan-trip/accept")
 async def accept_plan(
     request: AcceptPlanRequest,
@@ -254,6 +355,16 @@ async def accept_plan(
         if not cover_image_url:
             cover_image_url = unsplash_client.get_fallback_url(destination_name)
 
+        # Resolve dates (safety net for month/flexible modes)
+        start_date_value = request.startDate
+        end_date_value = request.endDate
+        if not start_date_value or not end_date_value:
+            duration = suggestion.get("durationDays", 7) or 7
+            start_date_value = start_date_value or str(date.today() + timedelta(days=30))
+            end_date_value = end_date_value or str(
+                date.fromisoformat(start_date_value) + timedelta(days=duration)
+            )
+
         trip = TripsService.create_trip(
             db=db,
             user_id=current_user.id,
@@ -263,19 +374,20 @@ async def accept_plan(
             destination_name=destination_name,
             description=suggestion.get("description"),
             budget_total=suggestion.get("budgetEur"),
-            start_date=request.startDate,
-            end_date=request.endDate,
+            start_date=start_date_value,
+            end_date=end_date_value,
             origin="AI",
             cover_image_url=cover_image_url,
+            date_mode=request.dateMode or "EXACT",
         )
 
         # --- Create activities with intelligent scheduling ---
         activities_data = suggestion.get("activities", [])
         if activities_data:
             trip_start = None
-            if request.startDate:
+            if start_date_value:
                 with contextlib.suppress(ValueError):
-                    trip_start = date.fromisoformat(request.startDate)
+                    trip_start = date.fromisoformat(start_date_value)
 
             duration_days = suggestion.get("durationDays", len(activities_data)) or len(
                 activities_data
@@ -308,6 +420,35 @@ async def accept_plan(
                     validation_status="SUGGESTED",
                 )
                 db.add(activity)
+
+        # --- Persist accommodations ---
+        accommodations_data = suggestion.get("accommodations", [])
+        for acc in accommodations_data:
+            accommodation = Accommodation(
+                trip_id=trip.id,
+                name=acc.get("name", "Hébergement"),
+                address=acc.get("address"),
+                price_per_night=acc.get("price_per_night"),
+                currency=acc.get("currency", "EUR"),
+                notes=acc.get("notes"),
+            )
+            db.add(accommodation)
+
+        # --- Persist AI-suggested flight ---
+        flight_data = suggestion.get("flight")
+        if flight_data and isinstance(flight_data, dict):
+            dep_airport, arr_airport = _parse_flight_route(flight_data.get("route", ""))
+            flight = ManualFlight(
+                trip_id=trip.id,
+                flight_number="TBD",
+                departure_airport=dep_airport,
+                arrival_airport=arr_airport,
+                price=flight_data.get("price"),
+                currency="EUR",
+                notes=f"AI suggestion ({flight_data.get('source', 'estimated')})",
+                flight_type="AI_SUGGESTED",
+            )
+            db.add(flight)
 
         # --- Persist baggage items (AI-generated or i18n defaults) ---
         ai_baggage = suggestion.get("baggage", [])

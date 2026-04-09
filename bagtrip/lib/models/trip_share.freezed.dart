@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TripShare {
 
- String get id; String get tripId; String get userId; String get role; DateTime? get invitedAt; String get userEmail; String? get userFullName;
+ String get id; String get tripId; String? get userId; String get role; DateTime? get invitedAt; String get userEmail; String? get userFullName; String get status;@JsonKey(name: 'invite_token') String? get inviteToken;
 /// Create a copy of TripShare
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $TripShareCopyWith<TripShare> get copyWith => _$TripShareCopyWithImpl<TripShare>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TripShare&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.role, role) || other.role == role)&&(identical(other.invitedAt, invitedAt) || other.invitedAt == invitedAt)&&(identical(other.userEmail, userEmail) || other.userEmail == userEmail)&&(identical(other.userFullName, userFullName) || other.userFullName == userFullName));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TripShare&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.role, role) || other.role == role)&&(identical(other.invitedAt, invitedAt) || other.invitedAt == invitedAt)&&(identical(other.userEmail, userEmail) || other.userEmail == userEmail)&&(identical(other.userFullName, userFullName) || other.userFullName == userFullName)&&(identical(other.status, status) || other.status == status)&&(identical(other.inviteToken, inviteToken) || other.inviteToken == inviteToken));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,tripId,userId,role,invitedAt,userEmail,userFullName);
+int get hashCode => Object.hash(runtimeType,id,tripId,userId,role,invitedAt,userEmail,userFullName,status,inviteToken);
 
 @override
 String toString() {
-  return 'TripShare(id: $id, tripId: $tripId, userId: $userId, role: $role, invitedAt: $invitedAt, userEmail: $userEmail, userFullName: $userFullName)';
+  return 'TripShare(id: $id, tripId: $tripId, userId: $userId, role: $role, invitedAt: $invitedAt, userEmail: $userEmail, userFullName: $userFullName, status: $status, inviteToken: $inviteToken)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $TripShareCopyWith<$Res>  {
   factory $TripShareCopyWith(TripShare value, $Res Function(TripShare) _then) = _$TripShareCopyWithImpl;
 @useResult
 $Res call({
- String id, String tripId, String userId, String role, DateTime? invitedAt, String userEmail, String? userFullName
+ String id, String tripId, String? userId, String role, DateTime? invitedAt, String userEmail, String? userFullName, String status,@JsonKey(name: 'invite_token') String? inviteToken
 });
 
 
@@ -65,15 +65,17 @@ class _$TripShareCopyWithImpl<$Res>
 
 /// Create a copy of TripShare
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? tripId = null,Object? userId = null,Object? role = null,Object? invitedAt = freezed,Object? userEmail = null,Object? userFullName = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? tripId = null,Object? userId = freezed,Object? role = null,Object? invitedAt = freezed,Object? userEmail = null,Object? userFullName = freezed,Object? status = null,Object? inviteToken = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,tripId: null == tripId ? _self.tripId : tripId // ignore: cast_nullable_to_non_nullable
-as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
-as String,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
+as String,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String?,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as String,invitedAt: freezed == invitedAt ? _self.invitedAt : invitedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,userEmail: null == userEmail ? _self.userEmail : userEmail // ignore: cast_nullable_to_non_nullable
 as String,userFullName: freezed == userFullName ? _self.userFullName : userFullName // ignore: cast_nullable_to_non_nullable
+as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String,inviteToken: freezed == inviteToken ? _self.inviteToken : inviteToken // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -159,10 +161,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String tripId,  String userId,  String role,  DateTime? invitedAt,  String userEmail,  String? userFullName)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String tripId,  String? userId,  String role,  DateTime? invitedAt,  String userEmail,  String? userFullName,  String status, @JsonKey(name: 'invite_token')  String? inviteToken)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TripShare() when $default != null:
-return $default(_that.id,_that.tripId,_that.userId,_that.role,_that.invitedAt,_that.userEmail,_that.userFullName);case _:
+return $default(_that.id,_that.tripId,_that.userId,_that.role,_that.invitedAt,_that.userEmail,_that.userFullName,_that.status,_that.inviteToken);case _:
   return orElse();
 
 }
@@ -180,10 +182,10 @@ return $default(_that.id,_that.tripId,_that.userId,_that.role,_that.invitedAt,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String tripId,  String userId,  String role,  DateTime? invitedAt,  String userEmail,  String? userFullName)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String tripId,  String? userId,  String role,  DateTime? invitedAt,  String userEmail,  String? userFullName,  String status, @JsonKey(name: 'invite_token')  String? inviteToken)  $default,) {final _that = this;
 switch (_that) {
 case _TripShare():
-return $default(_that.id,_that.tripId,_that.userId,_that.role,_that.invitedAt,_that.userEmail,_that.userFullName);case _:
+return $default(_that.id,_that.tripId,_that.userId,_that.role,_that.invitedAt,_that.userEmail,_that.userFullName,_that.status,_that.inviteToken);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,10 +202,10 @@ return $default(_that.id,_that.tripId,_that.userId,_that.role,_that.invitedAt,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String tripId,  String userId,  String role,  DateTime? invitedAt,  String userEmail,  String? userFullName)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String tripId,  String? userId,  String role,  DateTime? invitedAt,  String userEmail,  String? userFullName,  String status, @JsonKey(name: 'invite_token')  String? inviteToken)?  $default,) {final _that = this;
 switch (_that) {
 case _TripShare() when $default != null:
-return $default(_that.id,_that.tripId,_that.userId,_that.role,_that.invitedAt,_that.userEmail,_that.userFullName);case _:
+return $default(_that.id,_that.tripId,_that.userId,_that.role,_that.invitedAt,_that.userEmail,_that.userFullName,_that.status,_that.inviteToken);case _:
   return null;
 
 }
@@ -215,16 +217,18 @@ return $default(_that.id,_that.tripId,_that.userId,_that.role,_that.invitedAt,_t
 @JsonSerializable()
 
 class _TripShare implements TripShare {
-  const _TripShare({required this.id, required this.tripId, required this.userId, this.role = 'VIEWER', this.invitedAt, required this.userEmail, this.userFullName});
+  const _TripShare({required this.id, required this.tripId, this.userId, this.role = 'VIEWER', this.invitedAt, required this.userEmail, this.userFullName, this.status = 'active', @JsonKey(name: 'invite_token') this.inviteToken});
   factory _TripShare.fromJson(Map<String, dynamic> json) => _$TripShareFromJson(json);
 
 @override final  String id;
 @override final  String tripId;
-@override final  String userId;
+@override final  String? userId;
 @override@JsonKey() final  String role;
 @override final  DateTime? invitedAt;
 @override final  String userEmail;
 @override final  String? userFullName;
+@override@JsonKey() final  String status;
+@override@JsonKey(name: 'invite_token') final  String? inviteToken;
 
 /// Create a copy of TripShare
 /// with the given fields replaced by the non-null parameter values.
@@ -239,16 +243,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TripShare&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.role, role) || other.role == role)&&(identical(other.invitedAt, invitedAt) || other.invitedAt == invitedAt)&&(identical(other.userEmail, userEmail) || other.userEmail == userEmail)&&(identical(other.userFullName, userFullName) || other.userFullName == userFullName));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TripShare&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.role, role) || other.role == role)&&(identical(other.invitedAt, invitedAt) || other.invitedAt == invitedAt)&&(identical(other.userEmail, userEmail) || other.userEmail == userEmail)&&(identical(other.userFullName, userFullName) || other.userFullName == userFullName)&&(identical(other.status, status) || other.status == status)&&(identical(other.inviteToken, inviteToken) || other.inviteToken == inviteToken));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,tripId,userId,role,invitedAt,userEmail,userFullName);
+int get hashCode => Object.hash(runtimeType,id,tripId,userId,role,invitedAt,userEmail,userFullName,status,inviteToken);
 
 @override
 String toString() {
-  return 'TripShare(id: $id, tripId: $tripId, userId: $userId, role: $role, invitedAt: $invitedAt, userEmail: $userEmail, userFullName: $userFullName)';
+  return 'TripShare(id: $id, tripId: $tripId, userId: $userId, role: $role, invitedAt: $invitedAt, userEmail: $userEmail, userFullName: $userFullName, status: $status, inviteToken: $inviteToken)';
 }
 
 
@@ -259,7 +263,7 @@ abstract mixin class _$TripShareCopyWith<$Res> implements $TripShareCopyWith<$Re
   factory _$TripShareCopyWith(_TripShare value, $Res Function(_TripShare) _then) = __$TripShareCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String tripId, String userId, String role, DateTime? invitedAt, String userEmail, String? userFullName
+ String id, String tripId, String? userId, String role, DateTime? invitedAt, String userEmail, String? userFullName, String status,@JsonKey(name: 'invite_token') String? inviteToken
 });
 
 
@@ -276,15 +280,17 @@ class __$TripShareCopyWithImpl<$Res>
 
 /// Create a copy of TripShare
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? tripId = null,Object? userId = null,Object? role = null,Object? invitedAt = freezed,Object? userEmail = null,Object? userFullName = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? tripId = null,Object? userId = freezed,Object? role = null,Object? invitedAt = freezed,Object? userEmail = null,Object? userFullName = freezed,Object? status = null,Object? inviteToken = freezed,}) {
   return _then(_TripShare(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,tripId: null == tripId ? _self.tripId : tripId // ignore: cast_nullable_to_non_nullable
-as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
-as String,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
+as String,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String?,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as String,invitedAt: freezed == invitedAt ? _self.invitedAt : invitedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,userEmail: null == userEmail ? _self.userEmail : userEmail // ignore: cast_nullable_to_non_nullable
 as String,userFullName: freezed == userFullName ? _self.userFullName : userFullName // ignore: cast_nullable_to_non_nullable
+as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String,inviteToken: freezed == inviteToken ? _self.inviteToken : inviteToken // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

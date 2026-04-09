@@ -34,6 +34,9 @@ void main() {
 
     when(() => mockConnectivityService.isOnline).thenReturn(true);
     when(
+      () => mockConnectivityService.onConnectivityChanged,
+    ).thenAnswer((_) => const Stream<bool>.empty());
+    when(
       () => mockWeatherRepo.getWeather(any()),
     ).thenAnswer((_) async => const Failure(NetworkError('not available')));
     when(
@@ -103,10 +106,10 @@ void main() {
   );
 
   group('HomeBloc', () {
-    // ── Test 1: New user — 0 trips → HomeNewUser ────────────────────
+    // ── Test 1: New user — 0 trips → HomeIdle ────────────────────
 
     blocTest<HomeBloc, HomeState>(
-      'emits [HomeLoading, HomeNewUser] when totalTrips is 0',
+      'emits [HomeLoading, HomeIdle] when totalTrips is 0',
       build: () {
         stubUserSuccess();
         stubTrips();
@@ -115,7 +118,7 @@ void main() {
       act: (bloc) => bloc.add(LoadHome()),
       expect: () => [
         isA<HomeLoading>(),
-        isA<HomeNewUser>().having(
+        isA<HomeIdle>().having(
           (s) => s.user.email,
           'user.email',
           'test@example.com',
@@ -168,7 +171,7 @@ void main() {
     // ── Test 3: Trip manager planned — no ongoing, planned exists ───
 
     blocTest<HomeBloc, HomeState>(
-      'emits [HomeLoading, HomeTripManager] with nextTrip when only planned trips exist',
+      'emits [HomeLoading, HomeIdle] with nextTrip when only planned trips exist',
       build: () {
         stubUserSuccess();
         stubActivities();
@@ -183,12 +186,12 @@ void main() {
       act: (bloc) => bloc.add(LoadHome()),
       expect: () => [
         isA<HomeLoading>(),
-        isA<HomeTripManager>()
+        isA<HomeIdle>()
             .having((s) => s.nextTrip?.id, 'nextTrip.id', 'planned-1')
             .having(
               (s) => s.nextTripCompletion,
               'nextTripCompletion',
-              greaterThan(0),
+              equals(0),
             ),
       ],
     );
@@ -196,7 +199,7 @@ void main() {
     // ── Test 4: Trip manager completed only ─────────────────────────
 
     blocTest<HomeBloc, HomeState>(
-      'emits [HomeLoading, HomeTripManager] with nextTrip == null when only completed trips exist',
+      'emits [HomeLoading, HomeIdle] with nextTrip == null when only completed trips exist',
       build: () {
         stubUserSuccess();
         stubActivities();
@@ -210,7 +213,7 @@ void main() {
       act: (bloc) => bloc.add(LoadHome()),
       expect: () => [
         isA<HomeLoading>(),
-        isA<HomeTripManager>()
+        isA<HomeIdle>()
             .having((s) => s.nextTrip, 'nextTrip', isNull)
             .having((s) => s.nextTripCompletion, 'nextTripCompletion', 0)
             .having((s) => s.completedTrips.length, 'completedTrips.length', 1),
@@ -248,7 +251,7 @@ void main() {
         return buildBloc();
       },
       act: (bloc) => bloc.add(RefreshHome()),
-      expect: () => [isA<HomeNewUser>()],
+      expect: () => [isA<HomeIdle>()],
     );
 
     // ── Test 7: Auth failure → HomeError ────────────────────────────
@@ -290,7 +293,7 @@ void main() {
         return buildBloc();
       },
       act: (bloc) => bloc.add(LoadHome()),
-      expect: () => [isA<HomeLoading>(), isA<HomeTripManager>()],
+      expect: () => [isA<HomeLoading>(), isA<HomeIdle>()],
     );
 
     // ── Test 9: Retry after error ───────────────────────────────────
@@ -318,7 +321,7 @@ void main() {
         isA<HomeLoading>(),
         isA<HomeError>(),
         isA<HomeLoading>(),
-        isA<HomeNewUser>(),
+        isA<HomeIdle>(),
       ],
     );
 

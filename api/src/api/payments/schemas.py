@@ -28,3 +28,16 @@ class PaymentCancelResponse(BaseModel):
     """Réponse d'annulation de paiement selon PLAN.md."""
 
     bookingIntent: dict
+
+
+class PaymentRefundRequest(BaseModel):
+    """Requête de remboursement."""
+
+    amount: int | None = None
+    reason: str | None = None
+
+
+class PaymentRefundResponse(BaseModel):
+    """Réponse de remboursement."""
+
+    bookingIntent: dict

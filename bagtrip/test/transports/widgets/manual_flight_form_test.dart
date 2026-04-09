@@ -1,4 +1,5 @@
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/models/manual_flight.dart';
 import 'package:bagtrip/transports/bloc/transport_bloc.dart';
 import 'package:bagtrip/transports/widgets/manual_flight_form.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +31,7 @@ void main() {
   });
 
   Widget buildApp({
+    ManualFlight? existing,
     String? initialDepartureAirport,
     String? initialArrivalAirport,
     DateTime? initialDepartureDate,
@@ -50,6 +52,7 @@ void main() {
             value: mockTransportBloc,
             child: ManualFlightForm(
               tripId: 'trip-1',
+              existing: existing,
               initialDepartureAirport: initialDepartureAirport,
               initialArrivalAirport: initialArrivalAirport,
               initialDepartureDate: initialDepartureDate,
@@ -127,6 +130,107 @@ void main() {
 
       expect(depField.controller?.text, 'CDG');
       expect(arrField.controller?.text, 'NRT');
+    });
+
+    testWidgets('edit mode shows Edit flight title and Save button', (
+      tester,
+    ) async {
+      const existing = ManualFlight(
+        id: 'fl-1',
+        tripId: 'trip-1',
+        flightNumber: 'AF1234',
+        airline: 'Air France',
+        departureAirport: 'CDG',
+        arrivalAirport: 'NRT',
+        price: 450.0,
+      );
+
+      await tester.pumpWidget(buildApp(existing: existing));
+      await tester.pumpAndSettle();
+
+      // Title should be "Edit flight"
+      expect(find.text('Edit flight'), findsOneWidget);
+
+      // Pre-filled controllers
+      final flightField = tester.widget<TextFormField>(
+        find.byType(TextFormField).at(2),
+      );
+      expect(flightField.controller?.text, 'AF1234');
+
+      final depField = tester.widget<TextFormField>(
+        find.byType(TextFormField).at(0),
+      );
+      expect(depField.controller?.text, 'CDG');
+
+      final arrField = tester.widget<TextFormField>(
+        find.byType(TextFormField).at(1),
+      );
+      expect(arrField.controller?.text, 'NRT');
+
+      // Scroll to submit button — should say "Save" not "Add a flight"
+      await tester.scrollUntilVisible(
+        find.text('Save'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Save'), findsOneWidget);
+      expect(find.text('Add a flight'), findsNothing);
+    });
+
+    testWidgets('edit mode dispatches UpdateManualFlight on submit', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          home: Scaffold(
+            body: Navigator(
+              onGenerateRoute: (_) => MaterialPageRoute(
+                builder: (_) => SingleChildScrollView(
+                  child: BlocProvider<TransportBloc>.value(
+                    value: mockTransportBloc,
+                    child: const ManualFlightForm(
+                      tripId: 'trip-1',
+                      existing: ManualFlight(
+                        id: 'fl-1',
+                        tripId: 'trip-1',
+                        flightNumber: 'AF1234',
+                        departureAirport: 'CDG',
+                        arrivalAirport: 'NRT',
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Scroll to submit button
+      await tester.scrollUntilVisible(
+        find.text('Save'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final captured = verify(
+        () => mockTransportBloc.add(captureAny()),
+      ).captured;
+      expect(captured.any((e) => e is UpdateManualFlight), isTrue);
     });
 
     testWidgets('section labels are displayed', (tester) async {

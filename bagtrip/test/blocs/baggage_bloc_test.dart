@@ -215,6 +215,92 @@ void main() {
       expect: () => [isA<BaggageLoading>(), isA<BaggageLoaded>()],
     );
 
+    // ── UpdateBaggageItem ─────────────────────────────────────────────
+
+    blocTest<BaggageBloc, BaggageState>(
+      'UpdateBaggageItem updates item in-place and recalculates counts',
+      build: () {
+        final updated = makeBaggageItem(
+          name: 'Passport Cover',
+          category: 'DOCUMENTS',
+        );
+        when(
+          () => mockBaggageRepo.updateBaggageItem(any(), any(), any()),
+        ).thenAnswer((_) async => Success(updated));
+        return BaggageBloc(baggageRepository: mockBaggageRepo);
+      },
+      seed: () => BaggageLoaded(
+        items: [
+          makeBaggageItem(),
+          makeBaggageItem(id: 'bag-2', name: 'Charger', isPacked: true),
+        ],
+        packedCount: 1,
+        totalCount: 2,
+      ),
+      act: (bloc) => bloc.add(
+        UpdateBaggageItem(
+          tripId: 'trip-1',
+          itemId: 'bag-1',
+          name: 'Passport Cover',
+          quantity: 1,
+          category: 'DOCUMENTS',
+        ),
+      ),
+      expect: () => [isA<BaggageLoaded>()],
+      verify: (bloc) {
+        final state = bloc.state as BaggageLoaded;
+        expect(state.items.length, 2);
+        expect(state.items.first.name, 'Passport Cover');
+        expect(state.packedCount, 1);
+        expect(state.totalCount, 2);
+        verifyNever(() => mockBaggageRepo.getByTrip(any()));
+      },
+    );
+
+    blocTest<BaggageBloc, BaggageState>(
+      'UpdateBaggageItem falls back to LoadBaggage when state is not BaggageLoaded',
+      build: () {
+        when(
+          () => mockBaggageRepo.updateBaggageItem(any(), any(), any()),
+        ).thenAnswer((_) async => Success(makeBaggageItem(name: 'Updated')));
+        when(
+          () => mockBaggageRepo.getByTrip(any()),
+        ).thenAnswer((_) async => Success([makeBaggageItem(name: 'Updated')]));
+        return BaggageBloc(baggageRepository: mockBaggageRepo);
+      },
+      act: (bloc) => bloc.add(
+        UpdateBaggageItem(
+          tripId: 'trip-1',
+          itemId: 'bag-1',
+          name: 'Updated',
+          quantity: 1,
+          category: 'OTHER',
+        ),
+      ),
+      wait: const Duration(milliseconds: 100),
+      expect: () => [isA<BaggageLoading>(), isA<BaggageLoaded>()],
+    );
+
+    blocTest<BaggageBloc, BaggageState>(
+      'UpdateBaggageItem emits BaggageError on failure',
+      build: () {
+        when(
+          () => mockBaggageRepo.updateBaggageItem(any(), any(), any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('err')));
+        return BaggageBloc(baggageRepository: mockBaggageRepo);
+      },
+      act: (bloc) => bloc.add(
+        UpdateBaggageItem(
+          tripId: 'trip-1',
+          itemId: 'bag-1',
+          name: 'Passport Cover',
+          quantity: 1,
+          category: 'DOCUMENTS',
+        ),
+      ),
+      expect: () => [isA<BaggageError>()],
+    );
+
     // ── Error handling ──────────────────────────────────────────────────
 
     blocTest<BaggageBloc, BaggageState>(

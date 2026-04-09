@@ -93,10 +93,7 @@ class _StepHeaderState extends State<StepHeader> {
 
   Widget _buildCollapsed() {
     if (widget.enrichedSplitCollapsed && widget.items.length >= 2) {
-      return _buildEnrichedSplitCollapsed(
-        widget.items[0],
-        widget.items[1],
-      );
+      return _buildEnrichedSplitCollapsed(widget.items[0], widget.items[1]);
     }
     return Row(
       children: [
@@ -122,7 +119,10 @@ class _StepHeaderState extends State<StepHeader> {
     );
   }
 
-  Widget _buildEnrichedSplitCollapsed(StepSummaryItem dates, StepSummaryItem travelers) {
+  Widget _buildEnrichedSplitCollapsed(
+    StepSummaryItem dates,
+    StepSummaryItem travelers,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -137,10 +137,7 @@ class _StepHeaderState extends State<StepHeader> {
           padding: EdgeInsets.symmetric(horizontal: AppSpacing.space8),
           child: SizedBox(
             height: 44,
-            child: VerticalDivider(
-              width: 1,
-              color: ColorName.primarySoftLight,
-            ),
+            child: VerticalDivider(width: 1, color: ColorName.primarySoftLight),
           ),
         ),
         Expanded(

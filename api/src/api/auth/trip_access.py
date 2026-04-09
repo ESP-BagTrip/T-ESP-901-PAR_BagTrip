@@ -17,6 +17,7 @@ from src.utils.errors import AppError
 
 class TripRole(str, Enum):
     OWNER = "OWNER"
+    EDITOR = "EDITOR"
     VIEWER = "VIEWER"
 
 
@@ -67,4 +68,16 @@ async def get_trip_owner_access(
     access = _resolve_trip_access(db, tripId, current_user.id)
     if access.role != TripRole.OWNER:
         raise AppError("FORBIDDEN", 403, "Only the trip owner can perform this action")
+    return access
+
+
+async def get_trip_editor_access(
+    tripId: UUID = Path(..., description="Trip ID"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> TripAccess:
+    """Dependency pour les endpoints écriture (Owner + Editor)."""
+    access = _resolve_trip_access(db, tripId, current_user.id)
+    if access.role not in (TripRole.OWNER, TripRole.EDITOR):
+        raise AppError("FORBIDDEN", 403, "Only the trip owner or editors can perform this action")
     return access

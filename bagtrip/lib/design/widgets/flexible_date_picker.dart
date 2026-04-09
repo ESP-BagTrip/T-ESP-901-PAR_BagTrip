@@ -114,11 +114,22 @@ class FlexibleDatePicker extends StatelessWidget {
           l10n: l10n,
         );
       case DateMode.month:
-        return MonthGridPicker(
+        return Column(
           key: const ValueKey(DateMode.month),
-          selectedMonth: selectedMonth,
-          selectedYear: selectedYear,
-          onMonthSelected: (month, year) => onMonthSelected?.call(month, year),
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            MonthGridPicker(
+              selectedMonth: selectedMonth,
+              selectedYear: selectedYear,
+              onMonthSelected: (month, year) =>
+                  onMonthSelected?.call(month, year),
+            ),
+            const SizedBox(height: AppSpacing.space16),
+            DurationChipSelector(
+              selected: selectedDuration,
+              onSelected: (preset) => onDurationChanged?.call(preset),
+            ),
+          ],
         );
       case DateMode.flexible:
         return DurationChipSelector(

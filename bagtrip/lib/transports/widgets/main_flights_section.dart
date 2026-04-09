@@ -9,12 +9,14 @@ import 'package:flutter/material.dart';
 class MainFlightsSection extends StatelessWidget {
   final List<ManualFlight> flights;
   final VoidCallback? onAdd;
+  final void Function(ManualFlight flight)? onEdit;
   final void Function(String id)? onDelete;
 
   const MainFlightsSection({
     super.key,
     required this.flights,
     this.onAdd,
+    this.onEdit,
     this.onDelete,
   });
 
@@ -31,6 +33,7 @@ class MainFlightsSection extends StatelessWidget {
           for (int i = 0; i < flights.length; i++) ...[
             FlightCard(
               flight: flights[i],
+              onEdit: onEdit != null ? () => onEdit!(flights[i]) : null,
               onDelete: onDelete != null
                   ? () => onDelete!(flights[i].id)
                   : null,

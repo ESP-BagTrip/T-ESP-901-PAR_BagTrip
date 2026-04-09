@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from src.api.auth.trip_access import TripAccess, get_trip_owner_access
+from src.api.auth.trip_access import TripAccess, get_trip_editor_access
 from src.api.booking_intents.schemas import (
     BookingIntentCreateRequest,
     BookingIntentResponse,
@@ -24,7 +24,7 @@ router = APIRouter(prefix="/v1/trips", tags=["Booking Intents"])
 )
 async def create_booking_intent(
     request: BookingIntentCreateRequest,
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     """Créer un booking intent selon PLAN.md."""

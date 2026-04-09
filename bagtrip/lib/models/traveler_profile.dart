@@ -11,6 +11,8 @@ abstract class TravelerProfile with _$TravelerProfile {
     @JsonKey(name: 'travelStyle') String? travelStyle,
     String? budget,
     String? companions,
+    @JsonKey(name: 'travelFrequency') String? travelFrequency,
+    @JsonKey(name: 'medicalConstraints') String? medicalConstraints,
     @JsonKey(name: 'isCompleted') @Default(false) bool isCompleted,
     @JsonKey(name: 'createdAt') DateTime? createdAt,
     @JsonKey(name: 'updatedAt') DateTime? updatedAt,

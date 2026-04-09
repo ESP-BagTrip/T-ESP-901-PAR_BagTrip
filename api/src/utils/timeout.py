@@ -1,9 +1,9 @@
-"""Décorateurs pour ajouter des timeouts aux fonctions."""
+"""Décorateurs et helpers pour ajouter des timeouts aux fonctions."""
 
 import asyncio
 import builtins
 import logging
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Callable
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from functools import wraps
 from typing import Any
@@ -38,6 +38,33 @@ def with_timeout(timeout_seconds: float, fallback_value: Any = None):
         return wrapper
 
     return decorator
+
+
+async def async_generator_with_timeout[T](
+    agen: AsyncIterator[T],
+    total_timeout_seconds: float,
+) -> AsyncIterator[T]:
+    """Wrap an async generator with a global wall-clock timeout.
+
+    Yields items from *agen* until it is exhausted or the total elapsed time
+    exceeds *total_timeout_seconds*, whichever comes first.
+
+    Raises ``TimeoutError`` when the deadline is exceeded.
+    """
+    loop = asyncio.get_event_loop()
+    deadline = loop.time() + total_timeout_seconds
+    ait = agen.__aiter__()
+    while True:
+        remaining = deadline - loop.time()
+        if remaining <= 0:
+            raise builtins.TimeoutError(
+                f"Async generator exceeded {total_timeout_seconds}s total timeout"
+            )
+        try:
+            item = await asyncio.wait_for(ait.__anext__(), timeout=remaining)
+            yield item
+        except StopAsyncIteration:
+            break
 
 
 def with_timeout_sync(timeout_seconds: float, fallback_value: Any = None):

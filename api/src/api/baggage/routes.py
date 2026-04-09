@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Path, status
 from sqlalchemy.orm import Session
 
 from src.api.auth.plan_guard import require_ai_quota
-from src.api.auth.trip_access import TripAccess, get_trip_access, get_trip_owner_access
+from src.api.auth.trip_access import TripAccess, get_trip_access, get_trip_editor_access
 from src.api.baggage.schemas import (
     BaggageItemCreateRequest,
     BaggageItemListResponse,
@@ -32,7 +32,7 @@ router = APIRouter(prefix="/v1/trips", tags=["Baggage"])
 )
 async def create_baggage_item(
     request: BaggageItemCreateRequest,
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     """Créer un élément de bagage."""
@@ -80,7 +80,7 @@ async def list_baggage_items(
 async def update_baggage_item(
     request: BaggageItemUpdateRequest,
     baggageItemId: UUID = Path(..., description="Baggage item ID"),
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     """Mettre à jour un élément de bagage."""
@@ -108,7 +108,7 @@ async def update_baggage_item(
 )
 async def delete_baggage_item(
     baggageItemId: UUID = Path(..., description="Baggage item ID"),
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     """Supprimer un élément de bagage."""
@@ -125,7 +125,7 @@ async def delete_baggage_item(
     description="Get AI-powered baggage suggestions for a trip",
 )
 async def suggest_baggage_items(
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     current_user: User = Depends(require_ai_quota),
     db: Session = Depends(get_db),
 ):

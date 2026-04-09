@@ -15,4 +15,15 @@ final class SettingsState {
       selectedLanguage: selectedLanguage ?? this.selectedLanguage,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SettingsState &&
+          runtimeType == other.runtimeType &&
+          selectedTheme == other.selectedTheme &&
+          selectedLanguage == other.selectedLanguage;
+
+  @override
+  int get hashCode => Object.hash(selectedTheme, selectedLanguage);
 }

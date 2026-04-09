@@ -2,6 +2,8 @@ part of 'settings_bloc.dart';
 
 sealed class SettingsEvent {}
 
+class LoadSettings extends SettingsEvent {}
+
 class ChangeTheme extends SettingsEvent {
   final String theme;
 

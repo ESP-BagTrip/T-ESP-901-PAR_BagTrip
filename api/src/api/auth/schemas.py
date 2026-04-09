@@ -80,3 +80,16 @@ class LogoutRequest(BaseModel):
     """Requête de déconnexion."""
 
     refresh_token: str | None = None
+
+
+class ForgotPasswordRequest(BaseModel):
+    """Requête de réinitialisation de mot de passe."""
+
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    """Requête de changement de mot de passe via token."""
+
+    token: str
+    new_password: str = Field(..., min_length=6)

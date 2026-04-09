@@ -1,6 +1,7 @@
 import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/feedback.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -13,9 +14,9 @@ class FeedbackListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (feedbacks.isEmpty) {
-      return const ElegantEmptyState(
+      return ElegantEmptyState(
         icon: Icons.rate_review_outlined,
-        title: 'Aucun avis',
+        title: AppLocalizations.of(context)!.feedbackNoReviews,
       );
     }
 
@@ -54,14 +55,18 @@ class FeedbackListView extends StatelessWidget {
                 if (feedback.highlights != null) ...[
                   const SizedBox(height: AppSpacing.space8),
                   Text(
-                    'Points forts : ${feedback.highlights}',
+                    AppLocalizations.of(
+                      context,
+                    )!.feedbackHighlightsPrefix(feedback.highlights!),
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
                 if (feedback.lowlights != null) ...[
                   const SizedBox(height: AppSpacing.space4),
                   Text(
-                    '\u00c0 am\u00e9liorer : ${feedback.lowlights}',
+                    AppLocalizations.of(
+                      context,
+                    )!.feedbackLowlightsPrefix(feedback.lowlights!),
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
@@ -80,8 +85,8 @@ class FeedbackListView extends StatelessWidget {
                     const SizedBox(width: AppSpacing.space4),
                     Text(
                       feedback.wouldRecommend
-                          ? 'Recommande'
-                          : 'Ne recommande pas',
+                          ? AppLocalizations.of(context)!.feedbackRecommends
+                          : AppLocalizations.of(context)!.feedbackNotRecommends,
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],

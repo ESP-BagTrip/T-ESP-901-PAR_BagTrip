@@ -54,6 +54,8 @@ _Flight _$FlightFromJson(Map<String, dynamic> json) => _Flight(
   cabinBags: json['cabinBags'] == null
       ? null
       : BaggageInfo.fromJson(json['cabinBags'] as Map<String, dynamic>),
+  tripId: json['trip_id'] as String?,
+  flightOfferId: json['flight_offer_id'] as String?,
 );
 
 Map<String, dynamic> _$FlightToJson(_Flight instance) => <String, dynamic>{
@@ -91,4 +93,6 @@ Map<String, dynamic> _$FlightToJson(_Flight instance) => <String, dynamic>{
   'fareBasis': instance.fareBasis,
   'checkedBags': instance.checkedBags?.toJson(),
   'cabinBags': instance.cabinBags?.toJson(),
+  'trip_id': instance.tripId,
+  'flight_offer_id': instance.flightOfferId,
 };

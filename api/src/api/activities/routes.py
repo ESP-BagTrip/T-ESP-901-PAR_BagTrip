@@ -12,7 +12,7 @@ from src.api.activities.schemas import (
     ActivityUpdateRequest,
 )
 from src.api.auth.plan_guard import require_ai_quota
-from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access
+from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_editor_access
 from src.config.database import get_db
 from src.models.user import User
 from src.services.activity_service import ActivityService
@@ -29,7 +29,7 @@ router = APIRouter(prefix="/v1/trips", tags=["Activities"])
 )
 async def create_activity(
     request: ActivityCreateRequest,
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     try:
@@ -101,7 +101,7 @@ async def get_activity(
 async def update_activity(
     request: ActivityUpdateRequest,
     activityId: UUID = Path(..., description="Activity ID"),
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     try:
@@ -129,7 +129,7 @@ async def update_activity(
 async def patch_activity(
     request: ActivityUpdateRequest,
     activityId: UUID = Path(..., description="Activity ID"),
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     try:
@@ -159,7 +159,7 @@ async def patch_activity(
 )
 async def delete_activity(
     activityId: UUID = Path(..., description="Activity ID"),
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     try:
@@ -171,7 +171,7 @@ async def delete_activity(
 @router.patch("/{tripId}/activities/batch", response_model=list[ActivityResponse])
 async def batch_update_activities(
     request: ActivityBatchUpdateRequest,
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
     try:
@@ -189,7 +189,7 @@ async def batch_update_activities(
 @router.post("/{tripId}/activities/suggest", response_model=ActivitySuggestResponse)
 async def suggest_activities(
     day: int | None = Query(default=None, ge=1, description="Target day number (1-based)"),
-    access: TripAccess = Depends(get_trip_owner_access),
+    access: TripAccess = Depends(get_trip_editor_access),
     current_user: User = Depends(require_ai_quota),
     db: Session = Depends(get_db),
 ):

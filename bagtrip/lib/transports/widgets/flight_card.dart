@@ -10,12 +10,14 @@ import 'package:intl/intl.dart';
 class FlightCard extends StatefulWidget {
   final ManualFlight flight;
   final bool compact;
+  final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
   const FlightCard({
     super.key,
     required this.flight,
     this.compact = false,
+    this.onEdit,
     this.onDelete,
   });
 
@@ -95,17 +97,35 @@ class _FlightCardState extends State<FlightCard> {
                       color: ColorName.primaryTrueDark,
                     ),
                   ),
-                  if (widget.onDelete != null)
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 20),
-                      tooltip: AppLocalizations.of(
-                        context,
-                      )!.deleteFlightTooltip,
-                      color: ColorName.hint,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: widget.onDelete,
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (widget.onEdit != null)
+                        IconButton(
+                          icon: const Icon(Icons.edit_outlined, size: 20),
+                          tooltip: AppLocalizations.of(
+                            context,
+                          )!.editFlightTooltip,
+                          color: ColorName.hint,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: widget.onEdit,
+                        ),
+                      if (widget.onEdit != null && widget.onDelete != null)
+                        const SizedBox(width: 8),
+                      if (widget.onDelete != null)
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, size: 20),
+                          tooltip: AppLocalizations.of(
+                            context,
+                          )!.deleteFlightTooltip,
+                          color: ColorName.hint,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: widget.onDelete,
+                        ),
+                    ],
+                  ),
                 ],
               ),
               const SizedBox(height: 16),

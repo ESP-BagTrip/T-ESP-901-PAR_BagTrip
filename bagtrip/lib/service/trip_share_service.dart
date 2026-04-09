@@ -17,11 +17,16 @@ class TripShareRepositoryImpl implements TripShareRepository {
     String tripId, {
     required String email,
     String? message,
+    String role = 'VIEWER',
   }) async {
     try {
       final response = await _apiClient.post(
         '/trips/$tripId/shares',
-        data: {'email': email, if (message != null) 'message': message},
+        data: {
+          'email': email,
+          'role': role,
+          if (message != null) 'message': message,
+        },
       );
       if (response.statusCode == 201 || response.statusCode == 200) {
         return Success(TripShare.fromJson(response.data));

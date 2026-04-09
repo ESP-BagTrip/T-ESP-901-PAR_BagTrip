@@ -52,6 +52,18 @@ class Settings(BaseSettings):
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
+    @field_validator("JWT_SECRET")
+    @classmethod
+    def validate_jwt_secret_not_default_in_prod(cls, v: str, info) -> str:
+        """Block startup if JWT_SECRET is the default value in production."""
+        node_env = info.data.get("NODE_ENV", "development")
+        if node_env == "production" and v == "dev-secret-key-change-in-production":
+            raise ValueError(
+                "JWT_SECRET must be changed from the default value in production. "
+                "Set a strong, unique secret in your environment variables."
+            )
+        return v
+
     # Firebase Admin (FCM push notifications)
     FIREBASE_SERVICE_ACCOUNT_PATH: str | None = None
 
@@ -73,6 +85,14 @@ class Settings(BaseSettings):
 
     # Open-Meteo (weather — free, no key required)
     OPEN_METEO_BASE_URL: str = "https://api.open-meteo.com"
+
+    # Redis (optional — falls back to in-memory if not set)
+    REDIS_URL: str | None = None
+
+    # AI graph timeouts (seconds)
+    GRAPH_TIMEOUT_SECONDS: int = 300  # Global timeout for the trip planning graph
+    LLM_CALL_TIMEOUT_SECONDS: int = 60  # Per-LLM-call timeout in ReAct executor
+    NODE_TIMEOUT_SECONDS: int = 120  # Per-node timeout in retry wrapper
 
     @field_validator("AMADEUS_CLIENT_ID", "AMADEUS_CLIENT_SECRET", "LLM_API_KEY")
     @classmethod

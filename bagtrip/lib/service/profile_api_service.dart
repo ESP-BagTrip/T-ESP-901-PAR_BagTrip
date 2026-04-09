@@ -32,6 +32,8 @@ class ProfileRepositoryImpl implements ProfileRepository {
     String? travelStyle,
     String? budget,
     String? companions,
+    String? travelFrequency,
+    String? medicalConstraints,
   }) async {
     try {
       final response = await _apiClient.put(
@@ -41,6 +43,9 @@ class ProfileRepositoryImpl implements ProfileRepository {
           if (travelStyle != null) 'travelStyle': travelStyle,
           if (budget != null) 'budget': budget,
           if (companions != null) 'companions': companions,
+          if (travelFrequency != null) 'travelFrequency': travelFrequency,
+          if (medicalConstraints != null)
+            'medicalConstraints': medicalConstraints,
         },
       );
       return Success(
