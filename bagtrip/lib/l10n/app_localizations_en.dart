@@ -2111,6 +2111,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get destinationSectionLabel => 'DESTINATION';
 
   @override
+  String get destinationPopularSectionLabel => 'POPULAR RIGHT NOW';
+
+  @override
   String get destinationOrSeparator => 'OR';
 
   @override

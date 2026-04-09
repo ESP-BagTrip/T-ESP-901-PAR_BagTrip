@@ -4004,6 +4004,12 @@ abstract class AppLocalizations {
   /// **'DESTINATION'**
   String get destinationSectionLabel;
 
+  /// No description provided for @destinationPopularSectionLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'POPULAIRES EN CE MOMENT'**
+  String get destinationPopularSectionLabel;
+
   /// No description provided for @destinationOrSeparator.
   ///
   /// In fr, this message translates to:

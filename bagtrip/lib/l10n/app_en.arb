@@ -837,6 +837,7 @@
   "budgetEstimationLabel": "ESTIMATED TOTAL",
   "budgetSkipLabel": "I'll decide later",
   "destinationSectionLabel": "DESTINATION",
+  "destinationPopularSectionLabel": "POPULAR RIGHT NOW",
   "destinationOrSeparator": "OR",
   "destinationNoResults": "No results found",
   "destinationAiLoading": "Our AI is searching for you...",

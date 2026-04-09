@@ -7,9 +7,11 @@ import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
+import 'package:bagtrip/plan_trip/data/manual_destination_catalog.dart';
 import 'package:bagtrip/plan_trip/models/location_result.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shimmer/shimmer.dart';
 
 class StepDestinationView extends StatefulWidget {
   const StepDestinationView({super.key});
@@ -20,11 +22,22 @@ class StepDestinationView extends StatefulWidget {
 
 class _StepDestinationViewState extends State<StepDestinationView> {
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocus = FocusNode();
   Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchFocus.addListener(_onFocusChanged);
+  }
+
+  void _onFocusChanged() => setState(() {});
 
   @override
   void dispose() {
     _debounce?.cancel();
+    _searchFocus.removeListener(_onFocusChanged);
+    _searchFocus.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -51,9 +64,23 @@ class _StepDestinationViewState extends State<StepDestinationView> {
     ]);
   }
 
+  String _displayLine(LocationResult loc) {
+    if (loc.countryName.isEmpty) return loc.name;
+    return '${loc.name}, ${loc.countryName}';
+  }
+
+  void _selectDestination(LocationResult loc) {
+    AppHaptics.light();
+    _searchController.text = _displayLine(loc);
+    context.read<PlanTripBloc>().add(
+      PlanTripEvent.selectManualDestination(loc),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final focused = _searchFocus.hasFocus;
 
     return BlocConsumer<PlanTripBloc, PlanTripState>(
       listenWhen: (prev, curr) =>
@@ -77,7 +104,6 @@ class _StepDestinationViewState extends State<StepDestinationView> {
           ),
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           children: [
-            // Section header
             Row(
               children: [
                 const Icon(
@@ -100,113 +126,86 @@ class _StepDestinationViewState extends State<StepDestinationView> {
             ),
             const SizedBox(height: AppSpacing.space16),
 
-            // Search field
-            Container(
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOutCubic,
               decoration: BoxDecoration(
-                color: ColorName.surface,
-                borderRadius: AppRadius.large16,
-                border: Border.all(color: ColorName.primarySoftLight),
+                borderRadius: AppRadius.large13,
+                boxShadow: focused
+                    ? [
+                        BoxShadow(
+                          color: ColorName.secondary.withValues(alpha: 0.22),
+                          spreadRadius: 3,
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          offset: const Offset(0, 2),
+                          blurRadius: 8,
+                        ),
+                      ]
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          offset: const Offset(0, 2),
+                          blurRadius: 8,
+                        ),
+                      ],
               ),
-              child: TextField(
-                controller: _searchController,
-                onChanged: _onSearchChanged,
-                style: const TextStyle(
-                  fontFamily: FontFamily.b612,
-                  fontSize: 16,
-                  color: PersonalizationColors.textPrimary,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: ColorName.surface,
+                  borderRadius: AppRadius.large13,
+                  border: Border.all(
+                    color: focused
+                        ? ColorName.secondary.withValues(alpha: 0.45)
+                        : ColorName.primarySoftLight,
+                  ),
                 ),
-                decoration: InputDecoration(
-                  hintText: l10n.destinationPlaceholder,
-                  hintStyle: const TextStyle(
+                child: TextField(
+                  focusNode: _searchFocus,
+                  controller: _searchController,
+                  onChanged: _onSearchChanged,
+                  style: const TextStyle(
                     fontFamily: FontFamily.b612,
                     fontSize: 16,
-                    color: ColorName.hint,
+                    color: PersonalizationColors.textPrimary,
                   ),
-                  prefixIcon: const Icon(
-                    Icons.search_rounded,
-                    color: ColorName.hint,
-                    size: 22,
-                  ),
-                  suffixIcon: _buildSearchSuffix(state),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.space16,
-                    vertical: 14,
+                  decoration: InputDecoration(
+                    hintText: l10n.destinationPlaceholder,
+                    hintStyle: const TextStyle(
+                      fontFamily: FontFamily.b612,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w300,
+                      color: ColorName.hint,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.search_rounded,
+                      color: focused ? ColorName.secondary : ColorName.hint,
+                      size: 22,
+                    ),
+                    suffixIcon: _buildSearchSuffix(state),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 14,
+                    ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: AppSpacing.space24),
 
-            // "OU" separator
-            _OrSeparator(label: l10n.destinationOrSeparator),
-            const SizedBox(height: AppSpacing.space24),
-
-            // "Inspire-moi" CTA
-            _InspireMeButton(
-              isLoading: state.isLoadingAiSuggestions,
-              onPressed: state.isLoadingAiSuggestions
-                  ? null
-                  : () {
-                      AppHaptics.medium();
-                      context.read<PlanTripBloc>().add(
-                        const PlanTripEvent.requestAiSuggestions(),
-                      );
-                    },
-            ),
-
-            // AI loading indicator
-            if (state.isLoadingAiSuggestions) ...[
-              const SizedBox(height: AppSpacing.space24),
-              Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: PersonalizationColors.accentViolet,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.space8),
-                    Text(
-                      l10n.destinationAiLoading,
-                      style: const TextStyle(
-                        fontFamily: FontFamily.b612,
-                        fontSize: 13,
-                        color: PersonalizationColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            // Search results
             if (state.searchResults.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.space16),
-              ...state.searchResults.map(
-                (loc) => _LocationResultTile(
-                  location: loc,
-                  flag: _countryCodeToFlag(loc.countryCode.toUpperCase()),
-                  onTap: () {
-                    AppHaptics.light();
-                    _searchController.clear();
-                    context.read<PlanTripBloc>().add(
-                      PlanTripEvent.selectManualDestination(loc),
-                    );
-                  },
-                ),
+              const SizedBox(height: AppSpacing.space8),
+              _SearchResultsPanel(
+                locations: state.searchResults,
+                flagFor: _countryCodeToFlag,
+                onSelect: _selectDestination,
               ),
             ],
 
-            // No results
-            if (state.searchResults.isEmpty &&
-                !state.isSearching &&
-                query.length >= 2) ...[
-              const SizedBox(height: AppSpacing.space24),
+            if (state.selectedManualDestination == null &&
+                state.selectedManualDestination != null) ...[
+              const SizedBox(height: AppSpacing.space16),
               Center(
                 child: Text(
                   l10n.destinationNoResults,
@@ -219,7 +218,6 @@ class _StepDestinationViewState extends State<StepDestinationView> {
               ),
             ],
 
-            // Selected destination badge + Continue
             if (state.selectedManualDestination != null) ...[
               const SizedBox(height: AppSpacing.space24),
               _SelectedBadge(
@@ -239,7 +237,67 @@ class _StepDestinationViewState extends State<StepDestinationView> {
               ),
             ],
 
-            // Error
+            const SizedBox(height: AppSpacing.space24),
+            _OrSeparator(label: l10n.destinationOrSeparator),
+            const SizedBox(height: AppSpacing.space24),
+
+            _InspireMeButton(
+              isLoading: state.isLoadingAiSuggestions,
+              onPressed: state.isLoadingAiSuggestions
+                  ? null
+                  : () {
+                      AppHaptics.medium();
+                      context.read<PlanTripBloc>().add(
+                        const PlanTripEvent.requestAiSuggestions(),
+                      );
+                    },
+            ),
+
+            if (state.isLoadingAiSuggestions) ...[
+              const SizedBox(height: AppSpacing.space24),
+              Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: ColorName.secondary,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.space8),
+                    Text(
+                      l10n.destinationAiLoading,
+                      style: const TextStyle(
+                        fontFamily: FontFamily.b612,
+                        fontSize: 13,
+                        color: PersonalizationColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            const SizedBox(height: AppSpacing.space24),
+            Text(
+              l10n.destinationPopularSectionLabel,
+              style: const TextStyle(
+                fontFamily: FontFamily.b612,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: ColorName.hint,
+                letterSpacing: 0.8,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.space12),
+            _PopularDestinationsGrid(
+              onSelect: _selectDestination,
+              flagFor: _countryCodeToFlag,
+            ),
+
             if (state.error != null) ...[
               const SizedBox(height: AppSpacing.space16),
               Center(
@@ -290,6 +348,95 @@ class _StepDestinationViewState extends State<StepDestinationView> {
 }
 
 // ---------------------------------------------------------------------------
+// Search results (single panel + dividers)
+// ---------------------------------------------------------------------------
+
+class _SearchResultsPanel extends StatelessWidget {
+  const _SearchResultsPanel({
+    required this.locations,
+    required this.flagFor,
+    required this.onSelect,
+  });
+
+  final List<LocationResult> locations;
+  final String Function(String code) flagFor;
+  final void Function(LocationResult loc) onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: ColorName.surface,
+      borderRadius: AppRadius.large13,
+      clipBehavior: Clip.antiAlias,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: AppRadius.large13,
+          border: Border.all(color: ColorName.primarySoftLight),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (int i = 0; i < locations.length; i++) ...[
+              if (i > 0)
+                const Divider(height: 1, color: ColorName.primarySoftLight),
+              InkWell(
+                onTap: () => onSelect(locations[i]),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.space16,
+                    vertical: 10,
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        flagFor(locations[i].countryCode.toUpperCase()),
+                        style: const TextStyle(fontSize: 22),
+                      ),
+                      const SizedBox(width: AppSpacing.space12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              locations[i].name,
+                              style: const TextStyle(
+                                fontFamily: FontFamily.b612,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: PersonalizationColors.textPrimary,
+                              ),
+                            ),
+                            if (locations[i].countryName.isNotEmpty)
+                              Text(
+                                locations[i].countryName,
+                                style: const TextStyle(
+                                  fontFamily: FontFamily.b612,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                  color: PersonalizationColors.textSecondary,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 22,
+                        color: ColorName.hint.withValues(alpha: 0.7),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // "OU" separator
 // ---------------------------------------------------------------------------
 
@@ -326,68 +473,144 @@ class _OrSeparator extends StatelessWidget {
 // "Inspire-moi" button
 // ---------------------------------------------------------------------------
 
-class _InspireMeButton extends StatelessWidget {
+class _InspireMeButton extends StatefulWidget {
+  const _InspireMeButton({required this.isLoading, required this.onPressed});
+
   final bool isLoading;
   final VoidCallback? onPressed;
 
-  const _InspireMeButton({required this.isLoading, required this.onPressed});
+  @override
+  State<_InspireMeButton> createState() => _InspireMeButtonState();
+}
+
+class _InspireMeButtonState extends State<_InspireMeButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulse = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    if (!widget.isLoading) {
+      _pulse.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _InspireMeButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isLoading != oldWidget.isLoading) {
+      if (widget.isLoading) {
+        _pulse.stop();
+      } else {
+        _pulse.repeat(reverse: true);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
     return Container(
-      height: 56,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: PersonalizationColors.accentGradient,
-        ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: AppRadius.pill,
         boxShadow: [
           BoxShadow(
-            color: PersonalizationColors.accentBlue.withValues(alpha: 0.3),
+            color: ColorName.primary.withValues(alpha: 0.3),
             offset: const Offset(0, 6),
             blurRadius: 16,
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(24),
-          child: Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isLoading)
-                  const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                else
-                  const Icon(
-                    Icons.auto_awesome_rounded,
-                    color: Colors.white,
-                    size: 20,
+      child: ClipRRect(
+        borderRadius: AppRadius.pill,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [ColorName.primary, ColorName.secondary],
+                ),
+              ),
+              child: SizedBox(height: 52, width: double.infinity),
+            ),
+            if (!widget.isLoading)
+              Positioned.fill(
+                child: Shimmer.fromColors(
+                  baseColor: ColorName.shimmerBase.withValues(alpha: 0.15),
+                  highlightColor: Colors.white.withValues(alpha: 0.35),
+                  period: const Duration(milliseconds: 2000),
+                  child: Container(color: Colors.white.withValues(alpha: 0.06)),
+                ),
+              ),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: widget.onPressed,
+                borderRadius: AppRadius.pill,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppSpacing.space15,
                   ),
-                const SizedBox(width: AppSpacing.space8),
-                Text(
-                  l10n.inspireMe,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontFamily: FontFamily.b612,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                  child: Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (widget.isLoading)
+                          const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        else
+                          ScaleTransition(
+                            scale: Tween<double>(begin: 0.92, end: 1.0).animate(
+                              CurvedAnimation(
+                                parent: _pulse,
+                                curve: Curves.easeInOut,
+                              ),
+                            ),
+                            child: const Text(
+                              '✦',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                                height: 1,
+                              ),
+                            ),
+                          ),
+                        const SizedBox(width: AppSpacing.space8),
+                        Text(
+                          l10n.inspireMe,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontFamily: FontFamily.b612,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -395,91 +618,161 @@ class _InspireMeButton extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Location result tile
+// Popular destinations grid
 // ---------------------------------------------------------------------------
 
-class _LocationResultTile extends StatelessWidget {
-  final LocationResult location;
-  final String flag;
-  final VoidCallback onTap;
+class _PopularDestinationsGrid extends StatefulWidget {
+  const _PopularDestinationsGrid({
+    required this.onSelect,
+    required this.flagFor,
+  });
 
-  const _LocationResultTile({
-    required this.location,
+  final void Function(LocationResult loc) onSelect;
+  final String Function(String code) flagFor;
+
+  @override
+  State<_PopularDestinationsGrid> createState() =>
+      _PopularDestinationsGridState();
+}
+
+class _PopularDestinationsGridState extends State<_PopularDestinationsGrid>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  static const _totalMs = 520.0;
+  static const _staggerMs = 40.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 520),
+    )..forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  double _staggerValue(int index) {
+    final start = (index * _staggerMs) / _totalMs;
+    final v = _controller.value;
+    if (v <= start) return 0;
+    return Curves.easeOutCubic.transform(
+      ((v - start) / (1 - start)).clamp(0.0, 1.0),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final spots = ManualDestinationCatalog.popular;
+
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            mainAxisSpacing: AppSpacing.space12,
+            crossAxisSpacing: AppSpacing.space12,
+          ),
+          itemCount: spots.length,
+          itemBuilder: (context, index) {
+            final t = _staggerValue(index);
+            final spot = spots[index];
+            return Opacity(
+              opacity: t,
+              child: Transform.translate(
+                offset: Offset(0, 14 * (1 - t)),
+                child: _PopularDestinationCard(
+                  spot: spot,
+                  flag: widget.flagFor(spot.location.countryCode.toUpperCase()),
+                  onTap: () => widget.onSelect(spot.location),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _PopularDestinationCard extends StatelessWidget {
+  const _PopularDestinationCard({
+    required this.spot,
     required this.flag,
     required this.onTap,
   });
 
+  final ManualPopularDestination spot;
+  final String flag;
+  final VoidCallback onTap;
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.space8),
-      child: Material(
-        color: ColorName.surface,
-        borderRadius: AppRadius.large16,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: AppRadius.large16,
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.space16,
-              vertical: AppSpacing.space12,
+    return Material(
+      color: Colors.transparent,
+      borderRadius: AppRadius.large13,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () {
+          AppHaptics.light();
+          onTap();
+        },
+        borderRadius: AppRadius.large13,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: spot.gradient,
             ),
-            decoration: BoxDecoration(
-              borderRadius: AppRadius.large16,
-              border: Border.all(color: ColorName.primarySoftLight),
-            ),
-            child: Row(
-              children: [
-                if (flag.isNotEmpty)
-                  Text(flag, style: const TextStyle(fontSize: 24)),
-                if (flag.isNotEmpty) const SizedBox(width: AppSpacing.space12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        location.name,
-                        style: const TextStyle(
-                          fontFamily: FontFamily.b612,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: PersonalizationColors.textPrimary,
-                        ),
-                      ),
-                      if (location.countryName.isNotEmpty)
-                        Text(
-                          location.countryName,
-                          style: const TextStyle(
-                            fontFamily: FontFamily.b612,
-                            fontSize: 12,
-                            color: PersonalizationColors.textSecondary,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                if (location.iataCode.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.space8,
-                      vertical: AppSpacing.space4,
+            borderRadius: AppRadius.large13,
+          ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Positioned(
+                left: 10,
+                bottom: 10,
+                right: 8,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      flag,
+                      style: const TextStyle(fontSize: 20, height: 1.1),
                     ),
-                    decoration: const BoxDecoration(
-                      color: ColorName.primaryLight,
-                      borderRadius: AppRadius.pill,
-                    ),
-                    child: Text(
-                      location.iataCode,
-                      style: const TextStyle(
-                        fontFamily: FontFamily.b612,
-                        fontSize: 12,
+                    const SizedBox(height: 4),
+                    Text(
+                      spot.location.name,
+                      style: TextStyle(
+                        fontFamily: FontFamily.dMSans,
+                        fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: ColorName.primaryTrueDark,
+                        color: Colors.white,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withValues(alpha: 0.35),
+                            blurRadius: 6,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-              ],
-            ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -560,12 +853,12 @@ class _ContinueButton extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Container(
-      height: 56,
+      height: 48,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [ColorName.primary, ColorName.secondary],
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: AppRadius.pill,
         boxShadow: [
           BoxShadow(
             color: ColorName.primary.withValues(alpha: 0.3),
@@ -578,13 +871,13 @@ class _ContinueButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: AppRadius.pill,
           child: Center(
             child: Text(
               l10n.continueButton,
               style: const TextStyle(
                 fontSize: 16,
-                fontFamily: FontFamily.b612,
+                fontFamily: FontFamily.dMSans,
                 fontWeight: FontWeight.w600,
                 color: ColorName.surface,
               ),

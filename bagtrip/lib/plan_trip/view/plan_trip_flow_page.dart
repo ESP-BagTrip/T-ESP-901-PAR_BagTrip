@@ -12,6 +12,7 @@ import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
 import 'package:bagtrip/plan_trip/models/budget_preset.dart';
 import 'package:bagtrip/plan_trip/models/date_mode.dart';
 import 'package:bagtrip/plan_trip/models/duration_preset.dart';
+import 'package:bagtrip/plan_trip/helpers/traveler_breakdown_format.dart';
 import 'package:bagtrip/plan_trip/models/location_result.dart';
 import 'package:bagtrip/plan_trip/view/step_ai_proposals_view.dart';
 import 'package:bagtrip/plan_trip/view/step_dates_view.dart';
@@ -111,6 +112,7 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
                         horizontal: AppSpacing.space22,
                       ),
                       child: StepHeader(
+                        enrichedSplitCollapsed: state.currentStep == 2,
                         items: _buildSummaryItems(context, state, l10n),
                       ),
                     ),
@@ -171,6 +173,12 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
           icon: Icons.people_outline_rounded,
           label: l10n.travelersLabel,
           value: l10n.travelerCountLabel(state.nbTravelers),
+          subtitle: formatTravelerBreakdownDetail(
+            l10n,
+            nbAdults: state.nbAdults,
+            nbChildren: state.nbChildren,
+            nbBabies: state.nbBabies,
+          ),
         ),
       );
       if (state.budgetPreset != null) {

@@ -9,11 +9,11 @@ import 'package:bagtrip/plan_trip/models/date_mode.dart';
 import 'package:bagtrip/plan_trip/models/duration_preset.dart';
 import 'package:bagtrip/plan_trip/models/location_result.dart';
 import 'package:bagtrip/plan_trip/models/step_status.dart';
+import 'package:bagtrip/plan_trip/data/manual_destination_catalog.dart';
 import 'package:bagtrip/plan_trip/models/trip_plan.dart';
 import 'package:bagtrip/repositories/ai_repository.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/repositories/trip_repository.dart';
-import 'package:bagtrip/service/location_service.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -23,7 +23,6 @@ part 'plan_trip_state.dart';
 part 'plan_trip_bloc.freezed.dart';
 
 class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
-  final LocationService _locationService;
   final TripRepository _tripRepository;
   final AiRepository _aiRepository;
   final AuthRepository _authRepository;
@@ -32,13 +31,11 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
   StreamSubscription<Map<String, dynamic>>? _sseSubscription;
 
   PlanTripBloc({
-    LocationService? locationService,
     TripRepository? tripRepository,
     AiRepository? aiRepository,
     AuthRepository? authRepository,
     PersonalizationStorage? personalizationStorage,
-  }) : _locationService = locationService ?? getIt<LocationService>(),
-       _tripRepository = tripRepository ?? getIt<TripRepository>(),
+  }) : _tripRepository = tripRepository ?? getIt<TripRepository>(),
        _aiRepository = aiRepository ?? getIt<AiRepository>(),
        _authRepository = authRepository ?? getIt<AuthRepository>(),
        _storage = personalizationStorage ?? getIt<PersonalizationStorage>(),
@@ -178,30 +175,23 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
   // Step 2 — Destination
   // ---------------------------------------------------------------------------
 
-  Future<void> _onSearchDestination(
+  void _onSearchDestination(
     PlanTripSearchDestination event,
     Emitter<PlanTripState> emit,
-  ) async {
+  ) {
     if (event.query.length < 2) {
       emit(state.copyWith(searchResults: [], isSearching: false));
       return;
     }
 
-    emit(state.copyWith(isSearching: true, error: null));
-
-    final result = await _locationService.searchLocationsByKeyword(
-      event.query,
-      'CITY,AIRPORT',
+    final results = ManualDestinationCatalog.search(event.query);
+    emit(
+      state.copyWith(
+        isSearching: false,
+        searchResults: results,
+        error: null,
+      ),
     );
-    if (isClosed) return;
-
-    switch (result) {
-      case Success(:final data):
-        final results = data.map((m) => LocationResult.fromJson(m)).toList();
-        emit(state.copyWith(isSearching: false, searchResults: results));
-      case Failure(:final error):
-        emit(state.copyWith(isSearching: false, error: error.message));
-    }
   }
 
   void _onSelectManualDestination(

@@ -161,6 +161,17 @@ class StepTravelersBudgetView extends StatelessWidget {
 
             const SizedBox(height: AppSpacing.space16),
 
+            _ContinueButton(
+              onPressed: () {
+                AppHaptics.medium();
+                context.read<PlanTripBloc>().add(
+                  const PlanTripEvent.nextStep(),
+                );
+              },
+            ),
+
+            const SizedBox(height: AppSpacing.space16),
+
             Center(
               child: TextButton(
                 onPressed: () {
@@ -174,23 +185,12 @@ class StepTravelersBudgetView extends StatelessWidget {
                 child: Text(
                   l10n.budgetSkipLabel,
                   style: const TextStyle(
-                    fontFamily: FontFamily.b612,
+                    fontFamily: FontFamily.dMSans,
                     fontSize: 14,
-                    color: ColorName.hint,
+                    color: ColorName.primaryDark,
                   ),
                 ),
               ),
-            ),
-
-            const SizedBox(height: AppSpacing.space16),
-
-            _ContinueButton(
-              onPressed: () {
-                AppHaptics.medium();
-                context.read<PlanTripBloc>().add(
-                  const PlanTripEvent.nextStep(),
-                );
-              },
             ),
           ],
         );
@@ -274,7 +274,7 @@ class _ContinueButton extends StatelessWidget {
         gradient: const LinearGradient(
           colors: [ColorName.primary, ColorName.secondary],
         ),
-        borderRadius: AppRadius.large16,
+        borderRadius: AppRadius.pill,
         boxShadow: [
           BoxShadow(
             color: ColorName.primary.withValues(alpha: 0.3),
@@ -287,13 +287,13 @@ class _ContinueButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: AppRadius.large16,
+          borderRadius: AppRadius.pill,
           child: Center(
             child: Text(
               l10n.continueButton,
               style: const TextStyle(
                 fontSize: 16,
-                fontFamily: FontFamily.b612,
+                fontFamily: FontFamily.dMSerifDisplay,
                 fontWeight: FontWeight.w600,
                 color: ColorName.surface,
               ),

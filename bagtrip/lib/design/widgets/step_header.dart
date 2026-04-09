@@ -31,11 +31,16 @@ class StepHeader extends StatefulWidget {
   final bool initiallyExpanded;
   final VoidCallback? onToggle;
 
+  /// When true, collapsed state shows dates | travelers in two columns with a
+  /// thin divider (expects at least two items: dates, then travelers).
+  final bool enrichedSplitCollapsed;
+
   const StepHeader({
     super.key,
     required this.items,
     this.initiallyExpanded = false,
     this.onToggle,
+    this.enrichedSplitCollapsed = false,
   });
 
   @override
@@ -87,6 +92,12 @@ class _StepHeaderState extends State<StepHeader> {
   }
 
   Widget _buildCollapsed() {
+    if (widget.enrichedSplitCollapsed && widget.items.length >= 2) {
+      return _buildEnrichedSplitCollapsed(
+        widget.items[0],
+        widget.items[1],
+      );
+    }
     return Row(
       children: [
         Expanded(
@@ -107,6 +118,96 @@ class _StepHeaderState extends State<StepHeader> {
         ),
         const SizedBox(width: AppSpacing.space8),
         const Icon(Icons.keyboard_arrow_down, size: 18, color: AppColors.hint),
+      ],
+    );
+  }
+
+  Widget _buildEnrichedSplitCollapsed(StepSummaryItem dates, StepSummaryItem travelers) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: _enrichedSplitBlock(
+            icon: dates.icon,
+            primary: dates.value,
+            secondary: dates.subtitle,
+          ),
+        ),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.space8),
+          child: SizedBox(
+            height: 44,
+            child: VerticalDivider(
+              width: 1,
+              color: ColorName.primarySoftLight,
+            ),
+          ),
+        ),
+        Expanded(
+          child: _enrichedSplitBlock(
+            icon: travelers.icon,
+            primary: travelers.value,
+            secondary: travelers.subtitle,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.space4),
+        const Padding(
+          padding: EdgeInsets.only(top: 2),
+          child: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            size: 18,
+            color: AppColors.hint,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _enrichedSplitBlock({
+    required IconData icon,
+    required String primary,
+    required String? secondary,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: AppColors.secondary),
+        const SizedBox(width: AppSpacing.space8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                primary,
+                style: const TextStyle(
+                  fontFamily: FontFamily.dMSans,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: ColorName.primaryTrueDark,
+                  height: 1.2,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (secondary != null && secondary.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  secondary,
+                  style: const TextStyle(
+                    fontFamily: FontFamily.dMSans,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    color: ColorName.hint,
+                    height: 1.2,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ],
+          ),
+        ),
       ],
     );
   }

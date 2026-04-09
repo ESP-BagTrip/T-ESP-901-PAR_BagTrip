@@ -2133,6 +2133,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get destinationSectionLabel => 'DESTINATION';
 
   @override
+  String get destinationPopularSectionLabel => 'POPULAIRES EN CE MOMENT';
+
+  @override
   String get destinationOrSeparator => 'OU';
 
   @override
