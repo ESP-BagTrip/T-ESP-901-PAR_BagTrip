@@ -13,9 +13,7 @@ export const baggageItemsColumns: ColumnDef<AdminBaggageItem>[] = [
   {
     accessorKey: 'trip_title',
     header: 'Trip',
-    cell: ({ row }) => (
-      <span className="text-gray-900">{row.getValue('trip_title') || '—'}</span>
-    ),
+    cell: ({ row }) => <span className="text-gray-900">{row.getValue('trip_title') || '—'}</span>,
   },
   {
     accessorKey: 'user_email',
@@ -30,16 +28,12 @@ export const baggageItemsColumns: ColumnDef<AdminBaggageItem>[] = [
   {
     accessorKey: 'category',
     header: 'Catégorie',
-    cell: ({ row }) => (
-      <span className="text-gray-900">{row.getValue('category') || '—'}</span>
-    ),
+    cell: ({ row }) => <span className="text-gray-900">{row.getValue('category') || '—'}</span>,
   },
   {
     accessorKey: 'quantity',
     header: 'Qté',
-    cell: ({ row }) => (
-      <span className="text-gray-900">{row.getValue('quantity') ?? 1}</span>
-    ),
+    cell: ({ row }) => <span className="text-gray-900">{row.getValue('quantity') ?? 1}</span>,
   },
   {
     accessorKey: 'is_packed',

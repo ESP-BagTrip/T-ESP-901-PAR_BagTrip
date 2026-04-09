@@ -20,17 +20,13 @@ export const profilesColumns: ColumnDef<AdminTravelerProfile>[] = [
     header: 'Types de voyage',
     cell: ({ row }) => {
       const types = row.getValue('travel_types') as string[] | null
-      return (
-        <span className="text-gray-900">{types ? types.join(', ') : '—'}</span>
-      )
+      return <span className="text-gray-900">{types ? types.join(', ') : '—'}</span>
     },
   },
   {
     accessorKey: 'travel_style',
     header: 'Style',
-    cell: ({ row }) => (
-      <span className="text-gray-900">{row.getValue('travel_style') || '—'}</span>
-    ),
+    cell: ({ row }) => <span className="text-gray-900">{row.getValue('travel_style') || '—'}</span>,
   },
   {
     accessorKey: 'budget',
@@ -40,9 +36,7 @@ export const profilesColumns: ColumnDef<AdminTravelerProfile>[] = [
   {
     accessorKey: 'companions',
     header: 'Compagnons',
-    cell: ({ row }) => (
-      <span className="text-gray-900">{row.getValue('companions') || '—'}</span>
-    ),
+    cell: ({ row }) => <span className="text-gray-900">{row.getValue('companions') || '—'}</span>,
   },
   {
     accessorKey: 'is_completed',

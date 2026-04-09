@@ -37,11 +37,11 @@ function PlanCell({ userId, currentPlan }: { userId: string; currentPlan: string
   return (
     <select
       value={currentPlan}
-      onChange={(e) => handleChange(e.target.value)}
+      onChange={e => handleChange(e.target.value)}
       disabled={updating}
       className={`px-2 py-0.5 rounded-full text-xs font-medium border-0 cursor-pointer ${planColors[currentPlan] || planColors.FREE} ${updating ? 'opacity-50' : ''}`}
     >
-      {PLAN_OPTIONS.map((plan) => (
+      {PLAN_OPTIONS.map(plan => (
         <option key={plan} value={plan}>
           {plan}
         </option>

@@ -18,9 +18,7 @@ export const bookingIntentsColumns: ColumnDef<AdminBookingIntent>[] = [
   {
     accessorKey: 'trip_title',
     header: 'Trip',
-    cell: ({ row }) => (
-      <span className="text-gray-900">{row.getValue('trip_title') || '—'}</span>
-    ),
+    cell: ({ row }) => <span className="text-gray-900">{row.getValue('trip_title') || '—'}</span>,
   },
   {
     accessorKey: 'type',
@@ -74,7 +72,11 @@ export const bookingIntentsColumns: ColumnDef<AdminBookingIntent>[] = [
     cell: ({ row }) => {
       const amount = row.getValue('amount') as number
       const currency = row.original.currency
-      return <span className="text-gray-900">{amount} {currency}</span>
+      return (
+        <span className="text-gray-900">
+          {amount} {currency}
+        </span>
+      )
     },
   },
   {
@@ -82,7 +84,11 @@ export const bookingIntentsColumns: ColumnDef<AdminBookingIntent>[] = [
     header: 'Stripe PI',
     cell: ({ row }) => {
       const pi = row.getValue('stripe_payment_intent_id') as string | null
-      return <span className="font-mono text-xs text-gray-500">{pi ? `${pi.slice(0, 12)}...` : '—'}</span>
+      return (
+        <span className="font-mono text-xs text-gray-500">
+          {pi ? `${pi.slice(0, 12)}...` : '—'}
+        </span>
+      )
     },
   },
   {

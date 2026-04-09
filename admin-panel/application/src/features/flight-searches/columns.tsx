@@ -13,9 +13,7 @@ export const flightSearchesColumns: ColumnDef<AdminFlightSearch>[] = [
   {
     accessorKey: 'trip_title',
     header: 'Trip',
-    cell: ({ row }) => (
-      <span className="text-gray-900">{row.getValue('trip_title') || '—'}</span>
-    ),
+    cell: ({ row }) => <span className="text-gray-900">{row.getValue('trip_title') || '—'}</span>,
   },
   {
     accessorKey: 'origin_iata',
@@ -60,9 +58,7 @@ export const flightSearchesColumns: ColumnDef<AdminFlightSearch>[] = [
   {
     accessorKey: 'travel_class',
     header: 'Classe',
-    cell: ({ row }) => (
-      <span className="text-gray-900">{row.getValue('travel_class') || '—'}</span>
-    ),
+    cell: ({ row }) => <span className="text-gray-900">{row.getValue('travel_class') || '—'}</span>,
   },
   {
     accessorKey: 'created_at',

@@ -31,7 +31,7 @@ export default function NotificationsTab({ isActive }: { isActive: boolean }) {
               }
             : undefined
         }
-        onPaginationChange={(newPage) => setPage(newPage)}
+        onPaginationChange={newPage => setPage(newPage)}
       />
 
       <SendNotificationModal open={showModal} onClose={() => setShowModal(false)} />
