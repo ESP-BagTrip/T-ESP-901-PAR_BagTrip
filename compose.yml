@@ -63,12 +63,12 @@ services:
   admin-panel:
     container_name: BagTrip-admin-panel
     build:
-      context: ./admin-panel/application
+      context: ./admin-panel
       dockerfile: Dockerfile.dev
     ports:
       - "8000:8000"
     volumes:
-      - ./admin-panel/application:/app
+      - ./admin-panel:/app
       - /app/node_modules
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:3000

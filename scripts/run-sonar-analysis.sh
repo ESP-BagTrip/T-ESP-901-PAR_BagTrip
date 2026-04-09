@@ -33,4 +33,4 @@ sonar-scanner \
   -Dsonar.coverage.jacoco.xmlReportPaths=${SONAR_COVERAGE_REPORT_PATH} \
   -Dsonar.python.version=${SONAR_PYTHON_VERSION} \
   -Dsonar.flutter.analyzer.reportPaths=${SONAR_COVERAGE_REPORT_PATH} \
-  -Dsonar.exclusions=api/tests/**,bagtrip/test/**,admin-panel/application/cypress/**
+  -Dsonar.exclusions=api/tests/**,bagtrip/test/**,admin-panel/cypress/**
