@@ -66,10 +66,10 @@ class _StepHeaderState extends State<StepHeader> {
     return GestureDetector(
       onTap: _toggle,
       child: Container(
-        padding: AppSpacing.allEdgeInsetSpace12,
+        padding: AppSpacing.allEdgeInsetSpace16,
         decoration: BoxDecoration(
           color: ColorName.surface,
-          borderRadius: AppRadius.large13,
+          borderRadius: AppRadius.large24,
           border: Border.all(color: ColorName.primarySoftLight),
           boxShadow: [
             BoxShadow(

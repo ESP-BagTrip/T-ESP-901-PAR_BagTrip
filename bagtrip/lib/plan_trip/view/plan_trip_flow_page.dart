@@ -9,10 +9,10 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
+import 'package:bagtrip/plan_trip/helpers/traveler_breakdown_format.dart';
 import 'package:bagtrip/plan_trip/models/budget_preset.dart';
 import 'package:bagtrip/plan_trip/models/date_mode.dart';
 import 'package:bagtrip/plan_trip/models/duration_preset.dart';
-import 'package:bagtrip/plan_trip/helpers/traveler_breakdown_format.dart';
 import 'package:bagtrip/plan_trip/models/location_result.dart';
 import 'package:bagtrip/plan_trip/view/step_ai_proposals_view.dart';
 import 'package:bagtrip/plan_trip/view/step_dates_view.dart';
@@ -104,12 +104,16 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
                     currentStep: state.currentStep,
                     totalSteps: state.totalSteps,
                     title: _stepTitle(state.currentStep, l10n),
+                    showBack: state.currentStep > 0,
+                    onBack: () => context.read<PlanTripBloc>().add(
+                      const PlanTripEvent.previousStep(),
+                    ),
                     onClose: () => const HomeRoute().go(context),
                   ),
                   if (state.currentStep > 0 && state.currentStep < 4)
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.space22,
+                        horizontal: AppSpacing.space16,
                       ),
                       child: StepHeader(
                         enrichedSplitCollapsed: state.currentStep == 2,
@@ -264,12 +268,16 @@ class _WizardNavAnimatedColumn extends StatefulWidget {
     required this.currentStep,
     required this.totalSteps,
     required this.title,
+    required this.showBack,
+    required this.onBack,
     required this.onClose,
   });
 
   final int currentStep;
   final int totalSteps;
   final String title;
+  final bool showBack;
+  final VoidCallback onBack;
   final VoidCallback onClose;
 
   @override
@@ -325,7 +333,12 @@ class _WizardNavAnimatedColumnState extends State<_WizardNavAnimatedColumn>
       child: SlideTransition(
         position: _slide,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.space16,
+            AppSpacing.space4,
+            AppSpacing.space16,
+            0,
+          ),
           child: Column(
             children: [
               SizedBox(
@@ -335,7 +348,17 @@ class _WizardNavAnimatedColumnState extends State<_WizardNavAnimatedColumn>
                   children: [
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: _PlanTripCloseButton(onPressed: widget.onClose),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (widget.showBack) ...[
+                            _PlanTripBackButton(onPressed: widget.onBack),
+                            const SizedBox(width: AppSpacing.space8),
+                          ],
+                          _PlanTripCloseButton(onPressed: widget.onClose),
+                          const SizedBox(width: AppSpacing.space8),
+                        ],
+                      ),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 48),
@@ -384,8 +407,8 @@ class _PlanTripCloseButton extends StatelessWidget {
         onTap: onPressed,
         customBorder: const CircleBorder(),
         child: Container(
-          width: 40,
-          height: 40,
+          width: AppSpacing.space40,
+          height: AppSpacing.space40,
           decoration: BoxDecoration(
             color: Colors.white,
             shape: BoxShape.circle,
@@ -405,6 +428,49 @@ class _PlanTripCloseButton extends StatelessWidget {
           alignment: Alignment.center,
           child: const Icon(
             Icons.close_rounded,
+            size: 20,
+            color: PersonalizationColors.textPrimary,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PlanTripBackButton extends StatelessWidget {
+  const _PlanTripBackButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        customBorder: const CircleBorder(),
+        child: Container(
+          width: AppSpacing.space40,
+          height: AppSpacing.space40,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: ColorName.primary.withValues(alpha: 0.12),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+              BoxShadow(
+                color: ColorName.secondary.withValues(alpha: 0.08),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: const Icon(
+            Icons.arrow_back_rounded,
             size: 22,
             color: PersonalizationColors.textPrimary,
           ),
