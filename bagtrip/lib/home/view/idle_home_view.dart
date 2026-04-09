@@ -267,22 +267,6 @@ class _HomeTripCardState extends State<_HomeTripCard>
               horizontal: AppSpacing.space8,
               vertical: AppSpacing.space4,
             ),
-            decoration: BoxDecoration(
-              borderRadius: AppRadius.large28,
-              boxShadow: [
-                BoxShadow(
-                  color: ColorName.primary.withValues(alpha: 0.25),
-                  blurRadius: 32,
-                  offset: const Offset(0, 12),
-                  spreadRadius: -6,
-                ),
-                BoxShadow(
-                  color: ColorName.primaryTrueDark.withValues(alpha: 0.1),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
             child: ClipRRect(
               borderRadius: AppRadius.large28,
               child: Stack(
