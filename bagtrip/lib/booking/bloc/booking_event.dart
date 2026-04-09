@@ -4,6 +4,12 @@ sealed class BookingEvent {}
 
 class LoadBookings extends BookingEvent {}
 
+class CreateBookingIntent extends BookingEvent {
+  final String tripId;
+  final String flightOfferId;
+  CreateBookingIntent({required this.tripId, required this.flightOfferId});
+}
+
 class AuthorizePayment extends BookingEvent {
   final String intentId;
   AuthorizePayment({required this.intentId});

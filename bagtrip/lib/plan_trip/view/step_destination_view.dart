@@ -9,6 +9,7 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
 import 'package:bagtrip/plan_trip/data/manual_destination_catalog.dart';
 import 'package:bagtrip/plan_trip/models/location_result.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shimmer/shimmer.dart';
@@ -300,7 +301,10 @@ class _StepDestinationViewState extends State<StepDestinationView> {
               const SizedBox(height: AppSpacing.space16),
               Center(
                 child: Text(
-                  state.error!,
+                  toUserFriendlyMessage(
+                    state.error!,
+                    AppLocalizations.of(context)!,
+                  ),
                   style: const TextStyle(
                     fontFamily: FontFamily.b612,
                     fontSize: 13,

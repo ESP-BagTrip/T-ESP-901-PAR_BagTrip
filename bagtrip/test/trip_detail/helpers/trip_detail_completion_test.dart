@@ -105,7 +105,7 @@ void main() {
     });
 
     test('returns 100 when all criteria met including budget', () {
-      final trip = makeTrip();
+      final trip = makeTrip(budgetTotal: 1000);
       final result = tripDetailCompletion(
         trip: trip,
         flights: [makeManualFlight()],
@@ -122,13 +122,12 @@ void main() {
           makeBaggageItem(id: 'b4'),
           makeBaggageItem(id: 'b5'),
         ],
-        budgetSummary: makeBudgetSummary(),
       );
       expect(result.percentage, 100);
       expect(result.segments[CompletionSegmentType.budget], true);
     });
 
-    test('budget segment is not filled when budgetSummary is null', () {
+    test('budget segment is not filled when budgetTotal is null', () {
       final trip = makeTrip();
       final result = tripDetailCompletion(
         trip: trip,
@@ -136,20 +135,18 @@ void main() {
         accommodations: [],
         activities: [],
         baggageItems: [],
-        // budgetSummary defaults to null
       );
       expect(result.segments[CompletionSegmentType.budget], false);
     });
 
-    test('budget segment is filled when budgetSummary is non-null', () {
-      const trip = Trip(id: 'empty');
+    test('budget segment is filled when budgetTotal > 0', () {
+      const trip = Trip(id: 'empty', budgetTotal: 500);
       final result = tripDetailCompletion(
         trip: trip,
         flights: [],
         accommodations: [],
         activities: [],
         baggageItems: [],
-        budgetSummary: makeBudgetSummary(),
       );
       expect(result.percentage, 17);
       expect(result.segments[CompletionSegmentType.budget], true);

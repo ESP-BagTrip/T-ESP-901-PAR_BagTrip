@@ -14,20 +14,17 @@ void main() {
   });
 
   group('FT1 — New user AI trip creation', () {
-    testWidgets('new user with 0 trips → OnboardingHomeView renders', (
-      tester,
-    ) async {
+    testWidgets('new user with 0 trips → IdleHomeView renders', (tester) async {
       final mocks = await setupTestServiceLocator();
       stubAuthenticated(mocks, user: makeUser(aiGenerationsRemaining: 5));
       stubEmptyHome(mocks);
 
       await pumpTestApp(tester, existingMocks: mocks);
 
-      // Verify HomeNewUser state
-      expect(f.homeNewUser, findsOneWidget);
-      expect(f.onboardingHomeView, findsOneWidget);
+      // Verify HomeIdle state
+      expect(f.homeIdle, findsOneWidget);
+      expect(f.idleHomeView, findsOneWidget);
       expect(f.homeActiveTrip, findsNothing);
-      expect(f.homeTripManager, findsNothing);
     });
 
     testWidgets('AI inspiration returns destination suggestions', (
@@ -65,7 +62,7 @@ void main() {
       );
 
       await pumpTestApp(tester, existingMocks: mocks);
-      expect(f.homeNewUser, findsOneWidget);
+      expect(f.homeIdle, findsOneWidget);
 
       // Call AI inspiration
       final result = await mocks.ai.getInspiration(durationDays: 7);
@@ -139,7 +136,7 @@ void main() {
       ).thenAnswer((_) => Stream.fromIterable(sseEvents));
 
       await pumpTestApp(tester, existingMocks: mocks);
-      expect(f.homeNewUser, findsOneWidget);
+      expect(f.homeIdle, findsOneWidget);
 
       // Consume SSE stream
       final events = await mocks.ai.planTripStream(durationDays: 7).toList();
@@ -193,7 +190,7 @@ void main() {
       );
 
       await pumpTestApp(tester, existingMocks: mocks);
-      expect(f.homeNewUser, findsOneWidget);
+      expect(f.homeIdle, findsOneWidget);
 
       // Accept inspiration
       final result = await mocks.ai.acceptInspiration(
@@ -285,7 +282,7 @@ void main() {
         );
 
         await pumpTestApp(tester, existingMocks: mocks);
-        expect(f.homeNewUser, findsOneWidget);
+        expect(f.homeIdle, findsOneWidget);
 
         // Execute full flow
         // 1. Get inspiration

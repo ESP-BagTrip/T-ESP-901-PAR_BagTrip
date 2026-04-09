@@ -19,6 +19,17 @@ class DeleteManualFlight extends TransportEvent {
   DeleteManualFlight({required this.tripId, required this.flightId});
 }
 
+class UpdateManualFlight extends TransportEvent {
+  final String tripId;
+  final String flightId;
+  final Map<String, dynamic> data;
+  UpdateManualFlight({
+    required this.tripId,
+    required this.flightId,
+    required this.data,
+  });
+}
+
 class LookupFlightInfo extends TransportEvent {
   final String flightNumber;
   LookupFlightInfo({required this.flightNumber});

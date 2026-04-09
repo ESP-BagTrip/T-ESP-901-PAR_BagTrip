@@ -46,3 +46,9 @@ class AcceptBudgetEstimate extends BudgetEvent {
 
   AcceptBudgetEstimate({required this.tripId, required this.budgetTotal});
 }
+
+class RefreshBudgetSummary extends BudgetEvent {
+  final String tripId;
+
+  RefreshBudgetSummary({required this.tripId});
+}

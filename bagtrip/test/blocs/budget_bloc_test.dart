@@ -63,12 +63,15 @@ void main() {
     // ── CreateBudgetItem ────────────────────────────────────────────────
 
     blocTest<BudgetBloc, BudgetState>(
-      'CreateBudgetItem appends item to local state without re-fetching',
+      'CreateBudgetItem appends item and refreshes summary',
       build: () {
         final newItem = makeBudgetItem(id: 'budget-new', label: 'Taxi');
         when(
           () => mockBudgetRepo.createBudgetItem(any(), any()),
         ).thenAnswer((_) async => Success(newItem));
+        when(
+          () => mockBudgetRepo.getBudgetSummary(any()),
+        ).thenAnswer((_) async => Success(makeBudgetSummary(totalSpent: 520)));
         return BudgetBloc(budgetRepository: mockBudgetRepo);
       },
       seed: () =>
@@ -79,13 +82,15 @@ void main() {
           data: {'label': 'Taxi', 'amount': 30.0},
         ),
       ),
-      expect: () => [isA<BudgetLoaded>()],
+      wait: const Duration(milliseconds: 100),
+      expect: () => [isA<BudgetLoaded>(), isA<BudgetLoaded>()],
       verify: (bloc) {
         final state = bloc.state as BudgetLoaded;
         expect(state.items.length, 2);
         expect(state.items.last.id, 'budget-new');
+        expect(state.summary.totalSpent, 520);
+        verify(() => mockBudgetRepo.getBudgetSummary('trip-1')).called(1);
         verifyNever(() => mockBudgetRepo.getBudgetItems(any()));
-        verifyNever(() => mockBudgetRepo.getBudgetSummary(any()));
       },
     );
 
@@ -108,10 +113,38 @@ void main() {
       expect: () => [isA<BudgetLoading>(), isA<BudgetLoaded>()],
     );
 
+    blocTest<BudgetBloc, BudgetState>(
+      'CreateBudgetItem keeps stale summary when summary refresh fails',
+      build: () {
+        when(() => mockBudgetRepo.createBudgetItem(any(), any())).thenAnswer(
+          (_) async => Success(makeBudgetItem(id: 'budget-new', label: 'Taxi')),
+        );
+        when(
+          () => mockBudgetRepo.getBudgetSummary(any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('err')));
+        return BudgetBloc(budgetRepository: mockBudgetRepo);
+      },
+      seed: () =>
+          BudgetLoaded(items: [makeBudgetItem()], summary: makeBudgetSummary()),
+      act: (bloc) => bloc.add(
+        CreateBudgetItem(
+          tripId: 'trip-1',
+          data: {'label': 'Taxi', 'amount': 30.0},
+        ),
+      ),
+      wait: const Duration(milliseconds: 100),
+      expect: () => [isA<BudgetLoaded>()],
+      verify: (bloc) {
+        final state = bloc.state as BudgetLoaded;
+        expect(state.items.length, 2);
+        expect(state.summary.totalBudget, 1000);
+      },
+    );
+
     // ── UpdateBudgetItem ──────────────────────────────────────────────
 
     blocTest<BudgetBloc, BudgetState>(
-      'UpdateBudgetItem replaces item in local state without re-fetching',
+      'UpdateBudgetItem replaces item and refreshes summary',
       build: () {
         final updatedItem = makeBudgetItem(
           label: 'Updated Hotel',
@@ -120,6 +153,9 @@ void main() {
         when(
           () => mockBudgetRepo.updateBudgetItem(any(), any(), any()),
         ).thenAnswer((_) async => Success(updatedItem));
+        when(
+          () => mockBudgetRepo.getBudgetSummary(any()),
+        ).thenAnswer((_) async => Success(makeBudgetSummary(totalSpent: 200)));
         return BudgetBloc(budgetRepository: mockBudgetRepo);
       },
       seed: () =>
@@ -131,23 +167,29 @@ void main() {
           data: {'label': 'Updated Hotel', 'amount': 200.0},
         ),
       ),
-      expect: () => [isA<BudgetLoaded>()],
+      wait: const Duration(milliseconds: 100),
+      expect: () => [isA<BudgetLoaded>(), isA<BudgetLoaded>()],
       verify: (bloc) {
         final state = bloc.state as BudgetLoaded;
         expect(state.items.length, 1);
         expect(state.items.first.label, 'Updated Hotel');
         expect(state.items.first.amount, 200.0);
+        expect(state.summary.totalSpent, 200);
+        verify(() => mockBudgetRepo.getBudgetSummary('trip-1')).called(1);
       },
     );
 
     // ── DeleteBudgetItem ────────────────────────────────────────────────
 
     blocTest<BudgetBloc, BudgetState>(
-      'DeleteBudgetItem removes item from local state without re-fetching',
+      'DeleteBudgetItem removes item and refreshes summary',
       build: () {
         when(
           () => mockBudgetRepo.deleteBudgetItem(any(), any()),
         ).thenAnswer((_) async => const Success(null));
+        when(
+          () => mockBudgetRepo.getBudgetSummary(any()),
+        ).thenAnswer((_) async => Success(makeBudgetSummary(totalSpent: 120)));
         return BudgetBloc(budgetRepository: mockBudgetRepo);
       },
       seed: () => BudgetLoaded(
@@ -159,13 +201,15 @@ void main() {
       ),
       act: (bloc) =>
           bloc.add(DeleteBudgetItem(tripId: 'trip-1', itemId: 'budget-1')),
-      expect: () => [isA<BudgetLoaded>()],
+      wait: const Duration(milliseconds: 100),
+      expect: () => [isA<BudgetLoaded>(), isA<BudgetLoaded>()],
       verify: (bloc) {
         final state = bloc.state as BudgetLoaded;
         expect(state.items.length, 1);
         expect(state.items.first.id, 'budget-2');
+        expect(state.summary.totalSpent, 120);
+        verify(() => mockBudgetRepo.getBudgetSummary('trip-1')).called(1);
         verifyNever(() => mockBudgetRepo.getBudgetItems(any()));
-        verifyNever(() => mockBudgetRepo.getBudgetSummary(any()));
       },
     );
 

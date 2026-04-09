@@ -10,12 +10,10 @@ class BudgetBreakdownChart extends StatelessWidget {
   const BudgetBreakdownChart({
     super.key,
     required this.budgetBreakdown,
-    required this.totalBudget,
     required this.animationIndex,
   });
 
   final Map<String, dynamic> budgetBreakdown;
-  final int totalBudget;
   final int animationIndex;
 
   static const _categoryKeys = [
@@ -117,11 +115,7 @@ class BudgetBreakdownChart extends StatelessWidget {
               ),
               const Spacer(),
               Text(
-                l10n.reviewPriceEur(
-                  totalBudget > 0
-                      ? totalBudget.toString()
-                      : total.toStringAsFixed(0),
-                ),
+                l10n.reviewPriceEur(total.toStringAsFixed(0)),
                 style: const TextStyle(
                   fontFamily: FontFamily.b612,
                   fontSize: 15,

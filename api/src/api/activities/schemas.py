@@ -1,7 +1,7 @@
 import datetime as dt
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from src.enums import ActivityCategory
 
@@ -16,7 +16,14 @@ class ActivityCreateRequest(BaseModel):
     category: ActivityCategory | None = None
     estimatedCost: float | None = None
     isBooked: bool | None = None
+    isDone: bool | None = None
     validationStatus: str | None = None
+
+    @model_validator(mode="after")
+    def validate_time_range(self) -> "ActivityCreateRequest":
+        if self.startTime and self.endTime and self.endTime <= self.startTime:
+            raise ValueError("endTime must be after startTime")
+        return self
 
 
 class ActivityUpdateRequest(BaseModel):
@@ -29,7 +36,14 @@ class ActivityUpdateRequest(BaseModel):
     category: ActivityCategory | None = None
     estimatedCost: float | None = None
     isBooked: bool | None = None
+    isDone: bool | None = None
     validationStatus: str | None = None
+
+    @model_validator(mode="after")
+    def validate_time_range(self) -> "ActivityUpdateRequest":
+        if self.startTime and self.endTime and self.endTime <= self.startTime:
+            raise ValueError("endTime must be after startTime")
+        return self
 
 
 class ActivityResponse(BaseModel):
@@ -44,6 +58,7 @@ class ActivityResponse(BaseModel):
     category: str
     estimatedCost: float | None = Field(default=None, alias="estimated_cost")
     isBooked: bool = Field(alias="is_booked")
+    isDone: bool = Field(default=False, alias="is_done")
     validationStatus: str = Field(default="MANUAL", alias="validation_status")
     createdAt: dt.datetime = Field(alias="created_at")
     updatedAt: dt.datetime = Field(alias="updated_at")

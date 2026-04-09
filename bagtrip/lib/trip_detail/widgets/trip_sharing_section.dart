@@ -149,7 +149,9 @@ class _ParticipantsList extends StatelessWidget {
               child: _ParticipantTile(
                 name: share.userFullName ?? share.userEmail,
                 email: share.userFullName != null ? share.userEmail : null,
-                roleBadge: l10n.sharingSectionViewer,
+                roleBadge: share.role == 'EDITOR'
+                    ? l10n.shareRoleEditor
+                    : l10n.sharingSectionViewer,
                 isOwnerTile: false,
                 onRemove: isOwner && !isCompleted
                     ? () {

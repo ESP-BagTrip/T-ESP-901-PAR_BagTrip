@@ -42,6 +42,9 @@ void main() {
 
     when(() => mockConnectivity.isOnline).thenReturn(true);
     when(
+      () => mockConnectivity.onConnectivityChanged,
+    ).thenAnswer((_) => const Stream<bool>.empty());
+    when(
       () => mockScheduler.scheduleOngoingNotifications(any()),
     ).thenAnswer((_) async {});
     when(

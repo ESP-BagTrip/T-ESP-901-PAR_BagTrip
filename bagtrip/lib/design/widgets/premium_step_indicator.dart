@@ -46,10 +46,7 @@ class PremiumStepIndicator extends StatelessWidget {
                                 currentStepColor!,
                                 currentStepColor!.withValues(alpha: 0.85),
                               ]
-                            : const [
-                                ColorName.primary,
-                                ColorName.secondary,
-                              ],
+                            : const [ColorName.primary, ColorName.secondary],
                       )
                     : null,
                 color: isCurrent

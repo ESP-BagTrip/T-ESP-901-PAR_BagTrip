@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from src.models.flight_offer import FlightOffer
-from src.models.trip import Trip
 from src.services.flight_offer_pricing_service import FlightOfferPricingService
 from src.utils.errors import AppError
 
@@ -21,18 +20,13 @@ class TestFlightOfferPricingService:
     """Tests for FlightOfferPricingService."""
 
     @patch("src.services.flight_offer_pricing_service.amadeus_client")
-    @patch("src.services.flight_offer_pricing_service.TripsService.get_trip_by_id")
     @pytest.mark.asyncio
-    async def test_price_offer_success(self, mock_get_trip, mock_amadeus, mock_db_session):
+    async def test_price_offer_success(self, mock_amadeus, mock_db_session):
         """Test successful offer pricing."""
         trip_id = uuid.uuid4()
-        user_id = uuid.uuid4()
         offer_id = uuid.uuid4()
-        
-        # Mock trip
-        mock_get_trip.return_value = Trip(id=trip_id)
-        
-        # Valid FlightOffer structure
+
+        # Valid FlightOffer structure that satisfies the Amadeus FlightOffer pydantic model
         valid_offer_json = {
             "type": "flight-offer",
             "id": "1",
@@ -52,9 +46,9 @@ class TestFlightOfferPricingService:
                             "duration": "PT2H",
                             "id": "1",
                             "numberOfStops": 0,
-                            "blacklistedInEU": False
+                            "blacklistedInEU": False,
                         }
-                    ]
+                    ],
                 }
             ],
             "price": {
@@ -62,11 +56,11 @@ class TestFlightOfferPricingService:
                 "total": "100.00",
                 "base": "80.00",
                 "grandTotal": "100.00",
-                "fees": [{"amount": "0.00", "type": "SUPPLIER"}]
+                "fees": [{"amount": "0.00", "type": "SUPPLIER"}],
             },
             "pricingOptions": {
                 "fareType": ["PUBLISHED"],
-                "includedCheckedBagsOnly": True
+                "includedCheckedBagsOnly": True,
             },
             "validatingAirlineCodes": ["BA"],
             "travelerPricings": [
@@ -81,66 +75,45 @@ class TestFlightOfferPricingService:
                             "cabin": "ECONOMY",
                             "fareBasis": "Y",
                             "class": "Y",
-                            "includedCheckedBags": {"quantity": 1}
+                            "includedCheckedBags": {"quantity": 1},
                         }
-                    ]
+                    ],
                 }
-            ]
+            ],
         }
 
-        # Mock offer
         offer = FlightOffer(
             id=offer_id,
             trip_id=trip_id,
             offer_json=valid_offer_json,
             grand_total=100.0,
-            currency="EUR"
+            currency="EUR",
         )
         mock_db_session.query.return_value.filter.return_value.first.return_value = offer
-        
+
         # Mock Amadeus response
         mock_response = MagicMock()
         mock_response.data = {
-            "flightOffers": [{
-                "price": {"grandTotal": "120.00", "currency": "USD"}
-            }]
+            "flightOffers": [{"price": {"grandTotal": "120.00", "currency": "USD"}}]
         }
-        # The service calls model_dump on the response
         mock_response.model_dump.return_value = mock_response.data
-        
-        # Ensure confirm_flight_price is an AsyncMock
+
         mock_amadeus.confirm_flight_price = AsyncMock(return_value=mock_response)
-        
-        result = await FlightOfferPricingService.price_offer(
-            mock_db_session, offer_id, trip_id, user_id
-        )
-        
+
+        result = await FlightOfferPricingService.price_offer(mock_db_session, offer_id, trip_id)
+
         assert result.grand_total == 120.0
         assert result.currency == "USD"
         assert result.priced_offer_json == mock_response.data
         mock_db_session.commit.assert_called_once()
 
-    @patch("src.services.flight_offer_pricing_service.TripsService.get_trip_by_id")
     @pytest.mark.asyncio
-    async def test_price_offer_trip_not_found(self, mock_get_trip, mock_db_session):
-        """Test error when trip not found."""
-        mock_get_trip.return_value = None
-        
-        with pytest.raises(AppError) as exc:
-            await FlightOfferPricingService.price_offer(
-                mock_db_session, uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
-            )
-        assert exc.value.code == "TRIP_NOT_FOUND"
-
-    @patch("src.services.flight_offer_pricing_service.TripsService.get_trip_by_id")
-    @pytest.mark.asyncio
-    async def test_price_offer_not_found(self, mock_get_trip, mock_db_session):
+    async def test_price_offer_not_found(self, mock_db_session):
         """Test error when offer not found."""
-        mock_get_trip.return_value = Trip()
         mock_db_session.query.return_value.filter.return_value.first.return_value = None
-        
+
         with pytest.raises(AppError) as exc:
             await FlightOfferPricingService.price_offer(
-                mock_db_session, uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+                mock_db_session, uuid.uuid4(), uuid.uuid4()
             )
         assert exc.value.code == "OFFER_NOT_FOUND"

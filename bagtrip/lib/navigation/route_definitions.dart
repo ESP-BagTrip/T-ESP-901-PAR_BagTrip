@@ -1,5 +1,5 @@
 import 'package:bagtrip/activities/view/activities_page.dart';
-import 'package:bagtrip/trips/widgets/map_coming_soon_view.dart';
+import 'package:bagtrip/trips/view/trip_locations_page.dart';
 import 'package:bagtrip/transports/view/transports_page.dart';
 import 'package:bagtrip/budget/view/budget_page.dart';
 import 'package:bagtrip/flight_result_details/view/flight_result_details_page.dart';
@@ -8,7 +8,6 @@ import 'package:bagtrip/flight_search_result/models/flight.dart';
 import 'package:bagtrip/flight_search_result/models/flight_search_arguments.dart';
 import 'package:bagtrip/home/view/home_page.dart';
 import 'package:bagtrip/navigation/page_transitions.dart';
-import 'package:bagtrip/notifications/view/activity_page.dart';
 import 'package:bagtrip/notifications/view/notifications_page.dart';
 import 'package:bagtrip/accommodations/view/accommodations_page.dart';
 import 'package:bagtrip/baggage/view/baggage_page.dart';
@@ -327,7 +326,7 @@ class MapRoute extends GoRouteData with $MapRoute {
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       buildSlideTransitionPage<void>(
         state: state,
-        child: const MapComingSoonView(),
+        child: TripLocationsPage(tripId: tripId),
       );
 }
 
@@ -381,7 +380,7 @@ class ActivityRoute extends GoRouteData with $ActivityRoute {
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      const NoTransitionPage(child: ActivityPage());
+      const NoTransitionPage(child: NotificationsPage());
 }
 
 // ---------------------------------------------------------------------------
@@ -514,13 +513,14 @@ class SubscriptionCancelRoute extends GoRouteData
 
 @TypedGoRoute<PaymentSuccessRoute>(path: '/payment/success')
 class PaymentSuccessRoute extends GoRouteData with $PaymentSuccessRoute {
-  const PaymentSuccessRoute();
+  final String? intentId;
+  const PaymentSuccessRoute({this.intentId});
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       buildSlideTransitionPage<void>(
         state: state,
-        child: const PaymentSuccessPage(),
+        child: PaymentSuccessPage(intentId: intentId),
       );
 }
 

@@ -78,6 +78,26 @@ void main() {
     );
 
     blocTest<FlightSearchBloc, FlightSearchState>(
+      'sets tripId from prefill',
+      build: buildBloc,
+      act: (bloc) => bloc.add(
+        InitWithPrefilledData(
+          tripId: 'trip-123',
+          departureAirport: {'iataCode': 'CDG', 'name': 'CDG'},
+        ),
+      ),
+      expect: () => [
+        isA<FlightSearchLoaded>()
+            .having((s) => s.tripId, 'tripId', 'trip-123')
+            .having(
+              (s) => s.departureAirport?['iataCode'],
+              'departureAirport.iataCode',
+              'CDG',
+            ),
+      ],
+    );
+
+    blocTest<FlightSearchBloc, FlightSearchState>(
       'sets only departure airport when arrival is null',
       build: buildBloc,
       act: (bloc) => bloc.add(

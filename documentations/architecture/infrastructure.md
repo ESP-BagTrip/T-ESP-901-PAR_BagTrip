@@ -109,8 +109,6 @@ Le Makefile contient une logique de detection avancee :
 | `make test-e2e` | `flutter test integration_test/` |
 | `make test-e2e-<name>` | Test E2E individuel, ex: `make test-e2e-ft3_active_trip` |
 | `make coverage` | Flutter tests + couverture (seuil 60%) |
-| `make golden-test` | `flutter test --tags=golden` |
-| `make golden-update` | `flutter test --tags=golden --update-goldens` |
 
 #### Base de donnees
 

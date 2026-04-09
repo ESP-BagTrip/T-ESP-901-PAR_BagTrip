@@ -49,6 +49,10 @@ abstract class Flight with _$Flight {
     @JsonKey(name: 'fareBasis') @Default('Unknown') String fareBasis,
     @JsonKey(name: 'checkedBags') BaggageInfo? checkedBags,
     @JsonKey(name: 'cabinBags') BaggageInfo? cabinBags,
+
+    // Booking context (set when search is tied to a trip)
+    @JsonKey(name: 'trip_id') String? tripId,
+    @JsonKey(name: 'flight_offer_id') String? flightOfferId,
   }) = _Flight;
 
   factory Flight.fromJson(Map<String, dynamic> json) => _$FlightFromJson(json);

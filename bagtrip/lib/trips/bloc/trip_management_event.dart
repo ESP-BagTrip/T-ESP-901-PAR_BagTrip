@@ -51,3 +51,5 @@ class DeleteTrip extends TripManagementEvent {
 
   DeleteTrip({required this.tripId});
 }
+
+class ResetTripManagement extends TripManagementEvent {}

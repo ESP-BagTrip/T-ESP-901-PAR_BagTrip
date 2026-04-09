@@ -95,6 +95,7 @@ Voyages crees par les utilisateurs.
 | origin | String | nullable, default "MANUAL" |
 | cover_image_url | String | nullable |
 | destination_name | String | nullable |
+| destination_timezone | String | nullable |
 | nb_travelers | Integer | nullable, default 1 |
 | date_mode | String | NOT NULL, default "EXACT" |
 | archived_at | DateTime(tz) | nullable |

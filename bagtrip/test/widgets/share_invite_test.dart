@@ -199,4 +199,22 @@ void main() {
       expect(find.byType(Dismissible), findsNothing);
     });
   });
+
+  group('EDITOR role', () {
+    testWidgets('hides FAB and revoke when role is EDITOR', (tester) async {
+      final shares = [makeTripShare()];
+      await tester.pumpWidget(
+        buildView(
+          role: 'EDITOR',
+          state: TripShareLoaded(shares: shares),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // EDITOR should not see FAB or revoke buttons (only OWNER can manage shares)
+      expect(find.byType(FloatingActionButton), findsNothing);
+      expect(find.byIcon(Icons.remove_circle_outline), findsNothing);
+      expect(find.byType(Dismissible), findsNothing);
+    });
+  });
 }

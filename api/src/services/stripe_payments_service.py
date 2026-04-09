@@ -191,6 +191,52 @@ class StripePaymentsService:
         return booking_intent
 
     @staticmethod
+    def refund_payment(
+        db: Session,
+        intent_id: UUID,
+        user_id: UUID,
+        amount: int | None = None,
+        reason: str | None = None,
+    ) -> BookingIntent:
+        """
+        Rembourser un paiement capturé.
+        Optionnellement un montant partiel (en cents) et une raison.
+        """
+        booking_intent = (
+            db.query(BookingIntent)
+            .filter(
+                BookingIntent.id == intent_id,
+                BookingIntent.user_id == user_id,
+            )
+            .first()
+        )
+
+        if not booking_intent:
+            raise AppError("BOOKING_INTENT_NOT_FOUND", 404, "Booking intent not found")
+
+        if booking_intent.status != BookingIntentStatus.CAPTURED:
+            raise AppError(
+                "INVALID_STATUS",
+                400,
+                f"Booking intent must be CAPTURED to refund, got {booking_intent.status}",
+            )
+
+        if not booking_intent.stripe_charge_id:
+            raise AppError("MISSING_CHARGE_ID", 400, "No charge ID associated for refund")
+
+        StripeClient.create_refund(
+            charge_id=booking_intent.stripe_charge_id,
+            amount=amount,
+            reason=reason,
+        )
+
+        booking_intent.status = BookingIntentStatus.REFUNDED
+        db.commit()
+        db.refresh(booking_intent)
+
+        return booking_intent
+
+    @staticmethod
     def confirm_payment_with_test_card(
         db: Session,
         intent_id: UUID,

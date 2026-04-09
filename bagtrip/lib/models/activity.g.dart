@@ -24,6 +24,7 @@ _Activity _$ActivityFromJson(Map<String, dynamic> json) => _Activity(
       ActivityCategory.other,
   estimatedCost: (json['estimated_cost'] as num?)?.toDouble(),
   isBooked: json['is_booked'] as bool? ?? false,
+  isDone: json['is_done'] as bool? ?? false,
   validationStatus:
       $enumDecodeNullable(
         _$ValidationStatusEnumMap,
@@ -51,6 +52,7 @@ Map<String, dynamic> _$ActivityToJson(_Activity instance) => <String, dynamic>{
   'category': _$ActivityCategoryEnumMap[instance.category]!,
   'estimated_cost': instance.estimatedCost,
   'is_booked': instance.isBooked,
+  'is_done': instance.isDone,
   'validation_status': _$ValidationStatusEnumMap[instance.validationStatus]!,
   'suggested_day': instance.suggestedDay,
   'created_at': instance.createdAt?.toIso8601String(),

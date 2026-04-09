@@ -19,9 +19,11 @@ class AppSpacing {
   static const double space4 = 4.0;
   static const double space8 = 8.0;
   static const double space12 = 12.0;
+
   /// Primary CTA vertical padding (Plan trip wizard).
   static const double space15 = 15.0;
   static const double space16 = 16.0;
+
   /// Horizontal margin for Plan trip wizard screens (Ive-style density).
   static const double space22 = 22.0;
   static const double space24 = 24.0;
@@ -103,6 +105,7 @@ class AppRadius {
   static const double cornerRaidus4 = 4.0;
   static const double cornerRaidus8 = 8.0;
   static const double cornerRaidus16 = 16.0;
+
   /// Context pill (Plan trip step header).
   static const double cornerRadius13 = 13.0;
   static const double cornerRadius20 = 20.0;

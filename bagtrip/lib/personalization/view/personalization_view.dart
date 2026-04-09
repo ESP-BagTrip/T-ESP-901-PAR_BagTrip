@@ -67,11 +67,13 @@ class PersonalizationView extends StatelessWidget {
     if (state.step == 0) {
       return Scaffold(
         body: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: PersonalizationColors.backgroundGradient,
+              colors: PersonalizationColors.backgroundGradientOf(
+                Theme.of(context).brightness,
+              ),
             ),
           ),
           child: SafeArea(
@@ -88,7 +90,9 @@ class PersonalizationView extends StatelessWidget {
     final isLastStep = state.step == _kContentSteps;
 
     return Scaffold(
-      backgroundColor: PersonalizationColors.gradientEnd,
+      backgroundColor: PersonalizationColors.gradientEndOf(
+        Theme.of(context).brightness,
+      ),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,

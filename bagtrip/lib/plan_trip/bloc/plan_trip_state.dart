@@ -21,6 +21,7 @@ abstract class PlanTripState with _$PlanTripState {
     @Default(0) int nbChildren,
     @Default(0) int nbBabies,
     BudgetPreset? budgetPreset,
+    String? originCity,
 
     // Step 2 — Destination
     @Default([]) List<LocationResult> searchResults,
@@ -43,7 +44,7 @@ abstract class PlanTripState with _$PlanTripState {
 
     // Meta
     @Default(false) bool isManualFlow,
-    String? error,
+    AppError? error,
   }) = _PlanTripState;
 
   /// Total travelers for API and budget (sum of breakdown).
@@ -66,14 +67,51 @@ abstract class PlanTripState with _$PlanTripState {
     if (startDate != null && endDate != null) {
       return endDate!.difference(startDate!).inDays;
     }
-    return switch (flexibleDuration) {
-      DurationPreset.weekend => 3,
-      DurationPreset.oneWeek => 7,
-      DurationPreset.twoWeeks => 14,
-      DurationPreset.threeWeeks => 21,
-      null => null,
+    return switch (dateMode) {
+      DateMode.exact => null,
+      DateMode.month => switch (flexibleDuration) {
+        DurationPreset.weekend => 3,
+        DurationPreset.oneWeek => 7,
+        DurationPreset.twoWeeks => 14,
+        DurationPreset.threeWeeks => 21,
+        null => 7, // default 1 week for month mode
+      },
+      DateMode.flexible => switch (flexibleDuration) {
+        DurationPreset.weekend => 3,
+        DurationPreset.oneWeek => 7,
+        DurationPreset.twoWeeks => 14,
+        DurationPreset.threeWeeks => 21,
+        null => null,
+      },
     };
   }
+
+  /// Duration that always resolves (never null). Used for API calls.
+  int get effectiveDurationDays => tripDurationDays ?? 7;
+
+  /// Representative dates for API calls.
+  /// Exact → real dates. Month → 15th of month. Flexible → now + 30 days.
+  (DateTime, DateTime) get representativeDates {
+    switch (dateMode) {
+      case DateMode.exact:
+        if (startDate != null && endDate != null) {
+          return (startDate!, endDate!);
+        }
+        final s = DateTime.now().add(const Duration(days: 30));
+        return (s, s.add(Duration(days: effectiveDurationDays)));
+      case DateMode.month:
+        final year = preferredYear ?? DateTime.now().year;
+        final month = preferredMonth ?? (DateTime.now().month + 1);
+        final s = DateTime(year, month, 15);
+        return (s, s.add(Duration(days: effectiveDurationDays)));
+      case DateMode.flexible:
+        final s = DateTime.now().add(const Duration(days: 30));
+        return (s, s.add(Duration(days: effectiveDurationDays)));
+    }
+  }
+
+  /// Whether dates are derived (not user-specified exact dates).
+  bool get areDatesRepresentative => dateMode != DateMode.exact;
 
   /// Step to jump to after destination selection.
   int get nextStepAfterDestination => isManualFlow ? 4 : 3;

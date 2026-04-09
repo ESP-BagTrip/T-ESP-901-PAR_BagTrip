@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/adaptive/adaptive_action_sheet.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -50,41 +51,62 @@ class PreferencesSection extends StatelessWidget {
 
   Widget _buildLanguageRow(BuildContext context, String selectedLanguage) {
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    return Row(
-      children: [
-        Icon(
-          Icons.language_outlined,
-          color: ColorName.secondary.withValues(alpha: 0.7),
-          size: 20,
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                AppLocalizations.of(context)!.languageLabel,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textSecondary,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.space4),
-              Text(
-                selectedLanguage,
-                style: TextStyle(fontSize: 14, color: onSurface),
-              ),
-            ],
+    return InkWell(
+      borderRadius: AppRadius.medium8,
+      onTap: () {
+        showAdaptiveActionSheet(
+          context: context,
+          title: AppLocalizations.of(context)!.languageLabel,
+          actions: [
+            AdaptiveAction(
+              label: 'Français',
+              onPressed: () =>
+                  context.read<SettingsBloc>().add(ChangeLanguage('Français')),
+            ),
+            AdaptiveAction(
+              label: 'English',
+              onPressed: () =>
+                  context.read<SettingsBloc>().add(ChangeLanguage('English')),
+            ),
+          ],
+        );
+      },
+      child: Row(
+        children: [
+          Icon(
+            Icons.language_outlined,
+            color: ColorName.secondary.withValues(alpha: 0.7),
+            size: 20,
           ),
-        ),
-        Icon(
-          Icons.chevron_right,
-          color: onSurface.withValues(alpha: 0.4),
-          size: 20,
-        ),
-      ],
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppLocalizations.of(context)!.languageLabel,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.space4),
+                Text(
+                  selectedLanguage,
+                  style: TextStyle(fontSize: 14, color: onSurface),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.chevron_right,
+            color: onSurface.withValues(alpha: 0.4),
+            size: 20,
+          ),
+        ],
+      ),
     );
   }
 

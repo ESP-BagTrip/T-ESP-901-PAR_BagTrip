@@ -132,6 +132,10 @@ Le `BudgetEstimateSheet` est un `DraggableScrollableSheet` (65% -> 90%) qui :
 
 - `DELETE /v1/trips/{tripId}/budget-items/{itemId}` — Suppression. Owner only. Declenche l'alerte budget.
 
+- `POST /v1/trips/{tripId}/budget/estimate` — Estimation IA du budget. Owner only + verification quota IA (`require_ai_quota`). Construit un `TripPlanState` a partir des donnees du trip (destination, dates, activites, hebergements) puis appelle `budget_node()` (ReAct executor avec recherche de vols Amadeus). Incremente le compteur IA. Retourne `{ estimation: {...} }`.
+
+- `POST /v1/trips/{tripId}/budget/estimate/accept` — Accepte l'estimation. Owner only. Met a jour `trip.budget_total` via `TripsService.update_trip()`. Declenche `NotificationService.check_and_send_budget_alert()`.
+
 ### Calcul du summary (`BudgetItemService.get_budget_summary()`)
 
 Le service (`api/src/services/budget_item_service.py`) effectue un calcul complet :
@@ -164,8 +168,8 @@ Le service (`api/src/services/budget_item_service.py`) effectue un calcul comple
 
 | Element | Description | Priorite |
 |---------|-------------|----------|
-| Reload summary apres CRUD | Le `BudgetBloc` fait un ajout/retrait optimiste dans `items` mais ne recharge pas le `summary` apres `Create`/`Update`/`Delete`. Le summary affiche des donnees potentiellement perimees (confirmedTotal, forecastedTotal, alertes). (`bagtrip/lib/budget/bloc/budget_bloc.dart:49-125`) | P0 |
-| Endpoint estimation IA budget | L'event `EstimateBudget` appelle `budgetRepository.estimateBudget()` mais l'endpoint backend pour l'estimation budgetaire IA n'est pas visible dans `api/src/api/budget_items/routes.py`. A verifier dans les routes AI generiques. | P1 |
+| ~~Reload summary apres CRUD~~ | ~~Le BudgetBloc ne rechargeait pas le summary apres CRUD.~~ ✅ `RefreshBudgetSummary` event re-fetch le summary apres chaque Create/Update/Delete | ~~P0~~ ✅ |
+| ~~Endpoint estimation IA budget~~ | ~~L'endpoint backend n'etait pas visible.~~ ✅ `POST /v1/trips/{tripId}/budget/estimate` (AI quota guard + budget_node) + `POST /v1/trips/{tripId}/budget/estimate/accept` (set trip budget_total) | ~~P1~~ ✅ |
 | Devise multi-monnaie | Le summary est en une seule devise. Pas de conversion automatique si des items sont dans des devises differentes. Le modele BudgetItem ne stocke pas de devise par item. | P2 |
 | Graphiques de repartition | Pas de visualisation graphique (camembert, barres) de la repartition par categorie. Le `byCategory` est calcule mais affiche uniquement en texte. | P2 |
 | Historique des alertes | Les alertes sont calculees a la volee mais pas historisees. Pas de tracking des notifications budget envoyees pour eviter les doublons. | P2 |

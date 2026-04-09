@@ -11,7 +11,13 @@ class CreateShare extends TripShareEvent {
   final String tripId;
   final String email;
   final String? message;
-  CreateShare({required this.tripId, required this.email, this.message});
+  final String role;
+  CreateShare({
+    required this.tripId,
+    required this.email,
+    this.message,
+    this.role = 'VIEWER',
+  });
 }
 
 class DeleteShare extends TripShareEvent {

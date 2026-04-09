@@ -12,6 +12,9 @@ class QuickActionsBar extends StatelessWidget {
   final List<QuickActionType> actions;
   final VoidCallback? onNavigateTap;
   final VoidCallback? onExpenseTap;
+  final VoidCallback? onWeatherTap;
+  final VoidCallback? onPhotoTap;
+  final VoidCallback? onTomorrowTap;
 
   const QuickActionsBar({
     super.key,
@@ -19,6 +22,9 @@ class QuickActionsBar extends StatelessWidget {
     required this.actions,
     this.onNavigateTap,
     this.onExpenseTap,
+    this.onWeatherTap,
+    this.onPhotoTap,
+    this.onTomorrowTap,
   });
 
   @override
@@ -60,7 +66,7 @@ class QuickActionsBar extends StatelessWidget {
       QuickActionType.weather => (
         Icons.wb_sunny_outlined,
         l10n.qaWeather,
-        () {},
+        () => onWeatherTap?.call(),
       ),
       QuickActionType.checkOut => (
         Icons.hotel_outlined,
@@ -77,7 +83,11 @@ class QuickActionsBar extends StatelessWidget {
         l10n.qaExpense,
         () => onExpenseTap?.call(),
       ),
-      QuickActionType.photo => (Icons.camera_alt_outlined, l10n.qaPhoto, () {}),
+      QuickActionType.photo => (
+        Icons.camera_alt_outlined,
+        l10n.qaPhoto,
+        () => onPhotoTap?.call(),
+      ),
       QuickActionType.nextActivity => (
         Icons.skip_next_outlined,
         l10n.qaNextActivity,
@@ -86,7 +96,7 @@ class QuickActionsBar extends StatelessWidget {
       QuickActionType.aiSuggestion => (
         Icons.auto_awesome_outlined,
         l10n.qaAiSuggestion,
-        () {},
+        () => ActivitiesRoute(tripId: tripId).go(context),
       ),
       QuickActionType.map => (
         Icons.map_outlined,
@@ -101,7 +111,7 @@ class QuickActionsBar extends StatelessWidget {
       QuickActionType.tomorrow => (
         Icons.calendar_today_outlined,
         l10n.qaTomorrow,
-        () {},
+        () => onTomorrowTap?.call(),
       ),
       QuickActionType.budget => (
         Icons.account_balance_wallet_outlined,

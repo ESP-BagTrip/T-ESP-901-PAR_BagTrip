@@ -55,3 +55,22 @@ class StripeClient:
     def retrieve_payment_intent(payment_intent_id: str) -> stripe.PaymentIntent:
         """Récupérer un PaymentIntent."""
         return stripe.PaymentIntent.retrieve(payment_intent_id)
+
+    @staticmethod
+    def create_refund(
+        charge_id: str,
+        amount: int | None = None,
+        reason: str | None = None,
+    ) -> stripe.Refund:
+        """Créer un remboursement Stripe."""
+        params: dict = {"charge": charge_id}
+        if amount is not None:
+            params["amount"] = amount
+        if reason is not None:
+            params["reason"] = reason
+        return stripe.Refund.create(**params)
+
+    @staticmethod
+    def delete_customer(customer_id: str) -> None:
+        """Delete a Stripe customer."""
+        stripe.Customer.delete(customer_id)

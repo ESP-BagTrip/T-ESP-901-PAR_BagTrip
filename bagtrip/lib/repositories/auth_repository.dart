@@ -15,4 +15,6 @@ abstract class AuthRepository {
   Future<Result<User?>> getCurrentUser();
   Future<Result<User>> updateUser({String? fullName, String? phone});
   Future<Result<bool>> isAuthenticated();
+  Future<Result<void>> forgotPassword(String email);
+  Future<Result<void>> deleteAccount();
 }

@@ -136,6 +136,9 @@ class StripeWebhooksService:
         elif event.type == "invoice.payment_succeeded":
             StripeWebhooksService._handle_invoice_succeeded(db, event)
 
+        elif event.type == "charge.refunded":
+            StripeWebhooksService._handle_charge_refunded(db, event)
+
     # --- Subscription helpers ---
 
     @staticmethod
@@ -218,3 +221,17 @@ class StripeWebhooksService:
         if user.plan != "ADMIN":
             user.plan = "PREMIUM"
         db.commit()
+
+    @staticmethod
+    def _handle_charge_refunded(db: Session, event: stripe.Event) -> None:
+        """Handle charge.refunded — update booking intent to REFUNDED."""
+        obj = event.data.object
+        charge_id = obj.get("id") if isinstance(obj, dict) else getattr(obj, "id", None)
+        if not charge_id:
+            return
+        booking_intent = (
+            db.query(BookingIntent).filter(BookingIntent.stripe_charge_id == charge_id).first()
+        )
+        if booking_intent and booking_intent.status == BookingIntentStatus.CAPTURED:
+            booking_intent.status = BookingIntentStatus.REFUNDED
+            db.commit()

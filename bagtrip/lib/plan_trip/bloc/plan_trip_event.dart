@@ -24,6 +24,8 @@ sealed class PlanTripEvent with _$PlanTripEvent {
   }) = PlanTripSetTravelerCounts;
   const factory PlanTripEvent.setBudgetPreset(BudgetPreset? preset) =
       PlanTripSetBudgetPreset;
+  const factory PlanTripEvent.setOriginCity(String city) =
+      PlanTripSetOriginCity;
 
   // Step 2 — Destination
   const factory PlanTripEvent.searchDestination(String query) =
@@ -45,4 +47,6 @@ sealed class PlanTripEvent with _$PlanTripEvent {
   // Step 5 — Review
   const factory PlanTripEvent.createTrip() = PlanTripCreateTrip;
   const factory PlanTripEvent.backToProposals() = PlanTripBackToProposals;
+  const factory PlanTripEvent.updateReviewDates(DateTime start, DateTime end) =
+      PlanTripUpdateReviewDates;
 }

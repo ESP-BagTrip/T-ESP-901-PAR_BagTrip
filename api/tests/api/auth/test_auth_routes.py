@@ -7,16 +7,26 @@ from unittest.mock import MagicMock, patch
 import bcrypt
 import pytest
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
-from src.api.auth.routes import router as auth_router
 from src.api.auth.middleware import get_current_user
+from src.api.auth.routes import router as auth_router
 from src.config.database import get_db
 from src.models.user import User
+from src.utils.errors import AppError
 
 # Setup the test app
 app = FastAPI()
 app.include_router(auth_router)
+
+
+@app.exception_handler(AppError)
+async def app_error_handler(request, exc: AppError):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": {"error": exc.message, "code": exc.code}},
+    )
 
 
 @pytest.fixture
@@ -38,7 +48,7 @@ def override_get_db(mock_db_session):
     """Override the get_db dependency."""
     def _get_db():
         yield mock_db_session
-    
+
     app.dependency_overrides[get_db] = _get_db
     yield
     app.dependency_overrides = {}
@@ -61,32 +71,32 @@ class TestRegister:
         """Test successful user registration."""
         # Setup mock DB behavior
         mock_db_session.query.return_value.filter.return_value.first.return_value = None  # User doesn't exist
-        
+
         def refresh_side_effect(instance):
             instance.id = uuid.uuid4()
             instance.created_at = datetime.utcnow()
             instance.updated_at = datetime.utcnow()
-            
+
         mock_db_session.refresh.side_effect = refresh_side_effect
-        
+
         payload = {
             "email": "newuser@example.com",
             "password": "password123",
             "fullName": "New User",
             "phone": "+1234567890"
         }
-        
+
         response = client.post("/v1/auth/register", json=payload)
-        
+
         assert response.status_code == 201
         data = response.json()
-        assert "token" in data
+        assert "access_token" in data
         assert data["user"]["email"] == "newuser@example.com"
-        
+
         # Verify DB interactions
         assert mock_db_session.add.called
         assert mock_db_session.commit.called
-        
+
         # Verify Stripe interaction
         mock_stripe_client.create_customer.assert_called_once_with(
             email="newuser@example.com",
@@ -98,32 +108,32 @@ class TestRegister:
         # Setup mock DB behavior
         existing_user = User(id=uuid.uuid4(), email="existing@example.com")
         mock_db_session.query.return_value.filter.return_value.first.return_value = existing_user
-        
+
         payload = {
             "email": "existing@example.com",
             "password": "password123"
         }
-        
+
         response = client.post("/v1/auth/register", json=payload)
-        
+
         assert response.status_code == 400
         assert response.json()["detail"] == "User already exists"
 
 
-    def test_register_integrity_error(self, client, override_get_db, mock_db_session):
+    def test_register_integrity_error(self, client, override_get_db, mock_db_session, mock_stripe_client):
         """Test registration race condition handling (IntegrityError)."""
         from sqlalchemy.exc import IntegrityError
-        
+
         mock_db_session.query.return_value.filter.return_value.first.return_value = None
         mock_db_session.commit.side_effect = IntegrityError("mock", "mock", "mock")
-        
+
         payload = {
             "email": "race@example.com",
             "password": "password123"
         }
-        
+
         response = client.post("/v1/auth/register", json=payload)
-        
+
         assert response.status_code == 400
         assert response.json()["detail"] == "User already exists"
         assert mock_db_session.rollback.called
@@ -131,28 +141,28 @@ class TestRegister:
     def test_register_stripe_failure(self, client, override_get_db, mock_db_session, mock_stripe_client):
         """Test registration when Stripe customer creation fails."""
         mock_db_session.query.return_value.filter.return_value.first.return_value = None
-        
+
         # Mock Stripe failure
         mock_stripe_client.create_customer.side_effect = Exception("Stripe down")
-        
+
         def refresh_side_effect(instance):
             instance.id = uuid.uuid4()
             instance.created_at = datetime.utcnow()
             instance.updated_at = datetime.utcnow()
-            
+
         mock_db_session.refresh.side_effect = refresh_side_effect
-        
+
         payload = {
             "email": "nostripe@example.com",
             "password": "password123"
         }
-        
+
         response = client.post("/v1/auth/register", json=payload)
-        
-        # Should still succeed
-        assert response.status_code == 201
+
+        # Should fail with 503 — Stripe customer creation is now required
+        assert response.status_code == 503
         data = response.json()
-        assert data["user"]["email"] == "nostripe@example.com"
+        assert data["detail"]["code"] == "STRIPE_CUSTOMER_CREATION_FAILED"
 
 
 class TestLogin:
@@ -164,30 +174,30 @@ class TestLogin:
         password = "password123"
         hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
         user = User(
-            id=uuid.uuid4(), 
-            email="user@example.com", 
+            id=uuid.uuid4(),
+            email="user@example.com",
             password_hash=hashed,
             created_at=datetime.utcnow(),
             updated_at=None
         )
-        
+
         mock_db_session.query.return_value.filter.return_value.first.return_value = user
-        
+
         payload = {"email": "user@example.com", "password": password}
         response = client.post("/v1/auth/login", json=payload)
-        
+
         assert response.status_code == 200
         data = response.json()
-        assert "token" in data
+        assert "access_token" in data
         assert data["user"]["email"] == "user@example.com"
 
     def test_login_user_not_found(self, client, override_get_db, mock_db_session):
         """Test login with non-existent email."""
         mock_db_session.query.return_value.filter.return_value.first.return_value = None
-        
+
         payload = {"email": "unknown@example.com", "password": "password123"}
         response = client.post("/v1/auth/login", json=payload)
-        
+
         assert response.status_code == 401
         assert response.json()["detail"] == "Invalid credentials"
 
@@ -197,23 +207,23 @@ class TestLogin:
         password = "password123"
         hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
         user = User(
-            id=uuid.uuid4(), 
-            email="user@example.com", 
+            id=uuid.uuid4(),
+            email="user@example.com",
             password_hash=hashed
         )
-        
+
         mock_db_session.query.return_value.filter.return_value.first.return_value = user
-        
+
         payload = {"email": "user@example.com", "password": "wrongpassword"}
         response = client.post("/v1/auth/login", json=payload)
-        
+
         assert response.status_code == 401
         assert response.json()["detail"] == "Invalid credentials"
 
 
 class TestMe:
     """Test suite for the me endpoint."""
-    
+
     def test_me_success(self, client):
         """Test retrieving current user info."""
         user = User(
@@ -222,16 +232,24 @@ class TestMe:
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow()
         )
-        
-        # Override the get_current_user dependency directly
+
+        # Mock DB session so ProfileService and PlanService don't hit a real DB
+        mock_db = MagicMock()
+        mock_db.query.return_value.filter.return_value.first.return_value = None
+
+        def _get_db():
+            yield mock_db
+
+        # Override both dependencies
         app.dependency_overrides[get_current_user] = lambda: user
-        
+        app.dependency_overrides[get_db] = _get_db
+
         response = client.get("/v1/auth/me")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["email"] == "me@example.com"
         assert "id" in data
-        
+
         # Cleanup
         app.dependency_overrides = {}

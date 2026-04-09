@@ -66,5 +66,36 @@ void main() {
       expect(second.invitedAt, isNull);
       expect(second.userFullName, isNull);
     });
+
+    test('fromJson with status and inviteToken fields', () {
+      final json = <String, dynamic>{
+        'id': 'share-pending',
+        'trip_id': 'trip-1',
+        'user_email': 'pending@example.com',
+        'status': 'pending',
+        'invite_token': 'abc-123-token',
+      };
+
+      final model = TripShare.fromJson(json);
+
+      expect(model.id, 'share-pending');
+      expect(model.status, 'pending');
+      expect(model.inviteToken, 'abc-123-token');
+      expect(model.userId, isNull);
+    });
+
+    test('fromJson defaults status to active and inviteToken to null', () {
+      final json = <String, dynamic>{
+        'id': 'share-active',
+        'trip_id': 'trip-1',
+        'user_id': 'user-1',
+        'user_email': 'active@example.com',
+      };
+
+      final model = TripShare.fromJson(json);
+
+      expect(model.status, 'active');
+      expect(model.inviteToken, isNull);
+    });
   });
 }

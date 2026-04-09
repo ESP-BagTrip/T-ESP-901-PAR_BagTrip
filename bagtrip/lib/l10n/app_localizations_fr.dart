@@ -1033,6 +1033,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get activityBooked => 'Réservé';
 
   @override
+  String get activityDeleteTitle => 'Supprimer l\'activité';
+
+  @override
+  String get activityDeleteConfirm =>
+      'Êtes-vous sûr de vouloir supprimer cette activité ?';
+
+  @override
+  String get activityDeleted => 'Activité supprimée';
+
+  @override
+  String get activityEndTimeBeforeStartTime =>
+      'L\'heure de fin doit être après l\'heure de début';
+
+  @override
   String get categoryVisit => 'Visite';
 
   @override
@@ -1166,6 +1180,24 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get notificationsJustNow => 'À l\'instant';
+
+  @override
+  String notificationsMinutesAgo(int count) {
+    return 'Il y a $count min';
+  }
+
+  @override
+  String notificationsHoursAgo(int count) {
+    return 'Il y a ${count}h';
+  }
+
+  @override
+  String notificationsShortDaysAgo(int count) {
+    return 'Il y a ${count}j';
+  }
+
+  @override
   String get baggageTitle => 'Bagages';
 
   @override
@@ -1244,6 +1276,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get baggageUnpack => 'Déballer';
+
+  @override
+  String get baggageEditItemTitle => 'Modifier l\'élément';
+
+  @override
+  String get baggageItemUpdated => 'Élément modifié';
 
   @override
   String get baggageItemName => 'Nom de l\'élément';
@@ -1426,6 +1464,35 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get postTripCreateTrip => 'Créer ce voyage';
+
+  @override
+  String postTripSuggestionDuration(int days) {
+    return '$days jours';
+  }
+
+  @override
+  String postTripSuggestionBudget(String amount) {
+    return '$amount€';
+  }
+
+  @override
+  String get feedbackNoReviews => 'Aucun avis';
+
+  @override
+  String feedbackHighlightsPrefix(String highlights) {
+    return 'Points forts : $highlights';
+  }
+
+  @override
+  String feedbackLowlightsPrefix(String lowlights) {
+    return 'À améliorer : $lowlights';
+  }
+
+  @override
+  String get feedbackRecommends => 'Recommande';
+
+  @override
+  String get feedbackNotRecommends => 'Ne recommande pas';
 
   @override
   String get filterCabinBagIncluded => 'Bagage cabine inclus';
@@ -1642,11 +1709,33 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String homeGreetingMorning(String name) {
+    return 'Bonjour,\n$name';
+  }
+
+  @override
+  String homeGreetingAfternoon(String name) {
+    return 'Bon après-midi,\n$name';
+  }
+
+  @override
+  String homeGreetingEvening(String name) {
+    return 'Bonsoir,\n$name';
+  }
+
+  @override
   String get homeWelcomeTitle => 'Prêt à voyager ?';
 
   @override
-  String get homeWelcomeSubtitle =>
-      'Créez votre premier voyage en quelques étapes. Manuel ou assisté par l\'IA — à vous de choisir.';
+  String get homeSubtitleEmpty => 'Quelle sera ta prochaine destination ?';
+
+  @override
+  String get homeSubtitleOneTrip => '1 voyage planifié';
+
+  @override
+  String homeSubtitleTrips(int count) {
+    return '$count voyages planifiés';
+  }
 
   @override
   String get homeCreateFirstTrip => 'Créer mon premier voyage';
@@ -1655,7 +1744,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get planTripCta => 'Planifier un voyage';
 
   @override
-  String get planTripCtaSubtitle => 'Manuel ou assisté par l\'IA';
+  String get homeCtaAiOrManual => 'IA ou manuel';
+
+  @override
+  String get homeCtaStartPlanning => 'Commencer';
 
   @override
   String get inspireMe => 'Inspire-moi';
@@ -2258,6 +2350,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reviewHighlightsLabel => 'TEMPS FORTS';
 
   @override
+  String get reviewSectionDates => 'DATES';
+
+  @override
+  String get reviewDatesSuggested => 'Dates suggérées — appuyez pour ajuster';
+
+  @override
   String reviewEssentialReason(String reason) {
     return 'Pourquoi : $reason';
   }
@@ -2285,15 +2383,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String homeTripCompletion(int percent) {
     return '$percent% prêt';
   }
-
-  @override
-  String get onboardingInspirationTitle => 'Inspirez-vous';
-
-  @override
-  String get onboardingInspirationSubtitle => 'Destinations populaires';
-
-  @override
-  String get tripManagerCompletedSection => 'Voyages passés';
 
   @override
   String get tripCardNoDestination => 'Pas de destination';
@@ -2870,6 +2959,31 @@ class AppLocalizationsFr extends AppLocalizations {
   String get shareInviteSendButton => 'Envoyer l\'invitation';
 
   @override
+  String get shareRoleViewer => 'Lecteur';
+
+  @override
+  String get shareRoleEditor => 'Éditeur';
+
+  @override
+  String get shareInviteRoleLabel => 'Rôle';
+
+  @override
+  String get shareInvitePendingTitle => 'Invitation envoyée';
+
+  @override
+  String get shareInvitePendingMessage =>
+      'Cette personne n\'est pas encore inscrite. Elle aura accès en s\'inscrivant.';
+
+  @override
+  String get shareInviteCopyLink => 'Copier le lien d\'invitation';
+
+  @override
+  String get shareInviteLinkCopied => 'Lien d\'invitation copié';
+
+  @override
+  String get sharePendingBadge => 'En attente';
+
+  @override
   String get shareErrorUserNotFound =>
       'Cette personne doit d\'abord créer un compte';
 
@@ -3026,6 +3140,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get deleteFlightTooltip => 'Supprimer le vol';
 
   @override
+  String get editFlight => 'Modifier le vol';
+
+  @override
+  String get editFlightTooltip => 'Modifier ce vol';
+
+  @override
+  String get multiDestResults => 'Résultats par segment';
+
+  @override
+  String segmentLabel(int index) {
+    return 'Segment $index';
+  }
+
+  @override
   String get deleteAccommodationTooltip => 'Supprimer l\'hebergement';
 
   @override
@@ -3058,4 +3186,74 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get loadingButton => 'Chargement';
+
+  @override
+  String get forgotPasswordTitle => 'Réinitialiser le mot de passe';
+
+  @override
+  String get forgotPasswordSubtitle =>
+      'Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.';
+
+  @override
+  String get forgotPasswordSendButton => 'Envoyer le lien';
+
+  @override
+  String get forgotPasswordSuccess =>
+      'Si cette adresse existe, un lien de réinitialisation a été envoyé. Vérifiez votre boîte de réception.';
+
+  @override
+  String get deleteAccountButton => 'Supprimer mon compte';
+
+  @override
+  String get deleteAccountConfirmTitle => 'Supprimer le compte ?';
+
+  @override
+  String get deleteAccountConfirmMessage =>
+      'Cela supprimera définitivement votre compte et toutes les données associées. Cette action est irréversible.';
+
+  @override
+  String get deleteAccountConfirmAction => 'Supprimer définitivement';
+
+  @override
+  String get bookFlight => 'Réserver ce vol';
+
+  @override
+  String get weatherSheetTitle => 'Météo';
+
+  @override
+  String get weatherSheetTemperature => 'Température';
+
+  @override
+  String get weatherSheetRainProbability => 'Probabilité de pluie';
+
+  @override
+  String get weatherSheetUnavailable => 'Données météo indisponibles';
+
+  @override
+  String get photoLaunchFailed => 'Impossible d\'ouvrir l\'appareil photo';
+
+  @override
+  String get mapLocationsTitle => 'Lieux du voyage';
+
+  @override
+  String get mapNoLocations => 'Aucun lieu ajouté';
+
+  @override
+  String get mapDestination => 'Destination';
+
+  @override
+  String get mapActivities => 'Activités';
+
+  @override
+  String get mapAccommodations => 'Hébergements';
+
+  @override
+  String get notFoundTitle => 'Page introuvable';
+
+  @override
+  String get notFoundSubtitle =>
+      'La page que vous recherchez n\'existe pas ou a été déplacée.';
+
+  @override
+  String get notFoundCta => 'Retour à l\'accueil';
 }

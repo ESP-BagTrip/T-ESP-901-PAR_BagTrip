@@ -8,12 +8,14 @@ import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/flight_info.dart';
+import 'package:bagtrip/models/manual_flight.dart';
 import 'package:bagtrip/transports/bloc/transport_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ManualFlightForm extends StatefulWidget {
   final String tripId;
+  final ManualFlight? existing;
   final String? initialDepartureAirport;
   final String? initialArrivalAirport;
   final DateTime? initialDepartureDate;
@@ -22,6 +24,7 @@ class ManualFlightForm extends StatefulWidget {
   const ManualFlightForm({
     super.key,
     required this.tripId,
+    this.existing,
     this.initialDepartureAirport,
     this.initialArrivalAirport,
     this.initialDepartureDate,
@@ -50,17 +53,38 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
   String? _airportsError;
   String? _datesError;
 
+  bool get _isEditMode => widget.existing != null;
+
   @override
   void initState() {
     super.initState();
-    if (widget.initialDepartureAirport != null) {
-      _depAirportCtrl.text = widget.initialDepartureAirport!;
+    if (_isEditMode) {
+      final flight = widget.existing!;
+      _flightNumberCtrl.text = flight.flightNumber;
+      if (flight.airline != null) _airlineCtrl.text = flight.airline!;
+      if (flight.departureAirport != null) {
+        _depAirportCtrl.text = flight.departureAirport!;
+      }
+      if (flight.arrivalAirport != null) {
+        _arrAirportCtrl.text = flight.arrivalAirport!;
+      }
+      _departureDate = flight.departureDate;
+      _arrivalDate = flight.arrivalDate;
+      if (flight.price != null) {
+        _priceCtrl.text = flight.price!.toStringAsFixed(2);
+      }
+      if (flight.notes != null) _notesCtrl.text = flight.notes!;
+      _flightType = flight.flightType;
+    } else {
+      if (widget.initialDepartureAirport != null) {
+        _depAirportCtrl.text = widget.initialDepartureAirport!;
+      }
+      if (widget.initialArrivalAirport != null) {
+        _arrAirportCtrl.text = widget.initialArrivalAirport!;
+      }
+      _departureDate = widget.initialDepartureDate;
+      _arrivalDate = widget.initialArrivalDate;
     }
-    if (widget.initialArrivalAirport != null) {
-      _arrAirportCtrl.text = widget.initialArrivalAirport!;
-    }
-    _departureDate = widget.initialDepartureDate;
-    _arrivalDate = widget.initialArrivalDate;
   }
 
   @override
@@ -144,9 +168,19 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
       if (_notesCtrl.text.isNotEmpty) 'notes': _notesCtrl.text,
     };
 
-    context.read<TransportBloc>().add(
-      CreateManualFlight(tripId: widget.tripId, data: data),
-    );
+    if (_isEditMode) {
+      context.read<TransportBloc>().add(
+        UpdateManualFlight(
+          tripId: widget.tripId,
+          flightId: widget.existing!.id,
+          data: data,
+        ),
+      );
+    } else {
+      context.read<TransportBloc>().add(
+        CreateManualFlight(tripId: widget.tripId, data: data),
+      );
+    }
     Navigator.of(context).pop();
   }
 
@@ -229,7 +263,7 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  l10n.addManuallyOption,
+                  _isEditMode ? l10n.editFlight : l10n.addManuallyOption,
                   style: const TextStyle(
                     fontFamily: FontFamily.b612,
                     fontSize: 18,
@@ -397,7 +431,7 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
                     backgroundColor: ColorName.primary,
                   ),
                   child: Text(
-                    l10n.addFlight,
+                    _isEditMode ? l10n.saveButton : l10n.addFlight,
                     style: const TextStyle(
                       fontFamily: FontFamily.b612,
                       fontWeight: FontWeight.bold,

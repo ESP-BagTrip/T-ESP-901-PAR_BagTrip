@@ -5,6 +5,8 @@ import json
 import httpx
 
 from src.config.env import settings
+from src.integrations.amadeus.errors import raise_amadeus_connection_error, raise_for_amadeus_status
+from src.integrations.amadeus.retry import amadeus_retry
 from src.utils.logger import logger
 
 from .auth import fetch_token
@@ -24,6 +26,7 @@ from .types import (
 )
 
 
+@amadeus_retry
 async def search_flight_offers(query: FlightOfferSearchQuery) -> FlightOfferResponse:
     """
     Appel Shopping Flight Offers: GET /v2/shopping/flight-offers
@@ -108,7 +111,7 @@ async def search_flight_offers(query: FlightOfferSearchQuery) -> FlightOfferResp
                     "response": response.text,
                 },
             )
-            raise Exception(f"Amadeus flight offers search failed: {response.status_code}")
+            raise_for_amadeus_status(response, "flight offers search")
 
         data = response.json()
 
@@ -145,9 +148,10 @@ async def search_flight_offers(query: FlightOfferSearchQuery) -> FlightOfferResp
                 "message": str(error),
             },
         )
-        raise Exception(f"Amadeus flight offers search failed: {str(error)}") from error
+        raise_amadeus_connection_error(error, "flight offers search")
 
 
+@amadeus_retry
 async def search_flight_destinations(
     query: FlightInspirationSearchQuery,
 ) -> FlightDestinationResponse:
@@ -209,7 +213,7 @@ async def search_flight_destinations(
                     "response": response.text,
                 },
             )
-            raise Exception(f"Amadeus flight destinations search failed: {response.status_code}")
+            raise_for_amadeus_status(response, "flight destinations search")
 
         data = response.json()
 
@@ -250,9 +254,10 @@ async def search_flight_destinations(
                 "message": str(error),
             },
         )
-        raise Exception(f"Amadeus flight destinations search failed: {str(error)}") from error
+        raise_amadeus_connection_error(error, "flight destinations search")
 
 
+@amadeus_retry
 async def search_flight_cheapest_dates(query: FlightCheapestDateSearchQuery) -> FlightDateResponse:
     """
     Appel Shopping Flight Dates: GET /v1/shopping/flight-dates
@@ -313,7 +318,7 @@ async def search_flight_cheapest_dates(query: FlightCheapestDateSearchQuery) -> 
                     "response": response.text,
                 },
             )
-            raise Exception(f"Amadeus flight cheapest dates search failed: {response.status_code}")
+            raise_for_amadeus_status(response, "flight cheapest dates search")
 
         data = response.json()
 
@@ -354,9 +359,10 @@ async def search_flight_cheapest_dates(query: FlightCheapestDateSearchQuery) -> 
                 "message": str(error),
             },
         )
-        raise Exception(f"Amadeus flight cheapest dates search failed: {str(error)}") from error
+        raise_amadeus_connection_error(error, "flight cheapest dates search")
 
 
+@amadeus_retry
 async def confirm_flight_price(flight_offer: FlightOffer) -> FlightPriceResponse:
     """
     Appel Flight Offers Price: POST /v1/shopping/flight-offers/pricing
@@ -414,7 +420,7 @@ async def confirm_flight_price(flight_offer: FlightOffer) -> FlightPriceResponse
                 logger.error("Amadeus error details", {"errors": error_data.get("errors")})
             except Exception:
                 pass
-            raise Exception(f"Amadeus flight price confirmation failed: {response.status_code}")
+            raise_for_amadeus_status(response, "flight price confirmation")
 
         data = response.json()
 
@@ -438,9 +444,10 @@ async def confirm_flight_price(flight_offer: FlightOffer) -> FlightPriceResponse
                 "message": str(error),
             },
         )
-        raise Exception(f"Amadeus flight price confirmation failed: {str(error)}") from error
+        raise_amadeus_connection_error(error, "flight price confirmation")
 
 
+@amadeus_retry
 async def create_flight_order(
     flight_offer: FlightOffer, travelers: list[FlightOrderTraveler]
 ) -> FlightOrderResponse:
@@ -492,7 +499,7 @@ async def create_flight_order(
                 logger.error("Amadeus error details", {"errors": error_data.get("errors")})
             except Exception:
                 pass
-            raise Exception(f"Amadeus flight order creation failed: {response.status_code}")
+            raise_for_amadeus_status(response, "flight order creation")
 
         data = response.json()
 
@@ -505,4 +512,4 @@ async def create_flight_order(
                 "message": str(error),
             },
         )
-        raise Exception(f"Amadeus flight order creation failed: {str(error)}") from error
+        raise_amadeus_connection_error(error, "flight order creation")

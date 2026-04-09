@@ -395,4 +395,77 @@ void main() {
       expect(result.isTomorrowLastDay, false);
     });
   });
+
+  group('timezone-aware classification via now parameter', () {
+    test('destination time offset changes next activity detection', () {
+      // Simulate: device is UTC (14:30), destination is UTC+2 (16:30)
+      // Activity at 15:00 is past in destination time (16:30 > 15:00)
+      // Activity at 17:00 is next in destination time
+      final destinationNow = DateTime(2024, 6, 15, 16, 30);
+      final activities = [
+        makeActivity(
+          id: '1',
+          date: DateTime(2024, 6, 15),
+          startTime: '15:00',
+          title: 'Afternoon Tour',
+        ),
+        makeActivity(
+          id: '2',
+          date: DateTime(2024, 6, 15),
+          startTime: '17:00',
+          title: 'Evening Event',
+        ),
+      ];
+
+      final result = classifyTodayActivities(
+        allActivities: activities,
+        now: destinationNow,
+      );
+
+      expect(result.nextActivity?.title, 'Evening Event');
+    });
+
+    test('activity appears as current with destination time', () {
+      // Destination time is 15:30, activity runs 15:00-16:00
+      final destinationNow = DateTime(2024, 6, 15, 15, 30);
+      final activities = [
+        makeActivity(
+          id: '1',
+          date: DateTime(2024, 6, 15),
+          startTime: '15:00',
+          endTime: '16:00',
+          title: 'Current Activity',
+        ),
+      ];
+
+      final result = classifyTodayActivities(
+        allActivities: activities,
+        now: destinationNow,
+      );
+
+      expect(result.currentActivity?.title, 'Current Activity');
+    });
+
+    test('day boundary difference with timezone offset', () {
+      // Device: 23:30 June 14 UTC. Destination: 01:30 June 15 UTC+2.
+      // Activity on June 15 should be "today" in destination timezone.
+      final destinationNow = DateTime(2024, 6, 15, 1, 30);
+      final activities = [
+        makeActivity(
+          id: '1',
+          date: DateTime(2024, 6, 15),
+          startTime: '10:00',
+          title: 'Morning Tour',
+        ),
+      ];
+
+      final result = classifyTodayActivities(
+        allActivities: activities,
+        now: destinationNow,
+      );
+
+      expect(result.timedActivities, hasLength(1));
+      expect(result.nextActivity?.title, 'Morning Tour');
+    });
+  });
 }
