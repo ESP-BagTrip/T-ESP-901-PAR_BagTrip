@@ -814,6 +814,15 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       final totalMin = (budget['total_min'] as num?)?.toInt() ?? 0;
       budgetEur = totalMax > 0 ? totalMax : totalMin;
     }
+    if (budgetEur == 0) {
+      // Last-resort fallback: sum already-extracted real prices
+      double fallbackTotal = accommodationPrice + flightPrice;
+      for (final a in activities) {
+        final cost = a['estimated_cost'];
+        if (cost is num) fallbackTotal += cost;
+      }
+      budgetEur = fallbackTotal.toInt();
+    }
 
     return TripPlan(
       destinationCity: dest['city'] as String? ?? '',
