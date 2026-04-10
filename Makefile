@@ -280,12 +280,18 @@ test: test-api test-mobile test-e2e ## Run all tests
 
 test-api: ## Run API tests (pytest)
 	@printf "$(CYAN)[info]$(RESET) Running API tests…\n"
-	@$(COMPOSE) exec api uv run pytest
-	$(call ok,"API tests passed")
+	@$(COMPOSE) exec api uv run pytest --cov=src --cov-report=xml
+	@# Fix paths in coverage.xml for SonarScanner (must be relative to root)
+	@# 1. Set source root to '.'
+	@sed -i 's|<source>src</source>|<source>.</source>|g' api/coverage.xml
+	@# 2. Add 'api/src/' prefix to all filenames (if not already there)
+	@sed -i 's|filename="api/src/|filename="|g' api/coverage.xml
+	@sed -i 's|filename="|filename="api/src/|g' api/coverage.xml
+	$(call ok,"API tests passed (report: api/coverage.xml)")
 
 test-mobile: ## Run Flutter tests
 	@printf "$(CYAN)[info]$(RESET) Running Flutter tests…\n"
-	@cd $(FLUTTER_DIR) && flutter test
+	@cd $(FLUTTER_DIR) && flutter test --coverage
 	$(call ok,"Mobile tests passed")
 
 test-e2e: ## Run E2E integration tests

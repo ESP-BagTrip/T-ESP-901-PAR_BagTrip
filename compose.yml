@@ -34,11 +34,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./api/src:/app/src
-      - ./api/pyproject.toml:/app/pyproject.toml
-      - ./api/uv.lock:/app/uv.lock
-      - ./api/alembic:/app/alembic
-      - ./api/alembic.ini:/app/alembic.ini
+      - ./api:/app
     environment:
       # Python path for alembic & src imports
       - PYTHONPATH=/app
@@ -106,7 +102,7 @@ services:
     volumes:
       - .:/usr/src
     environment:
-      - SONAR_HOST_URL=http://sonarqube:9000
+      - SONAR_HOST_URL=http://sonar.bagtrip.fr
       - SONAR_TOKEN=${SONAR_TOKEN}
     
 volumes:
