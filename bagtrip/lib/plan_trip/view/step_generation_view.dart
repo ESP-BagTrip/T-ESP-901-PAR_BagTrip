@@ -53,7 +53,7 @@ class _StepGenerationViewState extends State<StepGenerationView>
 
   void _startTimeoutTimer() {
     _timeoutTimer?.cancel();
-    _timeoutTimer = Timer(const Duration(seconds: 60), () {
+    _timeoutTimer = Timer(const Duration(seconds: 300), () {
       if (mounted) setState(() => _isTimedOut = true);
     });
   }
