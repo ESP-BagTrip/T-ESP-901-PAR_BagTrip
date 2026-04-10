@@ -36,22 +36,30 @@ export function useFeedbacksChart() {
   })
 }
 
-export function useRecentActivity(limit = 10) {
+/**
+ * Recent activity feed — disabled until the backend creates
+ * GET /admin/dashboard/activity. Returns empty data for now.
+ */
+export function useRecentActivity(_limit = 10) {
   return useQuery({
-    queryKey: ['dashboard', 'activity', { limit }],
-    queryFn: () => dashboardService.getActivityLogs({ page: 1, limit }),
+    queryKey: ['dashboard', 'activity'],
+    queryFn: () =>
+      Promise.resolve({
+        data: [],
+        pagination: { page: 1, limit: _limit, total: 0, total_pages: 0 },
+      }),
     staleTime: STALE_TIME,
   })
 }
 
 /**
- * Fallback for the "trip status distribution" donut — groups the first 200 admin trips
+ * Fallback for the "trip status distribution" donut — groups the first 100 admin trips
  * by status client-side until we have a dedicated endpoint.
  */
 export function useTripStatusDistribution() {
   return useQuery({
     queryKey: ['dashboard', 'trips-status-groupby'],
-    queryFn: () => adminService.getAllTrips({ page: 1, limit: 200 }),
+    queryFn: () => adminService.getAllTrips({ page: 1, limit: 100 }),
     staleTime: STALE_TIME,
   })
 }
