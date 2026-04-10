@@ -57,10 +57,12 @@ export interface AdminTrip {
   title: string | null
   origin_iata: string | null
   destination_iata: string | null
+  destination_name: string | null
   start_date: string | null
   end_date: string | null
   status: string | null
   budget_total: number | null
+  nb_travelers: number | null
   origin: string | null
   created_at: string
   updated_at: string

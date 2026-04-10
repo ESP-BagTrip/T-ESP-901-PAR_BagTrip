@@ -21,6 +21,15 @@ export const tripsColumns: ColumnDef<AdminTrip>[] = [
     cell: ({ row }) => <span className="text-foreground">{row.getValue('title') || '—'}</span>,
   },
   {
+    accessorKey: 'destination_name',
+    header: 'Destination',
+    cell: ({ row }) => {
+      const name = row.getValue('destination_name') as string | null
+      const iata = row.original.destination_iata
+      return <span className="text-foreground">{name || iata || '—'}</span>
+    },
+  },
+  {
     accessorKey: 'origin_iata',
     header: 'Origine',
     cell: ({ row }) => (
@@ -28,15 +37,8 @@ export const tripsColumns: ColumnDef<AdminTrip>[] = [
     ),
   },
   {
-    accessorKey: 'destination_iata',
-    header: 'Destination',
-    cell: ({ row }) => (
-      <span className="text-foreground">{row.getValue('destination_iata') || '—'}</span>
-    ),
-  },
-  {
     accessorKey: 'start_date',
-    header: 'Date de départ',
+    header: 'Départ',
     cell: ({ row }) => {
       const date = row.getValue('start_date') as string | null
       return <span className="text-foreground">{safeFormatDate(date, 'dd/MM/yyyy')}</span>
@@ -44,10 +46,18 @@ export const tripsColumns: ColumnDef<AdminTrip>[] = [
   },
   {
     accessorKey: 'end_date',
-    header: 'Date de retour',
+    header: 'Retour',
     cell: ({ row }) => {
       const date = row.getValue('end_date') as string | null
       return <span className="text-foreground">{safeFormatDate(date, 'dd/MM/yyyy')}</span>
+    },
+  },
+  {
+    accessorKey: 'nb_travelers',
+    header: 'Voyageurs',
+    cell: ({ row }) => {
+      const n = row.getValue('nb_travelers') as number | null
+      return <span className="tabular-nums text-foreground">{n ?? '—'}</span>
     },
   },
   {

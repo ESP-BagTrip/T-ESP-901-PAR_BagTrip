@@ -157,10 +157,12 @@ class AdminTripResponse(BaseModel):
     title: str | None = None
     originIata: str | None = Field(default=None, alias="origin_iata")
     destinationIata: str | None = Field(default=None, alias="destination_iata")
+    destinationName: str | None = Field(default=None, alias="destination_name")
     startDate: dt.date | None = Field(default=None, alias="start_date")
     endDate: dt.date | None = Field(default=None, alias="end_date")
     status: str | None = None
     budgetTotal: float | None = Field(default=None, alias="budget_total")
+    nbTravelers: int | None = Field(default=None, alias="nb_travelers")
     origin: str | None = None
     createdAt: dt.datetime = Field(alias="created_at")
     updatedAt: dt.datetime = Field(alias="updated_at")
