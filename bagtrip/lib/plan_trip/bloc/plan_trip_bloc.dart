@@ -619,6 +619,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       startDate: startDateStr,
       endDate: endDateStr,
       dateMode: state.dateMode.name,
+      originCity: state.originCity,
     );
     if (isClosed) return;
 

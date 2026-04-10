@@ -58,6 +58,7 @@ class AcceptPlanRequest(BaseModel):
     """Request body for POST /v1/ai/plan-trip/accept."""
 
     suggestion: dict
+    originCity: str | None = None
     startDate: str | None = None
     endDate: str | None = None
     dateMode: str | None = Field(None, description="EXACT, MONTH, or FLEXIBLE")
