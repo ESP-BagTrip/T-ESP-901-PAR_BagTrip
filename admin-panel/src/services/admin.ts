@@ -129,4 +129,144 @@ export const adminService = {
     const response = await apiClient.post(API_ENDPOINTS.ADMIN.NOTIFICATIONS_SEND, payload)
     return response.data
   },
+
+  // ──────────────────────── User Management ────────────────────────
+
+  async getUserDetail(userId: string) {
+    const response = await apiClient.get(`${API_ENDPOINTS.USERS}/${userId}`)
+    return response.data
+  },
+
+  async updateUser(userId: string, data: Record<string, unknown>): Promise<void> {
+    await apiClient.patch(`${API_ENDPOINTS.USERS}/${userId}`, data)
+  },
+
+  async resetAiQuota(userId: string): Promise<void> {
+    await apiClient.patch(`${API_ENDPOINTS.USERS}/${userId}/ai-quota/reset`)
+  },
+
+  async banUser(userId: string, reason = ''): Promise<void> {
+    await apiClient.post(`${API_ENDPOINTS.USERS}/${userId}/ban`, { reason })
+  },
+
+  async unbanUser(userId: string): Promise<void> {
+    await apiClient.post(`${API_ENDPOINTS.USERS}/${userId}/unban`)
+  },
+
+  async deleteUser(userId: string): Promise<void> {
+    await apiClient.delete(`${API_ENDPOINTS.USERS}/${userId}`)
+  },
+
+  async bulkChangePlan(userIds: string[], plan: string): Promise<{ count: number }> {
+    const response = await apiClient.post(`${API_ENDPOINTS.USERS}/bulk/plan`, {
+      user_ids: userIds,
+      plan,
+    })
+    return response.data
+  },
+
+  async bulkBan(userIds: string[], reason = ''): Promise<{ count: number }> {
+    const response = await apiClient.post(`${API_ENDPOINTS.USERS}/bulk/ban`, {
+      user_ids: userIds,
+      reason,
+    })
+    return response.data
+  },
+
+  // ──────────────────────── Exports ────────────────────────
+
+  // ──────────────────────── Booking Management ────────────────────────
+
+  async getBookingIntentDetail(intentId: string) {
+    const response = await apiClient.get(
+      `${API_ENDPOINTS.ADMIN.BOOKING_INTENTS}/${intentId}/detail`
+    )
+    return response.data
+  },
+
+  async forceBookingStatus(intentId: string, status: string): Promise<void> {
+    await apiClient.patch(`${API_ENDPOINTS.ADMIN.BOOKING_INTENTS}/${intentId}/status`, { status })
+  },
+
+  async cancelBooking(intentId: string): Promise<void> {
+    await apiClient.post(`${API_ENDPOINTS.ADMIN.BOOKING_INTENTS}/${intentId}/cancel`)
+  },
+
+  async markBookingRefunded(intentId: string): Promise<void> {
+    await apiClient.post(`${API_ENDPOINTS.ADMIN.BOOKING_INTENTS}/${intentId}/refund`)
+  },
+
+  async deleteFeedback(feedbackId: string): Promise<void> {
+    await apiClient.delete(`${API_ENDPOINTS.FEEDBACKS}/${feedbackId}`)
+  },
+
+  // ──────────────────────── Trip Management ────────────────────────
+
+  async getTripDetail(tripId: string) {
+    const response = await apiClient.get(`${API_ENDPOINTS.ADMIN.TRIPS}/${tripId}`)
+    return response.data
+  },
+
+  async updateTrip(tripId: string, data: Record<string, unknown>): Promise<void> {
+    await apiClient.patch(`${API_ENDPOINTS.ADMIN.TRIPS}/${tripId}`, data)
+  },
+
+  async deleteTrip(tripId: string): Promise<void> {
+    await apiClient.delete(`${API_ENDPOINTS.ADMIN.TRIPS}/${tripId}`)
+  },
+
+  async archiveTrip(tripId: string): Promise<void> {
+    await apiClient.patch(`${API_ENDPOINTS.ADMIN.TRIPS}/${tripId}/archive`)
+  },
+
+  // Sub-entity CRUD
+
+  async createActivity(tripId: string, data: Record<string, unknown>) {
+    const response = await apiClient.post(`${API_ENDPOINTS.ADMIN.TRIPS}/${tripId}/activities`, data)
+    return response.data
+  },
+
+  async updateActivity(
+    tripId: string,
+    activityId: string,
+    data: Record<string, unknown>
+  ): Promise<void> {
+    await apiClient.patch(`${API_ENDPOINTS.ADMIN.TRIPS}/${tripId}/activities/${activityId}`, data)
+  },
+
+  async deleteActivity(tripId: string, activityId: string): Promise<void> {
+    await apiClient.delete(`${API_ENDPOINTS.ADMIN.TRIPS}/${tripId}/activities/${activityId}`)
+  },
+
+  async createAccommodation(tripId: string, data: Record<string, unknown>) {
+    const response = await apiClient.post(
+      `${API_ENDPOINTS.ADMIN.TRIPS}/${tripId}/accommodations`,
+      data
+    )
+    return response.data
+  },
+
+  async updateAccommodation(
+    tripId: string,
+    accId: string,
+    data: Record<string, unknown>
+  ): Promise<void> {
+    await apiClient.patch(`${API_ENDPOINTS.ADMIN.TRIPS}/${tripId}/accommodations/${accId}`, data)
+  },
+
+  async deleteAccommodation(tripId: string, accId: string): Promise<void> {
+    await apiClient.delete(`${API_ENDPOINTS.ADMIN.TRIPS}/${tripId}/accommodations/${accId}`)
+  },
+
+  async deleteBudgetItem(tripId: string, itemId: string): Promise<void> {
+    await apiClient.delete(`${API_ENDPOINTS.ADMIN.TRIPS}/${tripId}/budget-items/${itemId}`)
+  },
+
+  async deleteBaggageItem(tripId: string, itemId: string): Promise<void> {
+    await apiClient.delete(`${API_ENDPOINTS.ADMIN.TRIPS}/${tripId}/baggage/${itemId}`)
+  },
+
+  async deleteShare(tripId: string, shareId: string): Promise<void> {
+    await apiClient.delete(`${API_ENDPOINTS.ADMIN.TRIPS}/${tripId}/shares/${shareId}`)
+  },
 }

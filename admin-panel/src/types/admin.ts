@@ -1,3 +1,43 @@
+export interface AdminUserDetail {
+  id: string
+  email: string
+  full_name: string | null
+  phone: string | null
+  plan: string
+  plan_expires_at: string | null
+  ai_generations_count: number
+  ai_generations_reset_at: string | null
+  banned_at: string | null
+  ban_reason: string | null
+  deleted_at: string | null
+  trips_count: number
+  bookings_count: number
+  created_at: string
+  updated_at: string | null
+}
+
+export interface AdminTripDetail {
+  id: string
+  user_id: string
+  user_email: string
+  title: string | null
+  origin_iata: string | null
+  destination_iata: string | null
+  destination_name: string | null
+  start_date: string | null
+  end_date: string | null
+  status: string | null
+  budget_total: number | null
+  nb_travelers: number | null
+  origin: string | null
+  archived_at: string | null
+  activities_count: number
+  accommodations_count: number
+  shares_count: number
+  created_at: string
+  updated_at: string
+}
+
 export interface AdminTrip {
   id: string
   user_id: string

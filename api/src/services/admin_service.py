@@ -4,7 +4,7 @@ import csv
 import io
 from math import ceil
 
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from src.models.accommodation import Accommodation
@@ -28,7 +28,9 @@ class AdminService:
     """Service pour les opérations admin."""
 
     @staticmethod
-    def get_all_users(db: Session, page: int = 1, limit: int = 10) -> tuple[list[dict], int, int]:
+    def get_all_users(
+        db: Session, page: int = 1, limit: int = 10, q: str | None = None
+    ) -> tuple[list[dict], int, int]:
         """
         Récupérer tous les utilisateurs.
         Retourne (items, total, total_pages).
@@ -38,6 +40,9 @@ class AdminService:
 
         # Requête pour obtenir tous les utilisateurs
         query = db.query(User).order_by(User.created_at.desc())
+
+        if q:
+            query = query.filter(User.email.ilike(f"%{q}%"))
 
         # Compter le total
         total = query.count()
@@ -62,7 +67,9 @@ class AdminService:
         return items, total, total_pages
 
     @staticmethod
-    def get_all_trips(db: Session, page: int = 1, limit: int = 10) -> tuple[list[dict], int, int]:
+    def get_all_trips(
+        db: Session, page: int = 1, limit: int = 10, q: str | None = None
+    ) -> tuple[list[dict], int, int]:
         """
         Récupérer tous les trips avec informations utilisateur.
         Retourne (items, total, total_pages).
@@ -79,6 +86,9 @@ class AdminService:
             .join(User, Trip.user_id == User.id)
             .order_by(Trip.created_at.desc())
         )
+
+        if q:
+            query = query.filter(or_(Trip.title.ilike(f"%{q}%"), User.email.ilike(f"%{q}%")))
 
         # Compter le total
         total = query.count()
@@ -112,7 +122,7 @@ class AdminService:
 
     @staticmethod
     def get_all_travelers(
-        db: Session, page: int = 1, limit: int = 10
+        db: Session, page: int = 1, limit: int = 10, q: str | None = None
     ) -> tuple[list[dict], int, int]:
         """
         Récupérer tous les travelers avec informations trip et utilisateur.
@@ -164,7 +174,7 @@ class AdminService:
 
     @staticmethod
     def get_all_flight_bookings(
-        db: Session, page: int = 1, limit: int = 10
+        db: Session, page: int = 1, limit: int = 10, q: str | None = None
     ) -> tuple[list[dict], int, int]:
         """
         Récupérer toutes les flight bookings avec informations trip et utilisateur.
@@ -215,7 +225,7 @@ class AdminService:
 
     @staticmethod
     def get_all_traveler_profiles(
-        db: Session, page: int = 1, limit: int = 10
+        db: Session, page: int = 1, limit: int = 10, q: str | None = None
     ) -> tuple[list[dict], int, int]:
         """
         Récupérer tous les profils voyageurs avec informations utilisateur.
@@ -257,7 +267,7 @@ class AdminService:
 
     @staticmethod
     def get_all_booking_intents(
-        db: Session, page: int = 1, limit: int = 10
+        db: Session, page: int = 1, limit: int = 10, q: str | None = None
     ) -> tuple[list[dict], int, int]:
         """
         Récupérer tous les booking intents avec informations trip et utilisateur.
@@ -303,7 +313,7 @@ class AdminService:
 
     @staticmethod
     def get_all_accommodations(
-        db: Session, page: int = 1, limit: int = 10
+        db: Session, page: int = 1, limit: int = 10, q: str | None = None
     ) -> tuple[list[dict], int, int]:
         """
         Récupérer tous les hébergements avec informations trip et utilisateur.
@@ -352,7 +362,7 @@ class AdminService:
 
     @staticmethod
     def get_all_baggage_items(
-        db: Session, page: int = 1, limit: int = 10
+        db: Session, page: int = 1, limit: int = 10, q: str | None = None
     ) -> tuple[list[dict], int, int]:
         """
         Récupérer tous les éléments de bagage avec informations trip et utilisateur.
@@ -396,7 +406,7 @@ class AdminService:
 
     @staticmethod
     def get_all_activities(
-        db: Session, page: int = 1, limit: int = 10
+        db: Session, page: int = 1, limit: int = 10, q: str | None = None
     ) -> tuple[list[dict], int, int]:
         """
         Récupérer toutes les activités avec informations trip et utilisateur.
@@ -447,7 +457,7 @@ class AdminService:
 
     @staticmethod
     def get_all_budget_items(
-        db: Session, page: int = 1, limit: int = 10
+        db: Session, page: int = 1, limit: int = 10, q: str | None = None
     ) -> tuple[list[dict], int, int]:
         """
         Récupérer tous les budget items avec informations trip et utilisateur.
@@ -492,7 +502,7 @@ class AdminService:
 
     @staticmethod
     def get_all_trip_shares(
-        db: Session, page: int = 1, limit: int = 10
+        db: Session, page: int = 1, limit: int = 10, q: str | None = None
     ) -> tuple[list[dict], int, int]:
         """Récupérer tous les partages de trips."""
         offset = (page - 1) * limit
@@ -530,7 +540,7 @@ class AdminService:
 
     @staticmethod
     def get_all_feedbacks(
-        db: Session, page: int = 1, limit: int = 10
+        db: Session, page: int = 1, limit: int = 10, q: str | None = None
     ) -> tuple[list[dict], int, int]:
         """Récupérer tous les feedbacks."""
         offset = (page - 1) * limit
@@ -593,7 +603,7 @@ class AdminService:
 
     @staticmethod
     def get_all_notifications(
-        db: Session, page: int = 1, limit: int = 10
+        db: Session, page: int = 1, limit: int = 10, q: str | None = None
     ) -> tuple[list[dict], int, int]:
         """Récupérer toutes les notifications avec informations utilisateur et trip."""
         offset = (page - 1) * limit
@@ -635,7 +645,7 @@ class AdminService:
 
     @staticmethod
     def get_all_flight_searches(
-        db: Session, page: int = 1, limit: int = 10
+        db: Session, page: int = 1, limit: int = 10, q: str | None = None
     ) -> tuple[list[dict], int, int]:
         """
         Récupérer toutes les recherches de vols avec informations trip.
@@ -675,6 +685,343 @@ class AdminService:
 
         total_pages = ceil(total / limit) if limit > 0 else 0
         return items, total, total_pages
+
+    # ──────────────────────── User Management ────────────────────────
+
+    @staticmethod
+    def get_user_detail(db: Session, user_id) -> dict:
+        """Get detailed user info with trip/booking counts."""
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise AppError("NOT_FOUND", 404, "User not found")
+        trips_count = db.query(func.count(Trip.id)).filter(Trip.user_id == user_id).scalar() or 0
+        bookings_count = (
+            db.query(func.count(BookingIntent.id)).filter(BookingIntent.user_id == user_id).scalar()
+            or 0
+        )
+        return {
+            "id": user.id,
+            "email": user.email,
+            "full_name": user.full_name,
+            "phone": user.phone,
+            "plan": user.plan or "FREE",
+            "plan_expires_at": user.plan_expires_at,
+            "ai_generations_count": user.ai_generations_count or 0,
+            "ai_generations_reset_at": user.ai_generations_reset_at,
+            "banned_at": getattr(user, "banned_at", None),
+            "ban_reason": getattr(user, "ban_reason", None),
+            "deleted_at": getattr(user, "deleted_at", None),
+            "trips_count": trips_count,
+            "bookings_count": bookings_count,
+            "created_at": user.created_at,
+            "updated_at": user.updated_at,
+        }
+
+    @staticmethod
+    def update_user(db: Session, user_id, updates: dict) -> None:
+        """Update user fields (email, full_name, phone, plan, plan_expires_at)."""
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise AppError("NOT_FOUND", 404, "User not found")
+        allowed = {"email", "full_name", "phone", "plan", "plan_expires_at"}
+        for key, value in updates.items():
+            if key in allowed:
+                setattr(user, key, value)
+        db.commit()
+
+    @staticmethod
+    def reset_ai_quota(db: Session, user_id) -> None:
+        """Reset the AI generation counter to 0."""
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise AppError("NOT_FOUND", 404, "User not found")
+        user.ai_generations_count = 0
+        user.ai_generations_reset_at = func.now()
+        db.commit()
+
+    @staticmethod
+    def ban_user(db: Session, user_id, reason: str = "") -> None:
+        """Set banned_at timestamp on a user."""
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise AppError("NOT_FOUND", 404, "User not found")
+        user.banned_at = func.now()
+        user.ban_reason = reason
+        db.commit()
+
+    @staticmethod
+    def unban_user(db: Session, user_id) -> None:
+        """Clear banned_at on a user."""
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise AppError("NOT_FOUND", 404, "User not found")
+        user.banned_at = None
+        user.ban_reason = None
+        db.commit()
+
+    @staticmethod
+    def delete_user(db: Session, user_id) -> None:
+        """Soft-delete a user by setting deleted_at."""
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise AppError("NOT_FOUND", 404, "User not found")
+        user.deleted_at = func.now()
+        db.commit()
+
+    @staticmethod
+    def bulk_update_plan(db: Session, user_ids: list, plan: str) -> int:
+        """Bulk update plan for multiple users."""
+        count = (
+            db.query(User)
+            .filter(User.id.in_(user_ids))
+            .update({"plan": plan}, synchronize_session="fetch")
+        )
+        db.commit()
+        return count
+
+    @staticmethod
+    def bulk_ban(db: Session, user_ids: list, reason: str = "") -> int:
+        """Bulk ban multiple users."""
+        count = (
+            db.query(User)
+            .filter(User.id.in_(user_ids))
+            .update({"banned_at": func.now(), "ban_reason": reason}, synchronize_session="fetch")
+        )
+        db.commit()
+        return count
+
+    # ──────────────────────── Booking Management ────────────────────────
+
+    @staticmethod
+    def get_booking_intent_detail(db: Session, intent_id) -> dict:
+        """Get detailed booking intent info."""
+        result = (
+            db.query(BookingIntent, User.email.label("user_email"), Trip.title.label("trip_title"))
+            .join(User, BookingIntent.user_id == User.id)
+            .join(Trip, BookingIntent.trip_id == Trip.id)
+            .filter(BookingIntent.id == intent_id)
+            .first()
+        )
+        if not result:
+            raise AppError("NOT_FOUND", 404, "Booking intent not found")
+        bi, user_email, trip_title = result
+        return {
+            "id": bi.id,
+            "user_id": bi.user_id,
+            "user_email": user_email,
+            "trip_id": bi.trip_id,
+            "trip_title": trip_title,
+            "type": bi.type,
+            "status": bi.status,
+            "amount": float(bi.amount) if bi.amount else 0,
+            "currency": bi.currency or "EUR",
+            "stripe_payment_intent_id": bi.stripe_payment_intent_id,
+            "stripe_charge_id": getattr(bi, "stripe_charge_id", None),
+            "amadeus_order_id": getattr(bi, "amadeus_order_id", None),
+            "last_error": getattr(bi, "last_error", None),
+            "created_at": bi.created_at,
+            "updated_at": bi.updated_at,
+        }
+
+    @staticmethod
+    def force_booking_status(db: Session, intent_id, new_status: str) -> None:
+        """Force a booking intent status (admin bypass — no state machine validation)."""
+        bi = db.query(BookingIntent).filter(BookingIntent.id == intent_id).first()
+        if not bi:
+            raise AppError("NOT_FOUND", 404, "Booking intent not found")
+        bi.status = new_status
+        db.commit()
+
+    # ──────────────────────── Trip Management ────────────────────────
+
+    @staticmethod
+    def get_trip_detail(db: Session, trip_id) -> dict:
+        """Get detailed trip info with sub-entity counts."""
+        result = (
+            db.query(Trip, User.email.label("user_email"))
+            .join(User, Trip.user_id == User.id)
+            .filter(Trip.id == trip_id)
+            .first()
+        )
+        if not result:
+            raise AppError("NOT_FOUND", 404, "Trip not found")
+        trip, user_email = result
+        activities_count = (
+            db.query(func.count(Activity.id)).filter(Activity.trip_id == trip_id).scalar() or 0
+        )
+        accommodations_count = (
+            db.query(func.count(Accommodation.id)).filter(Accommodation.trip_id == trip_id).scalar()
+            or 0
+        )
+        shares_count = (
+            db.query(func.count(TripShare.id)).filter(TripShare.trip_id == trip_id).scalar() or 0
+        )
+        return {
+            "id": trip.id,
+            "user_id": trip.user_id,
+            "user_email": user_email,
+            "title": trip.title,
+            "origin_iata": trip.origin_iata,
+            "destination_iata": trip.destination_iata,
+            "destination_name": getattr(trip, "destination_name", None),
+            "start_date": trip.start_date,
+            "end_date": trip.end_date,
+            "status": trip.status,
+            "budget_total": trip.budget_total,
+            "nb_travelers": getattr(trip, "nb_travelers", None),
+            "origin": trip.origin,
+            "archived_at": getattr(trip, "archived_at", None),
+            "activities_count": activities_count,
+            "accommodations_count": accommodations_count,
+            "shares_count": shares_count,
+            "created_at": trip.created_at,
+            "updated_at": trip.updated_at,
+        }
+
+    @staticmethod
+    def update_trip(db: Session, trip_id, updates: dict) -> None:
+        trip = db.query(Trip).filter(Trip.id == trip_id).first()
+        if not trip:
+            raise AppError("NOT_FOUND", 404, "Trip not found")
+        allowed = {
+            "title",
+            "status",
+            "start_date",
+            "end_date",
+            "destination_name",
+            "budget_total",
+            "nb_travelers",
+        }
+        for key, value in updates.items():
+            if key in allowed:
+                setattr(trip, key, value)
+        db.commit()
+
+    @staticmethod
+    def delete_trip(db: Session, trip_id) -> None:
+        trip = db.query(Trip).filter(Trip.id == trip_id).first()
+        if not trip:
+            raise AppError("NOT_FOUND", 404, "Trip not found")
+        db.delete(trip)
+        db.commit()
+
+    @staticmethod
+    def archive_trip(db: Session, trip_id) -> None:
+        trip = db.query(Trip).filter(Trip.id == trip_id).first()
+        if not trip:
+            raise AppError("NOT_FOUND", 404, "Trip not found")
+        trip.archived_at = func.now()
+        db.commit()
+
+    @staticmethod
+    def create_activity(db: Session, trip_id, data: dict):
+        trip = db.query(Trip).filter(Trip.id == trip_id).first()
+        if not trip:
+            raise AppError("NOT_FOUND", 404, "Trip not found")
+        activity = Activity(trip_id=trip_id, **data)
+        db.add(activity)
+        db.commit()
+        db.refresh(activity)
+        return activity
+
+    @staticmethod
+    def update_activity(db: Session, trip_id, activity_id, updates: dict) -> None:
+        activity = (
+            db.query(Activity)
+            .filter(Activity.id == activity_id, Activity.trip_id == trip_id)
+            .first()
+        )
+        if not activity:
+            raise AppError("NOT_FOUND", 404, "Activity not found")
+        for key, value in updates.items():
+            setattr(activity, key, value)
+        db.commit()
+
+    @staticmethod
+    def delete_activity(db: Session, trip_id, activity_id) -> None:
+        activity = (
+            db.query(Activity)
+            .filter(Activity.id == activity_id, Activity.trip_id == trip_id)
+            .first()
+        )
+        if not activity:
+            raise AppError("NOT_FOUND", 404, "Activity not found")
+        db.delete(activity)
+        db.commit()
+
+    @staticmethod
+    def create_accommodation(db: Session, trip_id, data: dict):
+        trip = db.query(Trip).filter(Trip.id == trip_id).first()
+        if not trip:
+            raise AppError("NOT_FOUND", 404, "Trip not found")
+        acc = Accommodation(trip_id=trip_id, **data)
+        db.add(acc)
+        db.commit()
+        db.refresh(acc)
+        return acc
+
+    @staticmethod
+    def update_accommodation(db: Session, trip_id, acc_id, updates: dict) -> None:
+        acc = (
+            db.query(Accommodation)
+            .filter(Accommodation.id == acc_id, Accommodation.trip_id == trip_id)
+            .first()
+        )
+        if not acc:
+            raise AppError("NOT_FOUND", 404, "Accommodation not found")
+        for key, value in updates.items():
+            setattr(acc, key, value)
+        db.commit()
+
+    @staticmethod
+    def delete_accommodation(db: Session, trip_id, acc_id) -> None:
+        acc = (
+            db.query(Accommodation)
+            .filter(Accommodation.id == acc_id, Accommodation.trip_id == trip_id)
+            .first()
+        )
+        if not acc:
+            raise AppError("NOT_FOUND", 404, "Accommodation not found")
+        db.delete(acc)
+        db.commit()
+
+    @staticmethod
+    def delete_budget_item(db: Session, trip_id, item_id) -> None:
+        item = (
+            db.query(BudgetItem)
+            .filter(BudgetItem.id == item_id, BudgetItem.trip_id == trip_id)
+            .first()
+        )
+        if not item:
+            raise AppError("NOT_FOUND", 404, "Budget item not found")
+        db.delete(item)
+        db.commit()
+
+    @staticmethod
+    def delete_baggage_item(db: Session, trip_id, item_id) -> None:
+        item = (
+            db.query(BaggageItem)
+            .filter(BaggageItem.id == item_id, BaggageItem.trip_id == trip_id)
+            .first()
+        )
+        if not item:
+            raise AppError("NOT_FOUND", 404, "Baggage item not found")
+        db.delete(item)
+        db.commit()
+
+    @staticmethod
+    def delete_share(db: Session, trip_id, share_id) -> None:
+        share = (
+            db.query(TripShare)
+            .filter(TripShare.id == share_id, TripShare.trip_id == trip_id)
+            .first()
+        )
+        if not share:
+            raise AppError("NOT_FOUND", 404, "Share not found")
+        db.delete(share)
+        db.commit()
+
+    # ──────────────────────── Exports ────────────────────────
 
     @staticmethod
     def export_users_csv(db: Session) -> str:

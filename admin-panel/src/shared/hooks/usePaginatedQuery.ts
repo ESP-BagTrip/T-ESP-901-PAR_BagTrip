@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState, useEffect } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 
@@ -48,24 +48,54 @@ function normalize<T>(raw: RawPaginated<T> | undefined, fallbackLimit: number) {
   }
 }
 
+export interface PaginatedQueryParams {
+  page: number
+  limit: number
+  q?: string
+  [key: string]: string | number | undefined
+}
+
 interface UsePaginatedQueryOptions<T> {
   queryKey: readonly unknown[]
-  queryFn: (params: { page: number; limit: number }) => Promise<RawPaginated<T>>
+  queryFn: (params: PaginatedQueryParams) => Promise<RawPaginated<T>>
   defaultLimit?: number
+  /** Extra filter keys to sync with URL (e.g. ['status', 'plan']). */
+  filterKeys?: string[]
 }
 
 /**
- * Paginated query backed by URL search params (?page=N).
- * Generic over the row item type T.
+ * Paginated query backed by URL search params.
+ * Supports: ?page=N, ?q=search, ?status=X, ?plan=Y, etc.
  */
 export function usePaginatedQuery<T>({
   queryKey,
   queryFn,
   defaultLimit,
+  filterKeys = [],
 }: UsePaginatedQueryOptions<T>) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+
+  // Debounced search: local state for immediate input, URL for queries
+  const urlSearch = searchParams?.get('q') ?? ''
+  const [searchInput, setSearchInput] = useState(urlSearch)
+
+  // Sync local input when URL changes externally (back/forward)
+  useEffect(() => {
+    setSearchInput(urlSearch)
+  }, [urlSearch])
+
+  // Debounce search → URL
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchInput !== urlSearch) {
+        updateParams({ q: searchInput || undefined, page: undefined })
+      }
+    }, 300)
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchInput])
 
   const page = useMemo(() => {
     const raw = Number(searchParams?.get('page'))
@@ -78,26 +108,62 @@ export function usePaginatedQuery<T>({
     return defaultLimit ?? PAGINATION_DEFAULTS.LIMIT
   }, [searchParams, defaultLimit])
 
+  const filters = useMemo(() => {
+    const f: Record<string, string | undefined> = {}
+    for (const key of filterKeys) {
+      f[key] = searchParams?.get(key) ?? undefined
+    }
+    return f
+  }, [searchParams, filterKeys])
+
+  // Build full query params for the API call
+  const apiParams = useMemo<PaginatedQueryParams>(() => {
+    const p: PaginatedQueryParams = { page, limit }
+    if (urlSearch) p.q = urlSearch
+    for (const [k, v] of Object.entries(filters)) {
+      if (v) p[k] = v
+    }
+    return p
+  }, [page, limit, urlSearch, filters])
+
   const query = useQuery({
-    queryKey: [...queryKey, { page, limit }],
-    queryFn: () => queryFn({ page, limit }),
+    queryKey: [...queryKey, apiParams],
+    queryFn: () => queryFn(apiParams),
   })
 
   const normalized = useMemo(() => normalize<T>(query.data, limit), [query.data, limit])
 
-  const setPage = useCallback(
-    (next: number) => {
+  const updateParams = useCallback(
+    (updates: Record<string, string | number | undefined>) => {
       const params = new URLSearchParams(searchParams?.toString() ?? '')
-      if (next <= 1) {
-        params.delete('page')
-      } else {
-        params.set('page', String(next))
+      for (const [key, value] of Object.entries(updates)) {
+        if (value == null || value === '' || (key === 'page' && Number(value) <= 1)) {
+          params.delete(key)
+        } else {
+          params.set(key, String(value))
+        }
       }
       const q = params.toString()
       router.replace(q ? `${pathname}?${q}` : (pathname ?? ''), { scroll: false })
     },
     [pathname, router, searchParams]
   )
+
+  const setPage = useCallback((next: number) => updateParams({ page: next }), [updateParams])
+
+  const setFilter = useCallback(
+    (key: string, value: string | undefined) => updateParams({ [key]: value, page: undefined }),
+    [updateParams]
+  )
+
+  const resetFilters = useCallback(() => {
+    const clears: Record<string, undefined> = { q: undefined, page: undefined }
+    for (const key of filterKeys) {
+      clears[key] = undefined
+    }
+    updateParams(clears)
+    setSearchInput('')
+  }, [updateParams, filterKeys])
 
   return {
     isLoading: query.isLoading,
@@ -110,5 +176,12 @@ export function usePaginatedQuery<T>({
     total: normalized.total,
     total_pages: normalized.total_pages,
     setPage,
+    // Search
+    search: searchInput,
+    setSearch: setSearchInput,
+    // Filters
+    filters,
+    setFilter,
+    resetFilters,
   }
 }
