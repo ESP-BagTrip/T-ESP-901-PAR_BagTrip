@@ -65,7 +65,46 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Danger zone */}
+      {/* Plans & Quotas */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Plans &amp; Quotas IA</CardTitle>
+          <CardDescription>
+            Limites IA par plan. Modifiable via l&apos;API config (endpoint à créer).
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <PlanCard name="FREE" aiLimit={3} viewersLimit={2} />
+            <PlanCard name="PREMIUM" aiLimit="Illimité" viewersLimit={10} />
+            <PlanCard name="ADMIN" aiLimit="Illimité" viewersLimit="Illimité" />
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Ces valeurs sont actuellement définies dans le code (api/src/config/plans.py). Un
+            endpoint PATCH /admin/config sera ajouté pour les rendre éditables.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Feature Flags */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Feature Flags</CardTitle>
+          <CardDescription>
+            Activer / désactiver des fonctionnalités de l&apos;application.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border border-dashed border-border p-8 text-center">
+            <p className="text-sm text-muted-foreground">
+              Le système de feature flags sera disponible quand la table app_config et les endpoints
+              GET/PATCH /admin/config seront créés côté API (Migration 0028).
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Session */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Session</CardTitle>
@@ -79,6 +118,34 @@ export default function SettingsPage() {
           </Button>
         </CardContent>
       </Card>
+    </div>
+  )
+}
+
+function PlanCard({
+  name,
+  aiLimit,
+  viewersLimit,
+}: {
+  name: string
+  aiLimit: number | string
+  viewersLimit: number | string
+}) {
+  return (
+    <div className="rounded-md border border-border bg-background p-4 space-y-2">
+      <Badge variant="outline" className="text-xs">
+        {name}
+      </Badge>
+      <div className="space-y-1 text-sm">
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">Générations IA</span>
+          <span className="font-medium tabular-nums">{aiLimit}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">Viewers / trip</span>
+          <span className="font-medium tabular-nums">{viewersLimit}</span>
+        </div>
+      </div>
     </div>
   )
 }

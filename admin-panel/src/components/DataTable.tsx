@@ -7,6 +7,7 @@ import {
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  RowSelectionState,
   SortingState,
   useReactTable,
 } from '@tanstack/react-table'
@@ -36,6 +37,11 @@ interface DataTableProps<T> {
   }
   onPaginationChange?: (page: number, limit: number) => void
   emptyLabel?: string
+  /** Enable row selection. Provide state + setter for controlled selection. */
+  rowSelection?: RowSelectionState
+  onRowSelectionChange?: (selection: RowSelectionState) => void
+  /** Row id accessor — defaults to TanStack auto. */
+  getRowId?: (row: T) => string
 }
 
 export function DataTable<T>({
@@ -45,6 +51,9 @@ export function DataTable<T>({
   pagination,
   onPaginationChange,
   emptyLabel = 'Aucune donnée disponible',
+  rowSelection,
+  onRowSelectionChange,
+  getRowId,
 }: DataTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([])
 
@@ -55,9 +64,17 @@ export function DataTable<T>({
     getPaginationRowModel: pagination ? undefined : getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
-    state: { sorting },
+    state: { sorting, ...(rowSelection != null ? { rowSelection } : {}) },
     manualPagination: !!pagination,
     pageCount: pagination?.total_pages ?? 0,
+    enableRowSelection: !!onRowSelectionChange,
+    onRowSelectionChange: onRowSelectionChange
+      ? updater => {
+          const next = typeof updater === 'function' ? updater(rowSelection ?? {}) : updater
+          onRowSelectionChange(next)
+        }
+      : undefined,
+    getRowId,
   })
 
   const currentPage = pagination?.page ?? table.getState().pagination.pageIndex + 1
