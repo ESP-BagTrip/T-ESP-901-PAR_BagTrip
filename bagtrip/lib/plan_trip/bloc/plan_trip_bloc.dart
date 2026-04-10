@@ -89,6 +89,20 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     PlanTripPreviousStep event,
     Emitter<PlanTripState> emit,
   ) {
+    // Leaving generation should feel instant; cancel stream in background.
+    if (state.currentStep == 4) {
+      unawaited(_cancelSseStream());
+      emit(
+        state.copyWith(
+          generatedPlan: null,
+          generationError: null,
+          generationSteps: {},
+          generationProgress: 0.0,
+          generationMessage: null,
+        ),
+      );
+    }
+
     var prev = state.currentStep - 1;
 
     // Skip proposals step (3) for manual flow going back
@@ -632,11 +646,12 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     }
   }
 
-  Future<void> _onBackToProposals(
+  void _onBackToProposals(
     PlanTripBackToProposals event,
     Emitter<PlanTripState> emit,
-  ) async {
-    await _cancelSseStream();
+  ) {
+    // Optimistic transition first, then stop SSE asynchronously.
+    unawaited(_cancelSseStream());
     emit(
       state.copyWith(
         currentStep: state.isManualFlow ? 2 : 3,
@@ -644,6 +659,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         generationError: null,
         generationSteps: {},
         generationProgress: 0.0,
+        generationMessage: null,
       ),
     );
   }
