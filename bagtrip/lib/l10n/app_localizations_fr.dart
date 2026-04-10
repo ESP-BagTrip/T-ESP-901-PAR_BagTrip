@@ -2364,6 +2364,60 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reviewNoActivities => 'Aucune activité prévue';
 
   @override
+  String get reviewTabOverview => 'Aperçu';
+
+  @override
+  String get reviewTabFlights => 'Vols';
+
+  @override
+  String get reviewTabHotel => 'Hôtel';
+
+  @override
+  String get reviewTabItinerary => 'Itinéraire';
+
+  @override
+  String get reviewTabEssentials => 'Essentiels';
+
+  @override
+  String get reviewTabBudget => 'Budget';
+
+  @override
+  String get reviewTimelineFlight => 'Vol';
+
+  @override
+  String get reviewTimelineActivity => 'Activité';
+
+  @override
+  String get reviewTimelineCheckIn => 'Check-in';
+
+  @override
+  String get reviewTimelineCheckOut => 'Check-out';
+
+  @override
+  String get reviewFlightOutbound => 'Aller';
+
+  @override
+  String get reviewFlightReturn => 'Retour';
+
+  @override
+  String get reviewFlightDeparture => 'Départ';
+
+  @override
+  String get reviewFlightArrival => 'Arrivée';
+
+  @override
+  String get reviewHotelCheckIn => 'Check-in';
+
+  @override
+  String get reviewHotelCheckOut => 'Check-out';
+
+  @override
+  String get reviewHotelNights => 'Nuits';
+
+  @override
+  String get reviewHotelPerNight => 'Par nuit';
+
+  @override
   String homeActiveTripTitle(String destination) {
     return 'Votre voyage à $destination';
   }

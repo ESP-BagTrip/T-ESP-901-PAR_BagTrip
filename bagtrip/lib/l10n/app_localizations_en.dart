@@ -2342,6 +2342,60 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reviewNoActivities => 'No activities planned';
 
   @override
+  String get reviewTabOverview => 'Overview';
+
+  @override
+  String get reviewTabFlights => 'Flights';
+
+  @override
+  String get reviewTabHotel => 'Hotel';
+
+  @override
+  String get reviewTabItinerary => 'Itinerary';
+
+  @override
+  String get reviewTabEssentials => 'Essentials';
+
+  @override
+  String get reviewTabBudget => 'Budget';
+
+  @override
+  String get reviewTimelineFlight => 'Flight';
+
+  @override
+  String get reviewTimelineActivity => 'Activity';
+
+  @override
+  String get reviewTimelineCheckIn => 'Check-in';
+
+  @override
+  String get reviewTimelineCheckOut => 'Check-out';
+
+  @override
+  String get reviewFlightOutbound => 'Outbound';
+
+  @override
+  String get reviewFlightReturn => 'Return';
+
+  @override
+  String get reviewFlightDeparture => 'Departure';
+
+  @override
+  String get reviewFlightArrival => 'Arrival';
+
+  @override
+  String get reviewHotelCheckIn => 'Check-in';
+
+  @override
+  String get reviewHotelCheckOut => 'Check-out';
+
+  @override
+  String get reviewHotelNights => 'Nights';
+
+  @override
+  String get reviewHotelPerNight => 'Per night';
+
+  @override
   String homeActiveTripTitle(String destination) {
     return 'Your trip to $destination';
   }
