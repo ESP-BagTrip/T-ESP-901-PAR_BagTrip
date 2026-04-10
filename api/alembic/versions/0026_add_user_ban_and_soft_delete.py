@@ -1,7 +1,7 @@
 """Add banned_at, ban_reason, deleted_at to users table.
 
 Revision ID: 0026
-Revises: 1fb93ffa52b4
+Revises: 0025
 Create Date: 2026-04-10
 """
 
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 revision = "0026"
-down_revision = "1fb93ffa52b4"
+down_revision = "0025"
 branch_labels = None
 depends_on = None
 
