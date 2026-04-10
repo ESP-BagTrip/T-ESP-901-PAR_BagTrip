@@ -2309,6 +2309,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reviewBudgetTotal => 'Total';
 
   @override
+  String get reviewBudgetUnavailable => 'Budget estimation unavailable';
+
+  @override
   String get reviewSourceVerified => 'Verified';
 
   @override

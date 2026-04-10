@@ -93,21 +93,32 @@ async def search_real_flights(
                 )
             )
 
+        carriers = {}
+        if response.dictionaries and response.dictionaries.carriers:
+            carriers = response.dictionaries.carriers
+
         flights = []
         for offer in response.data[:5]:
             seg = offer.itineraries[0].segments[0] if offer.itineraries else None
-            flights.append(
-                {
-                    "airline": offer.validatingAirlineCodes[0]
-                    if offer.validatingAirlineCodes
-                    else "??",
-                    "price": float(offer.price.grandTotal),
-                    "currency": offer.price.currency,
-                    "departure": seg.departure.at if seg else "",
-                    "arrival": seg.arrival.at if seg else "",
-                    "duration": offer.itineraries[0].duration if offer.itineraries else "",
-                }
-            )
+            carrier_code = offer.validatingAirlineCodes[0] if offer.validatingAirlineCodes else "??"
+            flight_data = {
+                "airline": carrier_code,
+                "airline_name": carriers.get(carrier_code, carrier_code),
+                "flight_number": f"{seg.carrierCode} {seg.number}" if seg else "",
+                "price": float(offer.price.grandTotal),
+                "currency": offer.price.currency,
+                "departure": seg.departure.at if seg else "",
+                "arrival": seg.arrival.at if seg else "",
+                "duration": offer.itineraries[0].duration if offer.itineraries else "",
+            }
+            # Return leg data (round-trip)
+            if len(offer.itineraries) > 1:
+                ret_seg = offer.itineraries[1].segments[0]
+                flight_data["return_departure"] = ret_seg.departure.at
+                flight_data["return_arrival"] = ret_seg.arrival.at
+                flight_data["return_duration"] = offer.itineraries[1].duration or ""
+
+            flights.append(flight_data)
 
         cheapest = min((f["price"] for f in flights), default=0)
         result = {
@@ -183,6 +194,7 @@ async def search_real_hotels(
                     {
                         "name": hotel_info.get("name", "Unknown Hotel"),
                         "hotel_id": hotel_info.get("hotelId", ""),
+                        "rating": hotel_info.get("rating"),
                         "price_total": price,
                         "currency": offer.price.currency if offer.price else "EUR",
                         "check_in": offer.checkInDate,

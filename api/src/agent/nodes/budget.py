@@ -108,6 +108,25 @@ async def budget_node(state: TripPlanState) -> dict:
 
     user_prompt = "\n".join(parts)
 
+    # Direct flight search to capture raw offer data for Flutter display
+    from src.agent.tools import search_real_flights
+
+    flight_offers: list[dict] = []
+    origin_iata = state.get("origin_iata", "")
+    dest_iata = dest.get("iata", "")
+    if origin_iata and dest_iata and state.get("departure_date"):
+        try:
+            flight_result = await search_real_flights(
+                origin=origin_iata,
+                destination=dest_iata,
+                date=state["departure_date"],
+                return_date=state.get("return_date"),
+                adults=state.get("nb_travelers", 1),
+            )
+            flight_offers = flight_result.get("flights", [])
+        except Exception as e:
+            logger.warn("Direct flight search for raw data failed", {"error": str(e)})
+
     # ReAct with flight search tool
     tool_names = ["search_real_flights", "resolve_iata_code"]
     result = await react_execute(
@@ -137,6 +156,7 @@ async def budget_node(state: TripPlanState) -> dict:
 
     return {
         "budget_estimation": estimation,
+        "flight_offers": flight_offers,
         "events": [
             {
                 "event": "budget",

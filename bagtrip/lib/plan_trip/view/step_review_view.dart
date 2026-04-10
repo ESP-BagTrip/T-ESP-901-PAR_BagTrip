@@ -1,11 +1,11 @@
 import 'dart:math' as math;
 
-import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
 import 'package:bagtrip/plan_trip/models/trip_plan.dart';
 import 'package:bagtrip/utils/error_display.dart';
@@ -68,101 +68,115 @@ class _StepReviewViewState extends State<StepReviewView>
         ];
         final dates = state.representativeDates;
 
-        return ColoredBox(
-          color: ColorName.surfaceVariant,
-          child: SafeArea(
-            bottom: false,
-            child: Column(
-              children: [
-                _ReviewHero(
-                  city: plan.destinationCity,
-                  daysLabel: l10n.summaryDaysCount(plan.durationDays),
-                  budgetLabel: l10n.summaryBudgetAmount('${plan.budgetEur}€'),
-                  dateRangeLabel: _formatDateRange(context, dates),
-                  onEditDates: () => _showDateEditor(context, state),
+        return Column(
+          children: [
+            _ReviewHero(
+              city: plan.destinationCity,
+              daysLabel: l10n.summaryDaysCount(plan.durationDays),
+              budgetLabel: l10n.summaryBudgetAmount('${plan.budgetEur}€'),
+              dateRangeLabel: _formatDateRange(context, dates),
+              onEditDates: () => _showDateEditor(context, state),
+              onBack: () => context.read<PlanTripBloc>().add(
+                const PlanTripEvent.backToProposals(),
+              ),
+              onClose: () => const HomeRoute().go(context),
+            ),
+            ColoredBox(
+              color: ColorName.primaryDark,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.space8),
+                child: _PanelChipsBar(
+                  labels: panels,
+                  controller: _tabController,
                 ),
-                const SizedBox(height: AppSpacing.space12),
-                _PanelChipsBar(labels: panels, controller: _tabController),
-                const SizedBox(height: AppSpacing.space12),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _OverviewPanel(plan: plan, dates: dates),
-                      _FlightsPanel(plan: plan, dates: dates),
-                      _HotelPanel(plan: plan, dates: dates),
-                      _ItineraryPanel(
-                        dayProgram: plan.dayProgram,
-                        dayDescriptions: plan.dayDescriptions,
-                        dayCategories: plan.dayCategories,
-                        durationDays: plan.durationDays,
-                        selectedDay: _selectedJourneyDay,
-                        onSelectDay: (value) =>
-                            setState(() => _selectedJourneyDay = value),
-                      ),
-                      _EssentialsPanel(
-                        items: plan.essentialItems,
-                        reasons: plan.essentialReasons,
-                        checked: _checkedEssentials,
-                        onToggle: (index) {
-                          AppHaptics.light();
-                          setState(() {
-                            if (_checkedEssentials.contains(index)) {
-                              _checkedEssentials.remove(index);
-                            } else {
-                              _checkedEssentials.add(index);
-                            }
-                          });
-                        },
-                      ),
-                      _BudgetPanel(
-                        total: plan.budgetEur.toDouble(),
-                        budgetBreakdown: plan.budgetBreakdown,
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.fromLTRB(22, 12, 22, 0),
-                  decoration: const BoxDecoration(
-                    color: ColorName.surface,
-                    border: Border(top: BorderSide(color: ColorName.hint)),
-                  ),
-                  child: Column(
-                    children: [
-                      _CreateTripButton(
-                        isCreating: state.isCreating,
-                        isPressed: _ctaPressed,
-                        onPressStart: () => setState(() => _ctaPressed = true),
-                        onPressEnd: () => setState(() => _ctaPressed = false),
-                        onTap: () {
-                          AppHaptics.medium();
-                          context.read<PlanTripBloc>().add(
-                            const PlanTripEvent.createTrip(),
-                          );
-                        },
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          context.read<PlanTripBloc>().add(
-                            const PlanTripEvent.backToProposals(),
-                          );
-                        },
-                        child: Text(
-                          l10n.reviewSeeOtherDestinations,
-                          style: const TextStyle(
-                            fontFamily: FontFamily.b612,
-                            color: Color(0xFF7C7A75),
+              ),
+            ),
+            Expanded(
+              child: ColoredBox(
+                color: ColorName.surfaceVariant,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          _OverviewPanel(plan: plan, dates: dates),
+                          _FlightsPanel(plan: plan, dates: dates),
+                          _HotelPanel(plan: plan, dates: dates),
+                          _ItineraryPanel(
+                            dayProgram: plan.dayProgram,
+                            dayDescriptions: plan.dayDescriptions,
+                            dayCategories: plan.dayCategories,
+                            durationDays: plan.durationDays,
+                            selectedDay: _selectedJourneyDay,
+                            onSelectDay: (value) =>
+                                setState(() => _selectedJourneyDay = value),
                           ),
+                          _EssentialsPanel(
+                            items: plan.essentialItems,
+                            reasons: plan.essentialReasons,
+                            checked: _checkedEssentials,
+                            onToggle: (index) {
+                              AppHaptics.light();
+                              setState(() {
+                                if (_checkedEssentials.contains(index)) {
+                                  _checkedEssentials.remove(index);
+                                } else {
+                                  _checkedEssentials.add(index);
+                                }
+                              });
+                            },
+                          ),
+                          _BudgetPanel(
+                            total: plan.budgetEur.toDouble(),
+                            budgetBreakdown: plan.budgetBreakdown,
+                          ),
+                        ],
+                      ),
+                    ),
+                    SafeArea(
+                      top: false,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(22, 8, 22, 0),
+                        child: Column(
+                          children: [
+                            _CreateTripButton(
+                              isCreating: state.isCreating,
+                              isPressed: _ctaPressed,
+                              onPressStart: () =>
+                                  setState(() => _ctaPressed = true),
+                              onPressEnd: () =>
+                                  setState(() => _ctaPressed = false),
+                              onTap: () {
+                                AppHaptics.medium();
+                                context.read<PlanTripBloc>().add(
+                                  const PlanTripEvent.createTrip(),
+                                );
+                              },
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                context.read<PlanTripBloc>().add(
+                                  const PlanTripEvent.backToProposals(),
+                                );
+                              },
+                              child: Text(
+                                l10n.reviewSeeOtherDestinations,
+                                style: const TextStyle(
+                                  fontFamily: FontFamily.b612,
+                                  color: Color(0xFF7C7A75),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      SizedBox(height: AdaptivePlatform.isIOS ? 20 : 8),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
         );
       },
     );
@@ -201,6 +215,8 @@ class _ReviewHero extends StatelessWidget {
     required this.dateRangeLabel,
     required this.budgetLabel,
     required this.onEditDates,
+    required this.onBack,
+    required this.onClose,
   });
 
   final String city;
@@ -208,92 +224,123 @@ class _ReviewHero extends StatelessWidget {
   final String dateRangeLabel;
   final String budgetLabel;
   final VoidCallback onEditDates;
+  final VoidCallback onBack;
+  final VoidCallback onClose;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 192,
-      width: double.infinity,
-      child: Stack(
-        children: [
-          const Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    ColorName.primaryDark,
-                    Color(0xCC0D3055),
-                    Colors.transparent,
-                  ],
-                  stops: [0, 0.68, 1],
-                ),
+    final topPadding = MediaQuery.of(context).padding.top;
+
+    return DecoratedBox(
+      decoration: const BoxDecoration(color: ColorName.primaryDark),
+      child: Padding(
+        padding: EdgeInsets.only(top: topPadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.space16,
+                AppSpacing.space4,
+                AppSpacing.space16,
+                0,
+              ),
+              child: Row(
+                children: [
+                  _HeroNavButton(
+                    icon: Icons.arrow_back_rounded,
+                    onPressed: onBack,
+                  ),
+                  const SizedBox(width: AppSpacing.space8),
+                  _HeroNavButton(icon: Icons.close_rounded, onPressed: onClose),
+                ],
               ),
             ),
-          ),
-          Positioned(
-            bottom: 22,
-            left: 24,
-            right: 24,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Expanded(
-                  child: Text(
-                    city,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontFamily: FontFamily.dMSerifDisplay,
-                      fontSize: 24,
-                      color: ColorName.surface,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: Text(
+                      city,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontFamily: FontFamily.dMSerifDisplay,
+                        fontSize: 24,
+                        color: ColorName.surface,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(),
-                InkWell(
-                  onTap: onEditDates,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        daysLabel.toUpperCase(),
-                        style: const TextStyle(
-                          fontFamily: FontFamily.dMSerifDisplay,
-                          fontWeight: FontWeight.w700,
-
-                          color: ColorName.hint,
+                  InkWell(
+                    onTap: onEditDates,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          daysLabel.toUpperCase(),
+                          style: const TextStyle(
+                            fontFamily: FontFamily.dMSerifDisplay,
+                            fontWeight: FontWeight.w700,
+                            color: ColorName.hint,
+                          ),
                         ),
-                      ),
-                      const SizedBox(),
-                      Text(
-                        dateRangeLabel,
-                        style: const TextStyle(
-                          fontFamily: FontFamily.dMSerifDisplay,
-                          fontStyle: FontStyle.italic,
-                          fontSize: 16,
-                          color: ColorName.surface,
+                        Text(
+                          dateRangeLabel,
+                          style: const TextStyle(
+                            fontFamily: FontFamily.dMSerifDisplay,
+                            fontStyle: FontStyle.italic,
+                            fontSize: 16,
+                            color: ColorName.surface,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        budgetLabel,
-                        style: const TextStyle(
-                          fontFamily: FontFamily.dMSerifDisplay,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w500,
-                          color: ColorName.surface,
+                        const SizedBox(height: 2),
+                        Text(
+                          budgetLabel,
+                          style: const TextStyle(
+                            fontFamily: FontFamily.dMSerifDisplay,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500,
+                            color: ColorName.surface,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HeroNavButton extends StatelessWidget {
+  const _HeroNavButton({required this.icon, required this.onPressed});
+
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        customBorder: const CircleBorder(),
+        child: Container(
+          width: AppSpacing.space40,
+          height: AppSpacing.space40,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.15),
+            shape: BoxShape.circle,
           ),
-        ],
+          alignment: Alignment.center,
+          child: Icon(icon, size: 20, color: ColorName.surface),
+        ),
       ),
     );
   }
@@ -308,6 +355,7 @@ class _PanelChipsBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: 36,
       margin: const EdgeInsets.symmetric(horizontal: AppSpacing.space16),
       decoration: const BoxDecoration(
         color: ColorName.surface,
@@ -318,21 +366,27 @@ class _PanelChipsBar extends StatelessWidget {
         isScrollable: true,
         tabAlignment: TabAlignment.start,
         labelPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.space16,
+          horizontal: AppSpacing.space12,
         ),
         labelStyle: const TextStyle(
           fontFamily: FontFamily.dMSans,
-          fontSize: 14,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontFamily: FontFamily.dMSans,
+          fontSize: 13,
           fontWeight: FontWeight.w500,
         ),
         unselectedLabelColor: ColorName.hint,
         labelColor: ColorName.surface,
         dividerColor: Colors.transparent,
+        indicatorSize: TabBarIndicatorSize.tab,
         indicator: const BoxDecoration(
           color: ColorName.primaryDark,
           borderRadius: AppRadius.pill,
         ),
-        tabs: labels.map((label) => Tab(text: label)).toList(),
+        tabs: labels.map((label) => Tab(height: 32, text: label)).toList(),
       ),
     );
   }
@@ -551,26 +605,51 @@ class _FlightsPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).languageCode;
     final route = _extractIata(plan.flightRoute, plan.flightDetails);
+    final originCode =
+        route?.$1 ?? (plan.originIata.isNotEmpty ? plan.originIata : '--');
+    final destCode =
+        route?.$2 ??
+        (plan.destinationIata?.isNotEmpty == true
+            ? plan.destinationIata!
+            : '--');
+
     final outbound = _FlightModel(
-      origin: route?.$1 ?? 'CDG',
-      destination: route?.$2 ?? 'KIX',
+      origin: originCode,
+      destination: destCode,
       subtitle: plan.flightDetails.isEmpty
           ? plan.flightRoute
           : plan.flightDetails,
-      departure: DateFormat('HH:mm').format(dates.$1),
-      arrival: DateFormat(
-        'HH:mm',
-      ).format(dates.$1.add(const Duration(hours: 8))),
+      departure:
+          _parseTime(plan.flightDeparture) ??
+          DateFormat('HH:mm').format(dates.$1),
+      arrival:
+          _parseTime(plan.flightArrival) ??
+          DateFormat('HH:mm').format(dates.$1),
+      airlineLine: [
+        if (plan.flightAirline.isNotEmpty) plan.flightAirline,
+        if (plan.flightNumber.isNotEmpty) plan.flightNumber,
+        l10n.reviewFlightOutbound,
+      ].join(' · '),
+      flightDate: _formatFlightDate(plan.flightDeparture, dates.$1, locale),
     );
     final inbound = _FlightModel(
-      origin: route?.$2 ?? 'KIX',
-      destination: route?.$1 ?? 'CDG',
+      origin: destCode,
+      destination: originCode,
       subtitle: plan.flightRoute,
-      departure: DateFormat(
-        'HH:mm',
-      ).format(dates.$2.subtract(const Duration(hours: 8))),
-      arrival: DateFormat('HH:mm').format(dates.$2),
+      departure:
+          _parseTime(plan.returnDeparture) ??
+          DateFormat('HH:mm').format(dates.$2),
+      arrival:
+          _parseTime(plan.returnArrival) ??
+          DateFormat('HH:mm').format(dates.$2),
+      airlineLine: [
+        if (plan.flightAirline.isNotEmpty) plan.flightAirline,
+        if (plan.flightNumber.isNotEmpty) plan.flightNumber,
+        l10n.reviewFlightReturn,
+      ].join(' · '),
+      flightDate: _formatFlightDate(plan.returnDeparture, dates.$2, locale),
     );
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -585,6 +664,18 @@ class _FlightsPanel extends StatelessWidget {
         _BoardingPassCard(title: l10n.reviewFlightReturn, flight: inbound),
       ],
     );
+  }
+
+  String? _parseTime(String iso) {
+    if (iso.isEmpty) return null;
+    final dt = DateTime.tryParse(iso);
+    if (dt == null) return null;
+    return DateFormat('HH:mm').format(dt);
+  }
+
+  String _formatFlightDate(String iso, DateTime fallback, String locale) {
+    final dt = iso.isNotEmpty ? (DateTime.tryParse(iso) ?? fallback) : fallback;
+    return DateFormat('EEEE d MMM yyyy', locale).format(dt);
   }
 
   (String, String)? _extractIata(String route, String details) {
@@ -619,7 +710,7 @@ class _BoardingPassCard extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        "AIR FRANCE · AF 006 · ALLER".toUpperCase(),
+                        flight.airlineLine.toUpperCase(),
                         style: const TextStyle(
                           fontFamily: FontFamily.dMSans,
                           fontWeight: FontWeight.w600,
@@ -685,12 +776,14 @@ class _BoardingPassCard extends StatelessWidget {
                         child: _FlightMeta(
                           label: l10n.reviewFlightDeparture,
                           value: flight.departure,
+                          date: flight.flightDate,
                         ),
                       ),
                       Expanded(
                         child: _FlightMeta(
                           label: l10n.reviewFlightArrival,
                           value: flight.arrival,
+                          date: flight.flightDate,
                         ),
                       ),
                     ],
@@ -712,6 +805,8 @@ class _FlightModel {
     required this.subtitle,
     required this.departure,
     required this.arrival,
+    required this.airlineLine,
+    required this.flightDate,
   });
 
   final String origin;
@@ -719,12 +814,19 @@ class _FlightModel {
   final String subtitle;
   final String departure;
   final String arrival;
+  final String airlineLine;
+  final String flightDate;
 }
 
 class _FlightMeta extends StatelessWidget {
-  const _FlightMeta({required this.label, required this.value});
+  const _FlightMeta({
+    required this.label,
+    required this.value,
+    required this.date,
+  });
   final String label;
   final String value;
+  final String date;
 
   @override
   Widget build(BuildContext context) {
@@ -754,7 +856,7 @@ class _FlightMeta extends StatelessWidget {
 
         const SizedBox(height: AppSpacing.space4),
         Text(
-          "Lundi 14 Avr 2026".toUpperCase(),
+          date.toUpperCase(),
           style: const TextStyle(
             fontFamily: FontFamily.dMSans,
             fontSize: 12,
@@ -801,12 +903,18 @@ class _HotelPanel extends StatelessWidget {
                   borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                 ),
                 padding: const EdgeInsets.all(16),
-                child: const Row(
-                  children: [
-                    Icon(Icons.star_rounded, color: ColorName.surface),
-                    Icon(Icons.star_rounded, color: ColorName.surface),
-                    Icon(Icons.star_rounded, color: ColorName.surface),
-                  ],
+                child: Row(
+                  children: plan.hotelRating > 0
+                      ? List.generate(
+                          plan.hotelRating,
+                          (_) => const Icon(
+                            Icons.star_rounded,
+                            color: ColorName.surface,
+                          ),
+                        )
+                      : const [
+                          Icon(Icons.hotel_rounded, color: ColorName.surface),
+                        ],
                 ),
               ),
               Padding(
@@ -937,16 +1045,6 @@ class _HotelStatBox extends StatelessWidget {
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: ColorName.primaryDark,
-            ),
-          ),
-
-          const Text(
-            "Après 16:00",
-            style: TextStyle(
-              fontFamily: FontFamily.dMSans,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: ColorName.hint,
             ),
           ),
         ],
@@ -1321,7 +1419,21 @@ class _BudgetPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final entries = _extractEntries(l10n, budgetBreakdown);
-    final resolvedEntries = entries.isEmpty ? _prototypeEntries(l10n) : entries;
+    if (entries.isEmpty && total <= 0) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 32),
+          child: Text(
+            l10n.reviewBudgetUnavailable,
+            style: const TextStyle(
+              fontFamily: FontFamily.b612,
+              color: Color(0xFF928F89),
+            ),
+          ),
+        ),
+      );
+    }
+    final resolvedEntries = entries;
     final sum = resolvedEntries.fold<double>(
       0,
       (value, entry) => value + entry.amount,
@@ -1453,29 +1565,6 @@ class _BudgetPanel extends StatelessWidget {
     'activities' => const Color(0xFF5A7A9A),
     _ => const Color(0xFF8B8882),
   };
-
-  List<_BudgetEntry> _prototypeEntries(AppLocalizations l10n) => [
-    _BudgetEntry(
-      label: l10n.reviewBudgetFlights,
-      amount: 650,
-      color: ColorName.primaryDark,
-    ),
-    _BudgetEntry(
-      label: l10n.reviewBudgetAccommodation,
-      amount: 980,
-      color: ColorName.primary,
-    ),
-    _BudgetEntry(
-      label: l10n.reviewBudgetMeals,
-      amount: 280,
-      color: ColorName.secondary,
-    ),
-    _BudgetEntry(
-      label: l10n.reviewBudgetActivities,
-      amount: 320,
-      color: ColorName.secondary,
-    ),
-  ];
 }
 
 class _BudgetEntry {

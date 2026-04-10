@@ -96,42 +96,49 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
           final showWizardIndicator = state.currentStep < 4;
           final indicatorCurrent = (state.currentStep + 1).clamp(1, 4).toInt();
 
+          final isReviewStep = state.currentStep == 5;
+
           return Scaffold(
-            backgroundColor: PersonalizationColors.gradientStart,
+            backgroundColor: isReviewStep
+                ? ColorName.surfaceVariant
+                : PersonalizationColors.gradientStart,
             body: SafeArea(
+              top: !isReviewStep,
+              bottom: !isReviewStep,
               left: false,
               right: false,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _WizardNavAnimatedColumn(
-                    currentStep: state.currentStep,
-                    totalSteps: state.totalSteps,
-                    title: _stepTitle(state.currentStep, l10n),
-                    showBack: state.currentStep > 0,
-                    showStepIndicator: showWizardIndicator,
-                    indicatorCurrent: indicatorCurrent,
-                    indicatorTotal: 4,
-                    onBack: () {
-                      if (isGenerationStep) {
+                  if (!isReviewStep)
+                    _WizardNavAnimatedColumn(
+                      currentStep: state.currentStep,
+                      totalSteps: state.totalSteps,
+                      title: _stepTitle(state.currentStep, l10n),
+                      showBack: state.currentStep > 0,
+                      showStepIndicator: showWizardIndicator,
+                      indicatorCurrent: indicatorCurrent,
+                      indicatorTotal: 4,
+                      onBack: () {
+                        if (isGenerationStep) {
+                          context.read<PlanTripBloc>().add(
+                            const PlanTripEvent.backToProposals(),
+                          );
+                          return;
+                        }
                         context.read<PlanTripBloc>().add(
-                          const PlanTripEvent.backToProposals(),
+                          const PlanTripEvent.previousStep(),
                         );
-                        return;
-                      }
-                      context.read<PlanTripBloc>().add(
-                        const PlanTripEvent.previousStep(),
-                      );
-                    },
-                    onClose: () {
-                      if (isGenerationStep) {
-                        context.read<PlanTripBloc>().add(
-                          const PlanTripEvent.backToProposals(),
-                        );
-                      }
-                      const HomeRoute().go(context);
-                    },
-                  ),
+                      },
+                      onClose: () {
+                        if (isGenerationStep) {
+                          context.read<PlanTripBloc>().add(
+                            const PlanTripEvent.backToProposals(),
+                          );
+                        }
+                        const HomeRoute().go(context);
+                      },
+                    ),
                   if (state.currentStep > 0 && state.currentStep < 4)
                     Padding(
                       padding: const EdgeInsets.symmetric(
