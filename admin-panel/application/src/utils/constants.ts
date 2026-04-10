@@ -6,6 +6,7 @@ export const USER_ROLES = {
 
 export const API_ENDPOINTS = {
   AUTH: {
+    REGISTER: '/v1/auth/register',
     LOGIN: '/v1/auth/login',
     ME: '/v1/auth/me',
     LOGOUT: '/v1/auth/logout',

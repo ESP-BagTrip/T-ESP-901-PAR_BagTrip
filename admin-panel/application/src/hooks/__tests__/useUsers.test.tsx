@@ -81,11 +81,12 @@ describe('useUsers hooks', () => {
     })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(usersService.deleteUser).toHaveBeenCalledWith('1')
-  })
+    expect(usersService.deleteUser).toHaveBeenCalledWith('1', expect.anything())
+    })
 
-  it('useToggleUserStatus calls toggleUserStatus service', async () => {
+    it('useToggleUserStatus calls toggleUserStatus service', async () => {
     const { usersService } = await import('@/services')
+
     const { result } = renderHook(() => useToggleUserStatus(), { wrapper: createWrapper() })
 
     act(() => {
@@ -93,8 +94,8 @@ describe('useUsers hooks', () => {
     })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(usersService.toggleUserStatus).toHaveBeenCalledWith('1')
-  })
+    expect(usersService.toggleUserStatus).toHaveBeenCalledWith('1', expect.anything())
+    })
 
   it('useExportUsers calls exportUsers and triggers download', async () => {
     const { usersService } = await import('@/services')

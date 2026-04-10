@@ -21,8 +21,8 @@ vi.mock('next/navigation', () => ({
 vi.mock('@/services', () => ({
   authService: {
     getCurrentUser: vi.fn().mockResolvedValue({ id: '1', email: 'test@test.com', plan: 'ADMIN' }),
-    login: vi.fn().mockResolvedValue({ user: { id: '1', email: 'test@test.com' }, access_token: 'token' }),
-    register: vi.fn().mockResolvedValue({ user: { id: '1', email: 'test@test.com' }, access_token: 'token' }),
+    login: vi.fn().mockResolvedValue({ user: { id: '1', email: 'test@test.com', plan: 'ADMIN' }, access_token: 'token' }),
+    register: vi.fn().mockResolvedValue({ user: { id: '1', email: 'test@test.com', plan: 'ADMIN' }, access_token: 'token' }),
     logout: vi.fn().mockResolvedValue(undefined),
   },
 }))

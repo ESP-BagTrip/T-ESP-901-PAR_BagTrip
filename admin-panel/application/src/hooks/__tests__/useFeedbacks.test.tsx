@@ -53,6 +53,6 @@ describe('useFeedbacks hooks', () => {
     })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(feedbacksService.deleteFeedback).toHaveBeenCalledWith('feedback-1')
+    expect(feedbacksService.deleteFeedback).toHaveBeenCalledWith('feedback-1', expect.anything())
   })
 })

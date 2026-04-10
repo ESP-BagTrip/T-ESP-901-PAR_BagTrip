@@ -30,23 +30,34 @@ if docker compose ps | grep -q "BagTrip-api"; then
   sed -i 's|filename="api/src/|filename="|g' api/coverage.xml
   sed -i 's|filename="|filename="api/src/|g' api/coverage.xml
 else
-  echo "Error: API container is not running. Please start it with 'make dev-docker' or 'make dev'."
-  exit 1
+  echo "Warning: API container is not running. Coverage for API might be stale."
 fi
 
-echo "Starting SonarCloud analysis..."
+echo "Running Admin Panel tests with coverage..."
+if [ -d "admin-panel/application" ]; then
+  cd admin-panel/application && npm run test:coverage && cd ../..
+else
+  echo "Warning: Admin Panel directory not found."
+fi
 
-set -x # Add this line for debugging
+echo "Starting SonarQube analysis..."
 
-sonar-scanner \
-  -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-  -Dsonar.organization=${SONAR_ORGANIZATION} \
-  -Dsonar.host.url=https://sonarcloud.io \
-  -Dsonar.token=${SONAR_TOKEN} \
-  -Dsonar.sources=. \
-  -Dsonar.tests=. \
-  -Dsonar.python.coverage.reportPaths=api/coverage.xml \
-  -Dsonar.dart.lcov.reportPaths=bagtrip/coverage/lcov.info \
-  -Dsonar.javascript.lcov.reportPaths=admin-panel/application/coverage/lcov.info \
-  -Dsonar.python.version=${SONAR_PYTHON_VERSION:-3.12} \
-  -Dsonar.exclusions=api/tests/**,bagtrip/test/**,admin-panel/application/cypress/**,**/node_modules/**,**/build/**,**/.next/**
+# On laisse SonarScanner lire les propriétés de sonar-project.properties par défaut.
+# On ne passe que les overrides nécessaires.
+SONAR_ARGS=""
+if [ -n "${SONAR_TOKEN}" ]; then
+  SONAR_ARGS="${SONAR_ARGS} -Dsonar.token=${SONAR_TOKEN}"
+fi
+
+# Si SONAR_PROJECT_KEY est définie dans .env, on l'utilise, sinon on laisse le fichier .properties
+if [ -n "${SONAR_PROJECT_KEY}" ]; then
+  SONAR_ARGS="${SONAR_ARGS} -Dsonar.projectKey=${SONAR_PROJECT_KEY}"
+fi
+
+# Idem pour l'organisation (utile pour SonarCloud)
+if [ -n "${SONAR_ORGANIZATION}" ]; then
+  SONAR_ARGS="${SONAR_ARGS} -Dsonar.organization=${SONAR_ORGANIZATION}"
+fi
+
+set -x
+sonar-scanner ${SONAR_ARGS}

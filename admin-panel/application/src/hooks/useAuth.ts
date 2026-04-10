@@ -57,6 +57,26 @@ export const useAuth = () => {
     },
   })
 
+  const registerMutation = useMutation({
+    mutationFn: async (credentials: Record<string, any>) => {
+      const data = await authService.register(credentials)
+      if (!isAdminUser(data.user)) {
+        try {
+          await authService.logout()
+        } catch {
+          // Ignore
+        }
+        queryClient.removeQueries({ queryKey: QUERY_KEYS.currentUser })
+        throw new NotAdminError()
+      }
+      return data
+    },
+    onSuccess: data => {
+      queryClient.setQueryData(QUERY_KEYS.currentUser, data.user)
+      router.push('/dashboard')
+    },
+  })
+
   const logout = async () => {
     try {
       await authService.logout()
@@ -71,6 +91,10 @@ export const useAuth = () => {
     loginMutation.mutate(credentials)
   }
 
+  const register = (credentials: Record<string, any>) => {
+    registerMutation.mutate(credentials)
+  }
+
   return {
     user,
     isLoading,
@@ -78,8 +102,11 @@ export const useAuth = () => {
     isAdmin: isAdminUser(user),
     error,
     login,
+    register,
     logout,
     isLoggingIn: loginMutation.isPending,
     loginError: loginMutation.error,
+    isRegistering: registerMutation.isPending,
+    registerError: registerMutation.error,
   }
 }

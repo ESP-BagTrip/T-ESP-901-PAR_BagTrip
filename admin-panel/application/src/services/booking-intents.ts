@@ -36,4 +36,12 @@ export const bookingIntentsService = {
     )
     return response.data
   },
+
+  async bookHotel(intentId: string, data: unknown): Promise<BookingIntentBookResponse> {
+    const response = await apiClient.post<BookingIntentBookResponse>(
+      API_ENDPOINTS.BOOKING_INTENTS.BOOK(intentId),
+      data
+    )
+    return response.data
+  },
 }

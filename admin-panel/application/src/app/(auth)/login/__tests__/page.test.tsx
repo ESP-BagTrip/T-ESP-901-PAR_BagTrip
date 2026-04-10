@@ -6,7 +6,20 @@ import { useAuth } from '@/hooks'
 const mockLogin = vi.fn()
 const mockRegister = vi.fn()
 
+class NotAdminError extends Error {
+  constructor() {
+    super("Vous n'avez pas les droits d'accès à l'interface d'administration.")
+    this.name = 'NotAdminError'
+  }
+}
+
 vi.mock('@/hooks', () => ({
+  NotAdminError: class extends Error {
+    constructor() {
+      super("Vous n'avez pas les droits d'accès à l'interface d'administration.")
+      this.name = 'NotAdminError'
+    }
+  },
   useAuth: vi.fn(() => ({
     login: mockLogin,
     register: mockRegister,

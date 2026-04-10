@@ -8,6 +8,11 @@ export const authService = {
     return response.data
   },
 
+  async register(credentials: Record<string, unknown>): Promise<AuthResponse> {
+    const response = await apiClient.post<AuthResponse>(API_ENDPOINTS.AUTH.REGISTER, credentials)
+    return response.data
+  },
+
   async getCurrentUser(): Promise<User> {
     const response = await apiClient.get<User>(API_ENDPOINTS.AUTH.ME)
     return response.data

@@ -7,33 +7,44 @@ import { Eye, EyeOff } from 'lucide-react'
 import { NotAdminError, useAuth } from '@/hooks'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { loginSchema } from '@/lib/validations/auth'
+import { loginSchema, registerSchema } from '@/lib/validations/auth'
 import type { LoginCredentials } from '@/types'
 
 export default function LoginPage() {
-  const { login, isLoggingIn, loginError } = useAuth()
+  const { login, register: registerUser, isLoggingIn, isRegistering, loginError, registerError } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
+  const [isRegisterMode, setIsRegisterMode] = useState(false)
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginCredentials>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<any>({
+    resolver: zodResolver(isRegisterMode ? registerSchema : loginSchema),
   })
 
-  const onSubmit = (data: LoginCredentials) => {
-    login({
-      email: data.email,
-      password: data.password,
-    })
+  const onSubmit = (data: any) => {
+    if (isRegisterMode) {
+      registerUser({
+        email: data.email,
+        password: data.password,
+        fullName: data.fullName,
+        phone: data.phone,
+      })
+    } else {
+      login({
+        email: data.email,
+        password: data.password,
+      })
+    }
   }
 
-  const errorMessage = loginError
-    ? loginError instanceof NotAdminError
-      ? loginError.message
-      : loginError instanceof Error
-        ? loginError.message
+  const error = isRegisterMode ? registerError : loginError
+  const errorMessage = error
+    ? error instanceof NotAdminError
+      ? error.message
+      : error instanceof Error
+        ? error.message
         : 'Une erreur est survenue'
     : null
 
@@ -43,17 +54,35 @@ export default function LoginPage() {
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">BagTrip Admin</h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Connectez-vous avec votre compte administrateur
+            {isRegisterMode
+              ? 'Créez votre compte administrateur'
+              : 'Connectez-vous avec votre compte administrateur'}
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4">
+            {isRegisterMode && (
+              <>
+                <div>
+                  <label htmlFor="fullName" className="sr-only">
+                    Nom complet
+                  </label>
+                  <Input {...register('fullName')} placeholder="Nom complet (optionnel)" />
+                </div>
+                <div>
+                  <label htmlFor="phone" className="sr-only">
+                    Téléphone
+                  </label>
+                  <Input {...register('phone')} placeholder="Téléphone (optionnel)" />
+                </div>
+              </>
+            )}
             <div>
               <label htmlFor="email" className="sr-only">
                 Adresse email
               </label>
               <Input {...register('email')} type="email" placeholder="Adresse email" />
-              {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
+              {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message as string}</p>}
             </div>
             <div>
               <label htmlFor="password" className="sr-only">
@@ -79,7 +108,7 @@ export default function LoginPage() {
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                <p className="mt-1 text-sm text-red-600">{errors.password.message as string}</p>
               )}
             </div>
           </div>
@@ -90,16 +119,32 @@ export default function LoginPage() {
             </div>
           )}
 
-          <Button type="submit" className="w-full" disabled={isLoggingIn}>
-            {isLoggingIn ? (
-              <div className="flex items-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Connexion...
-              </div>
-            ) : (
-              'Se connecter'
-            )}
-          </Button>
+          <div>
+            <Button type="submit" className="w-full" disabled={isLoggingIn || isRegistering}>
+              {isLoggingIn || isRegistering ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  {isRegisterMode ? 'Inscription...' : 'Connexion...'}
+                </div>
+              ) : isRegisterMode ? (
+                "S'inscrire"
+              ) : (
+                'Se connecter'
+              )}
+            </Button>
+          </div>
+
+          <div className="text-center">
+            <button
+              type="button"
+              className="text-sm text-blue-600 hover:text-blue-500"
+              onClick={() => setIsRegisterMode(!isRegisterMode)}
+            >
+              {isRegisterMode
+                ? 'Déjà un compte ? Se connecter'
+                : "Pas encore de compte ? S'inscrire"}
+            </button>
+          </div>
         </form>
       </div>
     </div>

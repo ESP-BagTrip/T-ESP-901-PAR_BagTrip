@@ -2,5 +2,5 @@ projectKey=ESP-BagTrip_T-ESP-901-PAR_BagTrip
 serverUrl=http://sonar.bagtrip.fr
 serverVersion=26.3.0.120487
 dashboardUrl=http://sonar.bagtrip.fr/dashboard?id=ESP-BagTrip_T-ESP-901-PAR_BagTrip
-ceTaskId=645c1ded-9971-4eb1-911d-2c2812db07a5
-ceTaskUrl=http://sonar.bagtrip.fr/api/ce/task?id=645c1ded-9971-4eb1-911d-2c2812db07a5
+ceTaskId=1b059474-4952-449c-9741-93d420e93297
+ceTaskUrl=http://sonar.bagtrip.fr/api/ce/task?id=1b059474-4952-449c-9741-93d420e93297
