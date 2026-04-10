@@ -11,9 +11,9 @@ import { toast } from 'sonner'
 const PLAN_OPTIONS = ['FREE', 'PREMIUM', 'ADMIN'] as const
 
 const planColors: Record<string, string> = {
-  FREE: 'bg-gray-100 text-gray-700',
-  PREMIUM: 'bg-amber-100 text-amber-700',
-  ADMIN: 'bg-purple-100 text-purple-700',
+  FREE: 'bg-secondary text-secondary-foreground',
+  PREMIUM: 'bg-warning/15 text-warning',
+  ADMIN: 'bg-primary-subtle text-primary',
 }
 
 function PlanCell({ userId, currentPlan }: { userId: string; currentPlan: string }) {
@@ -61,7 +61,7 @@ export const usersColumns: ColumnDef<User>[] = [
   {
     accessorKey: 'email',
     header: 'Email',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('email')}</span>,
+    cell: ({ row }) => <span className="text-foreground">{row.getValue('email')}</span>,
   },
   {
     accessorKey: 'plan',
@@ -78,7 +78,9 @@ export const usersColumns: ColumnDef<User>[] = [
     cell: ({ row }) => {
       const date = row.getValue('created_at') as string | null
       return (
-        <span className="text-gray-500 text-xs">{safeFormatDate(date, 'dd/MM/yyyy HH:mm')}</span>
+        <span className="text-muted-foreground text-xs">
+          {safeFormatDate(date, 'dd/MM/yyyy HH:mm')}
+        </span>
       )
     },
   },
@@ -88,7 +90,9 @@ export const usersColumns: ColumnDef<User>[] = [
     cell: ({ row }) => {
       const date = row.getValue('updated_at') as string | null
       return (
-        <span className="text-gray-500 text-xs">{safeFormatDate(date, 'dd/MM/yyyy HH:mm')}</span>
+        <span className="text-muted-foreground text-xs">
+          {safeFormatDate(date, 'dd/MM/yyyy HH:mm')}
+        </span>
       )
     },
   },
