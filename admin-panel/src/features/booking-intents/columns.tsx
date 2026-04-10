@@ -13,12 +13,12 @@ export const bookingIntentsColumns: ColumnDef<AdminBookingIntent>[] = [
   {
     accessorKey: 'user_email',
     header: 'Utilisateur',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('user_email')}</span>,
+    cell: ({ row }) => <span className="text-foreground">{row.getValue('user_email')}</span>,
   },
   {
     accessorKey: 'trip_title',
     header: 'Trip',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('trip_title') || '—'}</span>,
+    cell: ({ row }) => <span className="text-foreground">{row.getValue('trip_title') || '—'}</span>,
   },
   {
     accessorKey: 'type',
@@ -26,13 +26,13 @@ export const bookingIntentsColumns: ColumnDef<AdminBookingIntent>[] = [
     cell: ({ row }) => {
       const type = row.getValue('type') as string
       const typeColors: Record<string, string> = {
-        flight: 'bg-blue-100 text-blue-800',
-        hotel: 'bg-purple-100 text-purple-800',
+        flight: 'bg-primary/15 text-primary',
+        hotel: 'bg-chart-4/15 text-chart-4',
       }
       return (
         <span
           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-            typeColors[type] || 'bg-gray-100 text-gray-800'
+            typeColors[type] || 'bg-secondary text-foreground'
           }`}
         >
           {type}
@@ -46,19 +46,19 @@ export const bookingIntentsColumns: ColumnDef<AdminBookingIntent>[] = [
     cell: ({ row }) => {
       const status = row.getValue('status') as string
       const statusColors: Record<string, string> = {
-        INIT: 'bg-gray-100 text-gray-800',
-        AUTHORIZED: 'bg-blue-100 text-blue-800',
-        BOOKING_PENDING: 'bg-yellow-100 text-yellow-800',
-        BOOKED: 'bg-green-100 text-green-800',
-        CAPTURED: 'bg-green-100 text-green-800',
-        FAILED: 'bg-red-100 text-red-800',
-        CANCELLED: 'bg-red-100 text-red-800',
-        PAYMENT_CAPTURE_FAILED: 'bg-red-100 text-red-800',
+        INIT: 'bg-secondary text-foreground',
+        AUTHORIZED: 'bg-primary/15 text-primary',
+        BOOKING_PENDING: 'bg-warning/15 text-warning',
+        BOOKED: 'bg-success/15 text-success',
+        CAPTURED: 'bg-success/15 text-success',
+        FAILED: 'bg-destructive/15 text-destructive',
+        CANCELLED: 'bg-destructive/15 text-destructive',
+        PAYMENT_CAPTURE_FAILED: 'bg-destructive/15 text-destructive',
       }
       return (
         <span
           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-            statusColors[status] || 'bg-gray-100 text-gray-800'
+            statusColors[status] || 'bg-secondary text-foreground'
           }`}
         >
           {status}
@@ -73,7 +73,7 @@ export const bookingIntentsColumns: ColumnDef<AdminBookingIntent>[] = [
       const amount = row.getValue('amount') as number
       const currency = row.original.currency
       return (
-        <span className="text-gray-900">
+        <span className="text-foreground">
           {amount} {currency}
         </span>
       )
@@ -85,7 +85,7 @@ export const bookingIntentsColumns: ColumnDef<AdminBookingIntent>[] = [
     cell: ({ row }) => {
       const pi = row.getValue('stripe_payment_intent_id') as string | null
       return (
-        <span className="font-mono text-xs text-gray-500">
+        <span className="font-mono text-xs text-muted-foreground">
           {pi ? `${pi.slice(0, 12)}...` : '—'}
         </span>
       )
@@ -97,7 +97,9 @@ export const bookingIntentsColumns: ColumnDef<AdminBookingIntent>[] = [
     cell: ({ row }) => {
       const date = row.getValue('created_at') as string | null
       return (
-        <span className="text-gray-500 text-xs">{safeFormatDate(date, 'dd/MM/yyyy HH:mm')}</span>
+        <span className="text-muted-foreground text-xs">
+          {safeFormatDate(date, 'dd/MM/yyyy HH:mm')}
+        </span>
       )
     },
   },

@@ -13,24 +13,24 @@ export const accommodationsColumns: ColumnDef<AdminAccommodation>[] = [
   {
     accessorKey: 'trip_title',
     header: 'Trip',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('trip_title') || '—'}</span>,
+    cell: ({ row }) => <span className="text-foreground">{row.getValue('trip_title') || '—'}</span>,
   },
   {
     accessorKey: 'user_email',
     header: 'Utilisateur',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('user_email')}</span>,
+    cell: ({ row }) => <span className="text-foreground">{row.getValue('user_email')}</span>,
   },
   {
     accessorKey: 'name',
     header: 'Nom',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('name')}</span>,
+    cell: ({ row }) => <span className="text-foreground">{row.getValue('name')}</span>,
   },
   {
     accessorKey: 'check_in',
     header: 'Arrivée',
     cell: ({ row }) => {
       const date = row.getValue('check_in') as string | null
-      return <span className="text-gray-900">{safeFormatDate(date, 'dd/MM/yyyy')}</span>
+      return <span className="text-foreground">{safeFormatDate(date, 'dd/MM/yyyy')}</span>
     },
   },
   {
@@ -38,7 +38,7 @@ export const accommodationsColumns: ColumnDef<AdminAccommodation>[] = [
     header: 'Départ',
     cell: ({ row }) => {
       const date = row.getValue('check_out') as string | null
-      return <span className="text-gray-900">{safeFormatDate(date, 'dd/MM/yyyy')}</span>
+      return <span className="text-foreground">{safeFormatDate(date, 'dd/MM/yyyy')}</span>
     },
   },
   {
@@ -46,7 +46,9 @@ export const accommodationsColumns: ColumnDef<AdminAccommodation>[] = [
     header: 'Prix/nuit',
     cell: ({ row }) => {
       const price = row.getValue('price_per_night') as number | null
-      return <span className="text-gray-900">{price != null ? `${price.toFixed(2)} €` : '—'}</span>
+      return (
+        <span className="text-foreground">{price != null ? `${price.toFixed(2)} €` : '—'}</span>
+      )
     },
   },
   {
@@ -55,7 +57,9 @@ export const accommodationsColumns: ColumnDef<AdminAccommodation>[] = [
     cell: ({ row }) => {
       const date = row.getValue('created_at') as string | null
       return (
-        <span className="text-gray-500 text-xs">{safeFormatDate(date, 'dd/MM/yyyy HH:mm')}</span>
+        <span className="text-muted-foreground text-xs">
+          {safeFormatDate(date, 'dd/MM/yyyy HH:mm')}
+        </span>
       )
     },
   },

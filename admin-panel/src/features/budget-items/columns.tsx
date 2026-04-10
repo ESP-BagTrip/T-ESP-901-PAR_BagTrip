@@ -13,17 +13,17 @@ export const budgetItemsColumns: ColumnDef<AdminBudgetItem>[] = [
   {
     accessorKey: 'trip_title',
     header: 'Trip',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('trip_title') || '—'}</span>,
+    cell: ({ row }) => <span className="text-foreground">{row.getValue('trip_title') || '—'}</span>,
   },
   {
     accessorKey: 'user_email',
     header: 'Utilisateur',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('user_email')}</span>,
+    cell: ({ row }) => <span className="text-foreground">{row.getValue('user_email')}</span>,
   },
   {
     accessorKey: 'label',
     header: 'Libellé',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('label')}</span>,
+    cell: ({ row }) => <span className="text-foreground">{row.getValue('label')}</span>,
   },
   {
     accessorKey: 'amount',
@@ -39,17 +39,17 @@ export const budgetItemsColumns: ColumnDef<AdminBudgetItem>[] = [
     cell: ({ row }) => {
       const category = row.getValue('category') as string
       const categoryColors: Record<string, string> = {
-        FLIGHT: 'bg-blue-100 text-blue-800',
-        ACCOMMODATION: 'bg-purple-100 text-purple-800',
+        FLIGHT: 'bg-primary/15 text-primary',
+        ACCOMMODATION: 'bg-chart-4/15 text-chart-4',
         FOOD: 'bg-orange-100 text-orange-800',
-        ACTIVITY: 'bg-green-100 text-green-800',
-        TRANSPORT: 'bg-yellow-100 text-yellow-800',
-        OTHER: 'bg-gray-100 text-gray-800',
+        ACTIVITY: 'bg-success/15 text-success',
+        TRANSPORT: 'bg-warning/15 text-warning',
+        OTHER: 'bg-secondary text-foreground',
       }
       return (
         <span
           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-            categoryColors[category] || 'bg-gray-100 text-gray-800'
+            categoryColors[category] || 'bg-secondary text-foreground'
           }`}
         >
           {category}
@@ -65,7 +65,7 @@ export const budgetItemsColumns: ColumnDef<AdminBudgetItem>[] = [
       return (
         <span
           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-            planned ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+            planned ? 'bg-primary/15 text-primary' : 'bg-success/15 text-success'
           }`}
         >
           {planned ? 'Planifié' : 'Réel'}
@@ -78,7 +78,7 @@ export const budgetItemsColumns: ColumnDef<AdminBudgetItem>[] = [
     header: 'Date',
     cell: ({ row }) => {
       const date = row.getValue('date') as string | null
-      return <span className="text-gray-900">{safeFormatDate(date, 'dd/MM/yyyy')}</span>
+      return <span className="text-foreground">{safeFormatDate(date, 'dd/MM/yyyy')}</span>
     },
   },
   {
@@ -87,7 +87,9 @@ export const budgetItemsColumns: ColumnDef<AdminBudgetItem>[] = [
     cell: ({ row }) => {
       const date = row.getValue('created_at') as string | null
       return (
-        <span className="text-gray-500 text-xs">{safeFormatDate(date, 'dd/MM/yyyy HH:mm')}</span>
+        <span className="text-muted-foreground text-xs">
+          {safeFormatDate(date, 'dd/MM/yyyy HH:mm')}
+        </span>
       )
     },
   },

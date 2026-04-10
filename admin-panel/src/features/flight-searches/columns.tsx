@@ -13,20 +13,20 @@ export const flightSearchesColumns: ColumnDef<AdminFlightSearch>[] = [
   {
     accessorKey: 'trip_title',
     header: 'Trip',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('trip_title') || '—'}</span>,
+    cell: ({ row }) => <span className="text-foreground">{row.getValue('trip_title') || '—'}</span>,
   },
   {
     accessorKey: 'origin_iata',
     header: 'Origine',
     cell: ({ row }) => (
-      <span className="font-semibold text-gray-900">{row.getValue('origin_iata')}</span>
+      <span className="font-semibold text-foreground">{row.getValue('origin_iata')}</span>
     ),
   },
   {
     accessorKey: 'destination_iata',
     header: 'Destination',
     cell: ({ row }) => (
-      <span className="font-semibold text-gray-900">{row.getValue('destination_iata')}</span>
+      <span className="font-semibold text-foreground">{row.getValue('destination_iata')}</span>
     ),
   },
   {
@@ -34,7 +34,7 @@ export const flightSearchesColumns: ColumnDef<AdminFlightSearch>[] = [
     header: 'Départ',
     cell: ({ row }) => {
       const date = row.getValue('departure_date') as string | null
-      return <span className="text-gray-900">{safeFormatDate(date, 'dd/MM/yyyy')}</span>
+      return <span className="text-foreground">{safeFormatDate(date, 'dd/MM/yyyy')}</span>
     },
   },
   {
@@ -42,23 +42,25 @@ export const flightSearchesColumns: ColumnDef<AdminFlightSearch>[] = [
     header: 'Retour',
     cell: ({ row }) => {
       const date = row.getValue('return_date') as string | null
-      return <span className="text-gray-900">{safeFormatDate(date, 'dd/MM/yyyy')}</span>
+      return <span className="text-foreground">{safeFormatDate(date, 'dd/MM/yyyy')}</span>
     },
   },
   {
     accessorKey: 'adults',
     header: 'Adultes',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('adults')}</span>,
+    cell: ({ row }) => <span className="text-foreground">{row.getValue('adults')}</span>,
   },
   {
     accessorKey: 'children',
     header: 'Enfants',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('children') ?? '—'}</span>,
+    cell: ({ row }) => <span className="text-foreground">{row.getValue('children') ?? '—'}</span>,
   },
   {
     accessorKey: 'travel_class',
     header: 'Classe',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('travel_class') || '—'}</span>,
+    cell: ({ row }) => (
+      <span className="text-foreground">{row.getValue('travel_class') || '—'}</span>
+    ),
   },
   {
     accessorKey: 'created_at',
@@ -66,7 +68,9 @@ export const flightSearchesColumns: ColumnDef<AdminFlightSearch>[] = [
     cell: ({ row }) => {
       const date = row.getValue('created_at') as string | null
       return (
-        <span className="text-gray-500 text-xs">{safeFormatDate(date, 'dd/MM/yyyy HH:mm')}</span>
+        <span className="text-muted-foreground text-xs">
+          {safeFormatDate(date, 'dd/MM/yyyy HH:mm')}
+        </span>
       )
     },
   },

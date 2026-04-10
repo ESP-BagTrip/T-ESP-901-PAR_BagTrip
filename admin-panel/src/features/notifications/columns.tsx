@@ -13,12 +13,12 @@ export const notificationsColumns: ColumnDef<AdminNotification>[] = [
   {
     accessorKey: 'user_email',
     header: 'Utilisateur',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('user_email')}</span>,
+    cell: ({ row }) => <span className="text-foreground">{row.getValue('user_email')}</span>,
   },
   {
     accessorKey: 'trip_title',
     header: 'Trip',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('trip_title') || '—'}</span>,
+    cell: ({ row }) => <span className="text-foreground">{row.getValue('trip_title') || '—'}</span>,
   },
   {
     accessorKey: 'type',
@@ -26,20 +26,20 @@ export const notificationsColumns: ColumnDef<AdminNotification>[] = [
     cell: ({ row }) => {
       const type = row.getValue('type') as string
       const typeColors: Record<string, string> = {
-        DEPARTURE_REMINDER: 'bg-blue-100 text-blue-800',
+        DEPARTURE_REMINDER: 'bg-primary/15 text-primary',
         FLIGHT_H4: 'bg-indigo-100 text-indigo-800',
-        FLIGHT_H1: 'bg-purple-100 text-purple-800',
-        MORNING_SUMMARY: 'bg-yellow-100 text-yellow-800',
-        ACTIVITY_H1: 'bg-green-100 text-green-800',
+        FLIGHT_H1: 'bg-chart-4/15 text-chart-4',
+        MORNING_SUMMARY: 'bg-warning/15 text-warning',
+        ACTIVITY_H1: 'bg-success/15 text-success',
         BUDGET_ALERT: 'bg-orange-100 text-orange-800',
-        TRIP_ENDED: 'bg-gray-100 text-gray-800',
+        TRIP_ENDED: 'bg-secondary text-foreground',
         TRIP_SHARED: 'bg-teal-100 text-teal-800',
-        ADMIN: 'bg-red-100 text-red-800',
+        ADMIN: 'bg-destructive/15 text-destructive',
       }
       return (
         <span
           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-            typeColors[type] || 'bg-gray-100 text-gray-800'
+            typeColors[type] || 'bg-secondary text-foreground'
           }`}
         >
           {type}
@@ -50,7 +50,7 @@ export const notificationsColumns: ColumnDef<AdminNotification>[] = [
   {
     accessorKey: 'title',
     header: 'Titre',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('title')}</span>,
+    cell: ({ row }) => <span className="text-foreground">{row.getValue('title')}</span>,
   },
   {
     accessorKey: 'body',
@@ -58,7 +58,7 @@ export const notificationsColumns: ColumnDef<AdminNotification>[] = [
     cell: ({ row }) => {
       const body = row.getValue('body') as string
       return (
-        <span className="text-gray-600 text-xs" title={body}>
+        <span className="text-muted-foreground text-xs" title={body}>
           {body.length > 50 ? `${body.slice(0, 50)}...` : body}
         </span>
       )
@@ -72,7 +72,7 @@ export const notificationsColumns: ColumnDef<AdminNotification>[] = [
       return (
         <span
           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-            isRead ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            isRead ? 'bg-success/15 text-success' : 'bg-destructive/15 text-destructive'
           }`}
         >
           {isRead ? 'Lu' : 'Non lu'}
@@ -86,7 +86,7 @@ export const notificationsColumns: ColumnDef<AdminNotification>[] = [
     cell: ({ row }) => {
       const date = row.getValue('sent_at') as string | null
       return (
-        <span className="text-gray-500 text-xs">
+        <span className="text-muted-foreground text-xs">
           {date ? safeFormatDate(date, 'dd/MM/yyyy HH:mm') : '—'}
         </span>
       )
@@ -98,7 +98,9 @@ export const notificationsColumns: ColumnDef<AdminNotification>[] = [
     cell: ({ row }) => {
       const date = row.getValue('created_at') as string | null
       return (
-        <span className="text-gray-500 text-xs">{safeFormatDate(date, 'dd/MM/yyyy HH:mm')}</span>
+        <span className="text-muted-foreground text-xs">
+          {safeFormatDate(date, 'dd/MM/yyyy HH:mm')}
+        </span>
       )
     },
   },

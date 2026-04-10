@@ -13,24 +13,24 @@ export const activitiesColumns: ColumnDef<AdminActivity>[] = [
   {
     accessorKey: 'trip_title',
     header: 'Trip',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('trip_title') || '—'}</span>,
+    cell: ({ row }) => <span className="text-foreground">{row.getValue('trip_title') || '—'}</span>,
   },
   {
     accessorKey: 'user_email',
     header: 'Utilisateur',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('user_email')}</span>,
+    cell: ({ row }) => <span className="text-foreground">{row.getValue('user_email')}</span>,
   },
   {
     accessorKey: 'title',
     header: 'Titre',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('title')}</span>,
+    cell: ({ row }) => <span className="text-foreground">{row.getValue('title')}</span>,
   },
   {
     accessorKey: 'date',
     header: 'Date',
     cell: ({ row }) => {
       const date = row.getValue('date') as string | null
-      return <span className="text-gray-900">{safeFormatDate(date, 'dd/MM/yyyy')}</span>
+      return <span className="text-foreground">{safeFormatDate(date, 'dd/MM/yyyy')}</span>
     },
   },
   {
@@ -39,16 +39,16 @@ export const activitiesColumns: ColumnDef<AdminActivity>[] = [
     cell: ({ row }) => {
       const category = row.getValue('category') as string
       const categoryColors: Record<string, string> = {
-        VISIT: 'bg-blue-100 text-blue-800',
+        VISIT: 'bg-primary/15 text-primary',
         RESTAURANT: 'bg-orange-100 text-orange-800',
-        TRANSPORT: 'bg-yellow-100 text-yellow-800',
-        LEISURE: 'bg-green-100 text-green-800',
-        OTHER: 'bg-gray-100 text-gray-800',
+        TRANSPORT: 'bg-warning/15 text-warning',
+        LEISURE: 'bg-success/15 text-success',
+        OTHER: 'bg-secondary text-foreground',
       }
       return (
         <span
           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-            categoryColors[category] || 'bg-gray-100 text-gray-800'
+            categoryColors[category] || 'bg-secondary text-foreground'
           }`}
         >
           {category}
@@ -72,7 +72,7 @@ export const activitiesColumns: ColumnDef<AdminActivity>[] = [
       return (
         <span
           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-            booked ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+            booked ? 'bg-success/15 text-success' : 'bg-secondary text-foreground'
           }`}
         >
           {booked ? 'Oui' : 'Non'}
@@ -86,7 +86,9 @@ export const activitiesColumns: ColumnDef<AdminActivity>[] = [
     cell: ({ row }) => {
       const date = row.getValue('created_at') as string | null
       return (
-        <span className="text-gray-500 text-xs">{safeFormatDate(date, 'dd/MM/yyyy HH:mm')}</span>
+        <span className="text-muted-foreground text-xs">
+          {safeFormatDate(date, 'dd/MM/yyyy HH:mm')}
+        </span>
       )
     },
   },

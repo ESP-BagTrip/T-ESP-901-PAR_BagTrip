@@ -13,30 +13,32 @@ export const profilesColumns: ColumnDef<AdminTravelerProfile>[] = [
   {
     accessorKey: 'user_email',
     header: 'Utilisateur',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('user_email')}</span>,
+    cell: ({ row }) => <span className="text-foreground">{row.getValue('user_email')}</span>,
   },
   {
     accessorKey: 'travel_types',
     header: 'Types de voyage',
     cell: ({ row }) => {
       const types = row.getValue('travel_types') as string[] | null
-      return <span className="text-gray-900">{types ? types.join(', ') : '—'}</span>
+      return <span className="text-foreground">{types ? types.join(', ') : '—'}</span>
     },
   },
   {
     accessorKey: 'travel_style',
     header: 'Style',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('travel_style') || '—'}</span>,
+    cell: ({ row }) => (
+      <span className="text-foreground">{row.getValue('travel_style') || '—'}</span>
+    ),
   },
   {
     accessorKey: 'budget',
     header: 'Budget',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('budget') || '—'}</span>,
+    cell: ({ row }) => <span className="text-foreground">{row.getValue('budget') || '—'}</span>,
   },
   {
     accessorKey: 'companions',
     header: 'Compagnons',
-    cell: ({ row }) => <span className="text-gray-900">{row.getValue('companions') || '—'}</span>,
+    cell: ({ row }) => <span className="text-foreground">{row.getValue('companions') || '—'}</span>,
   },
   {
     accessorKey: 'is_completed',
@@ -46,7 +48,7 @@ export const profilesColumns: ColumnDef<AdminTravelerProfile>[] = [
       return (
         <span
           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-            completed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+            completed ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'
           }`}
         >
           {completed ? 'Oui' : 'Non'}
@@ -60,7 +62,9 @@ export const profilesColumns: ColumnDef<AdminTravelerProfile>[] = [
     cell: ({ row }) => {
       const date = row.getValue('created_at') as string | null
       return (
-        <span className="text-gray-500 text-xs">{safeFormatDate(date, 'dd/MM/yyyy HH:mm')}</span>
+        <span className="text-muted-foreground text-xs">
+          {safeFormatDate(date, 'dd/MM/yyyy HH:mm')}
+        </span>
       )
     },
   },
