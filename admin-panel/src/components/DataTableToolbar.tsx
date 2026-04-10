@@ -96,14 +96,14 @@ export function DataTableToolbar({
       {filters?.map(filter => (
         <Select
           key={filter.key}
-          value={activeFilters?.[filter.key] ?? ''}
-          onValueChange={v => onFilterChange?.(filter.key, v === '' ? undefined : v)}
+          value={activeFilters?.[filter.key] ?? '__all__'}
+          onValueChange={v => onFilterChange?.(filter.key, v === '__all__' ? undefined : v)}
         >
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder={filter.label} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Tous</SelectItem>
+            <SelectItem value="__all__">Tous</SelectItem>
             {filter.options.map(opt => (
               <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
