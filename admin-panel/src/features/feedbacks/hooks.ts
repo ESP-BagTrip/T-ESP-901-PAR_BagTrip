@@ -5,5 +5,6 @@ export function useFeedbacksTab() {
   return usePaginatedQuery({
     queryKey: ['feedbacks'],
     queryFn: params => feedbacksService.getFeedbacks(params),
+    filterKeys: [],
   })
 }

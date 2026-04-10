@@ -5,5 +5,6 @@ export function useTripsTab() {
   return usePaginatedQuery({
     queryKey: ['admin', 'trips'],
     queryFn: params => adminService.getAllTrips(params),
+    filterKeys: ['status'],
   })
 }

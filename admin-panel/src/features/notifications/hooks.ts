@@ -5,5 +5,6 @@ export function useNotificationsTab() {
   return usePaginatedQuery({
     queryKey: ['admin', 'notifications'],
     queryFn: params => adminService.getAllNotifications(params),
+    filterKeys: [],
   })
 }

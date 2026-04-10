@@ -1049,6 +1049,52 @@ async def admin_delete_share(
         raise create_http_exception(AppError("INTERNAL_ERROR", 500, "Failed")) from e
 
 
+# ──────────────────────── Audit Log ────────────────────────
+
+
+@router.get(
+    "/audit-logs",
+    summary="List audit logs (admin)",
+)
+async def list_audit_logs(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    entity_type: str | None = Query(None),
+    entity_id: str | None = Query(None),
+    actor_id: str | None = Query(None),
+    action: str | None = Query(None),
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """List audit log entries with optional filters."""
+    try:
+        from src.api.admin.schemas import AuditLogResponse
+        from src.services.audit_service import AuditService
+
+        items, total, total_pages = AuditService.get_logs(
+            db,
+            page=page,
+            limit=limit,
+            entity_type=entity_type,
+            entity_id=entity_id,
+            actor_id=actor_id,
+            action=action,
+        )
+        return {
+            "items": [AuditLogResponse(**item) for item in items],
+            "total": total,
+            "page": page,
+            "limit": limit,
+            "total_pages": total_pages,
+        }
+    except AppError as e:
+        raise create_http_exception(e) from e
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, "Failed to fetch audit logs")
+        ) from e
+
+
 # ──────────────────────── Exports ────────────────────────
 
 

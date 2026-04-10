@@ -5,5 +5,6 @@ export function useProfilesTab() {
   return usePaginatedQuery({
     queryKey: ['admin', 'traveler-profiles'],
     queryFn: params => adminService.getAllTravelerProfiles(params),
+    filterKeys: [],
   })
 }

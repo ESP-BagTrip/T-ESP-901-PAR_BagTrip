@@ -5,5 +5,6 @@ export function useUsersTab() {
   return usePaginatedQuery({
     queryKey: ['users'],
     queryFn: params => usersService.getUsers(params),
+    filterKeys: ['plan'],
   })
 }

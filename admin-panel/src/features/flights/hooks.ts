@@ -5,5 +5,6 @@ export function useFlightsTab() {
   return usePaginatedQuery({
     queryKey: ['admin', 'flight-bookings'],
     queryFn: params => adminService.getAllFlightBookings(params),
+    filterKeys: [],
   })
 }

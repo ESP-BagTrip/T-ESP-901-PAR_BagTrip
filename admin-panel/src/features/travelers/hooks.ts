@@ -5,5 +5,6 @@ export function useTravelersTab() {
   return usePaginatedQuery({
     queryKey: ['admin', 'travelers'],
     queryFn: params => adminService.getAllTravelers(params),
+    filterKeys: [],
   })
 }

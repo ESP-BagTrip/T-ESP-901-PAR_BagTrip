@@ -5,5 +5,6 @@ export function useBookingIntentsTab() {
   return usePaginatedQuery({
     queryKey: ['admin', 'booking-intents'],
     queryFn: params => adminService.getAllBookingIntents(params),
+    filterKeys: ['status'],
   })
 }

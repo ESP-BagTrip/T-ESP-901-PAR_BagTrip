@@ -7,6 +7,24 @@ from uuid import UUID
 from pydantic import BaseModel, Field, field_validator
 
 
+class AuditLogResponse(BaseModel):
+    """Single audit log entry."""
+
+    id: UUID
+    actorId: UUID = Field(alias="actor_id")
+    actorEmail: str = Field(alias="actor_email")
+    action: str
+    entityType: str = Field(alias="entity_type")
+    entityId: UUID = Field(alias="entity_id")
+    diffJson: Any | None = Field(default=None, alias="diff_json")
+    metadata_: Any | None = Field(default=None, alias="metadata")
+    createdAt: dt.datetime = Field(alias="created_at")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
 class AdminListResponse[T](BaseModel):
     """Réponse paginée générique pour les endpoints admin."""
 

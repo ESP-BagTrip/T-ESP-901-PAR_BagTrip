@@ -200,6 +200,13 @@ export const adminService = {
     await apiClient.delete(`${API_ENDPOINTS.FEEDBACKS}/${feedbackId}`)
   },
 
+  // ──────────────────────── Audit Log ────────────────────────
+
+  async getAuditLogs(params?: Record<string, unknown>) {
+    const response = await apiClient.get('/admin/audit-logs', { params })
+    return response.data
+  },
+
   // ──────────────────────── Trip Management ────────────────────────
 
   async getTripDetail(tripId: string) {

@@ -5,5 +5,6 @@ export function useAccommodationsTab() {
   return usePaginatedQuery({
     queryKey: ['admin', 'accommodations'],
     queryFn: params => adminService.getAllAccommodations(params),
+    filterKeys: [],
   })
 }

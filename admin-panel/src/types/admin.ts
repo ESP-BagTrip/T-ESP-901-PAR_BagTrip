@@ -1,3 +1,15 @@
+export interface AuditLogEntry {
+  id: string
+  actor_id: string
+  actor_email: string
+  action: string
+  entity_type: string
+  entity_id: string
+  diff_json: Record<string, { old: unknown; new: unknown }> | null
+  metadata: Record<string, unknown> | null
+  created_at: string
+}
+
 export interface AdminUserDetail {
   id: string
   email: string

@@ -5,5 +5,6 @@ export function useBaggageItemsTab() {
   return usePaginatedQuery({
     queryKey: ['admin', 'baggage-items'],
     queryFn: params => adminService.getAllBaggageItems(params),
+    filterKeys: [],
   })
 }

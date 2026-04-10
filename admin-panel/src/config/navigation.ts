@@ -15,6 +15,7 @@ import {
   UserCircle,
   IdCard,
   Settings,
+  ScrollText,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -117,6 +118,12 @@ export const NAV_SECTIONS: NavSection[] = [
 
 /** Secondary section for less-used destinations (settings, dev tools). */
 export const SECONDARY_NAV: NavItem[] = [
+  {
+    href: '/app/audit-log',
+    label: "Journal d'audit",
+    icon: ScrollText,
+    keywords: ['audit', 'log', 'history'],
+  },
   { href: '/app/settings', label: 'Paramètres', icon: Settings, keywords: ['settings'] },
 ]
 
