@@ -14,6 +14,7 @@ abstract class AiRepository {
     String? startDate,
     String? endDate,
     String? dateMode,
+    String? originCity,
   });
   Future<Result<Map<String, dynamic>>> getPostTripSuggestion();
 

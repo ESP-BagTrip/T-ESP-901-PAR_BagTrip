@@ -31,7 +31,7 @@
 ## Structure du projet
 
 ```
-admin-panel/application/
+admin-panel/
 ├── src/
 │   ├── app/                        # Next.js App Router
 │   │   ├── layout.tsx              # Root layout (Providers, fonts)

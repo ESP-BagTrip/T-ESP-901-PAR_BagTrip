@@ -26,7 +26,7 @@ Le fichier `compose.yml` definit 3 services (+ 1 commente) :
 |---------|--------------|------|-----------|
 | `db` | `postgres:15` | 5432:5432 | BagTrip-db |
 | `api` | Build depuis `api/Dockerfile.dev` | 3000:3000 | BagTrip-api |
-| `admin-panel` | Build depuis `admin-panel/application/Dockerfile.dev` | 8000:8000 | BagTrip-admin-panel |
+| `admin-panel` | Build depuis `admin-panel/Dockerfile.dev` | 8000:8000 | BagTrip-admin-panel |
 | ~~`mobile-web`~~ | commente (prevu pour Flutter web) | ~~5000~~ | ~~BagTrip-mobile-web~~ |
 
 ### Base de donnees (`db`)
@@ -57,7 +57,7 @@ Le volume `postgres_data` est declare au niveau du compose. Les identifiants par
 
 ### Admin Panel (`admin-panel`)
 
-- **Build context** : `./admin-panel/application` avec `Dockerfile.dev`
+- **Build context** : `./admin-panel` avec `Dockerfile.dev`
 - **Dockerfile.dev** : `node:20-alpine`, `npm ci`, `npm run dev`
 - **Volumes** : repertoire complet monte, `node_modules` exclu via anonymous volume
 - **Variables** : `NEXT_PUBLIC_API_URL=http://localhost:3000`, `WATCHPACK_POLLING=true` (hot reload Docker)
@@ -74,7 +74,7 @@ Le meme fichier `compose.prod.yml` est utilise pour la production et la pre-prod
 | `postgres` | `postgres:15-alpine` | -- | Volume `postgres_data`, `pg_isready` healthcheck |
 | `redis` | `redis:7-alpine` | -- | RDB save 60s, `redis-cli ping` healthcheck |
 | `api` | Build `api/Dockerfile` (multi-stage uv) | -- (`expose: 3000`) | `alembic upgrade head` au demarrage, healthcheck `curl /health` |
-| `admin` | Build `admin-panel/application/Dockerfile` (multi-stage Next.js standalone) | -- (`expose: 8000`) | `NEXT_PUBLIC_API_URL` inline au build via build-arg |
+| `admin` | Build `admin-panel/Dockerfile` (multi-stage Next.js standalone) | -- (`expose: 8000`) | `NEXT_PUBLIC_API_URL` inline au build via build-arg |
 | `caddy` | `caddy:2-alpine` | `127.0.0.1:${CADDY_HOST_PORT}:80` | Reverse proxy interne, route `bagtrip.fr` -> admin et `api.bagtrip.fr` -> api par Host header |
 
 ### Variables surchargeables (env -> defaut prod)
@@ -128,7 +128,7 @@ Le Makefile (`/Makefile`) est le point d'entree principal. Variables cles :
 ```makefile
 COMPOSE      := docker compose
 FLUTTER_DIR  := bagtrip
-ADMIN_APP_DIR := admin-panel/application
+ADMIN_APP_DIR := admin-panel
 API_DIR      := api
 API_PORT     := 3000
 ```
@@ -195,7 +195,7 @@ Le Makefile contient une logique de detection avancee :
 | `make shell-api` | Shell bash dans le conteneur API |
 | `make shell-admin` | Shell dans le conteneur admin |
 
-## Makefile admin-panel (`admin-panel/application/Makefile`)
+## Makefile admin-panel (`admin-panel/Makefile`)
 
 Le panel admin a son propre Makefile pour le developpement standalone (hors Docker) avec des commandes supplementaires :
 
@@ -250,7 +250,7 @@ Variables d'environnement (overrides pre-prod) -- cf. section "Docker Compose pr
 
 Variables forcees par le compose (jamais a mettre dans `.env.production`) : `NODE_ENV`, `DATABASE_URL`, `REDIS_URL`, `ALLOWED_ORIGINS`, `COOKIE_DOMAIN`, `COOKIE_SECURE`.
 
-### Admin Panel (`admin-panel/application/.env.local.example`)
+### Admin Panel (`admin-panel/.env.local.example`)
 
 - `NEXT_PUBLIC_API_URL` -- URL du backend (defaut : `http://localhost:3000`)
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` -- cle Stripe publique

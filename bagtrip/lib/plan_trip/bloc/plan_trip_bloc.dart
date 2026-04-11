@@ -633,6 +633,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       startDate: startDateStr,
       endDate: endDateStr,
       dateMode: state.dateMode.name,
+      originCity: state.originCity,
     );
     if (isClosed) return;
 
@@ -646,11 +647,10 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     }
   }
 
-  void _onBackToProposals(
+  Future<void> _onBackToProposals(
     PlanTripBackToProposals event,
     Emitter<PlanTripState> emit,
   ) {
-    // Optimistic transition first, then stop SSE asynchronously.
     unawaited(_cancelSseStream());
     emit(
       state.copyWith(

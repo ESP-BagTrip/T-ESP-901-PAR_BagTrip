@@ -16,6 +16,7 @@ from src.api.auth.middleware import get_current_user
 from src.api.auth.plan_guard import require_ai_quota
 from src.config.database import get_db
 from src.config.env import settings
+from src.integrations.aviation_data.service import AviationDataService
 from src.models.accommodation import Accommodation
 from src.models.activity import Activity
 from src.models.baggage_item import BaggageItem
@@ -28,6 +29,28 @@ from src.utils.logger import logger
 from src.utils.timeout import async_generator_with_timeout
 
 router = APIRouter(prefix="/v1/ai", tags=["AI Trip Planning"])
+
+# ── IATA resolution (offline, deterministic) ──────────────────────────
+
+_aviation = AviationDataService()
+
+
+def _resolve_iata(city_name: str) -> str | None:
+    """Resolve a city name to its primary IATA airport code (offline).
+
+    Uses airportsdata — no API call, no LLM dependency.
+    Returns None if the city can't be matched.
+    """
+    if not city_name or not city_name.strip():
+        return None
+    try:
+        results = _aviation.search_by_keyword(city_name.strip(), sub_type="CITY,AIRPORT", limit=1)
+        if results:
+            loc = results[0]
+            return loc.iataCode or (loc.address.cityCode if loc.address else None)
+    except Exception:
+        pass
+    return None
 
 
 def _sse_event(event: str, data: dict) -> str:
@@ -335,6 +358,18 @@ async def accept_plan(
             destination_iata_value = None
 
         origin_iata_value = suggestion.get("origin_iata")
+
+        # ── Server-side IATA resolution (don't rely on LLM) ──
+        if not origin_iata_value and request.originCity:
+            origin_iata_value = _resolve_iata(request.originCity)
+            if origin_iata_value:
+                logger.info(f"Resolved origin IATA: {request.originCity} → {origin_iata_value}")
+        if not destination_iata_value and destination_name:
+            destination_iata_value = _resolve_iata(destination_name.split(",")[0].strip())
+            if destination_iata_value:
+                logger.info(
+                    f"Resolved destination IATA: {destination_name} → {destination_iata_value}"
+                )
 
         # Handle alternative destination selection
         idx = request.selectedDestinationIndex
