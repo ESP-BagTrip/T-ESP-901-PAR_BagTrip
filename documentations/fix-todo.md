@@ -24,7 +24,7 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 
 | Element                            | Description                                                  | Fichier                                                        |
 | ---------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------- |
-| Aucun Dockerfile de production     | Seuls les `Dockerfile.dev` existent (API et admin)           | `api/Dockerfile.dev`, `admin-panel/application/Dockerfile.dev` |
+| Aucun Dockerfile de production     | Seuls les `Dockerfile.dev` existent (API et admin)           | `api/Dockerfile.dev`, `admin-panel/Dockerfile.dev` |
 | Aucun compose de production        | Pas de health checks Docker, restart policies, reverse proxy | `compose.yml`                                                  |
 | Aucun pipeline de deploiement (CD) | Zero workflow de deploy automatise                           | `.github/workflows/`                                           |
 | Tests backend API absents          | Aucun fichier de test dans `api/`                            | `api/`                                                         |
@@ -249,10 +249,10 @@ Ce document consolide tous les gaps identifies. Chaque element est classe par pr
 
 | Element                    | Description                                                   | Fichier                                     |
 | -------------------------- | ------------------------------------------------------------- | ------------------------------------------- |
-| Tests unitaires absents    | Pas de Jest/Vitest                                            | `admin-panel/application/`                  |
-| Pas d'i18n                 | Tout en francais en dur                                       | `admin-panel/application/src/`              |
-| Pas de RBAC frontend       | Middleware verifie uniquement le cookie, pas le role          | `admin-panel/application/src/middleware.ts` |
-| Search/filtres non exposes | `QueryParams` supporte search/sort mais non utilise dans l'UI | `admin-panel/application/src/features/`     |
+| Tests unitaires absents    | Pas de Jest/Vitest                                            | `admin-panel/`                  |
+| Pas d'i18n                 | Tout en francais en dur                                       | `admin-panel/src/`              |
+| Pas de RBAC frontend       | Middleware verifie uniquement le cookie, pas le role          | `admin-panel/src/middleware.ts` |
+| Search/filtres non exposes | `QueryParams` supporte search/sort mais non utilise dans l'UI | `admin-panel/src/features/`     |
 
 
 ---

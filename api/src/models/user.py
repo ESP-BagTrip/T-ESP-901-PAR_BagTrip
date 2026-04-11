@@ -27,6 +27,9 @@ class User(Base):
     ai_generations_reset_at = Column(DateTime(timezone=True), nullable=True)
     password_reset_token = Column(String, nullable=True)
     password_reset_expires = Column(DateTime(timezone=True), nullable=True)
+    banned_at = Column(DateTime(timezone=True), nullable=True)
+    ban_reason = Column(String, nullable=True)
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(
         DateTime(timezone=True),

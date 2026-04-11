@@ -143,10 +143,10 @@ detect-changes
 ```properties
 sonar.projectKey=ESP-BagTrip_T-ESP-901-PAR_BagTrip
 sonar.projectName=BagTrip
-sonar.sources=api/src,admin-panel/application/src,bagtrip/lib
+sonar.sources=api/src,admin-panel/src,bagtrip/lib
 sonar.tests=api/tests,bagtrip/test
 sonar.python.coverage.reportPaths=api/coverage.xml
-sonar.javascript.lcov.reportPaths=admin-panel/application/coverage/lcov.info
+sonar.javascript.lcov.reportPaths=admin-panel/coverage/lcov.info
 sonar.dart.lcov.reportPaths=bagtrip/coverage/lcov.info
 ```
 
