@@ -104,12 +104,6 @@ abstract class AppLocalizations {
   /// **'jj/mm/aaaa'**
   String get dateFormatHint;
 
-  /// No description provided for @travelClassTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Classe de voyage'**
-  String get travelClassTitle;
-
   /// No description provided for @passengersTitle.
   ///
   /// In fr, this message translates to:
@@ -151,12 +145,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Affaires'**
   String get travelClassBusiness;
-
-  /// No description provided for @travelClassFirst.
-  ///
-  /// In fr, this message translates to:
-  /// **'Première'**
-  String get travelClassFirst;
 
   /// No description provided for @tripTypeRoundTrip.
   ///
@@ -253,12 +241,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Ajouter un autre vol'**
   String get multiDestAddFlightButton;
-
-  /// No description provided for @maxPriceHint.
-  ///
-  /// In fr, this message translates to:
-  /// **'Prix maximum (€)'**
-  String get maxPriceHint;
 
   /// No description provided for @noFlightsFoundTitle.
   ///
@@ -416,12 +398,6 @@ abstract class AppLocalizations {
   /// **'Bagage à main inclus'**
   String get handBaggageIncluded;
 
-  /// No description provided for @unknown.
-  ///
-  /// In fr, this message translates to:
-  /// **'Inconnu'**
-  String get unknown;
-
   /// No description provided for @unknownAirline.
   ///
   /// In fr, this message translates to:
@@ -457,18 +433,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Destination'**
   String get destinationLabel;
-
-  /// No description provided for @travelDatesLabel.
-  ///
-  /// In fr, this message translates to:
-  /// **'Dates de voyage'**
-  String get travelDatesLabel;
-
-  /// No description provided for @outboundLabel.
-  ///
-  /// In fr, this message translates to:
-  /// **'Aller'**
-  String get outboundLabel;
 
   /// No description provided for @returnLabel.
   ///
@@ -512,113 +476,11 @@ abstract class AppLocalizations {
   /// **'Détails du voyage'**
   String get tripDetailsLabel;
 
-  /// No description provided for @flightCardTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Vol'**
-  String get flightCardTitle;
-
-  /// No description provided for @hotelCardTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Hôtel'**
-  String get hotelCardTitle;
-
-  /// No description provided for @flightAndHotelCardTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Vol + Hôtel'**
-  String get flightAndHotelCardTitle;
-
-  /// No description provided for @otherCardTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Autres'**
-  String get otherCardTitle;
-
-  /// No description provided for @handleBudget.
-  ///
-  /// In fr, this message translates to:
-  /// **'Gérer votre budget'**
-  String get handleBudget;
-
-  /// No description provided for @trackExpensesAndPlan.
-  ///
-  /// In fr, this message translates to:
-  /// **'Suivez vos dépenses et planifiez votre voyage selon votre budget'**
-  String get trackExpensesAndPlan;
-
-  /// No description provided for @myProfile.
-  ///
-  /// In fr, this message translates to:
-  /// **'Mon profil'**
-  String get myProfile;
-
-  /// No description provided for @managePersonalInfo.
-  ///
-  /// In fr, this message translates to:
-  /// **'Gérez vos informations personnelles et vos préférences'**
-  String get managePersonalInfo;
-
-  /// No description provided for @editProfile.
-  ///
-  /// In fr, this message translates to:
-  /// **'Modifier le profil'**
-  String get editProfile;
-
   /// No description provided for @disconnect.
   ///
   /// In fr, this message translates to:
   /// **'Se déconnecter'**
   String get disconnect;
-
-  /// No description provided for @viewDestinations.
-  ///
-  /// In fr, this message translates to:
-  /// **'Visualiser les destinations'**
-  String get viewDestinations;
-
-  /// No description provided for @exploreDestinations.
-  ///
-  /// In fr, this message translates to:
-  /// **'Explorez les destinations disponibles sur une carte interactive'**
-  String get exploreDestinations;
-
-  /// No description provided for @startButton.
-  ///
-  /// In fr, this message translates to:
-  /// **'Commencer'**
-  String get startButton;
-
-  /// No description provided for @newTrip.
-  ///
-  /// In fr, this message translates to:
-  /// **'Nouveau voyage'**
-  String get newTrip;
-
-  /// No description provided for @createYourTrip.
-  ///
-  /// In fr, this message translates to:
-  /// **'Créez votre voyage'**
-  String get createYourTrip;
-
-  /// No description provided for @nameTripToStart.
-  ///
-  /// In fr, this message translates to:
-  /// **'Donnez un nom à votre voyage pour commencer la planification'**
-  String get nameTripToStart;
-
-  /// No description provided for @tripNameLabel.
-  ///
-  /// In fr, this message translates to:
-  /// **'Nom du voyage'**
-  String get tripNameLabel;
-
-  /// No description provided for @tripNameHint.
-  ///
-  /// In fr, this message translates to:
-  /// **'Ex: Vacances à Paris'**
-  String get tripNameHint;
 
   /// No description provided for @continueButton.
   ///
@@ -626,35 +488,11 @@ abstract class AppLocalizations {
   /// **'Continuer'**
   String get continueButton;
 
-  /// No description provided for @aiPlanning.
-  ///
-  /// In fr, this message translates to:
-  /// **'Planification IA'**
-  String get aiPlanning;
-
   /// No description provided for @retryButton.
   ///
   /// In fr, this message translates to:
   /// **'Réessayer'**
   String get retryButton;
-
-  /// No description provided for @searchingInProgress.
-  ///
-  /// In fr, this message translates to:
-  /// **'Recherche en cours...'**
-  String get searchingInProgress;
-
-  /// No description provided for @typeYourMessage.
-  ///
-  /// In fr, this message translates to:
-  /// **'Tapez votre message...'**
-  String get typeYourMessage;
-
-  /// No description provided for @planningTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Planification {title}'**
-  String planningTitle(String title);
 
   /// No description provided for @personalInfoTitle.
   ///
@@ -703,18 +541,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Enregistrer'**
   String get saveButton;
-
-  /// No description provided for @profileUpdateSuccess.
-  ///
-  /// In fr, this message translates to:
-  /// **'Profil mis à jour avec succès'**
-  String get profileUpdateSuccess;
-
-  /// No description provided for @profileUpdateError.
-  ///
-  /// In fr, this message translates to:
-  /// **'Échec de la mise à jour du profil'**
-  String get profileUpdateError;
 
   /// No description provided for @preferencesTitle.
   ///
@@ -776,12 +602,6 @@ abstract class AppLocalizations {
   /// **'Réservations récentes'**
   String get recentBookingsTitle;
 
-  /// No description provided for @viewAllButton.
-  ///
-  /// In fr, this message translates to:
-  /// **'Voir tout'**
-  String get viewAllButton;
-
   /// No description provided for @noRecentBookings.
   ///
   /// In fr, this message translates to:
@@ -799,12 +619,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Confirmé'**
   String get bookingStatusConfirmed;
-
-  /// No description provided for @profileLoadFailureMessage.
-  ///
-  /// In fr, this message translates to:
-  /// **'Impossible de charger le profil.'**
-  String get profileLoadFailureMessage;
 
   /// No description provided for @loginWelcomeTitle.
   ///
@@ -908,18 +722,6 @@ abstract class AppLocalizations {
   /// **'Jean Dupont'**
   String get loginFullNameHint;
 
-  /// No description provided for @loginToggleNoAccount.
-  ///
-  /// In fr, this message translates to:
-  /// **'Pas de compte ? S\'inscrire'**
-  String get loginToggleNoAccount;
-
-  /// No description provided for @loginToggleHasAccount.
-  ///
-  /// In fr, this message translates to:
-  /// **'Déjà un compte ? Se connecter'**
-  String get loginToggleHasAccount;
-
   /// No description provided for @loginErrorEmailRequired.
   ///
   /// In fr, this message translates to:
@@ -1016,77 +818,11 @@ abstract class AppLocalizations {
   /// **'Chargement...'**
   String get splashLoading;
 
-  /// No description provided for @personalizationPromptTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Personnalisez votre expérience'**
-  String get personalizationPromptTitle;
-
-  /// No description provided for @personalizationPromptSubtitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Quelques questions pour mieux vous connaître et vous proposer des voyages sur mesure.'**
-  String get personalizationPromptSubtitle;
-
-  /// No description provided for @personalizationOptionTravelTypes.
-  ///
-  /// In fr, this message translates to:
-  /// **'Vos types de voyage préférés'**
-  String get personalizationOptionTravelTypes;
-
-  /// No description provided for @personalizationOptionBudget.
-  ///
-  /// In fr, this message translates to:
-  /// **'Votre budget habituel'**
-  String get personalizationOptionBudget;
-
-  /// No description provided for @personalizationOptionCompanions.
-  ///
-  /// In fr, this message translates to:
-  /// **'Avec qui vous voyagez'**
-  String get personalizationOptionCompanions;
-
-  /// No description provided for @personalizationCompleteProfile.
-  ///
-  /// In fr, this message translates to:
-  /// **'Compléter mon profil >'**
-  String get personalizationCompleteProfile;
-
-  /// No description provided for @personalizationSkipStep.
-  ///
-  /// In fr, this message translates to:
-  /// **'Passer cette étape'**
-  String get personalizationSkipStep;
-
   /// No description provided for @personalizationProfileSectionTitle.
   ///
   /// In fr, this message translates to:
   /// **'Personnalisation de l\'expérience'**
   String get personalizationProfileSectionTitle;
-
-  /// No description provided for @personalizationPageTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Mon profil voyage'**
-  String get personalizationPageTitle;
-
-  /// No description provided for @personalizationDone.
-  ///
-  /// In fr, this message translates to:
-  /// **'Terminer'**
-  String get personalizationDone;
-
-  /// No description provided for @personalizationStepTitleTravelTypes.
-  ///
-  /// In fr, this message translates to:
-  /// **'Vos types de voyage préférés'**
-  String get personalizationStepTitleTravelTypes;
-
-  /// No description provided for @personalizationStepSubtitleTravelTypes.
-  ///
-  /// In fr, this message translates to:
-  /// **'Sélectionnez un ou plusieurs types'**
-  String get personalizationStepSubtitleTravelTypes;
 
   /// No description provided for @personalizationTravelTypeBeach.
   ///
@@ -1118,24 +854,6 @@ abstract class AppLocalizations {
   /// **'Bien-être & Spa'**
   String get personalizationTravelTypeWellness;
 
-  /// No description provided for @personalizationTravelTypeNightlife.
-  ///
-  /// In fr, this message translates to:
-  /// **'Fête & Vie nocturne'**
-  String get personalizationTravelTypeNightlife;
-
-  /// No description provided for @personalizationStepTitleTravelStyle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Votre style de voyage'**
-  String get personalizationStepTitleTravelStyle;
-
-  /// No description provided for @personalizationStepSubtitleTravelStyle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Comment aimez-vous organiser vos voyages ?'**
-  String get personalizationStepSubtitleTravelStyle;
-
   /// No description provided for @personalizationTravelStylePlanned.
   ///
   /// In fr, this message translates to:
@@ -1153,12 +871,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Spontané'**
   String get personalizationTravelStyleSpontaneous;
-
-  /// No description provided for @personalizationStepTitleBudget.
-  ///
-  /// In fr, this message translates to:
-  /// **'Votre budget habituel'**
-  String get personalizationStepTitleBudget;
 
   /// No description provided for @personalizationStepSubtitleBudget.
   ///
@@ -1201,12 +913,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Hôtels 5★, expériences VIP'**
   String get personalizationBudgetLuxuryDesc;
-
-  /// No description provided for @personalizationStepTitleCompanions.
-  ///
-  /// In fr, this message translates to:
-  /// **'Avec qui voyagez-vous ?'**
-  String get personalizationStepTitleCompanions;
 
   /// No description provided for @personalizationStepSubtitleCompanions.
   ///
@@ -1352,287 +1058,17 @@ abstract class AppLocalizations {
   /// **'Shopping'**
   String get personalizationInterestShopping;
 
-  /// No description provided for @planifierTab.
-  ///
-  /// In fr, this message translates to:
-  /// **'Planifier'**
-  String get planifierTab;
-
-  /// No description provided for @planifierSectionCreateTrip.
-  ///
-  /// In fr, this message translates to:
-  /// **'Créer un voyage'**
-  String get planifierSectionCreateTrip;
-
-  /// No description provided for @planifierManualTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Planifier manuellement'**
-  String get planifierManualTitle;
-
-  /// No description provided for @planifierManualDesc.
-  ///
-  /// In fr, this message translates to:
-  /// **'Créez votre voyage étape par étape avec tous les détails'**
-  String get planifierManualDesc;
-
-  /// No description provided for @planifierAITitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Assistant IA'**
-  String get planifierAITitle;
-
-  /// No description provided for @planifierAIDesc.
-  ///
-  /// In fr, this message translates to:
-  /// **'Laissez l\'IA vous aider à créer un voyage personnalisé'**
-  String get planifierAIDesc;
-
-  /// No description provided for @planifierCompletedTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Voyages terminés'**
-  String get planifierCompletedTitle;
-
-  /// No description provided for @planifierCompletedDesc.
-  ///
-  /// In fr, this message translates to:
-  /// **'Consultez vos voyages passés et budgets'**
-  String get planifierCompletedDesc;
-
   /// No description provided for @planifierGreeting.
   ///
   /// In fr, this message translates to:
   /// **'Bonjour'**
   String get planifierGreeting;
 
-  /// No description provided for @planifierMainTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Planifiez votre\nprochain voyage'**
-  String get planifierMainTitle;
-
-  /// No description provided for @planifierSubtitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Créez et gérez vos voyages'**
-  String get planifierSubtitle;
-
-  /// No description provided for @planifierManualDescriptionCard.
-  ///
-  /// In fr, this message translates to:
-  /// **'Construisez votre itinéraire étape par étape.'**
-  String get planifierManualDescriptionCard;
-
-  /// No description provided for @planifierAIDescriptionCard.
-  ///
-  /// In fr, this message translates to:
-  /// **'Laissez l\'IA créer un voyage personnalisé pour vous.'**
-  String get planifierAIDescriptionCard;
-
-  /// No description provided for @planifierNewBadge.
-  ///
-  /// In fr, this message translates to:
-  /// **'NOUVEAU'**
-  String get planifierNewBadge;
-
-  /// No description provided for @planifierSectionExploreDestinations.
-  ///
-  /// In fr, this message translates to:
-  /// **'Explorer les destinations'**
-  String get planifierSectionExploreDestinations;
-
-  /// No description provided for @destinationKyoto.
-  ///
-  /// In fr, this message translates to:
-  /// **'Kyoto'**
-  String get destinationKyoto;
-
-  /// No description provided for @destinationSantorini.
-  ///
-  /// In fr, this message translates to:
-  /// **'Santorini'**
-  String get destinationSantorini;
-
-  /// No description provided for @destinationMarrakech.
-  ///
-  /// In fr, this message translates to:
-  /// **'Marrakech'**
-  String get destinationMarrakech;
-
-  /// No description provided for @countryJapan.
-  ///
-  /// In fr, this message translates to:
-  /// **'JAPAN'**
-  String get countryJapan;
-
-  /// No description provided for @countryGreece.
-  ///
-  /// In fr, this message translates to:
-  /// **'GREECE'**
-  String get countryGreece;
-
-  /// No description provided for @countryMorocco.
-  ///
-  /// In fr, this message translates to:
-  /// **'MOROCCO'**
-  String get countryMorocco;
-
-  /// No description provided for @yourDestinationTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Votre destination'**
-  String get yourDestinationTitle;
-
   /// No description provided for @destinationPlaceholder.
   ///
   /// In fr, this message translates to:
   /// **'Paris, Tokyo, New York...'**
   String get destinationPlaceholder;
-
-  /// No description provided for @numberOfTravelersLabel.
-  ///
-  /// In fr, this message translates to:
-  /// **'Nombre de voyageurs'**
-  String get numberOfTravelersLabel;
-
-  /// No description provided for @nextButton.
-  ///
-  /// In fr, this message translates to:
-  /// **'Suivant'**
-  String get nextButton;
-
-  /// No description provided for @travelerCount5Plus.
-  ///
-  /// In fr, this message translates to:
-  /// **'5+'**
-  String get travelerCount5Plus;
-
-  /// No description provided for @transportTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Transport'**
-  String get transportTitle;
-
-  /// No description provided for @transportOptionFlightTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Oui, chercher un vol'**
-  String get transportOptionFlightTitle;
-
-  /// No description provided for @transportOptionFlightSubtitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Recherche via Amadeus'**
-  String get transportOptionFlightSubtitle;
-
-  /// No description provided for @transportOptionOtherTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Non, autre transport'**
-  String get transportOptionOtherTitle;
-
-  /// No description provided for @transportOptionOtherSubtitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Voiture, train, bus...'**
-  String get transportOptionOtherSubtitle;
-
-  /// No description provided for @transportOptionSkipTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Non, passer cette étape'**
-  String get transportOptionSkipTitle;
-
-  /// No description provided for @transportOptionSkipSubtitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Aucun transport à ajouter'**
-  String get transportOptionSkipSubtitle;
-
-  /// No description provided for @otherTransportTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Autres transport'**
-  String get otherTransportTitle;
-
-  /// No description provided for @transportTypeLabel.
-  ///
-  /// In fr, this message translates to:
-  /// **'Type de transport'**
-  String get transportTypeLabel;
-
-  /// No description provided for @transportTypeCar.
-  ///
-  /// In fr, this message translates to:
-  /// **'Voiture'**
-  String get transportTypeCar;
-
-  /// No description provided for @transportTypeTrain.
-  ///
-  /// In fr, this message translates to:
-  /// **'Train'**
-  String get transportTypeTrain;
-
-  /// No description provided for @transportTypeBus.
-  ///
-  /// In fr, this message translates to:
-  /// **'Bus'**
-  String get transportTypeBus;
-
-  /// No description provided for @transportTypeFlightBooked.
-  ///
-  /// In fr, this message translates to:
-  /// **'Vol (déjà réservé)'**
-  String get transportTypeFlightBooked;
-
-  /// No description provided for @transportDetailsLabel.
-  ///
-  /// In fr, this message translates to:
-  /// **'Détails (optionnel)'**
-  String get transportDetailsLabel;
-
-  /// No description provided for @transportDetailsPlaceholder.
-  ///
-  /// In fr, this message translates to:
-  /// **'Ex: Location chez Hertz, TGV Paris-Lyon...'**
-  String get transportDetailsPlaceholder;
-
-  /// No description provided for @transportBudgetLabel.
-  ///
-  /// In fr, this message translates to:
-  /// **'Budget transport (€)'**
-  String get transportBudgetLabel;
-
-  /// No description provided for @transportBudgetPlaceholder.
-  ///
-  /// In fr, this message translates to:
-  /// **'Ex: 150'**
-  String get transportBudgetPlaceholder;
-
-  /// No description provided for @transportBudgetHint.
-  ///
-  /// In fr, this message translates to:
-  /// **'Ce montant sera ajouté à votre budget voyage'**
-  String get transportBudgetHint;
-
-  /// No description provided for @skipThisStepLabel.
-  ///
-  /// In fr, this message translates to:
-  /// **'Passer cette étape'**
-  String get skipThisStepLabel;
-
-  /// No description provided for @recapTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Planifiez votre voyage'**
-  String get recapTitle;
-
-  /// No description provided for @recapFinalStepLabel.
-  ///
-  /// In fr, this message translates to:
-  /// **'PLANIFICATION IA'**
-  String get recapFinalStepLabel;
 
   /// No description provided for @recapDateChoose.
   ///
@@ -1646,95 +1082,11 @@ abstract class AppLocalizations {
   /// **'Sélectionner'**
   String get recapDateSelectHint;
 
-  /// No description provided for @recapTravelTypesLabel.
-  ///
-  /// In fr, this message translates to:
-  /// **'TYPES DE VOYAGE'**
-  String get recapTravelTypesLabel;
-
-  /// No description provided for @recapStyleLabel.
-  ///
-  /// In fr, this message translates to:
-  /// **'STYLE'**
-  String get recapStyleLabel;
-
-  /// No description provided for @recapBudgetLabel.
-  ///
-  /// In fr, this message translates to:
-  /// **'BUDGET'**
-  String get recapBudgetLabel;
-
-  /// No description provided for @recapCompanionsLabel.
-  ///
-  /// In fr, this message translates to:
-  /// **'COMPAGNONS'**
-  String get recapCompanionsLabel;
-
-  /// No description provided for @recapLaunchSearchButton.
-  ///
-  /// In fr, this message translates to:
-  /// **'Lancer la recherche IA'**
-  String get recapLaunchSearchButton;
-
-  /// No description provided for @summaryTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Votre voyage personnalisé'**
-  String get summaryTitle;
-
-  /// No description provided for @summarySubtitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'+ Généré par l\'IA'**
-  String get summarySubtitle;
-
-  /// No description provided for @summaryUpcomingJourney.
-  ///
-  /// In fr, this message translates to:
-  /// **'◆ PROCHAIN VOYAGE'**
-  String get summaryUpcomingJourney;
-
-  /// No description provided for @summaryDays.
-  ///
-  /// In fr, this message translates to:
-  /// **'jours'**
-  String get summaryDays;
-
-  /// No description provided for @summaryBudget.
-  ///
-  /// In fr, this message translates to:
-  /// **'budget'**
-  String get summaryBudget;
-
-  /// No description provided for @summarySolo.
-  ///
-  /// In fr, this message translates to:
-  /// **'Solo'**
-  String get summarySolo;
-
-  /// No description provided for @summarySectionCurated.
-  ///
-  /// In fr, this message translates to:
-  /// **'POUR VOUS'**
-  String get summarySectionCurated;
-
-  /// No description provided for @summaryTripHighlights.
-  ///
-  /// In fr, this message translates to:
-  /// **'Points forts du voyage'**
-  String get summaryTripHighlights;
-
   /// No description provided for @summarySectionWhereStay.
   ///
   /// In fr, this message translates to:
   /// **'OÙ LOGER'**
   String get summarySectionWhereStay;
-
-  /// No description provided for @summaryAccommodation.
-  ///
-  /// In fr, this message translates to:
-  /// **'Hébergement'**
-  String get summaryAccommodation;
 
   /// No description provided for @summarySectionFlight.
   ///
@@ -1742,35 +1094,11 @@ abstract class AppLocalizations {
   /// **'VOL'**
   String get summarySectionFlight;
 
-  /// No description provided for @summaryFlight.
-  ///
-  /// In fr, this message translates to:
-  /// **'Vol'**
-  String get summaryFlight;
-
-  /// No description provided for @summaryFlightRouteMock.
-  ///
-  /// In fr, this message translates to:
-  /// **'Paris CDG → Paris Orly'**
-  String get summaryFlightRouteMock;
-
-  /// No description provided for @summaryFlightDetailsMock.
-  ///
-  /// In fr, this message translates to:
-  /// **'Aller-retour · Économique'**
-  String get summaryFlightDetailsMock;
-
   /// No description provided for @summarySectionYourJourney.
   ///
   /// In fr, this message translates to:
   /// **'VOTRE VOYAGE'**
   String get summarySectionYourJourney;
-
-  /// No description provided for @summaryDayByDay.
-  ///
-  /// In fr, this message translates to:
-  /// **'Jour par jour'**
-  String get summaryDayByDay;
 
   /// No description provided for @summarySectionEssentials.
   ///
@@ -1778,131 +1106,11 @@ abstract class AppLocalizations {
   /// **'ESSENTIELS'**
   String get summarySectionEssentials;
 
-  /// No description provided for @summaryWhatToBring.
-  ///
-  /// In fr, this message translates to:
-  /// **'À emporter'**
-  String get summaryWhatToBring;
-
-  /// No description provided for @summaryBestPick.
-  ///
-  /// In fr, this message translates to:
-  /// **'Best pick'**
-  String get summaryBestPick;
-
   /// No description provided for @summaryDayPrefix.
   ///
   /// In fr, this message translates to:
   /// **'J'**
   String get summaryDayPrefix;
-
-  /// No description provided for @summaryDay1Date.
-  ///
-  /// In fr, this message translates to:
-  /// **'LUNDI · 9 JUIN'**
-  String get summaryDay1Date;
-
-  /// No description provided for @summaryDay2Date.
-  ///
-  /// In fr, this message translates to:
-  /// **'MARDI · 10 JUIN'**
-  String get summaryDay2Date;
-
-  /// No description provided for @summaryDay3Date.
-  ///
-  /// In fr, this message translates to:
-  /// **'MERCREDI · 11 JUIN'**
-  String get summaryDay3Date;
-
-  /// No description provided for @summaryDay4Date.
-  ///
-  /// In fr, this message translates to:
-  /// **'JEUDI · 12 JUIN'**
-  String get summaryDay4Date;
-
-  /// No description provided for @summaryDay5Date.
-  ///
-  /// In fr, this message translates to:
-  /// **'VENDREDI · 13 JUIN'**
-  String get summaryDay5Date;
-
-  /// No description provided for @summaryDay1Description.
-  ///
-  /// In fr, this message translates to:
-  /// **'Installation au Marais, balade dans les rues historiques, apéritif en soirée place des Vosges.'**
-  String get summaryDay1Description;
-
-  /// No description provided for @summaryDay2Description.
-  ///
-  /// In fr, this message translates to:
-  /// **'Louvre le matin, quartier Notre-Dame, berges de la Seine l\'après-midi.'**
-  String get summaryDay2Description;
-
-  /// No description provided for @summaryDay3Description.
-  ///
-  /// In fr, this message translates to:
-  /// **'Atelier cuisine, marché, dîner dans un bistro typique.'**
-  String get summaryDay3Description;
-
-  /// No description provided for @summaryDay4Description.
-  ///
-  /// In fr, this message translates to:
-  /// **'Château de Versailles, la Galerie des Glaces et les jardins en fleurs.'**
-  String get summaryDay4Description;
-
-  /// No description provided for @summaryDay5Description.
-  ///
-  /// In fr, this message translates to:
-  /// **'Matin à Sacré-Cœur, dernier café crème, vol retour l\'après-midi.'**
-  String get summaryDay5Description;
-
-  /// No description provided for @summaryCategoryTravelDay.
-  ///
-  /// In fr, this message translates to:
-  /// **'Jour de voyage'**
-  String get summaryCategoryTravelDay;
-
-  /// No description provided for @summaryCategoryCulture.
-  ///
-  /// In fr, this message translates to:
-  /// **'Culture'**
-  String get summaryCategoryCulture;
-
-  /// No description provided for @summaryCategoryCuisine.
-  ///
-  /// In fr, this message translates to:
-  /// **'Cuisine'**
-  String get summaryCategoryCuisine;
-
-  /// No description provided for @summaryCategoryDayTrip.
-  ///
-  /// In fr, this message translates to:
-  /// **'Excursion'**
-  String get summaryCategoryDayTrip;
-
-  /// No description provided for @summaryCategoryDeparture.
-  ///
-  /// In fr, this message translates to:
-  /// **'Départ'**
-  String get summaryCategoryDeparture;
-
-  /// No description provided for @summarySaveTrip.
-  ///
-  /// In fr, this message translates to:
-  /// **'Sauvegarder ce voyage'**
-  String get summarySaveTrip;
-
-  /// No description provided for @summaryRegenerate.
-  ///
-  /// In fr, this message translates to:
-  /// **'Régénérer'**
-  String get summaryRegenerate;
-
-  /// No description provided for @summaryTripSaved.
-  ///
-  /// In fr, this message translates to:
-  /// **'Voyage sauvegardé'**
-  String get summaryTripSaved;
 
   /// No description provided for @summaryDaysCount.
   ///
@@ -1928,29 +1136,11 @@ abstract class AppLocalizations {
   /// **'Ajouter une activité'**
   String get addActivity;
 
-  /// No description provided for @editActivity.
-  ///
-  /// In fr, this message translates to:
-  /// **'Modifier l’activité'**
-  String get editActivity;
-
-  /// No description provided for @noActivities.
-  ///
-  /// In fr, this message translates to:
-  /// **'Aucune activité'**
-  String get noActivities;
-
   /// No description provided for @activityTitle.
   ///
   /// In fr, this message translates to:
   /// **'Titre'**
   String get activityTitle;
-
-  /// No description provided for @activityDate.
-  ///
-  /// In fr, this message translates to:
-  /// **'Date'**
-  String get activityDate;
 
   /// No description provided for @activityDescription.
   ///
@@ -1988,12 +1178,6 @@ abstract class AppLocalizations {
   /// **'Coût estimé'**
   String get activityEstimatedCost;
 
-  /// No description provided for @activityBooked.
-  ///
-  /// In fr, this message translates to:
-  /// **'Réservé'**
-  String get activityBooked;
-
   /// No description provided for @activityDeleteTitle.
   ///
   /// In fr, this message translates to:
@@ -2006,41 +1190,17 @@ abstract class AppLocalizations {
   /// **'Êtes-vous sûr de vouloir supprimer cette activité ?'**
   String get activityDeleteConfirm;
 
-  /// No description provided for @activityDeleted.
-  ///
-  /// In fr, this message translates to:
-  /// **'Activité supprimée'**
-  String get activityDeleted;
-
   /// No description provided for @activityEndTimeBeforeStartTime.
   ///
   /// In fr, this message translates to:
   /// **'L\'heure de fin doit être après l\'heure de début'**
   String get activityEndTimeBeforeStartTime;
 
-  /// No description provided for @categoryVisit.
-  ///
-  /// In fr, this message translates to:
-  /// **'Visite'**
-  String get categoryVisit;
-
-  /// No description provided for @categoryRestaurant.
-  ///
-  /// In fr, this message translates to:
-  /// **'Restaurant'**
-  String get categoryRestaurant;
-
   /// No description provided for @categoryTransport.
   ///
   /// In fr, this message translates to:
   /// **'Transport'**
   String get categoryTransport;
-
-  /// No description provided for @categoryLeisure.
-  ///
-  /// In fr, this message translates to:
-  /// **'Loisir'**
-  String get categoryLeisure;
 
   /// No description provided for @categoryOther.
   ///
@@ -2065,12 +1225,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Modifier la dépense'**
   String get editExpense;
-
-  /// No description provided for @noExpenses.
-  ///
-  /// In fr, this message translates to:
-  /// **'Aucune dépense'**
-  String get noExpenses;
 
   /// No description provided for @expenseLabel.
   ///
@@ -2203,12 +1357,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Bientôt disponible'**
   String get comingSoon;
-
-  /// No description provided for @errorTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Erreur'**
-  String get errorTitle;
 
   /// No description provided for @backButton.
   ///
@@ -2354,30 +1502,6 @@ abstract class AppLocalizations {
   /// **'Supprimer l\'élément'**
   String get baggageDeleteTitle;
 
-  /// No description provided for @baggageDeleteConfirm.
-  ///
-  /// In fr, this message translates to:
-  /// **'Êtes-vous sûr de vouloir supprimer cet élément ?'**
-  String get baggageDeleteConfirm;
-
-  /// No description provided for @baggageItemAdded.
-  ///
-  /// In fr, this message translates to:
-  /// **'Élément ajouté'**
-  String get baggageItemAdded;
-
-  /// No description provided for @baggageItemDeleted.
-  ///
-  /// In fr, this message translates to:
-  /// **'Élément supprimé'**
-  String get baggageItemDeleted;
-
-  /// No description provided for @baggageItemAddedFromSuggestion.
-  ///
-  /// In fr, this message translates to:
-  /// **'Élément ajouté depuis suggestion'**
-  String get baggageItemAddedFromSuggestion;
-
   /// No description provided for @baggageQuantityLabel.
   ///
   /// In fr, this message translates to:
@@ -2389,18 +1513,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Catégorie (optionnel)'**
   String get baggageCategoryLabel;
-
-  /// No description provided for @baggageEmptyTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Aucun élément'**
-  String get baggageEmptyTitle;
-
-  /// No description provided for @baggageEmptySubtitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Ajoutez des éléments à votre liste de bagages'**
-  String get baggageEmptySubtitle;
 
   /// No description provided for @baggageAddItemTitle.
   ///
@@ -2450,12 +1562,6 @@ abstract class AppLocalizations {
   /// **'Modifier l\'élément'**
   String get baggageEditItemTitle;
 
-  /// No description provided for @baggageItemUpdated.
-  ///
-  /// In fr, this message translates to:
-  /// **'Élément modifié'**
-  String get baggageItemUpdated;
-
   /// No description provided for @baggageItemName.
   ///
   /// In fr, this message translates to:
@@ -2474,42 +1580,6 @@ abstract class AppLocalizations {
   /// **'Hébergements'**
   String get accommodationsTitle;
 
-  /// No description provided for @accommodationCheckInHelp.
-  ///
-  /// In fr, this message translates to:
-  /// **'Date d\'arrivée'**
-  String get accommodationCheckInHelp;
-
-  /// No description provided for @accommodationCheckOutHelp.
-  ///
-  /// In fr, this message translates to:
-  /// **'Date de départ'**
-  String get accommodationCheckOutHelp;
-
-  /// No description provided for @accommodationAdded.
-  ///
-  /// In fr, this message translates to:
-  /// **'Hébergement ajouté avec succès'**
-  String get accommodationAdded;
-
-  /// No description provided for @accommodationDeleteTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Supprimer l\'hébergement'**
-  String get accommodationDeleteTitle;
-
-  /// No description provided for @accommodationDeleteConfirm.
-  ///
-  /// In fr, this message translates to:
-  /// **'Êtes-vous sûr de vouloir supprimer cet hébergement ?'**
-  String get accommodationDeleteConfirm;
-
-  /// No description provided for @accommodationDeleted.
-  ///
-  /// In fr, this message translates to:
-  /// **'Hébergement supprimé'**
-  String get accommodationDeleted;
-
   /// No description provided for @accommodationCheckInLabel.
   ///
   /// In fr, this message translates to:
@@ -2521,18 +1591,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Départ'**
   String get accommodationCheckOutLabel;
-
-  /// No description provided for @accommodationEmptyTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Aucun hébergement'**
-  String get accommodationEmptyTitle;
-
-  /// No description provided for @accommodationEmptySubtitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Ajoutez vos hôtels et logements'**
-  String get accommodationEmptySubtitle;
 
   /// No description provided for @accommodationAddTitle.
   ///
@@ -2588,12 +1646,6 @@ abstract class AppLocalizations {
   /// **'Mes voyages'**
   String get tripsMyTrips;
 
-  /// No description provided for @tripsNewTrip.
-  ///
-  /// In fr, this message translates to:
-  /// **'Nouveau voyage'**
-  String get tripsNewTrip;
-
   /// No description provided for @tripStatusOngoing.
   ///
   /// In fr, this message translates to:
@@ -2642,18 +1694,6 @@ abstract class AppLocalizations {
   /// **'Inviter'**
   String get sharesInviteButton;
 
-  /// No description provided for @sharesRevokeTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Révoquer l\'accès'**
-  String get sharesRevokeTitle;
-
-  /// No description provided for @sharesRevokeConfirm.
-  ///
-  /// In fr, this message translates to:
-  /// **'Êtes-vous sûr de vouloir révoquer l\'accès de cet utilisateur ?'**
-  String get sharesRevokeConfirm;
-
   /// No description provided for @sharesRevokeButton.
   ///
   /// In fr, this message translates to:
@@ -2671,18 +1711,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Invitez des personnes à consulter votre voyage'**
   String get sharesEmptySubtitle;
-
-  /// No description provided for @tripCreated.
-  ///
-  /// In fr, this message translates to:
-  /// **'Voyage créé !'**
-  String get tripCreated;
-
-  /// No description provided for @aiResultsTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Résultats IA'**
-  String get aiResultsTitle;
 
   /// No description provided for @feedbackTitle.
   ///
@@ -2906,6 +1934,18 @@ abstract class AppLocalizations {
   /// **'Passez à Premium'**
   String get premiumPaywallTitle;
 
+  /// No description provided for @tripDurationDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 jour} other{{count} jours}}'**
+  String tripDurationDays(int count);
+
+  /// No description provided for @tripShareInvitedOnDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Invité le {date}'**
+  String tripShareInvitedOnDate(String date);
+
   /// No description provided for @profileConfigurePreferences.
   ///
   /// In fr, this message translates to:
@@ -2996,12 +2036,6 @@ abstract class AppLocalizations {
   /// **'Une erreur est survenue. Veuillez réessayer.'**
   String get errorUnknown;
 
-  /// No description provided for @errorSessionExpired.
-  ///
-  /// In fr, this message translates to:
-  /// **'Session expirée'**
-  String get errorSessionExpired;
-
   /// No description provided for @bookingLabel.
   ///
   /// In fr, this message translates to:
@@ -3013,18 +2047,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Activités'**
   String get activitiesTitle;
-
-  /// No description provided for @activitiesEmpty.
-  ///
-  /// In fr, this message translates to:
-  /// **'Aucune activité'**
-  String get activitiesEmpty;
-
-  /// No description provided for @activitiesEmptySubtitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Ajoutez des activités pour planifier votre voyage'**
-  String get activitiesEmptySubtitle;
 
   /// No description provided for @activitiesSuggestionsTitle.
   ///
@@ -3085,24 +2107,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Vous êtes hors ligne. Données en cache affichées.'**
   String get offlineMode;
-
-  /// No description provided for @offlineWriteError.
-  ///
-  /// In fr, this message translates to:
-  /// **'Cette action nécessite une connexion internet.'**
-  String get offlineWriteError;
-
-  /// No description provided for @loadingMore.
-  ///
-  /// In fr, this message translates to:
-  /// **'Chargement...'**
-  String get loadingMore;
-
-  /// No description provided for @noMoreItems.
-  ///
-  /// In fr, this message translates to:
-  /// **'Plus d\'éléments'**
-  String get noMoreItems;
 
   /// No description provided for @subscriptionVerifying.
   ///
@@ -3194,29 +2198,11 @@ abstract class AppLocalizations {
   /// **'Votre paiement est en cours de traitement. Vous recevrez une confirmation sous peu.'**
   String get payment3dsReturnMessage;
 
-  /// No description provided for @nextTripSection.
-  ///
-  /// In fr, this message translates to:
-  /// **'Prochain voyage'**
-  String get nextTripSection;
-
   /// No description provided for @nextTripCountdown.
   ///
   /// In fr, this message translates to:
   /// **'Dans {days} jours'**
   String nextTripCountdown(int days);
-
-  /// No description provided for @nextTripNoUpcoming.
-  ///
-  /// In fr, this message translates to:
-  /// **'Aucun voyage prévu'**
-  String get nextTripNoUpcoming;
-
-  /// No description provided for @nextTripReady.
-  ///
-  /// In fr, this message translates to:
-  /// **'{percent}% prêt'**
-  String nextTripReady(int percent);
 
   /// No description provided for @settingsTitle.
   ///
@@ -3332,35 +2318,11 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 nuit} other{{count} nuits}}'**
   String tripNightsCount(int count);
 
-  /// No description provided for @suggestedDuration.
-  ///
-  /// In fr, this message translates to:
-  /// **'Durée suggérée'**
-  String get suggestedDuration;
-
   /// No description provided for @days.
   ///
   /// In fr, this message translates to:
   /// **'jours'**
   String get days;
-
-  /// No description provided for @reviewTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Récapitulatif'**
-  String get reviewTitle;
-
-  /// No description provided for @aiSuggestionsTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'SUGGESTIONS IA'**
-  String get aiSuggestionsTitle;
-
-  /// No description provided for @createTripButton.
-  ///
-  /// In fr, this message translates to:
-  /// **'Créer le voyage'**
-  String get createTripButton;
 
   /// No description provided for @tripCreatedSuccess.
   ///
@@ -3374,12 +2336,6 @@ abstract class AppLocalizations {
   /// **'Où ?'**
   String get stepDestination;
 
-  /// No description provided for @stepDates.
-  ///
-  /// In fr, this message translates to:
-  /// **'Quand ?'**
-  String get stepDates;
-
   /// No description provided for @stepTravelers.
   ///
   /// In fr, this message translates to:
@@ -3391,12 +2347,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Résumé'**
   String get stepReview;
-
-  /// No description provided for @toValidateBadge.
-  ///
-  /// In fr, this message translates to:
-  /// **'A valider'**
-  String get toValidateBadge;
 
   /// No description provided for @addFirstAccommodation.
   ///
@@ -3554,36 +2504,6 @@ abstract class AppLocalizations {
   /// **'Interne'**
   String get internalFlightType;
 
-  /// No description provided for @flightStatusOnTime.
-  ///
-  /// In fr, this message translates to:
-  /// **'À l\'heure'**
-  String get flightStatusOnTime;
-
-  /// No description provided for @flightStatusDelayed.
-  ///
-  /// In fr, this message translates to:
-  /// **'Retardé'**
-  String get flightStatusDelayed;
-
-  /// No description provided for @flightStatusCancelled.
-  ///
-  /// In fr, this message translates to:
-  /// **'Annulé'**
-  String get flightStatusCancelled;
-
-  /// No description provided for @flightStatusLanded.
-  ///
-  /// In fr, this message translates to:
-  /// **'Atterri'**
-  String get flightStatusLanded;
-
-  /// No description provided for @flightStatusScheduled.
-  ///
-  /// In fr, this message translates to:
-  /// **'Programmé'**
-  String get flightStatusScheduled;
-
   /// No description provided for @editButton.
   ///
   /// In fr, this message translates to:
@@ -3662,12 +2582,6 @@ abstract class AppLocalizations {
   /// **'Recommandations IA'**
   String get accommodationAiSuggestTitle;
 
-  /// No description provided for @accommodationAiSuggestLoading.
-  ///
-  /// In fr, this message translates to:
-  /// **'Génération des suggestions...'**
-  String get accommodationAiSuggestLoading;
-
   /// No description provided for @accommodationEstimatedPrice.
   ///
   /// In fr, this message translates to:
@@ -3739,12 +2653,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Prix/nuit'**
   String get accommodationPricePerNight;
-
-  /// No description provided for @accommodationUpdated.
-  ///
-  /// In fr, this message translates to:
-  /// **'Hébergement mis à jour'**
-  String get accommodationUpdated;
 
   /// No description provided for @accommodationAiDisclaimer.
   ///
@@ -3943,12 +2851,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Flexible'**
   String get datesModeFlexible;
-
-  /// No description provided for @datesFlexibleWhenever.
-  ///
-  /// In fr, this message translates to:
-  /// **'N\'importe quand'**
-  String get datesFlexibleWhenever;
 
   /// No description provided for @datesFlexibleWeekend.
   ///
@@ -4172,12 +3074,6 @@ abstract class AppLocalizations {
   /// **'Notre IA cherche pour vous...'**
   String get destinationAiLoading;
 
-  /// No description provided for @destinationSelected.
-  ///
-  /// In fr, this message translates to:
-  /// **'Destination sélectionnée'**
-  String get destinationSelected;
-
   /// No description provided for @stepAiProposals.
   ///
   /// In fr, this message translates to:
@@ -4298,12 +3194,6 @@ abstract class AppLocalizations {
   /// **'Voir d\'autres destinations'**
   String get reviewSeeOtherDestinations;
 
-  /// No description provided for @reviewCreatingTrip.
-  ///
-  /// In fr, this message translates to:
-  /// **'Création en cours...'**
-  String get reviewCreatingTrip;
-
   /// No description provided for @reviewSectionBudget.
   ///
   /// In fr, this message translates to:
@@ -4363,12 +3253,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Estimé'**
   String get reviewSourceEstimated;
-
-  /// No description provided for @reviewDayLabel.
-  ///
-  /// In fr, this message translates to:
-  /// **'Jour {day}'**
-  String reviewDayLabel(int day);
 
   /// No description provided for @reviewPriceEur.
   ///
@@ -4430,12 +3314,6 @@ abstract class AppLocalizations {
   /// **'Aucune activité prévue aujourd\'hui'**
   String get homeNoActivitiesToday;
 
-  /// No description provided for @homeTripCompletion.
-  ///
-  /// In fr, this message translates to:
-  /// **'{percent}% prêt'**
-  String homeTripCompletion(int percent);
-
   /// No description provided for @tripCardNoDestination.
   ///
   /// In fr, this message translates to:
@@ -4447,18 +3325,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Voyage sans titre'**
   String get tripCardNoTitle;
-
-  /// No description provided for @activeTripsViewTrip.
-  ///
-  /// In fr, this message translates to:
-  /// **'Voir le voyage'**
-  String get activeTripsViewTrip;
-
-  /// No description provided for @activeTripsNextUp.
-  ///
-  /// In fr, this message translates to:
-  /// **'Prochainement'**
-  String get activeTripsNextUp;
 
   /// No description provided for @activeTripsAllDay.
   ///
@@ -4483,30 +3349,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Actions rapides'**
   String get activeTripsQuickActions;
-
-  /// No description provided for @activeTripsActivities.
-  ///
-  /// In fr, this message translates to:
-  /// **'Activités'**
-  String get activeTripsActivities;
-
-  /// No description provided for @activeTripsBudget.
-  ///
-  /// In fr, this message translates to:
-  /// **'Budget'**
-  String get activeTripsBudget;
-
-  /// No description provided for @activeTripsBaggage.
-  ///
-  /// In fr, this message translates to:
-  /// **'Bagages'**
-  String get activeTripsBaggage;
-
-  /// No description provided for @activeTripsShare.
-  ///
-  /// In fr, this message translates to:
-  /// **'Partager'**
-  String get activeTripsShare;
 
   /// No description provided for @completionDates.
   ///
@@ -4591,12 +3433,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Souvenirs'**
   String get tripDetailQuickMemories;
-
-  /// No description provided for @tripDetailQuickNavigate.
-  ///
-  /// In fr, this message translates to:
-  /// **'Naviguer'**
-  String get tripDetailQuickNavigate;
 
   /// No description provided for @timelineSectionTitle.
   ///
@@ -4958,12 +3794,6 @@ abstract class AppLocalizations {
   /// **'Note (optionnel)'**
   String get qaQuickExpenseNote;
 
-  /// No description provided for @qaQuickExpenseSaved.
-  ///
-  /// In fr, this message translates to:
-  /// **'Depense enregistree !'**
-  String get qaQuickExpenseSaved;
-
   /// No description provided for @qaQuickExpenseAmount.
   ///
   /// In fr, this message translates to:
@@ -5000,65 +3830,11 @@ abstract class AppLocalizations {
   /// **'Activite'**
   String get qaCategoryActivity;
 
-  /// No description provided for @qaCategoryShopping.
-  ///
-  /// In fr, this message translates to:
-  /// **'Shopping'**
-  String get qaCategoryShopping;
-
   /// No description provided for @qaCategoryOther.
   ///
   /// In fr, this message translates to:
   /// **'Autre'**
   String get qaCategoryOther;
-
-  /// No description provided for @notifDailySummaryTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Bonjour !'**
-  String get notifDailySummaryTitle;
-
-  /// No description provided for @notifDailySummaryBody.
-  ///
-  /// In fr, this message translates to:
-  /// **'Jour {day} à {destination} — consultez le programme du jour'**
-  String notifDailySummaryBody(int day, String destination);
-
-  /// No description provided for @notifActivityReminderTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Bientôt : {title}'**
-  String notifActivityReminderTitle(String title);
-
-  /// No description provided for @notifActivityReminderBody.
-  ///
-  /// In fr, this message translates to:
-  /// **'Dans 30 minutes à {location}'**
-  String notifActivityReminderBody(String location);
-
-  /// No description provided for @notifCheckoutReminderTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Rappel check-out'**
-  String get notifCheckoutReminderTitle;
-
-  /// No description provided for @notifCheckoutReminderBody.
-  ///
-  /// In fr, this message translates to:
-  /// **'N\'oubliez pas de quitter {name}'**
-  String notifCheckoutReminderBody(String name);
-
-  /// No description provided for @notifPackingReminderTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'C\'est l\'heure de faire les valises !'**
-  String get notifPackingReminderTitle;
-
-  /// No description provided for @notifPackingReminderBody.
-  ///
-  /// In fr, this message translates to:
-  /// **'{count} articles restants à emballer pour {destination}'**
-  String notifPackingReminderBody(int count, String destination);
 
   /// No description provided for @postTripDetectionTitle.
   ///
@@ -5131,12 +3907,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Notez l\'expérience de planification IA'**
   String get feedbackAiRatingLabel;
-
-  /// No description provided for @feedbackAiRatingHint.
-  ///
-  /// In fr, this message translates to:
-  /// **'Les suggestions IA vous ont-elles été utiles ?'**
-  String get feedbackAiRatingHint;
 
   /// No description provided for @editTripTitle.
   ///
@@ -5275,12 +4045,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Heure de départ'**
   String get accommodationCheckOutTimeLabel;
-
-  /// No description provided for @accommodationGetPrices.
-  ///
-  /// In fr, this message translates to:
-  /// **'Voir les prix'**
-  String get accommodationGetPrices;
 
   /// No description provided for @accommodationSelectHotel.
   ///
@@ -5480,41 +4244,17 @@ abstract class AppLocalizations {
   /// **'Éditeur'**
   String get shareRoleEditor;
 
-  /// No description provided for @shareInviteRoleLabel.
-  ///
-  /// In fr, this message translates to:
-  /// **'Rôle'**
-  String get shareInviteRoleLabel;
-
-  /// No description provided for @shareInvitePendingTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Invitation envoyée'**
-  String get shareInvitePendingTitle;
-
   /// No description provided for @shareInvitePendingMessage.
   ///
   /// In fr, this message translates to:
   /// **'Cette personne n\'est pas encore inscrite. Elle aura accès en s\'inscrivant.'**
   String get shareInvitePendingMessage;
 
-  /// No description provided for @shareInviteCopyLink.
-  ///
-  /// In fr, this message translates to:
-  /// **'Copier le lien d\'invitation'**
-  String get shareInviteCopyLink;
-
   /// No description provided for @shareInviteLinkCopied.
   ///
   /// In fr, this message translates to:
   /// **'Lien d\'invitation copié'**
   String get shareInviteLinkCopied;
-
-  /// No description provided for @sharePendingBadge.
-  ///
-  /// In fr, this message translates to:
-  /// **'En attente'**
-  String get sharePendingBadge;
 
   /// No description provided for @shareErrorUserNotFound.
   ///
@@ -5557,12 +4297,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Invitation envoyée'**
   String get shareInviteSuccess;
-
-  /// No description provided for @shareRevokeSuccess.
-  ///
-  /// In fr, this message translates to:
-  /// **'Accès révoqué'**
-  String get shareRevokeSuccess;
 
   /// No description provided for @filterTitle.
   ///
@@ -5775,12 +4509,6 @@ abstract class AppLocalizations {
   /// **'Retour'**
   String get backTooltip;
 
-  /// No description provided for @closeTooltip.
-  ///
-  /// In fr, this message translates to:
-  /// **'Fermer'**
-  String get closeTooltip;
-
   /// No description provided for @deleteFlightTooltip.
   ///
   /// In fr, this message translates to:
@@ -5864,12 +4592,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Activite, {count} notifications'**
   String tabActivityWithBadge(int count);
-
-  /// No description provided for @loadingButton.
-  ///
-  /// In fr, this message translates to:
-  /// **'Chargement'**
-  String get loadingButton;
 
   /// No description provided for @forgotPasswordTitle.
   ///

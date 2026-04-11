@@ -470,7 +470,11 @@ class _PostTripSuggestionCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.space4),
             Row(
               children: [
-                Chip(label: Text('$duration jours')),
+                Chip(
+                  label: Text(
+                    AppLocalizations.of(context)!.tripDurationDays(duration),
+                  ),
+                ),
                 const SizedBox(width: AppSpacing.space8),
                 Chip(label: Text('$budget\u20ac')),
               ],
