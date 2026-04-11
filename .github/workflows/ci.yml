@@ -173,7 +173,31 @@ jobs:
         working-directory: api
         run: uv run ruff format --check src/
 
-      - name: Run tests with coverage
+      - name: Type check (mypy)
+        working-directory: api
+        run: uv run mypy src/
+
+      - name: Security scan (bandit, medium+)
+        working-directory: api
+        run: uv run bandit -c pyproject.toml -r src/ --severity-level medium --confidence-level medium
+
+      - name: Services coverage gate (≥70%)
+        working-directory: api
+        run: |
+          uv run pytest tests/services tests/utils tests/config tests/agent \
+            --cov=src.services \
+            --cov-report=term \
+            --cov-fail-under=70
+
+      - name: API coverage gate (≥50%)
+        working-directory: api
+        run: |
+          uv run pytest tests/api \
+            --cov=src.api \
+            --cov-report=term \
+            --cov-fail-under=50
+
+      - name: Full test run + coverage XML (for SonarQube)
         working-directory: api
         run: uv run pytest --cov=src --cov-report=xml:coverage.xml
 

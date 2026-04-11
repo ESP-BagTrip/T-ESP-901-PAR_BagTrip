@@ -46,6 +46,7 @@ def mock_db_session():
 @pytest.fixture
 def override_get_db(mock_db_session):
     """Override the get_db dependency."""
+
     def _get_db():
         yield mock_db_session
 
@@ -71,7 +72,9 @@ class TestRegister:
     def test_register_success(self, client, override_get_db, mock_db_session, mock_stripe_client):
         """Test successful user registration."""
         # Setup mock DB behavior
-        mock_db_session.query.return_value.filter.return_value.first.return_value = None  # User doesn't exist
+        mock_db_session.query.return_value.filter.return_value.first.return_value = (
+            None  # User doesn't exist
+        )
 
         def refresh_side_effect(instance):
             instance.id = uuid.uuid4()
@@ -84,7 +87,7 @@ class TestRegister:
             "email": "newuser@example.com",
             "password": "password123",
             "fullName": "New User",
-            "phone": "+1234567890"
+            "phone": "+1234567890",
         }
 
         response = client.post("/v1/auth/register", json=payload)
@@ -100,8 +103,7 @@ class TestRegister:
 
         # Verify Stripe interaction
         mock_stripe_client.create_customer.assert_called_once_with(
-            email="newuser@example.com",
-            name="New User"
+            email="newuser@example.com", name="New User"
         )
 
     def test_register_user_exists(self, client, override_get_db, mock_db_session):
@@ -110,28 +112,23 @@ class TestRegister:
         existing_user = User(id=uuid.uuid4(), email="existing@example.com")
         mock_db_session.query.return_value.filter.return_value.first.return_value = existing_user
 
-        payload = {
-            "email": "existing@example.com",
-            "password": "password123"
-        }
+        payload = {"email": "existing@example.com", "password": "password123"}
 
         response = client.post("/v1/auth/register", json=payload)
 
         assert response.status_code == 400
         assert response.json()["detail"] == "User already exists"
 
-
-    def test_register_integrity_error(self, client, override_get_db, mock_db_session, mock_stripe_client):
+    def test_register_integrity_error(
+        self, client, override_get_db, mock_db_session, mock_stripe_client
+    ):
         """Test registration race condition handling (IntegrityError)."""
         from sqlalchemy.exc import IntegrityError
 
         mock_db_session.query.return_value.filter.return_value.first.return_value = None
         mock_db_session.commit.side_effect = IntegrityError("mock", "mock", "mock")
 
-        payload = {
-            "email": "race@example.com",
-            "password": "password123"
-        }
+        payload = {"email": "race@example.com", "password": "password123"}
 
         response = client.post("/v1/auth/register", json=payload)
 
@@ -139,7 +136,9 @@ class TestRegister:
         assert response.json()["detail"] == "User already exists"
         assert mock_db_session.rollback.called
 
-    def test_register_stripe_failure(self, client, override_get_db, mock_db_session, mock_stripe_client):
+    def test_register_stripe_failure(
+        self, client, override_get_db, mock_db_session, mock_stripe_client
+    ):
         """Test registration when Stripe customer creation fails."""
         mock_db_session.query.return_value.filter.return_value.first.return_value = None
 
@@ -153,10 +152,7 @@ class TestRegister:
 
         mock_db_session.refresh.side_effect = refresh_side_effect
 
-        payload = {
-            "email": "nostripe@example.com",
-            "password": "password123"
-        }
+        payload = {"email": "nostripe@example.com", "password": "password123"}
 
         response = client.post("/v1/auth/register", json=payload)
 
@@ -179,7 +175,7 @@ class TestLogin:
             email="user@example.com",
             password_hash=hashed,
             created_at=datetime.utcnow(),
-            updated_at=None
+            updated_at=None,
         )
 
         mock_db_session.query.return_value.filter.return_value.first.return_value = user
@@ -207,11 +203,7 @@ class TestLogin:
         # Setup user with hashed password
         password = "password123"
         hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-        user = User(
-            id=uuid.uuid4(),
-            email="user@example.com",
-            password_hash=hashed
-        )
+        user = User(id=uuid.uuid4(), email="user@example.com", password_hash=hashed)
 
         mock_db_session.query.return_value.filter.return_value.first.return_value = user
 
@@ -231,7 +223,7 @@ class TestMe:
             id=uuid.uuid4(),
             email="me@example.com",
             created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+            updated_at=datetime.utcnow(),
         )
 
         # Mock DB session so ProfileService and PlanService don't hit a real DB

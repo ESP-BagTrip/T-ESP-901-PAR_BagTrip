@@ -19,11 +19,13 @@ from __future__ import annotations
 
 import asyncio
 import json
+import time
 from collections.abc import AsyncIterator
 from datetime import date, timedelta
 
 from sqlalchemy.orm import Session
 
+from src.agent.budget import BudgetExceeded
 from src.api.ai.plan_trip_schemas import PlanTripRequest
 from src.config.env import settings
 from src.models.user import User
@@ -110,6 +112,11 @@ def _build_initial_state(request: PlanTripRequest) -> dict:
         "date_mode": request.dateMode or "",
         "events": [],
         "errors": [],
+        # Budget tracking — `time.monotonic()` is strictly increasing so we
+        # don't need tz-aware math. Consumed seconds accrues as each node
+        # finishes via `src.agent.budget.track`.
+        "budget_deadline_monotonic": time.monotonic() + settings.GRAPH_TIMEOUT_SECONDS,
+        "budget_consumed_seconds": 0.0,
     }
 
 
@@ -175,6 +182,18 @@ class TripPlannerService:
             except Exception as exc:
                 logger.warn(f"Failed to increment AI generation count: {exc}")
 
+        except BudgetExceeded as exc:
+            logger.warn(
+                "Trip planning graph exhausted its time budget",
+                {"timeout_seconds": settings.GRAPH_TIMEOUT_SECONDS, "error": str(exc)},
+            )
+            yield _sse(
+                "error",
+                {
+                    "message": "Trip planning exceeded its time budget. Please try again.",
+                    "code": "GRAPH_BUDGET_EXHAUSTED",
+                },
+            )
         except TimeoutError:
             logger.error(
                 "Trip planning graph timed out",

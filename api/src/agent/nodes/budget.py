@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 
+from src.agent.budget import guard
 from src.agent.prompts import BUDGET_PROMPT
 from src.agent.react_executor import react_execute
 from src.agent.state import TripPlanState
@@ -13,6 +14,7 @@ from src.utils.logger import logger
 
 async def budget_node(state: TripPlanState) -> dict:
     """Estimate budget using real Amadeus flight prices + aggregated data."""
+    guard(state, min_required=5.0)
     logger.info("=== Budget Estimator Node ===")
 
     dest = state.get("selected_destination", {})

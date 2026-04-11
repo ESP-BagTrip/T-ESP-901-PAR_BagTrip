@@ -20,18 +20,11 @@ class TestAdminSchemas:
         user_id = uuid4()
         now = datetime.now(UTC)
         user = AdminUserResponse(
-            id=user_id,
-            email="test@example.com",
-            created_at=now,
-            updated_at=now
+            id=user_id, email="test@example.com", created_at=now, updated_at=now
         )
 
         response = AdminListResponse[AdminUserResponse](
-            items=[user],
-            total=1,
-            page=1,
-            limit=10,
-            total_pages=1
+            items=[user], total=1, page=1, limit=10, total_pages=1
         )
 
         assert response.items[0].id == user_id
@@ -55,7 +48,7 @@ class TestAdminSchemas:
             id=user_id,
             email="test@example.com",
             created_at=now,  # alias
-            updated_at=None  # alias
+            updated_at=None,  # alias
         )
 
         assert response.id == user_id
@@ -87,7 +80,7 @@ class TestAdminSchemas:
             end_date=today,
             status="active",
             created_at=now,
-            updated_at=now
+            updated_at=now,
         )
 
         assert response.id == trip_id
@@ -102,7 +95,7 @@ class TestAdminSchemas:
             user_id=user_id,
             user_email="user@example.com",
             created_at=now,
-            updated_at=now
+            updated_at=now,
         )
         assert response_empty.originIata is None
         assert response_empty.startDate is None
@@ -126,7 +119,7 @@ class TestAdminSchemas:
             date_of_birth=birth_date,
             gender="MALE",
             created_at=now,
-            updated_at=now
+            updated_at=now,
         )
 
         assert response.id == traveler_id
@@ -157,7 +150,7 @@ class TestAdminSchemas:
             status="CONFIRMED",
             booking_reference="REF123",
             created_at=now,
-            updated_at=now
+            updated_at=now,
         )
 
         assert response.id == booking_id

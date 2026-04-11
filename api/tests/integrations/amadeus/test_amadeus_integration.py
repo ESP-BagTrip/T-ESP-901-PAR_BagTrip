@@ -41,8 +41,10 @@ from src.utils.errors import AppError
 @pytest.fixture
 def mock_token():
     """Mock the fetch_token function."""
-    with patch("src.integrations.amadeus.auth._token_cache", None), \
-         patch("src.integrations.amadeus.auth.fetch_token", return_value="test_token") as mock:
+    with (
+        patch("src.integrations.amadeus.auth._token_cache", None),
+        patch("src.integrations.amadeus.auth.fetch_token", return_value="test_token") as mock,
+    ):
         yield mock
 
 
@@ -62,7 +64,7 @@ class TestAmadeusAuth:
             mock_response.json.return_value = {
                 "access_token": "new_token",
                 "expires_in": 1800,
-                "token_type": "Bearer"
+                "token_type": "Bearer",
             }
             mock_http_client.post.return_value = mock_response
 
@@ -87,8 +89,10 @@ class TestAmadeusAuth:
         past_time = (time.time() - 1000) * 1000
         cache = {"access_token": "expired_token", "expires_at": past_time}
 
-        with patch("src.integrations.amadeus.auth._token_cache", cache), \
-             patch("src.integrations.amadeus.auth.settings"):
+        with (
+            patch("src.integrations.amadeus.auth._token_cache", cache),
+            patch("src.integrations.amadeus.auth.settings"),
+        ):
             mock_response = MagicMock()
             mock_response.status_code = 200
             mock_response.json.return_value = {"access_token": "fresh_token", "expires_in": 1800}
@@ -106,8 +110,10 @@ class TestAmadeusAuth:
             mock_response.text = "Error"
             mock_http_client.post.return_value = mock_response
 
-            with patch("src.integrations.amadeus.auth._token_cache", None), \
-                 pytest.raises(AppError) as exc_info:
+            with (
+                patch("src.integrations.amadeus.auth._token_cache", None),
+                pytest.raises(AppError) as exc_info,
+            ):
                 await fetch_token()
             assert exc_info.value.status_code == 502
             assert exc_info.value.code == "UPSTREAM_AUTH_ERROR"
@@ -121,8 +127,10 @@ class TestAmadeusAuth:
             mock_response.json.return_value = {"foo": "bar"}  # No access_token
             mock_http_client.post.return_value = mock_response
 
-            with patch("src.integrations.amadeus.auth._token_cache", None), \
-                 pytest.raises(AppError) as exc_info:
+            with (
+                patch("src.integrations.amadeus.auth._token_cache", None),
+                pytest.raises(AppError) as exc_info,
+            ):
                 await fetch_token()
             assert exc_info.value.status_code == 502
             assert "missing access_token" in str(exc_info.value)
@@ -138,8 +146,10 @@ class TestAmadeusAuth:
             error.request = mock_request
             mock_http_client.post.side_effect = error
 
-            with patch("src.integrations.amadeus.auth._token_cache", None), \
-                 pytest.raises(AppError) as exc_info:
+            with (
+                patch("src.integrations.amadeus.auth._token_cache", None),
+                pytest.raises(AppError) as exc_info,
+            ):
                 await fetch_token()
             assert exc_info.value.status_code == 503
             assert exc_info.value.code == "UPSTREAM_UNAVAILABLE"
@@ -164,7 +174,13 @@ class TestAmadeusLocations:
                     "self": {"href": "url", "methods": ["GET"]},
                     "timeZoneOffset": "+02:00",
                     "geoCode": {"latitude": 49.0, "longitude": 2.35},
-                    "address": {"cityName": "Paris", "cityCode": "PAR", "countryName": "France", "countryCode": "FR", "regionCode": "EU"}
+                    "address": {
+                        "cityName": "Paris",
+                        "cityCode": "PAR",
+                        "countryName": "France",
+                        "countryCode": "FR",
+                        "regionCode": "EU",
+                    },
                 }
             ]
         }
@@ -208,7 +224,13 @@ class TestAmadeusLocations:
                 "self": {"href": "url", "methods": ["GET"]},
                 "timeZoneOffset": "+02:00",
                 "geoCode": {"latitude": 49.0, "longitude": 2.35},
-                "address": {"cityName": "Paris", "cityCode": "PAR", "countryName": "France", "countryCode": "FR", "regionCode": "EU"}
+                "address": {
+                    "cityName": "Paris",
+                    "cityCode": "PAR",
+                    "countryName": "France",
+                    "countryCode": "FR",
+                    "regionCode": "EU",
+                },
             }
         }
         mock_http_client.get.return_value = mock_response
@@ -262,7 +284,13 @@ class TestAmadeusLocations:
                     "self": {"href": "url", "methods": ["GET"]},
                     "timeZoneOffset": "+02:00",
                     "geoCode": {"latitude": 49.01, "longitude": 2.55},
-                    "address": {"cityName": "Paris", "cityCode": "PAR", "countryName": "France", "countryCode": "FR", "regionCode": "EU"}
+                    "address": {
+                        "cityName": "Paris",
+                        "cityCode": "PAR",
+                        "countryName": "France",
+                        "countryCode": "FR",
+                        "regionCode": "EU",
+                    },
                 }
             ]
         }
@@ -317,7 +345,7 @@ class TestAmadeusFlights:
                 currencyCode="EUR",
                 maxPrice=1000,
                 max=5,
-                includedAirlineCodes="AF,BA"
+                includedAirlineCodes="AF,BA",
             )
             await search_flight_offers(query)
 
@@ -343,7 +371,7 @@ class TestAmadeusFlights:
                 departureDate="2025-12-15",
                 adults=1,
                 includedAirlineCodes="AF",
-                excludedAirlineCodes="BA"
+                excludedAirlineCodes="BA",
             )
             await search_flight_offers(query)
 
@@ -363,7 +391,12 @@ class TestAmadeusFlights:
         mock_http_client.get.return_value = mock_response
 
         with patch("src.integrations.amadeus.flights.fetch_token", return_value="token"):
-            query = FlightOfferSearchQuery(originLocationCode="PAR", destinationLocationCode="NYC", departureDate="2025-12-15", adults=1)
+            query = FlightOfferSearchQuery(
+                originLocationCode="PAR",
+                destinationLocationCode="NYC",
+                departureDate="2025-12-15",
+                adults=1,
+            )
             with pytest.raises(AppError) as exc_info:
                 await search_flight_offers(query)
             assert exc_info.value.status_code == 502
@@ -385,7 +418,7 @@ class TestAmadeusFlights:
                 duration=5,
                 nonStop=True,
                 maxPrice=500,
-                viewBy="COUNTRY"
+                viewBy="COUNTRY",
             )
             await search_flight_destinations(query)
 
@@ -448,7 +481,18 @@ class TestAmadeusFlights:
 
         with patch("src.integrations.amadeus.flights.fetch_token", return_value="token"):
             # Minimal mock offer
-            offer = FlightOffer(type="flight-offer", id="1", source="GDS", instantTicketingRequired=False, nonHomogeneous=False, itineraries=[], price={"currency": "EUR", "total": "100", "base": "100", "grandTotal": "100"}, pricingOptions={"fareType": ["P"], "includedCheckedBagsOnly": True}, validatingAirlineCodes=["AF"], travelerPricings=[])
+            offer = FlightOffer(
+                type="flight-offer",
+                id="1",
+                source="GDS",
+                instantTicketingRequired=False,
+                nonHomogeneous=False,
+                itineraries=[],
+                price={"currency": "EUR", "total": "100", "base": "100", "grandTotal": "100"},
+                pricingOptions={"fareType": ["P"], "includedCheckedBagsOnly": True},
+                validatingAirlineCodes=["AF"],
+                travelerPricings=[],
+            )
             with pytest.raises(AppError) as exc_info:
                 await confirm_flight_price(offer)
             assert exc_info.value.status_code == 400
@@ -464,7 +508,18 @@ class TestAmadeusFlights:
         mock_http_client.post.return_value = mock_response
 
         with patch("src.integrations.amadeus.flights.fetch_token", return_value="token"):
-            offer = FlightOffer(type="flight-offer", id="1", source="GDS", instantTicketingRequired=False, nonHomogeneous=False, itineraries=[], price={"currency": "EUR", "total": "100", "base": "100", "grandTotal": "100"}, pricingOptions={"fareType": ["P"], "includedCheckedBagsOnly": True}, validatingAirlineCodes=["AF"], travelerPricings=[])
+            offer = FlightOffer(
+                type="flight-offer",
+                id="1",
+                source="GDS",
+                instantTicketingRequired=False,
+                nonHomogeneous=False,
+                itineraries=[],
+                price={"currency": "EUR", "total": "100", "base": "100", "grandTotal": "100"},
+                pricingOptions={"fareType": ["P"], "includedCheckedBagsOnly": True},
+                validatingAirlineCodes=["AF"],
+                travelerPricings=[],
+            )
             with pytest.raises(AppError) as exc_info:
                 await create_flight_order(offer, [])
             assert exc_info.value.status_code == 400
@@ -516,33 +571,47 @@ class TestAmadeusClient:
         # Locations are now handled by aviation_data (offline), not AmadeusClient.
 
         # Flights
-        with patch("src.integrations.amadeus.client.search_flight_offers", new_callable=AsyncMock) as mock_impl:
+        with patch(
+            "src.integrations.amadeus.client.search_flight_offers", new_callable=AsyncMock
+        ) as mock_impl:
             await client.search_flight_offers("query")
             mock_impl.assert_called_once()
 
-        with patch("src.integrations.amadeus.client.search_flight_destinations", new_callable=AsyncMock) as mock_impl:
+        with patch(
+            "src.integrations.amadeus.client.search_flight_destinations", new_callable=AsyncMock
+        ) as mock_impl:
             await client.search_flight_destinations("query")
             mock_impl.assert_called_once()
 
-        with patch("src.integrations.amadeus.client.search_flight_cheapest_dates", new_callable=AsyncMock) as mock_impl:
+        with patch(
+            "src.integrations.amadeus.client.search_flight_cheapest_dates", new_callable=AsyncMock
+        ) as mock_impl:
             await client.search_flight_cheapest_dates("query")
             mock_impl.assert_called_once()
 
-        with patch("src.integrations.amadeus.client.confirm_flight_price", new_callable=AsyncMock) as mock_impl:
+        with patch(
+            "src.integrations.amadeus.client.confirm_flight_price", new_callable=AsyncMock
+        ) as mock_impl:
             await client.confirm_flight_price("offer")
             mock_impl.assert_called_once()
 
-        with patch("src.integrations.amadeus.client.create_flight_order", new_callable=AsyncMock) as mock_impl:
+        with patch(
+            "src.integrations.amadeus.client.create_flight_order", new_callable=AsyncMock
+        ) as mock_impl:
             await client.create_flight_order("offer", [])
             mock_impl.assert_called_once()
 
         # Hotels
-        with patch("src.integrations.amadeus.client.search_hotel_list", new_callable=AsyncMock) as mock_impl:
+        with patch(
+            "src.integrations.amadeus.client.search_hotel_list", new_callable=AsyncMock
+        ) as mock_impl:
             query = HotelListSearchQuery(cityCode="PAR")
             await client.search_hotel_list(query)
             mock_impl.assert_called_once()
 
-        with patch("src.integrations.amadeus.client.search_hotel_offers", new_callable=AsyncMock) as mock_impl:
+        with patch(
+            "src.integrations.amadeus.client.search_hotel_offers", new_callable=AsyncMock
+        ) as mock_impl:
             query = HotelOffersSearchQuery(hotelIds="H1")
             await client.search_hotel_offers(query)
             mock_impl.assert_called_once()

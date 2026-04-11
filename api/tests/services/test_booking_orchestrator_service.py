@@ -37,7 +37,7 @@ class TestBookingOrchestratorService:
             trip_id=uuid.uuid4(),
             type="flight",
             status="AUTHORIZED",
-            selected_offer_id=offer_id
+            selected_offer_id=offer_id,
         )
 
         # Valid FlightOffer structure
@@ -60,9 +60,9 @@ class TestBookingOrchestratorService:
                             "duration": "PT2H",
                             "id": "1",
                             "numberOfStops": 0,
-                            "blacklistedInEU": False
+                            "blacklistedInEU": False,
                         }
-                    ]
+                    ],
                 }
             ],
             "price": {
@@ -70,12 +70,9 @@ class TestBookingOrchestratorService:
                 "total": "100.00",
                 "base": "80.00",
                 "grandTotal": "100.00",
-                "fees": [{"amount": "0.00", "type": "SUPPLIER"}]
+                "fees": [{"amount": "0.00", "type": "SUPPLIER"}],
             },
-            "pricingOptions": {
-                "fareType": ["PUBLISHED"],
-                "includedCheckedBagsOnly": True
-            },
+            "pricingOptions": {"fareType": ["PUBLISHED"], "includedCheckedBagsOnly": True},
             "validatingAirlineCodes": ["BA"],
             "travelerPricings": [
                 {
@@ -89,18 +86,15 @@ class TestBookingOrchestratorService:
                             "cabin": "ECONOMY",
                             "fareBasis": "Y",
                             "class": "Y",
-                            "includedCheckedBags": {"quantity": 1}
+                            "includedCheckedBags": {"quantity": 1},
                         }
-                    ]
+                    ],
                 }
-            ]
+            ],
         }
 
         # Mock flight offer
-        flight_offer = FlightOffer(
-            id=offer_id,
-            offer_json=valid_offer_json
-        )
+        flight_offer = FlightOffer(id=offer_id, offer_json=valid_offer_json)
 
         # Mock traveler
         traveler = TripTraveler(
@@ -108,16 +102,19 @@ class TestBookingOrchestratorService:
             trip_id=intent.trip_id,
             first_name="John",
             last_name="Doe",
-            date_of_birth=uuid.uuid4(), # Mocking date object, but we need actual date
-            gender="MALE"
+            date_of_birth=uuid.uuid4(),  # Mocking date object, but we need actual date
+            gender="MALE",
         )
         # Fix date_of_birth to be a date object
         from datetime import date
+
         traveler.date_of_birth = date(1990, 1, 1)
 
         # Setup DB queries
         mock_db_session.query.return_value.filter.return_value.first.side_effect = [
-            intent, flight_offer, traveler
+            intent,
+            flight_offer,
+            traveler,
         ]
 
         # Mock Amadeus response
@@ -133,12 +130,14 @@ class TestBookingOrchestratorService:
 
         assert result.status == "BOOKED"
         assert result.amadeus_order_id == "ORDER_123"
-        mock_db_session.add.assert_called() # FlightOrder added
+        mock_db_session.add.assert_called()  # FlightOrder added
 
     @pytest.mark.asyncio
     async def test_book_flight_missing_offer(self, mock_db_session):
         """Test booking flight without selected offer."""
-        intent = BookingIntent(id=uuid.uuid4(), status="AUTHORIZED", type="flight", selected_offer_id=None)
+        intent = BookingIntent(
+            id=uuid.uuid4(), status="AUTHORIZED", type="flight", selected_offer_id=None
+        )
         mock_db_session.query.return_value.filter.return_value.first.return_value = intent
 
         with pytest.raises(AppError) as exc:

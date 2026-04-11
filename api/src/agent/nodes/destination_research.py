@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from src.agent.budget import guard
 from src.agent.prompts import DESTINATION_RESEARCH_PROMPT
 from src.agent.react_executor import react_execute
 from src.agent.state import TripPlanState
@@ -11,6 +12,7 @@ from src.utils.logger import logger
 
 async def destination_research_node(state: TripPlanState) -> dict:
     """Research destinations using Amadeus + Open-Meteo via ReAct tools."""
+    guard(state, min_required=5.0)
     logger.info("=== Destination Research Node ===")
 
     # If the user already selected a destination, skip LLM and resolve weather only

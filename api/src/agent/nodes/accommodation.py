@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from src.agent.budget import guard
 from src.agent.prompts import ACCOMMODATION_PROMPT
 from src.agent.react_executor import react_execute
 from src.agent.state import TripPlanState
@@ -11,6 +12,7 @@ from src.utils.logger import logger
 
 async def accommodation_node(state: TripPlanState) -> dict:
     """Search real hotel prices using Amadeus via ReAct tools."""
+    guard(state, min_required=5.0)
     logger.info("=== Accommodation Node ===")
 
     dest = state.get("selected_destination", {})

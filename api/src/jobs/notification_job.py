@@ -12,10 +12,14 @@ from src.models.flight_offer import FlightOffer
 from src.models.flight_order import FlightOrder
 from src.models.trip import Trip
 from src.services.notification_service import NotificationService
+from src.utils.distributed_lock import redis_lock
 from src.utils.logger import logger
 
 TAG = "[NOTIFICATION_JOB]"
 INTERVAL_SECONDS = 30 * 60  # 30 minutes
+# Lock TTL — 2× interval so a slow tick can't get stepped on, not so long that
+# a crashed worker leaves the lock stuck past the next tick.
+_LOCK_TTL_SECONDS = 2 * INTERVAL_SECONDS
 
 
 def _check_departure_reminders(db: Session) -> int:
@@ -292,19 +296,29 @@ def run_notification_checks() -> dict[str, int]:
 
 
 async def notification_scheduler() -> None:
-    """Async loop: run notification checks every 30 minutes."""
+    """Async loop: run notification checks every 30 minutes.
+
+    The body is wrapped in a distributed Redis lock so that multi-worker
+    FastAPI deployments don't duplicate push notifications. The
+    `_already_sent()` window check remains as a belt-and-braces guard against
+    cross-tick duplicates on the same instance.
+    """
     logger.info(f"{TAG} Scheduler started (interval: {INTERVAL_SECONDS}s)")
     try:
         while True:
-            try:
-                results = await asyncio.to_thread(run_notification_checks)
-                total = sum(results.values())
-                if total > 0:
-                    logger.info(f"{TAG} Sent {total} notifications: {results}")
+            async with redis_lock("job:notification", ttl_seconds=_LOCK_TTL_SECONDS) as acquired:
+                if not acquired:
+                    logger.info(f"{TAG} Lock held by peer worker, skipping tick")
                 else:
-                    logger.info(f"{TAG} No notifications to send")
-            except Exception as e:
-                logger.error(f"{TAG} Error: {e}")
+                    try:
+                        results = await asyncio.to_thread(run_notification_checks)
+                        total = sum(results.values())
+                        if total > 0:
+                            logger.info(f"{TAG} Sent {total} notifications: {results}")
+                        else:
+                            logger.info(f"{TAG} No notifications to send")
+                    except Exception as e:
+                        logger.error(f"{TAG} Error: {e}")
 
             await asyncio.sleep(INTERVAL_SECONDS)
     except asyncio.CancelledError:

@@ -16,20 +16,24 @@ from src.utils.errors import AppError
 app = FastAPI()
 app.include_router(admin_router)
 
+
 # Mock dependencies
 @pytest.fixture
 def mock_db():
     return MagicMock()
 
+
 @pytest.fixture
 def mock_current_user():
     return MagicMock(id=uuid4(), email="admin@example.com", is_admin=True, plan="ADMIN")
+
 
 @pytest.fixture
 def client(mock_db, mock_current_user):
     # Override dependencies
     from src.api.auth.admin_guard import require_admin
     from src.config.database import get_db
+
     app.dependency_overrides[get_current_user] = lambda: mock_current_user
     app.dependency_overrides[require_admin] = lambda: mock_current_user
     app.dependency_overrides[get_db] = lambda: mock_db
@@ -40,10 +44,12 @@ def client(mock_db, mock_current_user):
     # Clean up overrides
     app.dependency_overrides = {}
 
+
 @pytest.fixture
 def mock_admin_service():
     with patch("src.api.admin.routes.AdminService") as mock:
         yield mock
+
 
 class TestAdminRoutes:
     """Tests pour les routes admin."""
@@ -58,12 +64,9 @@ class TestAdminRoutes:
         """Test listing users successfully."""
         user_id = uuid4()
         now = datetime.now(UTC)
-        mock_data = [{
-            "id": user_id,
-            "email": "user@example.com",
-            "created_at": now,
-            "updated_at": now
-        }]
+        mock_data = [
+            {"id": user_id, "email": "user@example.com", "created_at": now, "updated_at": now}
+        ]
         mock_admin_service.get_all_users.return_value = (mock_data, 1, 1)
 
         response = client.get("/admin/users?page=1&limit=10")
@@ -100,14 +103,16 @@ class TestAdminRoutes:
         trip_id = uuid4()
         user_id = uuid4()
         now = datetime.now(UTC)
-        mock_data = [{
-            "id": trip_id,
-            "user_id": user_id,
-            "user_email": "user@example.com",
-            "title": "Trip 1",
-            "created_at": now,
-            "updated_at": now
-        }]
+        mock_data = [
+            {
+                "id": trip_id,
+                "user_id": user_id,
+                "user_email": "user@example.com",
+                "title": "Trip 1",
+                "created_at": now,
+                "updated_at": now,
+            }
+        ]
         mock_admin_service.get_all_trips.return_value = (mock_data, 1, 1)
 
         response = client.get("/admin/trips")
@@ -129,16 +134,18 @@ class TestAdminRoutes:
         traveler_id = uuid4()
         trip_id = uuid4()
         now = datetime.now(UTC)
-        mock_data = [{
-            "id": traveler_id,
-            "trip_id": trip_id,
-            "user_email": "user@example.com",
-            "traveler_type": "ADULT",
-            "first_name": "John",
-            "last_name": "Doe",
-            "created_at": now,
-            "updated_at": now
-        }]
+        mock_data = [
+            {
+                "id": traveler_id,
+                "trip_id": trip_id,
+                "user_email": "user@example.com",
+                "traveler_type": "ADULT",
+                "first_name": "John",
+                "last_name": "Doe",
+                "created_at": now,
+                "updated_at": now,
+            }
+        ]
         mock_admin_service.get_all_travelers.return_value = (mock_data, 1, 1)
 
         response = client.get("/admin/travelers")
@@ -161,14 +168,16 @@ class TestAdminRoutes:
         trip_id = uuid4()
         offer_id = uuid4()
         now = datetime.now(UTC)
-        mock_data = [{
-            "id": booking_id,
-            "trip_id": trip_id,
-            "user_email": "user@example.com",
-            "flight_offer_id": offer_id,
-            "created_at": now,
-            "updated_at": now
-        }]
+        mock_data = [
+            {
+                "id": booking_id,
+                "trip_id": trip_id,
+                "user_email": "user@example.com",
+                "flight_offer_id": offer_id,
+                "created_at": now,
+                "updated_at": now,
+            }
+        ]
         mock_admin_service.get_all_flight_bookings.return_value = (mock_data, 1, 1)
 
         response = client.get("/admin/flight-bookings")

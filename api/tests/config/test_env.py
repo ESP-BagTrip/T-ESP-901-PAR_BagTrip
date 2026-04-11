@@ -62,22 +62,24 @@ class TestSettings:
 
     def test_settings_optional_fields(self, mock_env_vars):
         """Test optional fields logic."""
-        with patch.dict(os.environ, {
-            "STRIPE_SECRET_KEY": "sk_test_123",
-            "LANGCHAIN_API_KEY": "lc_123"
-        }):
+        with patch.dict(
+            os.environ, {"STRIPE_SECRET_KEY": "sk_test_123", "LANGCHAIN_API_KEY": "lc_123"}
+        ):
             settings = Settings()
             assert settings.STRIPE_SECRET_KEY == "sk_test_123"
             assert settings.LANGCHAIN_API_KEY == "lc_123"
 
     def test_settings_redis_and_timeouts_overridable(self, mock_env_vars):
         """Test that Redis URL and timeout settings can be overridden."""
-        with patch.dict(os.environ, {
-            "REDIS_URL": "redis://myredis:6379/1",
-            "GRAPH_TIMEOUT_SECONDS": "600",
-            "LLM_CALL_TIMEOUT_SECONDS": "90",
-            "NODE_TIMEOUT_SECONDS": "180",
-        }):
+        with patch.dict(
+            os.environ,
+            {
+                "REDIS_URL": "redis://myredis:6379/1",
+                "GRAPH_TIMEOUT_SECONDS": "600",
+                "LLM_CALL_TIMEOUT_SECONDS": "90",
+                "NODE_TIMEOUT_SECONDS": "180",
+            },
+        ):
             settings = Settings()
             assert settings.REDIS_URL == "redis://myredis:6379/1"
             assert settings.GRAPH_TIMEOUT_SECONDS == 600
@@ -103,13 +105,16 @@ class TestJwtSecretValidation:
 
     def test_jwt_secret_custom_allowed_in_production(self, mock_env_vars):
         """Test that a custom JWT_SECRET is allowed in production."""
-        with patch.dict(os.environ, {
-            "NODE_ENV": "production",
-            "JWT_SECRET": "my-strong-production-secret-key-2026",
-            "LLM_API_KEY": "test_key",
-            "COOKIE_SECURE": "true",
-            "STRIPE_WEBHOOK_SECRET": "whsec_test_prod",
-        }):
+        with patch.dict(
+            os.environ,
+            {
+                "NODE_ENV": "production",
+                "JWT_SECRET": "my-strong-production-secret-key-2026",
+                "LLM_API_KEY": "test_key",
+                "COOKIE_SECURE": "true",
+                "STRIPE_WEBHOOK_SECRET": "whsec_test_prod",
+            },
+        ):
             settings = Settings()
             assert settings.JWT_SECRET == "my-strong-production-secret-key-2026"
             assert settings.COOKIE_SECURE is True

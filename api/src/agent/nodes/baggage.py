@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 
+from src.agent.budget import guard
 from src.agent.prompts import BAGGAGE_PROMPT
 from src.agent.state import TripPlanState
 from src.services.llm_service import LLMService
@@ -12,6 +13,7 @@ from src.utils.logger import logger
 
 async def baggage_node(state: TripPlanState) -> dict:
     """Suggest packing items grounded by real weather data."""
+    guard(state, min_required=5.0)
     logger.info("=== Baggage Advisor Node ===")
 
     dest = state.get("selected_destination", {})

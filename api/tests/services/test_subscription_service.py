@@ -18,7 +18,10 @@ class TestSubscriptionService:
     """Tests for SubscriptionService."""
 
     @patch("stripe.checkout.Session.create")
-    @patch("src.services.stripe_products_service.STRIPE_PRODUCT_IDS", {"premium_subscription": "price_123"})
+    @patch(
+        "src.services.stripe_products_service.STRIPE_PRODUCT_IDS",
+        {"premium_subscription": "price_123"},
+    )
     @patch("src.services.subscription_service.PlanService")
     @patch("src.services.subscription_service.settings")
     def test_create_checkout_success(
@@ -101,9 +104,7 @@ class TestSubscriptionService:
 
     @patch("stripe.billing_portal.Session.create")
     @patch("src.services.subscription_service.settings")
-    def test_create_portal_success(
-        self, mock_settings, mock_portal_create, mock_db_session
-    ):
+    def test_create_portal_success(self, mock_settings, mock_portal_create, mock_db_session):
         """Test successful portal session creation."""
         mock_settings.STRIPE_SECRET_KEY = "sk_test"
 

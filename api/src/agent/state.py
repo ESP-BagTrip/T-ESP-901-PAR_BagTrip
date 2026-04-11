@@ -50,3 +50,10 @@ class TripPlanState(TypedDict, total=False):
 
     # === Final assembled plan ===
     trip_plan: dict
+
+    # === Graph budget tracking (Sprint 3) ===
+    # Monotonic deadline past which the graph must abort — set once by
+    # `TripPlannerService._build_initial_state`. Nodes consult it via
+    # `src.agent.budget.remaining` / `guard`.
+    budget_deadline_monotonic: float
+    budget_consumed_seconds: float

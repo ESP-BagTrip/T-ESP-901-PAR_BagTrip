@@ -52,6 +52,7 @@ def mock_db_session():
 @pytest.fixture
 def override_get_db(mock_db_session):
     """Override the get_db dependency."""
+
     def _get_db():
         yield mock_db_session
 
@@ -63,10 +64,7 @@ def override_get_db(mock_db_session):
 @pytest.fixture
 def mock_user():
     """Create a mock user."""
-    return User(
-        id=uuid.uuid4(),
-        email="test@example.com"
-    )
+    return User(id=uuid.uuid4(), email="test@example.com")
 
 
 @pytest.fixture
@@ -123,7 +121,16 @@ class TestCreateTraveler:
     """Tests for POST /v1/trips/{tripId}/travelers."""
 
     @patch("src.api.travelers.routes.TravelersService")
-    def test_create_traveler_success(self, mock_service, client, override_get_current_user, override_get_db, override_trip_access, mock_traveler, mock_trip):
+    def test_create_traveler_success(
+        self,
+        mock_service,
+        client,
+        override_get_current_user,
+        override_get_db,
+        override_trip_access,
+        mock_traveler,
+        mock_trip,
+    ):
         """Test successful traveler creation."""
         mock_service.create_traveler.return_value = mock_traveler
 
@@ -132,7 +139,7 @@ class TestCreateTraveler:
             "travelerType": "ADULT",
             "firstName": "John",
             "lastName": "Doe",
-            "dateOfBirth": "1990-01-01"
+            "dateOfBirth": "1990-01-01",
         }
 
         response = client.post(f"/v1/trips/{trip_id}/travelers", json=payload)
@@ -144,16 +151,20 @@ class TestCreateTraveler:
         mock_service.create_traveler.assert_called_once()
 
     @patch("src.api.travelers.routes.TravelersService")
-    def test_create_traveler_error(self, mock_service, client, override_get_current_user, override_get_db, override_trip_access, mock_trip):
+    def test_create_traveler_error(
+        self,
+        mock_service,
+        client,
+        override_get_current_user,
+        override_get_db,
+        override_trip_access,
+        mock_trip,
+    ):
         """Test creation with AppError."""
         mock_service.create_traveler.side_effect = AppError("ERROR", 400, "Bad Request")
 
         trip_id = mock_trip.id
-        payload = {
-            "travelerType": "ADULT",
-            "firstName": "John",
-            "lastName": "Doe"
-        }
+        payload = {"travelerType": "ADULT", "firstName": "John", "lastName": "Doe"}
 
         response = client.post(f"/v1/trips/{trip_id}/travelers", json=payload)
 
@@ -165,7 +176,16 @@ class TestListTravelers:
     """Tests for GET /v1/trips/{tripId}/travelers."""
 
     @patch("src.api.travelers.routes.TravelersService")
-    def test_list_travelers_success(self, mock_service, client, override_get_current_user, override_get_db, override_trip_access, mock_traveler, mock_trip):
+    def test_list_travelers_success(
+        self,
+        mock_service,
+        client,
+        override_get_current_user,
+        override_get_db,
+        override_trip_access,
+        mock_traveler,
+        mock_trip,
+    ):
         """Test successful traveler listing."""
         mock_service.get_travelers_by_trip.return_value = [mock_traveler]
 
@@ -180,7 +200,15 @@ class TestListTravelers:
         mock_service.get_travelers_by_trip.assert_called_once()
 
     @patch("src.api.travelers.routes.TravelersService")
-    def test_list_travelers_error(self, mock_service, client, override_get_current_user, override_get_db, override_trip_access, mock_trip):
+    def test_list_travelers_error(
+        self,
+        mock_service,
+        client,
+        override_get_current_user,
+        override_get_db,
+        override_trip_access,
+        mock_trip,
+    ):
         """Test listing with AppError."""
         mock_service.get_travelers_by_trip.side_effect = AppError("ERROR", 500, "Internal Error")
 
@@ -196,15 +224,22 @@ class TestUpdateTraveler:
     """Tests for PATCH /v1/trips/{tripId}/travelers/{travelerId}."""
 
     @patch("src.api.travelers.routes.TravelersService")
-    def test_update_traveler_success(self, mock_service, client, override_get_current_user, override_get_db, override_trip_access, mock_traveler, mock_trip):
+    def test_update_traveler_success(
+        self,
+        mock_service,
+        client,
+        override_get_current_user,
+        override_get_db,
+        override_trip_access,
+        mock_traveler,
+        mock_trip,
+    ):
         """Test successful traveler update."""
         mock_service.update_traveler.return_value = mock_traveler
 
         trip_id = mock_trip.id
         traveler_id = mock_traveler.id
-        payload = {
-            "firstName": "Johnny"
-        }
+        payload = {"firstName": "Johnny"}
 
         response = client.patch(f"/v1/trips/{trip_id}/travelers/{traveler_id}", json=payload)
 
@@ -214,7 +249,15 @@ class TestUpdateTraveler:
         mock_service.update_traveler.assert_called_once()
 
     @patch("src.api.travelers.routes.TravelersService")
-    def test_update_traveler_error(self, mock_service, client, override_get_current_user, override_get_db, override_trip_access, mock_trip):
+    def test_update_traveler_error(
+        self,
+        mock_service,
+        client,
+        override_get_current_user,
+        override_get_db,
+        override_trip_access,
+        mock_trip,
+    ):
         """Test update with AppError."""
         mock_service.update_traveler.side_effect = AppError("ERROR", 404, "Not Found")
 
@@ -232,7 +275,15 @@ class TestDeleteTraveler:
     """Tests for DELETE /v1/trips/{tripId}/travelers/{travelerId}."""
 
     @patch("src.api.travelers.routes.TravelersService")
-    def test_delete_traveler_success(self, mock_service, client, override_get_current_user, override_get_db, override_trip_access, mock_trip):
+    def test_delete_traveler_success(
+        self,
+        mock_service,
+        client,
+        override_get_current_user,
+        override_get_db,
+        override_trip_access,
+        mock_trip,
+    ):
         """Test successful traveler deletion."""
         mock_service.delete_traveler.return_value = None
 
@@ -245,7 +296,15 @@ class TestDeleteTraveler:
         mock_service.delete_traveler.assert_called_once()
 
     @patch("src.api.travelers.routes.TravelersService")
-    def test_delete_traveler_error(self, mock_service, client, override_get_current_user, override_get_db, override_trip_access, mock_trip):
+    def test_delete_traveler_error(
+        self,
+        mock_service,
+        client,
+        override_get_current_user,
+        override_get_db,
+        override_trip_access,
+        mock_trip,
+    ):
         """Test deletion with AppError."""
         mock_service.delete_traveler.side_effect = AppError("ERROR", 403, "Forbidden")
 

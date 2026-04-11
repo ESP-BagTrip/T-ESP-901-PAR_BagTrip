@@ -5,6 +5,7 @@ The production code now pulls its AsyncClient from a process-wide singleton
 per call, so tests must patch that symbol in each amadeus submodule rather
 than patching `httpx.AsyncClient` at the top level.
 """
+
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -18,17 +19,22 @@ def mock_http_client():
     assert on call args the same way they did against the old per-request client.
     """
     mock_client = AsyncMock()
-    with patch(
-        "src.integrations.amadeus.auth.get_http_client",
-        return_value=mock_client,
-    ), patch(
-        "src.integrations.amadeus.flights.get_http_client",
-        return_value=mock_client,
-    ), patch(
-        "src.integrations.amadeus.hotels.get_http_client",
-        return_value=mock_client,
-    ), patch(
-        "src.integrations.amadeus.locations.get_http_client",
-        return_value=mock_client,
+    with (
+        patch(
+            "src.integrations.amadeus.auth.get_http_client",
+            return_value=mock_client,
+        ),
+        patch(
+            "src.integrations.amadeus.flights.get_http_client",
+            return_value=mock_client,
+        ),
+        patch(
+            "src.integrations.amadeus.hotels.get_http_client",
+            return_value=mock_client,
+        ),
+        patch(
+            "src.integrations.amadeus.locations.get_http_client",
+            return_value=mock_client,
+        ),
     ):
         yield mock_client

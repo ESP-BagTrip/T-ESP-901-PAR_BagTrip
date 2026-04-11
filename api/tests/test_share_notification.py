@@ -46,12 +46,12 @@ def _setup_db(owner, invited_user, trip):
     call_index = {"i": 0}
     # Each entry: (first_return, count_return)
     responses = [
-        (trip, None),           # 1. _check_trip_not_completed → Trip
-        (invited_user, None),   # 2. email lookup → User
-        (None, None),           # 3. already shared check → None
-        (owner, None),          # 4. owner lookup for quota
-        (None, 0),              # 5. share count for quota
-        (trip, None),           # 6. trip lookup for notification
+        (trip, None),  # 1. _check_trip_not_completed → Trip
+        (invited_user, None),  # 2. email lookup → User
+        (None, None),  # 3. already shared check → None
+        (owner, None),  # 4. owner lookup for quota
+        (None, 0),  # 5. share count for quota
+        (trip, None),  # 6. trip lookup for notification
     ]
 
     def query_side_effect(model):

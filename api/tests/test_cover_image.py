@@ -46,11 +46,7 @@ async def test_fetch_success(mock_http_client):
     """Mock httpx → valid Unsplash response → URL extracted."""
     mock_response = httpx.Response(
         200,
-        json={
-            "results": [
-                {"urls": {"regular": "https://images.unsplash.com/photo-abc?w=1080"}}
-            ]
-        },
+        json={"results": [{"urls": {"regular": "https://images.unsplash.com/photo-abc?w=1080"}}]},
         request=httpx.Request("GET", "https://api.unsplash.com/search/photos"),
     )
     mock_http_client.get.return_value = mock_response
@@ -110,9 +106,7 @@ async def test_cache_hit(mock_http_client):
     mock_http_client.get.return_value = httpx.Response(
         200,
         json={
-            "results": [
-                {"urls": {"regular": "https://images.unsplash.com/photo-cached?w=1080"}}
-            ]
+            "results": [{"urls": {"regular": "https://images.unsplash.com/photo-cached?w=1080"}}]
         },
         request=httpx.Request("GET", "https://api.unsplash.com/search/photos"),
     )

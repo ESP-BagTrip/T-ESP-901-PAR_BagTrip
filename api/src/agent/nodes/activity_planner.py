@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 
+from src.agent.budget import guard
 from src.agent.prompts import ACTIVITY_PLANNER_PROMPT
 from src.agent.state import TripPlanState
 from src.services.llm_service import LLMService
@@ -12,6 +13,7 @@ from src.utils.logger import logger
 
 async def activity_planner_node(state: TripPlanState) -> dict:
     """Plan activities grounded by real weather data and destination context."""
+    guard(state, min_required=5.0)
     logger.info("=== Activity Planner Node ===")
 
     dest = state.get("selected_destination", {})

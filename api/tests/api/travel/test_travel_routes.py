@@ -78,9 +78,7 @@ class TestSearchLocationsByKeyword:
         data = response.json()
         assert data["count"] == 1
         assert data["locations"][0]["name"] == "Paris"
-        mock_service.search_by_keyword.assert_called_once_with(
-            "paris", sub_type="CITY,AIRPORT"
-        )
+        mock_service.search_by_keyword.assert_called_once_with("paris", sub_type="CITY,AIRPORT")
 
     def test_search_locations_by_keyword_missing_params(self, mock_service, client):
         """Test search with missing query parameters."""

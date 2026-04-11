@@ -80,9 +80,7 @@ class TestAsyncGeneratorWithTimeout:
             yield "never"
 
         with pytest.raises(asyncio.TimeoutError):
-            await _collect(
-                async_generator_with_timeout(one_slow_item(), total_timeout_seconds=0.1)
-            )
+            await _collect(async_generator_with_timeout(one_slow_item(), total_timeout_seconds=0.1))
 
     @pytest.mark.asyncio
     async def test_preserves_item_types(self):
@@ -107,6 +105,4 @@ class TestAsyncGeneratorWithTimeout:
             raise ValueError("inner error")
 
         with pytest.raises(ValueError, match="inner error"):
-            await _collect(
-                async_generator_with_timeout(failing_gen(), total_timeout_seconds=5.0)
-            )
+            await _collect(async_generator_with_timeout(failing_gen(), total_timeout_seconds=5.0))

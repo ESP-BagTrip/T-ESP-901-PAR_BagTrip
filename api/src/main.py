@@ -259,9 +259,11 @@ async def health():
 if __name__ == "__main__":
     import uvicorn
 
+    # Bandit B104: binding inside docker is intentional — the container only
+    # exposes the port through the docker-compose network, not public internet.
     uvicorn.run(
         "src.main:app",
-        host="0.0.0.0",
+        host="0.0.0.0",  # nosec B104
         port=settings.PORT,
         reload=settings.NODE_ENV == "development",
         log_level="debug" if settings.NODE_ENV == "development" else "info",
