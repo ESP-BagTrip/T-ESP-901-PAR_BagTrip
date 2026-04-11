@@ -1,8 +1,9 @@
+import 'package:bagtrip/core/extensions/datetime_ext.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/manual_flight.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -36,10 +37,7 @@ class _FlightCardState extends State<FlightCard> {
 
     String? duration;
     if (flight.departureDate != null && flight.arrivalDate != null) {
-      final diff = flight.arrivalDate!.difference(flight.departureDate!);
-      final hours = diff.inHours;
-      final minutes = diff.inMinutes % 60;
-      duration = '${hours}h${minutes.toString().padLeft(2, '0')}';
+      duration = flight.departureDate!.flightDurationTo(flight.arrivalDate!);
     }
 
     final depTime = flight.departureDate != null
@@ -66,20 +64,7 @@ class _FlightCardState extends State<FlightCard> {
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: AppRadius.large16,
-            boxShadow: [
-              BoxShadow(
-                color: ColorName.primary.withValues(alpha: 0.08),
-                offset: const Offset(0, 4),
-                blurRadius: 6,
-                spreadRadius: -1,
-              ),
-              BoxShadow(
-                color: ColorName.primary.withValues(alpha: 0.04),
-                offset: const Offset(0, 2),
-                blurRadius: 4,
-                spreadRadius: -1,
-              ),
-            ],
+            boxShadow: AppShadows.card,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

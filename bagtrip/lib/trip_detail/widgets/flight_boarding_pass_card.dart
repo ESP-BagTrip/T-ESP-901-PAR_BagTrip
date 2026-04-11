@@ -78,20 +78,7 @@ class _FlightBoardingPassCardState extends State<FlightBoardingPassCard> {
           decoration: BoxDecoration(
             color: theme.cardTheme.color ?? theme.colorScheme.surface,
             borderRadius: AppRadius.large16,
-            boxShadow: [
-              BoxShadow(
-                color: ColorName.primary.withValues(alpha: 0.08),
-                offset: const Offset(0, 4),
-                blurRadius: 6,
-                spreadRadius: -1,
-              ),
-              BoxShadow(
-                color: ColorName.primary.withValues(alpha: 0.04),
-                offset: const Offset(0, 2),
-                blurRadius: 4,
-                spreadRadius: -1,
-              ),
-            ],
+            boxShadow: AppShadows.card,
           ),
           child: Column(
             children: [

@@ -1,5 +1,6 @@
 import 'package:bagtrip/components/adaptive/adaptive_date_picker.dart';
 import 'package:bagtrip/design/app_haptics.dart';
+import 'package:bagtrip/design/category_mappers.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -168,7 +169,7 @@ class _BudgetItemFormState extends State<BudgetItemForm> {
                   final isSelected = cat == _category;
                   return ChoiceChip(
                     label: Text(
-                      _categoryLabel(cat, l10n),
+                      cat.label(l10n),
                       style: TextStyle(
                         fontFamily: FontFamily.b612,
                         fontSize: 13,
@@ -294,16 +295,5 @@ class _BudgetItemFormState extends State<BudgetItemForm> {
         ),
       ),
     );
-  }
-
-  String _categoryLabel(BudgetCategory cat, AppLocalizations l10n) {
-    return switch (cat) {
-      BudgetCategory.flight => l10n.reviewBudgetFlights,
-      BudgetCategory.accommodation => l10n.reviewBudgetAccommodation,
-      BudgetCategory.food => l10n.reviewBudgetMeals,
-      BudgetCategory.activity => l10n.reviewBudgetActivities,
-      BudgetCategory.transport => l10n.reviewBudgetTransport,
-      BudgetCategory.other => l10n.reviewBudgetOther,
-    };
   }
 }

@@ -60,6 +60,24 @@ class AppColors {
   static const Color shimmerBase = ColorName.shimmerBase;
   static const Color shimmerHighlight = ColorName.shimmerHighlight;
 
+  // --- Activity category accents (used by ActivityCategoryMapper) ---
+  // These are consumed as foreground/icon tints, not backgrounds, so they
+  // stay vivid rather than pastel.
+  static const Color activityCulture = Color(0xFF5C6BC0); // indigo
+  static const Color activityNature = Color(0xFF66BB6A); // green
+  static const Color activityFood = Color(0xFFFF7043); // deepOrange
+  static const Color activitySport = Color(0xFF42A5F5); // blue
+  static const Color activityShopping = Color(0xFFAB47BC); // purple
+  static const Color activityNightlife = Color(0xFF7E57C2); // deepPurple
+  static const Color activityRelaxation = Color(0xFF26A69A); // teal
+
+  // --- Plan trip generation step accents (step_generation_view) ---
+  static const Color stepInProgress = Color(0xFF1FA8AD);
+  static const Color stepCompletedSubtitle = Color(0xFF51A194);
+
+  // --- Info / informational card backgrounds ---
+  static const Color infoBackgroundLight = Color(0xFFF0F7FF);
+
   // --- Budget category (light) ---
   static const Color categoryFlight = Color(0xFFBBDEFB); // blue.shade100
   static const Color categoryAccommodation = Color(

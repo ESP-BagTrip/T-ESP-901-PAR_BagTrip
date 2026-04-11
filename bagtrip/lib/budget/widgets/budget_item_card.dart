@@ -1,7 +1,7 @@
 import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/category_mappers.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/status_badge.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/budget_item.dart';
 import 'package:flutter/material.dart';
@@ -23,23 +23,6 @@ class BudgetItemCard extends StatelessWidget {
 
   bool get _isConfirmed => item.sourceType != null || !item.isPlanned;
 
-  IconData _categoryIcon(BudgetCategory category) {
-    switch (category) {
-      case BudgetCategory.flight:
-        return Icons.flight;
-      case BudgetCategory.accommodation:
-        return Icons.hotel;
-      case BudgetCategory.food:
-        return Icons.restaurant;
-      case BudgetCategory.activity:
-        return Icons.sports_tennis;
-      case BudgetCategory.transport:
-        return Icons.directions_car;
-      case BudgetCategory.other:
-        return Icons.receipt_long;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -58,26 +41,11 @@ class BudgetItemCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.cardTheme.color ?? theme.colorScheme.surface,
         borderRadius: AppRadius.large16,
-        boxShadow: [
-          BoxShadow(
-            color: ColorName.primary.withValues(alpha: 0.08),
-            offset: const Offset(0, 4),
-            blurRadius: 6,
-            spreadRadius: -1,
-          ),
-          BoxShadow(
-            color: ColorName.primary.withValues(alpha: 0.04),
-            offset: const Offset(0, 2),
-            blurRadius: 4,
-            spreadRadius: -1,
-          ),
-        ],
+        boxShadow: AppShadows.card,
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            child: Icon(_categoryIcon(item.category), color: iconColor),
-          ),
+          CircleAvatar(child: Icon(item.category.icon, color: iconColor)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
