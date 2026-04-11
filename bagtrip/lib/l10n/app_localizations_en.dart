@@ -1504,6 +1504,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get premiumCtaButton => 'Upgrade to Premium - €9.99/mo';
 
   @override
+  String get premiumPaywallTitle => 'Go Premium';
+
+  @override
   String get profileConfigurePreferences => 'Configure your preferences';
 
   @override

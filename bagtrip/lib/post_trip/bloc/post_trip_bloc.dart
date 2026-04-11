@@ -46,12 +46,14 @@ class PostTripBloc extends Bloc<PostTripEvent, PostTripState> {
     final activitiesResult = results[1] as Result<List<Activity>>;
     final budgetResult = results[2] as Result<BudgetSummary>;
 
-    if (tripResult is Failure<Trip>) {
-      emit(PostTripError(error: tripResult.error));
-      return;
+    final Trip trip;
+    switch (tripResult) {
+      case Success(:final data):
+        trip = data;
+      case Failure(:final error):
+        emit(PostTripError(error: error));
+        return;
     }
-
-    final trip = (tripResult as Success<Trip>).data;
 
     // Compute stats
     final activities = activitiesResult is Success<List<Activity>>

@@ -83,7 +83,7 @@ class BaggageRepositoryImpl implements BaggageRepository {
                 .toList(),
           );
         }
-        return const Failure(ServerError('Invalid response format'));
+        return loggedFailure(const ServerError('Invalid response format'));
       }
       return loggedFailure(
         UnknownError('fetch baggage items failed: ${response.statusCode}'),

@@ -614,6 +614,7 @@
   "premiumFeatureOfflineNotifs": "Notifications hors-ligne",
   "premiumFeaturePostTrip": "Suggestions post-voyage IA",
   "premiumCtaButton": "Passer à Premium - 9,99€/mois",
+  "premiumPaywallTitle": "Passez à Premium",
   "profileConfigurePreferences": "Configurez vos préférences",
   "profileStyleLabel": "Style : {style}",
   "@profileStyleLabel": {

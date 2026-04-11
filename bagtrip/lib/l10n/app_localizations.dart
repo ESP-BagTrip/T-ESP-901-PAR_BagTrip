@@ -2900,6 +2900,12 @@ abstract class AppLocalizations {
   /// **'Passer à Premium - 9,99€/mois'**
   String get premiumCtaButton;
 
+  /// No description provided for @premiumPaywallTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passez à Premium'**
+  String get premiumPaywallTitle;
+
   /// No description provided for @profileConfigurePreferences.
   ///
   /// In fr, this message translates to:

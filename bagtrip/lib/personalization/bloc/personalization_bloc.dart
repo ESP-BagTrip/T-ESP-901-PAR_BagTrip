@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
@@ -63,14 +65,13 @@ class PersonalizationBloc
 
       final profileResult = await _profileRepository.getProfile();
       if (isClosed) return;
-      if (profileResult is Success) {
-        final profile = (profileResult as Success).data;
-        selectedTypes = profile.travelTypes.toSet();
-        style = profile.travelStyle;
-        budget = profile.budget;
-        companions = profile.companions;
-        travelFrequency = profile.travelFrequency;
-        constraints = profile.medicalConstraints;
+      if (profileResult case Success(:final data)) {
+        selectedTypes = data.travelTypes.toSet();
+        style = data.travelStyle;
+        budget = data.budget;
+        companions = data.companions;
+        travelFrequency = data.travelFrequency;
+        constraints = data.medicalConstraints;
       } else {
         // Fallback to local storage
         final typesStr = await _storage.getTravelTypes(user.id);
@@ -121,7 +122,13 @@ class PersonalizationBloc
           constraints: constraints,
         ),
       );
-    } catch (_) {
+    } catch (e, stackTrace) {
+      developer.log(
+        'PersonalizationBloc load failed',
+        name: 'PersonalizationBloc',
+        error: e,
+        stackTrace: stackTrace,
+      );
       if (isClosed) return;
       emit(PersonalizationInitial());
     }

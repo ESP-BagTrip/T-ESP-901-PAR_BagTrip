@@ -614,6 +614,7 @@
   "premiumFeatureOfflineNotifs": "Offline notifications",
   "premiumFeaturePostTrip": "AI post-trip suggestions",
   "premiumCtaButton": "Upgrade to Premium - €9.99/mo",
+  "premiumPaywallTitle": "Go Premium",
   "profileConfigurePreferences": "Configure your preferences",
   "profileStyleLabel": "Style: {style}",
   "@profileStyleLabel": {

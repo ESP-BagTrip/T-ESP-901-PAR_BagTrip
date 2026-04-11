@@ -36,14 +36,13 @@ class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
     if (isClosed) return;
     final itemsResult = results[0] as Result<List<BudgetItem>>;
     final summaryResult = results[1] as Result<BudgetSummary>;
-    if (itemsResult is Success<List<BudgetItem>> &&
-        summaryResult is Success<BudgetSummary>) {
-      emit(BudgetLoaded(items: itemsResult.data, summary: summaryResult.data));
-    } else {
-      final error = itemsResult is Failure<List<BudgetItem>>
-          ? itemsResult.error
-          : (summaryResult as Failure<BudgetSummary>).error;
-      emit(BudgetError(error: error));
+    switch ((itemsResult, summaryResult)) {
+      case (Success(data: final items), Success(data: final summary)):
+        emit(BudgetLoaded(items: items, summary: summary));
+      case (Failure(:final error), _):
+        emit(BudgetError(error: error));
+      case (_, Failure(:final error)):
+        emit(BudgetError(error: error));
     }
   }
 

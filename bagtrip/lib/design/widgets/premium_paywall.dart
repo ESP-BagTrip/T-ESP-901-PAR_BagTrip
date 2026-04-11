@@ -5,6 +5,7 @@ import 'package:bagtrip/design/widgets/premium_cta_button.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/repositories/subscription_repository.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -41,7 +42,13 @@ class _PremiumPaywallState extends State<PremiumPaywall> {
         }
       case Failure(:final error):
         if (mounted) {
-          AppSnackBar.showError(context, message: 'Erreur: ${error.message}');
+          AppSnackBar.showError(
+            context,
+            message: toUserFriendlyMessage(
+              error,
+              AppLocalizations.of(context)!,
+            ),
+          );
         }
     }
     if (mounted) setState(() => _isLoading = false);
@@ -78,7 +85,7 @@ class _PremiumPaywallState extends State<PremiumPaywall> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Passez \u00e0 Premium',
+              AppLocalizations.of(context)!.premiumPaywallTitle,
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
