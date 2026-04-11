@@ -44,6 +44,12 @@ from typing import Any
 
 from src.utils.logger import logger
 
+# The agent graph state is a `TypedDict` (`TripPlanState`), which mypy
+# treats as distinct from `MutableMapping[str, Any]` because TypedDicts
+# restrict their key set. `Any` lets both TypedDict instances (production
+# nodes) and plain dicts (unit tests) flow through without explicit casts.
+_StateLike = Any
+
 
 class BudgetExceededError(Exception):
     """Raised when a node tries to run past the graph's cumulative deadline."""
@@ -54,7 +60,7 @@ class BudgetExceededError(Exception):
 BudgetExceeded = BudgetExceededError
 
 
-def remaining(state: dict[str, Any]) -> float:
+def remaining(state: _StateLike) -> float:
     """Return seconds left before the graph deadline.
 
     A state without `budget_deadline_monotonic` (e.g. legacy picklend
@@ -67,12 +73,12 @@ def remaining(state: dict[str, Any]) -> float:
     return max(0.0, float(deadline) - time.monotonic())
 
 
-def consumed(state: dict[str, Any]) -> float:
+def consumed(state: _StateLike) -> float:
     """Return how many seconds node bodies have already burned."""
     return float(state.get("budget_consumed_seconds", 0.0))
 
 
-def guard(state: dict[str, Any], *, min_required: float = 0.0) -> None:
+def guard(state: _StateLike, *, min_required: float = 0.0) -> None:
     """Raise `BudgetExceededError` if less than `min_required` seconds remain.
 
     Call this at the top of each node to fail fast instead of starting a
@@ -87,7 +93,7 @@ def guard(state: dict[str, Any], *, min_required: float = 0.0) -> None:
 
 
 @asynccontextmanager
-async def track(state: dict[str, Any], node_name: str) -> AsyncIterator[None]:
+async def track(state: _StateLike, node_name: str) -> AsyncIterator[None]:
     """Record how long the wrapped block takes and add it to the cumulative total.
 
     This runs regardless of whether the body raises — the `finally` branch

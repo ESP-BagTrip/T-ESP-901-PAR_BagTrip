@@ -32,7 +32,10 @@ async def get_weather(
     base_url = settings.OPEN_METEO_BASE_URL
     url = f"{base_url}/v1/forecast"
 
-    params = {
+    # httpx accepts a mapping of scalar values — we annotate explicitly so
+    # mypy sees `str | float` rather than the default `object` it would
+    # infer from mixing latitude/longitude floats with string keys.
+    params: dict[str, str | float] = {
         "latitude": latitude,
         "longitude": longitude,
         "start_date": start_date,

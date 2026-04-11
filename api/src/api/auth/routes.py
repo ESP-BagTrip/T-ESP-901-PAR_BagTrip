@@ -4,6 +4,7 @@ import hashlib
 import os
 import secrets
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 import bcrypt
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -698,7 +699,10 @@ async def delete_me(
     # 2. Delete user-owned trips and their children
     trip_ids = [t.id for t in db.query(Trip.id).filter(Trip.user_id == user_id).all()]
     if trip_ids:
-        for model in [
+        # Each of these models has a `trip_id` column pointing at `trips.id`
+        # via ForeignKey. mypy can't prove that uniformly across the list —
+        # we know it at the call site, so we access `trip_id` on each class.
+        trip_children: list[Any] = [
             Activity,
             Accommodation,
             BaggageItem,
@@ -712,7 +716,8 @@ async def delete_me(
             Feedback,
             BookingIntent,
             Notification,
-        ]:
+        ]
+        for model in trip_children:
             db.query(model).filter(model.trip_id.in_(trip_ids)).delete(synchronize_session=False)
         db.query(Trip).filter(Trip.id.in_(trip_ids)).delete(synchronize_session=False)
 

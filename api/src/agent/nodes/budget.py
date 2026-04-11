@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 
 from src.agent.budget import guard
-from src.agent.prompts import BUDGET_PROMPT
+from src.agent.prompts import render
 from src.agent.react_executor import react_execute
 from src.agent.state import TripPlanState
 from src.agent.tools import TOOL_REGISTRY
@@ -59,7 +59,7 @@ async def budget_node(state: TripPlanState) -> dict:
     # ReAct with flight search tool
     tool_names = ["search_real_flights", "resolve_iata_code"]
     result = await react_execute(
-        agent_instruction=BUDGET_PROMPT,
+        agent_instruction=render("budget", locale=state.get("locale", "en")),
         user_prompt=user_prompt,
         tool_names=tool_names,
         tool_registry=TOOL_REGISTRY,

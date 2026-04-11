@@ -12,15 +12,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.agent.prompts import (
-    ACCOMMODATION_PROMPT,
-    ACCOMMODATION_SUGGEST_PROMPT,
-    ACTIVITY_PLANNER_PROMPT,
-    BAGGAGE_PROMPT,
-    BUDGET_PROMPT,
-    DESTINATION_RESEARCH_PROMPT,
-    render,
-)
+from src.agent.prompts import render
 
 _ALL_TEMPLATE_NAMES = [
     "destination_research",
@@ -74,19 +66,28 @@ class TestFallback:
             render("does_not_exist", locale="en")
 
 
-class TestLegacyConstants:
+class TestLegacyConstantsRemoved:
+    """Sprint 4 removed the pre-rendered module-level constants.
+
+    All callers migrated to `render(name, locale=...)`. This test pins the
+    deprecation so no one accidentally re-adds them.
+    """
+
     @pytest.mark.parametrize(
-        "constant",
+        "name",
         [
-            DESTINATION_RESEARCH_PROMPT,
-            ACTIVITY_PLANNER_PROMPT,
-            ACCOMMODATION_PROMPT,
-            ACCOMMODATION_SUGGEST_PROMPT,
-            BAGGAGE_PROMPT,
-            BUDGET_PROMPT,
+            "DESTINATION_RESEARCH_PROMPT",
+            "ACTIVITY_PLANNER_PROMPT",
+            "ACCOMMODATION_PROMPT",
+            "ACCOMMODATION_SUGGEST_PROMPT",
+            "BAGGAGE_PROMPT",
+            "BUDGET_PROMPT",
         ],
     )
-    def test_legacy_constant_is_populated(self, constant):
-        """Backward-compat: the module-level constants still resolve to a string."""
-        assert isinstance(constant, str)
-        assert len(constant) > 50
+    def test_legacy_constant_is_gone(self, name):
+        import src.agent.prompts as prompts_module
+
+        assert not hasattr(prompts_module, name), (
+            f"{name} is a legacy constant that Sprint 4 removed. "
+            "Use `render(name, locale=...)` instead."
+        )

@@ -57,3 +57,10 @@ class TripPlanState(TypedDict, total=False):
     # `src.agent.budget.remaining` / `guard`.
     budget_deadline_monotonic: float
     budget_consumed_seconds: float
+
+    # === Locale (Sprint 4) ===
+    # Picked from `PlanTripRequest.locale` or `Accept-Language`, then passed
+    # to `prompts.render(name, locale=...)` by every node. `"en"` is the
+    # canonical fallback and is what ships today — FR templates are stubs
+    # that include the EN versions until they're translated.
+    locale: str

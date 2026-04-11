@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from src.agent.budget import guard
-from src.agent.prompts import ACCOMMODATION_PROMPT
+from src.agent.prompts import render
 from src.agent.react_executor import react_execute
 from src.agent.state import TripPlanState
 from src.agent.tools import TOOL_REGISTRY
@@ -45,7 +45,7 @@ async def accommodation_node(state: TripPlanState) -> dict:
 
     tool_names = ["search_real_hotels"]
     result = await react_execute(
-        agent_instruction=ACCOMMODATION_PROMPT,
+        agent_instruction=render("accommodation", locale=state.get("locale", "en")),
         user_prompt=user_prompt,
         tool_names=tool_names,
         tool_registry=TOOL_REGISTRY,

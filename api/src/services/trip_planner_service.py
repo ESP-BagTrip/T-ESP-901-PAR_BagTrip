@@ -22,6 +22,7 @@ import json
 import time
 from collections.abc import AsyncIterator
 from datetime import date, timedelta
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -39,7 +40,7 @@ def _sse(event: str, data: dict) -> str:
     return f"event: {event}\ndata: {json.dumps(data, default=str, ensure_ascii=False)}\n\n"
 
 
-async def _quick_destination_suggestions(state: dict) -> list[dict]:
+async def _quick_destination_suggestions(state: Any) -> list[dict]:
     """Single LLM call (no ReAct, no tools) for `destinations_only` mode."""
     # Local import: LLMService drags optional deps we don't want at module load.
     from src.services.llm_service import LLMService
@@ -117,6 +118,8 @@ def _build_initial_state(request: PlanTripRequest) -> dict:
         # finishes via `src.agent.budget.track`.
         "budget_deadline_monotonic": time.monotonic() + settings.GRAPH_TIMEOUT_SECONDS,
         "budget_consumed_seconds": 0.0,
+        # Locale picked up by every node's `prompts.render(name, locale=...)` call.
+        "locale": request.locale or "en",
     }
 
 
@@ -211,7 +214,7 @@ class TripPlannerService:
     @staticmethod
     async def _stream_graph(
         graph_obj,
-        initial_state: dict,
+        initial_state: Any,
     ) -> AsyncIterator[str]:
         """Iterate the LangGraph stream, dedup events, emit SSE + heartbeats."""
         last_heartbeat = asyncio.get_event_loop().time()

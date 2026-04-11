@@ -246,3 +246,160 @@ class TestMe:
 
         # Cleanup
         app.dependency_overrides = {}
+
+
+class TestUpdateMe:
+    """Test suite for PATCH /v1/auth/me."""
+
+    def test_update_me_success(self, client):
+        """Test updating the current user's name and phone."""
+        user = User(
+            id=uuid.uuid4(),
+            email="me@example.com",
+            full_name="Old Name",
+            phone=None,
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+        )
+
+        mock_db = MagicMock()
+        mock_db.query.return_value.filter.return_value.first.return_value = None
+
+        def _get_db():
+            yield mock_db
+
+        app.dependency_overrides[get_current_user] = lambda: user
+        app.dependency_overrides[get_db] = _get_db
+
+        response = client.patch(
+            "/v1/auth/me",
+            json={"fullName": "New Name", "phone": "+33123456789"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["email"] == "me@example.com"
+        assert user.full_name == "New Name"
+        assert user.phone == "+33123456789"
+        assert mock_db.commit.called
+
+        app.dependency_overrides = {}
+
+
+class TestRefresh:
+    """Test suite for POST /v1/auth/refresh."""
+
+    def test_refresh_success(self, client, override_get_db, mock_db_session):
+        """Test successful token refresh."""
+        from datetime import UTC, timedelta
+
+        user_id = uuid.uuid4()
+        user = User(
+            id=user_id,
+            email="user@example.com",
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+        )
+
+        stored = MagicMock()
+        stored.token = "valid-refresh-token"
+        stored.revoked = False
+        stored.expires_at = datetime.now(UTC) + timedelta(days=30)
+        stored.user_id = user_id
+
+        # First .first() = RefreshToken lookup, second .first() = User lookup
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [
+            stored,
+            user,
+        ]
+
+        response = client.post(
+            "/v1/auth/refresh",
+            json={"refresh_token": "valid-refresh-token"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "access_token" in data
+        assert data["user"]["email"] == "user@example.com"
+        # Old token should have been revoked (rotation)
+        assert stored.revoked is True
+
+    def test_refresh_invalid_token(self, client, override_get_db, mock_db_session):
+        """Test refresh with an invalid token returns 401."""
+        mock_db_session.query.return_value.filter.return_value.first.return_value = None
+
+        response = client.post(
+            "/v1/auth/refresh",
+            json={"refresh_token": "bad-token"},
+        )
+
+        assert response.status_code == 401
+        assert response.json()["detail"] == "Invalid or expired refresh token"
+
+    def test_refresh_expired_token(self, client, override_get_db, mock_db_session):
+        """Test refresh with an expired token returns 401."""
+        from datetime import UTC, timedelta
+
+        stored = MagicMock()
+        stored.token = "expired"
+        stored.revoked = False
+        stored.expires_at = datetime.now(UTC) - timedelta(days=1)
+        stored.user_id = uuid.uuid4()
+
+        mock_db_session.query.return_value.filter.return_value.first.return_value = stored
+
+        response = client.post(
+            "/v1/auth/refresh",
+            json={"refresh_token": "expired"},
+        )
+
+        assert response.status_code == 401
+        assert response.json()["detail"] == "Invalid or expired refresh token"
+
+
+class TestLogout:
+    """Test suite for POST /v1/auth/logout and /logout-all."""
+
+    def test_logout_with_body_token(self, client, override_get_db, mock_db_session):
+        """Test logout revokes the refresh token from the request body."""
+        user = User(id=uuid.uuid4(), email="user@example.com")
+        app.dependency_overrides[get_current_user] = lambda: user
+
+        stored = MagicMock()
+        stored.revoked = False
+        mock_db_session.query.return_value.filter.return_value.first.return_value = stored
+
+        response = client.post(
+            "/v1/auth/logout",
+            json={"refresh_token": "some-token"},
+        )
+
+        assert response.status_code == 204
+        assert stored.revoked is True
+        assert mock_db_session.commit.called
+        app.dependency_overrides = {}
+
+    def test_logout_without_token(self, client, override_get_db, mock_db_session):
+        """Test logout without a token still clears cookies and returns 204."""
+        user = User(id=uuid.uuid4(), email="user@example.com")
+        app.dependency_overrides[get_current_user] = lambda: user
+
+        response = client.post("/v1/auth/logout")
+
+        assert response.status_code == 204
+        app.dependency_overrides = {}
+
+    def test_logout_all_success(self, client, override_get_db, mock_db_session):
+        """Test /logout-all revokes every refresh token for the user."""
+        user = User(id=uuid.uuid4(), email="user@example.com")
+        app.dependency_overrides[get_current_user] = lambda: user
+
+        # Mock the bulk update call chain
+        mock_db_session.query.return_value.filter.return_value.update.return_value = 3
+
+        response = client.post("/v1/auth/logout-all")
+
+        assert response.status_code == 204
+        mock_db_session.commit.assert_called()
+        app.dependency_overrides = {}

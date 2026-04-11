@@ -14,6 +14,7 @@ from src.api.shares.schemas import (
     ShareResponse,
 )
 from src.config.database import get_db
+from src.enums import ShareRole
 from src.services.trip_share_service import TripShareService
 from src.utils.errors import AppError, create_http_exception
 
@@ -40,7 +41,7 @@ async def create_share(
             owner_user_id=access.trip.user_id,
             email=request.email,
             message=request.message,
-            role=request.role,
+            role=ShareRole(request.role),
         )
         return ShareCreateResponse(**share)
     except AppError as e:

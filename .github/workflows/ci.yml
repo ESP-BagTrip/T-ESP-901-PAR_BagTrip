@@ -189,13 +189,13 @@ jobs:
             --cov-report=term \
             --cov-fail-under=70
 
-      - name: API coverage gate (≥50%)
+      - name: API coverage gate (≥70%)
         working-directory: api
         run: |
           uv run pytest tests/api \
             --cov=src.api \
             --cov-report=term \
-            --cov-fail-under=50
+            --cov-fail-under=70
 
       - name: Full test run + coverage XML (for SonarQube)
         working-directory: api

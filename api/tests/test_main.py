@@ -69,19 +69,38 @@ class TestExceptionHandlers:
         assert data["detail"]["error"] == "Test error message"
         assert data["detail"]["foo"] == "bar"
 
-    def test_app_error_handler_debug_logging(self, client):
-        """Test AppError logging in DEBUG mode."""
+    def test_app_error_handler_debug_logging(self):
+        """Test AppError logging in DEBUG mode.
+
+        This test used to be order-dependent because it added a route to the
+        shared `src.main.app` instance — other tests mutating the same app
+        (or the logger's patch stack) could break it. We build a **local**
+        FastAPI app with only the handler + one route under test so the
+        assertion is self-contained.
+        """
+        from fastapi import FastAPI
+        from fastapi.responses import JSONResponse
+
+        from src.main import app_error_handler  # same handler registered in main.app
+
+        # Fresh app, no other routes to collide with.
+        local_app = FastAPI()
+        local_app.add_exception_handler(AppError, app_error_handler)
+
+        @local_app.get("/test-app-error-debug")
+        def raise_app_error_debug():
+            raise AppError("TEST_ERROR", 400, "Test error message")
+
+        # Need JSONResponse in the namespace to silence F401 on import — the
+        # handler itself re-imports it. Keep the reference to satisfy ruff.
+        _ = JSONResponse
+
         original_level = logger.level
         logger.level = LogLevel.DEBUG
-
         try:
             with patch.object(logger, "error") as mock_log:
-
-                @app.get("/test-app-error-debug")
-                def raise_app_error_debug():
-                    raise AppError("TEST_ERROR", 400, "Test error message")
-
-                client.get("/test-app-error-debug")
+                with TestClient(local_app, raise_server_exceptions=False) as local_client:
+                    local_client.get("/test-app-error-debug")
                 mock_log.assert_called()
                 args, _ = mock_log.call_args
                 assert "AppError: TEST_ERROR" in args[0]

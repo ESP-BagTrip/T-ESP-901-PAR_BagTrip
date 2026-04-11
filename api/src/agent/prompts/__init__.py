@@ -13,12 +13,12 @@ same track:
 - `StrictUndefined` is enabled, so any missing template variable raises at
   render time instead of silently emitting a broken prompt.
 
-Backward compatibility
-----------------------
-Callers that used to `from src.agent.prompts import DESTINATION_RESEARCH_PROMPT`
-still work: the module exports the six legacy constants pre-rendered at
-import time in the default locale (English). Nodes that want per-request
-localization should call `render("destination_research", state.get("locale"))`.
+Migration note
+--------------
+Sprint 3 introduced this package alongside six `XXX_PROMPT` legacy constants
+that were pre-rendered at import time in English for backward compatibility.
+Sprint 4 migrated every caller to `render(name, locale=...)`, so those
+constants have been removed — `render()` is now the sole entry point.
 
 Adding a new language
 ---------------------
@@ -96,26 +96,4 @@ def render(name: str, locale: str = _DEFAULT_LOCALE, **ctx: Any) -> str:
     )
 
 
-# ---------------------------------------------------------------------------
-# Backward-compat: the legacy constants some nodes still import by name.
-# These are frozen at import time in the default locale. Nodes that want to
-# honour a per-request locale should migrate to `render(name, locale, ...)`.
-# ---------------------------------------------------------------------------
-
-DESTINATION_RESEARCH_PROMPT = render("destination_research")
-ACTIVITY_PLANNER_PROMPT = render("activity_planner")
-ACCOMMODATION_PROMPT = render("accommodation")
-ACCOMMODATION_SUGGEST_PROMPT = render("accommodation_suggest")
-BAGGAGE_PROMPT = render("baggage")
-BUDGET_PROMPT = render("budget")
-
-
-__all__ = [
-    "ACCOMMODATION_PROMPT",
-    "ACCOMMODATION_SUGGEST_PROMPT",
-    "ACTIVITY_PLANNER_PROMPT",
-    "BAGGAGE_PROMPT",
-    "BUDGET_PROMPT",
-    "DESTINATION_RESEARCH_PROMPT",
-    "render",
-]
+__all__ = ["render"]

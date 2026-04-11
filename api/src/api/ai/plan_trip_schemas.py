@@ -48,6 +48,10 @@ class PlanTripRequest(BaseModel):
     preferredMonth: int | None = Field(None, description="1-12, for dateMode=month")
     preferredYear: int | None = Field(None, description="e.g. 2027, for dateMode=month")
     mode: str | None = Field(None, description="'full' (default) or 'destinations_only'")
+    locale: str = Field(
+        "en",
+        description="Prompt locale ('en' or 'fr'). Missing translations fall back to English.",
+    )
 
 
 # Alias for Sprint 2.8 documentation
