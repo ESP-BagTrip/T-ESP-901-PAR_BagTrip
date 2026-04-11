@@ -19,27 +19,44 @@ async def destination_research_node(state: TripPlanState) -> dict:
     if dest_city:
         logger.info("Using pre-selected destination", {"city": dest_city, "iata": dest_iata})
 
-        # Resolve IATA if missing
+        # Resolve destination geocoords (+ IATA if missing) via offline aviation data
+        resolve_tool = TOOL_REGISTRY.get("resolve_iata_code")
         iata = dest_iata
-        if not iata:
+        lat: float = 0.0
+        lon: float = 0.0
+        if resolve_tool:
             try:
-                resolve_tool = TOOL_REGISTRY.get("resolve_iata_code")
-                if resolve_tool:
-                    iata_result = await resolve_tool["fn"](city=dest_city)
-                    iata = iata_result.get("iata", "") if isinstance(iata_result, dict) else ""
-            except Exception:
-                iata = ""
+                dest_result = await resolve_tool["fn"](city_name=dest_city)
+                if isinstance(dest_result, dict) and "error" not in dest_result:
+                    iata = iata or dest_result.get("iata", "")
+                    lat = float(dest_result.get("lat") or 0)
+                    lon = float(dest_result.get("lon") or 0)
+            except Exception as exc:
+                logger.error(
+                    "destination_research: resolve_iata_code failed",
+                    {"city": dest_city, "error": str(exc)},
+                )
 
-        # Get weather for the destination
-        weather = {}
-        try:
-            weather_tool = TOOL_REGISTRY.get("get_weather")
-            if weather_tool and iata:
-                weather = await weather_tool["fn"](iata_code=iata)
-                if not isinstance(weather, dict):
-                    weather = {}
-        except Exception:
-            weather = {}
+        # Get weather for the destination using the full Open-Meteo signature.
+        weather: dict = {}
+        weather_tool = TOOL_REGISTRY.get("get_weather")
+        departure_date = state.get("departure_date") or ""
+        return_date = state.get("return_date") or departure_date
+        if weather_tool and lat and lon and departure_date:
+            try:
+                weather_result = await weather_tool["fn"](
+                    latitude=lat,
+                    longitude=lon,
+                    start_date=departure_date,
+                    end_date=return_date,
+                )
+                if isinstance(weather_result, dict):
+                    weather = weather_result
+            except Exception as exc:
+                logger.error(
+                    "destination_research: get_weather failed",
+                    {"city": dest_city, "error": str(exc)},
+                )
 
         selected = {
             "city": dest_city,
@@ -48,18 +65,19 @@ async def destination_research_node(state: TripPlanState) -> dict:
             "weather": weather,
         }
 
-        # Resolve origin IATA
+        # Resolve origin IATA (same tool, correct kwarg)
         origin_iata = ""
-        if state.get("origin_city"):
+        origin_city = state.get("origin_city")
+        if origin_city and resolve_tool:
             try:
-                resolve_tool = TOOL_REGISTRY.get("resolve_iata_code")
-                if resolve_tool:
-                    origin_result = await resolve_tool["fn"](city=state["origin_city"])
-                    origin_iata = (
-                        origin_result.get("iata", "") if isinstance(origin_result, dict) else ""
-                    )
-            except Exception:
-                pass
+                origin_result = await resolve_tool["fn"](city_name=origin_city)
+                if isinstance(origin_result, dict) and "error" not in origin_result:
+                    origin_iata = origin_result.get("iata", "") or ""
+            except Exception as exc:
+                logger.error(
+                    "destination_research: origin resolve failed",
+                    {"city": origin_city, "error": str(exc)},
+                )
 
         return {
             "destinations": [selected],
@@ -68,8 +86,8 @@ async def destination_research_node(state: TripPlanState) -> dict:
                 "city": dest_city,
                 "country": "",
                 "iata": iata,
-                "lat": 0,
-                "lon": 0,
+                "lat": lat,
+                "lon": lon,
             },
             "weather_data": weather,
             "events": [

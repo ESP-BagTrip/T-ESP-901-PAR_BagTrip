@@ -13,6 +13,7 @@ from src.api.activities.schemas import (
 )
 from src.api.auth.plan_guard import require_ai_quota
 from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_editor_access
+from src.api.common.pagination import PaginationParams
 from src.config.database import get_db
 from src.models.user import User
 from src.services.activity_service import ActivityService
@@ -54,8 +55,7 @@ async def create_activity(
 
 @router.get("/{tripId}/activities", response_model=ActivityPaginatedResponse)
 async def list_activities(
-    page: int = Query(default=1, ge=1, description="Page number"),
-    limit: int = Query(default=20, ge=1, le=100, description="Items per page"),
+    pagination: PaginationParams = Depends(PaginationParams),
     access: TripAccess = Depends(get_trip_access),
     db: Session = Depends(get_db),
 ):
@@ -63,8 +63,8 @@ async def list_activities(
         activities, total, total_pages = ActivityService.get_by_trip_paginated(
             db,
             access.trip.id,
-            page=page,
-            limit=limit,
+            page=pagination.page,
+            limit=pagination.limit,
         )
         items = [ActivityResponse.model_validate(a) for a in activities]
         if access.role == TripRole.VIEWER:
@@ -73,8 +73,8 @@ async def list_activities(
         return ActivityPaginatedResponse(
             items=items,
             total=total,
-            page=page,
-            limit=limit,
+            page=pagination.page,
+            limit=pagination.limit,
             total_pages=total_pages,
         )
     except AppError as e:
@@ -97,41 +97,15 @@ async def get_activity(
         raise create_http_exception(e) from e
 
 
-@router.put("/{tripId}/activities/{activityId}", response_model=ActivityResponse)
+@router.patch("/{tripId}/activities/{activityId}", response_model=ActivityResponse)
 async def update_activity(
     request: ActivityUpdateRequest,
     activityId: UUID = Path(..., description="Activity ID"),
     access: TripAccess = Depends(get_trip_editor_access),
     db: Session = Depends(get_db),
 ):
-    try:
-        activity = ActivityService.update(
-            db=db,
-            trip=access.trip,
-            activity_id=activityId,
-            title=request.title,
-            description=request.description,
-            date=request.date,
-            start_time=request.startTime,
-            end_time=request.endTime,
-            location=request.location,
-            category=request.category,
-            estimated_cost=request.estimatedCost,
-            is_booked=request.isBooked,
-            validation_status=request.validationStatus,
-        )
-        return ActivityResponse.model_validate(activity)
-    except AppError as e:
-        raise create_http_exception(e) from e
-
-
-@router.patch("/{tripId}/activities/{activityId}", response_model=ActivityResponse)
-async def patch_activity(
-    request: ActivityUpdateRequest,
-    activityId: UUID = Path(..., description="Activity ID"),
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
-):
+    """Partial update — all fields on `ActivityUpdateRequest` are optional, so
+    PATCH matches the semantics. The previous `PUT` handler was dead weight."""
     try:
         activity = ActivityService.update(
             db=db,

@@ -47,6 +47,18 @@ class Settings(BaseSettings):
     STRIPE_SUCCESS_URL: str = "bagtrip://subscription/success?session-id={CHECKOUT_SESSION_ID}"
     STRIPE_CANCEL_URL: str = "bagtrip://subscription/cancel"
 
+    @field_validator("STRIPE_WEBHOOK_SECRET")
+    @classmethod
+    def validate_stripe_webhook_secret_in_prod(cls, v: str | None, info) -> str | None:
+        """Block startup if Stripe webhook secret is missing in production."""
+        node_env = info.data.get("NODE_ENV", "development")
+        if node_env == "production" and (not v or not v.strip()):
+            raise ValueError(
+                "STRIPE_WEBHOOK_SECRET is required in production. "
+                "Webhook signature verification cannot be disabled on live environments."
+            )
+        return v
+
     # Auth / JWT
     JWT_SECRET: str = "dev-secret-key-change-in-production"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
@@ -70,7 +82,19 @@ class Settings(BaseSettings):
     # Cookie / CORS
     ALLOWED_ORIGINS: str = "http://localhost:8000"
     COOKIE_DOMAIN: str | None = None
-    COOKIE_SECURE: bool = False
+    COOKIE_SECURE: bool = True
+
+    @field_validator("COOKIE_SECURE")
+    @classmethod
+    def validate_cookie_secure_in_prod(cls, v: bool, info) -> bool:
+        """Block startup if cookies are not secure in production."""
+        node_env = info.data.get("NODE_ENV", "development")
+        if node_env == "production" and not v:
+            raise ValueError(
+                "COOKIE_SECURE must be True in production. "
+                "Override only allowed in development/test environments."
+            )
+        return v
 
     # OAuth verification
     GOOGLE_FIREBASE_PROJECT_ID: str = "bagtrip-7d2d8"

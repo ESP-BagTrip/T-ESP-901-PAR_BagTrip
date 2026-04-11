@@ -1,10 +1,14 @@
-"""SSE endpoint for multi-agent trip planning."""
+"""HTTP routes for multi-agent trip planning.
+
+The SSE orchestration now lives in `TripPlannerService.stream_plan()` — this
+file is a thin HTTP adapter that turns the request into an `AsyncIterator[str]`
+and wraps it in a `StreamingResponse`. LangGraph imports, state assembly,
+event dedup and heartbeat logic all moved to the service.
+"""
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
-import json
 from datetime import date, time, timedelta
 
 from fastapi import APIRouter, Depends, Request
@@ -15,18 +19,16 @@ from src.api.ai.plan_trip_schemas import AcceptPlanRequest, PlanTripRequest
 from src.api.auth.middleware import get_current_user
 from src.api.auth.plan_guard import require_ai_quota
 from src.config.database import get_db
-from src.config.env import settings
 from src.integrations.aviation_data.service import AviationDataService
 from src.models.accommodation import Accommodation
 from src.models.activity import Activity
 from src.models.baggage_item import BaggageItem
 from src.models.manual_flight import ManualFlight
 from src.models.user import User
-from src.services.plan_service import PlanService
+from src.services.trip_planner_service import TripPlannerService
 from src.services.trips_service import TripsService
 from src.utils.errors import AppError, create_http_exception
 from src.utils.logger import logger
-from src.utils.timeout import async_generator_with_timeout
 
 router = APIRouter(prefix="/v1/ai", tags=["AI Trip Planning"])
 
@@ -53,213 +55,6 @@ def _resolve_iata(city_name: str) -> str | None:
     return None
 
 
-def _sse_event(event: str, data: dict) -> str:
-    """Format a Server-Sent Event string."""
-    json_data = json.dumps(data, default=str, ensure_ascii=False)
-    return f"event: {event}\ndata: {json_data}\n\n"
-
-
-_QUICK_DESTINATIONS_PROMPT = """Suggest 3-4 travel destinations as a JSON object.
-Consider the user's preferences and return ONLY a valid JSON object (no explanation):
-{
-  "destinations": [
-    {"city": "...", "country": "...", "match_reason": "Short reason why this matches"}
-  ]
-}"""
-
-
-async def _quick_destination_suggestions(state: dict) -> list[dict]:
-    """Single LLM call to get destination suggestions — no tools, no ReAct."""
-    from src.services.llm_service import LLMService
-
-    parts = []
-    if state.get("travel_types"):
-        parts.append(f"Preferences: {state['travel_types']}")
-    if state.get("budget_range") or state.get("budget_preset"):
-        parts.append(f"Budget: {state.get('budget_preset') or state.get('budget_range')}")
-    if state.get("duration_days"):
-        parts.append(f"Duration: {state['duration_days']} days")
-    if state.get("companions"):
-        parts.append(f"Traveling with: {state['companions']}")
-    if state.get("season"):
-        parts.append(f"Season: {state['season']}")
-    if state.get("constraints"):
-        parts.append(f"Constraints: {state['constraints']}")
-    if state.get("nb_travelers"):
-        parts.append(f"Travelers: {state['nb_travelers']}")
-
-    user_prompt = "\n".join(parts) if parts else "Suggest diverse travel destinations."
-
-    llm_service = LLMService()
-    result = await llm_service.acall_llm(_QUICK_DESTINATIONS_PROMPT, user_prompt)
-    destinations = result.get("destinations", [])
-    logger.info("Quick destination suggestions", {"count": len(destinations)})
-    return destinations
-
-
-async def _trip_plan_generator(request: PlanTripRequest, user_id: str, db: Session):
-    """Async generator that runs the LangGraph pipeline and yields SSE events."""
-
-    # Import here to avoid circular imports at module level
-    from src.agent.graph import graph
-    from src.agent.state import TripPlanState
-
-    # Send initial progress
-    yield _sse_event(
-        "progress",
-        {
-            "phase": "starting",
-            "message": "Starting trip planning...",
-        },
-    )
-
-    # Build initial state
-    dep_date = request.departureDate or ""
-    ret_date = request.returnDate or ""
-    duration = request.durationDays or 7
-
-    # Safety net: derive dates for month/flexible modes if client didn't send them
-    if not dep_date or not ret_date:
-        if request.preferredMonth and request.preferredYear:
-            start = date(request.preferredYear, request.preferredMonth, 15)
-            dep_date = str(start)
-            ret_date = str(start + timedelta(days=duration))
-        elif request.dateMode in ("month", "flexible"):
-            start = date.today() + timedelta(days=30)
-            dep_date = str(start)
-            ret_date = str(start + timedelta(days=duration))
-
-    initial_state: TripPlanState = {
-        "travel_types": request.travelTypes or "",
-        "budget_range": request.budgetRange or "",
-        "duration_days": duration,
-        "companions": request.companions or "solo",
-        "constraints": request.constraints or "",
-        "departure_date": dep_date,
-        "return_date": ret_date,
-        "origin_city": request.originCity or "",
-        "destination_city": request.destinationCity or "",
-        "destination_iata": request.destinationIata or "",
-        "travel_style": request.travelStyle or "",
-        "season": request.season or "",
-        "nb_travelers": request.nbTravelers or 1,
-        "budget_preset": request.budgetPreset or "",
-        "date_mode": request.dateMode or "",
-        "events": [],
-        "errors": [],
-    }
-
-    yield _sse_event(
-        "progress",
-        {
-            "phase": "destination_research",
-            "message": "Researching destinations...",
-        },
-    )
-
-    # Fast path for destinations_only: single LLM call, no ReAct/tools
-    if request.mode == "destinations_only":
-        try:
-            destinations = await _quick_destination_suggestions(initial_state)
-            yield _sse_event("destinations", {"destinations": destinations})
-            yield _sse_event(
-                "complete",
-                {"destinations": destinations, "mode": "destinations_only"},
-            )
-        except Exception as e:
-            logger.error("Quick destination suggestions failed", {"error": str(e)})
-            yield _sse_event("error", {"message": str(e)})
-        yield _sse_event("done", {"status": "complete"})
-        return
-
-    # Select graph based on mode
-    active_graph = graph
-
-    # Run the graph with streaming
-    last_heartbeat = asyncio.get_event_loop().time()
-    sent_events = set()  # Track which event types we've already sent
-
-    try:
-        async for event in async_generator_with_timeout(
-            active_graph.astream(initial_state, stream_mode="updates"),
-            total_timeout_seconds=settings.GRAPH_TIMEOUT_SECONDS,
-        ):
-            # event is a dict: {node_name: state_update}
-            for node_name, update in event.items():
-                node_events = update.get("events", [])
-
-                for evt in node_events:
-                    event_type = evt.get("event", "")
-                    event_data = evt.get("data", {})
-
-                    # Avoid duplicate events
-                    event_key = f"{event_type}:{node_name}"
-                    if event_key in sent_events:
-                        continue
-                    sent_events.add(event_key)
-
-                    yield _sse_event(event_type, event_data)
-
-                    # Send progress for next phase
-                    if event_type == "destinations":
-                        yield _sse_event(
-                            "progress",
-                            {
-                                "phase": "parallel_planning",
-                                "message": "Planning activities, accommodation & packing...",
-                            },
-                        )
-                    elif event_type in ("activities", "accommodations", "baggage"):
-                        # Check if all 3 parallel nodes are done
-                        parallel_done = {"activities", "accommodations", "baggage"}
-                        done = {
-                            e.split(":")[0] for e in sent_events if e.split(":")[0] in parallel_done
-                        }
-                        if done == parallel_done:
-                            yield _sse_event(
-                                "progress",
-                                {
-                                    "phase": "budget",
-                                    "message": "Estimating budget...",
-                                },
-                            )
-
-                # Log errors
-                node_errors = update.get("errors", [])
-                for err in node_errors:
-                    logger.warn(f"Node {node_name} error: {err}")
-
-            # Heartbeat every 15s
-            now = asyncio.get_event_loop().time()
-            if now - last_heartbeat > 15:
-                yield _sse_event("heartbeat", {"ts": int(now)})
-                last_heartbeat = now
-
-        # Increment AI quota after successful completion
-        try:
-            PlanService.increment_ai_generation(
-                db, db.query(User).filter(User.id == user_id).first()
-            )
-        except Exception as e:
-            logger.warn(f"Failed to increment AI generation count: {e}")
-
-    except TimeoutError:
-        logger.error(
-            "Trip planning graph timed out",
-            {"timeout_seconds": settings.GRAPH_TIMEOUT_SECONDS},
-        )
-        yield _sse_event(
-            "error",
-            {"message": "Trip planning timed out. Please try again."},
-        )
-    except Exception as e:
-        logger.error("Trip planning graph failed", {"error": str(e)})
-        yield _sse_event("error", {"message": str(e)})
-
-    # Final done signal
-    yield _sse_event("done", {"status": "complete"})
-
-
 @router.post("/plan-trip/stream")
 async def plan_trip_stream(
     request: PlanTripRequest,
@@ -274,7 +69,7 @@ async def plan_trip_stream(
     logger.info("Starting plan-trip/stream", {"user_id": str(current_user.id)})
 
     return StreamingResponse(
-        _trip_plan_generator(request, str(current_user.id), db),
+        TripPlannerService.stream_plan(request, str(current_user.id), db),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",

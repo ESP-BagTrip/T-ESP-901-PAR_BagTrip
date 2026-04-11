@@ -5,6 +5,7 @@ import httpx
 from src.config.env import settings
 from src.integrations.amadeus.errors import raise_amadeus_connection_error, raise_for_amadeus_status
 from src.integrations.amadeus.retry import amadeus_retry
+from src.integrations.http_client import get_http_client
 from src.utils.logger import logger
 
 from .auth import fetch_token
@@ -46,12 +47,13 @@ async def search_hotel_list(query: HotelListSearchQuery) -> HotelListResponse:
     try:
         logger.info("Making Amadeus hotel list search request", {"url": url, "params": params})
 
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            response = await client.get(
-                url,
-                headers={"Authorization": f"Bearer {token}"},
-                params=params,
-            )
+        client = get_http_client()
+        response = await client.get(
+            url,
+            headers={"Authorization": f"Bearer {token}"},
+            params=params,
+            timeout=15.0,
+        )
 
         logger.debug(
             "Amadeus hotel list search response",
@@ -122,12 +124,13 @@ async def search_hotel_offers(query: HotelOffersSearchQuery) -> HotelOffersRespo
     try:
         logger.info("Making Amadeus hotel offers search request", {"url": url, "params": params})
 
-        async with httpx.AsyncClient(timeout=20.0) as client:
-            response = await client.get(
-                url,
-                headers={"Authorization": f"Bearer {token}"},
-                params=params,
-            )
+        client = get_http_client()
+        response = await client.get(
+            url,
+            headers={"Authorization": f"Bearer {token}"},
+            params=params,
+            timeout=20.0,
+        )
 
         logger.debug(
             "Amadeus hotel offers search response",

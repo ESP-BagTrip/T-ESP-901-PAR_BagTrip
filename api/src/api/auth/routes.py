@@ -1,5 +1,6 @@
 """Routes d'authentification."""
 
+import hashlib
 import os
 import secrets
 from datetime import UTC, datetime, timedelta
@@ -28,15 +29,62 @@ from src.api.auth.schemas import (
 )
 from src.config.database import get_db
 from src.config.env import settings
-from src.integrations.stripe.client import StripeClient
 from src.models.refresh_token import RefreshToken
 from src.models.user import User
 from src.services.plan_service import PlanService
+from src.services.stripe_gateway_service import StripeGatewayService
+from src.services.user_creation_service import UserCreationService
 from src.utils.cookies import clear_auth_cookies, set_auth_cookies
 from src.utils.errors import AppError
 from src.utils.logger import logger
 
 router = APIRouter(prefix="/v1/auth", tags=["Auth"])
+
+
+def _hash_reset_token(token: str) -> str:
+    """SHA-256 hash of a password reset token — only the hash is persisted."""
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def _dummy_password_hash() -> str:
+    """Random bcrypt hash for social-login users who will never sign in via password."""
+    dummy = os.urandom(32).hex()
+    return bcrypt.hashpw(dummy.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+
+def _build_auth_response(
+    db: Session,
+    user: User,
+    response: Response,
+) -> AuthResponse:
+    """Generate access + refresh tokens, set cookies, return the auth payload.
+
+    Factored out so login / register / Google / Apple / refresh all build the
+    response the same way — especially the `plan_info` lookup which used to
+    drift (missing keys, wrong defaults) between flows.
+    """
+    access_token, expires_in = create_access_token(str(user.id))
+    refresh_token = create_refresh_token(str(user.id), db)
+    db.commit()
+    set_auth_cookies(response, access_token, refresh_token, expires_in)
+
+    plan_info = PlanService.get_plan_info(db, user)
+    return AuthResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        expires_in=expires_in,
+        user=UserResponse(
+            id=user.id,
+            email=user.email,
+            full_name=user.full_name,
+            phone=user.phone,
+            created_at=user.created_at,
+            updated_at=user.updated_at,
+            plan=user.plan or "FREE",
+            ai_generations_remaining=plan_info["ai_generations_remaining"],
+            plan_expires_at=user.plan_expires_at,
+        ),
+    )
 
 
 def create_access_token(user_id: str) -> tuple[str, int]:
@@ -88,15 +136,7 @@ def create_refresh_token(user_id: str, db: Session) -> str:
     },
 )
 async def register(request: SignupRequest, response: Response, db: Session = Depends(get_db)):
-    """
-    Register - Créer un nouvel utilisateur selon PLAN.md.
-
-    - **email**: Email de l'utilisateur (doit être unique)
-    - **password**: Mot de passe (minimum 6 caractères)
-
-    Retourne un token JWT valide pendant 365 jours.
-    """
-    # Vérifier si l'utilisateur existe déjà
+    """Register — create a new user with email + password."""
     existing_user = db.query(User).filter(User.email == request.email).first()
     if existing_user:
         raise HTTPException(
@@ -104,53 +144,18 @@ async def register(request: SignupRequest, response: Response, db: Session = Dep
             detail="User already exists",
         )
 
-    # Hasher le mot de passe
     hashed_password = bcrypt.hashpw(request.password.encode("utf-8"), bcrypt.gensalt()).decode(
         "utf-8"
     )
 
-    # Créer l'utilisateur
     try:
-        user = User(
+        user = UserCreationService.create_and_setup_user(
+            db,
             email=request.email,
             password_hash=hashed_password,
             full_name=getattr(request, "fullName", None),
             phone=getattr(request, "phone", None),
         )
-        db.add(user)
-        db.flush()  # Flush to get user.id without committing
-
-        # Créer un client Stripe
-        try:
-            stripe_customer = StripeClient.create_customer(
-                email=request.email,
-                name=getattr(request, "fullName", None),
-            )
-            user.stripe_customer_id = stripe_customer.id
-            logger.info(f"Created Stripe customer {stripe_customer.id} for user {user.id}")
-        except Exception as e:
-            logger.error(
-                f"Failed to create Stripe customer for user {user.id}: {e}",
-                exc_info=True,
-            )
-            db.rollback()
-            raise AppError(
-                "STRIPE_CUSTOMER_CREATION_FAILED",
-                503,
-                "Failed to create payment profile. Please try again.",
-            ) from e
-
-        db.commit()
-        db.refresh(user)
-
-        # Claim pending invites for newly registered user
-        try:
-            from src.services.trip_share_service import TripShareService
-
-            TripShareService.claim_pending_invites(db, email=user.email, user_id=user.id)
-        except Exception:
-            pass  # Best-effort, don't block registration
-
     except IntegrityError:
         db.rollback()
         raise HTTPException(
@@ -158,30 +163,7 @@ async def register(request: SignupRequest, response: Response, db: Session = Dep
             detail="User already exists",
         ) from None
 
-    # Generate tokens
-    access_token, expires_in = create_access_token(str(user.id))
-    refresh_token = create_refresh_token(str(user.id), db)
-    db.commit()
-
-    set_auth_cookies(response, access_token, refresh_token, expires_in)
-
-    plan_info = PlanService.get_plan_info(db, user)
-    return AuthResponse(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        expires_in=expires_in,
-        user=UserResponse(
-            id=user.id,
-            email=user.email,
-            full_name=user.full_name,
-            phone=user.phone,
-            created_at=user.created_at,
-            updated_at=user.updated_at,
-            plan=user.plan or "FREE",
-            ai_generations_remaining=plan_info["ai_generations_remaining"],
-            plan_expires_at=user.plan_expires_at,
-        ),
-    )
+    return _build_auth_response(db, user, response)
 
 
 @router.post(
@@ -382,14 +364,7 @@ async def update_me(
 async def google_sign_in(
     request: GoogleSignInRequest, response: Response, db: Session = Depends(get_db)
 ):
-    """
-    Google Sign In - Authentifier un utilisateur avec Google.
-
-    - **idToken**: Token ID Google
-
-    Crée un utilisateur s'il n'existe pas, sinon retourne l'utilisateur existant.
-    Retourne un token JWT valide pendant 365 jours.
-    """
+    """Google Sign In — create or retrieve the user from a Google ID token."""
     try:
         decoded_token = await verify_google_id_token(request.idToken)
 
@@ -407,87 +382,20 @@ async def google_sign_in(
             f"{given_name} {family_name}".strip() if given_name or family_name else None
         )
 
-        # Chercher ou créer l'utilisateur
         user = db.query(User).filter(User.email == email).first()
-
         if not user:
-            # Créer un nouvel utilisateur
-            # Pour les utilisateurs sociaux, on utilise un hash de mot de passe factice
-            # car ils n'utiliseront jamais l'authentification par mot de passe
-            dummy_password = os.urandom(32).hex()
-            hashed_password = bcrypt.hashpw(
-                dummy_password.encode("utf-8"), bcrypt.gensalt()
-            ).decode("utf-8")
-
-            user = User(
+            user = UserCreationService.create_and_setup_user(
+                db,
                 email=email,
-                password_hash=hashed_password,
+                password_hash=_dummy_password_hash(),
                 full_name=full_name,
             )
-            db.add(user)
-            db.flush()
-
-            # Créer un client Stripe
-            try:
-                stripe_customer = StripeClient.create_customer(
-                    email=email,
-                    name=full_name,
-                )
-                user.stripe_customer_id = stripe_customer.id
-                logger.info(f"Created Stripe customer {stripe_customer.id} for user {user.id}")
-            except Exception as e:
-                logger.error(
-                    f"Failed to create Stripe customer for user {user.id}: {e}",
-                    exc_info=True,
-                )
-                db.rollback()
-                raise AppError(
-                    "STRIPE_CUSTOMER_CREATION_FAILED",
-                    503,
-                    "Failed to create payment profile. Please try again.",
-                ) from e
-
+        elif full_name and not user.full_name:
+            user.full_name = full_name
             db.commit()
             db.refresh(user)
 
-            # Claim pending invites for newly registered user
-            try:
-                from src.services.trip_share_service import TripShareService
-
-                TripShareService.claim_pending_invites(db, email=user.email, user_id=user.id)
-            except Exception:
-                pass  # Best-effort
-        else:
-            # Mettre à jour le nom si nécessaire
-            if full_name and not user.full_name:
-                user.full_name = full_name
-                db.commit()
-                db.refresh(user)
-
-        # Generate tokens
-        access_token, expires_in = create_access_token(str(user.id))
-        refresh_token = create_refresh_token(str(user.id), db)
-        db.commit()
-
-        set_auth_cookies(response, access_token, refresh_token, expires_in)
-
-        plan_info = PlanService.get_plan_info(db, user)
-        return AuthResponse(
-            access_token=access_token,
-            refresh_token=refresh_token,
-            expires_in=expires_in,
-            user=UserResponse(
-                id=user.id,
-                email=user.email,
-                full_name=user.full_name,
-                phone=user.phone,
-                created_at=user.created_at,
-                updated_at=user.updated_at,
-                plan=user.plan or "FREE",
-                ai_generations_remaining=plan_info["ai_generations_remaining"],
-                plan_expires_at=user.plan_expires_at,
-            ),
-        )
+        return _build_auth_response(db, user, response)
     except AppError:
         raise
     except jwt.JWTError as e:
@@ -531,16 +439,8 @@ async def google_sign_in(
 async def apple_sign_in(
     request: AppleSignInRequest, response: Response, db: Session = Depends(get_db)
 ):
-    """
-    Apple Sign In - Authentifier un utilisateur avec Apple.
-
-    - **idToken**: Token ID Apple
-
-    Crée un utilisateur s'il n'existe pas, sinon retourne l'utilisateur existant.
-    Retourne un token JWT valide pendant 365 jours.
-    """
+    """Apple Sign In — create or retrieve the user from an Apple ID token."""
     try:
-        # Vérifier que le token n'est pas vide
         if not request.idToken or not request.idToken.strip():
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -555,94 +455,27 @@ async def apple_sign_in(
                 detail=f"Invalid Apple token: {str(jwt_error)}",
             ) from None
 
-        # Apple peut ne pas fournir l'email si l'utilisateur a choisi de le masquer
-        # Dans ce cas, on utilise le subject (sub) comme identifiant
+        # Apple may withhold the email if the user chose "Hide my email" — in that
+        # case we fall back to the token subject to synthesize a stable identifier.
         email = decoded_token.get("email")
         subject = decoded_token.get("sub")
-
         if not email and not subject:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid Apple token: no email or subject found",
             )
-
-        # Si pas d'email, on génère un email basé sur le subject
         if not email:
             email = f"{subject}@privaterelay.appleid.com"
 
-        # Chercher ou créer l'utilisateur
         user = db.query(User).filter(User.email == email).first()
-
         if not user:
-            # Créer un nouvel utilisateur
-            # Pour les utilisateurs sociaux, on utilise un hash de mot de passe factice
-            dummy_password = os.urandom(32).hex()
-            hashed_password = bcrypt.hashpw(
-                dummy_password.encode("utf-8"), bcrypt.gensalt()
-            ).decode("utf-8")
-
-            user = User(
+            user = UserCreationService.create_and_setup_user(
+                db,
                 email=email,
-                password_hash=hashed_password,
+                password_hash=_dummy_password_hash(),
             )
-            db.add(user)
-            db.flush()
 
-            # Créer un client Stripe
-            try:
-                stripe_customer = StripeClient.create_customer(
-                    email=email,
-                    name=None,
-                )
-                user.stripe_customer_id = stripe_customer.id
-                logger.info(f"Created Stripe customer {stripe_customer.id} for user {user.id}")
-            except Exception as e:
-                logger.error(
-                    f"Failed to create Stripe customer for user {user.id}: {e}",
-                    exc_info=True,
-                )
-                db.rollback()
-                raise AppError(
-                    "STRIPE_CUSTOMER_CREATION_FAILED",
-                    503,
-                    "Failed to create payment profile. Please try again.",
-                ) from e
-
-            db.commit()
-            db.refresh(user)
-
-            # Claim pending invites for newly registered user
-            try:
-                from src.services.trip_share_service import TripShareService
-
-                TripShareService.claim_pending_invites(db, email=user.email, user_id=user.id)
-            except Exception:
-                pass  # Best-effort
-
-        # Generate tokens
-        access_token, expires_in = create_access_token(str(user.id))
-        refresh_token = create_refresh_token(str(user.id), db)
-        db.commit()
-
-        set_auth_cookies(response, access_token, refresh_token, expires_in)
-
-        plan_info = PlanService.get_plan_info(db, user)
-        return AuthResponse(
-            access_token=access_token,
-            refresh_token=refresh_token,
-            expires_in=expires_in,
-            user=UserResponse(
-                id=user.id,
-                email=user.email,
-                full_name=user.full_name,
-                phone=user.phone,
-                created_at=user.created_at,
-                updated_at=user.updated_at,
-                plan=user.plan or "FREE",
-                ai_generations_remaining=plan_info["ai_generations_remaining"],
-                plan_expires_at=user.plan_expires_at,
-            ),
-        )
+        return _build_auth_response(db, user, response)
     except AppError:
         raise
     except jwt.JWTError as e:
@@ -777,18 +610,22 @@ async def logout_all(
 @router.post(
     "/forgot-password",
     summary="Request a password reset",
-    description="Send a password reset token (POC: token is logged server-side)",
+    description="Send a password reset token (delivered out-of-band, never logged)",
 )
 async def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(get_db)):
     """Request password reset — always returns 200 to avoid leaking user existence."""
     user = db.query(User).filter(User.email == request.email).first()
+    response_body: dict = {"message": "If this email exists, a reset link has been sent."}
     if user:
-        token = secrets.token_urlsafe(32)
-        user.password_reset_token = token
+        raw_token = secrets.token_urlsafe(32)
+        user.password_reset_token = _hash_reset_token(raw_token)
         user.password_reset_expires = datetime.now(UTC) + timedelta(hours=1)
         db.commit()
-        logger.info(f"[POC] Password reset token for {request.email}: {token}")
-    return {"message": "If this email exists, a reset link has been sent."}
+        # Dev-only escape hatch: no mail service yet, so expose the raw token in the
+        # response when running outside production. Never log it, never persist it raw.
+        if settings.NODE_ENV != "production":
+            response_body["debug_reset_token"] = raw_token
+    return response_body
 
 
 @router.post(
@@ -798,10 +635,11 @@ async def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(
 )
 async def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db)):
     """Reset password using a valid, non-expired token."""
+    token_hash = _hash_reset_token(request.token)
     user = (
         db.query(User)
         .filter(
-            User.password_reset_token == request.token,
+            User.password_reset_token == token_hash,
             User.password_reset_expires > datetime.now(UTC),
         )
         .first()
@@ -853,7 +691,7 @@ async def delete_me(
     # 1. Delete Stripe customer (best-effort)
     if current_user.stripe_customer_id:
         try:
-            StripeClient.delete_customer(current_user.stripe_customer_id)
+            StripeGatewayService.delete_customer(current_user.stripe_customer_id)
         except Exception as e:
             logger.error(f"Failed to delete Stripe customer: {e}")
 

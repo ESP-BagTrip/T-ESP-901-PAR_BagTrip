@@ -7,6 +7,7 @@ import httpx
 from src.config.env import settings
 from src.integrations.amadeus.errors import raise_amadeus_connection_error
 from src.integrations.amadeus.retry import amadeus_retry
+from src.integrations.http_client import get_http_client
 from src.utils.errors import AppError
 from src.utils.logger import logger
 
@@ -50,12 +51,13 @@ async def fetch_token() -> str:
     try:
         logger.info("Making Amadeus token request", {"url": url})
 
-        async with httpx.AsyncClient(timeout=settings.REQUEST_TIMEOUT_MS / 1000) as client:
-            response = await client.post(
-                url,
-                data=form_data,
-                headers={"Content-Type": "application/x-www-form-urlencoded"},
-            )
+        client = get_http_client()
+        response = await client.post(
+            url,
+            data=form_data,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            timeout=settings.REQUEST_TIMEOUT_MS / 1000,
+        )
 
         logger.debug(
             "Amadeus token response",

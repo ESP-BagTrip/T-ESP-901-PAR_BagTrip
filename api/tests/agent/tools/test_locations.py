@@ -18,7 +18,7 @@ async def test_resolve_iata_code_success():
     mock_location.geoCode.latitude = 49.0128
     mock_location.geoCode.longitude = 2.55
 
-    with patch("src.agent.tools.aviation_data_service") as mock_service:
+    with patch("src.agent.tools.locations.aviation_data_service") as mock_service:
         mock_service.search_by_keyword.return_value = [mock_location]
 
         result = await resolve_iata_code("Paris")
@@ -33,7 +33,7 @@ async def test_resolve_iata_code_success():
 @pytest.mark.asyncio
 async def test_resolve_iata_code_not_found():
     """Test IATA resolution when no results returned."""
-    with patch("src.agent.tools.aviation_data_service") as mock_service:
+    with patch("src.agent.tools.locations.aviation_data_service") as mock_service:
         mock_service.search_by_keyword.return_value = []
 
         result = await resolve_iata_code("UnknownCity")
@@ -45,7 +45,7 @@ async def test_resolve_iata_code_not_found():
 @pytest.mark.asyncio
 async def test_resolve_iata_code_exception():
     """Test IATA resolution error handling."""
-    with patch("src.agent.tools.aviation_data_service") as mock_service:
+    with patch("src.agent.tools.locations.aviation_data_service") as mock_service:
         mock_service.search_by_keyword.side_effect = Exception("Data lookup failed")
 
         result = await resolve_iata_code("NonExistentCityXYZ")

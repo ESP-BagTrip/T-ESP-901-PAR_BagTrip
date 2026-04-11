@@ -56,8 +56,9 @@ def override_get_db(mock_db_session):
 
 @pytest.fixture
 def mock_stripe_client():
-    """Mock the StripeClient."""
-    with patch("src.api.auth.routes.StripeClient") as mock_stripe:
+    """Mock the StripeClient — the register/social flows delegate Stripe
+    customer creation to UserCreationService, so we patch the symbol there."""
+    with patch("src.services.user_creation_service.StripeClient") as mock_stripe:
         mock_customer = MagicMock()
         mock_customer.id = "cus_test123"
         mock_stripe.create_customer.return_value = mock_customer

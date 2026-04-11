@@ -10,10 +10,10 @@ from src.api.booking.schemas import (
     FlightPriceRequest,
 )
 from src.config.database import get_db
-from src.integrations.amadeus import amadeus_client
 from src.integrations.amadeus.types import FlightPriceResponse
 from src.models.booking import Booking
 from src.models.user import User
+from src.services.amadeus_service import AmadeusService
 from src.utils.errors import AppError, create_http_exception
 from src.utils.logger import LogLevel, logger
 
@@ -74,7 +74,7 @@ async def confirm_price(request: FlightPriceRequest):
     ```
     """
     try:
-        return await amadeus_client.confirm_flight_price(request.flightOffer)
+        return await AmadeusService.confirm_flight_price(request.flightOffer)
     except AppError as e:
         raise create_http_exception(e) from e
     except HTTPException:
@@ -114,7 +114,7 @@ async def create_booking(
     """
     try:
         # 1. Créer la commande chez Amadeus
-        order_response = await amadeus_client.create_flight_order(
+        order_response = await AmadeusService.create_flight_order(
             request.flightOffer, request.travelers
         )
 

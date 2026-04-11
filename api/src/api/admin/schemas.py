@@ -4,7 +4,7 @@ import datetime as dt
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class AuditLogResponse(BaseModel):
@@ -20,9 +20,7 @@ class AuditLogResponse(BaseModel):
     metadata_: Any | None = Field(default=None, alias="metadata")
     createdAt: dt.datetime = Field(alias="created_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class AdminListResponse[T](BaseModel):
@@ -44,9 +42,7 @@ class AdminUserResponse(BaseModel):
     createdAt: dt.datetime = Field(alias="created_at")
     updatedAt: dt.datetime | None = Field(None, alias="updated_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class UpdatePlanRequest(BaseModel):
@@ -113,9 +109,7 @@ class AdminUserDetailResponse(BaseModel):
     createdAt: dt.datetime = Field(alias="created_at")
     updatedAt: dt.datetime | None = Field(None, alias="updated_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class AdminUserUpdateRequest(BaseModel):
@@ -167,9 +161,7 @@ class AdminTripResponse(BaseModel):
     createdAt: dt.datetime = Field(alias="created_at")
     updatedAt: dt.datetime = Field(alias="updated_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class AdminTravelerResponse(BaseModel):
@@ -188,9 +180,7 @@ class AdminTravelerResponse(BaseModel):
     createdAt: dt.datetime = Field(..., alias="created_at")
     updatedAt: dt.datetime = Field(..., alias="updated_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class AdminTravelerProfileResponse(BaseModel):
@@ -207,9 +197,7 @@ class AdminTravelerProfileResponse(BaseModel):
     createdAt: dt.datetime = Field(alias="created_at")
     updatedAt: dt.datetime = Field(alias="updated_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class AdminBookingIntentResponse(BaseModel):
@@ -228,9 +216,7 @@ class AdminBookingIntentResponse(BaseModel):
     createdAt: dt.datetime = Field(alias="created_at")
     updatedAt: dt.datetime = Field(alias="updated_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class AdminAccommodationResponse(BaseModel):
@@ -250,9 +236,7 @@ class AdminAccommodationResponse(BaseModel):
     createdAt: dt.datetime = Field(alias="created_at")
     updatedAt: dt.datetime = Field(alias="updated_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class AdminBaggageItemResponse(BaseModel):
@@ -269,9 +253,7 @@ class AdminBaggageItemResponse(BaseModel):
     createdAt: dt.datetime = Field(alias="created_at")
     updatedAt: dt.datetime = Field(alias="updated_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class AdminTripShareResponse(BaseModel):
@@ -285,9 +267,7 @@ class AdminTripShareResponse(BaseModel):
     role: str
     invitedAt: dt.datetime = Field(alias="invited_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class AdminFlightSearchResponse(BaseModel):
@@ -305,9 +285,7 @@ class AdminFlightSearchResponse(BaseModel):
     travelClass: str | None = Field(default=None, alias="travel_class")
     createdAt: dt.datetime = Field(alias="created_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class AdminActivityResponse(BaseModel):
@@ -329,9 +307,7 @@ class AdminActivityResponse(BaseModel):
     createdAt: dt.datetime = Field(alias="created_at")
     updatedAt: dt.datetime = Field(alias="updated_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class AdminBudgetItemResponse(BaseModel):
@@ -349,9 +325,7 @@ class AdminBudgetItemResponse(BaseModel):
     createdAt: dt.datetime = Field(alias="created_at")
     updatedAt: dt.datetime = Field(alias="updated_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class AdminFeedbackResponse(BaseModel):
@@ -368,9 +342,7 @@ class AdminFeedbackResponse(BaseModel):
     wouldRecommend: bool = Field(alias="would_recommend")
     createdAt: dt.datetime = Field(alias="created_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class AdminNotificationResponse(BaseModel):
@@ -388,9 +360,7 @@ class AdminNotificationResponse(BaseModel):
     sentAt: dt.datetime | None = Field(default=None, alias="sent_at")
     createdAt: dt.datetime = Field(alias="created_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 # ──────────────────────── Trip Management Schemas ────────────────────────
@@ -419,9 +389,7 @@ class AdminTripDetailResponse(BaseModel):
     createdAt: dt.datetime = Field(alias="created_at")
     updatedAt: dt.datetime = Field(alias="updated_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class AdminTripUpdateRequest(BaseModel):
@@ -571,9 +539,7 @@ class AdminBookingIntentDetailResponse(BaseModel):
     createdAt: dt.datetime = Field(alias="created_at")
     updatedAt: dt.datetime = Field(alias="updated_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class AdminBookingStatusRequest(BaseModel):
@@ -600,6 +566,4 @@ class AdminFlightBookingResponse(BaseModel):
     createdAt: dt.datetime = Field(alias="created_at")
     updatedAt: dt.datetime = Field(alias="updated_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)

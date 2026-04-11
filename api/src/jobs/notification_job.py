@@ -3,12 +3,11 @@
 import asyncio
 from datetime import UTC, date, datetime, timedelta
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from src.config.database import SessionLocal
 from src.enums import FlightOrderStatus, NotificationType, TripStatus
 from src.models.activity import Activity
-from src.models.baggage_item import BaggageItem
 from src.models.flight_offer import FlightOffer
 from src.models.flight_order import FlightOrder
 from src.models.trip import Trip
@@ -22,13 +21,20 @@ INTERVAL_SECONDS = 30 * 60  # 30 minutes
 def _check_departure_reminders(db: Session) -> int:
     """Trip PLANNED, start_date = tomorrow → DEPARTURE_REMINDER."""
     tomorrow = date.today() + timedelta(days=1)
+    # Eager-load baggage_items + shares so we don't issue one SELECT per trip in
+    # the loop below. This job runs every 30 minutes over every PLANNED trip.
     trips = (
-        db.query(Trip).filter(Trip.status == TripStatus.PLANNED, Trip.start_date == tomorrow).all()
+        db.query(Trip)
+        .options(
+            selectinload(Trip.baggage_items),
+            selectinload(Trip.shares),
+        )
+        .filter(Trip.status == TripStatus.PLANNED, Trip.start_date == tomorrow)
+        .all()
     )
     count = 0
     for trip in trips:
-        # Compute baggage checklist status
-        baggage_items = db.query(BaggageItem).filter(BaggageItem.trip_id == trip.id).all()
+        baggage_items = trip.baggage_items
         total = len(baggage_items)
         packed = sum(1 for b in baggage_items if b.is_packed)
 
@@ -174,7 +180,16 @@ def _check_morning_summary(db: Session) -> int:
         return 0
 
     today = date.today()
-    trips = db.query(Trip).filter(Trip.status == TripStatus.ONGOING).all()
+    # Eager-load shares so the recipient lookup doesn't fire a follow-up query
+    # per trip. Activities are still fetched with an explicit date filter — we
+    # only want the subset dated "today", which is cheaper than loading all
+    # activities and filtering in Python.
+    trips = (
+        db.query(Trip)
+        .options(selectinload(Trip.shares))
+        .filter(Trip.status == TripStatus.ONGOING)
+        .all()
+    )
     count = 0
     for trip in trips:
         activities = (

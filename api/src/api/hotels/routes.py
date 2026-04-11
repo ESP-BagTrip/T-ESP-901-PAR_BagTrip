@@ -12,11 +12,11 @@ from src.api.hotels.schemas import (
     HotelListSearchResponse,
     HotelOffersSearchResponse,
 )
-from src.integrations.amadeus.client import amadeus_client
 from src.integrations.amadeus.types import (
     HotelListSearchQuery,
     HotelOffersSearchQuery,
 )
+from src.services.amadeus_service import AmadeusService
 
 router = APIRouter(prefix="/v1/travel/hotels", tags=["Hotel Search"])
 
@@ -38,7 +38,7 @@ async def search_hotels_by_city(
         ratings=ratings,
         hotelSource=hotelSource,
     )
-    result = await amadeus_client.search_hotel_list(query)
+    result = await AmadeusService.search_hotel_list(query)
     return HotelListSearchResponse(
         data=[h.model_dump() for h in result.data],
     )
@@ -61,7 +61,7 @@ async def search_hotel_offers(
         checkOutDate=checkOutDate,
         currency=currency,
     )
-    result = await amadeus_client.search_hotel_offers(query)
+    result = await AmadeusService.search_hotel_offers(query)
     return HotelOffersSearchResponse(
         data=[r.model_dump() for r in result.data],
     )

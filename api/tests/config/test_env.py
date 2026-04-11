@@ -107,9 +107,13 @@ class TestJwtSecretValidation:
             "NODE_ENV": "production",
             "JWT_SECRET": "my-strong-production-secret-key-2026",
             "LLM_API_KEY": "test_key",
+            "COOKIE_SECURE": "true",
+            "STRIPE_WEBHOOK_SECRET": "whsec_test_prod",
         }):
             settings = Settings()
             assert settings.JWT_SECRET == "my-strong-production-secret-key-2026"
+            assert settings.COOKIE_SECURE is True
+            assert settings.STRIPE_WEBHOOK_SECRET == "whsec_test_prod"
 
 
 class TestFormatError:

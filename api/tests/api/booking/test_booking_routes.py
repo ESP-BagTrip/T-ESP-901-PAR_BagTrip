@@ -122,7 +122,7 @@ def create_valid_flight_offer():
     }
 
 
-@patch("src.api.booking.routes.amadeus_client", new_callable=AsyncMock)
+@patch("src.api.booking.routes.AmadeusService", new_callable=AsyncMock)
 class TestConfirmPrice:
     """Test suite for the confirm_price endpoint."""
 
@@ -178,7 +178,7 @@ class TestConfirmPrice:
             logger.level = original_level
 
 
-@patch("src.api.booking.routes.amadeus_client", new_callable=AsyncMock)
+@patch("src.api.booking.routes.AmadeusService", new_callable=AsyncMock)
 class TestCreateBooking:
     """Test suite for the create_booking endpoint."""
 
