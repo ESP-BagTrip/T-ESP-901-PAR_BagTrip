@@ -8,7 +8,7 @@ RESET='\033[0m'
 
 echo -e "${CYAN}Setting up Admin Panel (Next.js)...${RESET}"
 
-cd "$(dirname "$0")/../admin-panel/application" || exit 1
+cd "$(dirname "$0")/../admin-panel" || exit 1
 
 # Check if Node.js and npm are installed
 if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
