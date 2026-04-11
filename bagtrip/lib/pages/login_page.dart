@@ -25,16 +25,32 @@ import 'package:bagtrip/navigation/route_definitions.dart';
 const double _kPanelRadius = 16.0;
 
 class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+  /// Optional DI overrides for tests. In production both are resolved
+  /// from the service locator; tests pass mocks so the AuthSuccess
+  /// listener can be unit-tested without touching the global `getIt`.
+  final AuthRepository? authRepository;
+  final PersonalizationStorage? personalizationStorage;
+
+  const LoginPage({
+    super.key,
+    this.authRepository,
+    this.personalizationStorage,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return const _LoginPageContent();
+    return _LoginPageContent(
+      authRepository: authRepository,
+      personalizationStorage: personalizationStorage,
+    );
   }
 }
 
 class _LoginPageContent extends StatefulWidget {
-  const _LoginPageContent();
+  final AuthRepository? authRepository;
+  final PersonalizationStorage? personalizationStorage;
+
+  const _LoginPageContent({this.authRepository, this.personalizationStorage});
 
   @override
   State<_LoginPageContent> createState() => _LoginPageContentState();
@@ -49,6 +65,16 @@ class _LoginPageContentState extends State<_LoginPageContent> {
   bool _emailHasError = false;
   bool _passwordHasError = false;
   bool _fullNameHasError = false;
+
+  /// Resolves the auth repository with the widget-level override first,
+  /// then the service locator. Lets tests inject a mock without touching
+  /// global singleton registrations.
+  AuthRepository get _authRepository =>
+      widget.authRepository ?? getIt<AuthRepository>();
+
+  /// Same pattern for the per-user personalization prompt flag.
+  PersonalizationStorage get _personalizationStorage =>
+      widget.personalizationStorage ?? getIt<PersonalizationStorage>();
 
   @override
   void dispose() {
@@ -175,15 +201,14 @@ class _LoginPageContentState extends State<_LoginPageContent> {
             if (state is AuthSuccess) {
               Future.delayed(const Duration(milliseconds: 100), () async {
                 if (!context.mounted) return;
-                final userResult = await getIt<AuthRepository>()
-                    .getCurrentUser();
+                final userResult = await _authRepository.getCurrentUser();
                 final user = userResult.dataOrNull;
                 if (!context.mounted) return;
                 if (user == null || user.id.isEmpty) {
                   const HomeRoute().go(context);
                   return;
                 }
-                final hasSeen = await getIt<PersonalizationStorage>()
+                final hasSeen = await _personalizationStorage
                     .hasSeenPersonalizationPrompt(user.id);
                 if (!context.mounted) return;
                 if (hasSeen) {

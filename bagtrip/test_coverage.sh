@@ -6,7 +6,7 @@ set -e
 
 # Threshold reflects the current baseline after filtering out generated/boot code.
 # Bump this as each refactor phase lands more tests (target: 80%).
-COVERAGE_THRESHOLD=${COVERAGE_THRESHOLD:-75}
+COVERAGE_THRESHOLD=${COVERAGE_THRESHOLD:-77}
 
 cd "$(dirname "$0")"
 
