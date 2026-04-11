@@ -9,8 +9,8 @@ import 'package:dio/dio.dart';
 class TripShareRepositoryImpl implements TripShareRepository {
   final ApiClient _apiClient;
 
-  TripShareRepositoryImpl({ApiClient? apiClient})
-    : _apiClient = apiClient ?? ApiClient();
+  TripShareRepositoryImpl({required ApiClient apiClient})
+    : _apiClient = apiClient;
 
   @override
   Future<Result<TripShare>> createShare(

@@ -7,7 +7,7 @@ import 'package:dio/dio.dart';
 class AgentService {
   final ApiClient _apiClient;
 
-  AgentService({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
+  AgentService({required ApiClient apiClient}) : _apiClient = apiClient;
 
   /// Chat with the agent (SSE streaming).
   /// BLOCKED: Requires SSE infrastructure (Epic 6).
