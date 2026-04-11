@@ -73,10 +73,15 @@ class AppColors {
 
   // --- Plan trip generation step accents (step_generation_view) ---
   static const Color stepInProgress = Color(0xFF1FA8AD);
+  static const Color stepInProgressSubtitle = Color(0xFF20AEB0);
   static const Color stepCompletedSubtitle = Color(0xFF51A194);
+  static const Color stepProgressGlow = Color(0xFF1DBFBA);
+  static const Color stepSuccessBg = Color(0xFFE8F7F3);
+  static const Color stepSuccessBorder = Color(0xFF2EB89B);
 
   // --- Info / informational card backgrounds ---
   static const Color infoBackgroundLight = Color(0xFFF0F7FF);
+  static const Color errorBackgroundLight = Color(0xFFFFF0F0);
 
   // --- Budget category (light) ---
   static const Color categoryFlight = Color(0xFFBBDEFB); // blue.shade100

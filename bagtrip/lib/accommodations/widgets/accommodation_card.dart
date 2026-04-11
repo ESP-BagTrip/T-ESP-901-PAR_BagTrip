@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/extensions/datetime_ext.dart';
+import 'package:bagtrip/core/extensions/price_format_ext.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -182,7 +183,7 @@ class _AccommodationCardState extends State<AccommodationCard> {
                 Row(
                   children: [
                     Text(
-                      '${a.pricePerNight!.toStringAsFixed(0)} ${a.currency ?? 'EUR'}/${l10n.accommodationNights}',
+                      '${a.pricePerNight!.formatPrice(currency: a.currency ?? 'EUR')}/${l10n.accommodationNights}',
                       style: const TextStyle(
                         fontFamily: FontFamily.b612,
                         fontSize: 14,
@@ -193,7 +194,7 @@ class _AccommodationCardState extends State<AccommodationCard> {
                     if (nights != null) ...[
                       const Spacer(),
                       Text(
-                        '${l10n.accommodationTotal} ${(a.pricePerNight! * nights).toStringAsFixed(0)} ${a.currency ?? 'EUR'}',
+                        '${l10n.accommodationTotal} ${(a.pricePerNight! * nights).formatPrice(currency: a.currency ?? 'EUR')}',
                         style: TextStyle(
                           fontFamily: FontFamily.b612,
                           fontSize: 14,

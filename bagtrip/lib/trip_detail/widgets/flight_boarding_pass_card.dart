@@ -1,3 +1,4 @@
+import 'package:bagtrip/core/extensions/price_format_ext.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
@@ -302,7 +303,9 @@ class _FlightBoardingPassCardState extends State<FlightBoardingPassCard> {
                       ),
                     if (flight.price != null)
                       Text(
-                        '${flight.price!.toStringAsFixed(0)} ${flight.currency ?? '€'}',
+                        flight.price!.formatPrice(
+                          currency: flight.currency ?? '€',
+                        ),
                         style: const TextStyle(
                           fontFamily: FontFamily.b612,
                           fontSize: 16,

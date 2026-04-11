@@ -1,3 +1,5 @@
+import 'package:bagtrip/core/extensions/datetime_ext.dart';
+import 'package:bagtrip/core/extensions/price_format_ext.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
@@ -56,8 +58,7 @@ class _AccommodationBookingCardState extends State<AccommodationBookingCard> {
 
     int? nights;
     if (a.checkIn != null && a.checkOut != null) {
-      nights = a.checkOut!.difference(a.checkIn!).inDays;
-      if (nights < 1) nights = 1;
+      nights = a.checkIn!.nightsUntil(a.checkOut!);
     }
 
     final checkInStr = a.checkIn != null
@@ -316,7 +317,7 @@ class _AccommodationBookingCardState extends State<AccommodationBookingCard> {
                           ),
                         if (totalPrice != null)
                           Text(
-                            '${totalPrice.toStringAsFixed(0)} ${a.currency ?? '€'}',
+                            totalPrice.formatPrice(currency: a.currency ?? '€'),
                             style: const TextStyle(
                               fontFamily: FontFamily.b612,
                               fontSize: 16,

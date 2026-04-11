@@ -230,7 +230,7 @@ class _ReadOnlyFeedbackView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Card(
-            color: const Color(0xFFF0F7FF),
+            color: AppColors.infoBackgroundLight,
             child: Padding(
               padding: AppSpacing.allEdgeInsetSpace16,
               child: Column(
@@ -354,7 +354,7 @@ class _PostTripSuggestionSection extends StatelessWidget {
             state is PostTripSuggestionPremiumRequired;
         if (showButton) {
           return Card(
-            color: const Color(0xFFF0F7FF),
+            color: AppColors.infoBackgroundLight,
             child: Padding(
               padding: AppSpacing.allEdgeInsetSpace16,
               child: Column(
@@ -391,7 +391,7 @@ class _PostTripSuggestionSection extends StatelessWidget {
         }
         if (state is PostTripSuggestionError) {
           return Card(
-            color: const Color(0xFFFFF0F0),
+            color: AppColors.errorBackgroundLight,
             child: Padding(
               padding: AppSpacing.allEdgeInsetSpace16,
               child: Column(
@@ -442,7 +442,7 @@ class _PostTripSuggestionCard extends StatelessWidget {
         [];
 
     return Card(
-      color: const Color(0xFFF0F7FF),
+      color: AppColors.infoBackgroundLight,
       child: Padding(
         padding: AppSpacing.allEdgeInsetSpace16,
         child: Column(

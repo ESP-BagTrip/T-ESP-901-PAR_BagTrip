@@ -2,7 +2,6 @@ import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/baggage_item.dart';
 import 'package:flutter/material.dart';
@@ -79,20 +78,7 @@ class _BaggageItemTileState extends State<BaggageItemTile>
             : AppColors.surface,
         borderRadius: AppRadius.large16,
         border: Border.all(color: AppColors.border, width: 0.5),
-        boxShadow: [
-          BoxShadow(
-            color: ColorName.primary.withValues(alpha: 0.08),
-            offset: const Offset(0, 4),
-            blurRadius: 6,
-            spreadRadius: -1,
-          ),
-          BoxShadow(
-            color: ColorName.primary.withValues(alpha: 0.04),
-            offset: const Offset(0, 2),
-            blurRadius: 4,
-            spreadRadius: -1,
-          ),
-        ],
+        boxShadow: AppShadows.card,
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(

@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/extensions/datetime_ext.dart';
+import 'package:bagtrip/core/extensions/price_format_ext.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -249,7 +250,9 @@ class _FlightCardState extends State<FlightCard> {
                       ),
                     if (flight.price != null)
                       Text(
-                        '${flight.price!.toStringAsFixed(0)} ${flight.currency ?? '\u20ac'}',
+                        flight.price!.formatPrice(
+                          currency: flight.currency ?? '\u20ac',
+                        ),
                         style: const TextStyle(
                           fontFamily: FontFamily.b612,
                           fontSize: 16,
