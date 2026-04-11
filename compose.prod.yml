@@ -53,7 +53,7 @@ services:
 
   admin:
     build:
-      context: ./admin-panel/application
+      context: ./admin-panel
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${ADMIN_NEXT_PUBLIC_API_URL:-https://api.bagtrip.fr}

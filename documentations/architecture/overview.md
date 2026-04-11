@@ -63,7 +63,7 @@ T-ESP-901-81605-PAR_Gospalaga/
 | i18n | flutter_localizations (EN + FR) |
 | Tests | flutter test + integration tests |
 
-### Admin Panel (`admin-panel/application/`)
+### Admin Panel (`admin-panel/`)
 
 | Composant | Technologie |
 |-----------|-------------|
@@ -152,7 +152,7 @@ Au demarrage, l'API cree automatiquement :
 
 | Element | Description | Priorite |
 |---------|-------------|----------|
-| Dockerfile production | Aucun `Dockerfile` de production n'existe pour l'API ni l'admin-panel. Seuls les `Dockerfile.dev` sont presents (`api/Dockerfile.dev`, `admin-panel/application/Dockerfile.dev`). | P0 |
+| Dockerfile production | Aucun `Dockerfile` de production n'existe pour l'API ni l'admin-panel. Seuls les `Dockerfile.dev` sont presents (`api/Dockerfile.dev`, `admin-panel/Dockerfile.dev`). | P0 |
 | Compose de production | Pas de `compose.prod.yml` ni de `compose.override.yml`. Le `compose.yml` actuel est purement dev (volumes montes, --reload). | P0 |
 | JWT_SECRET par defaut | `api/src/config/env.py` utilise `JWT_SECRET = "dev-secret-key-change-in-production"` comme valeur par defaut. Aucune validation ne bloque le demarrage en production avec cette valeur. | P0 |
 | Tests API quasi-vides | Le repertoire `api/tests/` existe mais aucun TODO/FIXME n'a ete trouve dans le code API, suggerant une couverture minimale. `pytest` est configure mais le contenu des tests n'est pas visible dans les sources actuelles. | P1 |

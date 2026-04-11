@@ -63,13 +63,14 @@ services:
   admin-panel:
     container_name: BagTrip-admin-panel
     build:
-      context: ./admin-panel/application
+      context: ./admin-panel
       dockerfile: Dockerfile.dev
     ports:
       - "8000:8000"
     volumes:
-      - ./admin-panel/application:/app
-      - /app/node_modules
+      - ./admin-panel:/app
+      - admin_node_modules:/app/node_modules
+      - /app/.next
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:3000
       - WATCHPACK_POLLING=true
@@ -112,6 +113,7 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  admin_node_modules:
   sonarqube_data:
   sonarqube_extensions:
   sonarqube_logs:

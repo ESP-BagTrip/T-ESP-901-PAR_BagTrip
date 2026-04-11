@@ -7,7 +7,7 @@ SHELL := /bin/bash
 # ── Variables ────────────────────────────────────────────────
 COMPOSE      := docker compose
 FLUTTER_DIR  := bagtrip
-ADMIN_APP_DIR := admin-panel/application
+ADMIN_APP_DIR := admin-panel
 API_DIR      := api
 API_PORT     := 3000
 
