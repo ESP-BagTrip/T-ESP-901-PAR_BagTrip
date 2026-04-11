@@ -99,5 +99,128 @@ void main() {
         expect: () => [isA<BookingLoading>(), isA<BookingError>()],
       );
     });
+
+    // ── CreateBookingIntent ────────────────────────────────────────────
+
+    group('CreateBookingIntent', () {
+      blocTest<BookingBloc, BookingState>(
+        'on Success dispatches AuthorizePayment → PaymentSheetReady',
+        build: () {
+          when(
+            () => mockRepo.createBookingIntent(
+              tripId: any(named: 'tripId'),
+              flightOfferId: any(named: 'flightOfferId'),
+            ),
+          ).thenAnswer((_) async => const Success('intent-42'));
+          when(
+            () => mockRepo.authorizePayment('intent-42'),
+          ).thenAnswer((_) async => Success(makePaymentAuthorizeResponse()));
+          return BookingBloc(bookingRepository: mockRepo);
+        },
+        act: (bloc) => bloc.add(
+          CreateBookingIntent(tripId: 't-1', flightOfferId: 'offer-1'),
+        ),
+        // First PaymentAuthorizing from CreateBookingIntent, then from the
+        // internal AuthorizePayment dispatch, then PaymentSheetReady.
+        expect: () => [
+          isA<PaymentAuthorizing>(),
+          isA<PaymentAuthorizing>(),
+          isA<PaymentSheetReady>(),
+        ],
+        verify: (bloc) {
+          final ready = bloc.state as PaymentSheetReady;
+          expect(ready.intentId, 'intent-42');
+          expect(ready.clientSecret, 'secret_123');
+          verify(
+            () => mockRepo.createBookingIntent(
+              tripId: 't-1',
+              flightOfferId: 'offer-1',
+            ),
+          ).called(1);
+          verify(() => mockRepo.authorizePayment('intent-42')).called(1);
+        },
+      );
+
+      blocTest<BookingBloc, BookingState>(
+        'on Failure emits [PaymentAuthorizing, PaymentFailed]',
+        build: () {
+          when(
+            () => mockRepo.createBookingIntent(
+              tripId: any(named: 'tripId'),
+              flightOfferId: any(named: 'flightOfferId'),
+            ),
+          ).thenAnswer((_) async => const Failure(NetworkError('offline')));
+          return BookingBloc(bookingRepository: mockRepo);
+        },
+        act: (bloc) => bloc.add(
+          CreateBookingIntent(tripId: 't-1', flightOfferId: 'offer-1'),
+        ),
+        expect: () => [isA<PaymentAuthorizing>(), isA<PaymentFailed>()],
+        verify: (bloc) {
+          final failed = bloc.state as PaymentFailed;
+          expect(failed.error, isA<NetworkError>());
+        },
+      );
+    });
+
+    // ── AuthorizePayment (directly dispatched) ─────────────────────────
+
+    group('AuthorizePayment', () {
+      blocTest<BookingBloc, BookingState>(
+        'on Success emits [PaymentAuthorizing, PaymentSheetReady]',
+        build: () {
+          when(
+            () => mockRepo.authorizePayment('intent-1'),
+          ).thenAnswer((_) async => Success(makePaymentAuthorizeResponse()));
+          return BookingBloc(bookingRepository: mockRepo);
+        },
+        act: (bloc) => bloc.add(AuthorizePayment(intentId: 'intent-1')),
+        expect: () => [isA<PaymentAuthorizing>(), isA<PaymentSheetReady>()],
+      );
+
+      blocTest<BookingBloc, BookingState>(
+        'on Failure emits [PaymentAuthorizing, PaymentFailed]',
+        build: () {
+          when(
+            () => mockRepo.authorizePayment('intent-1'),
+          ).thenAnswer((_) async => const Failure(ServerError('stripe down')));
+          return BookingBloc(bookingRepository: mockRepo);
+        },
+        act: (bloc) => bloc.add(AuthorizePayment(intentId: 'intent-1')),
+        expect: () => [isA<PaymentAuthorizing>(), isA<PaymentFailed>()],
+      );
+    });
+
+    // ── CapturePayment ─────────────────────────────────────────────────
+
+    group('CapturePayment', () {
+      blocTest<BookingBloc, BookingState>(
+        'on Success emits PaymentSuccess',
+        build: () {
+          when(
+            () => mockRepo.capturePayment('intent-1'),
+          ).thenAnswer((_) async => const Success(null));
+          return BookingBloc(bookingRepository: mockRepo);
+        },
+        act: (bloc) => bloc.add(CapturePayment(intentId: 'intent-1')),
+        expect: () => [isA<PaymentSuccess>()],
+        verify: (bloc) {
+          final success = bloc.state as PaymentSuccess;
+          expect(success.intentId, 'intent-1');
+        },
+      );
+
+      blocTest<BookingBloc, BookingState>(
+        'on Failure emits PaymentFailed',
+        build: () {
+          when(
+            () => mockRepo.capturePayment('intent-1'),
+          ).thenAnswer((_) async => const Failure(ServerError('nope')));
+          return BookingBloc(bookingRepository: mockRepo);
+        },
+        act: (bloc) => bloc.add(CapturePayment(intentId: 'intent-1')),
+        expect: () => [isA<PaymentFailed>()],
+      );
+    });
   });
 }
