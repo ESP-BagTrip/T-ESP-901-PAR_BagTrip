@@ -21,9 +21,14 @@ class StepReviewView extends StatefulWidget {
 }
 
 class _StepReviewViewState extends State<StepReviewView>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
+  static const Duration _footerVisibilityDuration = Duration(milliseconds: 280);
+  static const double _scrollDeltaThreshold = 3;
+
   final Set<int> _checkedEssentials = {};
   late final TabController _tabController;
+  late final AnimationController _footerVisibilityController;
+  late final CurvedAnimation _footerVisibilityCurve;
   bool _ctaPressed = false;
   int _selectedJourneyDay = 0;
 
@@ -31,10 +36,41 @@ class _StepReviewViewState extends State<StepReviewView>
   void initState() {
     super.initState();
     _tabController = TabController(length: 6, vsync: this);
+    _tabController.addListener(_onReviewTabChanged);
+    _footerVisibilityController = AnimationController(
+      vsync: this,
+      duration: _footerVisibilityDuration,
+      value: 1,
+    );
+    _footerVisibilityCurve = CurvedAnimation(
+      parent: _footerVisibilityController,
+      curve: Curves.easeInOut,
+    );
+  }
+
+  void _onReviewTabChanged() {
+    if (_tabController.indexIsChanging) return;
+    _footerVisibilityController.forward();
+  }
+
+  bool _onReviewScrollNotification(ScrollNotification notification) {
+    if (notification.metrics.axis != Axis.vertical) return false;
+    if (notification is! ScrollUpdateNotification) return false;
+    final delta = notification.scrollDelta;
+    if (delta == null || delta.abs() < _scrollDeltaThreshold) return false;
+    if (delta > 0) {
+      _footerVisibilityController.reverse();
+    } else {
+      _footerVisibilityController.forward();
+    }
+    return false;
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_onReviewTabChanged);
+    _footerVisibilityCurve.dispose();
+    _footerVisibilityController.dispose();
     _tabController.dispose();
     super.dispose();
   }
@@ -92,88 +128,94 @@ class _StepReviewViewState extends State<StepReviewView>
               ),
             ),
             Expanded(
-              child: ColoredBox(
-                color: ColorName.surfaceVariant,
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _OverviewPanel(plan: plan, dates: dates),
-                          _FlightsPanel(plan: plan, dates: dates),
-                          _HotelPanel(plan: plan, dates: dates),
-                          _ItineraryPanel(
-                            dayProgram: plan.dayProgram,
-                            dayDescriptions: plan.dayDescriptions,
-                            dayCategories: plan.dayCategories,
-                            durationDays: plan.durationDays,
-                            selectedDay: _selectedJourneyDay,
-                            onSelectDay: (value) =>
-                                setState(() => _selectedJourneyDay = value),
-                          ),
-                          _EssentialsPanel(
-                            items: plan.essentialItems,
-                            reasons: plan.essentialReasons,
-                            checked: _checkedEssentials,
-                            onToggle: (index) {
-                              AppHaptics.light();
-                              setState(() {
-                                if (_checkedEssentials.contains(index)) {
-                                  _checkedEssentials.remove(index);
-                                } else {
-                                  _checkedEssentials.add(index);
-                                }
-                              });
-                            },
-                          ),
-                          _BudgetPanel(
-                            total: plan.budgetEur.toDouble(),
-                            budgetBreakdown: plan.budgetBreakdown,
-                          ),
-                        ],
-                      ),
-                    ),
-                    SafeArea(
-                      top: false,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(22, 8, 22, 0),
-                        child: Column(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: ColoredBox(
+                      color: ColorName.surfaceVariant,
+                      child: NotificationListener<ScrollNotification>(
+                        onNotification: _onReviewScrollNotification,
+                        child: TabBarView(
+                          controller: _tabController,
                           children: [
-                            _CreateTripButton(
-                              isCreating: state.isCreating,
-                              isPressed: _ctaPressed,
-                              onPressStart: () =>
-                                  setState(() => _ctaPressed = true),
-                              onPressEnd: () =>
-                                  setState(() => _ctaPressed = false),
-                              onTap: () {
-                                AppHaptics.medium();
-                                context.read<PlanTripBloc>().add(
-                                  const PlanTripEvent.createTrip(),
-                                );
+                            _OverviewPanel(plan: plan, dates: dates),
+                            _FlightsPanel(plan: plan, dates: dates),
+                            _HotelPanel(plan: plan, dates: dates),
+                            _ItineraryPanel(
+                              dayProgram: plan.dayProgram,
+                              dayDescriptions: plan.dayDescriptions,
+                              dayCategories: plan.dayCategories,
+                              durationDays: plan.durationDays,
+                              selectedDay: _selectedJourneyDay,
+                              onSelectDay: (value) =>
+                                  setState(() => _selectedJourneyDay = value),
+                            ),
+                            _EssentialsPanel(
+                              items: plan.essentialItems,
+                              reasons: plan.essentialReasons,
+                              checked: _checkedEssentials,
+                              onToggle: (index) {
+                                AppHaptics.light();
+                                setState(() {
+                                  if (_checkedEssentials.contains(index)) {
+                                    _checkedEssentials.remove(index);
+                                  } else {
+                                    _checkedEssentials.add(index);
+                                  }
+                                });
                               },
                             ),
-                            TextButton(
-                              onPressed: () {
-                                context.read<PlanTripBloc>().add(
-                                  const PlanTripEvent.backToProposals(),
-                                );
-                              },
-                              child: Text(
-                                l10n.reviewSeeOtherDestinations,
-                                style: const TextStyle(
-                                  fontFamily: FontFamily.b612,
-                                  color: Color(0xFF7C7A75),
-                                ),
-                              ),
+                            _BudgetPanel(
+                              total: plan.budgetEur.toDouble(),
+                              budgetBreakdown: plan.budgetBreakdown,
+                              durationDays: plan.durationDays,
                             ),
                           ],
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  AnimatedBuilder(
+                    animation: _footerVisibilityCurve,
+                    builder: (context, child) {
+                      return IgnorePointer(
+                        ignoring: _footerVisibilityCurve.value < 0.01,
+                        child: child,
+                      );
+                    },
+                    child: FadeTransition(
+                      opacity: _footerVisibilityCurve,
+                      child: SizeTransition(
+                        sizeFactor: _footerVisibilityCurve,
+                        child: SafeArea(
+                          top: false,
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _CreateTripButton(
+                                  isCreating: state.isCreating,
+                                  isPressed: _ctaPressed,
+                                  onPressStart: () =>
+                                      setState(() => _ctaPressed = true),
+                                  onPressEnd: () =>
+                                      setState(() => _ctaPressed = false),
+                                  onTap: () {
+                                    AppHaptics.medium();
+                                    context.read<PlanTripBloc>().add(
+                                      const PlanTripEvent.createTrip(),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -290,7 +332,6 @@ class _ReviewHero extends StatelessWidget {
                           dateRangeLabel,
                           style: const TextStyle(
                             fontFamily: FontFamily.dMSerifDisplay,
-                            fontStyle: FontStyle.italic,
                             fontSize: 16,
                             color: ColorName.surface,
                           ),
@@ -355,7 +396,7 @@ class _PanelChipsBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 36,
+      height: 40,
       margin: const EdgeInsets.symmetric(horizontal: AppSpacing.space16),
       decoration: const BoxDecoration(
         color: ColorName.surface,
@@ -363,19 +404,17 @@ class _PanelChipsBar extends StatelessWidget {
       ),
       child: TabBar(
         controller: controller,
+        padding: const EdgeInsets.symmetric(horizontal: 2),
         isScrollable: true,
         tabAlignment: TabAlignment.start,
-        labelPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.space12,
-        ),
         labelStyle: const TextStyle(
           fontFamily: FontFamily.dMSans,
-          fontSize: 13,
+          fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
         unselectedLabelStyle: const TextStyle(
           fontFamily: FontFamily.dMSans,
-          fontSize: 13,
+          fontSize: 12,
           fontWeight: FontWeight.w500,
         ),
         unselectedLabelColor: ColorName.hint,
@@ -386,7 +425,7 @@ class _PanelChipsBar extends StatelessWidget {
           color: ColorName.primaryDark,
           borderRadius: AppRadius.pill,
         ),
-        tabs: labels.map((label) => Tab(height: 32, text: label)).toList(),
+        tabs: labels.map((label) => Tab(height: 36, text: label)).toList(),
       ),
     );
   }
@@ -1078,7 +1117,13 @@ class _ItineraryPanel extends StatelessWidget {
     final items = safeDay < grouped.length ? grouped[safeDay] : <int>[];
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.space16,
+        AppSpacing.space12,
+        AppSpacing.space16,
+        AppSpacing.space16,
+      ),
+      physics: const BouncingScrollPhysics(),
       children: [
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -1268,7 +1313,12 @@ class _EssentialsPanel extends StatelessWidget {
       grouped.putIfAbsent(key, () => []).add(i);
     }
     return ListView(
-      padding: const EdgeInsets.fromLTRB(22, 8, 22, 24),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.space16,
+        AppSpacing.space16,
+        AppSpacing.space16,
+        AppSpacing.space16,
+      ),
       children: grouped.entries.map((section) {
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
@@ -1281,25 +1331,27 @@ class _EssentialsPanel extends StatelessWidget {
                   section.key.toUpperCase(),
                   style: const TextStyle(
                     fontFamily: FontFamily.b612,
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 1.2,
-                    color: Color(0xFF9A9893),
+                    color: ColorName.hint,
                   ),
                 ),
               ),
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(color: const Color(0x1A000000)),
+                  borderRadius: AppRadius.large24,
+                  border: Border.all(color: ColorName.primarySoftLight),
                 ),
                 child: ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: section.value.length,
-                  separatorBuilder: (context, index) =>
-                      const Divider(height: 1, color: Color(0x12000000)),
+                  separatorBuilder: (context, index) => const Divider(
+                    height: 1,
+                    color: ColorName.primarySoftLight,
+                  ),
                   itemBuilder: (context, idx) {
                     final itemIndex = section.value[idx];
                     final reason = itemIndex < reasons.length
@@ -1383,22 +1435,24 @@ class _PackItem extends StatelessWidget {
                   Text(
                     item,
                     style: TextStyle(
-                      fontFamily: FontFamily.b612,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w400,
+                      fontFamily: FontFamily.dMSerifDisplay,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
                       decoration: checked ? TextDecoration.lineThrough : null,
+                      color: ColorName.primaryDark,
                     ),
                   ),
                   if (reason.isNotEmpty)
-                    Text(
-                      reason,
-                      style: const TextStyle(
-                        fontFamily: FontFamily.b612,
-                        fontSize: 11,
-                        fontStyle: FontStyle.italic,
-                        color: Color(0x66000000),
-                      ),
+                    const SizedBox(height: AppSpacing.space4),
+                  Text(
+                    reason,
+                    style: const TextStyle(
+                      fontFamily: FontFamily.dMSans,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: ColorName.hint,
                     ),
+                  ),
                 ],
               ),
             ),
@@ -1410,10 +1464,17 @@ class _PackItem extends StatelessWidget {
 }
 
 class _BudgetPanel extends StatelessWidget {
-  const _BudgetPanel({required this.total, required this.budgetBreakdown});
+  const _BudgetPanel({
+    required this.total,
+    required this.budgetBreakdown,
+    required this.durationDays,
+  });
 
   final double total;
   final Map<String, dynamic> budgetBreakdown;
+  final int durationDays;
+
+  static const _ink = Color(0xFF171513);
 
   @override
   Widget build(BuildContext context) {
@@ -1439,73 +1500,116 @@ class _BudgetPanel extends StatelessWidget {
       (value, entry) => value + entry.amount,
     );
     final resolvedTotal = total > 0 ? total : sum;
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(22, 8, 22, 24),
       children: [
-        Center(
-          child: Text(
-            '${resolvedTotal.toStringAsFixed(0)} €',
-            style: const TextStyle(
-              fontFamily: FontFamily.dMSerifDisplay,
-              fontSize: 68,
-              color: Color(0xFF171513),
-              height: 1,
-            ),
-          ),
-        ),
-        Center(
-          child: Text(
-            l10n.reviewBudgetTotal,
-            style: const TextStyle(
-              fontFamily: FontFamily.b612,
-              color: Color(0xFF928F89),
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        ...resolvedEntries.map(
-          (entry) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: AppRadius.medium8,
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 12,
+                offset: const Offset(0, 2),
               ),
-              child: Row(
-                children: [
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${resolvedTotal.toStringAsFixed(0)} €',
+                      style: const TextStyle(
+                        fontFamily: FontFamily.dMSerifDisplay,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w400,
+                        letterSpacing: -0.5,
+                        color: _ink,
+                        height: 1,
+                      ),
+                    ),
+                    Flexible(
+                      child: Text(
+                        '${l10n.reviewBudgetEstimationPrefix} · ${l10n.summaryDaysCount(durationDays)}',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          fontFamily: FontFamily.b612,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w300,
+                          color: _ink.withValues(alpha: 0.4),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (resolvedEntries.isNotEmpty && sum > 0)
                   Container(
-                    width: 9,
-                    height: 9,
-                    decoration: BoxDecoration(
-                      color: entry.color,
-                      shape: BoxShape.circle,
+                    height: 6,
+                    margin: const EdgeInsets.only(top: 12, bottom: 14),
+                    child: Row(
+                      children: [
+                        for (var i = 0; i < resolvedEntries.length; i++)
+                          Expanded(
+                            flex: ((resolvedEntries[i].amount / sum) * 1000)
+                                .round()
+                                .clamp(1, 1000),
+                            child: _BudgetSegment(
+                              color: resolvedEntries[i].color,
+                              isFirst: i == 0,
+                              isLast: i == resolvedEntries.length - 1,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      entry.label,
-                      style: const TextStyle(fontFamily: FontFamily.b612),
+                ...resolvedEntries.map(
+                  (entry) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.5),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: entry.color,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            entry.label,
+                            style: TextStyle(
+                              fontFamily: FontFamily.b612,
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w400,
+                              color: _ink.withValues(alpha: 0.7),
+                            ),
+                          ),
+                        ),
+                        Text(
+                          '${entry.amount.toStringAsFixed(0)} €',
+                          style: const TextStyle(
+                            fontFamily: FontFamily.b612,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: -0.2,
+                            color: _ink,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  Text(
-                    '${sum > 0 ? ((entry.amount / sum) * 100).round() : 0}%',
-                    style: const TextStyle(
-                      fontFamily: FontFamily.b612,
-                      color: Color(0xFF8F8D88),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    '${entry.amount.toStringAsFixed(0)} €',
-                    style: const TextStyle(
-                      fontFamily: FontFamily.dMSerifDisplay,
-                      fontSize: 18,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -1558,13 +1662,39 @@ class _BudgetPanel extends StatelessWidget {
       };
 
   static Color _colorForKey(String key) => switch (key) {
-    'flights' => ColorName.primaryDark,
-    'accommodation' => ColorName.primary,
-    'meals' => ColorName.secondary,
-    'transport' => ColorName.secondary,
-    'activities' => const Color(0xFF5A7A9A),
+    'flights' => ColorName.primary,
+    'accommodation' => ColorName.primaryDark,
+    'meals' => ColorName.warning,
+    'transport' => const Color(0xFFE8A4B8),
+    'activities' => ColorName.secondary,
     _ => const Color(0xFF8B8882),
   };
+}
+
+class _BudgetSegment extends StatelessWidget {
+  const _BudgetSegment({
+    required this.color,
+    required this.isFirst,
+    required this.isLast,
+  });
+
+  final Color color;
+  final bool isFirst;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.horizontal(
+          left: isFirst ? const Radius.circular(100) : Radius.zero,
+          right: isLast ? const Radius.circular(100) : Radius.zero,
+        ),
+      ),
+      child: const SizedBox.expand(),
+    );
+  }
 }
 
 class _BudgetEntry {
@@ -1609,7 +1739,7 @@ class _CreateTripButton extends StatelessWidget {
         duration: const Duration(milliseconds: 140),
         child: Container(
           width: double.infinity,
-          height: 56,
+          height: 48,
           decoration: const BoxDecoration(
             color: ColorName.primaryDark,
             borderRadius: AppRadius.pill,
@@ -1624,10 +1754,10 @@ class _CreateTripButton extends StatelessWidget {
               : Text(
                   l10n.reviewCreateTrip,
                   style: const TextStyle(
-                    fontFamily: FontFamily.b612,
+                    fontFamily: FontFamily.dMSerifDisplay,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
-                    fontSize: 17,
+                    fontSize: 16,
                   ),
                 ),
         ),

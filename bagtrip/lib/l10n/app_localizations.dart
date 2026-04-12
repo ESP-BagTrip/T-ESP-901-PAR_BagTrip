@@ -4346,6 +4346,12 @@ abstract class AppLocalizations {
   /// **'Total'**
   String get reviewBudgetTotal;
 
+  /// No description provided for @reviewBudgetEstimationPrefix.
+  ///
+  /// In fr, this message translates to:
+  /// **'estimation'**
+  String get reviewBudgetEstimationPrefix;
+
   /// No description provided for @reviewBudgetUnavailable.
   ///
   /// In fr, this message translates to:

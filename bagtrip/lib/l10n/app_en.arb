@@ -956,6 +956,7 @@
   "reviewBudgetActivities": "Activities",
   "reviewBudgetOther": "Other",
   "reviewBudgetTotal": "Total",
+  "reviewBudgetEstimationPrefix": "estimation",
   "reviewBudgetUnavailable": "Budget estimation unavailable",
   "reviewSourceVerified": "Verified",
   "reviewSourceEstimated": "Estimated",

@@ -2331,6 +2331,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reviewBudgetTotal => 'Total';
 
   @override
+  String get reviewBudgetEstimationPrefix => 'estimation';
+
+  @override
   String get reviewBudgetUnavailable => 'Estimation du budget indisponible';
 
   @override
