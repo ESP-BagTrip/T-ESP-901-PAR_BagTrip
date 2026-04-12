@@ -1326,7 +1326,7 @@ class _EssentialsPanel extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.only(bottom: 6, left: 4),
+                padding: const EdgeInsets.only(bottom: AppSpacing.space8),
                 child: Text(
                   section.key.toUpperCase(),
                   style: const TextStyle(
@@ -1345,6 +1345,8 @@ class _EssentialsPanel extends StatelessWidget {
                   border: Border.all(color: ColorName.primarySoftLight),
                 ),
                 child: ListView.separated(
+                  padding: EdgeInsets.zero,
+                  primary: false,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: section.value.length,
