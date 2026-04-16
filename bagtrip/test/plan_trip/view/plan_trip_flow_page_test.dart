@@ -38,6 +38,7 @@ class _MockAiRepository extends Mock implements AiRepository {
     String? destinationCity,
     String? destinationIata,
     String? mode,
+    String? locale,
   }) => const Stream<Map<String, dynamic>>.empty();
 }
 

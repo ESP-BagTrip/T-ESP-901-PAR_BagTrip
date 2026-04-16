@@ -172,77 +172,79 @@ class AiDestinationCard extends StatelessWidget {
                 AppSpacing.space16,
                 AppSpacing.space12,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Match reason
-                  if (destination.matchReason != null) ...[
-                    Text(
-                      destination.matchReason!,
-                      style: const TextStyle(
-                        fontFamily: FontFamily.b612,
-                        fontSize: 12,
-                        fontStyle: FontStyle.italic,
-                        color: ColorName.secondary,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Match reason
+                    if (destination.matchReason != null) ...[
+                      Text(
+                        destination.matchReason!,
+                        style: const TextStyle(
+                          fontFamily: FontFamily.b612,
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                          color: ColorName.secondary,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: AppSpacing.space8),
-                  ],
-
-                  // Weather + Budget chips
-                  Wrap(
-                    spacing: AppSpacing.space8,
-                    runSpacing: AppSpacing.space4,
-                    children: [
-                      if (destination.weatherSummary != null)
-                        _InfoChip(
-                          icon: Icons.wb_sunny_rounded,
-                          label: destination.weatherSummary!,
-                        ),
-                      if (destination.estimatedBudgetRange != null)
-                        _InfoChip(
-                          icon: Icons.euro_rounded,
-                          label:
-                              '${destination.estimatedBudgetRange!.min.toInt()}–${destination.estimatedBudgetRange!.max.toInt()}€',
-                        ),
+                      const SizedBox(height: AppSpacing.space8),
                     ],
-                  ),
 
-                  // Activity pills
-                  if (destination.topActivities.isNotEmpty) ...[
-                    const SizedBox(height: AppSpacing.space8),
+                    // Weather + Budget chips
                     Wrap(
                       spacing: AppSpacing.space8,
                       runSpacing: AppSpacing.space4,
-                      children: destination.topActivities
-                          .take(3)
-                          .map(
-                            (activity) => Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.space8,
-                                vertical: AppSpacing.space4,
-                              ),
-                              decoration: const BoxDecoration(
-                                color: ColorName.primaryLight,
-                                borderRadius: AppRadius.pill,
-                              ),
-                              child: Text(
-                                activity,
-                                style: const TextStyle(
-                                  fontFamily: FontFamily.b612,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: ColorName.primary,
+                      children: [
+                        if (destination.weatherSummary != null)
+                          _InfoChip(
+                            icon: Icons.wb_sunny_rounded,
+                            label: destination.weatherSummary!,
+                          ),
+                        if (destination.estimatedBudgetRange != null)
+                          _InfoChip(
+                            icon: Icons.euro_rounded,
+                            label:
+                                '${destination.estimatedBudgetRange!.min.toInt()}–${destination.estimatedBudgetRange!.max.toInt()}€',
+                          ),
+                      ],
+                    ),
+
+                    // Activity pills
+                    if (destination.topActivities.isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.space8),
+                      Wrap(
+                        spacing: AppSpacing.space8,
+                        runSpacing: AppSpacing.space4,
+                        children: destination.topActivities
+                            .take(3)
+                            .map(
+                              (activity) => Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.space8,
+                                  vertical: AppSpacing.space4,
+                                ),
+                                decoration: const BoxDecoration(
+                                  color: ColorName.primaryLight,
+                                  borderRadius: AppRadius.pill,
+                                ),
+                                child: Text(
+                                  activity,
+                                  style: const TextStyle(
+                                    fontFamily: FontFamily.b612,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: ColorName.primary,
+                                  ),
                                 ),
                               ),
-                            ),
-                          )
-                          .toList(),
-                    ),
+                            )
+                            .toList(),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),
@@ -286,13 +288,17 @@ class _InfoChip extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: ColorName.primary),
           const SizedBox(width: AppSpacing.space4),
-          Text(
-            label,
-            style: const TextStyle(
-              fontFamily: FontFamily.b612,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: ColorName.primary,
+          Flexible(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontFamily: FontFamily.b612,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: ColorName.primary,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

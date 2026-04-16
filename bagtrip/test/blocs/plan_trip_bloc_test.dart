@@ -511,6 +511,7 @@ void main() {
           departureDate: any(named: 'departureDate'),
           returnDate: any(named: 'returnDate'),
           originCity: any(named: 'originCity'),
+          locale: any(named: 'locale'),
         ),
       ).thenAnswer((_) => controller.stream);
     }
@@ -637,6 +638,7 @@ void main() {
           departureDate: any(named: 'departureDate'),
           returnDate: any(named: 'returnDate'),
           originCity: any(named: 'originCity'),
+          locale: any(named: 'locale'),
         ),
       ).thenAnswer((_) {
         callCount++;
@@ -686,6 +688,7 @@ void main() {
           departureDate: any(named: 'departureDate'),
           returnDate: any(named: 'returnDate'),
           originCity: any(named: 'originCity'),
+          locale: any(named: 'locale'),
         ),
       );
 
@@ -935,6 +938,7 @@ void main() {
             companions: any(named: 'companions'),
             season: any(named: 'season'),
             constraints: any(named: 'constraints'),
+            locale: any(named: 'locale'),
           ),
         ).thenAnswer(
           (_) async => const Success([
@@ -981,6 +985,7 @@ void main() {
             companions: 'couple',
             season: 'été',
             constraints: null,
+            locale: any(named: 'locale'),
           ),
         ).called(1);
       },
@@ -1001,6 +1006,7 @@ void main() {
             companions: any(named: 'companions'),
             season: any(named: 'season'),
             constraints: any(named: 'constraints'),
+            locale: any(named: 'locale'),
           ),
         ).thenAnswer(
           (_) async => const Success([
@@ -1024,6 +1030,7 @@ void main() {
             companions: any(named: 'companions'),
             season: 'hiver',
             constraints: any(named: 'constraints'),
+            locale: any(named: 'locale'),
           ),
         ).called(1);
       },
@@ -1044,6 +1051,7 @@ void main() {
             companions: any(named: 'companions'),
             season: any(named: 'season'),
             constraints: any(named: 'constraints'),
+            locale: any(named: 'locale'),
           ),
         ).thenAnswer((_) async => const Success([]));
         return buildBloc();
@@ -1070,6 +1078,7 @@ void main() {
             companions: any(named: 'companions'),
             season: any(named: 'season'),
             constraints: any(named: 'constraints'),
+            locale: any(named: 'locale'),
           ),
         ).thenAnswer((_) async => const Failure(NetworkError('offline')));
         return buildBloc();
