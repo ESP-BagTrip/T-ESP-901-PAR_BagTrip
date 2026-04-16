@@ -200,7 +200,10 @@ jobs:
 
       - name: Full test run + coverage XML (for SonarQube)
         working-directory: api
-        run: uv run pytest --cov=src --cov-report=xml:coverage.xml
+        run: |
+          uv run pytest --cov=src --cov-report=xml:coverage.xml
+          # Fix source path so SonarQube maps coverage to api/src/**
+          sed -i 's|<source>src</source>|<source>api/src</source>|' coverage.xml
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
