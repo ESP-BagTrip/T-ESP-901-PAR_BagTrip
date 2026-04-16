@@ -25,8 +25,8 @@ class FlightOfferSummary(BaseModel):
     """Résumé d'une offre de vol pour la réponse."""
 
     id: UUID
-    grandTotal: float | None
-    currency: str | None
+    grandTotal: float | None = None
+    currency: str | None = None
     summary: dict | None = None  # Informations sur les stops, etc.
 
 
@@ -43,10 +43,10 @@ class FlightOfferDetail(BaseModel):
     """Détail d'une offre de vol."""
 
     id: UUID
-    amadeusOfferId: str | None
-    grandTotal: float | None
-    baseTotal: float | None
-    currency: str | None
+    amadeusOfferId: str | None = None
+    grandTotal: float | None = None
+    baseTotal: float | None = None
+    currency: str | None = None
     offer: dict  # offer_json complet
 
 

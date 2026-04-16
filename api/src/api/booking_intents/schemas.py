@@ -22,7 +22,7 @@ class BookingIntentResponse(BaseModel):
     status: str
     amount: float
     currency: str
-    selectedOfferId: UUID | None
+    selectedOfferId: UUID | None = None
 
 
 class BookingIntentBookRequestFlight(BaseModel):
