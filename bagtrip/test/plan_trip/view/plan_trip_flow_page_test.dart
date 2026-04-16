@@ -12,6 +12,7 @@ import 'package:bagtrip/plan_trip/view/step_dates_view.dart';
 import 'package:bagtrip/repositories/ai_repository.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/repositories/trip_repository.dart';
+import 'package:bagtrip/service/geo_location_service.dart';
 import 'package:bagtrip/service/location_service.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:flutter/material.dart';
@@ -47,6 +48,8 @@ class _MockAuthRepository extends Mock implements AuthRepository {}
 class _MockPersonalizationStorage extends Mock
     implements PersonalizationStorage {}
 
+class _MockGeoLocationService extends Mock implements GeoLocationService {}
+
 void main() {
   setUp(() {
     // Reset and register mock dependencies for PlanTripBloc
@@ -65,6 +68,9 @@ void main() {
     if (getIt.isRegistered<PersonalizationStorage>()) {
       getIt.unregister<PersonalizationStorage>();
     }
+    if (getIt.isRegistered<GeoLocationService>()) {
+      getIt.unregister<GeoLocationService>();
+    }
 
     getIt.registerLazySingleton<LocationService>(() => _MockLocationService());
     getIt.registerLazySingleton<TripRepository>(() => _MockTripRepository());
@@ -72,6 +78,9 @@ void main() {
     getIt.registerLazySingleton<AuthRepository>(() => _MockAuthRepository());
     getIt.registerLazySingleton<PersonalizationStorage>(
       () => _MockPersonalizationStorage(),
+    );
+    getIt.registerLazySingleton<GeoLocationService>(
+      () => _MockGeoLocationService(),
     );
   });
 
