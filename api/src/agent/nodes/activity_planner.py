@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import json
 
-from src.agent.prompts import ACTIVITY_PLANNER_PROMPT
+from src.agent.budget import guard
+from src.agent.prompts import render
 from src.agent.state import TripPlanState
 from src.services.llm_service import LLMService
 from src.utils.logger import logger
@@ -12,6 +13,7 @@ from src.utils.logger import logger
 
 async def activity_planner_node(state: TripPlanState) -> dict:
     """Plan activities grounded by real weather data and destination context."""
+    guard(state, min_required=5.0)
     logger.info("=== Activity Planner Node ===")
 
     dest = state.get("selected_destination", {})
@@ -48,7 +50,10 @@ async def activity_planner_node(state: TripPlanState) -> dict:
     # Direct LLM call (no tools needed for activity planning)
     llm = LLMService()
     try:
-        result = await llm.acall_llm(ACTIVITY_PLANNER_PROMPT, user_prompt)
+        result = await llm.acall_llm(
+            render("activity_planner", locale=state.get("locale", "en")),
+            user_prompt,
+        )
         activities = result.get("activities", [])
     except Exception as e:
         logger.error("Activity planner LLM call failed", {"error": str(e)})

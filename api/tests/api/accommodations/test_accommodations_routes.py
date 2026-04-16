@@ -145,6 +145,7 @@ class TestSuggestAccommodations:
 
     def test_suggest_accommodations_quota_exceeded(self, client, mock_trip_id, trip_access):
         """Test 402 when AI quota is exceeded."""
+
         # Override require_ai_quota to raise quota error
         def _quota_exceeded():
             raise AppError("AI_QUOTA_EXCEEDED", 402, "AI generation quota exceeded")
@@ -161,6 +162,7 @@ class TestSuggestAccommodations:
 
     def test_suggest_accommodations_viewer_denied(self, client, mock_trip_id):
         """Test that viewers cannot access suggest endpoint (editor+ only)."""
+
         def _deny():
             raise AppError("FORBIDDEN", 403, "Editor access required")
 

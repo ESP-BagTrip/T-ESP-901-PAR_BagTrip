@@ -1,13 +1,20 @@
 """Modèle Accommodation SQLAlchemy."""
 
 import uuid
+from datetime import datetime
+from decimal import Decimal
+from typing import TYPE_CHECKING
+from uuid import UUID as _UUID
 
-from sqlalchemy import Column, DateTime, ForeignKey, Numeric, String
+from sqlalchemy import DateTime, ForeignKey, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from src.config.database import Base
+
+if TYPE_CHECKING:
+    from src.models.trip import Trip
 
 
 class Accommodation(Base):
@@ -15,18 +22,22 @@ class Accommodation(Base):
 
     __tablename__ = "accommodations"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    trip_id = Column(UUID(as_uuid=True), ForeignKey("trips.id"), nullable=False, index=True)
-    name = Column(String, nullable=False)
-    address = Column(String, nullable=True)
-    check_in = Column(DateTime(timezone=True), nullable=True)
-    check_out = Column(DateTime(timezone=True), nullable=True)
-    price_per_night = Column(Numeric(12, 2), nullable=True)
-    currency = Column(String(3), nullable=True, default="EUR")
-    booking_reference = Column(String, nullable=True)
-    notes = Column(String, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(
+    id: Mapped[_UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    trip_id: Mapped[_UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("trips.id"), nullable=False, index=True
+    )
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    address: Mapped[str | None] = mapped_column(String, nullable=True)
+    check_in: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    check_out: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    price_per_night: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
+    currency: Mapped[str | None] = mapped_column(String(3), nullable=True, default="EUR")
+    booking_reference: Mapped[str | None] = mapped_column(String, nullable=True)
+    notes: Mapped[str | None] = mapped_column(String, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now(),
@@ -34,4 +45,4 @@ class Accommodation(Base):
     )
 
     # Relationships
-    trip = relationship("Trip", back_populates="accommodations")
+    trip: Mapped["Trip"] = relationship("Trip", back_populates="accommodations")

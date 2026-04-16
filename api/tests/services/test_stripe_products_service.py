@@ -31,7 +31,9 @@ class TestStripeProductsService:
         assert products["flight"] == "prod_flight"
         assert products["premium_subscription"] == "price_premium_monthly"
         assert StripeProductsService.get_product_id("flight") == "prod_flight"
-        assert StripeProductsService.get_product_id("premium_subscription") == "price_premium_monthly"
+        assert (
+            StripeProductsService.get_product_id("premium_subscription") == "price_premium_monthly"
+        )
 
     @patch("src.services.stripe_products_service.settings")
     def test_initialize_products_no_key(self, mock_settings):

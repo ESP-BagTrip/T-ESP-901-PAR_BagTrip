@@ -116,9 +116,7 @@ class TestFlightSearchService:
         mock_db_session.query.return_value.filter.return_value.first.return_value = None
 
         with pytest.raises(AppError) as exc:
-            FlightSearchService.get_offers_by_search(
-                mock_db_session, uuid.uuid4(), uuid.uuid4()
-            )
+            FlightSearchService.get_offers_by_search(mock_db_session, uuid.uuid4(), uuid.uuid4())
         assert exc.value.code == "SEARCH_NOT_FOUND"
 
     @patch("src.services.flight_search_service.amadeus_client")

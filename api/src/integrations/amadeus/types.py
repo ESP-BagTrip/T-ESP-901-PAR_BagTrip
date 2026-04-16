@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 # ============================================================================
 # LOCATION TYPES
@@ -35,8 +35,7 @@ class LocationSelf(BaseModel):
     href: str
     methods: list[str]
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class LocationGeoCode(BaseModel):
@@ -77,8 +76,7 @@ class Location(BaseModel):
     address: LocationAddress
     analytics: LocationAnalytics | None = None
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 # ============================================================================
@@ -214,8 +212,7 @@ class FareDetailsBySegment(BaseModel):
     includedCheckedBags: IncludedCheckedBags | None = None
     includedCabinBags: IncludedCabinBags | None = None
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class TravelerPricing(BaseModel):
@@ -253,8 +250,7 @@ class FlightOfferMetaLinks(BaseModel):
 
     self_: str = Field(..., alias="self")
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class FlightOfferMeta(BaseModel):
@@ -326,8 +322,7 @@ class FlightDestinationMetaLinks(BaseModel):
 
     self_: str | None = Field(None, alias="self")
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class FlightDestinationMeta(BaseModel):
@@ -390,8 +385,7 @@ class FlightDateMetaLinks(BaseModel):
 
     self_: str | None = Field(None, alias="self")
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class FlightDateMeta(BaseModel):

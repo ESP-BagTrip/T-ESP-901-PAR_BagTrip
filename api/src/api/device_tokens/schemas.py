@@ -3,7 +3,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class DeviceTokenRegisterRequest(BaseModel):
@@ -12,8 +12,7 @@ class DeviceTokenRegisterRequest(BaseModel):
     fcmToken: str = Field(..., alias="fcmToken")
     platform: str | None = None
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class DeviceTokenResponse(BaseModel):
@@ -24,6 +23,4 @@ class DeviceTokenResponse(BaseModel):
     platform: str | None = None
     createdAt: datetime = Field(alias="created_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)

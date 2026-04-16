@@ -190,7 +190,7 @@ class AccommodationsService:
     @staticmethod
     async def suggest_accommodations(db: Session, trip: Trip) -> list[dict]:
         """Generate AI accommodation suggestions for a trip."""
-        from src.agent.prompts import ACCOMMODATION_SUGGEST_PROMPT
+        from src.agent.prompts import render as render_prompt
         from src.services.llm_service import LLMService
 
         parts = [f"Destination: {trip.destination_name or 'Unknown'}"]
@@ -218,7 +218,7 @@ class AccommodationsService:
 
         llm = LLMService()
         try:
-            result = await llm.acall_llm(ACCOMMODATION_SUGGEST_PROMPT, user_prompt)
+            result = await llm.acall_llm(render_prompt("accommodation_suggest"), user_prompt)
             accommodations = result.get("accommodations", [])
         except Exception as e:
             logger.error("Accommodation suggest LLM call failed", {"error": str(e)})

@@ -40,7 +40,10 @@ from src.api.travelers.routes import router as travelers_router
 from src.api.trips.routes import router as trips_router
 from src.config.database import check_database_connection, engine
 from src.config.env import settings
+from src.integrations.http_client import close_http_client, init_http_client
 from src.middleware.rate_limit import auth_rate_limit_middleware, rate_limit_middleware
+from src.middleware.request_id import request_id_middleware
+from src.middleware.security_headers import security_headers_middleware
 from src.utils.errors import AppError
 from src.utils.logger import LogLevel, logger
 
@@ -48,6 +51,10 @@ from src.utils.logger import LogLevel, logger
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Gestion du cycle de vie de l'application."""
+    # Shared outbound HTTP client — every integration wrapper pulls from this
+    # pool instead of opening its own per-request AsyncClient.
+    await init_http_client()
+
     # Vérifier la connexion à la base de données avant de créer les tables
     logger.info("Checking database connection...")
     check_database_connection()
@@ -99,6 +106,7 @@ async def lifespan(app: FastAPI):
     with contextlib.suppress(asyncio.CancelledError):
         await notif_scheduler_task
 
+    await close_http_client()
     logger.info("Application shutting down")
 
 
@@ -121,6 +129,15 @@ app.add_middleware(
 # Rate limiting middleware (après CORS)
 app.middleware("http")(rate_limit_middleware)
 app.middleware("http")(auth_rate_limit_middleware)
+
+# Security headers — added after auth middlewares so they wrap every response.
+app.middleware("http")(security_headers_middleware)
+
+# Request-ID middleware must run OUTERMOST — FastAPI runs middlewares in
+# reverse registration order, so registering last means this is the first
+# middleware to see the request and the last to see the response. That way
+# every other middleware and handler logs with the request id already set.
+app.middleware("http")(request_id_middleware)
 
 # Inclusion des routes - toutes sous /v1
 # Routes principales selon PLAN.md
@@ -242,9 +259,11 @@ async def health():
 if __name__ == "__main__":
     import uvicorn
 
+    # Bandit B104: binding inside docker is intentional — the container only
+    # exposes the port through the docker-compose network, not public internet.
     uvicorn.run(
         "src.main:app",
-        host="0.0.0.0",
+        host="0.0.0.0",  # nosec B104
         port=settings.PORT,
         reload=settings.NODE_ENV == "development",
         log_level="debug" if settings.NODE_ENV == "development" else "info",

@@ -2,11 +2,11 @@
 
 import time
 
-import httpx
 from jose import jwt
 from jose.exceptions import JWTError
 
 from src.config.env import settings
+from src.integrations.http_client import get_http_client
 from src.utils.logger import logger
 
 _google_public_keys_cache: dict[str, str] | None = None
@@ -21,11 +21,11 @@ async def _fetch_google_public_keys() -> dict[str, str]:
     if _google_public_keys_cache and (now - _cache_timestamp) < CACHE_DURATION:
         return _google_public_keys_cache
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get("https://www.googleapis.com/oauth2/v1/certs")
-        response.raise_for_status()
-        _google_public_keys_cache = response.json()
-        _cache_timestamp = now
+    client = get_http_client()
+    response = await client.get("https://www.googleapis.com/oauth2/v1/certs")
+    response.raise_for_status()
+    _google_public_keys_cache = response.json()
+    _cache_timestamp = now
 
     return _google_public_keys_cache
 

@@ -36,9 +36,7 @@ def test_assemble_destinations_node_returns_correct_structure():
         ],
         "origin_iata": "CDG",
     }
-    result = asyncio.get_event_loop().run_until_complete(
-        assemble_destinations_node(state)
-    )
+    result = asyncio.get_event_loop().run_until_complete(assemble_destinations_node(state))
 
     assert "events" in result
     assert len(result["events"]) == 1
@@ -52,9 +50,7 @@ def test_assemble_destinations_node_returns_correct_structure():
 
 def test_assemble_destinations_node_empty_state():
     state = {}
-    result = asyncio.get_event_loop().run_until_complete(
-        assemble_destinations_node(state)
-    )
+    result = asyncio.get_event_loop().run_until_complete(assemble_destinations_node(state))
 
     event = result["events"][0]
     assert event["data"]["destinations"] == []

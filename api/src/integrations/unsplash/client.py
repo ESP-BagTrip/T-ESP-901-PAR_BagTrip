@@ -2,9 +2,8 @@
 
 import time
 
-import httpx
-
 from src.config.env import settings
+from src.integrations.http_client import get_http_client
 from src.utils.logger import logger
 
 _CACHE: dict[str, dict] = {}
@@ -180,19 +179,20 @@ class UnsplashClient:
             return cached["url"]
 
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                resp = await client.get(
-                    f"{UnsplashClient.BASE_URL}/search/photos",
-                    params={
-                        "query": destination_name,
-                        "orientation": "landscape",
-                        "per_page": 1,
-                    },
-                    headers={
-                        "Authorization": f"Client-ID {settings.UNSPLASH_ACCESS_KEY}",
-                    },
-                )
-                resp.raise_for_status()
+            client = get_http_client()
+            resp = await client.get(
+                f"{UnsplashClient.BASE_URL}/search/photos",
+                params={
+                    "query": destination_name,
+                    "orientation": "landscape",
+                    "per_page": 1,
+                },
+                headers={
+                    "Authorization": f"Client-ID {settings.UNSPLASH_ACCESS_KEY}",
+                },
+                timeout=10.0,
+            )
+            resp.raise_for_status()
 
             data = resp.json()
             results = data.get("results", [])

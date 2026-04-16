@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from src.api.auth.middleware import get_current_user
 from src.api.auth.trip_access import TripAccess, TripRole, get_trip_access, get_trip_owner_access
+from src.api.common.pagination import PaginationParams
 from src.api.trips.schemas import (
     TripCreateRequest,
     TripDetailResponse,
@@ -92,8 +93,7 @@ async def create_trip(
     description="Get paginated trips for the authenticated user (owned + shared)",
 )
 async def list_trips(
-    page: int = Query(default=1, ge=1, description="Page number"),
-    limit: int = Query(default=20, ge=1, le=100, description="Items per page"),
+    pagination: PaginationParams = Depends(PaginationParams),
     status: str | None = Query(
         default=None, description="Filter by status: ongoing, planned, completed"
     ),
@@ -105,8 +105,8 @@ async def list_trips(
         rows, total, total_pages = TripsService.get_trips_by_user_paginated(
             db,
             current_user.id,
-            page=page,
-            limit=limit,
+            page=pagination.page,
+            limit=pagination.limit,
             status=status,
         )
         items = []
@@ -120,8 +120,8 @@ async def list_trips(
         return TripPaginatedResponse(
             items=items,
             total=total,
-            page=page,
-            limit=limit,
+            page=pagination.page,
+            limit=pagination.limit,
             total_pages=total_pages,
         )
     except AppError as e:

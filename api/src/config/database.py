@@ -3,8 +3,7 @@
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from sqlalchemy import create_engine, text
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 from src.config.env import settings
 
@@ -33,9 +32,23 @@ def clean_database_url(url: str) -> str:
 # Nettoyer l'URL de connexion
 database_url = clean_database_url(settings.DATABASE_URL)
 
-# Création du moteur SQLAlchemy
+# Création du moteur SQLAlchemy.
+#
+# Pool tuning:
+#  - pool_size=20        → 20 persistent connections per worker (SQLAlchemy default 5
+#                          is too low for the fan-out we do on home/trip detail endpoints).
+#  - max_overflow=10     → up to 10 extra connections under burst before blocking.
+#  - pool_timeout=30     → block at most 30s waiting for a free connection.
+#  - pool_recycle=1800   → recycle connections every 30 minutes to dodge upstream
+#                          idle-timeout kills (NAT, PGBouncer, RDS, …).
+#  - pool_pre_ping=True  → `SELECT 1` before handing out a connection so we fail
+#                          fast on broken sockets instead of serving 500s.
 engine = create_engine(
     database_url,
+    pool_size=20,
+    max_overflow=10,
+    pool_timeout=30,
+    pool_recycle=1800,
     pool_pre_ping=True,
     echo=False,  # Mettre à True pour voir les requêtes SQL en développement
 )

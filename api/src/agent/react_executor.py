@@ -25,6 +25,78 @@ from src.utils.logger import logger
 MAX_REACT_ITERATIONS = 5
 
 
+def _parse_final_answer(raw: str) -> dict | None:
+    """Try to parse a Final Answer string into a dict. Return None on failure.
+
+    Kept as a single-purpose helper so the JSON repair loop can retry the
+    same parse after a corrective LLM call without re-threading the parse
+    logic through the caller.
+    """
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return None
+
+
+def _build_repair_prompt(raw: str, error_preview: str) -> str:
+    """Craft the corrective re-prompt sent after a JSON parse failure."""
+    return (
+        "Your previous response was not valid JSON. "
+        f"Parse error: {error_preview}. "
+        "Return ONLY the corrected JSON object — no explanation, no markdown "
+        "fences, no text outside the object. The object to fix was:\n\n"
+        f"{raw}"
+    )
+
+
+async def _repair_json_once(
+    llm_service: LLMService,
+    raw: str,
+    error: str,
+) -> dict | None:
+    """Re-prompt the LLM with the broken JSON and attempt to re-parse.
+
+    This is a **single** corrective call — we do not loop. Two malformed
+    responses in a row means the LLM is stuck and the caller should degrade.
+
+    Returns a parsed dict on success, None on a second failure. Logs a WARN
+    on the attempt and an ERROR on persistent failure.
+    """
+    logger.warn(
+        "react_executor: JSON parse failed, attempting repair",
+        {"error": error[:200], "preview": raw[:200]},
+    )
+    repair_prompt = _build_repair_prompt(raw, error[:200])
+    repair_messages = [
+        SystemMessage(content="You fix broken JSON. Return ONLY the JSON object."),
+        HumanMessage(content=repair_prompt),
+    ]
+    try:
+        repaired = await asyncio.wait_for(
+            llm_service.acall_llm_messages(repair_messages),
+            timeout=settings.LLM_CALL_TIMEOUT_SECONDS,
+        )
+    except Exception as exc:
+        logger.error(
+            "react_executor: JSON repair LLM call failed",
+            {"error": str(exc)},
+        )
+        return None
+
+    # Strip markdown fences in case the repair response re-added them.
+    repaired = re.sub(r"^```(?:json)?\s*\n?", "", repaired.strip())
+    repaired = re.sub(r"\n?```\s*$", "", repaired)
+    parsed = _parse_final_answer(repaired)
+    if parsed is None:
+        logger.error(
+            "react_executor: JSON repair failed — second parse unsuccessful",
+            {"preview": repaired[:200]},
+        )
+    else:
+        logger.info("react_executor: JSON repair succeeded")
+    return parsed
+
+
 def _build_tool_descriptions(tool_names: list[str], tool_registry: dict) -> str:
     """Build the tool description block for the ReAct system prompt."""
     lines = []
@@ -178,12 +250,23 @@ async def react_execute(
         parsed = parse_react_output(raw_response)
 
         if isinstance(parsed, str):
-            # Final Answer (string) — try to parse as JSON
-            try:
-                return json.loads(parsed)
-            except json.JSONDecodeError:
-                logger.warn("Final Answer is not valid JSON, returning as-is")
-                return {"raw_answer": parsed}
+            # Final Answer (string) — try to parse as JSON, with one repair
+            # attempt on failure. The repair guard is gated by a config flag
+            # so the team can disable it if double-billing ever becomes a
+            # concern.
+            final_dict = _parse_final_answer(parsed)
+            if final_dict is not None:
+                return final_dict
+            if settings.REACT_JSON_REPAIR_ENABLED:
+                repaired = await _repair_json_once(
+                    llm_service,
+                    parsed,
+                    "Final Answer did not parse as JSON",
+                )
+                if repaired is not None:
+                    return repaired
+            logger.warn("Final Answer is not valid JSON, returning as-is")
+            return {"raw_answer": parsed, "repair_failed": True}
 
         # It's a tool call: (tool_name, tool_input)
         tool_name, tool_input = parsed
@@ -225,10 +308,18 @@ async def react_execute(
         )
         parsed = parse_react_output(raw_response)
         if isinstance(parsed, str):
-            try:
-                return json.loads(parsed)
-            except json.JSONDecodeError:
-                return {"raw_answer": parsed}
+            final_dict = _parse_final_answer(parsed)
+            if final_dict is not None:
+                return final_dict
+            if settings.REACT_JSON_REPAIR_ENABLED:
+                repaired = await _repair_json_once(
+                    llm_service,
+                    parsed,
+                    "Forced Final Answer did not parse as JSON",
+                )
+                if repaired is not None:
+                    return repaired
+            return {"raw_answer": parsed, "repair_failed": True}
         return {"error": "Failed to get final answer after max iterations"}
     except TimeoutError:
         return {"error": f"Final LLM call timed out after {settings.LLM_CALL_TIMEOUT_SECONDS}s"}

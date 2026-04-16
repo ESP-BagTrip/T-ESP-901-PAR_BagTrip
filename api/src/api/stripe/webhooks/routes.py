@@ -28,14 +28,19 @@ async def handle_stripe_webhook(
     body = await request.body()
 
     try:
-        # Vérifier la signature du webhook
-        if settings.STRIPE_WEBHOOK_SECRET:
-            event = stripe.Webhook.construct_event(
-                body, stripe_signature, settings.STRIPE_WEBHOOK_SECRET
-            )
-        else:
-            # En développement, parser sans vérification de signature
+        webhook_secret = settings.STRIPE_WEBHOOK_SECRET
+        if webhook_secret:
+            # Production / staging path — signature verified.
+            event = stripe.Webhook.construct_event(body, stripe_signature, webhook_secret)
+        elif settings.NODE_ENV != "production":
+            # Dev-only escape hatch — never reachable in prod because env.py raises
+            # at boot if STRIPE_WEBHOOK_SECRET is missing with NODE_ENV=production.
             event = stripe.Event.construct_from(json.loads(body), None)
+        else:
+            return JSONResponse(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                content={"error": "Stripe webhook secret not configured"},
+            )
 
         # Traiter l'événement
         stripe_event = StripeWebhooksService.process_event(db, event)

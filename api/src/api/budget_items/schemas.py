@@ -1,7 +1,7 @@
 import datetime as dt
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from src.enums import BudgetCategory
 
@@ -35,9 +35,7 @@ class BudgetItemResponse(BaseModel):
     createdAt: dt.datetime = Field(alias="created_at")
     updatedAt: dt.datetime = Field(alias="updated_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class BudgetItemListResponse(BaseModel):
@@ -51,8 +49,7 @@ class BudgetEstimateResponse(BaseModel):
 class AcceptEstimateRequest(BaseModel):
     budget_total: float = Field(..., alias="budget_total", gt=0)
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class BudgetSummaryResponse(BaseModel):
@@ -66,6 +63,4 @@ class BudgetSummaryResponse(BaseModel):
     confirmedTotal: float = Field(0, alias="confirmed_total")
     forecastedTotal: float = Field(0, alias="forecasted_total")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)

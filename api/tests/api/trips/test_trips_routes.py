@@ -46,6 +46,7 @@ def mock_db_session():
 @pytest.fixture
 def override_get_db(mock_db_session):
     """Override the get_db dependency."""
+
     def _get_db():
         yield mock_db_session
 
@@ -57,10 +58,7 @@ def override_get_db(mock_db_session):
 @pytest.fixture
 def mock_user():
     """Create a mock user."""
-    return User(
-        id=uuid.uuid4(),
-        email="test@example.com"
-    )
+    return User(id=uuid.uuid4(), email="test@example.com")
 
 
 @pytest.fixture
@@ -116,7 +114,9 @@ class TestCreateTrip:
     """Tests for POST /v1/trips."""
 
     @patch("src.api.trips.routes.TripsService")
-    def test_create_trip_success(self, mock_service, client, override_get_current_user, override_get_db, mock_trip):
+    def test_create_trip_success(
+        self, mock_service, client, override_get_current_user, override_get_db, mock_trip
+    ):
         """Test successful trip creation."""
         mock_service.create_trip.return_value = mock_trip
 
@@ -125,7 +125,7 @@ class TestCreateTrip:
             "originIata": "NYC",
             "destinationIata": "PAR",
             "startDate": "2027-12-01",
-            "endDate": "2027-12-10"
+            "endDate": "2027-12-10",
         }
 
         response = client.post("/v1/trips", json=payload)
@@ -137,14 +137,13 @@ class TestCreateTrip:
         mock_service.create_trip.assert_called_once()
 
     @patch("src.api.trips.routes.TripsService")
-    def test_create_trip_error(self, mock_service, client, override_get_current_user, override_get_db):
+    def test_create_trip_error(
+        self, mock_service, client, override_get_current_user, override_get_db
+    ):
         """Test creation with AppError."""
         mock_service.create_trip.side_effect = AppError("ERROR", 400, "Bad Request")
 
-        payload = {
-            "title": "Error Trip",
-            "destinationName": "Paris"
-        }
+        payload = {"title": "Error Trip", "destinationName": "Paris"}
 
         response = client.post("/v1/trips", json=payload)
 
@@ -156,7 +155,9 @@ class TestListTrips:
     """Tests for GET /v1/trips."""
 
     @patch("src.api.trips.routes.TripsService")
-    def test_list_trips_success(self, mock_service, client, override_get_current_user, override_get_db, mock_trip):
+    def test_list_trips_success(
+        self, mock_service, client, override_get_current_user, override_get_db, mock_trip
+    ):
         """Test successful trip listing."""
         mock_service.get_trips_by_user_paginated.return_value = (
             [(mock_trip, "OWNER")],
@@ -173,9 +174,13 @@ class TestListTrips:
         mock_service.get_trips_by_user_paginated.assert_called_once()
 
     @patch("src.api.trips.routes.TripsService")
-    def test_list_trips_error(self, mock_service, client, override_get_current_user, override_get_db):
+    def test_list_trips_error(
+        self, mock_service, client, override_get_current_user, override_get_db
+    ):
         """Test listing with AppError."""
-        mock_service.get_trips_by_user_paginated.side_effect = AppError("ERROR", 500, "Internal Error")
+        mock_service.get_trips_by_user_paginated.side_effect = AppError(
+            "ERROR", 500, "Internal Error"
+        )
 
         response = client.get("/v1/trips")
 
@@ -187,7 +192,16 @@ class TestGetTrip:
     """Tests for GET /v1/trips/{tripId}."""
 
     @patch("src.api.trips.routes.TripsService")
-    def test_get_trip_success(self, mock_service, client, override_get_current_user, override_get_db, mock_db_session, mock_trip, override_trip_access):
+    def test_get_trip_success(
+        self,
+        mock_service,
+        client,
+        override_get_current_user,
+        override_get_db,
+        mock_db_session,
+        mock_trip,
+        override_trip_access,
+    ):
         """Test successful retrieval of trip details."""
         mock_db_session.query.return_value.filter.return_value.first.return_value = None
 
@@ -200,7 +214,16 @@ class TestGetTrip:
         assert data["flightOrder"] is None
 
     @patch("src.api.trips.routes.TripsService")
-    def test_get_trip_with_orders_success(self, mock_service, client, override_get_current_user, override_get_db, mock_db_session, mock_trip, override_trip_access):
+    def test_get_trip_with_orders_success(
+        self,
+        mock_service,
+        client,
+        override_get_current_user,
+        override_get_db,
+        mock_db_session,
+        mock_trip,
+        override_trip_access,
+    ):
         """Test retrieval of trip with an associated flight order."""
         flight_order = MagicMock()
         flight_order.id = uuid.uuid4()
@@ -216,7 +239,9 @@ class TestGetTrip:
         data = response.json()
         assert data["flightOrder"]["amadeusFlightOrderId"] == "FLIGHT123"
 
-    def test_get_trip_not_found(self, client, override_get_current_user, override_get_db, mock_db_session):
+    def test_get_trip_not_found(
+        self, client, override_get_current_user, override_get_db, mock_db_session
+    ):
         """Test when trip is not found — TripAccess returns 404."""
         mock_db_session.query.return_value.filter.return_value.first.return_value = None
 
@@ -226,7 +251,9 @@ class TestGetTrip:
         assert response.status_code == 404
         assert response.json()["detail"]["error"] == "Trip not found"
 
-    def test_get_trip_error(self, client, override_get_current_user, override_get_db, mock_db_session):
+    def test_get_trip_error(
+        self, client, override_get_current_user, override_get_db, mock_db_session
+    ):
         """Test retrieval when trip lookup fails — TripAccess raises 404."""
         mock_db_session.query.return_value.filter.return_value.first.return_value = None
 
@@ -240,7 +267,15 @@ class TestUpdateTrip:
     """Tests for PATCH /v1/trips/{tripId}."""
 
     @patch("src.api.trips.routes.TripsService")
-    def test_update_trip_success(self, mock_service, client, override_get_current_user, override_get_db, mock_trip, override_trip_access):
+    def test_update_trip_success(
+        self,
+        mock_service,
+        client,
+        override_get_current_user,
+        override_get_db,
+        mock_trip,
+        override_trip_access,
+    ):
         """Test successful trip update."""
         mock_service.update_trip.return_value = mock_trip
 
@@ -255,7 +290,15 @@ class TestUpdateTrip:
         mock_service.update_trip.assert_called_once()
 
     @patch("src.api.trips.routes.TripsService")
-    def test_update_trip_error(self, mock_service, client, override_get_current_user, override_get_db, mock_trip, override_trip_access):
+    def test_update_trip_error(
+        self,
+        mock_service,
+        client,
+        override_get_current_user,
+        override_get_db,
+        mock_trip,
+        override_trip_access,
+    ):
         """Test update with AppError."""
         mock_service.update_trip.side_effect = AppError("ERROR", 400, "Update failed")
 
@@ -272,7 +315,15 @@ class TestDeleteTrip:
     """Tests for DELETE /v1/trips/{tripId}."""
 
     @patch("src.api.trips.routes.TripsService")
-    def test_delete_trip_success(self, mock_service, client, override_get_current_user, override_get_db, mock_trip, override_trip_access):
+    def test_delete_trip_success(
+        self,
+        mock_service,
+        client,
+        override_get_current_user,
+        override_get_db,
+        mock_trip,
+        override_trip_access,
+    ):
         """Test successful trip deletion."""
         mock_service.delete_trip.return_value = None
 
@@ -283,7 +334,15 @@ class TestDeleteTrip:
         mock_service.delete_trip.assert_called_once()
 
     @patch("src.api.trips.routes.TripsService")
-    def test_delete_trip_error(self, mock_service, client, override_get_current_user, override_get_db, mock_trip, override_trip_access):
+    def test_delete_trip_error(
+        self,
+        mock_service,
+        client,
+        override_get_current_user,
+        override_get_db,
+        mock_trip,
+        override_trip_access,
+    ):
         """Test deletion with AppError."""
         mock_service.delete_trip.side_effect = AppError("ERROR", 403, "Forbidden")
 

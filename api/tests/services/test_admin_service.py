@@ -35,7 +35,9 @@ class TestAdminService:
         # Configure mock query
         mock_query = mock_db_session.query.return_value
         mock_query.order_by.return_value.count.return_value = 1
-        mock_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [user]
+        mock_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [
+            user
+        ]
 
         # Call service
         items, total, total_pages = AdminService.get_all_users(mock_db_session, page=1, limit=10)
@@ -63,7 +65,9 @@ class TestAdminService:
 
         mock_query = mock_db_session.query.return_value
         mock_query.join.return_value.order_by.return_value.count.return_value = 1
-        mock_query.join.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [(trip, user_email)]
+        mock_query.join.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [
+            (trip, user_email)
+        ]
 
         items, total, total_pages = AdminService.get_all_trips(mock_db_session)
 
@@ -86,7 +90,9 @@ class TestAdminService:
 
         mock_query = mock_db_session.query.return_value
         mock_query.join.return_value.join.return_value.order_by.return_value.count.return_value = 1
-        mock_query.join.return_value.join.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [(traveler, trip_title, user_email)]
+        mock_query.join.return_value.join.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [
+            (traveler, trip_title, user_email)
+        ]
 
         items, total, total_pages = AdminService.get_all_travelers(mock_db_session)
 
@@ -110,7 +116,9 @@ class TestAdminService:
 
         mock_query = mock_db_session.query.return_value
         mock_query.join.return_value.join.return_value.order_by.return_value.count.return_value = 1
-        mock_query.join.return_value.join.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [(order, trip_title, user_email)]
+        mock_query.join.return_value.join.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [
+            (order, trip_title, user_email)
+        ]
 
         items, total, total_pages = AdminService.get_all_flight_bookings(mock_db_session)
 

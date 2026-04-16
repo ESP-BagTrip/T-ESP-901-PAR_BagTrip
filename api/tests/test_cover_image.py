@@ -20,30 +20,39 @@ def _clear_cache():
     _CACHE.clear()
 
 
+@pytest.fixture
+def mock_http_client():
+    """Patch the shared http client singleton used by the Unsplash client.
+
+    Prod code now pulls the AsyncClient from a process-wide singleton, so the
+    tests patch the module symbol rather than constructing an AsyncClient per
+    call.
+    """
+    mock_client = AsyncMock()
+    with patch(
+        "src.integrations.unsplash.client.get_http_client",
+        return_value=mock_client,
+    ):
+        yield mock_client
+
+
 # ---------------------------------------------------------------------------
 # fetch_cover_image
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.asyncio
-async def test_fetch_success():
+async def test_fetch_success(mock_http_client):
     """Mock httpx → valid Unsplash response → URL extracted."""
     mock_response = httpx.Response(
         200,
-        json={
-            "results": [
-                {"urls": {"regular": "https://images.unsplash.com/photo-abc?w=1080"}}
-            ]
-        },
+        json={"results": [{"urls": {"regular": "https://images.unsplash.com/photo-abc?w=1080"}}]},
         request=httpx.Request("GET", "https://api.unsplash.com/search/photos"),
     )
+    mock_http_client.get.return_value = mock_response
 
-    with (
-        patch("src.integrations.unsplash.client.settings") as mock_settings,
-        patch("httpx.AsyncClient.get", new_callable=AsyncMock, return_value=mock_response),
-    ):
+    with patch("src.integrations.unsplash.client.settings") as mock_settings:
         mock_settings.UNSPLASH_ACCESS_KEY = "test-key"
-
         result = await UnsplashClient.fetch_cover_image("Paris")
 
     assert result == "https://images.unsplash.com/photo-abc?w=1080"
@@ -61,71 +70,54 @@ async def test_fetch_no_api_key():
 
 
 @pytest.mark.asyncio
-async def test_fetch_api_error():
+async def test_fetch_api_error(mock_http_client):
     """Mock HTTP error → returns None."""
-    with (
-        patch("src.integrations.unsplash.client.settings") as mock_settings,
-        patch(
-            "httpx.AsyncClient.get",
-            new_callable=AsyncMock,
-            side_effect=httpx.HTTPStatusError(
-                "500",
-                request=httpx.Request("GET", "https://api.unsplash.com/search/photos"),
-                response=httpx.Response(500),
-            ),
-        ),
-    ):
+    mock_http_client.get.side_effect = httpx.HTTPStatusError(
+        "500",
+        request=httpx.Request("GET", "https://api.unsplash.com/search/photos"),
+        response=httpx.Response(500),
+    )
+    with patch("src.integrations.unsplash.client.settings") as mock_settings:
         mock_settings.UNSPLASH_ACCESS_KEY = "test-key"
-
         result = await UnsplashClient.fetch_cover_image("Paris")
 
     assert result is None
 
 
 @pytest.mark.asyncio
-async def test_fetch_empty_results():
+async def test_fetch_empty_results(mock_http_client):
     """Mock results: [] → returns None."""
-    mock_response = httpx.Response(
+    mock_http_client.get.return_value = httpx.Response(
         200,
         json={"results": []},
         request=httpx.Request("GET", "https://api.unsplash.com/search/photos"),
     )
 
-    with (
-        patch("src.integrations.unsplash.client.settings") as mock_settings,
-        patch("httpx.AsyncClient.get", new_callable=AsyncMock, return_value=mock_response),
-    ):
+    with patch("src.integrations.unsplash.client.settings") as mock_settings:
         mock_settings.UNSPLASH_ACCESS_KEY = "test-key"
-
         result = await UnsplashClient.fetch_cover_image("Nowhere")
 
     assert result is None
 
 
 @pytest.mark.asyncio
-async def test_cache_hit():
+async def test_cache_hit(mock_http_client):
     """Two calls with same destination → only 1 HTTP request."""
-    mock_response = httpx.Response(
+    mock_http_client.get.return_value = httpx.Response(
         200,
         json={
-            "results": [
-                {"urls": {"regular": "https://images.unsplash.com/photo-cached?w=1080"}}
-            ]
+            "results": [{"urls": {"regular": "https://images.unsplash.com/photo-cached?w=1080"}}]
         },
         request=httpx.Request("GET", "https://api.unsplash.com/search/photos"),
     )
 
-    with (
-        patch("src.integrations.unsplash.client.settings") as mock_settings,
-        patch("httpx.AsyncClient.get", new_callable=AsyncMock, return_value=mock_response) as mock_get,
-    ):
+    with patch("src.integrations.unsplash.client.settings") as mock_settings:
         mock_settings.UNSPLASH_ACCESS_KEY = "test-key"
-
         result1 = await UnsplashClient.fetch_cover_image("Tokyo")
         result2 = await UnsplashClient.fetch_cover_image("Tokyo")
 
     assert result1 == result2
-    assert mock_get.call_count == 1
+    assert mock_http_client.get.call_count == 1
 
 
 # ---------------------------------------------------------------------------

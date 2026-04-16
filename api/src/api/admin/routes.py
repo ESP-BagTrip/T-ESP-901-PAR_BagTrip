@@ -38,6 +38,7 @@ from src.api.admin.schemas import (
     UpdatePlanRequest,
 )
 from src.api.auth.admin_guard import require_admin
+from src.api.common.pagination import PaginationParams
 from src.config.database import get_db
 from src.models.user import User
 from src.services.admin_service import AdminService
@@ -60,20 +61,21 @@ async def admin_health():
     description="Get all users with pagination (admin only)",
 )
 async def list_all_users(
-    page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    pagination: PaginationParams = Depends(PaginationParams),
     q: str | None = Query(None, description="Search query"),
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Lister tous les utilisateurs (admin)."""
     try:
-        items, total, total_pages = AdminService.get_all_users(db, page=page, limit=limit, q=q)
+        items, total, total_pages = AdminService.get_all_users(
+            db, page=pagination.page, limit=pagination.limit, q=q
+        )
         return AdminListResponse[AdminUserResponse](
             items=[AdminUserResponse(**item) for item in items],
             total=total,
-            page=page,
-            limit=limit,
+            page=pagination.page,
+            limit=pagination.limit,
             total_pages=total_pages,
         )
     except AppError as e:
@@ -89,20 +91,21 @@ async def list_all_users(
     description="Get all trips with user information (admin only)",
 )
 async def list_all_trips(
-    page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    pagination: PaginationParams = Depends(PaginationParams),
     q: str | None = Query(None, description="Search query"),
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Lister tous les trips (admin)."""
     try:
-        items, total, total_pages = AdminService.get_all_trips(db, page=page, limit=limit, q=q)
+        items, total, total_pages = AdminService.get_all_trips(
+            db, page=pagination.page, limit=pagination.limit, q=q
+        )
         return AdminListResponse[AdminTripResponse](
             items=[AdminTripResponse(**item) for item in items],
             total=total,
-            page=page,
-            limit=limit,
+            page=pagination.page,
+            limit=pagination.limit,
             total_pages=total_pages,
         )
     except AppError as e:
@@ -118,20 +121,21 @@ async def list_all_trips(
     description="Get all travelers with trip and user information (admin only)",
 )
 async def list_all_travelers(
-    page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    pagination: PaginationParams = Depends(PaginationParams),
     q: str | None = Query(None, description="Search query"),
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Lister tous les travelers (admin)."""
     try:
-        items, total, total_pages = AdminService.get_all_travelers(db, page=page, limit=limit, q=q)
+        items, total, total_pages = AdminService.get_all_travelers(
+            db, page=pagination.page, limit=pagination.limit, q=q
+        )
         return AdminListResponse[AdminTravelerResponse](
             items=[AdminTravelerResponse(**item) for item in items],
             total=total,
-            page=page,
-            limit=limit,
+            page=pagination.page,
+            limit=pagination.limit,
             total_pages=total_pages,
         )
     except AppError as e:
@@ -149,8 +153,7 @@ async def list_all_travelers(
     description="Get all flight bookings with trip and user information (admin only)",
 )
 async def list_all_flight_bookings(
-    page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    pagination: PaginationParams = Depends(PaginationParams),
     q: str | None = Query(None, description="Search query"),
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
@@ -158,13 +161,13 @@ async def list_all_flight_bookings(
     """Lister toutes les flight bookings (admin)."""
     try:
         items, total, total_pages = AdminService.get_all_flight_bookings(
-            db, page=page, limit=limit, q=q
+            db, page=pagination.page, limit=pagination.limit, q=q
         )
         return AdminListResponse[AdminFlightBookingResponse](
             items=[AdminFlightBookingResponse(**item) for item in items],
             total=total,
-            page=page,
-            limit=limit,
+            page=pagination.page,
+            limit=pagination.limit,
             total_pages=total_pages,
         )
     except AppError as e:
@@ -182,8 +185,7 @@ async def list_all_flight_bookings(
     description="Get all traveler profiles with user information (admin only)",
 )
 async def list_all_traveler_profiles(
-    page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    pagination: PaginationParams = Depends(PaginationParams),
     q: str | None = Query(None, description="Search query"),
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
@@ -191,13 +193,13 @@ async def list_all_traveler_profiles(
     """Lister tous les profils voyageurs (admin)."""
     try:
         items, total, total_pages = AdminService.get_all_traveler_profiles(
-            db, page=page, limit=limit, q=q
+            db, page=pagination.page, limit=pagination.limit, q=q
         )
         return AdminListResponse[AdminTravelerProfileResponse](
             items=[AdminTravelerProfileResponse(**item) for item in items],
             total=total,
-            page=page,
-            limit=limit,
+            page=pagination.page,
+            limit=pagination.limit,
             total_pages=total_pages,
         )
     except AppError as e:
@@ -215,8 +217,7 @@ async def list_all_traveler_profiles(
     description="Get all booking intents with trip and user information (admin only)",
 )
 async def list_all_booking_intents(
-    page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    pagination: PaginationParams = Depends(PaginationParams),
     q: str | None = Query(None, description="Search query"),
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
@@ -224,13 +225,13 @@ async def list_all_booking_intents(
     """Lister tous les booking intents (admin)."""
     try:
         items, total, total_pages = AdminService.get_all_booking_intents(
-            db, page=page, limit=limit, q=q
+            db, page=pagination.page, limit=pagination.limit, q=q
         )
         return AdminListResponse[AdminBookingIntentResponse](
             items=[AdminBookingIntentResponse(**item) for item in items],
             total=total,
-            page=page,
-            limit=limit,
+            page=pagination.page,
+            limit=pagination.limit,
             total_pages=total_pages,
         )
     except AppError as e:
@@ -248,8 +249,7 @@ async def list_all_booking_intents(
     description="Get all flight searches with trip information (admin only)",
 )
 async def list_all_flight_searches(
-    page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    pagination: PaginationParams = Depends(PaginationParams),
     q: str | None = Query(None, description="Search query"),
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
@@ -257,13 +257,13 @@ async def list_all_flight_searches(
     """Lister toutes les recherches de vols (admin)."""
     try:
         items, total, total_pages = AdminService.get_all_flight_searches(
-            db, page=page, limit=limit, q=q
+            db, page=pagination.page, limit=pagination.limit, q=q
         )
         return AdminListResponse[AdminFlightSearchResponse](
             items=[AdminFlightSearchResponse(**item) for item in items],
             total=total,
-            page=page,
-            limit=limit,
+            page=pagination.page,
+            limit=pagination.limit,
             total_pages=total_pages,
         )
     except AppError as e:
@@ -281,8 +281,7 @@ async def list_all_flight_searches(
     description="Get all accommodations with trip and user information (admin only)",
 )
 async def list_all_accommodations(
-    page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    pagination: PaginationParams = Depends(PaginationParams),
     q: str | None = Query(None, description="Search query"),
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
@@ -290,13 +289,13 @@ async def list_all_accommodations(
     """Lister tous les hébergements (admin)."""
     try:
         items, total, total_pages = AdminService.get_all_accommodations(
-            db, page=page, limit=limit, q=q
+            db, page=pagination.page, limit=pagination.limit, q=q
         )
         return AdminListResponse[AdminAccommodationResponse](
             items=[AdminAccommodationResponse(**item) for item in items],
             total=total,
-            page=page,
-            limit=limit,
+            page=pagination.page,
+            limit=pagination.limit,
             total_pages=total_pages,
         )
     except AppError as e:
@@ -314,20 +313,21 @@ async def list_all_accommodations(
     description="Get all activities with trip and user information (admin only)",
 )
 async def list_all_activities(
-    page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    pagination: PaginationParams = Depends(PaginationParams),
     q: str | None = Query(None, description="Search query"),
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Lister toutes les activités (admin)."""
     try:
-        items, total, total_pages = AdminService.get_all_activities(db, page=page, limit=limit, q=q)
+        items, total, total_pages = AdminService.get_all_activities(
+            db, page=pagination.page, limit=pagination.limit, q=q
+        )
         return AdminListResponse[AdminActivityResponse](
             items=[AdminActivityResponse(**item) for item in items],
             total=total,
-            page=page,
-            limit=limit,
+            page=pagination.page,
+            limit=pagination.limit,
             total_pages=total_pages,
         )
     except AppError as e:
@@ -345,8 +345,7 @@ async def list_all_activities(
     description="Get all budget items with trip and user information (admin only)",
 )
 async def list_all_budget_items(
-    page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    pagination: PaginationParams = Depends(PaginationParams),
     q: str | None = Query(None, description="Search query"),
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
@@ -354,13 +353,13 @@ async def list_all_budget_items(
     """Lister tous les budget items (admin)."""
     try:
         items, total, total_pages = AdminService.get_all_budget_items(
-            db, page=page, limit=limit, q=q
+            db, page=pagination.page, limit=pagination.limit, q=q
         )
         return AdminListResponse[AdminBudgetItemResponse](
             items=[AdminBudgetItemResponse(**item) for item in items],
             total=total,
-            page=page,
-            limit=limit,
+            page=pagination.page,
+            limit=pagination.limit,
             total_pages=total_pages,
         )
     except AppError as e:
@@ -378,8 +377,7 @@ async def list_all_budget_items(
     description="Get all baggage items with trip and user information (admin only)",
 )
 async def list_all_baggage_items(
-    page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    pagination: PaginationParams = Depends(PaginationParams),
     q: str | None = Query(None, description="Search query"),
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
@@ -387,13 +385,13 @@ async def list_all_baggage_items(
     """Lister tous les éléments de bagage (admin)."""
     try:
         items, total, total_pages = AdminService.get_all_baggage_items(
-            db, page=page, limit=limit, q=q
+            db, page=pagination.page, limit=pagination.limit, q=q
         )
         return AdminListResponse[AdminBaggageItemResponse](
             items=[AdminBaggageItemResponse(**item) for item in items],
             total=total,
-            page=page,
-            limit=limit,
+            page=pagination.page,
+            limit=pagination.limit,
             total_pages=total_pages,
         )
     except AppError as e:
@@ -411,8 +409,7 @@ async def list_all_baggage_items(
     description="Get all trip shares with trip and user information (admin only)",
 )
 async def list_all_trip_shares(
-    page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    pagination: PaginationParams = Depends(PaginationParams),
     q: str | None = Query(None, description="Search query"),
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
@@ -420,13 +417,13 @@ async def list_all_trip_shares(
     """Lister tous les partages de trips (admin)."""
     try:
         items, total, total_pages = AdminService.get_all_trip_shares(
-            db, page=page, limit=limit, q=q
+            db, page=pagination.page, limit=pagination.limit, q=q
         )
         return AdminListResponse[AdminTripShareResponse](
             items=[AdminTripShareResponse(**item) for item in items],
             total=total,
-            page=page,
-            limit=limit,
+            page=pagination.page,
+            limit=pagination.limit,
             total_pages=total_pages,
         )
     except AppError as e:
@@ -444,20 +441,21 @@ async def list_all_trip_shares(
     description="Get all feedbacks with trip and user information (admin only)",
 )
 async def list_all_feedbacks(
-    page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    pagination: PaginationParams = Depends(PaginationParams),
     q: str | None = Query(None, description="Search query"),
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Lister tous les feedbacks (admin)."""
     try:
-        items, total, total_pages = AdminService.get_all_feedbacks(db, page=page, limit=limit, q=q)
+        items, total, total_pages = AdminService.get_all_feedbacks(
+            db, page=pagination.page, limit=pagination.limit, q=q
+        )
         return AdminListResponse[AdminFeedbackResponse](
             items=[AdminFeedbackResponse(**item) for item in items],
             total=total,
-            page=page,
-            limit=limit,
+            page=pagination.page,
+            limit=pagination.limit,
             total_pages=total_pages,
         )
     except AppError as e:
@@ -475,8 +473,7 @@ async def list_all_feedbacks(
     description="Get all notifications with user and trip information (admin only)",
 )
 async def list_all_notifications(
-    page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    pagination: PaginationParams = Depends(PaginationParams),
     q: str | None = Query(None, description="Search query"),
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
@@ -484,13 +481,13 @@ async def list_all_notifications(
     """Lister toutes les notifications (admin)."""
     try:
         items, total, total_pages = AdminService.get_all_notifications(
-            db, page=page, limit=limit, q=q
+            db, page=pagination.page, limit=pagination.limit, q=q
         )
         return AdminListResponse[AdminNotificationResponse](
             items=[AdminNotificationResponse(**item) for item in items],
             total=total,
-            page=page,
-            limit=limit,
+            page=pagination.page,
+            limit=pagination.limit,
             total_pages=total_pages,
         )
     except AppError as e:
@@ -1057,8 +1054,7 @@ async def admin_delete_share(
     summary="List audit logs (admin)",
 )
 async def list_audit_logs(
-    page: int = Query(1, ge=1),
-    limit: int = Query(20, ge=1, le=100),
+    pagination: PaginationParams = Depends(PaginationParams),
     entity_type: str | None = Query(None),
     entity_id: str | None = Query(None),
     actor_id: str | None = Query(None),
@@ -1073,8 +1069,8 @@ async def list_audit_logs(
 
         items, total, total_pages = AuditService.get_logs(
             db,
-            page=page,
-            limit=limit,
+            page=pagination.page,
+            limit=pagination.limit,
             entity_type=entity_type,
             entity_id=entity_id,
             actor_id=actor_id,
@@ -1083,8 +1079,8 @@ async def list_audit_logs(
         return {
             "items": [AuditLogResponse(**item) for item in items],
             "total": total,
-            "page": page,
-            "limit": limit,
+            "page": pagination.page,
+            "limit": pagination.limit,
             "total_pages": total_pages,
         }
     except AppError as e:

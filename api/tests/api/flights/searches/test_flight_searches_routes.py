@@ -78,7 +78,6 @@ def trip_access(mock_trip_id):
 
 @patch("src.api.flights.searches.routes.FlightSearchService")
 class TestCreateFlightSearch:
-
     def test_create_flight_search_success(self, mock_service, client, mock_trip_id, trip_access):
         # Mock FlightSearchService.create_search
         mock_search = MagicMock()
@@ -105,7 +104,7 @@ class TestCreateFlightSearch:
             "destinationIata": "NYC",
             "departureDate": "2027-12-01",
             "adults": 1,
-            "currency": "EUR"
+            "currency": "EUR",
         }
 
         response = client.post(f"/v1/trips/{mock_trip_id}/flights/searches", json=payload)
@@ -124,13 +123,15 @@ class TestCreateFlightSearch:
         mock_service.create_search.assert_called_once()
 
     def test_create_flight_search_error(self, mock_service, client, mock_trip_id, trip_access):
-        mock_service.create_search = AsyncMock(side_effect=AppError("SEARCH_FAILED", 400, "Search failed"))
+        mock_service.create_search = AsyncMock(
+            side_effect=AppError("SEARCH_FAILED", 400, "Search failed")
+        )
 
         payload = {
             "originIata": "PAR",
             "destinationIata": "NYC",
             "departureDate": "2027-12-01",
-            "adults": 1
+            "adults": 1,
         }
 
         response = client.post(f"/v1/trips/{mock_trip_id}/flights/searches", json=payload)
@@ -141,8 +142,9 @@ class TestCreateFlightSearch:
 
 @patch("src.api.flights.searches.routes.FlightSearchService")
 class TestGetFlightSearch:
-
-    def test_get_flight_search_success(self, mock_service, client, mock_trip_id, mock_search_id, trip_access):
+    def test_get_flight_search_success(
+        self, mock_service, client, mock_trip_id, mock_search_id, trip_access
+    ):
         # Mock FlightSearchService.get_search_by_id
         mock_search = MagicMock()
         mock_search.id = mock_search_id
@@ -174,10 +176,16 @@ class TestGetFlightSearch:
         assert len(data["offers"]) == 1
         assert data["offers"][0]["grandTotal"] == 100.0
 
-        mock_service.get_search_by_id.assert_called_once_with(mock_db_session, mock_search_id, mock_trip_id)
-        mock_service.get_offers_by_search.assert_called_once_with(mock_db_session, mock_search_id, mock_trip_id)
+        mock_service.get_search_by_id.assert_called_once_with(
+            mock_db_session, mock_search_id, mock_trip_id
+        )
+        mock_service.get_offers_by_search.assert_called_once_with(
+            mock_db_session, mock_search_id, mock_trip_id
+        )
 
-    def test_get_flight_search_not_found(self, mock_service, client, mock_trip_id, mock_search_id, trip_access):
+    def test_get_flight_search_not_found(
+        self, mock_service, client, mock_trip_id, mock_search_id, trip_access
+    ):
         mock_service.get_search_by_id.return_value = None
 
         response = client.get(f"/v1/trips/{mock_trip_id}/flights/searches/{mock_search_id}")
@@ -188,7 +196,6 @@ class TestGetFlightSearch:
 
 @patch("src.api.flights.searches.routes.FlightSearchService")
 class TestCreateMultiDestSearch:
-
     def test_multi_dest_success_two_segments(self, mock_service, client, mock_trip_id, trip_access):
         # Build two mock segment results
         results = []
@@ -203,9 +210,7 @@ class TestCreateMultiDestSearch:
             mock_offer.id = uuid4()
             mock_offer.grand_total = 500.0
             mock_offer.currency = "EUR"
-            mock_offer.offer_json = {
-                "itineraries": [{"segments": [{"id": "1"}]}]
-            }
+            mock_offer.offer_json = {"itineraries": [{"segments": [{"id": "1"}]}]}
             results.append((mock_search, [mock_offer]))
 
         mock_service.create_multi_dest_search = AsyncMock(return_value=results)
@@ -232,7 +237,9 @@ class TestCreateMultiDestSearch:
 
         mock_service.create_multi_dest_search.assert_called_once()
 
-    def test_multi_dest_empty_segments_rejected(self, mock_service, client, mock_trip_id, trip_access):
+    def test_multi_dest_empty_segments_rejected(
+        self, mock_service, client, mock_trip_id, trip_access
+    ):
         payload = {
             "segments": [],
             "adults": 1,

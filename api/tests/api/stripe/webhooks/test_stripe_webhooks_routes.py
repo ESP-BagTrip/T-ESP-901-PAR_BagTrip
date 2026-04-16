@@ -33,6 +33,7 @@ def mock_db_session():
 @pytest.fixture
 def override_get_db(mock_db_session):
     """Override the get_db dependency."""
+
     def _get_db():
         yield mock_db_session
 
@@ -63,7 +64,7 @@ class TestHandleStripeWebhook:
         response = client.post(
             "/v1/stripe/webhooks",
             content=json.dumps({"id": "evt_123"}),
-            headers={"stripe-signature": "sig_123"}
+            headers={"stripe-signature": "sig_123"},
         )
 
         assert response.status_code == 200
@@ -90,7 +91,7 @@ class TestHandleStripeWebhook:
         response = client.post(
             "/v1/stripe/webhooks",
             content=json.dumps({"id": "evt_123"}),
-            headers={"stripe-signature": "sig_123"}
+            headers={"stripe-signature": "sig_123"},
         )
 
         assert response.status_code == 200
@@ -99,16 +100,12 @@ class TestHandleStripeWebhook:
         mock_process.assert_called_once()
 
     @patch("src.api.stripe.webhooks.routes.settings")
-    def test_handle_stripe_webhook_invalid_json(
-        self, mock_settings, client, override_get_db
-    ):
+    def test_handle_stripe_webhook_invalid_json(self, mock_settings, client, override_get_db):
         """Test webhook processing with invalid JSON payload."""
         mock_settings.STRIPE_WEBHOOK_SECRET = None
 
         response = client.post(
-            "/v1/stripe/webhooks",
-            content="invalid json",
-            headers={"stripe-signature": "sig_123"}
+            "/v1/stripe/webhooks", content="invalid json", headers={"stripe-signature": "sig_123"}
         )
 
         assert response.status_code == 400
@@ -126,7 +123,7 @@ class TestHandleStripeWebhook:
         response = client.post(
             "/v1/stripe/webhooks",
             content=json.dumps({"id": "evt_123"}),
-            headers={"stripe-signature": "invalid_sig"}
+            headers={"stripe-signature": "invalid_sig"},
         )
 
         assert response.status_code == 400
@@ -144,7 +141,7 @@ class TestHandleStripeWebhook:
         response = client.post(
             "/v1/stripe/webhooks",
             content=json.dumps({"id": "evt_123"}),
-            headers={"stripe-signature": "sig_123"}
+            headers={"stripe-signature": "sig_123"},
         )
 
         assert response.status_code == 500

@@ -5,6 +5,8 @@ import os
 from enum import IntEnum
 from typing import Any
 
+from src.middleware.request_id import RequestIdLogFilter
+
 
 class LogLevel(IntEnum):
     """Niveaux de log."""
@@ -24,11 +26,14 @@ class Logger:
         self._logger = logging.getLogger(__name__)
         self._logger.setLevel(logging.DEBUG)
 
-        # Handler console
+        # Handler console. Each record gets a `request_id` attribute via the
+        # filter below, and the formatter stamps it into every line so the
+        # output can be `grep`-ed by a single request from proxy → service.
         handler = logging.StreamHandler()
         handler.setLevel(logging.DEBUG)
+        handler.addFilter(RequestIdLogFilter())
         formatter = logging.Formatter(
-            "[%(asctime)s] [%(levelname)s] %(message)s",
+            "[%(asctime)s] [%(levelname)s] [rid=%(request_id)s] %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S",
         )
         handler.setFormatter(formatter)

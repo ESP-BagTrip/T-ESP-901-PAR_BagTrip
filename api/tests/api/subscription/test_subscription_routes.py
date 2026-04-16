@@ -35,6 +35,7 @@ def mock_db_session():
 @pytest.fixture
 def override_get_db(mock_db_session):
     """Override the get_db dependency."""
+
     def _get_db():
         yield mock_db_session
 
@@ -46,10 +47,7 @@ def override_get_db(mock_db_session):
 @pytest.fixture
 def mock_user():
     """Create a mock user."""
-    return User(
-        id=uuid.uuid4(),
-        email="test@example.com"
-    )
+    return User(id=uuid.uuid4(), email="test@example.com")
 
 
 @pytest.fixture
@@ -64,9 +62,13 @@ class TestCreateCheckout:
     """Tests for POST /v1/subscription/checkout."""
 
     @patch("src.api.subscription.routes.SubscriptionService")
-    def test_create_checkout_success(self, mock_service, client, override_get_current_user, override_get_db):
+    def test_create_checkout_success(
+        self, mock_service, client, override_get_current_user, override_get_db
+    ):
         """Test successful checkout session creation."""
-        mock_service.create_checkout_session.return_value = {"url": "https://checkout.stripe.com/session_123"}
+        mock_service.create_checkout_session.return_value = {
+            "url": "https://checkout.stripe.com/session_123"
+        }
 
         response = client.post("/v1/subscription/checkout")
 
@@ -75,9 +77,13 @@ class TestCreateCheckout:
         mock_service.create_checkout_session.assert_called_once()
 
     @patch("src.api.subscription.routes.SubscriptionService")
-    def test_create_checkout_already_premium(self, mock_service, client, override_get_current_user, override_get_db):
+    def test_create_checkout_already_premium(
+        self, mock_service, client, override_get_current_user, override_get_db
+    ):
         """Test checkout when user is already on a paid plan."""
-        mock_service.create_checkout_session.side_effect = AppError("ALREADY_PREMIUM", 400, "You are already on a paid plan")
+        mock_service.create_checkout_session.side_effect = AppError(
+            "ALREADY_PREMIUM", 400, "You are already on a paid plan"
+        )
 
         response = client.post("/v1/subscription/checkout")
 
@@ -85,9 +91,13 @@ class TestCreateCheckout:
         assert response.json()["detail"]["error"] == "You are already on a paid plan"
 
     @patch("src.api.subscription.routes.SubscriptionService")
-    def test_create_checkout_stripe_error(self, mock_service, client, override_get_current_user, override_get_db):
+    def test_create_checkout_stripe_error(
+        self, mock_service, client, override_get_current_user, override_get_db
+    ):
         """Test checkout when Stripe returns an error."""
-        mock_service.create_checkout_session.side_effect = AppError("STRIPE_ERROR", 500, "Stripe error")
+        mock_service.create_checkout_session.side_effect = AppError(
+            "STRIPE_ERROR", 500, "Stripe error"
+        )
 
         response = client.post("/v1/subscription/checkout")
 
@@ -99,9 +109,13 @@ class TestCreatePortal:
     """Tests for POST /v1/subscription/portal."""
 
     @patch("src.api.subscription.routes.SubscriptionService")
-    def test_create_portal_success(self, mock_service, client, override_get_current_user, override_get_db):
+    def test_create_portal_success(
+        self, mock_service, client, override_get_current_user, override_get_db
+    ):
         """Test successful portal session creation."""
-        mock_service.create_portal_session.return_value = {"url": "https://billing.stripe.com/session_456"}
+        mock_service.create_portal_session.return_value = {
+            "url": "https://billing.stripe.com/session_456"
+        }
 
         response = client.post("/v1/subscription/portal")
 
@@ -110,9 +124,13 @@ class TestCreatePortal:
         mock_service.create_portal_session.assert_called_once()
 
     @patch("src.api.subscription.routes.SubscriptionService")
-    def test_create_portal_error(self, mock_service, client, override_get_current_user, override_get_db):
+    def test_create_portal_error(
+        self, mock_service, client, override_get_current_user, override_get_db
+    ):
         """Test portal session creation when Stripe returns an error."""
-        mock_service.create_portal_session.side_effect = AppError("STRIPE_ERROR", 500, "Portal error")
+        mock_service.create_portal_session.side_effect = AppError(
+            "STRIPE_ERROR", 500, "Portal error"
+        )
 
         response = client.post("/v1/subscription/portal")
 
@@ -124,7 +142,9 @@ class TestGetStatus:
     """Tests for GET /v1/subscription/status."""
 
     @patch("src.api.subscription.routes.SubscriptionService")
-    def test_get_status_success(self, mock_service, client, override_get_current_user, override_get_db):
+    def test_get_status_success(
+        self, mock_service, client, override_get_current_user, override_get_db
+    ):
         """Test successful subscription status retrieval."""
         mock_service.get_status.return_value = {
             "plan": "FREE",

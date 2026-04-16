@@ -17,7 +17,10 @@ class IdempotencyCache:
 
     def __init__(self, ttl_seconds: int = 300):
         self.ttl_seconds = ttl_seconds
-        self._redis = None
+        # `Any | None` so mypy keeps the `if self._redis:` branches reachable.
+        # The runtime value is a `redis.Redis` instance once `_init_backend`
+        # resolves, but we don't want a hard import on the optional dep.
+        self._redis: Any | None = None
         self._memory_cache: dict[str, tuple[Any, datetime]] = {}
         self._lock = threading.Lock()
         self._init_backend()

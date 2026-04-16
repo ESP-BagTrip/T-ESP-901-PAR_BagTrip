@@ -1,7 +1,7 @@
 import datetime as dt
 from uuid import UUID
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from src.enums import ActivityCategory
 
@@ -63,9 +63,7 @@ class ActivityResponse(BaseModel):
     createdAt: dt.datetime = Field(alias="created_at")
     updatedAt: dt.datetime = Field(alias="updated_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class ActivityListResponse(BaseModel):
@@ -79,8 +77,7 @@ class ActivityPaginatedResponse(BaseModel):
     limit: int
     totalPages: int = Field(alias="total_pages")
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class ActivityBatchUpdateRequest(BaseModel):

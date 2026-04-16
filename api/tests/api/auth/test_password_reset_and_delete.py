@@ -109,11 +109,13 @@ class TestResetPassword:
 
     def test_reset_password_success(self, client, override_get_db, mock_db_session):
         """Test reset-password with a valid token updates the password and clears token."""
+        import hashlib
+
         user = User(
             id=uuid.uuid4(),
             email="user@example.com",
             password_hash="old_hash",
-            password_reset_token="valid-token",
+            password_reset_token=hashlib.sha256(b"valid-token").hexdigest(),
             password_reset_expires=datetime.now(UTC) + timedelta(hours=1),
         )
         mock_db_session.query.return_value.filter.return_value.first.return_value = user
@@ -157,7 +159,7 @@ class TestResetPassword:
 class TestDeleteMe:
     """Test suite for DELETE /v1/auth/me."""
 
-    @patch("src.api.auth.routes.StripeClient")
+    @patch("src.api.auth.routes.StripeGatewayService")
     def test_delete_me_success(
         self,
         mock_stripe,
@@ -187,7 +189,7 @@ class TestDeleteMe:
         mock_db_session.delete.assert_called_once_with(mock_user)
         assert mock_db_session.commit.called
 
-    @patch("src.api.auth.routes.StripeClient")
+    @patch("src.api.auth.routes.StripeGatewayService")
     def test_delete_me_no_stripe_customer(
         self,
         mock_stripe,
@@ -222,7 +224,7 @@ class TestDeleteMe:
         # Cleanup
         app.dependency_overrides = {}
 
-    @patch("src.api.auth.routes.StripeClient")
+    @patch("src.api.auth.routes.StripeGatewayService")
     def test_delete_me_stripe_failure_continues(
         self,
         mock_stripe,
