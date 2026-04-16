@@ -4,7 +4,7 @@ import hashlib
 import os
 import secrets
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Annotated, Any
 
 import bcrypt
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -136,7 +136,11 @@ def create_refresh_token(user_id: str, db: Session) -> str:
         400: {"description": "Bad request - User already exists or validation error"},
     },
 )
-async def register(request: SignupRequest, response: Response, db: Session = Depends(get_db)):
+async def register(
+    request: SignupRequest,
+    response: Response,
+    db: Annotated[Session, Depends(get_db)],
+):
     """Register — create a new user with email + password."""
     existing_user = db.query(User).filter(User.email == request.email).first()
     if existing_user:
@@ -192,7 +196,11 @@ async def register(request: SignupRequest, response: Response, db: Session = Dep
         401: {"description": "Unauthorized - Invalid credentials"},
     },
 )
-async def login(request: LoginRequest, response: Response, db: Session = Depends(get_db)):
+async def login(
+    request: LoginRequest,
+    response: Response,
+    db: Annotated[Session, Depends(get_db)],
+):
     """
     Login - Authentifier un utilisateur.
 
@@ -272,8 +280,8 @@ async def login(request: LoginRequest, response: Response, db: Session = Depends
     },
 )
 async def me(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     Me - Obtenir les informations de l'utilisateur actuel.
@@ -306,8 +314,8 @@ async def me(
 )
 async def update_me(
     request: UpdateUserRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Update the current user's profile (name, phone)."""
     if request.fullName is not None:
@@ -363,7 +371,9 @@ async def update_me(
     },
 )
 async def google_sign_in(
-    request: GoogleSignInRequest, response: Response, db: Session = Depends(get_db)
+    request: GoogleSignInRequest,
+    response: Response,
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Google Sign In — create or retrieve the user from a Google ID token."""
     try:
@@ -438,7 +448,9 @@ async def google_sign_in(
     },
 )
 async def apple_sign_in(
-    request: AppleSignInRequest, response: Response, db: Session = Depends(get_db)
+    request: AppleSignInRequest,
+    response: Response,
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Apple Sign In — create or retrieve the user from an Apple ID token."""
     try:
@@ -498,7 +510,11 @@ async def apple_sign_in(
     summary="Refresh access token",
     description="Exchange a valid refresh token for a new access + refresh token pair",
 )
-async def refresh(request: RefreshTokenRequest, response: Response, db: Session = Depends(get_db)):
+async def refresh(
+    request: RefreshTokenRequest,
+    response: Response,
+    db: Annotated[Session, Depends(get_db)],
+):
     """Refresh — rotate tokens."""
     stored = (
         db.query(RefreshToken)
@@ -558,9 +574,9 @@ async def refresh(request: RefreshTokenRequest, response: Response, db: Session 
 async def logout(
     http_request: Request,
     response: Response,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
     request: LogoutRequest | None = None,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
 ):
     """Logout — revoke the given refresh token (from body or cookie)."""
     token_value = None
@@ -594,8 +610,8 @@ async def logout(
 )
 async def logout_all(
     response: Response,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Logout all — revoke every refresh token for the authenticated user."""
     db.query(RefreshToken).filter(
@@ -613,7 +629,10 @@ async def logout_all(
     summary="Request a password reset",
     description="Send a password reset token (delivered out-of-band, never logged)",
 )
-async def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(get_db)):
+async def forgot_password(
+    request: ForgotPasswordRequest,
+    db: Annotated[Session, Depends(get_db)],
+):
     """Request password reset — always returns 200 to avoid leaking user existence."""
     user = db.query(User).filter(User.email == request.email).first()
     response_body: dict = {"message": "If this email exists, a reset link has been sent."}
@@ -634,7 +653,10 @@ async def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(
     summary="Reset password with token",
     description="Reset the password using a valid reset token",
 )
-async def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db)):
+async def reset_password(
+    request: ResetPasswordRequest,
+    db: Annotated[Session, Depends(get_db)],
+):
     """Reset password using a valid, non-expired token."""
     token_hash = _hash_reset_token(request.token)
     user = (
@@ -666,8 +688,8 @@ async def reset_password(request: ResetPasswordRequest, db: Session = Depends(ge
     description="Permanently delete the user account and all associated data",
 )
 async def delete_me(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Hard-delete user, cascade all related data, and remove Stripe customer."""
     from src.models.accommodation import Accommodation

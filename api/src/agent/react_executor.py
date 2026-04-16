@@ -184,7 +184,7 @@ def parse_react_output(llm_output: str) -> tuple[str, dict] | str:
     stripped = re.sub(r"\n?```\s*$", "", stripped)
 
     # Try to find a JSON object in the output
-    json_match = re.search(r"\{[\s\S]*\"destinations\"[\s\S]*\}", stripped)
+    json_match = re.search(r"\{[^{}]*\"destinations\"[^{}]*\}", stripped)
     if json_match:
         try:
             parsed_json = json.loads(json_match.group(0))

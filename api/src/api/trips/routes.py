@@ -1,5 +1,7 @@
 """Routes pour les trips."""
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
@@ -48,8 +50,8 @@ def _enrich_with_completion(
 )
 async def create_trip(
     request: TripCreateRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Créer un nouveau trip."""
     try:
@@ -93,12 +95,12 @@ async def create_trip(
     description="Get paginated trips for the authenticated user (owned + shared)",
 )
 async def list_trips(
-    pagination: PaginationParams = Depends(PaginationParams),
-    status: str | None = Query(
-        default=None, description="Filter by status: ongoing, planned, completed"
-    ),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+    status: Annotated[
+        str | None, Query(description="Filter by status: ongoing, planned, completed")
+    ] = None,
 ):
     """Lister les trips de l'utilisateur (owned + shared) avec pagination."""
     try:
@@ -135,8 +137,8 @@ async def list_trips(
     description="Get all trips grouped by status (ongoing, planned, completed)",
 )
 async def get_grouped_trips(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Récupérer les trips groupés par statut."""
     try:
@@ -168,8 +170,8 @@ async def get_grouped_trips(
     description="Get detailed information about a specific trip with aggregations",
 )
 async def get_trip(
-    access: TripAccess = Depends(get_trip_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Récupérer un trip avec agrégations."""
     try:
@@ -204,8 +206,8 @@ async def get_trip(
     description="Get trip details, stats, and feature tiles for the trip home page",
 )
 async def get_trip_home(
-    access: TripAccess = Depends(get_trip_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Récupérer les données de la page d'accueil d'un trip."""
     try:
@@ -234,8 +236,8 @@ async def get_trip_home(
 )
 async def update_trip(
     request: TripUpdateRequest,
-    access: TripAccess = Depends(get_trip_owner_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_owner_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Mettre à jour un trip."""
     try:
@@ -270,8 +272,8 @@ async def update_trip(
 )
 async def update_trip_status(
     request: TripStatusUpdateRequest,
-    access: TripAccess = Depends(get_trip_owner_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_owner_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Mettre à jour le statut d'un trip."""
     try:
@@ -310,7 +312,7 @@ async def update_trip_status(
     description="Resolve trip destination coordinates and return weather data",
 )
 async def get_trip_weather(
-    access: TripAccess = Depends(get_trip_access),
+    access: Annotated[TripAccess, Depends(get_trip_access)],
 ):
     """Récupérer la météo pour la destination du trip."""
     from datetime import date, timedelta
@@ -363,8 +365,8 @@ async def get_trip_weather(
     description="Delete a trip",
 )
 async def delete_trip(
-    access: TripAccess = Depends(get_trip_owner_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_owner_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Supprimer un trip."""
     try:

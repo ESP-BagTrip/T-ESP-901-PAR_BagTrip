@@ -1,5 +1,6 @@
 """Routes pour les baggage items."""
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Path, status
@@ -32,8 +33,8 @@ router = APIRouter(prefix="/v1/trips", tags=["Baggage"])
 )
 async def create_baggage_item(
     request: BaggageItemCreateRequest,
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Créer un élément de bagage."""
     try:
@@ -58,8 +59,8 @@ async def create_baggage_item(
     description="Get all baggage items for a trip",
 )
 async def list_baggage_items(
-    access: TripAccess = Depends(get_trip_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Lister les éléments de bagage d'un trip."""
     try:
@@ -79,9 +80,9 @@ async def list_baggage_items(
 )
 async def update_baggage_item(
     request: BaggageItemUpdateRequest,
-    baggageItemId: UUID = Path(..., description="Baggage item ID"),
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    baggageItemId: Annotated[UUID, Path(..., description="Baggage item ID")],
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Mettre à jour un élément de bagage."""
     try:
@@ -107,9 +108,9 @@ async def update_baggage_item(
     description="Delete a baggage item from a trip",
 )
 async def delete_baggage_item(
-    baggageItemId: UUID = Path(..., description="Baggage item ID"),
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    baggageItemId: Annotated[UUID, Path(..., description="Baggage item ID")],
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Supprimer un élément de bagage."""
     try:
@@ -125,9 +126,9 @@ async def delete_baggage_item(
     description="Get AI-powered baggage suggestions for a trip",
 )
 async def suggest_baggage_items(
-    access: TripAccess = Depends(get_trip_editor_access),
-    current_user: User = Depends(require_ai_quota),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    current_user: Annotated[User, Depends(require_ai_quota)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Suggestions IA de bagages pour un trip."""
     try:

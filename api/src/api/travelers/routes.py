@@ -1,5 +1,6 @@
 """Routes pour les travelers."""
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Path, status
@@ -28,8 +29,8 @@ router = APIRouter(prefix="/v1/trips", tags=["Travelers"])
 )
 async def create_traveler(
     request: TravelerCreateRequest,
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Créer un traveler selon PLAN.md."""
     try:
@@ -57,8 +58,8 @@ async def create_traveler(
     description="Get all travelers for a trip",
 )
 async def list_travelers(
-    access: TripAccess = Depends(get_trip_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Lister les travelers d'un trip selon PLAN.md."""
     try:
@@ -76,9 +77,9 @@ async def list_travelers(
 )
 async def update_traveler(
     request: TravelerUpdateRequest,
-    travelerId: UUID = Path(..., description="Traveler ID"),
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    travelerId: Annotated[UUID, Path(..., description="Traveler ID")],
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Mettre à jour un traveler selon PLAN.md."""
     try:
@@ -107,9 +108,9 @@ async def update_traveler(
     description="Delete a traveler from a trip",
 )
 async def delete_traveler(
-    travelerId: UUID = Path(..., description="Traveler ID"),
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    travelerId: Annotated[UUID, Path(..., description="Traveler ID")],
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Supprimer un traveler selon PLAN.md."""
     try:

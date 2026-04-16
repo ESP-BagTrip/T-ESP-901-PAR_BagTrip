@@ -1,3 +1,4 @@
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Path, status
@@ -31,8 +32,8 @@ router = APIRouter(prefix="/v1/trips", tags=["BudgetItems"])
 )
 async def create_budget_item(
     request: BudgetItemCreateRequest,
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     try:
         item = BudgetItemService.create(
@@ -52,8 +53,8 @@ async def create_budget_item(
 
 @router.get("/{tripId}/budget-items", response_model=BudgetItemListResponse)
 async def list_budget_items(
-    access: TripAccess = Depends(get_trip_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     try:
         if access.role == TripRole.VIEWER:
@@ -66,8 +67,8 @@ async def list_budget_items(
 
 @router.get("/{tripId}/budget-items/summary", response_model=BudgetSummaryResponse)
 async def get_budget_summary(
-    access: TripAccess = Depends(get_trip_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     try:
         summary = BudgetItemService.get_budget_summary(db, access.trip)
@@ -89,9 +90,9 @@ async def get_budget_summary(
 
 @router.get("/{tripId}/budget-items/{itemId}", response_model=BudgetItemResponse)
 async def get_budget_item(
-    itemId: UUID = Path(..., description="Budget item ID"),
-    access: TripAccess = Depends(get_trip_access),
-    db: Session = Depends(get_db),
+    itemId: Annotated[UUID, Path(..., description="Budget item ID")],
+    access: Annotated[TripAccess, Depends(get_trip_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     try:
         if access.role == TripRole.VIEWER:
@@ -105,9 +106,9 @@ async def get_budget_item(
 @router.put("/{tripId}/budget-items/{itemId}", response_model=BudgetItemResponse)
 async def update_budget_item(
     request: BudgetItemUpdateRequest,
-    itemId: UUID = Path(..., description="Budget item ID"),
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    itemId: Annotated[UUID, Path(..., description="Budget item ID")],
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     try:
         item = BudgetItemService.update(
@@ -131,9 +132,9 @@ async def update_budget_item(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_budget_item(
-    itemId: UUID = Path(..., description="Budget item ID"),
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    itemId: Annotated[UUID, Path(..., description="Budget item ID")],
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     try:
         BudgetItemService.delete(db, access.trip, itemId)
@@ -149,9 +150,9 @@ async def delete_budget_item(
     description="Get an AI-powered budget estimation for a trip",
 )
 async def estimate_budget(
-    access: TripAccess = Depends(get_trip_editor_access),
-    current_user: User = Depends(require_ai_quota),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    current_user: Annotated[User, Depends(require_ai_quota)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Estimate budget using AI based on trip data."""
     from src.agent.nodes.budget import budget_node
@@ -208,8 +209,8 @@ async def estimate_budget(
 )
 async def accept_budget_estimate(
     request: AcceptEstimateRequest,
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Accept AI budget estimation and update trip budget_total."""
     try:

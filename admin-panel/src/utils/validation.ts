@@ -1,6 +1,9 @@
 export const validateEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return emailRegex.test(email)
+  if (email.length > 254) return false
+  const parts = email.split('@')
+  if (parts.length !== 2) return false
+  const [local, domain] = parts
+  return local.length > 0 && domain.length > 0 && domain.includes('.')
 }
 
 export const validatePassword = (

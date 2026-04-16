@@ -17,7 +17,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from math import ceil
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import Query
 from pydantic import BaseModel, Field
@@ -38,8 +38,8 @@ class PaginationParams:
 
     def __init__(
         self,
-        page: int = Query(1, ge=1, description="Page number (1-indexed)"),
-        limit: int = Query(20, ge=1, le=100, description="Items per page (1-100)"),
+        page: Annotated[int, Query(ge=1, description="Page number (1-indexed)")] = 1,
+        limit: Annotated[int, Query(ge=1, le=100, description="Items per page (1-100)")] = 20,
     ) -> None:
         self.page = page
         self.limit = limit

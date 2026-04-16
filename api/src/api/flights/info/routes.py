@@ -1,6 +1,7 @@
 """Routes pour les informations de vol en temps réel."""
 
 import re
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path
 
@@ -23,8 +24,8 @@ _IATA_FLIGHT_RE = re.compile(r"^[A-Z0-9]{2}\d{1,4}$")
     description="Lookup real-time flight information via AirLabs",
 )
 async def get_flight_info(
-    flightNumber: str = Path(..., description="IATA flight number (e.g. AF1234)"),
-    _user: User = Depends(get_current_user),
+    flightNumber: Annotated[str, Path(..., description="IATA flight number (e.g. AF1234)")],
+    _user: Annotated[User, Depends(get_current_user)],
 ):
     """Récupérer les infos temps réel d'un vol."""
     if not settings.AIRLABS_API_KEY:

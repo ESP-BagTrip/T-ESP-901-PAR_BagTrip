@@ -1,6 +1,7 @@
 """Routes pour les webhooks Stripe."""
 
 import json
+from typing import Annotated
 
 import stripe
 from fastapi import APIRouter, Depends, Header, Request, status
@@ -21,8 +22,8 @@ router = APIRouter(prefix="/v1/stripe", tags=["Stripe Webhooks"])
 )
 async def handle_stripe_webhook(
     request: Request,
-    stripe_signature: str = Header(..., alias="stripe-signature"),
-    db: Session = Depends(get_db),
+    stripe_signature: Annotated[str, Header(..., alias="stripe-signature")],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Traiter un webhook Stripe selon PLAN.md."""
     body = await request.body()
