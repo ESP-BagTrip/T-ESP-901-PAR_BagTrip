@@ -2,6 +2,7 @@ import 'package:bagtrip/components/adaptive/adaptive_date_picker.dart';
 import 'package:bagtrip/components/adaptive/adaptive_time_picker.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/design/app_haptics.dart';
+import 'package:bagtrip/design/category_mappers.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
@@ -107,45 +108,6 @@ class _ActivityFormState extends State<ActivityForm> {
     if (_startTime != null) data['startTime'] = _formatTime(_startTime!);
     if (_endTime != null) data['endTime'] = _formatTime(_endTime!);
     widget.onSave(data);
-  }
-
-  IconData _categoryIcon(ActivityCategory cat) {
-    return switch (cat) {
-      ActivityCategory.culture => Icons.museum_outlined,
-      ActivityCategory.nature => Icons.park_outlined,
-      ActivityCategory.food => Icons.restaurant_outlined,
-      ActivityCategory.sport => Icons.fitness_center_outlined,
-      ActivityCategory.shopping => Icons.shopping_bag_outlined,
-      ActivityCategory.nightlife => Icons.nightlife_outlined,
-      ActivityCategory.relaxation => Icons.spa_outlined,
-      ActivityCategory.other => Icons.event_outlined,
-    };
-  }
-
-  Color _categoryColor(ActivityCategory cat) {
-    return switch (cat) {
-      ActivityCategory.culture => const Color(0xFF5C6BC0),
-      ActivityCategory.nature => const Color(0xFF66BB6A),
-      ActivityCategory.food => const Color(0xFFFF7043),
-      ActivityCategory.sport => const Color(0xFF42A5F5),
-      ActivityCategory.shopping => const Color(0xFFAB47BC),
-      ActivityCategory.nightlife => const Color(0xFF7E57C2),
-      ActivityCategory.relaxation => const Color(0xFF26A69A),
-      ActivityCategory.other => Colors.grey,
-    };
-  }
-
-  String _categoryLabel(AppLocalizations l10n, ActivityCategory cat) {
-    return switch (cat) {
-      ActivityCategory.culture => l10n.categoryCulture,
-      ActivityCategory.nature => l10n.categoryNature,
-      ActivityCategory.food => l10n.categoryFoodDrink,
-      ActivityCategory.sport => l10n.categorySport,
-      ActivityCategory.shopping => l10n.categoryShopping,
-      ActivityCategory.nightlife => l10n.categoryNightlife,
-      ActivityCategory.relaxation => l10n.categoryRelaxation,
-      ActivityCategory.other => l10n.categoryOtherActivity,
-    };
   }
 
   @override
@@ -268,14 +230,14 @@ class _ActivityFormState extends State<ActivityForm> {
                 runSpacing: 8,
                 children: ActivityCategory.values.map((cat) {
                   final isSelected = _category == cat;
-                  final color = _categoryColor(cat);
+                  final color = cat.color;
                   return ChoiceChip(
                     avatar: Icon(
-                      _categoryIcon(cat),
+                      cat.icon,
                       size: 18,
                       color: isSelected ? Colors.white : color,
                     ),
-                    label: Text(_categoryLabel(l10n, cat)),
+                    label: Text(cat.label(l10n)),
                     selected: isSelected,
                     selectedColor: color,
                     labelStyle: TextStyle(

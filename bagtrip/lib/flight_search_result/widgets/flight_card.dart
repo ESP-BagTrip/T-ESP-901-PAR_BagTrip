@@ -1,3 +1,4 @@
+import 'package:bagtrip/core/extensions/price_format_ext.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/flight_search_result/models/flight.dart';
@@ -28,20 +29,7 @@ class FlightCard extends StatelessWidget {
           color: isSelected ? ColorName.secondaryLight : AppColors.surface,
           borderRadius: const BorderRadius.all(Radius.circular(24)),
           border: Border.all(color: ColorName.primarySoftLight),
-          boxShadow: [
-            BoxShadow(
-              color: ColorName.primary.withValues(alpha: 0.08),
-              offset: const Offset(0, 4),
-              blurRadius: 6,
-              spreadRadius: -1,
-            ),
-            BoxShadow(
-              color: ColorName.primary.withValues(alpha: 0.04),
-              offset: const Offset(0, 2),
-              blurRadius: 4,
-              spreadRadius: -1,
-            ),
-          ],
+          boxShadow: AppShadows.card,
         ),
         child: Column(
           children: [
@@ -152,7 +140,7 @@ class FlightCard extends StatelessWidget {
         borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
       child: Text(
-        '${flight.price.toStringAsFixed(0)} €',
+        flight.price.formatPrice(),
         style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,

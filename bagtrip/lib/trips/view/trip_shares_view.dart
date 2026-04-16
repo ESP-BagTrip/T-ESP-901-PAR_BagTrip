@@ -216,7 +216,11 @@ class _ShareCard extends StatelessWidget {
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   Text(
-                    'Invit\u00e9 le ${DateFormat('dd/MM/yyyy').format(share.invitedAt ?? DateTime.now())}',
+                    AppLocalizations.of(context)!.tripShareInvitedOnDate(
+                      DateFormat(
+                        'dd/MM/yyyy',
+                      ).format(share.invitedAt ?? DateTime.now()),
+                    ),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],

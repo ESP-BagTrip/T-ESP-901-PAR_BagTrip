@@ -12,8 +12,7 @@ import 'package:dio/dio.dart';
 class TripRepositoryImpl implements TripRepository {
   final ApiClient _apiClient;
 
-  TripRepositoryImpl({ApiClient? apiClient})
-    : _apiClient = apiClient ?? ApiClient();
+  TripRepositoryImpl({required ApiClient apiClient}) : _apiClient = apiClient;
 
   @override
   Future<Result<Trip>> createTrip({

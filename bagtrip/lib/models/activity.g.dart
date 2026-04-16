@@ -29,6 +29,7 @@ _Activity _$ActivityFromJson(Map<String, dynamic> json) => _Activity(
       $enumDecodeNullable(
         _$ValidationStatusEnumMap,
         json['validation_status'],
+        unknownValue: ValidationStatus.manual,
       ) ??
       ValidationStatus.manual,
   suggestedDay: (json['suggested_day'] as num?)?.toInt(),

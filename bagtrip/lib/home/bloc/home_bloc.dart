@@ -113,10 +113,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     }
 
     // All trip calls failed → HomeError
-    if (ongoingResult is Failure &&
-        plannedResult is Failure &&
-        completedResult is Failure) {
-      emit(HomeError(error: (ongoingResult as Failure).error));
+    if (ongoingResult case Failure(
+      :final error,
+    ) when plannedResult is Failure && completedResult is Failure) {
+      emit(HomeError(error: error));
       return;
     }
 

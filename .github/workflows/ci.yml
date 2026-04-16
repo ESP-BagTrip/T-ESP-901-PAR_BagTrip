@@ -110,9 +110,12 @@ jobs:
         working-directory: bagtrip
         run: flutter pub get
 
-      - name: Run tests with coverage
+      - name: Install lcov (for coverage filtering + threshold)
+        run: sudo apt-get install -y lcov > /dev/null 2>&1
+
+      - name: Run tests with coverage (filtered by test_coverage.sh)
         working-directory: bagtrip
-        run: flutter test --coverage
+        run: bash test_coverage.sh
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
@@ -121,18 +124,12 @@ jobs:
           path: bagtrip/coverage/lcov.info
           retention-days: 7
 
-      - name: Check coverage threshold
+      - name: Report coverage in job summary
         working-directory: bagtrip
         run: |
-          sudo apt-get install -y lcov > /dev/null 2>&1
           COVERAGE=$(lcov --summary coverage/lcov.info 2>&1 | grep 'lines' | sed 's/.*: *\([0-9.]*\)%.*/\1/')
-          echo "Line coverage: ${COVERAGE}%"
           echo "## Flutter Coverage" >> $GITHUB_STEP_SUMMARY
-          echo "Line coverage: **${COVERAGE}%** (threshold: 30%)" >> $GITHUB_STEP_SUMMARY
-          if [ "$(echo "$COVERAGE < 30" | bc -l)" -eq 1 ]; then
-            echo "Coverage ${COVERAGE}% is below 30% threshold"
-            exit 1
-          fi
+          echo "Line coverage: **${COVERAGE}%** (baseline: 44%, target: 80%)" >> $GITHUB_STEP_SUMMARY
 
   # ========================================
   # API — LINT + TEST

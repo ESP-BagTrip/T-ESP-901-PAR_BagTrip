@@ -1,5 +1,4 @@
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:flutter/material.dart';
 
 /// Shared card style for profile sections (surface, border, shadows, padding).
@@ -18,20 +17,7 @@ class ProfileSectionCard extends StatelessWidget {
         color: theme.cardTheme.color ?? theme.colorScheme.surface,
         borderRadius: AppRadius.large16,
         border: Border.all(color: theme.colorScheme.outlineVariant),
-        boxShadow: [
-          BoxShadow(
-            color: ColorName.primary.withValues(alpha: 0.08),
-            offset: const Offset(0, 4),
-            blurRadius: 6,
-            spreadRadius: -1,
-          ),
-          BoxShadow(
-            color: ColorName.primary.withValues(alpha: 0.04),
-            offset: const Offset(0, 2),
-            blurRadius: 4,
-            spreadRadius: -1,
-          ),
-        ],
+        boxShadow: AppShadows.card,
       ),
       padding: AppSpacing.allEdgeInsetSpace24,
       child: onTap != null

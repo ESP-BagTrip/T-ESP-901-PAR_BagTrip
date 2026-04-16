@@ -228,5 +228,348 @@ void main() {
       expect(result, isA<Success>());
       verify(() => mockStorageService.clearAll()).called(1);
     });
+
+    test('clearAll is still called if the server call fails', () async {
+      when(
+        () => mockStorageService.getRefreshToken(),
+      ).thenAnswer((_) async => 'ref_tok');
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/auth/logout'),
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+      when(() => mockStorageService.clearAll()).thenAnswer((_) async {});
+
+      expect(await repo.logout(), isA<Success>());
+      verify(() => mockStorageService.clearAll()).called(1);
+    });
+
+    test('skips the server call when there is no refresh token', () async {
+      when(
+        () => mockStorageService.getRefreshToken(),
+      ).thenAnswer((_) async => null);
+      when(() => mockStorageService.clearAll()).thenAnswer((_) async {});
+
+      expect(await repo.logout(), isA<Success>());
+      verifyNever(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      );
+      verify(() => mockStorageService.clearAll()).called(1);
+    });
+  });
+
+  // ── Phase B reinforcement: failure + non-2xx + extra methods ──────────
+
+  group('login — error paths', () {
+    test('non-200 returns Failure(UnknownError)', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(path: '/auth/login'),
+        ),
+      );
+
+      final result = await repo.login('a@b.com', 'x');
+      expect(result, isA<Failure>());
+      expect((result as Failure).error, isA<UnknownError>());
+    });
+
+    test('non-Dio exception wrapped in UnknownError', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(const FormatException('bad json'));
+
+      final result = await repo.login('a@b.com', 'x');
+      expect(result, isA<Failure>());
+      expect((result as Failure).error, isA<UnknownError>());
+    });
+  });
+
+  group('register — error paths', () {
+    test('non-2xx returns Failure', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(path: '/auth/register'),
+        ),
+      );
+
+      expect(await repo.register('new@b.com', 'p', 'New User'), isA<Failure>());
+    });
+
+    test('DioException 409 returns Failure(ConflictError)', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/auth/register'),
+          response: Response(
+            statusCode: 409,
+            data: {'detail': 'email already taken'},
+            requestOptions: RequestOptions(path: '/auth/register'),
+          ),
+        ),
+      );
+
+      expect(await repo.register('dup@b.com', 'p', 'Dup'), isA<Failure>());
+    });
+  });
+
+  group('getCurrentUser — error paths', () {
+    test('non-200 returns Failure(ServerError)', () async {
+      when(
+        () => mockApiClient.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(path: '/auth/me'),
+        ),
+      );
+
+      final result = await repo.getCurrentUser();
+      expect(result, isA<Failure>());
+      expect((result as Failure).error, isA<ServerError>());
+    });
+
+    test('non-401 DioException returns mapped error', () async {
+      when(
+        () => mockApiClient.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/auth/me'),
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+
+      final result = await repo.getCurrentUser();
+      expect(result, isA<Failure>());
+      expect((result as Failure).error, isA<NetworkError>());
+    });
+
+    test('non-Dio exception wrapped in UnknownError', () async {
+      when(
+        () => mockApiClient.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(const FormatException('bad'));
+
+      final result = await repo.getCurrentUser();
+      expect(result, isA<Failure>());
+      expect((result as Failure).error, isA<UnknownError>());
+    });
+  });
+
+  group('updateUser', () {
+    test('sends only the fields that were provided', () async {
+      when(
+        () => mockApiClient.patch(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 200,
+          data: {'id': 'u1', 'email': 'a@b.com', 'fullName': 'New Name'},
+          requestOptions: RequestOptions(path: '/auth/me'),
+        ),
+      );
+
+      final result = await repo.updateUser(fullName: 'New Name');
+      expect(result, isA<Success>());
+
+      final captured = verify(
+        () => mockApiClient.patch(
+          '/auth/me',
+          data: captureAny(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).captured;
+      final payload = captured.single as Map<String, dynamic>;
+      expect(payload, {'fullName': 'New Name'});
+      expect(payload.containsKey('phone'), isFalse);
+    });
+
+    test('non-200 returns Failure', () async {
+      when(
+        () => mockApiClient.patch(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(path: '/auth/me'),
+        ),
+      );
+      expect(await repo.updateUser(phone: '555'), isA<Failure>());
+    });
+
+    test('DioException returns Failure', () async {
+      when(
+        () => mockApiClient.patch(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/auth/me'),
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+      expect(await repo.updateUser(phone: '555'), isA<Failure>());
+    });
+  });
+
+  group('forgotPassword', () {
+    test('returns Success on 200', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 200,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(path: '/auth/forgot-password'),
+        ),
+      );
+
+      expect(await repo.forgotPassword('a@b.com'), isA<Success>());
+    });
+
+    test('returns Failure on non-200', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(path: '/auth/forgot-password'),
+        ),
+      );
+
+      expect(await repo.forgotPassword('a@b.com'), isA<Failure>());
+    });
+
+    test('DioException returns Failure', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/auth/forgot-password'),
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+      expect(await repo.forgotPassword('a@b.com'), isA<Failure>());
+    });
+  });
+
+  group('deleteAccount', () {
+    test('returns Success on 204 and clears all', () async {
+      when(
+        () => mockApiClient.delete(any(), options: any(named: 'options')),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 204,
+          requestOptions: RequestOptions(path: '/auth/me'),
+        ),
+      );
+      when(() => mockStorageService.clearAll()).thenAnswer((_) async {});
+
+      expect(await repo.deleteAccount(), isA<Success>());
+      verify(() => mockStorageService.clearAll()).called(1);
+    });
+
+    test('non-204 returns Failure', () async {
+      when(
+        () => mockApiClient.delete(any(), options: any(named: 'options')),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(path: '/auth/me'),
+        ),
+      );
+
+      expect(await repo.deleteAccount(), isA<Failure>());
+    });
+
+    test('DioException returns Failure', () async {
+      when(
+        () => mockApiClient.delete(any(), options: any(named: 'options')),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/auth/me'),
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+      expect(await repo.deleteAccount(), isA<Failure>());
+    });
+  });
+
+  group('isAuthenticated edge cases', () {
+    test('empty-string token yields Success(false)', () async {
+      when(() => mockStorageService.getToken()).thenAnswer((_) async => '');
+      final result = await repo.isAuthenticated();
+      expect((result as Success).data, false);
+    });
   });
 }

@@ -14,9 +14,11 @@ class AiRepositoryImpl implements AiRepository {
   final ApiClient _apiClient;
   final StorageService _storageService;
 
-  AiRepositoryImpl({ApiClient? apiClient, StorageService? storageService})
-    : _apiClient = apiClient ?? ApiClient(),
-      _storageService = storageService ?? StorageService();
+  AiRepositoryImpl({
+    required ApiClient apiClient,
+    required StorageService storageService,
+  }) : _apiClient = apiClient,
+       _storageService = storageService;
 
   @override
   Future<Result<List<Map<String, dynamic>>>> getInspiration({

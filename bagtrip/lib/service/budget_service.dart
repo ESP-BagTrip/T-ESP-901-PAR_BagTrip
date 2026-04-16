@@ -10,8 +10,7 @@ import 'package:dio/dio.dart';
 class BudgetRepositoryImpl implements BudgetRepository {
   final ApiClient _apiClient;
 
-  BudgetRepositoryImpl({ApiClient? apiClient})
-    : _apiClient = apiClient ?? ApiClient();
+  BudgetRepositoryImpl({required ApiClient apiClient}) : _apiClient = apiClient;
 
   @override
   Future<Result<List<BudgetItem>>> getBudgetItems(String tripId) async {

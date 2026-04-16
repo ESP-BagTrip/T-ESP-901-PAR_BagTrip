@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/category_mappers.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -78,19 +79,6 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
   void dispose() {
     _disposePulse();
     super.dispose();
-  }
-
-  IconData _categoryIcon(ActivityCategory category) {
-    return switch (category) {
-      ActivityCategory.culture => Icons.museum_outlined,
-      ActivityCategory.nature => Icons.park_outlined,
-      ActivityCategory.food => Icons.restaurant_outlined,
-      ActivityCategory.sport => Icons.fitness_center_outlined,
-      ActivityCategory.shopping => Icons.shopping_bag_outlined,
-      ActivityCategory.nightlife => Icons.nightlife_outlined,
-      ActivityCategory.relaxation => Icons.spa_outlined,
-      ActivityCategory.other => Icons.event_outlined,
-    };
   }
 
   @override
@@ -258,7 +246,7 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
                       const SizedBox(width: AppSpacing.space8),
                       // Category icon
                       Icon(
-                        _categoryIcon(widget.activity.category),
+                        widget.activity.category.icon,
                         size: 18,
                         color: isDimmed
                             ? theme.colorScheme.outline.withValues(
