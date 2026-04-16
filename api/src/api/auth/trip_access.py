@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import Depends, Path
@@ -51,18 +52,18 @@ def _resolve_trip_access(db: Session, trip_id: UUID, user_id: UUID) -> TripAcces
 
 
 async def get_trip_access(
-    tripId: UUID = Path(..., description="Trip ID"),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    tripId: Annotated[UUID, Path(..., description="Trip ID")],
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> TripAccess:
     """Dependency pour les endpoints lecture (Owner + Viewer)."""
     return _resolve_trip_access(db, tripId, current_user.id)
 
 
 async def get_trip_owner_access(
-    tripId: UUID = Path(..., description="Trip ID"),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    tripId: Annotated[UUID, Path(..., description="Trip ID")],
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> TripAccess:
     """Dependency pour les endpoints écriture (Owner only)."""
     access = _resolve_trip_access(db, tripId, current_user.id)
@@ -72,9 +73,9 @@ async def get_trip_owner_access(
 
 
 async def get_trip_editor_access(
-    tripId: UUID = Path(..., description="Trip ID"),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    tripId: Annotated[UUID, Path(..., description="Trip ID")],
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> TripAccess:
     """Dependency pour les endpoints écriture (Owner + Editor)."""
     access = _resolve_trip_access(db, tripId, current_user.id)

@@ -1,5 +1,7 @@
 """Middleware d'authentification JWT — dual-mode (cookie + Bearer)."""
 
+from typing import Annotated
+
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
@@ -26,8 +28,8 @@ def verify_jwt_token(token: str) -> str | None:
 
 async def get_current_user(
     request: Request,
-    credentials: HTTPAuthorizationCredentials | None = Depends(security),
-    db: Session = Depends(get_db),
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)] = None,
+    db: Annotated[Session, Depends(get_db)] = None,  # type: ignore[assignment]
 ) -> User:
     """Dépendance FastAPI — lit le token depuis le cookie access_token ou le header Bearer."""
     token = None

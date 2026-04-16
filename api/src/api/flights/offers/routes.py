@@ -1,5 +1,6 @@
 """Routes pour les offres de vols."""
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Path
@@ -22,9 +23,9 @@ router = APIRouter(prefix="/v1/trips", tags=["Flight Offers"])
     description="Get detailed information about a specific flight offer",
 )
 async def get_flight_offer(
-    offerDbId: UUID = Path(..., description="Offer DB ID"),
-    access: TripAccess = Depends(get_trip_access),
-    db: Session = Depends(get_db),
+    offerDbId: Annotated[UUID, Path(..., description="Offer DB ID")],
+    access: Annotated[TripAccess, Depends(get_trip_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Récupérer une offre de vol selon PLAN.md."""
     try:
@@ -63,9 +64,9 @@ async def get_flight_offer(
     description="Confirm and update the price of a flight offer (recommended before booking)",
 )
 async def price_flight_offer(
-    offerDbId: UUID = Path(..., description="Offer DB ID"),
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    offerDbId: Annotated[UUID, Path(..., description="Offer DB ID")],
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Repricer une offre de vol selon PLAN.md."""
     try:

@@ -1,6 +1,7 @@
 """Routes pour les vols manuels."""
 
 from decimal import Decimal
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Path, status
@@ -29,8 +30,8 @@ router = APIRouter(prefix="/v1/trips", tags=["Manual Flights"])
 )
 async def create_manual_flight(
     request: ManualFlightCreateRequest,
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Créer un vol manuel."""
     try:
@@ -60,8 +61,8 @@ async def create_manual_flight(
     description="Get all manual flights for a trip",
 )
 async def list_manual_flights(
-    access: TripAccess = Depends(get_trip_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Lister les vols manuels d'un trip."""
     try:
@@ -79,9 +80,9 @@ async def list_manual_flights(
     description="Get a manual flight by ID",
 )
 async def get_manual_flight(
-    flightId: UUID = Path(..., description="Flight ID"),
-    access: TripAccess = Depends(get_trip_access),
-    db: Session = Depends(get_db),
+    flightId: Annotated[UUID, Path(..., description="Flight ID")],
+    access: Annotated[TripAccess, Depends(get_trip_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Récupérer un vol manuel."""
     try:
@@ -101,9 +102,9 @@ async def get_manual_flight(
 )
 async def update_manual_flight(
     request: ManualFlightUpdateRequest,
-    flightId: UUID = Path(..., description="Flight ID"),
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    flightId: Annotated[UUID, Path(..., description="Flight ID")],
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Mettre à jour un vol manuel."""
     try:
@@ -144,9 +145,9 @@ async def update_manual_flight(
     description="Delete a manual flight from a trip",
 )
 async def delete_manual_flight(
-    flightId: UUID = Path(..., description="Flight ID"),
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    flightId: Annotated[UUID, Path(..., description="Flight ID")],
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Supprimer un vol manuel."""
     try:

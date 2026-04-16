@@ -1,5 +1,6 @@
 """Routes pour les flight orders."""
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Path
@@ -17,8 +18,8 @@ router = APIRouter(prefix="/v1/trips", tags=["Flight Orders"])
 
 @router.get("/{tripId}/flights/orders", response_model=list[FlightOrderResponse])
 async def list_flight_orders(
-    access: TripAccess = Depends(get_trip_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Liste les flight orders d'un trip."""
     try:
@@ -49,9 +50,9 @@ async def list_flight_orders(
     response_model=FlightOrderResponse,
 )
 async def get_flight_order(
-    orderId: UUID = Path(..., description="Order ID"),
-    access: TripAccess = Depends(get_trip_access),
-    db: Session = Depends(get_db),
+    orderId: Annotated[UUID, Path(..., description="Order ID")],
+    access: Annotated[TripAccess, Depends(get_trip_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Récupère un flight order."""
     try:
@@ -81,9 +82,9 @@ async def get_flight_order(
 
 @router.delete("/{tripId}/flights/orders/{orderId}", status_code=204)
 async def delete_flight_order(
-    orderId: UUID = Path(..., description="Order ID"),
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    orderId: Annotated[UUID, Path(..., description="Order ID")],
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Supprime un flight order (interdit si confirmé)."""
     order = (

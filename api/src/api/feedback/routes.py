@@ -1,5 +1,7 @@
 """Routes pour les feedbacks."""
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
@@ -27,9 +29,9 @@ router = APIRouter(prefix="/v1/trips", tags=["Feedback"])
 )
 async def create_feedback(
     request: FeedbackCreateRequest,
-    access: TripAccess = Depends(get_trip_access),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_access)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Créer un feedback pour un trip terminé."""
     try:
@@ -55,8 +57,8 @@ async def create_feedback(
     description="Get all feedbacks for a trip",
 )
 async def list_feedbacks(
-    access: TripAccess = Depends(get_trip_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Lister les feedbacks d'un trip."""
     try:

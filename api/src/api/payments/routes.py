@@ -1,5 +1,6 @@
 """Routes pour les paiements."""
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Path
@@ -31,9 +32,9 @@ router = APIRouter(prefix="/v1/booking-intents", tags=["Payments"])
 )
 async def authorize_payment(
     request: PaymentAuthorizeRequest,
-    intentId: UUID = Path(..., description="Booking Intent ID"),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    intentId: Annotated[UUID, Path(..., description="Booking Intent ID")],
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Autoriser un paiement selon PLAN.md."""
     try:
@@ -54,9 +55,9 @@ async def authorize_payment(
     description="Capture a Stripe PaymentIntent (requires BOOKED status)",
 )
 async def capture_payment(
-    intentId: UUID = Path(..., description="Booking Intent ID"),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    intentId: Annotated[UUID, Path(..., description="Booking Intent ID")],
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Capturer un paiement selon PLAN.md."""
     try:
@@ -85,9 +86,9 @@ async def capture_payment(
     description="Cancel a Stripe PaymentIntent",
 )
 async def cancel_payment(
-    intentId: UUID = Path(..., description="Booking Intent ID"),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    intentId: Annotated[UUID, Path(..., description="Booking Intent ID")],
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Annuler un paiement selon PLAN.md."""
     try:
@@ -114,9 +115,9 @@ async def cancel_payment(
 )
 async def refund_payment(
     request: PaymentRefundRequest,
-    intentId: UUID = Path(..., description="Booking Intent ID"),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    intentId: Annotated[UUID, Path(..., description="Booking Intent ID")],
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Rembourser un paiement capturé."""
     try:
@@ -144,9 +145,9 @@ async def refund_payment(
     description="For POC: Confirm a payment with a test card (4242 4242 4242 4242)",
 )
 async def confirm_payment_test(
-    intentId: UUID = Path(..., description="Booking Intent ID"),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    intentId: Annotated[UUID, Path(..., description="Booking Intent ID")],
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Confirmer un paiement avec une carte de test pour POC."""
     if settings.NODE_ENV == "production":

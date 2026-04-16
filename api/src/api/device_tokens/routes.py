@@ -1,5 +1,7 @@
 """Routes pour les device tokens FCM."""
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, Path, status
 from sqlalchemy.orm import Session
 
@@ -20,8 +22,8 @@ router = APIRouter(prefix="/v1/device-tokens", tags=["DeviceTokens"])
 )
 async def register_device_token(
     request: DeviceTokenRegisterRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Enregistrer un token FCM pour l'utilisateur connecté."""
     try:
@@ -41,9 +43,9 @@ async def register_device_token(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def unregister_device_token(
-    token: str = Path(..., description="FCM token to unregister"),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    token: Annotated[str, Path(..., description="FCM token to unregister")],
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Supprimer un token FCM."""
     try:

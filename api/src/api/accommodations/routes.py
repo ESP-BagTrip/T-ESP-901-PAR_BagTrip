@@ -1,5 +1,6 @@
 """Routes pour les accommodations."""
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Path, status
@@ -32,8 +33,8 @@ router = APIRouter(prefix="/v1/trips", tags=["Accommodations"])
 )
 async def create_accommodation(
     request: AccommodationCreateRequest,
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Créer un hébergement."""
     try:
@@ -61,8 +62,8 @@ async def create_accommodation(
     description="Get all accommodations for a trip",
 )
 async def list_accommodations(
-    access: TripAccess = Depends(get_trip_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Lister les hébergements d'un trip."""
     try:
@@ -85,9 +86,9 @@ async def list_accommodations(
     description="Get AI-powered accommodation suggestions for a trip",
 )
 async def suggest_accommodations(
-    access: TripAccess = Depends(get_trip_editor_access),
-    current_user: User = Depends(require_ai_quota),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    current_user: Annotated[User, Depends(require_ai_quota)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Suggestions IA d'hébergements pour un trip."""
     try:
@@ -106,9 +107,9 @@ async def suggest_accommodations(
 )
 async def update_accommodation(
     request: AccommodationUpdateRequest,
-    accommodationId: UUID = Path(..., description="Accommodation ID"),
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    accommodationId: Annotated[UUID, Path(..., description="Accommodation ID")],
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Mettre à jour un hébergement."""
     try:
@@ -141,9 +142,9 @@ async def update_accommodation(
     description="Delete an accommodation from a trip",
 )
 async def delete_accommodation(
-    accommodationId: UUID = Path(..., description="Accommodation ID"),
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    accommodationId: Annotated[UUID, Path(..., description="Accommodation ID")],
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Supprimer un hébergement."""
     try:

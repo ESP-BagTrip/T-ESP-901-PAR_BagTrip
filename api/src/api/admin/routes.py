@@ -1,5 +1,6 @@
 """Routes pour les endpoints admin."""
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
@@ -61,10 +62,10 @@ async def admin_health():
     description="Get all users with pagination (admin only)",
 )
 async def list_all_users(
-    pagination: PaginationParams = Depends(PaginationParams),
-    q: str | None = Query(None, description="Search query"),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+    q: Annotated[str | None, Query(description="Search query")] = None,
 ):
     """Lister tous les utilisateurs (admin)."""
     try:
@@ -91,10 +92,10 @@ async def list_all_users(
     description="Get all trips with user information (admin only)",
 )
 async def list_all_trips(
-    pagination: PaginationParams = Depends(PaginationParams),
-    q: str | None = Query(None, description="Search query"),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+    q: Annotated[str | None, Query(description="Search query")] = None,
 ):
     """Lister tous les trips (admin)."""
     try:
@@ -121,10 +122,10 @@ async def list_all_trips(
     description="Get all travelers with trip and user information (admin only)",
 )
 async def list_all_travelers(
-    pagination: PaginationParams = Depends(PaginationParams),
-    q: str | None = Query(None, description="Search query"),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+    q: Annotated[str | None, Query(description="Search query")] = None,
 ):
     """Lister tous les travelers (admin)."""
     try:
@@ -153,10 +154,10 @@ async def list_all_travelers(
     description="Get all flight bookings with trip and user information (admin only)",
 )
 async def list_all_flight_bookings(
-    pagination: PaginationParams = Depends(PaginationParams),
-    q: str | None = Query(None, description="Search query"),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+    q: Annotated[str | None, Query(description="Search query")] = None,
 ):
     """Lister toutes les flight bookings (admin)."""
     try:
@@ -185,10 +186,10 @@ async def list_all_flight_bookings(
     description="Get all traveler profiles with user information (admin only)",
 )
 async def list_all_traveler_profiles(
-    pagination: PaginationParams = Depends(PaginationParams),
-    q: str | None = Query(None, description="Search query"),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+    q: Annotated[str | None, Query(description="Search query")] = None,
 ):
     """Lister tous les profils voyageurs (admin)."""
     try:
@@ -217,10 +218,10 @@ async def list_all_traveler_profiles(
     description="Get all booking intents with trip and user information (admin only)",
 )
 async def list_all_booking_intents(
-    pagination: PaginationParams = Depends(PaginationParams),
-    q: str | None = Query(None, description="Search query"),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+    q: Annotated[str | None, Query(description="Search query")] = None,
 ):
     """Lister tous les booking intents (admin)."""
     try:
@@ -249,10 +250,10 @@ async def list_all_booking_intents(
     description="Get all flight searches with trip information (admin only)",
 )
 async def list_all_flight_searches(
-    pagination: PaginationParams = Depends(PaginationParams),
-    q: str | None = Query(None, description="Search query"),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+    q: Annotated[str | None, Query(description="Search query")] = None,
 ):
     """Lister toutes les recherches de vols (admin)."""
     try:
@@ -281,10 +282,10 @@ async def list_all_flight_searches(
     description="Get all accommodations with trip and user information (admin only)",
 )
 async def list_all_accommodations(
-    pagination: PaginationParams = Depends(PaginationParams),
-    q: str | None = Query(None, description="Search query"),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+    q: Annotated[str | None, Query(description="Search query")] = None,
 ):
     """Lister tous les hébergements (admin)."""
     try:
@@ -313,10 +314,10 @@ async def list_all_accommodations(
     description="Get all activities with trip and user information (admin only)",
 )
 async def list_all_activities(
-    pagination: PaginationParams = Depends(PaginationParams),
-    q: str | None = Query(None, description="Search query"),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+    q: Annotated[str | None, Query(description="Search query")] = None,
 ):
     """Lister toutes les activités (admin)."""
     try:
@@ -345,10 +346,10 @@ async def list_all_activities(
     description="Get all budget items with trip and user information (admin only)",
 )
 async def list_all_budget_items(
-    pagination: PaginationParams = Depends(PaginationParams),
-    q: str | None = Query(None, description="Search query"),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+    q: Annotated[str | None, Query(description="Search query")] = None,
 ):
     """Lister tous les budget items (admin)."""
     try:
@@ -377,10 +378,10 @@ async def list_all_budget_items(
     description="Get all baggage items with trip and user information (admin only)",
 )
 async def list_all_baggage_items(
-    pagination: PaginationParams = Depends(PaginationParams),
-    q: str | None = Query(None, description="Search query"),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+    q: Annotated[str | None, Query(description="Search query")] = None,
 ):
     """Lister tous les éléments de bagage (admin)."""
     try:
@@ -409,10 +410,10 @@ async def list_all_baggage_items(
     description="Get all trip shares with trip and user information (admin only)",
 )
 async def list_all_trip_shares(
-    pagination: PaginationParams = Depends(PaginationParams),
-    q: str | None = Query(None, description="Search query"),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+    q: Annotated[str | None, Query(description="Search query")] = None,
 ):
     """Lister tous les partages de trips (admin)."""
     try:
@@ -441,10 +442,10 @@ async def list_all_trip_shares(
     description="Get all feedbacks with trip and user information (admin only)",
 )
 async def list_all_feedbacks(
-    pagination: PaginationParams = Depends(PaginationParams),
-    q: str | None = Query(None, description="Search query"),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+    q: Annotated[str | None, Query(description="Search query")] = None,
 ):
     """Lister tous les feedbacks (admin)."""
     try:
@@ -473,10 +474,10 @@ async def list_all_feedbacks(
     description="Get all notifications with user and trip information (admin only)",
 )
 async def list_all_notifications(
-    pagination: PaginationParams = Depends(PaginationParams),
-    q: str | None = Query(None, description="Search query"),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+    q: Annotated[str | None, Query(description="Search query")] = None,
 ):
     """Lister toutes les notifications (admin)."""
     try:
@@ -506,8 +507,8 @@ async def list_all_notifications(
 )
 async def delete_feedback(
     feedbackId: UUID,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Supprimer un feedback (admin)."""
     try:
@@ -528,8 +529,8 @@ async def delete_feedback(
 async def update_user_plan(
     userId: UUID,
     body: UpdatePlanRequest,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Mettre à jour le plan d'un utilisateur (admin)."""
     try:
@@ -553,8 +554,8 @@ async def update_user_plan(
 )
 async def get_user_detail(
     userId: UUID,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Get detailed user information."""
     try:
@@ -573,8 +574,8 @@ async def get_user_detail(
 async def update_user(
     userId: UUID,
     body: AdminUserUpdateRequest,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Update user profile fields."""
     try:
@@ -594,8 +595,8 @@ async def update_user(
 )
 async def reset_ai_quota(
     userId: UUID,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Reset the user's AI generation counter to 0."""
     try:
@@ -614,8 +615,8 @@ async def reset_ai_quota(
 async def ban_user(
     userId: UUID,
     body: AdminBanRequest,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Ban a user. Sets banned_at timestamp."""
     try:
@@ -635,8 +636,8 @@ async def ban_user(
 )
 async def unban_user(
     userId: UUID,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Unban a user. Clears banned_at."""
     try:
@@ -654,8 +655,8 @@ async def unban_user(
 )
 async def delete_user(
     userId: UUID,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Soft-delete a user. Sets deleted_at timestamp."""
     try:
@@ -675,8 +676,8 @@ async def delete_user(
 )
 async def bulk_change_plan(
     body: AdminBulkPlanRequest,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Change plan for multiple users at once."""
     try:
@@ -697,8 +698,8 @@ async def bulk_change_plan(
 )
 async def bulk_ban_users(
     body: AdminBulkBanRequest,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Ban multiple users at once."""
     try:
@@ -720,8 +721,8 @@ async def bulk_ban_users(
 )
 async def get_trip_detail(
     tripId: UUID,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Get detailed trip information with sub-entity counts."""
     try:
@@ -740,8 +741,8 @@ async def get_trip_detail(
 async def update_trip(
     tripId: UUID,
     body: AdminTripUpdateRequest,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Update trip fields (admin bypass)."""
     try:
@@ -760,8 +761,8 @@ async def update_trip(
 )
 async def delete_trip(
     tripId: UUID,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Hard-delete a trip and all its sub-entities."""
     try:
@@ -778,8 +779,8 @@ async def delete_trip(
 )
 async def archive_trip(
     tripId: UUID,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Soft-archive a trip by setting archived_at."""
     try:
@@ -799,8 +800,8 @@ async def archive_trip(
 @router.get("/booking-intents/{intentId}/detail", summary="Get booking intent detail (admin)")
 async def get_booking_intent_detail(
     intentId: UUID,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Get detailed booking intent information."""
     try:
@@ -818,8 +819,8 @@ async def get_booking_intent_detail(
 async def force_booking_status(
     intentId: UUID,
     body: AdminBookingStatusRequest,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Force a booking intent status change (admin bypass)."""
     try:
@@ -836,8 +837,8 @@ async def force_booking_status(
 @router.post("/booking-intents/{intentId}/cancel", summary="Cancel booking (admin)")
 async def cancel_booking(
     intentId: UUID,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Cancel a booking intent."""
     try:
@@ -854,8 +855,8 @@ async def cancel_booking(
 @router.post("/booking-intents/{intentId}/refund", summary="Mark booking as refunded (admin)")
 async def mark_refunded(
     intentId: UUID,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Mark a booking intent as refunded (does NOT process Stripe refund)."""
     try:
@@ -874,8 +875,8 @@ async def mark_refunded(
 async def admin_create_activity(
     tripId: UUID,
     body: AdminActivityCreateRequest,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Create an activity on a trip (admin bypass)."""
     try:
@@ -894,8 +895,8 @@ async def admin_update_activity(
     tripId: UUID,
     activityId: UUID,
     body: AdminActivityUpdateRequest,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Update an activity (admin bypass)."""
     try:
@@ -917,8 +918,8 @@ async def admin_update_activity(
 async def admin_delete_activity(
     tripId: UUID,
     activityId: UUID,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Delete an activity (admin bypass)."""
     try:
@@ -935,8 +936,8 @@ async def admin_delete_activity(
 async def admin_create_accommodation(
     tripId: UUID,
     body: AdminAccommodationCreateRequest,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Create an accommodation on a trip (admin bypass)."""
     try:
@@ -953,8 +954,8 @@ async def admin_update_accommodation(
     tripId: UUID,
     accId: UUID,
     body: AdminAccommodationUpdateRequest,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Update an accommodation (admin bypass)."""
     try:
@@ -974,8 +975,8 @@ async def admin_update_accommodation(
 async def admin_delete_accommodation(
     tripId: UUID,
     accId: UUID,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Delete an accommodation (admin bypass)."""
     try:
@@ -994,8 +995,8 @@ async def admin_delete_accommodation(
 async def admin_delete_budget_item(
     tripId: UUID,
     itemId: UUID,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Delete a budget item (admin bypass)."""
     try:
@@ -1014,8 +1015,8 @@ async def admin_delete_budget_item(
 async def admin_delete_baggage_item(
     tripId: UUID,
     itemId: UUID,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Delete a baggage item (admin bypass)."""
     try:
@@ -1034,8 +1035,8 @@ async def admin_delete_baggage_item(
 async def admin_delete_share(
     tripId: UUID,
     shareId: UUID,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Revoke a trip share (admin bypass)."""
     try:
@@ -1054,13 +1055,13 @@ async def admin_delete_share(
     summary="List audit logs (admin)",
 )
 async def list_audit_logs(
-    pagination: PaginationParams = Depends(PaginationParams),
-    entity_type: str | None = Query(None),
-    entity_id: str | None = Query(None),
-    actor_id: str | None = Query(None),
-    action: str | None = Query(None),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+    entity_type: Annotated[str | None, Query()] = None,
+    entity_id: Annotated[str | None, Query()] = None,
+    actor_id: Annotated[str | None, Query()] = None,
+    action: Annotated[str | None, Query()] = None,
 ):
     """List audit log entries with optional filters."""
     try:
@@ -1100,8 +1101,8 @@ async def list_audit_logs(
     description="Export all users as a CSV file (admin only)",
 )
 async def export_users_csv(
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Exporter tous les utilisateurs en CSV."""
     try:
@@ -1125,8 +1126,8 @@ async def export_users_csv(
     description="Get KPI metrics for the admin dashboard",
 )
 async def get_dashboard_metrics(
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Récupérer les métriques du tableau de bord."""
     try:
@@ -1146,9 +1147,9 @@ async def get_dashboard_metrics(
     description="Get user registrations grouped by period",
 )
 async def get_users_chart(
-    period: str = Query("month", pattern="^(week|month|year)$"),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+    period: Annotated[str, Query(pattern="^(week|month|year)$")] = "month",
 ):
     """Récupérer le graphique d'inscriptions utilisateurs."""
     try:
@@ -1168,9 +1169,9 @@ async def get_users_chart(
     description="Get revenue grouped by period",
 )
 async def get_revenue_chart(
-    period: str = Query("month", pattern="^(week|month|year)$"),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+    period: Annotated[str, Query(pattern="^(week|month|year)$")] = "month",
 ):
     """Récupérer le graphique de revenus."""
     try:
@@ -1190,8 +1191,8 @@ async def get_revenue_chart(
     description="Get feedbacks distribution by rating",
 )
 async def get_feedbacks_chart(
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Récupérer le graphique de distribution des feedbacks."""
     try:
@@ -1212,8 +1213,8 @@ async def get_feedbacks_chart(
 )
 async def send_notification(
     body: AdminSendNotificationRequest,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Envoyer une notification aux utilisateurs sélectionnés."""
     try:
