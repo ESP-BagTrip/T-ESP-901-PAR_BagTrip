@@ -1,0 +1,4 @@
+# Test files — linted by vitest, not eslint
+**/*.test.ts
+**/*.test.tsx
+src/__tests__/
