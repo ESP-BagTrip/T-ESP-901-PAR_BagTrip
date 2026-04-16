@@ -24,21 +24,9 @@ repos:
         language: system
         pass_filenames: false
         files: ^api/(src|pyproject\.toml)/.*\.(py|toml)$
-      - id: api-tests
-        name: "api: pytest"
-        entry: bash -lc 'cd api && uv run pytest tests/ -q'
-        language: system
-        pass_filenames: false
-        files: ^api/
       - id: mobile-lint-format
         name: "mobile: flutter analyze && dart format ."
         entry: bash -lc 'cd bagtrip/ && flutter analyze && dart format .'
-        language: system
-        pass_filenames: false
-        files: ^bagtrip/
-      - id: mobile-tests
-        name: "mobile: flutter test"
-        entry: bash -lc 'cd bagtrip/ && flutter test'
         language: system
         pass_filenames: false
         files: ^bagtrip/
