@@ -6,9 +6,11 @@ import logging
 from collections.abc import AsyncIterator, Callable
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from functools import wraps
-from typing import Any
+from typing import Any, TypeVar
 
 logger = logging.getLogger(__name__)
+
+T = TypeVar("T")
 
 
 def with_timeout(timeout_seconds: float, fallback_value: Any = None):
@@ -40,7 +42,7 @@ def with_timeout(timeout_seconds: float, fallback_value: Any = None):
     return decorator
 
 
-async def async_generator_with_timeout[T](
+async def async_generator_with_timeout(
     agen: AsyncIterator[T],
     total_timeout_seconds: float,
 ) -> AsyncIterator[T]:

@@ -1,6 +1,6 @@
 """Service for plan quota enforcement and feature gating."""
 
-from datetime import UTC, datetime
+from datetime import timezone, datetime
 
 from sqlalchemy.orm import Session
 
@@ -36,7 +36,7 @@ class PlanService:
         if limit is None:
             return  # unlimited
 
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
 
         # Auto-reset if we crossed into a new month
         if user.ai_generations_reset_at is not None:
@@ -57,7 +57,7 @@ class PlanService:
     @staticmethod
     def increment_ai_generation(db: Session, user: User) -> None:
         """Increment the user's AI generation counter."""
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         if user.ai_generations_reset_at is None:
             user.ai_generations_reset_at = now
         user.ai_generations_count = (user.ai_generations_count or 0) + 1
@@ -79,7 +79,7 @@ class PlanService:
         limits = PLAN_LIMITS[plan]
         monthly_limit = limits["ai_generations_per_month"]
 
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         count = user.ai_generations_count or 0
 
         # Check if count should have been reset

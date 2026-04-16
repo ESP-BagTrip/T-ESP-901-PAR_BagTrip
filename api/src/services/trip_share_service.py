@@ -1,7 +1,7 @@
 """Service pour la gestion des partages de trips."""
 
 import uuid as uuid_mod
-from datetime import UTC, datetime, timedelta
+from datetime import timezone, datetime, timedelta
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -40,7 +40,7 @@ class TripShareService:
             db.query(PendingInvite)
             .filter(
                 PendingInvite.trip_id == trip_id,
-                PendingInvite.expires_at > datetime.now(UTC),
+                PendingInvite.expires_at > datetime.now(timezone.utc),
             )
             .count()
         )
@@ -155,7 +155,7 @@ class TripShareService:
             token=token,
             message=message,
             invited_by=owner_user_id,
-            expires_at=datetime.now(UTC) + timedelta(days=7),
+            expires_at=datetime.now(timezone.utc) + timedelta(days=7),
         )
         db.add(pending)
         db.commit()
@@ -204,7 +204,7 @@ class TripShareService:
             db.query(PendingInvite)
             .filter(
                 PendingInvite.trip_id == trip_id,
-                PendingInvite.expires_at > datetime.now(UTC),
+                PendingInvite.expires_at > datetime.now(timezone.utc),
             )
             .all()
         )
@@ -258,7 +258,7 @@ class TripShareService:
         if not invite:
             raise AppError("INVITE_NOT_FOUND", 404, "Invite not found or expired")
 
-        if invite.expires_at < datetime.now(UTC):
+        if invite.expires_at < datetime.now(timezone.utc):
             db.delete(invite)
             db.commit()
             raise AppError("INVITE_EXPIRED", 410, "This invite has expired")
@@ -300,7 +300,7 @@ class TripShareService:
             db.query(PendingInvite)
             .filter(
                 PendingInvite.email == email,
-                PendingInvite.expires_at > datetime.now(UTC),
+                PendingInvite.expires_at > datetime.now(timezone.utc),
             )
             .all()
         )

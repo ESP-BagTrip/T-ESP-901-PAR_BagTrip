@@ -1,7 +1,7 @@
 """Scheduled job: check and send planned notifications every 30 minutes."""
 
 import asyncio
-from datetime import UTC, date, datetime, timedelta
+from datetime import timezone, date, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
@@ -58,7 +58,7 @@ def _check_departure_reminders(db: Session) -> int:
 
 def _check_flight_alerts(db: Session, hours_before: float, notif_type: str, title: str) -> int:
     """Check for upcoming flights and send H-4 or H-1 alerts."""
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     window_start = now + timedelta(hours=hours_before - 0.5)
     window_end = now + timedelta(hours=hours_before + 0.5)
 
@@ -134,7 +134,7 @@ def _extract_departure_time(db: Session, order: FlightOrder) -> datetime | None:
             return None
         dep_str = segments[0].get("departure", {}).get("at")
         if dep_str:
-            return datetime.fromisoformat(dep_str).replace(tzinfo=UTC)
+            return datetime.fromisoformat(dep_str).replace(tzinfo=timezone.utc)
     except Exception:
         pass
     return None
@@ -167,9 +167,9 @@ def _extract_flight_info(db: Session, order: FlightOrder) -> dict:
 
 
 def _check_morning_summary(db: Session) -> int:
-    """Trip ONGOING, activities today, between 07:00-07:30 UTC → MORNING_SUMMARY."""
-    now = datetime.now(UTC)
-    # Only run between 07:00 and 07:30 UTC
+    """Trip ONGOING, activities today, between 07:00-07:30 timezone.utc → MORNING_SUMMARY."""
+    now = datetime.now(timezone.utc)
+    # Only run between 07:00 and 07:30 timezone.utc
     if now.hour != 7 or now.minute > 30:
         return 0
 
@@ -209,7 +209,7 @@ def _check_morning_summary(db: Session) -> int:
 
 def _check_activity_reminders(db: Session) -> int:
     """Activity today, start_time in 30min–1h30 → ACTIVITY_H1."""
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     today = date.today()
     window_start = (now + timedelta(minutes=30)).time()
     window_end = (now + timedelta(minutes=90)).time()

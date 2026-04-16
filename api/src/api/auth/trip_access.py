@@ -1,7 +1,7 @@
 """Dépendances FastAPI pour l'autorisation Owner/Viewer sur les trips."""
 
 from dataclasses import dataclass
-from enum import Enum
+from src.enums import StrEnum
 from uuid import UUID
 
 from fastapi import Depends, Path
@@ -15,7 +15,7 @@ from src.models.user import User
 from src.utils.errors import AppError
 
 
-class TripRole(str, Enum):
+class TripRole(StrEnum):
     OWNER = "OWNER"
     EDITOR = "EDITOR"
     VIEWER = "VIEWER"

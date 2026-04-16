@@ -1,13 +1,15 @@
 """Schémas Pydantic pour les endpoints admin."""
 
 import datetime as dt
-from typing import Any
+from typing import Any, Generic, TypeVar
 from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
 
+T = TypeVar("T")
 
-class AdminListResponse[T](BaseModel):
+
+class AdminListResponse(BaseModel, Generic[T]):
     """Réponse paginée générique pour les endpoints admin."""
 
     items: list[T]

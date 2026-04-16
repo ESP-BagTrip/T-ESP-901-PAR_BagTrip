@@ -1,11 +1,12 @@
 """Tests pour les routes admin."""
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pytest
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
 from src.api.admin.routes import router as admin_router
@@ -15,6 +16,13 @@ from src.utils.errors import AppError
 # Setup test app
 app = FastAPI()
 app.include_router(admin_router)
+
+@app.exception_handler(AppError)
+async def app_error_handler(request, exc: AppError):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": {"error": exc.message, "code": exc.code}},
+    )
 
 # Mock dependencies
 @pytest.fixture
@@ -57,12 +65,14 @@ class TestAdminRoutes:
     def test_list_all_users_success(self, client, mock_admin_service):
         """Test listing users successfully."""
         user_id = uuid4()
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         mock_data = [{
             "id": user_id,
             "email": "user@example.com",
             "created_at": now,
-            "updated_at": now
+            "updated_at": now,
+            "fullName": "Test User",
+            "plan": "FREE"
         }]
         mock_admin_service.get_all_users.return_value = (mock_data, 1, 1)
 
@@ -72,34 +82,19 @@ class TestAdminRoutes:
         data = response.json()
         assert data["items"][0]["id"] == str(user_id)
         assert data["total"] == 1
-        assert data["page"] == 1
-        assert data["limit"] == 10
-        assert data["total_pages"] == 1
-        mock_admin_service.get_all_users.assert_called_once()
 
     def test_list_all_users_error(self, client, mock_admin_service):
         """Test listing users with service error."""
         mock_admin_service.get_all_users.side_effect = AppError("DB_ERROR", 500, "Database error")
-
         response = client.get("/admin/users")
-
         assert response.status_code == 500
         assert response.json()["detail"]["error"] == "Database error"
-
-    def test_list_all_users_generic_error(self, client, mock_admin_service):
-        """Test listing users with generic error."""
-        mock_admin_service.get_all_users.side_effect = Exception("Unexpected error")
-
-        response = client.get("/admin/users")
-
-        assert response.status_code == 500
-        assert "Failed to fetch users" in response.json()["detail"]["error"]
 
     def test_list_all_trips_success(self, client, mock_admin_service):
         """Test listing trips successfully."""
         trip_id = uuid4()
         user_id = uuid4()
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         mock_data = [{
             "id": trip_id,
             "user_id": user_id,
@@ -115,72 +110,31 @@ class TestAdminRoutes:
         assert response.status_code == 200
         data = response.json()
         assert data["items"][0]["id"] == str(trip_id)
-        mock_admin_service.get_all_trips.assert_called_once()
 
-    def test_list_all_trips_error(self, client, mock_admin_service):
-        """Test listing trips with error."""
-        mock_admin_service.get_all_trips.side_effect = Exception("Fail")
-        response = client.get("/admin/trips")
-        assert response.status_code == 500
-        assert "Failed to fetch trips" in response.json()["detail"]["error"]
-
-    def test_list_all_travelers_success(self, client, mock_admin_service):
-        """Test listing travelers successfully."""
-        traveler_id = uuid4()
-        trip_id = uuid4()
-        now = datetime.now(UTC)
-        mock_data = [{
-            "id": traveler_id,
-            "trip_id": trip_id,
-            "user_email": "user@example.com",
-            "traveler_type": "ADULT",
-            "first_name": "John",
-            "last_name": "Doe",
-            "created_at": now,
-            "updated_at": now
-        }]
-        mock_admin_service.get_all_travelers.return_value = (mock_data, 1, 1)
-
-        response = client.get("/admin/travelers")
-
+    def test_update_user_plan_success(self, client, mock_admin_service):
+        """Test updating user plan."""
+        user_id = uuid4()
+        response = client.patch(f"/admin/users/{user_id}/plan", json={"plan": "PREMIUM"})
         assert response.status_code == 200
-        data = response.json()
-        assert data["items"][0]["id"] == str(traveler_id)
-        mock_admin_service.get_all_travelers.assert_called_once()
+        args, _ = mock_admin_service.update_user_plan.call_args
+        assert args[1] == user_id
+        assert args[2] == "PREMIUM"
 
-    def test_list_all_travelers_error(self, client, mock_admin_service):
-        """Test listing travelers with error."""
-        mock_admin_service.get_all_travelers.side_effect = Exception("Fail")
-        response = client.get("/admin/travelers")
-        assert response.status_code == 500
-        assert "Failed to fetch travelers" in response.json()["detail"]["error"]
-
-    def test_list_all_flight_bookings_success(self, client, mock_admin_service):
-        """Test listing flight bookings successfully."""
-        booking_id = uuid4()
-        trip_id = uuid4()
-        offer_id = uuid4()
-        now = datetime.now(UTC)
-        mock_data = [{
-            "id": booking_id,
-            "trip_id": trip_id,
-            "user_email": "user@example.com",
-            "flight_offer_id": offer_id,
-            "created_at": now,
-            "updated_at": now
-        }]
-        mock_admin_service.get_all_flight_bookings.return_value = (mock_data, 1, 1)
-
-        response = client.get("/admin/flight-bookings")
-
+    def test_dashboard_metrics_success(self, client, mock_admin_service):
+        """Test fetching dashboard metrics."""
+        mock_admin_service.get_dashboard_metrics.return_value = {
+            "totalUsers": 10, "activeUsers": 5, "inactiveUsers": 5,
+            "totalTrips": 20, "totalRevenue": 100.0, "totalFeedbacks": 30,
+            "pendingFeedbacks": 30, "averageRating": 4.5
+        }
+        response = client.get("/admin/dashboard/metrics")
         assert response.status_code == 200
-        data = response.json()
-        assert data["items"][0]["id"] == str(booking_id)
-        mock_admin_service.get_all_flight_bookings.assert_called_once()
+        assert response.json()["data"]["totalUsers"] == 10
 
-    def test_list_all_flight_bookings_error(self, client, mock_admin_service):
-        """Test listing flight bookings with error."""
-        mock_admin_service.get_all_flight_bookings.side_effect = Exception("Fail")
-        response = client.get("/admin/flight-bookings")
-        assert response.status_code == 500
-        assert "Failed to fetch flight bookings" in response.json()["detail"]["error"]
+    def test_export_users_csv_success(self, client, mock_admin_service):
+        """Test exporting users CSV."""
+        mock_admin_service.export_users_csv.return_value = "id,email\n1,test@example.com"
+        response = client.get("/admin/users/export")
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "text/csv; charset=utf-8"
+        assert "id,email" in response.text

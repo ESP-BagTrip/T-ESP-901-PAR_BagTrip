@@ -1,7 +1,7 @@
 """Daily job: auto-transition trip statuses based on dates."""
 
 import asyncio
-from datetime import UTC, datetime, timedelta
+from datetime import timezone, datetime, timedelta
 
 from src.config.database import SessionLocal
 from src.services.trips_service import TripsService
@@ -11,8 +11,8 @@ TAG = "[TRIP_STATUS_JOB]"
 
 
 def _seconds_until_midnight_utc() -> float:
-    """Return the number of seconds until the next midnight UTC."""
-    now = datetime.now(UTC)
+    """Return the number of seconds until the next midnight timezone.utc."""
+    now = datetime.now(timezone.utc)
     tomorrow = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
     return (tomorrow - now).total_seconds()
 
@@ -27,7 +27,7 @@ def run_trip_status_transitions() -> tuple[int, int]:
 
 
 async def trip_status_scheduler() -> None:
-    """Async loop: run once on startup then every midnight UTC."""
+    """Async loop: run once on startup then every midnight timezone.utc."""
     logger.info(f"{TAG} Scheduler started")
     try:
         while True:

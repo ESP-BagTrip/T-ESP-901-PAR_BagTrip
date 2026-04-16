@@ -1,6 +1,6 @@
 """Service pour la gestion des trips."""
 
-from datetime import UTC, date, datetime
+from datetime import timezone, date, datetime
 from math import ceil
 from uuid import UUID
 
@@ -434,7 +434,7 @@ class TripsService:
         Returns (planned_to_ongoing, ongoing_to_completed) counts.
         Also sends TRIP_ENDED notifications for newly completed trips.
         """
-        today = datetime.now(UTC).date()
+        today = datetime.now(timezone.utc).date()
 
         # Capture trips that will transition PLANNED→ONGOING before updating
         starting_trips = (

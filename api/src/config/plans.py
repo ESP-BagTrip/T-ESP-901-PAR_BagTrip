@@ -1,6 +1,6 @@
 """Plan constants and limits for FREE / PREMIUM / ADMIN tiers."""
 
-from enum import StrEnum
+from src.enums import StrEnum
 
 
 class UserPlan(StrEnum):

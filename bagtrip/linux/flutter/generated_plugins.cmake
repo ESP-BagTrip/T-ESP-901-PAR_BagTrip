@@ -5,7 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   flutter_secure_storage_linux
   flutter_timezone
-  rive_native
+  rive_common
   url_launcher_linux
 )
 

@@ -14,7 +14,7 @@ import flutter_secure_storage_darwin
 import flutter_timezone
 import google_sign_in_ios
 import path_provider_foundation
-import rive_native
+import rive_common
 import shared_preferences_foundation
 import sign_in_with_apple
 import sqflite_darwin
@@ -30,7 +30,7 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   FlutterTimezonePlugin.register(with: registry.registrar(forPlugin: "FlutterTimezonePlugin"))
   FLTGoogleSignInPlugin.register(with: registry.registrar(forPlugin: "FLTGoogleSignInPlugin"))
   PathProviderPlugin.register(with: registry.registrar(forPlugin: "PathProviderPlugin"))
-  RiveNativePlugin.register(with: registry.registrar(forPlugin: "RiveNativePlugin"))
+  RivePlugin.register(with: registry.registrar(forPlugin: "RivePlugin"))
   SharedPreferencesPlugin.register(with: registry.registrar(forPlugin: "SharedPreferencesPlugin"))
   SignInWithApplePlugin.register(with: registry.registrar(forPlugin: "SignInWithApplePlugin"))
   SqflitePlugin.register(with: registry.registrar(forPlugin: "SqflitePlugin"))

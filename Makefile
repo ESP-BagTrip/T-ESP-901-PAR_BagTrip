@@ -276,35 +276,51 @@ lint-mobile: ## Lint Flutter app (analyze + format)
 	@cd $(FLUTTER_DIR) && dart format --set-exit-if-changed .
 	$(call ok,"Mobile lint passed")
 
-test: test-api test-mobile test-e2e ## Run all tests
+test: test-api test-admin test-mobile test-e2e ## Run all tests
 
-test-api: ## Run API tests (pytest)
+test-api: ## Run API tests
 	@printf "$(CYAN)[info]$(RESET) Running API tests…\n"
-	@$(COMPOSE) exec api uv run pytest --cov=src --cov-report=xml
-	@# Fix paths in coverage.xml for SonarScanner (must be relative to root)
-	@# 1. Set source root to '.'
-	@sed -i 's|<source>src</source>|<source>.</source>|g' api/coverage.xml
-	@# 2. Add 'api/src/' prefix to all filenames (if not already there)
-	@sed -i 's|filename="api/src/|filename="|g' api/coverage.xml
-	@sed -i 's|filename="|filename="api/src/|g' api/coverage.xml
-	$(call ok,"API tests passed (report: api/coverage.xml)")
+	@$(COMPOSE) exec api uv run pytest
+	$(call ok,"API tests passed")
+
+test-admin: ## Run Admin tests
+	@printf "$(CYAN)[info]$(RESET) Running Admin tests…\n"
+	@$(COMPOSE) exec admin-panel npm run test
+	$(call ok,"Admin tests passed")
 
 test-mobile: ## Run Flutter tests
 	@printf "$(CYAN)[info]$(RESET) Running Flutter tests…\n"
-	@cd $(FLUTTER_DIR) && flutter test --coverage
+	@cd $(FLUTTER_DIR) && flutter test
 	$(call ok,"Mobile tests passed")
 
 test-e2e: ## Run E2E integration tests
 	@printf "$(CYAN)[info]$(RESET) Running E2E integration tests…\n"
-	@cd $(FLUTTER_DIR) && flutter test integration_test/
+	@for test in $(FLUTTER_DIR)/integration_test/*_test.dart; do \
+		test_name=$$(basename $$test); \
+		printf "$(CYAN)[info]$(RESET) Running $$test_name…\n"; \
+		(cd $(FLUTTER_DIR) && flutter test integration_test/$$test_name) || exit 1; \
+	done
 	$(call ok,"E2E tests passed")
 
-test-e2e-%: ## Run single E2E test (e.g. make test-e2e-ft3_active_trip)
-	@printf "$(CYAN)[info]$(RESET) Running E2E test: $*…\n"
-	@cd $(FLUTTER_DIR) && flutter test integration_test/$*_test.dart
-	$(call ok,"E2E test $* passed")
+coverage: coverage-api coverage-admin coverage-mobile ## Run all tests with coverage
 
-coverage: ## Run Flutter tests with coverage (30% threshold)
+coverage-api: ## Run API tests with coverage
+	@printf "$(CYAN)[info]$(RESET) Running API tests with coverage…\n"
+	@$(COMPOSE) exec api uv run pytest --cov=src --cov-report=xml
+	@# Fix paths in coverage.xml for SonarScanner
+	@sed -i 's|<source>src</source>|<source>.</source>|g' api/coverage.xml
+	@sed -i 's|filename="api/src/|filename="|g' api/coverage.xml
+	@sed -i 's|filename="|filename="api/src/|g' api/coverage.xml
+	$(call ok,"API coverage report: api/coverage.xml")
+
+coverage-admin: ## Run Admin tests with coverage
+	@printf "$(CYAN)[info]$(RESET) Running Admin tests with coverage…\n"
+	@$(COMPOSE) exec admin-panel npm run test:coverage
+	@# Fix paths in lcov.info for SonarScanner
+	@$(COMPOSE) exec admin-panel sed -i 's|SF:src/|SF:$(ADMIN_APP_DIR)/src/|g' coverage/lcov.info
+	$(call ok,"Admin coverage report: $(ADMIN_APP_DIR)/coverage/lcov.info")
+
+coverage-mobile: ## Run Flutter tests with coverage (30% threshold)
 	@printf "$(CYAN)[info]$(RESET) Running Flutter tests with coverage…\n"
 	@cd $(FLUTTER_DIR) && flutter test --coverage
 	@printf "$(GREEN)[ok]$(RESET)   Coverage report: $(FLUTTER_DIR)/coverage/lcov.info\n"
@@ -320,8 +336,6 @@ coverage: ## Run Flutter tests with coverage (30% threshold)
 	else \
 		printf "$(YELLOW)[warn]$(RESET) lcov not installed — skipping threshold check\n"; \
 	fi
-
-
 # ══════════════════════════════════════════════════════════════
 #  DATABASE
 # ══════════════════════════════════════════════════════════════

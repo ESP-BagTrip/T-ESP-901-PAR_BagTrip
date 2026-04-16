@@ -7,7 +7,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   firebase_core
   flutter_secure_storage_windows
   flutter_timezone
-  rive_native
+  rive_common
   url_launcher_windows
 )
 

@@ -2,7 +2,7 @@
 
 import os
 import secrets
-from datetime import UTC, datetime, timedelta
+from datetime import timezone, datetime, timedelta
 
 import bcrypt
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -42,7 +42,7 @@ router = APIRouter(prefix="/v1/auth", tags=["Auth"])
 def create_access_token(user_id: str) -> tuple[str, int]:
     """Create an access token. Returns (token, expires_in_seconds)."""
     expires_in = settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60
-    expire = datetime.now(UTC) + timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
     payload = {"userId": str(user_id), "exp": expire, "type": "access"}
     token = jwt.encode(payload, settings.JWT_SECRET, algorithm="HS256")
     return token, expires_in
@@ -51,7 +51,7 @@ def create_access_token(user_id: str) -> tuple[str, int]:
 def create_refresh_token(user_id: str, db: Session) -> str:
     """Create a refresh token, store in DB, return the raw token."""
     raw_token = secrets.token_urlsafe(64)
-    expires_at = datetime.now(UTC) + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS)
+    expires_at = datetime.now(timezone.utc) + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS)
     refresh = RefreshToken(
         user_id=user_id,
         token=raw_token,
@@ -332,7 +332,7 @@ async def update_me(
     if request.phone is not None:
         current_user.phone = request.phone
 
-    current_user.updated_at = datetime.now(UTC)
+    current_user.updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(current_user)
 
@@ -675,7 +675,7 @@ async def refresh(request: RefreshTokenRequest, response: Response, db: Session 
         .first()
     )
 
-    if not stored or stored.expires_at < datetime.now(UTC):
+    if not stored or stored.expires_at < datetime.now(timezone.utc):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired refresh token",
@@ -785,7 +785,7 @@ async def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(
     if user:
         token = secrets.token_urlsafe(32)
         user.password_reset_token = token
-        user.password_reset_expires = datetime.now(UTC) + timedelta(hours=1)
+        user.password_reset_expires = datetime.now(timezone.utc) + timedelta(hours=1)
         db.commit()
         logger.info(f"[POC] Password reset token for {request.email}: {token}")
     return {"message": "If this email exists, a reset link has been sent."}
@@ -802,7 +802,7 @@ async def reset_password(request: ResetPasswordRequest, db: Session = Depends(ge
         db.query(User)
         .filter(
             User.password_reset_token == request.token,
-            User.password_reset_expires > datetime.now(UTC),
+            User.password_reset_expires > datetime.now(timezone.utc),
         )
         .first()
     )

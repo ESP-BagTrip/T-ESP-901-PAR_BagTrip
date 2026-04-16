@@ -1,6 +1,6 @@
 """Service pour la gestion des notifications push."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import timezone, datetime, timedelta
 from math import ceil
 from uuid import UUID
 
@@ -49,7 +49,7 @@ class NotificationService:
         if tokens:
             sent = NotificationService._send_fcm(db, tokens, title, body, data)
             if sent:
-                notif.sent_at = datetime.now(UTC)
+                notif.sent_at = datetime.now(timezone.utc)
                 db.commit()
 
         return notif
@@ -87,7 +87,7 @@ class NotificationService:
         if all_tokens:
             sent = NotificationService._send_fcm(db, all_tokens, title, body, data)
             if sent:
-                now = datetime.now(UTC)
+                now = datetime.now(timezone.utc)
                 for n in notifs:
                     n.sent_at = now
                 db.commit()
@@ -254,7 +254,7 @@ class NotificationService:
         data_value: str | None = None,
     ) -> bool:
         """Check deduplication — was this notification type already sent recently?"""
-        cutoff = datetime.now(UTC) - since
+        cutoff = datetime.now(timezone.utc) - since
         query = db.query(Notification).filter(
             Notification.user_id == user_id,
             Notification.type == notif_type,

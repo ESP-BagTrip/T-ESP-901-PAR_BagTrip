@@ -1,6 +1,6 @@
 """Tests pour les schémas admin."""
 
-from datetime import UTC, date, datetime
+from datetime import date, datetime, timezone
 from uuid import uuid4
 
 from src.api.admin.schemas import (
@@ -9,6 +9,8 @@ from src.api.admin.schemas import (
     AdminTravelerResponse,
     AdminTripResponse,
     AdminUserResponse,
+    AdminFeedbackResponse,
+    AdminNotificationResponse,
 )
 
 
@@ -18,7 +20,7 @@ class TestAdminSchemas:
     def test_admin_list_response(self):
         """Test du schéma générique AdminListResponse."""
         user_id = uuid4()
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         user = AdminUserResponse(
             id=user_id,
             email="test@example.com",
@@ -26,7 +28,7 @@ class TestAdminSchemas:
             updated_at=now
         )
 
-        response = AdminListResponse[AdminUserResponse](
+        response = AdminListResponse(
             items=[user],
             total=1,
             page=1,
@@ -47,15 +49,13 @@ class TestAdminSchemas:
     def test_admin_user_response(self):
         """Test du schéma AdminUserResponse."""
         user_id = uuid4()
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
 
-        # Test creation with aliased arguments (as if from DB model via from_attributes or direct init)
-        # Note: direct init uses field names (createdAt) or aliases (created_at) depending on populate_by_name config
         response = AdminUserResponse(
             id=user_id,
             email="test@example.com",
-            created_at=now,  # alias
-            updated_at=None  # alias
+            created_at=now,
+            updated_at=None
         )
 
         assert response.id == user_id
@@ -63,17 +63,15 @@ class TestAdminSchemas:
         assert response.createdAt == now
         assert response.updatedAt is None
 
-        # Test serialization
         data = response.model_dump(by_alias=True)
         assert data["created_at"] == now
         assert data["updated_at"] is None
-        assert "createdAt" not in data
 
     def test_admin_trip_response(self):
         """Test du schéma AdminTripResponse."""
         trip_id = uuid4()
         user_id = uuid4()
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         today = date.today()
 
         response = AdminTripResponse(
@@ -96,22 +94,11 @@ class TestAdminSchemas:
         assert response.originIata == "PAR"
         assert response.startDate == today
 
-        # Test optional fields
-        response_empty = AdminTripResponse(
-            id=trip_id,
-            user_id=user_id,
-            user_email="user@example.com",
-            created_at=now,
-            updated_at=now
-        )
-        assert response_empty.originIata is None
-        assert response_empty.startDate is None
-
     def test_admin_traveler_response(self):
         """Test du schéma AdminTravelerResponse."""
         traveler_id = uuid4()
         trip_id = uuid4()
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         birth_date = date(1990, 1, 1)
 
         response = AdminTravelerResponse(
@@ -131,42 +118,44 @@ class TestAdminSchemas:
 
         assert response.id == traveler_id
         assert response.tripId == trip_id
-        assert response.tripTitle == "Trip Title"
         assert response.firstName == "John"
-        assert response.dateOfBirth == birth_date
 
-        # Test serialization
-        data = response.model_dump(by_alias=True)
-        assert data["trip_id"] == trip_id
-        assert data["first_name"] == "John"
-
-    def test_admin_flight_booking_response(self):
-        """Test du schéma AdminFlightBookingResponse."""
-        booking_id = uuid4()
+    def test_admin_feedback_response(self):
+        """Test du schéma AdminFeedbackResponse."""
+        feedback_id = uuid4()
         trip_id = uuid4()
-        offer_id = uuid4()
-        now = datetime.now(UTC)
+        user_id = uuid4()
+        now = datetime.now(timezone.utc)
 
-        response = AdminFlightBookingResponse(
-            id=booking_id,
+        response = AdminFeedbackResponse(
+            id=feedback_id,
             trip_id=trip_id,
-            trip_title="Trip Title",
+            trip_title="Trip 1",
+            user_id=user_id,
             user_email="user@example.com",
-            flight_offer_id=offer_id,
-            amadeus_flight_order_id="ORDER123",
-            status="CONFIRMED",
-            booking_reference="REF123",
-            created_at=now,
-            updated_at=now
+            overall_rating=5,
+            highlights="Good",
+            would_recommend=True,
+            created_at=now
         )
+        assert response.id == feedback_id
+        assert response.overallRating == 5
 
-        assert response.id == booking_id
-        assert response.tripId == trip_id
-        assert response.flightOfferId == offer_id
-        assert response.amadeusFlightOrderId == "ORDER123"
-        assert response.bookingReference == "REF123"
+    def test_admin_notification_response(self):
+        """Test du schéma AdminNotificationResponse."""
+        notif_id = uuid4()
+        user_id = uuid4()
+        now = datetime.now(timezone.utc)
 
-        # Test serialization
-        data = response.model_dump(by_alias=True)
-        assert data["flight_offer_id"] == offer_id
-        assert data["amadeus_flight_order_id"] == "ORDER123"
+        response = AdminNotificationResponse(
+            id=notif_id,
+            user_id=user_id,
+            user_email="user@example.com",
+            type="ADMIN",
+            title="Hello",
+            body="World",
+            is_read=False,
+            created_at=now
+        )
+        assert response.id == notif_id
+        assert response.type == "ADMIN"

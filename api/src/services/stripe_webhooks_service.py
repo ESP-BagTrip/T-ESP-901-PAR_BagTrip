@@ -1,7 +1,7 @@
 """Service pour le traitement des webhooks Stripe."""
 
 import contextlib
-from datetime import UTC
+from datetime import timezone
 from uuid import UUID
 
 import stripe
@@ -67,7 +67,7 @@ class StripeWebhooksService:
             StripeWebhooksService._handle_event(db, event, stripe_event)
             from datetime import datetime
 
-            stripe_event.processed_at = datetime.now(UTC)
+            stripe_event.processed_at = datetime.now(timezone.utc)
         except Exception as e:
             stripe_event.processing_error = {"error": str(e), "type": type(e).__name__}
 
@@ -175,7 +175,7 @@ class StripeWebhooksService:
             if period_end:
                 from datetime import datetime
 
-                user.plan_expires_at = datetime.fromtimestamp(period_end, tz=UTC)
+                user.plan_expires_at = datetime.fromtimestamp(period_end, tz=timezone.utc)
         db.commit()
         logger.info(f"User {user.id} plan set to {target_plan}")
 
@@ -194,7 +194,7 @@ class StripeWebhooksService:
         if period_end:
             from datetime import datetime
 
-            user.plan_expires_at = datetime.fromtimestamp(period_end, tz=UTC)
+            user.plan_expires_at = datetime.fromtimestamp(period_end, tz=timezone.utc)
         if status_val in ("canceled", "unpaid", "incomplete_expired"):
             user.plan = "FREE"
             user.stripe_subscription_id = None
@@ -216,7 +216,7 @@ class StripeWebhooksService:
             if end:
                 from datetime import datetime
 
-                user.plan_expires_at = datetime.fromtimestamp(end, tz=UTC)
+                user.plan_expires_at = datetime.fromtimestamp(end, tz=timezone.utc)
                 break
         if user.plan != "ADMIN":
             user.plan = "PREMIUM"

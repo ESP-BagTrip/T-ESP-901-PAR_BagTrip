@@ -1,7 +1,8 @@
 """Unit tests for TripsService."""
 
 import uuid
-from unittest.mock import MagicMock
+from datetime import date, datetime, timedelta, timezone
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -107,3 +108,49 @@ class TestTripsService:
         with pytest.raises(AppError) as exc:
             TripsService.delete_trip(mock_db_session, trip)
         assert exc.value.code == "TRIP_NOT_DRAFT"
+
+    def test_get_trip_home(self, mock_db_session):
+        """Test retrieving trip home data."""
+        trip = Trip(
+            id=uuid.uuid4(),
+            title="Paris",
+            start_date=date.today() + timedelta(days=10),
+            end_date=date.today() + timedelta(days=15)
+        )
+        # Mock queries for sections
+        mock_db_session.query.return_value.filter.return_value.all.return_value = []
+        
+        result = TripsService.get_trip_home(mock_db_session, trip)
+        assert result["trip"] == trip
+        assert result["stats"]["daysUntilTrip"] == 10
+        assert result["stats"]["tripDuration"] == 5
+
+    def test_update_trip_status_valid(self, mock_db_session):
+        """Test valid trip status transition."""
+        trip = Trip(
+            id=uuid.uuid4(),
+            status=TripStatus.DRAFT,
+            destination_iata="PAR",
+            start_date=date.today(),
+            end_date=date.today() + timedelta(days=1)
+        )
+        TripsService.update_trip_status(mock_db_session, trip, TripStatus.PLANNED)
+        assert trip.status == TripStatus.PLANNED
+        assert mock_db_session.commit.called
+
+    def test_update_trip_status_invalid(self, mock_db_session):
+        """Test invalid trip status transition."""
+        trip = Trip(id=uuid.uuid4(), status=TripStatus.DRAFT)
+        with pytest.raises(AppError) as exc:
+            TripsService.update_trip_status(mock_db_session, trip, TripStatus.ONGOING)
+        assert exc.value.code == "INVALID_STATUS_TRANSITION"
+
+    def test_auto_transition_statuses(self, mock_db_session):
+        """Test automatic status transitions based on dates."""
+        mock_db_session.query.return_value.filter.return_value.all.return_value = []
+        mock_db_session.execute.return_value.rowcount = 1
+        
+        p_to_o, o_to_c = TripsService.auto_transition_statuses(mock_db_session)
+        assert p_to_o == 1
+        assert o_to_c == 1
+        assert mock_db_session.commit.called
