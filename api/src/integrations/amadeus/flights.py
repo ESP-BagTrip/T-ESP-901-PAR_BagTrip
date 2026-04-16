@@ -7,6 +7,7 @@ import httpx
 from src.config.env import settings
 from src.integrations.amadeus.errors import raise_amadeus_connection_error, raise_for_amadeus_status
 from src.integrations.amadeus.retry import amadeus_retry
+from src.integrations.http_client import get_http_client
 from src.utils.logger import logger
 
 from .auth import fetch_token
@@ -83,14 +84,14 @@ async def search_flight_offers(query: FlightOfferSearchQuery) -> FlightOfferResp
     try:
         logger.info("Making Amadeus flight offers search request", {"url": url, "params": params})
 
-        async with httpx.AsyncClient(
-            timeout=20.0
-        ) as client:  # 20 seconds for complex flight offers queries
-            response = await client.get(
-                url,
-                headers={"Authorization": f"Bearer {token}"},
-                params=params,
-            )
+        client = get_http_client()
+        # 20 seconds for complex flight offers queries
+        response = await client.get(
+            url,
+            headers={"Authorization": f"Bearer {token}"},
+            params=params,
+            timeout=20.0,
+        )
 
         logger.debug(
             "Amadeus flight offers search response",
@@ -187,12 +188,14 @@ async def search_flight_destinations(
             "Making Amadeus flight destinations search request", {"url": url, "params": params}
         )
 
-        async with httpx.AsyncClient(timeout=15.0) as client:  # 15 seconds timeout
-            response = await client.get(
-                url,
-                headers={"Authorization": f"Bearer {token}"},
-                params=params,
-            )
+        client = get_http_client()
+        # 15 seconds timeout
+        response = await client.get(
+            url,
+            headers={"Authorization": f"Bearer {token}"},
+            params=params,
+            timeout=15.0,
+        )
 
         logger.debug(
             "Amadeus flight destinations search response",
@@ -292,12 +295,14 @@ async def search_flight_cheapest_dates(query: FlightCheapestDateSearchQuery) -> 
             "Making Amadeus flight cheapest dates search request", {"url": url, "params": params}
         )
 
-        async with httpx.AsyncClient(timeout=15.0) as client:  # 15 seconds timeout
-            response = await client.get(
-                url,
-                headers={"Authorization": f"Bearer {token}"},
-                params=params,
-            )
+        client = get_http_client()
+        # 15 seconds timeout
+        response = await client.get(
+            url,
+            headers={"Authorization": f"Bearer {token}"},
+            params=params,
+            timeout=15.0,
+        )
 
         logger.debug(
             "Amadeus flight cheapest dates search response",
@@ -391,12 +396,13 @@ async def confirm_flight_price(flight_offer: FlightOffer) -> FlightPriceResponse
         logger.info("Making Amadeus flight price confirmation request", {"url": url})
         logger.debug("Request body", {"body": body_dict})
 
-        async with httpx.AsyncClient(timeout=20.0) as client:
-            response = await client.post(
-                url,
-                headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-                json=body_dict,
-            )
+        client = get_http_client()
+        response = await client.post(
+            url,
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            json=body_dict,
+            timeout=20.0,
+        )
 
         logger.debug(
             "Amadeus flight price response",
@@ -471,12 +477,13 @@ async def create_flight_order(
     try:
         logger.info("Making Amadeus flight order creation request", {"url": url})
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
-                url,
-                headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-                json=body,
-            )
+        client = get_http_client()
+        response = await client.post(
+            url,
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            json=body,
+            timeout=30.0,
+        )
 
         logger.debug(
             "Amadeus flight order response",

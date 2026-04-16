@@ -3,7 +3,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class FeedbackCreateRequest(BaseModel):
@@ -29,9 +29,7 @@ class FeedbackResponse(BaseModel):
     aiExperienceRating: int | None = Field(None, alias="ai_experience_rating")
     createdAt: datetime = Field(..., alias="created_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class FeedbackListResponse(BaseModel):

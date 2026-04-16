@@ -9,8 +9,8 @@ import 'package:dio/dio.dart';
 class AccommodationRepositoryImpl implements AccommodationRepository {
   final ApiClient _apiClient;
 
-  AccommodationRepositoryImpl({ApiClient? apiClient})
-    : _apiClient = apiClient ?? ApiClient();
+  AccommodationRepositoryImpl({required ApiClient apiClient})
+    : _apiClient = apiClient;
 
   @override
   Future<Result<Accommodation>> createAccommodation(

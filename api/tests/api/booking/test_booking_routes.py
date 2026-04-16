@@ -36,6 +36,7 @@ def mock_db_session():
 @pytest.fixture
 def override_get_db(mock_db_session):
     """Override the get_db dependency."""
+
     def _get_db():
         yield mock_db_session
 
@@ -51,7 +52,7 @@ def mock_user():
         id=uuid.uuid4(),
         email="test@example.com",
         created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+        updated_at=datetime.utcnow(),
     )
 
 
@@ -61,7 +62,6 @@ def override_get_current_user(mock_user):
     app.dependency_overrides[get_current_user] = lambda: mock_user
     yield
     app.dependency_overrides = {}
-
 
 
 def create_valid_flight_offer():
@@ -85,9 +85,9 @@ def create_valid_flight_offer():
                         "duration": "PT2H",
                         "id": "1",
                         "numberOfStops": 0,
-                        "blacklistedInEU": False
+                        "blacklistedInEU": False,
                     }
-                ]
+                ],
             }
         ],
         "price": {
@@ -95,12 +95,9 @@ def create_valid_flight_offer():
             "total": "100.00",
             "base": "80.00",
             "grandTotal": "100.00",
-            "fees": [{"amount": "0.00", "type": "SUPPLIER"}]
+            "fees": [{"amount": "0.00", "type": "SUPPLIER"}],
         },
-        "pricingOptions": {
-            "fareType": ["PUBLISHED"],
-            "includedCheckedBagsOnly": True
-        },
+        "pricingOptions": {"fareType": ["PUBLISHED"], "includedCheckedBagsOnly": True},
         "validatingAirlineCodes": ["BA"],
         "travelerPricings": [
             {
@@ -114,15 +111,15 @@ def create_valid_flight_offer():
                         "cabin": "ECONOMY",
                         "fareBasis": "Y",
                         "class": "Y",
-                        "includedCheckedBags": {"quantity": 1}
+                        "includedCheckedBags": {"quantity": 1},
                     }
-                ]
+                ],
             }
-        ]
+        ],
     }
 
 
-@patch("src.api.booking.routes.amadeus_client", new_callable=AsyncMock)
+@patch("src.api.booking.routes.AmadeusService", new_callable=AsyncMock)
 class TestConfirmPrice:
     """Test suite for the confirm_price endpoint."""
 
@@ -131,9 +128,7 @@ class TestConfirmPrice:
         # The schema expects data to be a dict where values are lists of FlightOffer
         valid_offer = create_valid_flight_offer()
         mock_amadeus_client.confirm_flight_price.return_value = {
-            "data": {
-                "flightOffers": [valid_offer]
-            }
+            "data": {"flightOffers": [valid_offer]}
         }
 
         payload = {"flightOffer": valid_offer}
@@ -178,21 +173,24 @@ class TestConfirmPrice:
             logger.level = original_level
 
 
-@patch("src.api.booking.routes.amadeus_client", new_callable=AsyncMock)
+@patch("src.api.booking.routes.AmadeusService", new_callable=AsyncMock)
 class TestCreateBooking:
     """Test suite for the create_booking endpoint."""
 
-    def test_create_booking_success(self, mock_amadeus_client, client, override_get_current_user, override_get_db, mock_db_session):
+    def test_create_booking_success(
+        self,
+        mock_amadeus_client,
+        client,
+        override_get_current_user,
+        override_get_db,
+        mock_db_session,
+    ):
         """Test successful booking creation."""
         # Mock Amadeus response
         mock_response = MagicMock()
         mock_response.data = {
             "id": "AMADEUS_ORDER_ID",
-            "flightOffers": [
-                {
-                    "price": {"grandTotal": "200.50", "currency": "USD"}
-                }
-            ]
+            "flightOffers": [{"price": {"grandTotal": "200.50", "currency": "USD"}}],
         }
         mock_amadeus_client.create_flight_order.return_value = mock_response
 
@@ -210,9 +208,18 @@ class TestCreateBooking:
                     "dateOfBirth": "2000-01-01",
                     "name": {"firstName": "John", "lastName": "Doe"},
                     "gender": "MALE",
-                    "contact": {"emailAddress": "john@example.com", "phones": [{"deviceType": "MOBILE", "countryCallingCode": "1", "number": "1234567890"}]}
+                    "contact": {
+                        "emailAddress": "john@example.com",
+                        "phones": [
+                            {
+                                "deviceType": "MOBILE",
+                                "countryCallingCode": "1",
+                                "number": "1234567890",
+                            }
+                        ],
+                    },
                 }
-            ]
+            ],
         }
 
         response = client.post("/v1/booking/create", json=payload)
@@ -227,16 +234,20 @@ class TestCreateBooking:
         assert mock_db_session.add.called
         assert mock_db_session.commit.called
 
-    def test_create_booking_no_order_id(self, mock_amadeus_client, client, override_get_current_user, override_get_db, mock_db_session):
+    def test_create_booking_no_order_id(
+        self,
+        mock_amadeus_client,
+        client,
+        override_get_current_user,
+        override_get_db,
+        mock_db_session,
+    ):
         """Test booking creation when Amadeus returns no ID."""
         mock_response = MagicMock()
         mock_response.data = {"flightOffers": []}  # No ID
         mock_amadeus_client.create_flight_order.return_value = mock_response
 
-        payload = {
-            "flightOffer": create_valid_flight_offer(),
-            "travelers": []
-        }
+        payload = {"flightOffer": create_valid_flight_offer(), "travelers": []}
 
         response = client.post("/v1/booking/create", json=payload)
 
@@ -246,14 +257,18 @@ class TestCreateBooking:
         assert detail["code"] == "UPSTREAM_ERROR"
         assert mock_db_session.rollback.called
 
-    def test_create_booking_amadeus_error(self, mock_amadeus_client, client, override_get_current_user, override_get_db, mock_db_session):
+    def test_create_booking_amadeus_error(
+        self,
+        mock_amadeus_client,
+        client,
+        override_get_current_user,
+        override_get_db,
+        mock_db_session,
+    ):
         """Test booking creation when Amadeus call fails."""
         mock_amadeus_client.create_flight_order.side_effect = Exception("Amadeus Down")
 
-        payload = {
-            "flightOffer": create_valid_flight_offer(),
-            "travelers": []
-        }
+        payload = {"flightOffer": create_valid_flight_offer(), "travelers": []}
 
         response = client.post("/v1/booking/create", json=payload)
 
@@ -263,7 +278,14 @@ class TestCreateBooking:
         assert detail["code"] == "INTERNAL_ERROR"
         assert mock_db_session.rollback.called
 
-    def test_create_booking_debug_logging(self, mock_amadeus_client, client, override_get_current_user, override_get_db, mock_db_session):
+    def test_create_booking_debug_logging(
+        self,
+        mock_amadeus_client,
+        client,
+        override_get_current_user,
+        override_get_db,
+        mock_db_session,
+    ):
         """Test error logging when debug mode is enabled."""
         from src.utils.logger import LogLevel, logger
 
@@ -274,10 +296,7 @@ class TestCreateBooking:
         try:
             mock_amadeus_client.create_flight_order.side_effect = Exception("Debug Error")
 
-            payload = {
-                "flightOffer": create_valid_flight_offer(),
-                "travelers": []
-            }
+            payload = {"flightOffer": create_valid_flight_offer(), "travelers": []}
 
             response = client.post("/v1/booking/create", json=payload)
 
@@ -286,12 +305,19 @@ class TestCreateBooking:
             # Restore level
             logger.level = original_level
 
-    def test_create_booking_missing_price(self, mock_amadeus_client, client, override_get_current_user, override_get_db, mock_db_session):
+    def test_create_booking_missing_price(
+        self,
+        mock_amadeus_client,
+        client,
+        override_get_current_user,
+        override_get_db,
+        mock_db_session,
+    ):
         """Test booking creation when price info is missing in Amadeus response."""
         mock_response = MagicMock()
         mock_response.data = {
             "id": "ORDER_NO_PRICE",
-            "flightOffers": []  # Empty flight offers
+            "flightOffers": [],  # Empty flight offers
         }
         mock_amadeus_client.create_flight_order.return_value = mock_response
 
@@ -309,9 +335,18 @@ class TestCreateBooking:
                     "dateOfBirth": "2000-01-01",
                     "name": {"firstName": "John", "lastName": "Doe"},
                     "gender": "MALE",
-                    "contact": {"emailAddress": "john@example.com", "phones": [{"deviceType": "MOBILE", "countryCallingCode": "1", "number": "1234567890"}]}
+                    "contact": {
+                        "emailAddress": "john@example.com",
+                        "phones": [
+                            {
+                                "deviceType": "MOBILE",
+                                "countryCallingCode": "1",
+                                "number": "1234567890",
+                            }
+                        ],
+                    },
                 }
-            ]
+            ],
         }
 
         response = client.post("/v1/booking/create", json=payload)
@@ -325,7 +360,9 @@ class TestCreateBooking:
 class TestListBookings:
     """Test suite for the list_bookings endpoint."""
 
-    def test_list_bookings_success(self, client, override_get_current_user, override_get_db, mock_db_session, mock_user):
+    def test_list_bookings_success(
+        self, client, override_get_current_user, override_get_db, mock_db_session, mock_user
+    ):
         """Test successful retrieval of user bookings."""
         # Setup mock DB return
         mock_booking = Booking(
@@ -335,10 +372,12 @@ class TestListBookings:
             status="CONFIRMED",
             price_total=150.0,
             currency="EUR",
-            created_at=datetime.utcnow()
+            created_at=datetime.utcnow(),
         )
 
-        mock_db_session.query.return_value.filter.return_value.order_by.return_value.all.return_value = [mock_booking]
+        mock_db_session.query.return_value.filter.return_value.order_by.return_value.all.return_value = [
+            mock_booking
+        ]
 
         response = client.get("/v1/booking/list")
 

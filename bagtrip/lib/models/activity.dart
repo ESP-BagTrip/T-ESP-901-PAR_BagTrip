@@ -50,7 +50,9 @@ abstract class Activity with _$Activity {
     double? estimatedCost,
     @Default(false) bool isBooked,
     @Default(false) bool isDone,
-    @Default(ValidationStatus.manual) ValidationStatus validationStatus,
+    @JsonKey(unknownEnumValue: ValidationStatus.manual)
+    @Default(ValidationStatus.manual)
+    ValidationStatus validationStatus,
     int? suggestedDay,
     DateTime? createdAt,
     DateTime? updatedAt,

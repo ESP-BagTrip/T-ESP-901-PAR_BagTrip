@@ -10,8 +10,8 @@ import 'package:flutter/foundation.dart';
 class NotificationRepositoryImpl implements NotificationRepository {
   final ApiClient _apiClient;
 
-  NotificationRepositoryImpl({ApiClient? apiClient})
-    : _apiClient = apiClient ?? ApiClient();
+  NotificationRepositoryImpl({required ApiClient apiClient})
+    : _apiClient = apiClient;
 
   @override
   Future<Result<Map<String, dynamic>>> getNotifications({

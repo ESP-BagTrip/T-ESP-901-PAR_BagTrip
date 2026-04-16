@@ -7,13 +7,13 @@ from cachetools import TTLCache
 from fastapi import APIRouter, HTTPException, Path, Query, status
 
 from src.api.travel.schemas import LocationSearchResult
-from src.integrations.amadeus import amadeus_client
 from src.integrations.amadeus.types import (
     FlightCheapestDateSearchQuery,
     FlightInspirationSearchQuery,
     FlightOfferSearchQuery,
 )
 from src.integrations.aviation_data import aviation_data_service
+from src.services.amadeus_service import AmadeusService
 from src.utils.errors import AppError, create_http_exception
 
 router = APIRouter(prefix="/v1/travel", tags=["Travel"])
@@ -307,7 +307,7 @@ async def search_flight_offers(
             excludedAirlineCodes=excludedAirlineCodes,
         )
 
-        result = await amadeus_client.search_flight_offers(query)
+        result = await AmadeusService.search_flight_offers(query)
         _flight_search_cache[cache_key] = result
         return result
     except AppError as e:
@@ -376,7 +376,7 @@ async def search_flight_destinations(
             viewBy=viewBy,
         )
 
-        result = await amadeus_client.search_flight_destinations(query)
+        result = await AmadeusService.search_flight_destinations(query)
         return result
     except AppError as e:
         raise create_http_exception(e) from e
@@ -451,7 +451,7 @@ async def search_flight_cheapest_dates(
             viewBy=viewBy,
         )
 
-        result = await amadeus_client.search_flight_cheapest_dates(query)
+        result = await AmadeusService.search_flight_cheapest_dates(query)
         return result
     except AppError as e:
         raise create_http_exception(e) from e

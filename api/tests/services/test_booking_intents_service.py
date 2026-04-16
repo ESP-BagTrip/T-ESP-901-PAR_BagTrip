@@ -89,7 +89,10 @@ class TestBookingIntentsService:
 
         with pytest.raises(AppError) as exc:
             BookingIntentsService.create_intent(
-                mock_db_session, uuid.uuid4(), uuid.uuid4(), "flight",
+                mock_db_session,
+                uuid.uuid4(),
+                uuid.uuid4(),
+                "flight",
                 flight_offer_id=uuid.uuid4(),
             )
         assert exc.value.code == "OFFER_NOT_FOUND"
@@ -99,7 +102,5 @@ class TestBookingIntentsService:
         intent = BookingIntent(id=uuid.uuid4())
         mock_db_session.query.return_value.filter.return_value.first.return_value = intent
 
-        result = BookingIntentsService.get_intent_by_id(
-            mock_db_session, intent.id, uuid.uuid4()
-        )
+        result = BookingIntentsService.get_intent_by_id(mock_db_session, intent.id, uuid.uuid4())
         assert result == intent

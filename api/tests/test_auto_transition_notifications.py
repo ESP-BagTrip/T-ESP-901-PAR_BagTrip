@@ -52,13 +52,13 @@ def test_trip_started_notification_sent_on_planned_to_ongoing():
         mock_notif._get_trip_recipients.return_value = [trip.user_id]
 
         from src.services.trips_service import TripsService
+
         TripsService.auto_transition_statuses(db)
 
         # Verify TRIP_STARTED was sent
         calls = mock_notif.create_and_send_bulk.call_args_list
         trip_started_calls = [
-            c for c in calls
-            if c.kwargs.get("notif_type") == NotificationType.TRIP_STARTED
+            c for c in calls if c.kwargs.get("notif_type") == NotificationType.TRIP_STARTED
         ]
         assert len(trip_started_calls) == 1
         assert trip_started_calls[0].kwargs["title"] == "Bon voyage !"
@@ -77,12 +77,12 @@ def test_trip_started_notification_includes_trip_title():
         mock_notif._get_trip_recipients.return_value = [trip.user_id]
 
         from src.services.trips_service import TripsService
+
         TripsService.auto_transition_statuses(db)
 
         calls = mock_notif.create_and_send_bulk.call_args_list
         trip_started_calls = [
-            c for c in calls
-            if c.kwargs.get("notif_type") == NotificationType.TRIP_STARTED
+            c for c in calls if c.kwargs.get("notif_type") == NotificationType.TRIP_STARTED
         ]
         assert "Vacances à Rome" in trip_started_calls[0].kwargs["body"]
 
@@ -93,6 +93,7 @@ def test_no_trip_started_notification_when_no_transitions():
 
     with patch("src.services.notification_service.NotificationService") as mock_notif:
         from src.services.trips_service import TripsService
+
         TripsService.auto_transition_statuses(db)
 
         # No notifications should be sent at all

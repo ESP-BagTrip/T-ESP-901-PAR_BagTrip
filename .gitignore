@@ -47,10 +47,10 @@ bagtrip/.pub/
 bagtrip/coverage/
 
 # ===== Next.js / Admin Panel =====
-admin-panel/application/.next/
-admin-panel/application/out/
-admin-panel/application/build/
-admin-panel/application/coverage/
+admin-panel/.next/
+admin-panel/out/
+admin-panel/build/
+admin-panel/coverage/
 
 # ===== Docker =====
 docker-compose.override.yml

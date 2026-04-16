@@ -1,6 +1,5 @@
 """Tests for latitude-aware weather fallback."""
 
-
 from src.agent.tools import _fallback_weather
 
 # ---------------------------------------------------------------------------

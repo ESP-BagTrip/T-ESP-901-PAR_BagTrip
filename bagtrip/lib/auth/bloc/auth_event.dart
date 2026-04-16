@@ -34,6 +34,10 @@ class LogoutRequested extends AuthEvent {
   LogoutRequested();
 }
 
+class DeleteAccountRequested extends AuthEvent {
+  DeleteAccountRequested();
+}
+
 class AuthModeChanged extends AuthEvent {
   final bool isLoginMode;
 

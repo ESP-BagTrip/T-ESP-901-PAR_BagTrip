@@ -15,6 +15,8 @@ from src.models.flight_order import FlightOrder
 from src.models.traveler import TripTraveler
 from src.services.travelers_service import TravelersService
 from src.utils.errors import AppError
+from src.utils.logger import logger
+from src.utils.unit_of_work import unit_of_work
 
 
 class BookingOrchestratorService:
@@ -156,64 +158,85 @@ class BookingOrchestratorService:
                     ticket_url = f"amadeus://order/{amadeus_order_id}"
                     break
 
-        # Créer le flight order
-        flight_order = FlightOrder(
-            trip_id=booking_intent.trip_id,
-            flight_offer_id=flight_offer.id,
-            booking_intent_id=booking_intent.id,
-            amadeus_flight_order_id=amadeus_order_id,
-            status=FlightOrderStatus.CONFIRMED,
-            payment_id=booking_intent.stripe_payment_intent_id,
-            ticket_url=ticket_url,
-            amadeus_create_order_request={
-                "flightOffer": flight_offer_data,
-                "travelers": [t.model_dump() if hasattr(t, "model_dump") else t for t in travelers],
-            },
-            amadeus_create_order_response=order_data
-            if isinstance(order_data, dict)
-            else order_data.model_dump()
-            if hasattr(order_data, "model_dump")
-            else {},
-        )
-        db.add(flight_order)
+        # Flight order + budget item + booking_intent.amadeus_order_id must commit
+        # atomically — if any part fails we don't want half a confirmed booking
+        # stuck in the DB without its budget line or its Amadeus reference.
+        with unit_of_work(db):
+            flight_order = FlightOrder(
+                trip_id=booking_intent.trip_id,
+                flight_offer_id=flight_offer.id,
+                booking_intent_id=booking_intent.id,
+                amadeus_flight_order_id=amadeus_order_id,
+                status=FlightOrderStatus.CONFIRMED,
+                payment_id=booking_intent.stripe_payment_intent_id,
+                ticket_url=ticket_url,
+                amadeus_create_order_request={
+                    "flightOffer": flight_offer_data,
+                    "travelers": [
+                        t.model_dump() if hasattr(t, "model_dump") else t for t in travelers
+                    ],
+                },
+                amadeus_create_order_response=order_data
+                if isinstance(order_data, dict)
+                else order_data.model_dump()
+                if hasattr(order_data, "model_dump")
+                else {},
+            )
+            db.add(flight_order)
 
-        # Auto-create budget item for the flight
-        origin_iata = ""
-        destination_iata = ""
-        departure_date = None
+            origin_iata, destination_iata, departure_date = (
+                BookingOrchestratorService._extract_flight_metadata(flight_offer)
+            )
+            label = (
+                f"Vol : {origin_iata} → {destination_iata}"
+                if origin_iata and destination_iata
+                else "Vol"
+            )
+
+            db.add(
+                BudgetItem(
+                    trip_id=booking_intent.trip_id,
+                    label=label,
+                    amount=booking_intent.amount,
+                    category=BudgetCategory.FLIGHT,
+                    date=departure_date,
+                    is_planned=False,
+                    source_type="flight_order",
+                    source_id=flight_order.id,
+                )
+            )
+
+            booking_intent.amadeus_order_id = amadeus_order_id
+
+    @staticmethod
+    def _extract_flight_metadata(
+        flight_offer: FlightOfferModel,
+    ) -> tuple[str, str, datetime | None]:
+        """Pull (origin_iata, destination_iata, departure_date) off a stored offer.
+
+        Amadeus fare shapes vary — if the JSON doesn't match our expectation we
+        fall back to ``("", "", None)`` and let the caller label the line "Vol".
+        This is a UI nicety, never a booking blocker.
+        """
         try:
             offer_data = flight_offer.priced_offer_json or flight_offer.offer_json
-            if isinstance(offer_data, dict):
-                itineraries = offer_data.get("itineraries", [])
-                if itineraries:
-                    segments = itineraries[0].get("segments", [])
-                    if segments:
-                        origin_iata = segments[0].get("departure", {}).get("iataCode", "")
-                        destination_iata = segments[-1].get("arrival", {}).get("iataCode", "")
-                        dep_at = segments[0].get("departure", {}).get("at", "")
-                        if dep_at:
-                            departure_date = datetime.fromisoformat(dep_at).date()
-        except Exception:
-            pass
+            if not isinstance(offer_data, dict):
+                return "", "", None
+            itineraries = offer_data.get("itineraries", [])
+            if not itineraries:
+                return "", "", None
+            segments = itineraries[0].get("segments", [])
+            if not segments:
+                return "", "", None
 
-        label = (
-            f"Vol : {origin_iata} → {destination_iata}"
-            if origin_iata and destination_iata
-            else "Vol"
-        )
-
-        budget_item = BudgetItem(
-            trip_id=booking_intent.trip_id,
-            label=label,
-            amount=booking_intent.amount,
-            category=BudgetCategory.FLIGHT,
-            date=departure_date,
-            is_planned=False,
-            source_type="flight_order",
-            source_id=flight_order.id,
-        )
-        db.add(budget_item)
-
-        # Mettre à jour le booking intent
-        booking_intent.amadeus_order_id = amadeus_order_id
-        db.commit()
+            origin = segments[0].get("departure", {}).get("iataCode", "")
+            destination = segments[-1].get("arrival", {}).get("iataCode", "")
+            dep_at = segments[0].get("departure", {}).get("at", "")
+            dep_date = datetime.fromisoformat(dep_at).date() if dep_at else None
+            return origin, destination, dep_date
+        except (KeyError, ValueError, TypeError) as exc:
+            logger.warn(
+                "booking_orchestrator: could not parse offer itinerary",
+                {"flight_offer_id": str(flight_offer.id), "error": str(exc)},
+            )
+            return "", "", None

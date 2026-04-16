@@ -12,9 +12,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dateFormatHint => 'dd/mm/yyyy';
 
   @override
-  String get travelClassTitle => 'Travel Class';
-
-  @override
   String get passengersTitle => 'Passengers';
 
   @override
@@ -34,9 +31,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get travelClassBusiness => 'Business';
-
-  @override
-  String get travelClassFirst => 'First';
 
   @override
   String get tripTypeRoundTrip => 'Round-trip';
@@ -87,9 +81,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get multiDestAddFlightButton => 'Add another flight';
-
-  @override
-  String get maxPriceHint => 'Max price (€)';
 
   @override
   String get noFlightsFoundTitle => 'No flights found';
@@ -194,9 +185,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get handBaggageIncluded => 'Hand baggage included';
 
   @override
-  String get unknown => 'Unknown';
-
-  @override
   String get unknownAirline => 'Unknown airline';
 
   @override
@@ -215,12 +203,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get destinationLabel => 'Destination';
-
-  @override
-  String get travelDatesLabel => 'Travel dates';
-
-  @override
-  String get outboundLabel => 'Outbound';
 
   @override
   String get returnLabel => 'Return';
@@ -244,81 +226,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tripDetailsLabel => 'Trip details';
 
   @override
-  String get flightCardTitle => 'Flight';
-
-  @override
-  String get hotelCardTitle => 'Hotel';
-
-  @override
-  String get flightAndHotelCardTitle => 'Flight + Hotel';
-
-  @override
-  String get otherCardTitle => 'Others';
-
-  @override
-  String get handleBudget => 'Manage your budget';
-
-  @override
-  String get trackExpensesAndPlan =>
-      'Track your expenses and plan your trip according to your budget';
-
-  @override
-  String get myProfile => 'My profile';
-
-  @override
-  String get managePersonalInfo =>
-      'Manage your personal information and preferences';
-
-  @override
-  String get editProfile => 'Edit profile';
-
-  @override
   String get disconnect => 'Disconnect';
-
-  @override
-  String get viewDestinations => 'View destinations';
-
-  @override
-  String get exploreDestinations =>
-      'Explore available destinations on an interactive map';
-
-  @override
-  String get startButton => 'Start';
-
-  @override
-  String get newTrip => 'New trip';
-
-  @override
-  String get createYourTrip => 'Create your trip';
-
-  @override
-  String get nameTripToStart => 'Name your trip to start planning';
-
-  @override
-  String get tripNameLabel => 'Trip name';
-
-  @override
-  String get tripNameHint => 'Ex: Vacation in Paris';
 
   @override
   String get continueButton => 'Continue';
 
   @override
-  String get aiPlanning => 'AI Planning';
-
-  @override
   String get retryButton => 'Retry';
-
-  @override
-  String get searchingInProgress => 'Searching...';
-
-  @override
-  String get typeYourMessage => 'Type your message...';
-
-  @override
-  String planningTitle(String title) {
-    return 'Planning $title';
-  }
 
   @override
   String get personalInfoTitle => 'Personal Information';
@@ -343,12 +257,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saveButton => 'Save';
-
-  @override
-  String get profileUpdateSuccess => 'Profile updated successfully';
-
-  @override
-  String get profileUpdateError => 'Failed to update profile';
 
   @override
   String get preferencesTitle => 'Preferences';
@@ -385,9 +293,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recentBookingsTitle => 'Recent Bookings';
 
   @override
-  String get viewAllButton => 'View All';
-
-  @override
   String get noRecentBookings => 'No recent bookings';
 
   @override
@@ -395,9 +300,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bookingStatusConfirmed => 'Confirmed';
-
-  @override
-  String get profileLoadFailureMessage => 'Unable to load profile.';
 
   @override
   String get loginWelcomeTitle => 'Welcome to Bag Trip';
@@ -450,12 +352,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loginFullNameHint => 'John Doe';
-
-  @override
-  String get loginToggleNoAccount => 'No account? Sign up';
-
-  @override
-  String get loginToggleHasAccount => 'Already have an account? Login';
 
   @override
   String get loginErrorEmailRequired => 'Please enter your email address';
@@ -511,43 +407,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get splashLoading => 'Loading...';
 
   @override
-  String get personalizationPromptTitle => 'Personalize your experience';
-
-  @override
-  String get personalizationPromptSubtitle =>
-      'A few questions to get to know you better and offer tailor-made trips.';
-
-  @override
-  String get personalizationOptionTravelTypes => 'Your preferred travel types';
-
-  @override
-  String get personalizationOptionBudget => 'Your usual budget';
-
-  @override
-  String get personalizationOptionCompanions => 'Who you travel with';
-
-  @override
-  String get personalizationCompleteProfile => 'Complete my profile >';
-
-  @override
-  String get personalizationSkipStep => 'Skip this step';
-
-  @override
   String get personalizationProfileSectionTitle => 'Experience personalization';
-
-  @override
-  String get personalizationPageTitle => 'My travel profile';
-
-  @override
-  String get personalizationDone => 'Done';
-
-  @override
-  String get personalizationStepTitleTravelTypes =>
-      'Your preferred travel types';
-
-  @override
-  String get personalizationStepSubtitleTravelTypes =>
-      'Select one or more types';
 
   @override
   String get personalizationTravelTypeBeach => 'Beach & Relaxation';
@@ -565,16 +425,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get personalizationTravelTypeWellness => 'Wellness & Spa';
 
   @override
-  String get personalizationTravelTypeNightlife => 'Party & Nightlife';
-
-  @override
-  String get personalizationStepTitleTravelStyle => 'Your travel style';
-
-  @override
-  String get personalizationStepSubtitleTravelStyle =>
-      'How do you like to organize your trips?';
-
-  @override
   String get personalizationTravelStylePlanned => 'Fully planned';
 
   @override
@@ -582,9 +432,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get personalizationTravelStyleSpontaneous => 'Spontaneous';
-
-  @override
-  String get personalizationStepTitleBudget => 'Your usual budget';
 
   @override
   String get personalizationStepSubtitleBudget =>
@@ -607,9 +454,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get personalizationBudgetLuxuryDesc => '5★ Hotels, VIP experiences';
-
-  @override
-  String get personalizationStepTitleCompanions => 'Who do you travel with?';
 
   @override
   String get personalizationStepSubtitleCompanions =>
@@ -686,150 +530,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get personalizationInterestShopping => 'Shopping';
 
   @override
-  String get planifierTab => 'Plan';
-
-  @override
-  String get planifierSectionCreateTrip => 'Create a trip';
-
-  @override
-  String get planifierManualTitle => 'Plan manually';
-
-  @override
-  String get planifierManualDesc =>
-      'Create your trip step by step with all the details';
-
-  @override
-  String get planifierAITitle => 'AI Assistant';
-
-  @override
-  String get planifierAIDesc => 'Let AI help you create a personalized trip';
-
-  @override
-  String get planifierCompletedTitle => 'Completed trips';
-
-  @override
-  String get planifierCompletedDesc => 'View your past trips and budgets';
-
-  @override
   String get planifierGreeting => 'Good morning';
 
   @override
-  String get planifierMainTitle => 'Plan your\nnext journey';
-
-  @override
-  String get planifierSubtitle => 'Create and manage your trips';
-
-  @override
-  String get planifierManualDescriptionCard =>
-      'Build your itinerary step by step with full control.';
-
-  @override
-  String get planifierAIDescriptionCard =>
-      'Let AI craft a personalized trip for you.';
-
-  @override
-  String get planifierNewBadge => 'NEW';
-
-  @override
-  String get planifierSectionExploreDestinations => 'Explore destinations';
-
-  @override
-  String get destinationKyoto => 'Kyoto';
-
-  @override
-  String get destinationSantorini => 'Santorini';
-
-  @override
-  String get destinationMarrakech => 'Marrakech';
-
-  @override
-  String get countryJapan => 'JAPAN';
-
-  @override
-  String get countryGreece => 'GREECE';
-
-  @override
-  String get countryMorocco => 'MOROCCO';
-
-  @override
-  String get yourDestinationTitle => 'Your destination';
-
-  @override
   String get destinationPlaceholder => 'Paris, Tokyo, New York...';
-
-  @override
-  String get numberOfTravelersLabel => 'Number of travelers';
-
-  @override
-  String get nextButton => 'Next';
-
-  @override
-  String get travelerCount5Plus => '5+';
-
-  @override
-  String get transportTitle => 'Transport';
-
-  @override
-  String get transportOptionFlightTitle => 'Yes, search for a flight';
-
-  @override
-  String get transportOptionFlightSubtitle => 'Search via Amadeus';
-
-  @override
-  String get transportOptionOtherTitle => 'No, other transport';
-
-  @override
-  String get transportOptionOtherSubtitle => 'Car, train, bus...';
-
-  @override
-  String get transportOptionSkipTitle => 'No, skip this step';
-
-  @override
-  String get transportOptionSkipSubtitle => 'No transport to add';
-
-  @override
-  String get otherTransportTitle => 'Other transport';
-
-  @override
-  String get transportTypeLabel => 'Type of transport';
-
-  @override
-  String get transportTypeCar => 'Car';
-
-  @override
-  String get transportTypeTrain => 'Train';
-
-  @override
-  String get transportTypeBus => 'Bus';
-
-  @override
-  String get transportTypeFlightBooked => 'Flight (already booked)';
-
-  @override
-  String get transportDetailsLabel => 'Details (optional)';
-
-  @override
-  String get transportDetailsPlaceholder =>
-      'Ex: Hertz rental, TGV Paris-Lyon...';
-
-  @override
-  String get transportBudgetLabel => 'Transport budget (€)';
-
-  @override
-  String get transportBudgetPlaceholder => 'Ex: 150';
-
-  @override
-  String get transportBudgetHint =>
-      'This amount will be added to your trip budget';
-
-  @override
-  String get skipThisStepLabel => 'Skip this step';
-
-  @override
-  String get recapTitle => 'Plan your trip';
-
-  @override
-  String get recapFinalStepLabel => 'AI PLANNING';
 
   @override
   String get recapDateChoose => 'Choose';
@@ -838,138 +542,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recapDateSelectHint => 'Select';
 
   @override
-  String get recapTravelTypesLabel => 'TRAVEL TYPES';
-
-  @override
-  String get recapStyleLabel => 'STYLE';
-
-  @override
-  String get recapBudgetLabel => 'BUDGET';
-
-  @override
-  String get recapCompanionsLabel => 'COMPANIONS';
-
-  @override
-  String get recapLaunchSearchButton => 'Launch AI search';
-
-  @override
-  String get summaryTitle => 'Your personalized trip';
-
-  @override
-  String get summarySubtitle => '+ Generated by AI';
-
-  @override
-  String get summaryUpcomingJourney => '◆ UPCOMING JOURNEY';
-
-  @override
-  String get summaryDays => 'days';
-
-  @override
-  String get summaryBudget => 'budget';
-
-  @override
-  String get summarySolo => 'Solo';
-
-  @override
-  String get summarySectionCurated => 'CURATED FOR YOU';
-
-  @override
-  String get summaryTripHighlights => 'Trip highlights';
-
-  @override
   String get summarySectionWhereStay => 'WHERE YOU\'LL STAY';
-
-  @override
-  String get summaryAccommodation => 'Accommodation';
 
   @override
   String get summarySectionFlight => 'FLIGHT';
 
   @override
-  String get summaryFlight => 'Flight';
-
-  @override
-  String get summaryFlightRouteMock => 'Paris CDG → Paris Orly';
-
-  @override
-  String get summaryFlightDetailsMock => 'Round trip · Economy';
-
-  @override
   String get summarySectionYourJourney => 'YOUR JOURNEY';
-
-  @override
-  String get summaryDayByDay => 'Day by day';
 
   @override
   String get summarySectionEssentials => 'ESSENTIALS';
 
   @override
-  String get summaryWhatToBring => 'What to bring';
-
-  @override
-  String get summaryBestPick => 'Best pick';
-
-  @override
   String get summaryDayPrefix => 'D';
-
-  @override
-  String get summaryDay1Date => 'MONDAY · JUNE 9';
-
-  @override
-  String get summaryDay2Date => 'TUESDAY · JUNE 10';
-
-  @override
-  String get summaryDay3Date => 'WEDNESDAY · JUNE 11';
-
-  @override
-  String get summaryDay4Date => 'THURSDAY · JUNE 12';
-
-  @override
-  String get summaryDay5Date => 'FRIDAY · JUNE 13';
-
-  @override
-  String get summaryDay1Description =>
-      'Check in to Le Marais, stroll the historic streets, evening aperitif at Place des Vosges.';
-
-  @override
-  String get summaryDay2Description =>
-      'Louvre in the morning, Notre-Dame area, Seine banks in the afternoon.';
-
-  @override
-  String get summaryDay3Description =>
-      'Cooking class, market visit, dinner in a typical bistro.';
-
-  @override
-  String get summaryDay4Description =>
-      'Palace of Versailles, the Hall of Mirrors and the gardens in full bloom.';
-
-  @override
-  String get summaryDay5Description =>
-      'Morning at Sacré-Cœur, last café crème, afternoon flight home.';
-
-  @override
-  String get summaryCategoryTravelDay => 'Travel day';
-
-  @override
-  String get summaryCategoryCulture => 'Culture';
-
-  @override
-  String get summaryCategoryCuisine => 'Cuisine';
-
-  @override
-  String get summaryCategoryDayTrip => 'Day trip';
-
-  @override
-  String get summaryCategoryDeparture => 'Departure';
-
-  @override
-  String get summarySaveTrip => 'Save this trip';
-
-  @override
-  String get summaryRegenerate => 'Regenerate';
-
-  @override
-  String get summaryTripSaved => 'Trip saved';
 
   @override
   String summaryDaysCount(int count) {
@@ -988,16 +573,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addActivity => 'Add Activity';
 
   @override
-  String get editActivity => 'Edit Activity';
-
-  @override
-  String get noActivities => 'No activities yet';
-
-  @override
   String get activityTitle => 'Title';
-
-  @override
-  String get activityDate => 'Date';
 
   @override
   String get activityDescription => 'Description';
@@ -1018,9 +594,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activityEstimatedCost => 'Estimated cost';
 
   @override
-  String get activityBooked => 'Booked';
-
-  @override
   String get activityDeleteTitle => 'Delete activity';
 
   @override
@@ -1028,23 +601,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Are you sure you want to delete this activity?';
 
   @override
-  String get activityDeleted => 'Activity deleted';
-
-  @override
   String get activityEndTimeBeforeStartTime =>
       'End time must be after start time';
 
   @override
-  String get categoryVisit => 'Visit';
-
-  @override
-  String get categoryRestaurant => 'Restaurant';
-
-  @override
   String get categoryTransport => 'Transport';
-
-  @override
-  String get categoryLeisure => 'Leisure';
 
   @override
   String get categoryOther => 'Other';
@@ -1057,9 +618,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get editExpense => 'Edit expense';
-
-  @override
-  String get noExpenses => 'No expenses yet';
 
   @override
   String get expenseLabel => 'Label';
@@ -1131,9 +689,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get comingSoon => 'Coming soon';
-
-  @override
-  String get errorTitle => 'Error';
 
   @override
   String get backButton => 'Back';
@@ -1216,29 +771,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get baggageDeleteTitle => 'Delete item';
 
   @override
-  String get baggageDeleteConfirm =>
-      'Are you sure you want to delete this item?';
-
-  @override
-  String get baggageItemAdded => 'Item added';
-
-  @override
-  String get baggageItemDeleted => 'Item deleted';
-
-  @override
-  String get baggageItemAddedFromSuggestion => 'Item added from suggestion';
-
-  @override
   String get baggageQuantityLabel => 'Qty';
 
   @override
   String get baggageCategoryLabel => 'Category (optional)';
-
-  @override
-  String get baggageEmptyTitle => 'No items';
-
-  @override
-  String get baggageEmptySubtitle => 'Add items to your luggage list';
 
   @override
   String get baggageAddItemTitle => 'Add an item';
@@ -1267,9 +803,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get baggageEditItemTitle => 'Edit item';
 
   @override
-  String get baggageItemUpdated => 'Item updated';
-
-  @override
   String get baggageItemName => 'Item name';
 
   @override
@@ -1279,35 +812,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accommodationsTitle => 'Accommodations';
 
   @override
-  String get accommodationCheckInHelp => 'Check-in date';
-
-  @override
-  String get accommodationCheckOutHelp => 'Check-out date';
-
-  @override
-  String get accommodationAdded => 'Accommodation added successfully';
-
-  @override
-  String get accommodationDeleteTitle => 'Delete accommodation';
-
-  @override
-  String get accommodationDeleteConfirm =>
-      'Are you sure you want to delete this accommodation?';
-
-  @override
-  String get accommodationDeleted => 'Accommodation deleted';
-
-  @override
   String get accommodationCheckInLabel => 'Check-in';
 
   @override
   String get accommodationCheckOutLabel => 'Check-out';
-
-  @override
-  String get accommodationEmptyTitle => 'No accommodations';
-
-  @override
-  String get accommodationEmptySubtitle => 'Add your hotels and lodgings';
 
   @override
   String get accommodationAddTitle => 'Add an accommodation';
@@ -1338,9 +846,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tripsMyTrips => 'My trips';
 
   @override
-  String get tripsNewTrip => 'New trip';
-
-  @override
   String get tripStatusOngoing => 'Ongoing';
 
   @override
@@ -1365,13 +870,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharesInviteButton => 'Invite';
 
   @override
-  String get sharesRevokeTitle => 'Revoke access';
-
-  @override
-  String get sharesRevokeConfirm =>
-      'Are you sure you want to revoke access for this user?';
-
-  @override
   String get sharesRevokeButton => 'Revoke';
 
   @override
@@ -1379,12 +877,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sharesEmptySubtitle => 'Invite people to view your trip';
-
-  @override
-  String get tripCreated => 'Trip created!';
-
-  @override
-  String get aiResultsTitle => 'AI Results';
 
   @override
   String get feedbackTitle => 'Reviews';
@@ -1504,6 +996,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get premiumCtaButton => 'Upgrade to Premium - €9.99/mo';
 
   @override
+  String get premiumPaywallTitle => 'Go Premium';
+
+  @override
+  String tripDurationDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tripShareInvitedOnDate(String date) {
+    return 'Invited on $date';
+  }
+
+  @override
   String get profileConfigurePreferences => 'Configure your preferences';
 
   @override
@@ -1556,19 +1067,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorUnknown => 'An error occurred. Please try again.';
 
   @override
-  String get errorSessionExpired => 'Session expired';
-
-  @override
   String get bookingLabel => 'Booking';
 
   @override
   String get activitiesTitle => 'Activities';
-
-  @override
-  String get activitiesEmpty => 'No activities yet';
-
-  @override
-  String get activitiesEmptySubtitle => 'Add activities to plan your trip';
 
   @override
   String get activitiesSuggestionsTitle => 'AI Suggestions';
@@ -1599,16 +1101,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get offlineMode => 'You are offline. Showing cached data.';
-
-  @override
-  String get offlineWriteError =>
-      'This action requires an internet connection.';
-
-  @override
-  String get loadingMore => 'Loading more...';
-
-  @override
-  String get noMoreItems => 'No more items';
 
   @override
   String get subscriptionVerifying => 'Verifying your subscription...';
@@ -1662,19 +1154,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your payment is being processed. You will receive a confirmation shortly.';
 
   @override
-  String get nextTripSection => 'Next trip';
-
-  @override
   String nextTripCountdown(int days) {
     return 'In $days days';
-  }
-
-  @override
-  String get nextTripNoUpcoming => 'No upcoming trip';
-
-  @override
-  String nextTripReady(int percent) {
-    return '$percent% ready';
   }
 
   @override
@@ -1753,19 +1234,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get suggestedDuration => 'Suggested duration';
-
-  @override
   String get days => 'days';
-
-  @override
-  String get reviewTitle => 'Summary';
-
-  @override
-  String get aiSuggestionsTitle => 'AI SUGGESTIONS';
-
-  @override
-  String get createTripButton => 'Create trip';
 
   @override
   String get tripCreatedSuccess => 'Trip created successfully!';
@@ -1774,16 +1243,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stepDestination => 'Where?';
 
   @override
-  String get stepDates => 'When?';
-
-  @override
   String get stepTravelers => 'Who?';
 
   @override
   String get stepReview => 'Review';
-
-  @override
-  String get toValidateBadge => 'To validate';
 
   @override
   String get addFirstAccommodation => 'Add an accommodation';
@@ -1864,21 +1327,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get internalFlightType => 'Internal';
 
   @override
-  String get flightStatusOnTime => 'On time';
-
-  @override
-  String get flightStatusDelayed => 'Delayed';
-
-  @override
-  String get flightStatusCancelled => 'Cancelled';
-
-  @override
-  String get flightStatusLanded => 'Landed';
-
-  @override
-  String get flightStatusScheduled => 'Scheduled';
-
-  @override
   String get editButton => 'Edit';
 
   @override
@@ -1921,9 +1369,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accommodationAiSuggestTitle => 'AI Recommendations';
 
   @override
-  String get accommodationAiSuggestLoading => 'Generating suggestions...';
-
-  @override
   String get accommodationEstimatedPrice => 'Estimated price';
 
   @override
@@ -1958,9 +1403,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accommodationPricePerNight => 'Price/night';
-
-  @override
-  String get accommodationUpdated => 'Accommodation updated';
 
   @override
   String get accommodationAiDisclaimer =>
@@ -2065,9 +1507,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get datesModeFlexible => 'Flexible';
-
-  @override
-  String get datesFlexibleWhenever => 'Whenever';
 
   @override
   String get datesFlexibleWeekend => 'Weekend';
@@ -2215,9 +1654,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get destinationAiLoading => 'Our AI is searching for you...';
 
   @override
-  String get destinationSelected => 'Selected destination';
-
-  @override
   String get stepAiProposals => 'Your destinations';
 
   @override
@@ -2282,9 +1718,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reviewSeeOtherDestinations => 'See other destinations';
 
   @override
-  String get reviewCreatingTrip => 'Creating your trip...';
-
-  @override
   String get reviewSectionBudget => 'BUDGET BREAKDOWN';
 
   @override
@@ -2319,11 +1752,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reviewSourceEstimated => 'Estimated';
-
-  @override
-  String reviewDayLabel(int day) {
-    return 'Day $day';
-  }
 
   @override
   String reviewPriceEur(String amount) {
@@ -2418,21 +1846,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeNoActivitiesToday => 'No activities planned today';
 
   @override
-  String homeTripCompletion(int percent) {
-    return '$percent% ready';
-  }
-
-  @override
   String get tripCardNoDestination => 'No destination';
 
   @override
   String get tripCardNoTitle => 'Untitled trip';
-
-  @override
-  String get activeTripsViewTrip => 'View trip';
-
-  @override
-  String get activeTripsNextUp => 'Next up';
 
   @override
   String get activeTripsAllDay => 'All day';
@@ -2453,18 +1870,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activeTripsQuickActions => 'Quick actions';
-
-  @override
-  String get activeTripsActivities => 'Activities';
-
-  @override
-  String get activeTripsBudget => 'Budget';
-
-  @override
-  String get activeTripsBaggage => 'Baggage';
-
-  @override
-  String get activeTripsShare => 'Share';
 
   @override
   String get completionDates => 'Dates';
@@ -2507,9 +1912,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tripDetailQuickMemories => 'Memories';
-
-  @override
-  String get tripDetailQuickNavigate => 'Navigate';
 
   @override
   String get timelineSectionTitle => 'Itinerary';
@@ -2710,9 +2112,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get qaQuickExpenseNote => 'Note (optional)';
 
   @override
-  String get qaQuickExpenseSaved => 'Expense saved!';
-
-  @override
   String get qaQuickExpenseAmount => 'Amount';
 
   @override
@@ -2731,44 +2130,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get qaCategoryActivity => 'Activity';
 
   @override
-  String get qaCategoryShopping => 'Shopping';
-
-  @override
   String get qaCategoryOther => 'Other';
-
-  @override
-  String get notifDailySummaryTitle => 'Good morning!';
-
-  @override
-  String notifDailySummaryBody(int day, String destination) {
-    return 'Day $day in $destination — check today\'s schedule';
-  }
-
-  @override
-  String notifActivityReminderTitle(String title) {
-    return 'Coming up: $title';
-  }
-
-  @override
-  String notifActivityReminderBody(String location) {
-    return 'Starting in 30 minutes at $location';
-  }
-
-  @override
-  String get notifCheckoutReminderTitle => 'Checkout reminder';
-
-  @override
-  String notifCheckoutReminderBody(String name) {
-    return 'Don\'t forget to check out from $name';
-  }
-
-  @override
-  String get notifPackingReminderTitle => 'Time to pack!';
-
-  @override
-  String notifPackingReminderBody(int count, String destination) {
-    return '$count items left to pack for $destination';
-  }
 
   @override
   String get postTripDetectionTitle => 'Trip completed!';
@@ -2815,9 +2177,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feedbackAiRatingLabel => 'Rate the AI planning experience';
-
-  @override
-  String get feedbackAiRatingHint => 'How helpful were the AI suggestions?';
 
   @override
   String get editTripTitle => 'Edit trip name';
@@ -2891,9 +2250,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accommodationCheckOutTimeLabel => 'Check-out time';
-
-  @override
-  String get accommodationGetPrices => 'See prices';
 
   @override
   String get accommodationSelectHotel => 'Select';
@@ -2999,23 +2355,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareRoleEditor => 'Editor';
 
   @override
-  String get shareInviteRoleLabel => 'Role';
-
-  @override
-  String get shareInvitePendingTitle => 'Invitation sent';
-
-  @override
   String get shareInvitePendingMessage =>
       'This person isn\'t registered yet. They\'ll get access when they sign up.';
 
   @override
-  String get shareInviteCopyLink => 'Copy invite link';
-
-  @override
   String get shareInviteLinkCopied => 'Invite link copied';
-
-  @override
-  String get sharePendingBadge => 'Pending';
 
   @override
   String get shareErrorUserNotFound =>
@@ -3040,9 +2384,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shareInviteSuccess => 'Invitation sent';
-
-  @override
-  String get shareRevokeSuccess => 'Access revoked';
 
   @override
   String get filterTitle => 'Filters';
@@ -3167,9 +2508,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backTooltip => 'Back';
 
   @override
-  String get closeTooltip => 'Close';
-
-  @override
   String get deleteFlightTooltip => 'Delete flight';
 
   @override
@@ -3216,9 +2554,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String tabActivityWithBadge(int count) {
     return 'Activity, $count notifications';
   }
-
-  @override
-  String get loadingButton => 'Loading';
 
   @override
   String get forgotPasswordTitle => 'Reset password';

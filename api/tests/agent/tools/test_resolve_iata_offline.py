@@ -38,7 +38,7 @@ class TestResolveIataCodeOffline:
     """Tests for resolve_iata_code using offline aviation data."""
 
     @pytest.mark.asyncio
-    @patch("src.agent.tools.aviation_data_service")
+    @patch("src.agent.tools.locations.aviation_data_service")
     async def test_resolve_paris(self, mock_service):
         """Resolving 'Paris' returns CDG IATA code."""
         mock_service.search_by_keyword.return_value = [
@@ -57,7 +57,7 @@ class TestResolveIataCodeOffline:
         )
 
     @pytest.mark.asyncio
-    @patch("src.agent.tools.aviation_data_service")
+    @patch("src.agent.tools.locations.aviation_data_service")
     async def test_resolve_unknown_city(self, mock_service):
         """Unknown city returns error dict."""
         mock_service.search_by_keyword.return_value = []
@@ -68,20 +68,20 @@ class TestResolveIataCodeOffline:
         assert "Atlantis" in result["error"]
 
     @pytest.mark.asyncio
-    @patch("src.agent.tools.aviation_data_service")
+    @patch("src.agent.tools.locations.aviation_data_service")
     async def test_no_amadeus_call(self, mock_service):
         """Verify no Amadeus API call is made (offline only)."""
         mock_service.search_by_keyword.return_value = [
             _make_location("JFK", "New York", "United States", 40.64, -73.78)
         ]
 
-        with patch("src.agent.tools.amadeus_client") as mock_amadeus:
+        with patch("src.agent.tools.locations.amadeus_client", create=True) as mock_amadeus:
             await resolve_iata_code("New York")
             # amadeus_client should never be called
             mock_amadeus.search_locations_by_keyword.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch("src.agent.tools.aviation_data_service")
+    @patch("src.agent.tools.locations.aviation_data_service")
     async def test_error_handling(self, mock_service):
         """Service exception returns error dict gracefully."""
         mock_service.search_by_keyword.side_effect = RuntimeError("data corrupted")

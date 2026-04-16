@@ -433,7 +433,9 @@ class _ProgressBarState extends State<_ProgressBar> {
                     borderRadius: AppRadius.pill,
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF1DBFBA).withValues(alpha: 0.42),
+                        color: AppColors.stepProgressGlow.withValues(
+                          alpha: 0.42,
+                        ),
                         blurRadius: 9,
                         spreadRadius: 0.4,
                       ),
@@ -598,7 +600,7 @@ class _GenerationChecklist extends StatelessWidget {
   Color _textColor(StepStatus status) {
     return switch (status) {
       StepStatus.completed => PersonalizationColors.textPrimary,
-      StepStatus.inProgress => const Color(0xFF1FA8AD),
+      StepStatus.inProgress => AppColors.stepInProgress,
       StepStatus.pending => ColorName.hint,
       StepStatus.error => AppColors.error,
     };
@@ -606,8 +608,8 @@ class _GenerationChecklist extends StatelessWidget {
 
   Color _subtitleColor(StepStatus status) {
     return switch (status) {
-      StepStatus.completed => const Color(0xFF51A194),
-      StepStatus.inProgress => const Color(0xFF20AEB0),
+      StepStatus.completed => AppColors.stepCompletedSubtitle,
+      StepStatus.inProgress => AppColors.stepInProgressSubtitle,
       StepStatus.pending => PersonalizationColors.textTertiary,
       StepStatus.error => AppColors.error,
     };
@@ -616,7 +618,7 @@ class _GenerationChecklist extends StatelessWidget {
   Color _iconColor(StepStatus status) {
     return switch (status) {
       StepStatus.completed => PersonalizationColors.textSecondary,
-      StepStatus.inProgress => const Color(0xFF1FA8AD),
+      StepStatus.inProgress => AppColors.stepInProgress,
       StepStatus.pending => ColorName.hint,
       StepStatus.error => AppColors.error,
     };
@@ -652,13 +654,13 @@ class _StepStatusIndicator extends StatelessWidget {
           height: 20,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: const Color(0xFFE8F7F3),
-            border: Border.all(color: const Color(0xFF2EB89B), width: 1.2),
+            color: AppColors.stepSuccessBg,
+            border: Border.all(color: AppColors.stepSuccessBorder, width: 1.2),
           ),
           child: const Icon(
             Icons.check_rounded,
             size: 14,
-            color: Color(0xFF2EB89B),
+            color: AppColors.stepSuccessBorder,
           ),
         ),
         StepStatus.error => const Icon(
@@ -719,12 +721,12 @@ class _SpinnerPainter extends CustomPainter {
     final bgPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5
-      ..color = const Color(0xFF1FA8AD).withValues(alpha: 0.2);
+      ..color = AppColors.stepInProgress.withValues(alpha: 0.2);
     final fgPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 1.8
-      ..color = const Color(0xFF1FA8AD);
+      ..color = AppColors.stepInProgress;
 
     canvas.drawArc(rect.deflate(1), 0, math.pi * 2, false, bgPaint);
     canvas.drawArc(

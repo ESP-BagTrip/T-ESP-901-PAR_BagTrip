@@ -3,32 +3,42 @@
 import asyncio
 from datetime import UTC, date, datetime, timedelta
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from src.config.database import SessionLocal
 from src.enums import FlightOrderStatus, NotificationType, TripStatus
 from src.models.activity import Activity
-from src.models.baggage_item import BaggageItem
 from src.models.flight_offer import FlightOffer
 from src.models.flight_order import FlightOrder
 from src.models.trip import Trip
 from src.services.notification_service import NotificationService
+from src.utils.distributed_lock import redis_lock
 from src.utils.logger import logger
 
 TAG = "[NOTIFICATION_JOB]"
 INTERVAL_SECONDS = 30 * 60  # 30 minutes
+# Lock TTL — 2× interval so a slow tick can't get stepped on, not so long that
+# a crashed worker leaves the lock stuck past the next tick.
+_LOCK_TTL_SECONDS = 2 * INTERVAL_SECONDS
 
 
 def _check_departure_reminders(db: Session) -> int:
     """Trip PLANNED, start_date = tomorrow → DEPARTURE_REMINDER."""
     tomorrow = date.today() + timedelta(days=1)
+    # Eager-load baggage_items + shares so we don't issue one SELECT per trip in
+    # the loop below. This job runs every 30 minutes over every PLANNED trip.
     trips = (
-        db.query(Trip).filter(Trip.status == TripStatus.PLANNED, Trip.start_date == tomorrow).all()
+        db.query(Trip)
+        .options(
+            selectinload(Trip.baggage_items),
+            selectinload(Trip.shares),
+        )
+        .filter(Trip.status == TripStatus.PLANNED, Trip.start_date == tomorrow)
+        .all()
     )
     count = 0
     for trip in trips:
-        # Compute baggage checklist status
-        baggage_items = db.query(BaggageItem).filter(BaggageItem.trip_id == trip.id).all()
+        baggage_items = trip.baggage_items
         total = len(baggage_items)
         packed = sum(1 for b in baggage_items if b.is_packed)
 
@@ -174,7 +184,16 @@ def _check_morning_summary(db: Session) -> int:
         return 0
 
     today = date.today()
-    trips = db.query(Trip).filter(Trip.status == TripStatus.ONGOING).all()
+    # Eager-load shares so the recipient lookup doesn't fire a follow-up query
+    # per trip. Activities are still fetched with an explicit date filter — we
+    # only want the subset dated "today", which is cheaper than loading all
+    # activities and filtering in Python.
+    trips = (
+        db.query(Trip)
+        .options(selectinload(Trip.shares))
+        .filter(Trip.status == TripStatus.ONGOING)
+        .all()
+    )
     count = 0
     for trip in trips:
         activities = (
@@ -277,19 +296,29 @@ def run_notification_checks() -> dict[str, int]:
 
 
 async def notification_scheduler() -> None:
-    """Async loop: run notification checks every 30 minutes."""
+    """Async loop: run notification checks every 30 minutes.
+
+    The body is wrapped in a distributed Redis lock so that multi-worker
+    FastAPI deployments don't duplicate push notifications. The
+    `_already_sent()` window check remains as a belt-and-braces guard against
+    cross-tick duplicates on the same instance.
+    """
     logger.info(f"{TAG} Scheduler started (interval: {INTERVAL_SECONDS}s)")
     try:
         while True:
-            try:
-                results = await asyncio.to_thread(run_notification_checks)
-                total = sum(results.values())
-                if total > 0:
-                    logger.info(f"{TAG} Sent {total} notifications: {results}")
+            async with redis_lock("job:notification", ttl_seconds=_LOCK_TTL_SECONDS) as acquired:
+                if not acquired:
+                    logger.info(f"{TAG} Lock held by peer worker, skipping tick")
                 else:
-                    logger.info(f"{TAG} No notifications to send")
-            except Exception as e:
-                logger.error(f"{TAG} Error: {e}")
+                    try:
+                        results = await asyncio.to_thread(run_notification_checks)
+                        total = sum(results.values())
+                        if total > 0:
+                            logger.info(f"{TAG} Sent {total} notifications: {results}")
+                        else:
+                            logger.info(f"{TAG} No notifications to send")
+                    except Exception as e:
+                        logger.error(f"{TAG} Error: {e}")
 
             await asyncio.sleep(INTERVAL_SECONDS)
     except asyncio.CancelledError:

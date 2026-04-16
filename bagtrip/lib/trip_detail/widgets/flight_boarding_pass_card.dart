@@ -1,3 +1,4 @@
+import 'package:bagtrip/core/extensions/price_format_ext.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
@@ -78,20 +79,7 @@ class _FlightBoardingPassCardState extends State<FlightBoardingPassCard> {
           decoration: BoxDecoration(
             color: theme.cardTheme.color ?? theme.colorScheme.surface,
             borderRadius: AppRadius.large16,
-            boxShadow: [
-              BoxShadow(
-                color: ColorName.primary.withValues(alpha: 0.08),
-                offset: const Offset(0, 4),
-                blurRadius: 6,
-                spreadRadius: -1,
-              ),
-              BoxShadow(
-                color: ColorName.primary.withValues(alpha: 0.04),
-                offset: const Offset(0, 2),
-                blurRadius: 4,
-                spreadRadius: -1,
-              ),
-            ],
+            boxShadow: AppShadows.card,
           ),
           child: Column(
             children: [
@@ -315,7 +303,9 @@ class _FlightBoardingPassCardState extends State<FlightBoardingPassCard> {
                       ),
                     if (flight.price != null)
                       Text(
-                        '${flight.price!.toStringAsFixed(0)} ${flight.currency ?? '€'}',
+                        flight.price!.formatPrice(
+                          currency: flight.currency ?? '€',
+                        ),
                         style: const TextStyle(
                           fontFamily: FontFamily.b612,
                           fontSize: 16,

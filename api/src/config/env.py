@@ -47,6 +47,18 @@ class Settings(BaseSettings):
     STRIPE_SUCCESS_URL: str = "bagtrip://subscription/success?session-id={CHECKOUT_SESSION_ID}"
     STRIPE_CANCEL_URL: str = "bagtrip://subscription/cancel"
 
+    @field_validator("STRIPE_WEBHOOK_SECRET")
+    @classmethod
+    def validate_stripe_webhook_secret_in_prod(cls, v: str | None, info) -> str | None:
+        """Block startup if Stripe webhook secret is missing in production."""
+        node_env = info.data.get("NODE_ENV", "development")
+        if node_env == "production" and (not v or not v.strip()):
+            raise ValueError(
+                "STRIPE_WEBHOOK_SECRET is required in production. "
+                "Webhook signature verification cannot be disabled on live environments."
+            )
+        return v
+
     # Auth / JWT
     JWT_SECRET: str = "dev-secret-key-change-in-production"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
@@ -70,7 +82,19 @@ class Settings(BaseSettings):
     # Cookie / CORS
     ALLOWED_ORIGINS: str = "http://localhost:8000"
     COOKIE_DOMAIN: str | None = None
-    COOKIE_SECURE: bool = False
+    COOKIE_SECURE: bool = True
+
+    @field_validator("COOKIE_SECURE")
+    @classmethod
+    def validate_cookie_secure_in_prod(cls, v: bool, info) -> bool:
+        """Block startup if cookies are not secure in production."""
+        node_env = info.data.get("NODE_ENV", "development")
+        if node_env == "production" and not v:
+            raise ValueError(
+                "COOKIE_SECURE must be True in production. "
+                "Override only allowed in development/test environments."
+            )
+        return v
 
     # OAuth verification
     GOOGLE_FIREBASE_PROJECT_ID: str = "bagtrip-7d2d8"
@@ -93,6 +117,14 @@ class Settings(BaseSettings):
     GRAPH_TIMEOUT_SECONDS: int = 300  # Global timeout for the trip planning graph
     LLM_CALL_TIMEOUT_SECONDS: int = 60  # Per-LLM-call timeout in ReAct executor
     NODE_TIMEOUT_SECONDS: int = 120  # Per-node timeout in retry wrapper
+
+    # ReAct JSON repair — when the LLM returns malformed JSON for a Final
+    # Answer, the executor can fire one corrective re-prompt instead of
+    # silently degrading to `{"raw_answer": ...}`. The budget guard
+    # (`src.agent.budget`) still caps the cumulative wall time so a stuck LLM
+    # can never double the total cost.
+    REACT_JSON_REPAIR_ENABLED: bool = True
+    REACT_JSON_REPAIR_MAX_ATTEMPTS: int = 1
 
     @field_validator("AMADEUS_CLIENT_ID", "AMADEUS_CLIENT_SECRET", "LLM_API_KEY")
     @classmethod
@@ -142,9 +174,13 @@ def _format_missing_env_error(errors: list[dict]) -> str:
 def _load_settings() -> Settings:
     """Load and validate settings with improved error handling."""
     try:
-        return Settings()
+        # Pydantic Settings pulls required fields from environment variables at
+        # instantiation time; the explicit `call-arg` silence reflects that.
+        return Settings()  # type: ignore[call-arg]
     except ValidationError as e:
-        error_message = _format_missing_env_error(e.errors())
+        # `e.errors()` returns Pydantic v2 `ErrorDetails` which mypy types as
+        # `list[ErrorDetails]`; our formatter accepts the same dict-shaped rows.
+        error_message = _format_missing_env_error(e.errors())  # type: ignore[arg-type]
         print("\n" + "=" * 70, file=sys.stderr)
         print("ENVIRONMENT CONFIGURATION ERROR", file=sys.stderr)
         print("=" * 70, file=sys.stderr)

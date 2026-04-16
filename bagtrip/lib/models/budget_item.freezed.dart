@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BudgetItem {
 
- String get id; String get tripId; String get label; double get amount; BudgetCategory get category; DateTime? get date; bool get isPlanned; String? get sourceType; String? get sourceId; DateTime? get createdAt; DateTime? get updatedAt;
+ String get id; String get tripId; String get label; double get amount;@JsonKey(unknownEnumValue: BudgetCategory.other) BudgetCategory get category; DateTime? get date; bool get isPlanned; String? get sourceType; String? get sourceId; DateTime? get createdAt; DateTime? get updatedAt;
 /// Create a copy of BudgetItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $BudgetItemCopyWith<$Res>  {
   factory $BudgetItemCopyWith(BudgetItem value, $Res Function(BudgetItem) _then) = _$BudgetItemCopyWithImpl;
 @useResult
 $Res call({
- String id, String tripId, String label, double amount, BudgetCategory category, DateTime? date, bool isPlanned, String? sourceType, String? sourceId, DateTime? createdAt, DateTime? updatedAt
+ String id, String tripId, String label, double amount,@JsonKey(unknownEnumValue: BudgetCategory.other) BudgetCategory category, DateTime? date, bool isPlanned, String? sourceType, String? sourceId, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -163,7 +163,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String tripId,  String label,  double amount,  BudgetCategory category,  DateTime? date,  bool isPlanned,  String? sourceType,  String? sourceId,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String tripId,  String label,  double amount, @JsonKey(unknownEnumValue: BudgetCategory.other)  BudgetCategory category,  DateTime? date,  bool isPlanned,  String? sourceType,  String? sourceId,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BudgetItem() when $default != null:
 return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_that.date,_that.isPlanned,_that.sourceType,_that.sourceId,_that.createdAt,_that.updatedAt);case _:
@@ -184,7 +184,7 @@ return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String tripId,  String label,  double amount,  BudgetCategory category,  DateTime? date,  bool isPlanned,  String? sourceType,  String? sourceId,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String tripId,  String label,  double amount, @JsonKey(unknownEnumValue: BudgetCategory.other)  BudgetCategory category,  DateTime? date,  bool isPlanned,  String? sourceType,  String? sourceId,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _BudgetItem():
 return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_that.date,_that.isPlanned,_that.sourceType,_that.sourceId,_that.createdAt,_that.updatedAt);case _:
@@ -204,7 +204,7 @@ return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String tripId,  String label,  double amount,  BudgetCategory category,  DateTime? date,  bool isPlanned,  String? sourceType,  String? sourceId,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String tripId,  String label,  double amount, @JsonKey(unknownEnumValue: BudgetCategory.other)  BudgetCategory category,  DateTime? date,  bool isPlanned,  String? sourceType,  String? sourceId,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _BudgetItem() when $default != null:
 return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_that.date,_that.isPlanned,_that.sourceType,_that.sourceId,_that.createdAt,_that.updatedAt);case _:
@@ -219,14 +219,14 @@ return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_t
 @JsonSerializable()
 
 class _BudgetItem implements BudgetItem {
-  const _BudgetItem({required this.id, required this.tripId, required this.label, required this.amount, this.category = BudgetCategory.other, this.date, this.isPlanned = true, this.sourceType, this.sourceId, this.createdAt, this.updatedAt});
+  const _BudgetItem({required this.id, required this.tripId, required this.label, required this.amount, @JsonKey(unknownEnumValue: BudgetCategory.other) this.category = BudgetCategory.other, this.date, this.isPlanned = true, this.sourceType, this.sourceId, this.createdAt, this.updatedAt});
   factory _BudgetItem.fromJson(Map<String, dynamic> json) => _$BudgetItemFromJson(json);
 
 @override final  String id;
 @override final  String tripId;
 @override final  String label;
 @override final  double amount;
-@override@JsonKey() final  BudgetCategory category;
+@override@JsonKey(unknownEnumValue: BudgetCategory.other) final  BudgetCategory category;
 @override final  DateTime? date;
 @override@JsonKey() final  bool isPlanned;
 @override final  String? sourceType;
@@ -267,7 +267,7 @@ abstract mixin class _$BudgetItemCopyWith<$Res> implements $BudgetItemCopyWith<$
   factory _$BudgetItemCopyWith(_BudgetItem value, $Res Function(_BudgetItem) _then) = __$BudgetItemCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String tripId, String label, double amount, BudgetCategory category, DateTime? date, bool isPlanned, String? sourceType, String? sourceId, DateTime? createdAt, DateTime? updatedAt
+ String id, String tripId, String label, double amount,@JsonKey(unknownEnumValue: BudgetCategory.other) BudgetCategory category, DateTime? date, bool isPlanned, String? sourceType, String? sourceId, DateTime? createdAt, DateTime? updatedAt
 });
 
 

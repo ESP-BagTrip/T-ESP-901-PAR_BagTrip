@@ -41,7 +41,7 @@ class TestStripePaymentsService:
             type="flight",
             trip_id=uuid.uuid4(),
             selected_offer_type="flight_offer",
-            selected_offer_id=offer_id
+            selected_offer_id=offer_id,
         )
 
         # Mock user
@@ -54,17 +54,24 @@ class TestStripePaymentsService:
                 "itineraries": [
                     {
                         "segments": [
-                            {"departure": {"iataCode": "PAR", "at": "2025-12-01"}, "arrival": {"iataCode": "NYC"}},
-                            {"departure": {"iataCode": "NYC"}, "arrival": {"iataCode": "PAR"}}
+                            {
+                                "departure": {"iataCode": "PAR", "at": "2025-12-01"},
+                                "arrival": {"iataCode": "NYC"},
+                            },
+                            {"departure": {"iataCode": "NYC"}, "arrival": {"iataCode": "PAR"}},
                         ]
                     }
                 ]
             },
             validating_airline_codes="AF",
-            amadeus_offer_id="1"
+            amadeus_offer_id="1",
         )
 
-        mock_db_session.query.return_value.filter.return_value.first.side_effect = [intent, user, flight_offer]
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [
+            intent,
+            user,
+            flight_offer,
+        ]
 
         # Mock product ID
         mock_products.get_product_id.return_value = "prod_123"
@@ -115,20 +122,14 @@ class TestStripePaymentsService:
     @patch("src.services.stripe_payments_service.StripeClient")
     def test_capture_payment_success(self, mock_client, mock_db_session):
         """Test successful payment capture."""
-        intent = BookingIntent(
-            id=uuid.uuid4(),
-            status="BOOKED",
-            stripe_payment_intent_id="pi_123"
-        )
+        intent = BookingIntent(id=uuid.uuid4(), status="BOOKED", stripe_payment_intent_id="pi_123")
         mock_db_session.query.return_value.filter.return_value.first.return_value = intent
 
         mock_pi = MagicMock()
         mock_pi.latest_charge = "ch_123"
         mock_client.capture_payment_intent.return_value = mock_pi
 
-        result = StripePaymentsService.capture_payment(
-            mock_db_session, intent.id, uuid.uuid4()
-        )
+        result = StripePaymentsService.capture_payment(mock_db_session, intent.id, uuid.uuid4())
 
         assert result.status == "CAPTURED"
         assert result.stripe_charge_id == "ch_123"
@@ -137,15 +138,11 @@ class TestStripePaymentsService:
     def test_cancel_payment_success(self, mock_client, mock_db_session):
         """Test successful payment cancellation."""
         intent = BookingIntent(
-            id=uuid.uuid4(),
-            status="AUTHORIZED",
-            stripe_payment_intent_id="pi_123"
+            id=uuid.uuid4(), status="AUTHORIZED", stripe_payment_intent_id="pi_123"
         )
         mock_db_session.query.return_value.filter.return_value.first.return_value = intent
 
-        result = StripePaymentsService.cancel_payment(
-            mock_db_session, intent.id, uuid.uuid4()
-        )
+        result = StripePaymentsService.cancel_payment(mock_db_session, intent.id, uuid.uuid4())
 
         assert result.status == "CANCELLED"
         mock_client.cancel_payment_intent.assert_called_once_with("pi_123")
@@ -153,10 +150,7 @@ class TestStripePaymentsService:
     @patch("stripe.PaymentIntent.confirm")
     def test_confirm_payment_test_card(self, mock_confirm, mock_db_session):
         """Test confirming payment with test card."""
-        intent = BookingIntent(
-            id=uuid.uuid4(),
-            stripe_payment_intent_id="pi_123"
-        )
+        intent = BookingIntent(id=uuid.uuid4(), stripe_payment_intent_id="pi_123")
         mock_db_session.query.return_value.filter.return_value.first.return_value = intent
 
         mock_pi = MagicMock()
@@ -175,17 +169,15 @@ class TestStripePaymentsService:
     @patch("src.services.stripe_payments_service.StripeClient")
     def test_refund_payment_success(self, mock_client, mock_db_session):
         """Test successful payment refund."""
-        intent = BookingIntent(
-            id=uuid.uuid4(),
-            status="CAPTURED",
-            stripe_charge_id="ch_123"
-        )
+        intent = BookingIntent(id=uuid.uuid4(), status="CAPTURED", stripe_charge_id="ch_123")
         mock_db_session.query.return_value.filter.return_value.first.return_value = intent
         mock_client.create_refund.return_value = MagicMock()
 
         result = StripePaymentsService.refund_payment(mock_db_session, intent.id, uuid.uuid4())
         assert result.status == "REFUNDED"
-        mock_client.create_refund.assert_called_once_with(charge_id="ch_123", amount=None, reason=None)
+        mock_client.create_refund.assert_called_once_with(
+            charge_id="ch_123", amount=None, reason=None
+        )
 
     def test_refund_payment_invalid_status(self, mock_db_session):
         """Test refund error when status is not CAPTURED."""

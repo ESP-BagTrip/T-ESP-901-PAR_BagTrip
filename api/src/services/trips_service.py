@@ -22,6 +22,7 @@ from src.models.trip_share import TripShare
 from src.models.user import User
 from src.utils.errors import AppError
 from src.utils.iata_timezone import resolve_timezone_from_iata
+from src.utils.logger import logger
 
 
 class TripsService:
@@ -477,44 +478,70 @@ class TripsService:
         db.commit()
 
         # Send TRIP_STARTED notifications for newly started trips
-        if starting_trips:
-            from src.services.notification_service import NotificationService
-
-            for trip in starting_trips:
-                try:
-                    recipients = NotificationService._get_trip_recipients(db, trip)
-                    NotificationService.create_and_send_bulk(
-                        db=db,
-                        user_ids=recipients,
-                        trip_id=trip.id,
-                        notif_type=NotificationType.TRIP_STARTED,
-                        title="Bon voyage !",
-                        body=f"Votre voyage « {trip.title or 'sans titre'} » commence aujourd'hui !",
-                        data={"screen": "tripHome", "tripId": str(trip.id)},
-                    )
-                except Exception:
-                    pass
+        for trip in starting_trips:
+            TripsService._dispatch_trip_notification(
+                db,
+                trip,
+                notif_type=NotificationType.TRIP_STARTED,
+                title="Bon voyage !",
+                body=f"Votre voyage « {trip.title or 'sans titre'} » commence aujourd'hui !",
+                data={"screen": "tripHome", "tripId": str(trip.id)},
+            )
 
         # Send TRIP_ENDED notifications for newly completed trips
-        if completing_trips:
-            from src.services.notification_service import NotificationService
-
-            for trip in completing_trips:
-                try:
-                    recipients = NotificationService._get_trip_recipients(db, trip)
-                    NotificationService.create_and_send_bulk(
-                        db=db,
-                        user_ids=recipients,
-                        trip_id=trip.id,
-                        notif_type=NotificationType.TRIP_ENDED,
-                        title="Voyage terminé !",
-                        body=f"Votre voyage « {trip.title or 'sans titre'} » est terminé. Partagez votre avis !",
-                        data={"screen": "feedback", "tripId": str(trip.id)},
-                    )
-                except Exception:
-                    pass
+        for trip in completing_trips:
+            TripsService._dispatch_trip_notification(
+                db,
+                trip,
+                notif_type=NotificationType.TRIP_ENDED,
+                title="Voyage terminé !",
+                body=(
+                    f"Votre voyage « {trip.title or 'sans titre'} » est terminé. "
+                    "Partagez votre avis !"
+                ),
+                data={"screen": "feedback", "tripId": str(trip.id)},
+            )
 
         return planned_to_ongoing, ongoing_to_completed
+
+    @staticmethod
+    def _dispatch_trip_notification(
+        db: Session,
+        trip: Trip,
+        *,
+        notif_type: NotificationType,
+        title: str,
+        body: str,
+        data: dict,
+    ) -> None:
+        """Fire-and-forget notification dispatch for trip lifecycle events.
+
+        Failures are logged but do not raise — the caller is a scheduled job that
+        must keep transitioning trips even when a single notification fails (bad
+        FCM token, notification service outage, etc.).
+        """
+        from src.services.notification_service import NotificationService
+
+        try:
+            recipients = NotificationService._get_trip_recipients(db, trip)
+            NotificationService.create_and_send_bulk(
+                db=db,
+                user_ids=recipients,
+                trip_id=trip.id,
+                notif_type=notif_type,
+                title=title,
+                body=body,
+                data=data,
+            )
+        except Exception as exc:
+            logger.error(
+                "Trip lifecycle notification dispatch failed",
+                {
+                    "trip_id": str(trip.id),
+                    "notif_type": notif_type.value,
+                    "error": str(exc),
+                },
+            )
 
     @staticmethod
     def delete_trip(db: Session, trip: Trip) -> None:

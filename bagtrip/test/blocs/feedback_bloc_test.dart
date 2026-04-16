@@ -11,11 +11,23 @@ import '../helpers/test_fixtures.dart';
 void main() {
   late MockFeedbackRepository mockFeedbackRepo;
   late MockAiRepository mockAiRepo;
+  late MockAuthRepository mockAuthRepo;
 
   setUp(() {
     mockFeedbackRepo = MockFeedbackRepository();
     mockAiRepo = MockAiRepository();
+    mockAuthRepo = MockAuthRepository();
+    // Default: premium user so post-trip suggestion isn't gated by the paywall.
+    when(
+      () => mockAuthRepo.getCurrentUser(),
+    ).thenAnswer((_) async => Success(makeUser(plan: 'PREMIUM')));
   });
+
+  FeedbackBloc buildBloc() => FeedbackBloc(
+    feedbackRepository: mockFeedbackRepo,
+    aiRepository: mockAiRepo,
+    authRepository: mockAuthRepo,
+  );
 
   group('FeedbackBloc', () {
     // ── LoadFeedbacks ───────────────────────────────────────────────────
@@ -26,10 +38,7 @@ void main() {
         when(
           () => mockFeedbackRepo.getFeedbacks(any()),
         ).thenAnswer((_) async => Success([makeTripFeedback()]));
-        return FeedbackBloc(
-          feedbackRepository: mockFeedbackRepo,
-          aiRepository: mockAiRepo,
-        );
+        return buildBloc();
       },
       act: (bloc) => bloc.add(LoadFeedbacks(tripId: 'trip-1')),
       expect: () => [isA<FeedbackLoading>(), isA<FeedbackLoaded>()],
@@ -47,10 +56,7 @@ void main() {
         when(
           () => mockFeedbackRepo.getFeedbacks(any()),
         ).thenAnswer((_) async => const Failure(NetworkError('err')));
-        return FeedbackBloc(
-          feedbackRepository: mockFeedbackRepo,
-          aiRepository: mockAiRepo,
-        );
+        return buildBloc();
       },
       act: (bloc) => bloc.add(LoadFeedbacks(tripId: 'trip-1')),
       expect: () => [isA<FeedbackLoading>(), isA<FeedbackError>()],
@@ -74,10 +80,7 @@ void main() {
         when(
           () => mockFeedbackRepo.getFeedbacks(any()),
         ).thenAnswer((_) async => Success([makeTripFeedback()]));
-        return FeedbackBloc(
-          feedbackRepository: mockFeedbackRepo,
-          aiRepository: mockAiRepo,
-        );
+        return buildBloc();
       },
       act: (bloc) => bloc.add(
         SubmitFeedback(tripId: 'trip-1', overallRating: 4, highlights: 'Great'),
@@ -119,10 +122,7 @@ void main() {
         when(
           () => mockFeedbackRepo.getFeedbacks(any()),
         ).thenAnswer((_) async => Success([makeTripFeedback()]));
-        return FeedbackBloc(
-          feedbackRepository: mockFeedbackRepo,
-          aiRepository: mockAiRepo,
-        );
+        return buildBloc();
       },
       act: (bloc) => bloc.add(
         SubmitFeedback(
@@ -166,10 +166,7 @@ void main() {
         when(
           () => mockFeedbackRepo.getFeedbacks(any()),
         ).thenAnswer((_) async => Success([makeTripFeedback()]));
-        return FeedbackBloc(
-          feedbackRepository: mockFeedbackRepo,
-          aiRepository: mockAiRepo,
-        );
+        return buildBloc();
       },
       act: (bloc) =>
           bloc.add(SubmitFeedback(tripId: 'trip-1', overallRating: 3)),
@@ -201,10 +198,7 @@ void main() {
             'suggestion': 'Try visiting Japan next!',
           }),
         );
-        return FeedbackBloc(
-          feedbackRepository: mockFeedbackRepo,
-          aiRepository: mockAiRepo,
-        );
+        return buildBloc();
       },
       act: (bloc) => bloc.add(RequestPostTripSuggestion()),
       expect: () => [
@@ -223,16 +217,28 @@ void main() {
         when(
           () => mockAiRepo.getPostTripSuggestion(),
         ).thenAnswer((_) async => const Failure(NetworkError('err')));
-        return FeedbackBloc(
-          feedbackRepository: mockFeedbackRepo,
-          aiRepository: mockAiRepo,
-        );
+        return buildBloc();
       },
       act: (bloc) => bloc.add(RequestPostTripSuggestion()),
       expect: () => [
         isA<PostTripSuggestionLoading>(),
         isA<PostTripSuggestionError>(),
       ],
+    );
+
+    blocTest<FeedbackBloc, FeedbackState>(
+      'emits PostTripSuggestionPremiumRequired when user is free',
+      build: () {
+        when(
+          () => mockAuthRepo.getCurrentUser(),
+        ).thenAnswer((_) async => Success(makeUser()));
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(RequestPostTripSuggestion()),
+      expect: () => [isA<PostTripSuggestionPremiumRequired>()],
+      verify: (_) {
+        verifyNever(() => mockAiRepo.getPostTripSuggestion());
+      },
     );
   });
 }

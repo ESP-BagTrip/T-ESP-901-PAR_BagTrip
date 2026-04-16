@@ -25,10 +25,12 @@ def mock_db_connection():
 def client():
     """Provide a test client for the app."""
     # We need to mock lifespan migrations as they run on startup
-    with patch("src.migrations.migrate_trips_table.migrate_trips_table"), \
-         patch("src.services.stripe_products_service.StripeProductsService.initialize_products"), \
-         patch("src.seeds.create_admin.create_default_admin"), \
-         TestClient(app, raise_server_exceptions=False) as client:
+    with (
+        patch("src.migrations.migrate_trips_table.migrate_trips_table"),
+        patch("src.services.stripe_products_service.StripeProductsService.initialize_products"),
+        patch("src.seeds.create_admin.create_default_admin"),
+        TestClient(app, raise_server_exceptions=False) as client,
+    ):
         # raise_server_exceptions=False allows testing 500 responses
         yield client
 
@@ -54,6 +56,7 @@ class TestExceptionHandlers:
 
     def test_app_error_handler(self, client):
         """Test handling of AppError."""
+
         # Define a route that raises AppError
         @app.get("/test-app-error")
         def raise_app_error():
@@ -66,18 +69,38 @@ class TestExceptionHandlers:
         assert data["detail"]["error"] == "Test error message"
         assert data["detail"]["foo"] == "bar"
 
-    def test_app_error_handler_debug_logging(self, client):
-        """Test AppError logging in DEBUG mode."""
+    def test_app_error_handler_debug_logging(self):
+        """Test AppError logging in DEBUG mode.
+
+        This test used to be order-dependent because it added a route to the
+        shared `src.main.app` instance — other tests mutating the same app
+        (or the logger's patch stack) could break it. We build a **local**
+        FastAPI app with only the handler + one route under test so the
+        assertion is self-contained.
+        """
+        from fastapi import FastAPI
+        from fastapi.responses import JSONResponse
+
+        from src.main import app_error_handler  # same handler registered in main.app
+
+        # Fresh app, no other routes to collide with.
+        local_app = FastAPI()
+        local_app.add_exception_handler(AppError, app_error_handler)
+
+        @local_app.get("/test-app-error-debug")
+        def raise_app_error_debug():
+            raise AppError("TEST_ERROR", 400, "Test error message")
+
+        # Need JSONResponse in the namespace to silence F401 on import — the
+        # handler itself re-imports it. Keep the reference to satisfy ruff.
+        _ = JSONResponse
+
         original_level = logger.level
         logger.level = LogLevel.DEBUG
-
         try:
             with patch.object(logger, "error") as mock_log:
-                @app.get("/test-app-error-debug")
-                def raise_app_error_debug():
-                    raise AppError("TEST_ERROR", 400, "Test error message")
-
-                client.get("/test-app-error-debug")
+                with TestClient(local_app, raise_server_exceptions=False) as local_client:
+                    local_client.get("/test-app-error-debug")
                 mock_log.assert_called()
                 args, _ = mock_log.call_args
                 assert "AppError: TEST_ERROR" in args[0]
@@ -86,6 +109,7 @@ class TestExceptionHandlers:
 
     def test_general_exception_handler(self, client):
         """Test handling of generic Exception."""
+
         @app.get("/test-general-error")
         def raise_general_error():
             raise ValueError("Something went wrong")
@@ -94,7 +118,10 @@ class TestExceptionHandlers:
         with patch.object(logger, "level", LogLevel.INFO):
             response = client.get("/test-general-error")
             assert response.status_code == 500
-            assert response.json() == {"error": "Internal server error", "detail": "Something went wrong"}
+            assert response.json() == {
+                "error": "Internal server error",
+                "detail": "Something went wrong",
+            }
 
     def test_general_exception_handler_debug(self, client):
         """Test handling of generic Exception in DEBUG mode."""
@@ -102,6 +129,7 @@ class TestExceptionHandlers:
         logger.level = LogLevel.DEBUG
 
         try:
+
             @app.get("/test-general-error-debug")
             def raise_general_error_debug():
                 raise ValueError("Debug error")
@@ -125,11 +153,14 @@ class TestLifespan:
         """Test successful startup and shutdown."""
         app_mock = MagicMock()
 
-        with patch("src.main.check_database_connection") as mock_check_db, \
-             patch("src.migrations.migrate_trips_table.migrate_trips_table") as mock_migrate_trips, \
-             patch("src.services.stripe_products_service.StripeProductsService.initialize_products") as mock_stripe_init, \
-             patch("src.seeds.create_admin.create_default_admin") as mock_create_admin:
-
+        with (
+            patch("src.main.check_database_connection") as mock_check_db,
+            patch("src.migrations.migrate_trips_table.migrate_trips_table") as mock_migrate_trips,
+            patch(
+                "src.services.stripe_products_service.StripeProductsService.initialize_products"
+            ) as mock_stripe_init,
+            patch("src.seeds.create_admin.create_default_admin") as mock_create_admin,
+        ):
             async with lifespan(app_mock):
                 pass
 
@@ -143,11 +174,21 @@ class TestLifespan:
         """Test lifespan handles migration errors gracefully."""
         app_mock = MagicMock()
 
-        with patch("src.main.check_database_connection"), \
-             patch("src.migrations.migrate_trips_table.migrate_trips_table", side_effect=Exception("Trips migration failed")), \
-             patch("src.services.stripe_products_service.StripeProductsService.initialize_products", side_effect=Exception("Stripe init failed")), \
-             patch("src.seeds.create_admin.create_default_admin", side_effect=Exception("Admin seed failed")):
-
+        with (
+            patch("src.main.check_database_connection"),
+            patch(
+                "src.migrations.migrate_trips_table.migrate_trips_table",
+                side_effect=Exception("Trips migration failed"),
+            ),
+            patch(
+                "src.services.stripe_products_service.StripeProductsService.initialize_products",
+                side_effect=Exception("Stripe init failed"),
+            ),
+            patch(
+                "src.seeds.create_admin.create_default_admin",
+                side_effect=Exception("Admin seed failed"),
+            ),
+        ):
             # Should not raise exception
             async with lifespan(app_mock):
                 pass
@@ -163,9 +204,11 @@ class TestMainBlock:
 
             from src.config.env import settings
 
-            with patch.object(sys, 'argv', ["main.py"]), \
-                 patch("src.main.app", MagicMock()), \
-                 contextlib.suppress(SystemExit):
+            with (
+                patch.object(sys, "argv", ["main.py"]),
+                patch("src.main.app", MagicMock()),
+                contextlib.suppress(SystemExit),
+            ):
                 # Mock app to avoid side effects during re-import
                 runpy.run_module("src.main", run_name="__main__")
 

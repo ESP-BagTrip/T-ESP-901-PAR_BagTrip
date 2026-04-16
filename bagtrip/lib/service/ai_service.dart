@@ -14,9 +14,11 @@ class AiRepositoryImpl implements AiRepository {
   final ApiClient _apiClient;
   final StorageService _storageService;
 
-  AiRepositoryImpl({ApiClient? apiClient, StorageService? storageService})
-    : _apiClient = apiClient ?? ApiClient(),
-      _storageService = storageService ?? StorageService();
+  AiRepositoryImpl({
+    required ApiClient apiClient,
+    required StorageService storageService,
+  }) : _apiClient = apiClient,
+       _storageService = storageService;
 
   @override
   Future<Result<List<Map<String, dynamic>>>> getInspiration({
@@ -60,6 +62,7 @@ class AiRepositoryImpl implements AiRepository {
     String? startDate,
     String? endDate,
     String? dateMode,
+    String? originCity,
   }) async {
     try {
       final response = await _apiClient.post(
@@ -69,6 +72,7 @@ class AiRepositoryImpl implements AiRepository {
           if (startDate != null) 'startDate': startDate,
           if (endDate != null) 'endDate': endDate,
           if (dateMode != null) 'dateMode': dateMode,
+          if (originCity != null) 'originCity': originCity,
         },
       );
       if (response.statusCode == 200) {

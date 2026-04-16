@@ -1,799 +1,89 @@
-"""Service pour les opérations admin (sans filtrage par utilisateur)."""
+"""Backward-compat facade — delegates to the split admin sub-services.
 
-import csv
-import io
-from math import ceil
+Historically `AdminService` was a god-object (~990 LoC). The implementation now
+lives in `src/services/admin/` split by domain (users, trips, bookings,
+content, notifications, stats); this module keeps the public surface area
+alive so routes and tests don't need a bulk rename.
+"""
 
-from sqlalchemy import func
-from sqlalchemy.orm import Session
+from src.services.admin.bookings import AdminBookingsService
+from src.services.admin.content import AdminContentService
+from src.services.admin.notifications import AdminNotificationsService
+from src.services.admin.stats import AdminStatsService
+from src.services.admin.trips import AdminTripsService
+from src.services.admin.users import AdminUsersService
 
-from src.models.accommodation import Accommodation
-from src.models.activity import Activity
-from src.models.baggage_item import BaggageItem
-from src.models.booking_intent import BookingIntent
-from src.models.budget_item import BudgetItem
-from src.models.feedback import Feedback
-from src.models.flight_order import FlightOrder
-from src.models.flight_search import FlightSearch
-from src.models.notification import Notification
-from src.models.traveler import TripTraveler
-from src.models.traveler_profile import TravelerProfile
-from src.models.trip import Trip
-from src.models.trip_share import TripShare
-from src.models.user import User
-from src.utils.errors import AppError
+__all__ = [
+    "AdminBookingsService",
+    "AdminContentService",
+    "AdminNotificationsService",
+    "AdminService",
+    "AdminStatsService",
+    "AdminTripsService",
+    "AdminUsersService",
+]
 
 
 class AdminService:
-    """Service pour les opérations admin."""
-
-    @staticmethod
-    def get_all_users(db: Session, page: int = 1, limit: int = 10) -> tuple[list[dict], int, int]:
-        """
-        Récupérer tous les utilisateurs.
-        Retourne (items, total, total_pages).
-        """
-        # Calculer l'offset
-        offset = (page - 1) * limit
-
-        # Requête pour obtenir tous les utilisateurs
-        query = db.query(User).order_by(User.created_at.desc())
-
-        # Compter le total
-        total = query.count()
-
-        # Paginer
-        users = query.offset(offset).limit(limit).all()
-
-        # Construire les items
-        items = []
-        for user in users:
-            items.append(
-                {
-                    "id": user.id,
-                    "email": user.email,
-                    "plan": user.plan or "FREE",
-                    "created_at": user.created_at,
-                    "updated_at": user.updated_at,
-                }
-            )
-
-        total_pages = ceil(total / limit) if limit > 0 else 0
-        return items, total, total_pages
-
-    @staticmethod
-    def get_all_trips(db: Session, page: int = 1, limit: int = 10) -> tuple[list[dict], int, int]:
-        """
-        Récupérer tous les trips avec informations utilisateur.
-        Retourne (items, total, total_pages).
-        """
-        # Calculer l'offset
-        offset = (page - 1) * limit
-
-        # Requête avec join pour obtenir l'email de l'utilisateur
-        query = (
-            db.query(
-                Trip,
-                User.email.label("user_email"),
-            )
-            .join(User, Trip.user_id == User.id)
-            .order_by(Trip.created_at.desc())
-        )
-
-        # Compter le total
-        total = query.count()
-
-        # Paginer
-        results = query.offset(offset).limit(limit).all()
-
-        # Construire les items
-        items = []
-        for trip, user_email in results:
-            items.append(
-                {
-                    "id": trip.id,
-                    "user_id": trip.user_id,
-                    "user_email": user_email,
-                    "title": trip.title,
-                    "origin_iata": trip.origin_iata,
-                    "destination_iata": trip.destination_iata,
-                    "start_date": trip.start_date,
-                    "end_date": trip.end_date,
-                    "status": trip.status,
-                    "budget_total": trip.budget_total,
-                    "origin": trip.origin,
-                    "created_at": trip.created_at,
-                    "updated_at": trip.updated_at,
-                }
-            )
-
-        total_pages = ceil(total / limit) if limit > 0 else 0
-        return items, total, total_pages
-
-    @staticmethod
-    def get_all_travelers(
-        db: Session, page: int = 1, limit: int = 10
-    ) -> tuple[list[dict], int, int]:
-        """
-        Récupérer tous les travelers avec informations trip et utilisateur.
-        Retourne (items, total, total_pages).
-        """
-        # Calculer l'offset
-        offset = (page - 1) * limit
-
-        # Requête avec joins pour obtenir trip title et user email
-        query = (
-            db.query(
-                TripTraveler,
-                Trip.title.label("trip_title"),
-                User.email.label("user_email"),
-            )
-            .join(Trip, TripTraveler.trip_id == Trip.id)
-            .join(User, Trip.user_id == User.id)
-            .order_by(TripTraveler.created_at.desc())
-        )
-
-        # Compter le total
-        total = query.count()
-
-        # Paginer
-        results = query.offset(offset).limit(limit).all()
-
-        # Construire les items
-        items = []
-        for traveler, trip_title, user_email in results:
-            items.append(
-                {
-                    "id": traveler.id,
-                    "trip_id": traveler.trip_id,
-                    "trip_title": trip_title,
-                    "user_email": user_email,
-                    "amadeus_traveler_ref": traveler.amadeus_traveler_ref,
-                    "traveler_type": traveler.traveler_type,
-                    "first_name": traveler.first_name,
-                    "last_name": traveler.last_name,
-                    "date_of_birth": traveler.date_of_birth,
-                    "gender": traveler.gender,
-                    "created_at": traveler.created_at,
-                    "updated_at": traveler.updated_at,
-                }
-            )
-
-        total_pages = ceil(total / limit) if limit > 0 else 0
-        return items, total, total_pages
-
-    @staticmethod
-    def get_all_flight_bookings(
-        db: Session, page: int = 1, limit: int = 10
-    ) -> tuple[list[dict], int, int]:
-        """
-        Récupérer toutes les flight bookings avec informations trip et utilisateur.
-        Retourne (items, total, total_pages).
-        """
-        # Calculer l'offset
-        offset = (page - 1) * limit
-
-        # Requête avec joins pour obtenir trip title et user email
-        query = (
-            db.query(
-                FlightOrder,
-                Trip.title.label("trip_title"),
-                User.email.label("user_email"),
-            )
-            .join(Trip, FlightOrder.trip_id == Trip.id)
-            .join(User, Trip.user_id == User.id)
-            .order_by(FlightOrder.created_at.desc())
-        )
-
-        # Compter le total
-        total = query.count()
-
-        # Paginer
-        results = query.offset(offset).limit(limit).all()
-
-        # Construire les items
-        items = []
-        for order, trip_title, user_email in results:
-            items.append(
-                {
-                    "id": order.id,
-                    "trip_id": order.trip_id,
-                    "trip_title": trip_title,
-                    "user_email": user_email,
-                    "flight_offer_id": order.flight_offer_id,
-                    "booking_intent_id": order.booking_intent_id,
-                    "amadeus_flight_order_id": order.amadeus_flight_order_id,
-                    "status": order.status,
-                    "booking_reference": order.booking_reference,
-                    "created_at": order.created_at,
-                    "updated_at": order.updated_at,
-                }
-            )
-
-        total_pages = ceil(total / limit) if limit > 0 else 0
-        return items, total, total_pages
-
-    @staticmethod
-    def get_all_traveler_profiles(
-        db: Session, page: int = 1, limit: int = 10
-    ) -> tuple[list[dict], int, int]:
-        """
-        Récupérer tous les profils voyageurs avec informations utilisateur.
-        Retourne (items, total, total_pages).
-        """
-        offset = (page - 1) * limit
-
-        query = (
-            db.query(
-                TravelerProfile,
-                User.email.label("user_email"),
-            )
-            .join(User, TravelerProfile.user_id == User.id)
-            .order_by(TravelerProfile.created_at.desc())
-        )
-
-        total = query.count()
-        results = query.offset(offset).limit(limit).all()
-
-        items = []
-        for profile, user_email in results:
-            items.append(
-                {
-                    "id": profile.id,
-                    "user_id": profile.user_id,
-                    "user_email": user_email,
-                    "travel_types": profile.travel_types,
-                    "travel_style": profile.travel_style,
-                    "budget": profile.budget,
-                    "companions": profile.companions,
-                    "is_completed": profile.is_completed,
-                    "created_at": profile.created_at,
-                    "updated_at": profile.updated_at,
-                }
-            )
-
-        total_pages = ceil(total / limit) if limit > 0 else 0
-        return items, total, total_pages
-
-    @staticmethod
-    def get_all_booking_intents(
-        db: Session, page: int = 1, limit: int = 10
-    ) -> tuple[list[dict], int, int]:
-        """
-        Récupérer tous les booking intents avec informations trip et utilisateur.
-        Retourne (items, total, total_pages).
-        """
-        offset = (page - 1) * limit
-
-        query = (
-            db.query(
-                BookingIntent,
-                Trip.title.label("trip_title"),
-                User.email.label("user_email"),
-            )
-            .join(Trip, BookingIntent.trip_id == Trip.id)
-            .join(User, BookingIntent.user_id == User.id)
-            .order_by(BookingIntent.created_at.desc())
-        )
-
-        total = query.count()
-        results = query.offset(offset).limit(limit).all()
-
-        items = []
-        for intent, trip_title, user_email in results:
-            items.append(
-                {
-                    "id": intent.id,
-                    "user_id": intent.user_id,
-                    "user_email": user_email,
-                    "trip_id": intent.trip_id,
-                    "trip_title": trip_title,
-                    "type": intent.type,
-                    "status": intent.status,
-                    "amount": float(intent.amount),
-                    "currency": intent.currency,
-                    "stripe_payment_intent_id": intent.stripe_payment_intent_id,
-                    "created_at": intent.created_at,
-                    "updated_at": intent.updated_at,
-                }
-            )
-
-        total_pages = ceil(total / limit) if limit > 0 else 0
-        return items, total, total_pages
-
-    @staticmethod
-    def get_all_accommodations(
-        db: Session, page: int = 1, limit: int = 10
-    ) -> tuple[list[dict], int, int]:
-        """
-        Récupérer tous les hébergements avec informations trip et utilisateur.
-        Retourne (items, total, total_pages).
-        """
-        offset = (page - 1) * limit
-
-        query = (
-            db.query(
-                Accommodation,
-                Trip.title.label("trip_title"),
-                User.email.label("user_email"),
-            )
-            .join(Trip, Accommodation.trip_id == Trip.id)
-            .join(User, Trip.user_id == User.id)
-            .order_by(Accommodation.created_at.desc())
-        )
-
-        total = query.count()
-        results = query.offset(offset).limit(limit).all()
-
-        items = []
-        for accommodation, trip_title, user_email in results:
-            items.append(
-                {
-                    "id": accommodation.id,
-                    "trip_id": accommodation.trip_id,
-                    "trip_title": trip_title,
-                    "user_email": user_email,
-                    "name": accommodation.name,
-                    "address": accommodation.address,
-                    "check_in": accommodation.check_in,
-                    "check_out": accommodation.check_out,
-                    "price_per_night": float(accommodation.price_per_night)
-                    if accommodation.price_per_night
-                    else None,
-                    "currency": accommodation.currency,
-                    "booking_reference": accommodation.booking_reference,
-                    "created_at": accommodation.created_at,
-                    "updated_at": accommodation.updated_at,
-                }
-            )
-
-        total_pages = ceil(total / limit) if limit > 0 else 0
-        return items, total, total_pages
-
-    @staticmethod
-    def get_all_baggage_items(
-        db: Session, page: int = 1, limit: int = 10
-    ) -> tuple[list[dict], int, int]:
-        """
-        Récupérer tous les éléments de bagage avec informations trip et utilisateur.
-        Retourne (items, total, total_pages).
-        """
-        offset = (page - 1) * limit
-
-        query = (
-            db.query(
-                BaggageItem,
-                Trip.title.label("trip_title"),
-                User.email.label("user_email"),
-            )
-            .join(Trip, BaggageItem.trip_id == Trip.id)
-            .join(User, Trip.user_id == User.id)
-            .order_by(BaggageItem.created_at.desc())
-        )
-
-        total = query.count()
-        results = query.offset(offset).limit(limit).all()
-
-        items = []
-        for baggage_item, trip_title, user_email in results:
-            items.append(
-                {
-                    "id": baggage_item.id,
-                    "trip_id": baggage_item.trip_id,
-                    "trip_title": trip_title,
-                    "user_email": user_email,
-                    "name": baggage_item.name,
-                    "category": baggage_item.category,
-                    "quantity": baggage_item.quantity,
-                    "is_packed": baggage_item.is_packed,
-                    "created_at": baggage_item.created_at,
-                    "updated_at": baggage_item.updated_at,
-                }
-            )
-
-        total_pages = ceil(total / limit) if limit > 0 else 0
-        return items, total, total_pages
-
-    @staticmethod
-    def get_all_activities(
-        db: Session, page: int = 1, limit: int = 10
-    ) -> tuple[list[dict], int, int]:
-        """
-        Récupérer toutes les activités avec informations trip et utilisateur.
-        Retourne (items, total, total_pages).
-        """
-        offset = (page - 1) * limit
-
-        query = (
-            db.query(
-                Activity,
-                Trip.title.label("trip_title"),
-                User.email.label("user_email"),
-            )
-            .join(Trip, Activity.trip_id == Trip.id)
-            .join(User, Trip.user_id == User.id)
-            .order_by(Activity.created_at.desc())
-        )
-
-        total = query.count()
-        results = query.offset(offset).limit(limit).all()
-
-        items = []
-        for activity, trip_title, user_email in results:
-            items.append(
-                {
-                    "id": activity.id,
-                    "trip_id": activity.trip_id,
-                    "trip_title": trip_title,
-                    "user_email": user_email,
-                    "title": activity.title,
-                    "description": activity.description,
-                    "date": activity.date,
-                    "start_time": activity.start_time,
-                    "end_time": activity.end_time,
-                    "location": activity.location,
-                    "category": activity.category,
-                    "estimated_cost": float(activity.estimated_cost)
-                    if activity.estimated_cost
-                    else None,
-                    "is_booked": activity.is_booked,
-                    "created_at": activity.created_at,
-                    "updated_at": activity.updated_at,
-                }
-            )
-
-        total_pages = ceil(total / limit) if limit > 0 else 0
-        return items, total, total_pages
-
-    @staticmethod
-    def get_all_budget_items(
-        db: Session, page: int = 1, limit: int = 10
-    ) -> tuple[list[dict], int, int]:
-        """
-        Récupérer tous les budget items avec informations trip et utilisateur.
-        Retourne (items, total, total_pages).
-        """
-        offset = (page - 1) * limit
-
-        query = (
-            db.query(
-                BudgetItem,
-                Trip.title.label("trip_title"),
-                User.email.label("user_email"),
-            )
-            .join(Trip, BudgetItem.trip_id == Trip.id)
-            .join(User, Trip.user_id == User.id)
-            .order_by(BudgetItem.created_at.desc())
-        )
-
-        total = query.count()
-        results = query.offset(offset).limit(limit).all()
-
-        items = []
-        for budget_item, trip_title, user_email in results:
-            items.append(
-                {
-                    "id": budget_item.id,
-                    "trip_id": budget_item.trip_id,
-                    "trip_title": trip_title,
-                    "user_email": user_email,
-                    "label": budget_item.label,
-                    "amount": float(budget_item.amount),
-                    "category": budget_item.category,
-                    "date": budget_item.date,
-                    "is_planned": budget_item.is_planned,
-                    "created_at": budget_item.created_at,
-                    "updated_at": budget_item.updated_at,
-                }
-            )
-
-        total_pages = ceil(total / limit) if limit > 0 else 0
-        return items, total, total_pages
-
-    @staticmethod
-    def get_all_trip_shares(
-        db: Session, page: int = 1, limit: int = 10
-    ) -> tuple[list[dict], int, int]:
-        """Récupérer tous les partages de trips."""
-        offset = (page - 1) * limit
-
-        query = (
-            db.query(
-                TripShare,
-                Trip.title.label("trip_title"),
-                User.email.label("owner_email"),
-            )
-            .join(Trip, TripShare.trip_id == Trip.id)
-            .join(User, TripShare.user_id == User.id)
-            .order_by(TripShare.invited_at.desc())
-        )
-
-        total = query.count()
-        results = query.offset(offset).limit(limit).all()
-
-        items = []
-        for share, trip_title, user_email in results:
-            items.append(
-                {
-                    "id": share.id,
-                    "trip_id": share.trip_id,
-                    "trip_title": trip_title,
-                    "user_id": share.user_id,
-                    "user_email": user_email,
-                    "role": share.role,
-                    "invited_at": share.invited_at,
-                }
-            )
-
-        total_pages = ceil(total / limit) if limit > 0 else 0
-        return items, total, total_pages
-
-    @staticmethod
-    def get_all_feedbacks(
-        db: Session, page: int = 1, limit: int = 10
-    ) -> tuple[list[dict], int, int]:
-        """Récupérer tous les feedbacks."""
-        offset = (page - 1) * limit
-
-        query = (
-            db.query(
-                Feedback,
-                Trip.title.label("trip_title"),
-                User.email.label("user_email"),
-            )
-            .join(Trip, Feedback.trip_id == Trip.id)
-            .join(User, Feedback.user_id == User.id)
-            .order_by(Feedback.created_at.desc())
-        )
-
-        total = query.count()
-        results = query.offset(offset).limit(limit).all()
-
-        items = []
-        for feedback, trip_title, user_email in results:
-            items.append(
-                {
-                    "id": feedback.id,
-                    "trip_id": feedback.trip_id,
-                    "trip_title": trip_title,
-                    "user_id": feedback.user_id,
-                    "user_email": user_email,
-                    "overall_rating": feedback.overall_rating,
-                    "highlights": feedback.highlights,
-                    "lowlights": feedback.lowlights,
-                    "would_recommend": feedback.would_recommend,
-                    "created_at": feedback.created_at,
-                }
-            )
-
-        total_pages = ceil(total / limit) if limit > 0 else 0
-        return items, total, total_pages
-
-    @staticmethod
-    def delete_feedback(db: Session, feedback_id) -> None:
-        """Supprimer un feedback."""
-        from src.models.feedback import Feedback as FeedbackModel
-
-        feedback = db.query(FeedbackModel).filter(FeedbackModel.id == feedback_id).first()
-        if not feedback:
-            raise AppError("FEEDBACK_NOT_FOUND", 404, "Feedback not found")
-        db.delete(feedback)
-        db.commit()
-
-    @staticmethod
-    def update_user_plan(db: Session, user_id, plan: str) -> None:
-        """Update a user's plan."""
-        user = db.query(User).filter(User.id == user_id).first()
-        if not user:
-            raise AppError("USER_NOT_FOUND", 404, "User not found")
-        if plan not in ("FREE", "PREMIUM", "ADMIN"):
-            raise AppError("INVALID_PLAN", 400, "Plan must be FREE, PREMIUM or ADMIN")
-        user.plan = plan
-        db.commit()
-
-    @staticmethod
-    def get_all_notifications(
-        db: Session, page: int = 1, limit: int = 10
-    ) -> tuple[list[dict], int, int]:
-        """Récupérer toutes les notifications avec informations utilisateur et trip."""
-        offset = (page - 1) * limit
-
-        query = (
-            db.query(
-                Notification,
-                User.email.label("user_email"),
-                Trip.title.label("trip_title"),
-            )
-            .join(User, Notification.user_id == User.id)
-            .outerjoin(Trip, Notification.trip_id == Trip.id)
-            .order_by(Notification.created_at.desc())
-        )
-
-        total = query.count()
-        results = query.offset(offset).limit(limit).all()
-
-        items = []
-        for notif, user_email, trip_title in results:
-            items.append(
-                {
-                    "id": notif.id,
-                    "user_id": notif.user_id,
-                    "user_email": user_email,
-                    "trip_id": notif.trip_id,
-                    "trip_title": trip_title,
-                    "type": notif.type,
-                    "title": notif.title,
-                    "body": notif.body,
-                    "is_read": notif.is_read,
-                    "sent_at": notif.sent_at,
-                    "created_at": notif.created_at,
-                }
-            )
-
-        total_pages = ceil(total / limit) if limit > 0 else 0
-        return items, total, total_pages
-
-    @staticmethod
-    def get_all_flight_searches(
-        db: Session, page: int = 1, limit: int = 10
-    ) -> tuple[list[dict], int, int]:
-        """
-        Récupérer toutes les recherches de vols avec informations trip.
-        Retourne (items, total, total_pages).
-        """
-        offset = (page - 1) * limit
-
-        query = (
-            db.query(
-                FlightSearch,
-                Trip.title.label("trip_title"),
-            )
-            .join(Trip, FlightSearch.trip_id == Trip.id)
-            .order_by(FlightSearch.created_at.desc())
-        )
-
-        total = query.count()
-        results = query.offset(offset).limit(limit).all()
-
-        items = []
-        for search, trip_title in results:
-            items.append(
-                {
-                    "id": search.id,
-                    "trip_id": search.trip_id,
-                    "trip_title": trip_title,
-                    "origin_iata": search.origin_iata,
-                    "destination_iata": search.destination_iata,
-                    "departure_date": search.departure_date,
-                    "return_date": search.return_date,
-                    "adults": search.adults,
-                    "children": search.children,
-                    "travel_class": search.travel_class,
-                    "created_at": search.created_at,
-                }
-            )
-
-        total_pages = ceil(total / limit) if limit > 0 else 0
-        return items, total, total_pages
-
-    @staticmethod
-    def export_users_csv(db: Session) -> str:
-        """Export all users as CSV string."""
-        users = db.query(User).order_by(User.created_at.desc()).all()
-        output = io.StringIO()
-        writer = csv.writer(output)
-        writer.writerow(["id", "email", "plan", "created_at", "updated_at"])
-        for user in users:
-            writer.writerow(
-                [
-                    str(user.id),
-                    user.email,
-                    user.plan or "FREE",
-                    user.created_at.isoformat() if user.created_at else "",
-                    user.updated_at.isoformat() if user.updated_at else "",
-                ]
-            )
-        return output.getvalue()
-
-    @staticmethod
-    def get_dashboard_metrics(db: Session) -> dict:
-        """Get dashboard KPI metrics."""
-        total_users = db.query(func.count(User.id)).scalar() or 0
-
-        active_users = db.query(func.count(func.distinct(Trip.user_id))).scalar() or 0
-        inactive_users = total_users - active_users
-
-        total_trips = db.query(func.count(Trip.id)).scalar() or 0
-
-        total_revenue = (
-            db.query(func.coalesce(func.sum(BookingIntent.amount), 0))
-            .filter(BookingIntent.status == "CAPTURED")
-            .scalar()
-        )
-
-        total_feedbacks = db.query(func.count(Feedback.id)).scalar() or 0
-        pending_feedbacks = total_feedbacks
-
-        avg_rating = db.query(func.avg(Feedback.overall_rating)).scalar()
-
-        return {
-            "totalUsers": total_users,
-            "activeUsers": active_users,
-            "inactiveUsers": inactive_users,
-            "totalTrips": total_trips,
-            "totalRevenue": float(total_revenue),
-            "totalFeedbacks": total_feedbacks,
-            "pendingFeedbacks": pending_feedbacks,
-            "averageRating": round(float(avg_rating), 1) if avg_rating else 0,
-        }
-
-    @staticmethod
-    def get_users_chart(db: Session, period: str = "month") -> list[dict]:
-        """User registrations grouped by period."""
-        if period == "week":
-            trunc = func.date_trunc("day", User.created_at)
-        elif period == "year":
-            trunc = func.date_trunc("month", User.created_at)
-        else:
-            trunc = func.date_trunc("week", User.created_at)
-
-        rows = (
-            db.query(trunc.label("date"), func.count(User.id).label("value"))
-            .group_by(trunc)
-            .order_by(trunc)
-            .all()
-        )
-        return [
-            {
-                "name": row.date.strftime("%Y-%m-%d"),
-                "value": row.value,
-                "date": row.date.strftime("%Y-%m-%d"),
-            }
-            for row in rows
-        ]
-
-    @staticmethod
-    def get_revenue_chart(db: Session, period: str = "month") -> list[dict]:
-        """Revenue grouped by period (captured booking intents)."""
-        if period == "week":
-            trunc = func.date_trunc("day", BookingIntent.created_at)
-        elif period == "year":
-            trunc = func.date_trunc("month", BookingIntent.created_at)
-        else:
-            trunc = func.date_trunc("week", BookingIntent.created_at)
-
-        rows = (
-            db.query(
-                trunc.label("date"),
-                func.coalesce(func.sum(BookingIntent.amount), 0).label("value"),
-            )
-            .filter(BookingIntent.status == "CAPTURED")
-            .group_by(trunc)
-            .order_by(trunc)
-            .all()
-        )
-        return [
-            {
-                "name": row.date.strftime("%Y-%m-%d"),
-                "value": float(row.value),
-                "date": row.date.strftime("%Y-%m-%d"),
-            }
-            for row in rows
-        ]
-
-    @staticmethod
-    def get_feedbacks_chart(db: Session) -> list[dict]:
-        """Feedbacks count grouped by rating."""
-        rows = (
-            db.query(
-                Feedback.overall_rating.label("rating"),
-                func.count(Feedback.id).label("count"),
-            )
-            .group_by(Feedback.overall_rating)
-            .order_by(Feedback.overall_rating)
-            .all()
-        )
-        return [
-            {"name": f"{row.rating} étoile{'s' if row.rating > 1 else ''}", "value": row.count}
-            for row in rows
-        ]
+    """Facade over the split admin services — DO NOT add new methods here.
+
+    New admin features belong to the relevant sub-service under
+    `src/services/admin/`. This facade only preserves the historical public
+    surface to avoid touching every admin route + test in a single PR.
+    """
+
+    # ──────────────────────── Users ────────────────────────
+    get_all_users = staticmethod(AdminUsersService.get_all_users)
+    get_all_traveler_profiles = staticmethod(AdminUsersService.get_all_traveler_profiles)
+    update_user_plan = staticmethod(AdminUsersService.update_user_plan)
+    get_user_detail = staticmethod(AdminUsersService.get_user_detail)
+    update_user = staticmethod(AdminUsersService.update_user)
+    reset_ai_quota = staticmethod(AdminUsersService.reset_ai_quota)
+    ban_user = staticmethod(AdminUsersService.ban_user)
+    unban_user = staticmethod(AdminUsersService.unban_user)
+    delete_user = staticmethod(AdminUsersService.delete_user)
+    bulk_update_plan = staticmethod(AdminUsersService.bulk_update_plan)
+    bulk_ban = staticmethod(AdminUsersService.bulk_ban)
+    export_users_csv = staticmethod(AdminUsersService.export_users_csv)
+
+    # ──────────────────────── Trips ────────────────────────
+    get_all_trips = staticmethod(AdminTripsService.get_all_trips)
+    get_all_travelers = staticmethod(AdminTripsService.get_all_travelers)
+    get_all_trip_shares = staticmethod(AdminTripsService.get_all_trip_shares)
+    get_all_feedbacks = staticmethod(AdminTripsService.get_all_feedbacks)
+    delete_feedback = staticmethod(AdminTripsService.delete_feedback)
+    get_trip_detail = staticmethod(AdminTripsService.get_trip_detail)
+    update_trip = staticmethod(AdminTripsService.update_trip)
+    delete_trip = staticmethod(AdminTripsService.delete_trip)
+    archive_trip = staticmethod(AdminTripsService.archive_trip)
+    delete_share = staticmethod(AdminTripsService.delete_share)
+
+    # ──────────────────────── Bookings ────────────────────────
+    get_all_flight_bookings = staticmethod(AdminBookingsService.get_all_flight_bookings)
+    get_all_booking_intents = staticmethod(AdminBookingsService.get_all_booking_intents)
+    get_all_flight_searches = staticmethod(AdminBookingsService.get_all_flight_searches)
+    get_booking_intent_detail = staticmethod(AdminBookingsService.get_booking_intent_detail)
+    force_booking_status = staticmethod(AdminBookingsService.force_booking_status)
+
+    # ──────────────────────── Content ────────────────────────
+    get_all_accommodations = staticmethod(AdminContentService.get_all_accommodations)
+    get_all_baggage_items = staticmethod(AdminContentService.get_all_baggage_items)
+    get_all_activities = staticmethod(AdminContentService.get_all_activities)
+    get_all_budget_items = staticmethod(AdminContentService.get_all_budget_items)
+    create_activity = staticmethod(AdminContentService.create_activity)
+    update_activity = staticmethod(AdminContentService.update_activity)
+    delete_activity = staticmethod(AdminContentService.delete_activity)
+    create_accommodation = staticmethod(AdminContentService.create_accommodation)
+    update_accommodation = staticmethod(AdminContentService.update_accommodation)
+    delete_accommodation = staticmethod(AdminContentService.delete_accommodation)
+    delete_budget_item = staticmethod(AdminContentService.delete_budget_item)
+    delete_baggage_item = staticmethod(AdminContentService.delete_baggage_item)
+
+    # ──────────────────────── Notifications ────────────────────────
+    get_all_notifications = staticmethod(AdminNotificationsService.get_all_notifications)
+
+    # ──────────────────────── Stats / charts ────────────────────────
+    get_dashboard_metrics = staticmethod(AdminStatsService.get_dashboard_metrics)
+    get_users_chart = staticmethod(AdminStatsService.get_users_chart)
+    get_revenue_chart = staticmethod(AdminStatsService.get_revenue_chart)
+    get_feedbacks_chart = staticmethod(AdminStatsService.get_feedbacks_chart)

@@ -5,6 +5,7 @@ import httpx
 from src.config.env import settings
 from src.integrations.amadeus.errors import raise_amadeus_connection_error, raise_for_amadeus_status
 from src.integrations.amadeus.retry import amadeus_retry
+from src.integrations.http_client import get_http_client
 from src.utils.errors import AppError
 from src.utils.logger import logger
 
@@ -32,12 +33,13 @@ async def search_locations_by_keyword(query: LocationKeywordSearchQuery) -> list
     try:
         logger.info("Making Amadeus location search request", {"url": url, "params": params})
 
-        async with httpx.AsyncClient(timeout=settings.REQUEST_TIMEOUT_MS / 1000) as client:
-            response = await client.get(
-                url,
-                params=params,
-                headers={"Authorization": f"Bearer {token}"},
-            )
+        client = get_http_client()
+        response = await client.get(
+            url,
+            params=params,
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=settings.REQUEST_TIMEOUT_MS / 1000,
+        )
 
         logger.debug(
             "Amadeus location search response",
@@ -84,11 +86,12 @@ async def search_location_by_id(query: LocationIdSearchQuery) -> Location:
     try:
         logger.info("Making Amadeus location search request", {"url": url})
 
-        async with httpx.AsyncClient(timeout=settings.REQUEST_TIMEOUT_MS / 1000) as client:
-            response = await client.get(
-                url,
-                headers={"Authorization": f"Bearer {token}"},
-            )
+        client = get_http_client()
+        response = await client.get(
+            url,
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=settings.REQUEST_TIMEOUT_MS / 1000,
+        )
 
         logger.debug(
             "Amadeus location search response",
@@ -138,12 +141,13 @@ async def search_location_nearest(query: LocationNearestSearchQuery) -> list[Loc
             "Making Amadeus location nearest search request", {"url": url, "params": params}
         )
 
-        async with httpx.AsyncClient(timeout=settings.REQUEST_TIMEOUT_MS / 1000) as client:
-            response = await client.get(
-                url,
-                params=params,
-                headers={"Authorization": f"Bearer {token}"},
-            )
+        client = get_http_client()
+        response = await client.get(
+            url,
+            params=params,
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=settings.REQUEST_TIMEOUT_MS / 1000,
+        )
 
         logger.debug(
             "Amadeus location nearest search response",

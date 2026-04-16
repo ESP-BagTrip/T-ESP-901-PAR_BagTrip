@@ -2,6 +2,7 @@ import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
+import 'package:bagtrip/design/category_mappers.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -73,7 +74,7 @@ class TimelineActivityCard extends StatelessWidget {
                 Container(
                   width: 4,
                   decoration: BoxDecoration(
-                    color: categoryColor(activity.category),
+                    color: activity.category.color,
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(16),
                       bottomLeft: Radius.circular(16),
@@ -197,7 +198,7 @@ class TimelineActivityCard extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(right: 12),
                   child: Icon(
-                    categoryIcon(activity.category),
+                    activity.category.icon,
                     size: 20,
                     color: theme.colorScheme.outline,
                   ),
@@ -328,34 +329,6 @@ class TimelineActivityCard extends StatelessWidget {
       ),
     );
   }
-}
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-IconData categoryIcon(ActivityCategory category) {
-  return switch (category) {
-    ActivityCategory.culture => Icons.museum_outlined,
-    ActivityCategory.nature => Icons.park_outlined,
-    ActivityCategory.food => Icons.restaurant_outlined,
-    ActivityCategory.sport => Icons.fitness_center_outlined,
-    ActivityCategory.shopping => Icons.shopping_bag_outlined,
-    ActivityCategory.nightlife => Icons.nightlife_outlined,
-    ActivityCategory.relaxation => Icons.spa_outlined,
-    ActivityCategory.other => Icons.event_outlined,
-  };
-}
-
-Color categoryColor(ActivityCategory category) {
-  return switch (category) {
-    ActivityCategory.culture => const Color(0xFF5C6BC0), // indigo
-    ActivityCategory.nature => const Color(0xFF66BB6A), // green
-    ActivityCategory.food => const Color(0xFFFF7043), // deepOrange
-    ActivityCategory.sport => const Color(0xFF42A5F5), // blue
-    ActivityCategory.shopping => const Color(0xFFAB47BC), // purple
-    ActivityCategory.nightlife => const Color(0xFF7E57C2), // deepPurple
-    ActivityCategory.relaxation => const Color(0xFF26A69A), // teal
-    ActivityCategory.other => AppColors.secondary,
-  };
 }
 
 // ── AI Badge ─────────────────────────────────────────────────────────────────

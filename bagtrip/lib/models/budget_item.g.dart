@@ -12,7 +12,11 @@ _BudgetItem _$BudgetItemFromJson(Map<String, dynamic> json) => _BudgetItem(
   label: json['label'] as String,
   amount: (json['amount'] as num).toDouble(),
   category:
-      $enumDecodeNullable(_$BudgetCategoryEnumMap, json['category']) ??
+      $enumDecodeNullable(
+        _$BudgetCategoryEnumMap,
+        json['category'],
+        unknownValue: BudgetCategory.other,
+      ) ??
       BudgetCategory.other,
   date: json['date'] == null ? null : DateTime.parse(json['date'] as String),
   isPlanned: json['is_planned'] as bool? ?? true,

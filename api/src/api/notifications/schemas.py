@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class NotificationResponse(BaseModel):
@@ -20,9 +20,7 @@ class NotificationResponse(BaseModel):
     sentAt: datetime | None = Field(None, alias="sent_at")
     createdAt: datetime = Field(alias="created_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class NotificationListResponse(BaseModel):

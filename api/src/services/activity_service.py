@@ -7,6 +7,7 @@ from uuid import UUID
 from sqlalchemy import asc
 from sqlalchemy.orm import Session
 
+from src.api.activities.schemas import ActivityUpdateRequest
 from src.enums import TripStatus
 from src.models.activity import Activity
 from src.models.trip import Trip
@@ -151,7 +152,7 @@ class ActivityService:
         db: Session,
         trip: Trip,
         activity_ids: list[UUID],
-        updates: object,
+        updates: ActivityUpdateRequest,
     ) -> list[Activity]:
         """Apply the same partial update to multiple activities in one transaction."""
         ActivityService._check_trip_not_completed(trip)
@@ -191,7 +192,7 @@ class ActivityService:
         day: int | None = None,
     ) -> list[dict]:
         """Generate AI activity suggestions for a trip (optionally for a specific day)."""
-        from src.agent.prompts import ACTIVITY_PLANNER_PROMPT
+        from src.agent.prompts import render as render_prompt
         from src.services.llm_service import LLMService
 
         parts = []
@@ -209,7 +210,7 @@ class ActivityService:
 
         llm = LLMService()
         try:
-            result = await llm.acall_llm(ACTIVITY_PLANNER_PROMPT, user_prompt)
+            result = await llm.acall_llm(render_prompt("activity_planner"), user_prompt)
             activities = result.get("activities", [])
         except Exception as e:
             logger.error("Activity suggest LLM call failed", {"error": str(e)})

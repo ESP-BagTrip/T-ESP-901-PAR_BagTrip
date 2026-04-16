@@ -1,9 +1,9 @@
 import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/category_mappers.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/status_badge.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:flutter/cupertino.dart';
@@ -24,27 +24,6 @@ class ActivityCard extends StatelessWidget {
     this.onValidate,
     this.isViewer = false,
   });
-
-  IconData _categoryIcon(ActivityCategory category) {
-    switch (category) {
-      case ActivityCategory.culture:
-        return Icons.museum;
-      case ActivityCategory.nature:
-        return Icons.park;
-      case ActivityCategory.food:
-        return Icons.restaurant;
-      case ActivityCategory.sport:
-        return Icons.fitness_center;
-      case ActivityCategory.shopping:
-        return Icons.shopping_bag;
-      case ActivityCategory.nightlife:
-        return Icons.nightlife;
-      case ActivityCategory.relaxation:
-        return Icons.spa;
-      case ActivityCategory.other:
-        return Icons.event;
-    }
-  }
 
   List<AdaptiveContextAction> _buildContextActions(AppLocalizations l10n) {
     final actions = <AdaptiveContextAction>[
@@ -91,24 +70,11 @@ class ActivityCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: AppRadius.large16,
-        boxShadow: [
-          BoxShadow(
-            color: ColorName.primary.withValues(alpha: 0.08),
-            offset: const Offset(0, 4),
-            blurRadius: 6,
-            spreadRadius: -1,
-          ),
-          BoxShadow(
-            color: ColorName.primary.withValues(alpha: 0.04),
-            offset: const Offset(0, 2),
-            blurRadius: 4,
-            spreadRadius: -1,
-          ),
-        ],
+        boxShadow: AppShadows.card,
       ),
       child: Row(
         children: [
-          CircleAvatar(child: Icon(_categoryIcon(activity.category))),
+          CircleAvatar(child: Icon(activity.category.icon)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

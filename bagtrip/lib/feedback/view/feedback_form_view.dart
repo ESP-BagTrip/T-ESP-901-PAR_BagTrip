@@ -5,9 +5,6 @@ import 'package:bagtrip/design/widgets/premium_paywall.dart';
 import 'package:bagtrip/feedback/bloc/feedback_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/feedback.dart';
-import 'package:bagtrip/core/result.dart';
-import 'package:bagtrip/config/service_locator.dart';
-import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -233,7 +230,7 @@ class _ReadOnlyFeedbackView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Card(
-            color: const Color(0xFFF0F7FF),
+            color: AppColors.infoBackgroundLight,
             child: Padding(
               padding: AppSpacing.allEdgeInsetSpace16,
               child: Column(
@@ -345,12 +342,19 @@ class _PostTripSuggestionSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<FeedbackBloc, FeedbackState>(
+    return BlocConsumer<FeedbackBloc, FeedbackState>(
+      listenWhen: (_, current) => current is PostTripSuggestionPremiumRequired,
+      listener: (context, state) {
+        PremiumPaywall.show(context);
+      },
       builder: (context, state) {
-        final showButton = hasSubmitted || state is FeedbackSubmitted;
+        final showButton =
+            hasSubmitted ||
+            state is FeedbackSubmitted ||
+            state is PostTripSuggestionPremiumRequired;
         if (showButton) {
           return Card(
-            color: const Color(0xFFF0F7FF),
+            color: AppColors.infoBackgroundLight,
             child: Padding(
               padding: AppSpacing.allEdgeInsetSpace16,
               child: Column(
@@ -359,21 +363,10 @@ class _PostTripSuggestionSection extends StatelessWidget {
                   Text(AppLocalizations.of(context)!.feedbackDiscoverText),
                   const SizedBox(height: AppSpacing.space12),
                   ElevatedButton.icon(
-                    onPressed: () async {
-                      final authRepository = getIt<AuthRepository>();
-                      final userResult = await authRepository.getCurrentUser();
-                      final user = userResult.dataOrNull;
-                      if (user != null && user.isFree) {
-                        if (context.mounted) {
-                          PremiumPaywall.show(context);
-                        }
-                        return;
-                      }
-                      if (context.mounted) {
-                        context.read<FeedbackBloc>().add(
-                          RequestPostTripSuggestion(),
-                        );
-                      }
+                    onPressed: () {
+                      context.read<FeedbackBloc>().add(
+                        RequestPostTripSuggestion(),
+                      );
                     },
                     icon: const Icon(Icons.auto_awesome),
                     label: Text(
@@ -398,7 +391,7 @@ class _PostTripSuggestionSection extends StatelessWidget {
         }
         if (state is PostTripSuggestionError) {
           return Card(
-            color: const Color(0xFFFFF0F0),
+            color: AppColors.errorBackgroundLight,
             child: Padding(
               padding: AppSpacing.allEdgeInsetSpace16,
               child: Column(
@@ -449,7 +442,7 @@ class _PostTripSuggestionCard extends StatelessWidget {
         [];
 
     return Card(
-      color: const Color(0xFFF0F7FF),
+      color: AppColors.infoBackgroundLight,
       child: Padding(
         padding: AppSpacing.allEdgeInsetSpace16,
         child: Column(
@@ -477,7 +470,11 @@ class _PostTripSuggestionCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.space4),
             Row(
               children: [
-                Chip(label: Text('$duration jours')),
+                Chip(
+                  label: Text(
+                    AppLocalizations.of(context)!.tripDurationDays(duration),
+                  ),
+                ),
                 const SizedBox(width: AppSpacing.space8),
                 Chip(label: Text('$budget\u20ac')),
               ],

@@ -2,11 +2,11 @@
 
 import time
 
-import httpx
 from jose import jwk, jwt
 from jose.exceptions import JWTError
 
 from src.config.env import settings
+from src.integrations.http_client import get_http_client
 from src.utils.logger import logger
 
 _apple_jwks_cache: dict | None = None
@@ -21,11 +21,11 @@ async def _fetch_apple_jwks() -> dict:
     if _apple_jwks_cache and (now - _cache_timestamp) < CACHE_DURATION:
         return _apple_jwks_cache
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get("https://appleid.apple.com/auth/keys")
-        response.raise_for_status()
-        _apple_jwks_cache = response.json()
-        _cache_timestamp = now
+    client = get_http_client()
+    response = await client.get("https://appleid.apple.com/auth/keys")
+    response.raise_for_status()
+    _apple_jwks_cache = response.json()
+    _cache_timestamp = now
 
     return _apple_jwks_cache
 
