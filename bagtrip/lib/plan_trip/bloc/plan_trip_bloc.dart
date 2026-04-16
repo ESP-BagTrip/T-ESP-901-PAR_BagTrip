@@ -15,6 +15,7 @@ import 'package:bagtrip/plan_trip/models/trip_plan.dart';
 import 'package:bagtrip/repositories/ai_repository.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/repositories/trip_repository.dart';
+import 'package:bagtrip/service/geo_location_service.dart';
 import 'package:bagtrip/service/location_service.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:bloc/bloc.dart';
@@ -30,6 +31,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
   final AuthRepository _authRepository;
   final PersonalizationStorage _storage;
   final LocationService _locationService;
+  final GeoLocationService _geoService;
 
   StreamSubscription<Map<String, dynamic>>? _sseSubscription;
 
@@ -39,11 +41,13 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     AuthRepository? authRepository,
     PersonalizationStorage? personalizationStorage,
     LocationService? locationService,
+    GeoLocationService? geoLocationService,
   }) : _tripRepository = tripRepository ?? getIt<TripRepository>(),
        _aiRepository = aiRepository ?? getIt<AiRepository>(),
        _authRepository = authRepository ?? getIt<AuthRepository>(),
        _storage = personalizationStorage ?? getIt<PersonalizationStorage>(),
        _locationService = locationService ?? getIt<LocationService>(),
+       _geoService = geoLocationService ?? getIt<GeoLocationService>(),
        super(const PlanTripState()) {
     // Init
     on<PlanTripLoadPersonalization>(_onLoadPersonalization);
@@ -117,6 +121,17 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
             budgetPreset: budgetPreset ?? state.budgetPreset,
           ),
         );
+      }
+
+      // Pre-fill origin from device geolocation (best-effort, non-blocking)
+      if (state.originCity == null || state.originCity!.isEmpty) {
+        final geoResult = await _geoService.getNearestCity();
+        if (isClosed) return;
+        if (geoResult case Success(:final data)) {
+          if (data.name.isNotEmpty) {
+            emit(state.copyWith(originCity: data.name));
+          }
+        }
       }
     } catch (_) {
       // Pre-fill is best-effort — user can still set values manually.

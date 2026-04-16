@@ -29,6 +29,7 @@ void main() {
   late MockAuthRepository mockAuthRepo;
   late MockPersonalizationStorage mockStorage;
   late MockLocationService mockLocationService;
+  late MockGeoLocationService mockGeoService;
 
   setUp(() {
     mockTripRepo = MockTripRepository();
@@ -36,6 +37,7 @@ void main() {
     mockAuthRepo = MockAuthRepository();
     mockStorage = MockPersonalizationStorage();
     mockLocationService = MockLocationService();
+    mockGeoService = MockGeoLocationService();
   });
 
   PlanTripBloc buildBloc() => PlanTripBloc(
@@ -44,6 +46,7 @@ void main() {
     authRepository: mockAuthRepo,
     personalizationStorage: mockStorage,
     locationService: mockLocationService,
+    geoLocationService: mockGeoService,
   );
 
   group('initial state', () {
@@ -69,6 +72,12 @@ void main() {
   group('loadPersonalization', () {
     const user = User(id: 'user-1', email: 'x@x');
 
+    void stubGeoFailure() {
+      when(
+        () => mockGeoService.getNearestCity(),
+      ).thenAnswer((_) async => const Failure(UnknownError('no permission')));
+    }
+
     blocTest<PlanTripBloc, PlanTripState>(
       'pre-fills travelers and budget from personalization storage',
       build: () {
@@ -81,6 +90,7 @@ void main() {
         when(
           () => mockStorage.getBudget('user-1'),
         ).thenAnswer((_) async => 'moderate');
+        stubGeoFailure();
         return buildBloc();
       },
       act: (bloc) => bloc.add(const PlanTripEvent.loadPersonalization()),
@@ -89,6 +99,28 @@ void main() {
             .having((s) => s.nbAdults, 'adults', 2)
             .having((s) => s.nbChildren, 'children', 0)
             .having((s) => s.budgetPreset, 'budget', BudgetPreset.comfortable),
+      ],
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'pre-fills origin city from geolocation',
+      build: () {
+        when(
+          () => mockAuthRepo.getCurrentUser(),
+        ).thenAnswer((_) async => const Success(user));
+        when(
+          () => mockStorage.getCompanions('user-1'),
+        ).thenAnswer((_) async => '');
+        when(() => mockStorage.getBudget('user-1')).thenAnswer((_) async => '');
+        when(() => mockGeoService.getNearestCity()).thenAnswer(
+          (_) async =>
+              const Success(LocationResult(name: 'Marseille', iataCode: 'MRS')),
+        );
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(const PlanTripEvent.loadPersonalization()),
+      expect: () => [
+        isA<PlanTripState>().having((s) => s.originCity, 'origin', 'Marseille'),
       ],
     );
 
@@ -102,6 +134,7 @@ void main() {
           () => mockStorage.getCompanions('user-1'),
         ).thenAnswer((_) async => 'family');
         when(() => mockStorage.getBudget('user-1')).thenAnswer((_) async => '');
+        stubGeoFailure();
         return buildBloc();
       },
       act: (bloc) => bloc.add(const PlanTripEvent.loadPersonalization()),
@@ -114,7 +147,7 @@ void main() {
     );
 
     blocTest<PlanTripBloc, PlanTripState>(
-      'empty storage does not change defaults',
+      'empty storage with geo failure does not change defaults',
       build: () {
         when(
           () => mockAuthRepo.getCurrentUser(),
@@ -123,6 +156,7 @@ void main() {
           () => mockStorage.getCompanions('user-1'),
         ).thenAnswer((_) async => '');
         when(() => mockStorage.getBudget('user-1')).thenAnswer((_) async => '');
+        stubGeoFailure();
         return buildBloc();
       },
       act: (bloc) => bloc.add(const PlanTripEvent.loadPersonalization()),

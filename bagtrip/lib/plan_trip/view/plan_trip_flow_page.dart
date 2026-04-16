@@ -6,9 +6,11 @@ import 'package:bagtrip/design/widgets/premium_step_indicator.dart';
 import 'package:bagtrip/design/widgets/step_header.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
+import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
+import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bagtrip/plan_trip/helpers/traveler_breakdown_format.dart';
 import 'package:bagtrip/plan_trip/models/budget_preset.dart';
 import 'package:bagtrip/plan_trip/models/date_mode.dart';
@@ -89,6 +91,12 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text(l10n.tripCreatedSuccess)));
+            context.read<HomeBloc>().add(RefreshHome());
+            for (final s in ['ongoing', 'planned', 'completed']) {
+              context.read<TripManagementBloc>().add(
+                LoadTripsByStatus(status: s),
+              );
+            }
             TripHomeRoute(tripId: state.createdTripId!).go(context);
           }
         },

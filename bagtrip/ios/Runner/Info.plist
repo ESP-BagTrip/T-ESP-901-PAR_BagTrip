@@ -52,6 +52,8 @@
 		<string>remote-notification</string>
 		<string>fetch</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>BagTrip uses your location to suggest your departure city.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
