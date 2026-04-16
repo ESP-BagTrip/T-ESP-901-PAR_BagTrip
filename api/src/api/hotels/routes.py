@@ -5,6 +5,8 @@ Users book accommodations externally and record them via the
 /v1/trips/{tripId}/accommodations CRUD endpoints.
 """
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, Query
 
 from src.api.auth.middleware import get_current_user
@@ -23,12 +25,12 @@ router = APIRouter(prefix="/v1/travel/hotels", tags=["Hotel Search"])
 
 @router.get("/by-city", response_model=HotelListSearchResponse)
 async def search_hotels_by_city(
-    cityCode: str = Query(..., description="IATA city code (e.g. PAR)"),
-    radius: int | None = Query(None, description="Search radius"),
-    radiusUnit: str | None = Query(None, description="KM or MILE"),
-    ratings: str | None = Query(None, description="Comma-separated star ratings"),
-    hotelSource: str | None = Query(None, description="ALL, BEDBANK, or DIRECTCHAIN"),
-    _current_user=Depends(get_current_user),
+    cityCode: Annotated[str, Query(..., description="IATA city code (e.g. PAR)")],
+    _current_user: Annotated[object, Depends(get_current_user)],
+    radius: Annotated[int | None, Query(description="Search radius")] = None,
+    radiusUnit: Annotated[str | None, Query(description="KM or MILE")] = None,
+    ratings: Annotated[str | None, Query(description="Comma-separated star ratings")] = None,
+    hotelSource: Annotated[str | None, Query(description="ALL, BEDBANK, or DIRECTCHAIN")] = None,
 ):
     """Recherche d'hôtels par ville via Amadeus."""
     query = HotelListSearchQuery(
@@ -46,12 +48,12 @@ async def search_hotels_by_city(
 
 @router.get("/offers", response_model=HotelOffersSearchResponse)
 async def search_hotel_offers(
-    hotelIds: str = Query(..., description="Comma-separated hotel IDs (max 50)"),
-    checkInDate: str | None = Query(None, description="YYYY-MM-DD"),
-    checkOutDate: str | None = Query(None, description="YYYY-MM-DD"),
-    adults: int | None = Query(1, description="Number of adults"),
-    currency: str | None = Query(None, description="Currency code"),
-    _current_user=Depends(get_current_user),
+    hotelIds: Annotated[str, Query(..., description="Comma-separated hotel IDs (max 50)")],
+    _current_user: Annotated[object, Depends(get_current_user)],
+    checkInDate: Annotated[str | None, Query(description="YYYY-MM-DD")] = None,
+    checkOutDate: Annotated[str | None, Query(description="YYYY-MM-DD")] = None,
+    adults: Annotated[int | None, Query(description="Number of adults")] = 1,
+    currency: Annotated[str | None, Query(description="Currency code")] = None,
 ):
     """Recherche d'offres d'hôtels avec prix via Amadeus."""
     query = HotelOffersSearchQuery(

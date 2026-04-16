@@ -1,5 +1,7 @@
 """Routes pour les invitations par lien."""
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -21,8 +23,8 @@ router = APIRouter(prefix="/v1/invites", tags=["Invites"])
 )
 async def accept_invite(
     token: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Accepter une invitation par token."""
     try:

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import contextlib
 from datetime import date, time, timedelta
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
@@ -58,8 +59,8 @@ def _resolve_iata(city_name: str) -> str | None:
 @router.post("/plan-trip/stream")
 async def plan_trip_stream(
     request: PlanTripRequest,
-    current_user: User = Depends(require_ai_quota),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_ai_quota)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Stream a multi-agent trip plan via SSE.
 
@@ -128,8 +129,8 @@ def _parse_flight_route(route: str) -> tuple[str | None, str | None]:
 async def accept_plan(
     request: AcceptPlanRequest,
     raw_request: Request,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Create a DRAFT trip from the multi-agent plan.
 

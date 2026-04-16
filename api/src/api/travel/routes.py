@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+from typing import Annotated
 
 from cachetools import TTLCache
 from fastapi import APIRouter, HTTPException, Path, Query, status
@@ -47,12 +48,17 @@ def _flight_cache_key(**params: object) -> str:
     },
 )
 async def search_locations_by_keyword(
-    subType: str = Query(
-        ...,
-        description="Comma-separated list of location sub-types (e.g., 'CITY,AIRPORT')",
-        example="CITY,AIRPORT",
-    ),
-    keyword: str = Query(..., description="Search keyword for location name", example="paris"),
+    subType: Annotated[
+        str,
+        Query(
+            ...,
+            description="Comma-separated list of location sub-types (e.g., 'CITY,AIRPORT')",
+            example="CITY,AIRPORT",
+        ),
+    ],
+    keyword: Annotated[
+        str, Query(..., description="Search keyword for location name", example="paris")
+    ],
 ):
     """
     Recherche de locations par mot-clé (données offline).
@@ -89,8 +95,8 @@ async def search_locations_by_keyword(
     },
 )
 async def search_location_nearest(
-    latitude: float = Query(..., ge=-90, le=90, description="Latitude", example=49.0000),
-    longitude: float = Query(..., ge=-180, le=180, description="Longitude", example=2.55),
+    latitude: Annotated[float, Query(..., ge=-90, le=90, description="Latitude", example=49.0000)],
+    longitude: Annotated[float, Query(..., ge=-180, le=180, description="Longitude", example=2.55)],
 ):
     """
     Recherche de locations les plus proches (données offline).
@@ -132,7 +138,9 @@ async def search_location_nearest(
         500: {"description": "Internal server error"},
     },
 )
-async def search_location_by_id(id: str = Path(..., description="Location id", example="CMUC")):
+async def search_location_by_id(
+    id: Annotated[str, Path(..., description="Location id", example="CMUC")],
+):
     """
     Recherche de location par ID (données offline).
 
@@ -174,58 +182,73 @@ async def search_location_by_id(id: str = Path(..., description="Location id", e
     },
 )
 async def search_flight_offers(
-    originLocationCode: str = Query(
-        ..., description="IATA code of the departure city/airport", example="PAR"
-    ),
-    destinationLocationCode: str = Query(
-        ..., description="IATA code of the arrival city/airport", example="FCO"
-    ),
-    departureDate: str = Query(
-        ..., description="Departure date (YYYY-MM-DD)", example="2025-12-15"
-    ),
-    adults: int = Query(..., ge=1, le=9, description="Number of adult travelers (1-9)", example=2),
-    returnDate: str | None = Query(
-        None, description="Return date for round-trip (YYYY-MM-DD)", example="2025-12-22"
-    ),
-    children: int | None = Query(
-        None, ge=0, le=9, description="Number of child travelers (0-9)", example=None
-    ),
-    infants: int | None = Query(
-        None,
-        ge=0,
-        le=9,
-        description="Number of infant travelers (0-9, cannot exceed adults)",
-        example=None,
-    ),
-    travelClass: str | None = Query(None, description="Cabin class preference", example=None),
-    nonStop: bool | None = Query(
-        None, description="Search for non-stop flights only", example=None
-    ),
-    currencyCode: str | None = Query(
-        None, description="Currency code (ISO 4217, 3 letters)", example="USD"
-    ),
-    maxPrice: int | None = Query(
-        None, gt=0, description="Maximum price per traveler", example=None
-    ),
-    max: int | None = Query(
-        None,
-        ge=1,
-        le=250,
-        description="Maximum number of flight offers to return (1-250)",
-        example=10,
-    ),
-    includedAirlineCodes: str | None = Query(
-        None,
-        description="Comma-separated list of airline codes to include (e.g., 'AF,BA'). "
-        "Note: Cannot be used together with excludedAirlineCodes.",
-        example=None,
-    ),
-    excludedAirlineCodes: str | None = Query(
-        None,
-        description="Comma-separated list of airline codes to exclude. "
-        "Note: Cannot be used together with includedAirlineCodes.",
-        example=None,
-    ),
+    originLocationCode: Annotated[
+        str, Query(..., description="IATA code of the departure city/airport", example="PAR")
+    ],
+    destinationLocationCode: Annotated[
+        str, Query(..., description="IATA code of the arrival city/airport", example="FCO")
+    ],
+    departureDate: Annotated[
+        str, Query(..., description="Departure date (YYYY-MM-DD)", example="2025-12-15")
+    ],
+    adults: Annotated[
+        int, Query(..., ge=1, le=9, description="Number of adult travelers (1-9)", example=2)
+    ],
+    returnDate: Annotated[
+        str | None,
+        Query(description="Return date for round-trip (YYYY-MM-DD)", example="2025-12-22"),
+    ] = None,
+    children: Annotated[
+        int | None,
+        Query(ge=0, le=9, description="Number of child travelers (0-9)", example=None),
+    ] = None,
+    infants: Annotated[
+        int | None,
+        Query(
+            ge=0,
+            le=9,
+            description="Number of infant travelers (0-9, cannot exceed adults)",
+            example=None,
+        ),
+    ] = None,
+    travelClass: Annotated[
+        str | None, Query(description="Cabin class preference", example=None)
+    ] = None,
+    nonStop: Annotated[
+        bool | None, Query(description="Search for non-stop flights only", example=None)
+    ] = None,
+    currencyCode: Annotated[
+        str | None,
+        Query(description="Currency code (ISO 4217, 3 letters)", example="USD"),
+    ] = None,
+    maxPrice: Annotated[
+        int | None, Query(gt=0, description="Maximum price per traveler", example=None)
+    ] = None,
+    max: Annotated[
+        int | None,
+        Query(
+            ge=1,
+            le=250,
+            description="Maximum number of flight offers to return (1-250)",
+            example=10,
+        ),
+    ] = None,
+    includedAirlineCodes: Annotated[
+        str | None,
+        Query(
+            description="Comma-separated list of airline codes to include (e.g., 'AF,BA'). "
+            "Note: Cannot be used together with excludedAirlineCodes.",
+            example=None,
+        ),
+    ] = None,
+    excludedAirlineCodes: Annotated[
+        str | None,
+        Query(
+            description="Comma-separated list of airline codes to exclude. "
+            "Note: Cannot be used together with includedAirlineCodes.",
+            example=None,
+        ),
+    ] = None,
 ):
     """
     Recherche d'offres de vols.
@@ -333,23 +356,35 @@ async def search_flight_offers(
     },
 )
 async def search_flight_destinations(
-    origin: str = Query(..., description="IATA code of the departure city/airport", example="PAR"),
-    departureDate: str | None = Query(
-        None,
-        description="Departure date or date range (YYYY-MM-DD or YYYY-MM-DD,YYYY-MM-DD)",
-        example="2025-12-15",
-    ),
-    oneWay: bool | None = Query(None, description="Search for one-way trips only", example=False),
-    duration: int | None = Query(None, gt=0, description="Trip duration in days", example=7),
-    nonStop: bool | None = Query(
-        None, description="Search for non-stop flights only", example=False
-    ),
-    maxPrice: int | None = Query(None, gt=0, description="Maximum price per traveler", example=500),
-    viewBy: str | None = Query(
-        None,
-        description="Group results by specific criteria (DURATION, COUNTRY, DATE, DESTINATION, WEEK)",
-        example="DESTINATION",
-    ),
+    origin: Annotated[
+        str, Query(..., description="IATA code of the departure city/airport", example="PAR")
+    ],
+    departureDate: Annotated[
+        str | None,
+        Query(
+            description="Departure date or date range (YYYY-MM-DD or YYYY-MM-DD,YYYY-MM-DD)",
+            example="2025-12-15",
+        ),
+    ] = None,
+    oneWay: Annotated[
+        bool | None, Query(description="Search for one-way trips only", example=False)
+    ] = None,
+    duration: Annotated[
+        int | None, Query(gt=0, description="Trip duration in days", example=7)
+    ] = None,
+    nonStop: Annotated[
+        bool | None, Query(description="Search for non-stop flights only", example=False)
+    ] = None,
+    maxPrice: Annotated[
+        int | None, Query(gt=0, description="Maximum price per traveler", example=500)
+    ] = None,
+    viewBy: Annotated[
+        str | None,
+        Query(
+            description="Group results by specific criteria (DURATION, COUNTRY, DATE, DESTINATION, WEEK)",
+            example="DESTINATION",
+        ),
+    ] = None,
 ):
     """
     Recherche de destinations inspirantes.
@@ -401,26 +436,38 @@ async def search_flight_destinations(
     },
 )
 async def search_flight_cheapest_dates(
-    origin: str = Query(..., description="IATA code of the departure city/airport", example="PAR"),
-    destination: str = Query(
-        ..., description="IATA code of the arrival city/airport", example="NYC"
-    ),
-    departureDate: str | None = Query(
-        None,
-        description="Departure date or date range (YYYY-MM-DD or YYYY-MM-DD,YYYY-MM-DD)",
-        example="2025-12-15",
-    ),
-    oneWay: bool | None = Query(None, description="Search for one-way trips only", example=False),
-    duration: int | None = Query(None, gt=0, description="Trip duration in days", example=7),
-    nonStop: bool | None = Query(
-        None, description="Search for non-stop flights only", example=False
-    ),
-    maxPrice: int | None = Query(None, gt=0, description="Maximum price per traveler", example=500),
-    viewBy: str | None = Query(
-        None,
-        description="Group results by specific criteria (DATE, DURATION, WEEK)",
-        example="DATE",
-    ),
+    origin: Annotated[
+        str, Query(..., description="IATA code of the departure city/airport", example="PAR")
+    ],
+    destination: Annotated[
+        str, Query(..., description="IATA code of the arrival city/airport", example="NYC")
+    ],
+    departureDate: Annotated[
+        str | None,
+        Query(
+            description="Departure date or date range (YYYY-MM-DD or YYYY-MM-DD,YYYY-MM-DD)",
+            example="2025-12-15",
+        ),
+    ] = None,
+    oneWay: Annotated[
+        bool | None, Query(description="Search for one-way trips only", example=False)
+    ] = None,
+    duration: Annotated[
+        int | None, Query(gt=0, description="Trip duration in days", example=7)
+    ] = None,
+    nonStop: Annotated[
+        bool | None, Query(description="Search for non-stop flights only", example=False)
+    ] = None,
+    maxPrice: Annotated[
+        int | None, Query(gt=0, description="Maximum price per traveler", example=500)
+    ] = None,
+    viewBy: Annotated[
+        str | None,
+        Query(
+            description="Group results by specific criteria (DATE, DURATION, WEEK)",
+            example="DATE",
+        ),
+    ] = None,
 ):
     """
     Recherche des dates les moins chères.

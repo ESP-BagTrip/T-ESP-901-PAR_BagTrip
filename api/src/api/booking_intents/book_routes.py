@@ -1,5 +1,6 @@
 """Routes pour le booking (book endpoint)."""
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Path, status
@@ -27,9 +28,9 @@ router = APIRouter(prefix="/v1/booking-intents", tags=["Booking Intents"])
     description="Get booking intent by ID",
 )
 async def get_booking_intent(
-    intentId: UUID = Path(..., description="Booking Intent ID"),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    intentId: Annotated[UUID, Path(..., description="Booking Intent ID")],
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Récupérer un booking intent par ID."""
     try:
@@ -63,9 +64,9 @@ async def get_booking_intent(
 )
 async def book(
     request: BookingIntentBookRequestFlight,
-    intentId: UUID = Path(..., description="Booking Intent ID"),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    intentId: Annotated[UUID, Path(..., description="Booking Intent ID")],
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Book selon PLAN.md."""
     try:

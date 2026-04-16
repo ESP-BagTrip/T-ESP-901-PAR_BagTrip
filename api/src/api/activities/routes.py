@@ -1,3 +1,4 @@
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Path, Query, status
@@ -30,8 +31,8 @@ router = APIRouter(prefix="/v1/trips", tags=["Activities"])
 )
 async def create_activity(
     request: ActivityCreateRequest,
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     try:
         activity = ActivityService.create(
@@ -55,9 +56,9 @@ async def create_activity(
 
 @router.get("/{tripId}/activities", response_model=ActivityPaginatedResponse)
 async def list_activities(
-    pagination: PaginationParams = Depends(PaginationParams),
-    access: TripAccess = Depends(get_trip_access),
-    db: Session = Depends(get_db),
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
+    access: Annotated[TripAccess, Depends(get_trip_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     try:
         activities, total, total_pages = ActivityService.get_by_trip_paginated(
@@ -83,9 +84,9 @@ async def list_activities(
 
 @router.get("/{tripId}/activities/{activityId}", response_model=ActivityResponse)
 async def get_activity(
-    activityId: UUID = Path(..., description="Activity ID"),
-    access: TripAccess = Depends(get_trip_access),
-    db: Session = Depends(get_db),
+    activityId: Annotated[UUID, Path(..., description="Activity ID")],
+    access: Annotated[TripAccess, Depends(get_trip_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     try:
         activity = ActivityService.get_by_id(db, activityId, access.trip.id)
@@ -100,9 +101,9 @@ async def get_activity(
 @router.patch("/{tripId}/activities/{activityId}", response_model=ActivityResponse)
 async def update_activity(
     request: ActivityUpdateRequest,
-    activityId: UUID = Path(..., description="Activity ID"),
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    activityId: Annotated[UUID, Path(..., description="Activity ID")],
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Partial update — all fields on `ActivityUpdateRequest` are optional, so
     PATCH matches the semantics. The previous `PUT` handler was dead weight."""
@@ -132,9 +133,9 @@ async def update_activity(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_activity(
-    activityId: UUID = Path(..., description="Activity ID"),
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    activityId: Annotated[UUID, Path(..., description="Activity ID")],
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     try:
         ActivityService.delete(db, access.trip, activityId)
@@ -145,8 +146,8 @@ async def delete_activity(
 @router.patch("/{tripId}/activities/batch", response_model=list[ActivityResponse])
 async def batch_update_activities(
     request: ActivityBatchUpdateRequest,
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     try:
         activities = ActivityService.batch_update(
@@ -162,10 +163,10 @@ async def batch_update_activities(
 
 @router.post("/{tripId}/activities/suggest", response_model=ActivitySuggestResponse)
 async def suggest_activities(
-    day: int | None = Query(default=None, ge=1, description="Target day number (1-based)"),
-    access: TripAccess = Depends(get_trip_editor_access),
-    current_user: User = Depends(require_ai_quota),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    current_user: Annotated[User, Depends(require_ai_quota)],
+    db: Annotated[Session, Depends(get_db)],
+    day: Annotated[int | None, Query(ge=1, description="Target day number (1-based)")] = None,
 ):
     try:
         suggestions = await ActivityService.suggest(

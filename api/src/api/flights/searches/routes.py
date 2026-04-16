@@ -1,5 +1,6 @@
 """Routes pour les recherches de vols."""
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Path, status
@@ -31,8 +32,8 @@ router = APIRouter(prefix="/v1/trips", tags=["Flight Searches"])
 )
 async def create_flight_search(
     request: FlightSearchCreateRequest,
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Créer une recherche de vol selon PLAN.md."""
     try:
@@ -93,9 +94,9 @@ async def create_flight_search(
     description="Get detailed information about a flight search with offers",
 )
 async def get_flight_search(
-    searchId: UUID = Path(..., description="Search ID"),
-    access: TripAccess = Depends(get_trip_access),
-    db: Session = Depends(get_db),
+    searchId: Annotated[UUID, Path(..., description="Search ID")],
+    access: Annotated[TripAccess, Depends(get_trip_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Récupérer une recherche de vol selon PLAN.md."""
     try:
@@ -149,8 +150,8 @@ async def get_flight_search(
 )
 async def create_multi_dest_search(
     request: MultiDestSearchCreateRequest,
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Recherche multi-destination : un appel Amadeus par segment."""
     try:

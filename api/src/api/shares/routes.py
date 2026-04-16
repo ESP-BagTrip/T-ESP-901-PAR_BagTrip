@@ -1,5 +1,6 @@
 """Routes pour les partages de trips."""
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Path, status
@@ -30,8 +31,8 @@ router = APIRouter(prefix="/v1/trips", tags=["Shares"])
 )
 async def create_share(
     request: ShareCreateRequest,
-    access: TripAccess = Depends(get_trip_owner_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_owner_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Inviter un utilisateur à rejoindre un trip."""
     try:
@@ -55,8 +56,8 @@ async def create_share(
     description="Get all shares and pending invites for a trip",
 )
 async def list_shares(
-    access: TripAccess = Depends(get_trip_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Lister les partages d'un trip."""
     try:
@@ -81,9 +82,9 @@ async def list_shares(
     description="Remove a user's access to a trip",
 )
 async def delete_share(
-    shareId: UUID = Path(..., description="Share ID"),
-    access: TripAccess = Depends(get_trip_owner_access),
-    db: Session = Depends(get_db),
+    shareId: Annotated[UUID, Path(..., description="Share ID")],
+    access: Annotated[TripAccess, Depends(get_trip_owner_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Révoquer un partage de trip."""
     try:
@@ -99,9 +100,9 @@ async def delete_share(
     description="Cancel a pending invitation",
 )
 async def delete_pending_invite(
-    inviteId: UUID = Path(..., description="Pending Invite ID"),
-    access: TripAccess = Depends(get_trip_owner_access),
-    db: Session = Depends(get_db),
+    inviteId: Annotated[UUID, Path(..., description="Pending Invite ID")],
+    access: Annotated[TripAccess, Depends(get_trip_owner_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Révoquer une invitation en attente."""
     try:

@@ -1,5 +1,6 @@
 """Routes pour les notifications."""
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Path
@@ -24,9 +25,9 @@ router = APIRouter(prefix="/v1/notifications", tags=["Notifications"])
 @router.get("", response_model=NotificationListResponse)
 @handle_app_errors
 async def list_notifications(
-    pagination: PaginationParams = Depends(PaginationParams),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Liste paginée des notifications de l'utilisateur."""
     items, total, total_pages, unread_count = NotificationService.get_for_user(
@@ -45,8 +46,8 @@ async def list_notifications(
 @router.get("/unread-count", response_model=UnreadCountResponse)
 @handle_app_errors
 async def get_unread_count(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Nombre de notifications non lues (pour badge)."""
     count = NotificationService.get_unread_count(db, current_user.id)
@@ -56,9 +57,9 @@ async def get_unread_count(
 @router.patch("/{notificationId}/read", response_model=NotificationResponse)
 @handle_app_errors
 async def mark_notification_read(
-    notificationId: UUID = Path(..., description="Notification ID"),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    notificationId: Annotated[UUID, Path(..., description="Notification ID")],
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Marquer une notification comme lue."""
     notif = NotificationService.mark_as_read(db, notificationId, current_user.id)
@@ -70,8 +71,8 @@ async def mark_notification_read(
 @router.post("/read-all")
 @handle_app_errors
 async def mark_all_read(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Marquer toutes les notifications comme lues."""
     count = NotificationService.mark_all_as_read(db, current_user.id)

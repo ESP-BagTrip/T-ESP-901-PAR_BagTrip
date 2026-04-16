@@ -1,5 +1,7 @@
 """Routes pour les booking intents."""
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
@@ -24,8 +26,8 @@ router = APIRouter(prefix="/v1/trips", tags=["Booking Intents"])
 )
 async def create_booking_intent(
     request: BookingIntentCreateRequest,
-    access: TripAccess = Depends(get_trip_editor_access),
-    db: Session = Depends(get_db),
+    access: Annotated[TripAccess, Depends(get_trip_editor_access)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Créer un booking intent selon PLAN.md."""
     try:

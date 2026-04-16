@@ -323,3 +323,4 @@ async def notification_scheduler() -> None:
             await asyncio.sleep(INTERVAL_SECONDS)
     except asyncio.CancelledError:
         logger.info(f"{TAG} Scheduler stopped")
+        raise

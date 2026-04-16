@@ -60,3 +60,4 @@ async def trip_status_scheduler() -> None:
             await asyncio.sleep(sleep_secs)
     except asyncio.CancelledError:
         logger.info(f"{TAG} Scheduler stopped")
+        raise

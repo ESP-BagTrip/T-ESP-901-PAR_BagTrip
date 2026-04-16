@@ -1,5 +1,7 @@
 """Routes du profil voyageur."""
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -23,8 +25,8 @@ router = APIRouter(prefix="/v1/profile", tags=["Profile"])
     description="Retrieve the traveler profile for the current user. Creates an empty profile if none exists.",
 )
 async def get_profile(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Récupérer le profil voyageur (crée un profil vide si inexistant)."""
     profile = ProfileService.get_profile(db, current_user.id)
@@ -52,8 +54,8 @@ async def get_profile(
 )
 async def update_profile(
     request: ProfileCreateUpdateRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Créer ou mettre à jour le profil voyageur."""
     profile = ProfileService.create_or_update_profile(
@@ -87,8 +89,8 @@ async def update_profile(
     description="Check if the traveler profile is complete and return missing fields.",
 )
 async def check_completion(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Vérifier la completion du profil voyageur."""
     is_completed, missing_fields = ProfileService.check_completion(db, current_user.id)

@@ -1,5 +1,7 @@
 """Routes pour les suggestions post-voyage IA."""
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -16,9 +18,9 @@ router = APIRouter(prefix="/v1/ai", tags=["AI Post-Trip"])
 
 @router.post("/post-trip-suggestion", response_model=PostTripSuggestionResponse)
 async def suggest_post_trip(
-    current_user: User = Depends(require_ai_quota),
-    _premium: User = Depends(require_premium),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(require_ai_quota)],
+    _premium: Annotated[User, Depends(require_premium)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Suggère un prochain voyage basé sur l'historique de feedbacks."""
     try:

@@ -1,5 +1,7 @@
 """Routes pour la réservation de vols."""
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -104,8 +106,8 @@ async def confirm_price(request: FlightPriceRequest):
 )
 async def create_booking(
     request: FlightBookingRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     Créer une réservation de vol.
@@ -187,8 +189,8 @@ async def create_booking(
     deprecated=True,
 )
 async def list_bookings(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     Lister les réservations de l'utilisateur connecté.
