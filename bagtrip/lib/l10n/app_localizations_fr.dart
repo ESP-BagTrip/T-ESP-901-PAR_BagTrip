@@ -2635,6 +2635,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mapAccommodations => 'Hébergements';
 
   @override
+  String get originCityLabel => 'VILLE DE DÉPART';
+
+  @override
+  String get originCityPlaceholder => 'Votre ville';
+
+  @override
+  String get originCityHint => 'D\'où partez-vous ?';
+
+  @override
   String get notFoundTitle => 'Page introuvable';
 
   @override

@@ -71,6 +71,7 @@ void main() {
         lon: 139.6503,
         matchReason: 'Perfect for spring',
         weatherSummary: 'Mild, cherry blossom season',
+        imageUrl: 'https://images.unsplash.com/tokyo.jpg',
         topActivities: ['Temple visit', 'Ramen tour'],
         estimatedBudgetRange: BudgetRange(min: 1200.0, max: 2500.0),
       );
@@ -79,12 +80,24 @@ void main() {
       expect(decoded, original);
     });
 
+    test('fromJson with snake_case image_url', () {
+      final result = AiDestination.fromJson({
+        'city': 'Paris',
+        'country': 'France',
+        'image_url': 'https://images.unsplash.com/paris.jpg',
+        'weather_summary': 'Mild and pleasant',
+      });
+      expect(result.imageUrl, 'https://images.unsplash.com/paris.jpg');
+      expect(result.weatherSummary, 'Mild and pleasant');
+    });
+
     test('defaults for optional fields', () {
       final result = AiDestination.fromJson({
         'city': 'Rome',
         'country': 'Italy',
       });
       expect(result.iata, isNull);
+      expect(result.imageUrl, isNull);
       expect(result.topActivities, isEmpty);
       expect(result.estimatedBudgetRange, isNull);
     });

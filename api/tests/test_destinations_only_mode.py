@@ -1,6 +1,6 @@
 """Tests for Phase 3 (API-2): destinations_only mode."""
 
-import asyncio
+import pytest
 
 from src.agent.graph import assemble_destinations_node, build_destinations_only_graph
 from src.api.ai.plan_trip_schemas import PlanTripRequest
@@ -28,7 +28,8 @@ def test_destinations_only_graph_has_two_nodes():
     assert "budget" not in node_names
 
 
-def test_assemble_destinations_node_returns_correct_structure():
+@pytest.mark.asyncio
+async def test_assemble_destinations_node_returns_correct_structure():
     state = {
         "destinations": [
             {"city": "Tokyo", "country": "Japan", "iata": "TYO"},
@@ -36,7 +37,7 @@ def test_assemble_destinations_node_returns_correct_structure():
         ],
         "origin_iata": "CDG",
     }
-    result = asyncio.get_event_loop().run_until_complete(assemble_destinations_node(state))
+    result = await assemble_destinations_node(state)
 
     assert "events" in result
     assert len(result["events"]) == 1
@@ -48,9 +49,10 @@ def test_assemble_destinations_node_returns_correct_structure():
     assert len(event["data"]["destinations"]) == 2
 
 
-def test_assemble_destinations_node_empty_state():
+@pytest.mark.asyncio
+async def test_assemble_destinations_node_empty_state():
     state = {}
-    result = asyncio.get_event_loop().run_until_complete(assemble_destinations_node(state))
+    result = await assemble_destinations_node(state)
 
     event = result["events"][0]
     assert event["data"]["destinations"] == []

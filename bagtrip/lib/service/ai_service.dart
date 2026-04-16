@@ -28,6 +28,7 @@ class AiRepositoryImpl implements AiRepository {
     String? companions,
     String? season,
     String? constraints,
+    String? locale,
   }) async {
     try {
       await for (final event in planTripStream(
@@ -37,6 +38,7 @@ class AiRepositoryImpl implements AiRepository {
         companions: companions,
         constraints: constraints,
         mode: 'destinations_only',
+        locale: locale,
       )) {
         final type = event['event'] as String?;
         final data = event['data'] as Map<String, dynamic>? ?? {};
@@ -122,6 +124,7 @@ class AiRepositoryImpl implements AiRepository {
     String? destinationCity,
     String? destinationIata,
     String? mode,
+    String? locale,
   }) async* {
     final token = await _storageService.getToken();
     final url = '${_apiClient.baseUrl}/ai/plan-trip/stream';
@@ -138,6 +141,7 @@ class AiRepositoryImpl implements AiRepository {
       if (destinationCity != null) 'destinationCity': destinationCity,
       if (destinationIata != null) 'destinationIata': destinationIata,
       if (mode != null) 'mode': mode,
+      if (locale != null) 'locale': locale,
     };
 
     if (kDebugMode) debugPrint('[SSE] Connecting to $url');

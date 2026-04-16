@@ -217,4 +217,49 @@ class LocationService {
       );
     }
   }
+
+  Future<Result<List<Map<String, dynamic>>>> searchNearestLocations(
+    double latitude,
+    double longitude,
+  ) async {
+    try {
+      final response = await _dio.get(
+        '$baseUrl/travel/locations/nearest',
+        queryParameters: {'latitude': latitude, 'longitude': longitude},
+      );
+
+      final data = response.data;
+      List<Map<String, dynamic>>? results;
+
+      if (data is List) {
+        results = List<Map<String, dynamic>>.from(
+          data.map(
+            (e) => _flattenLocation(Map<String, dynamic>.from(e as Map)),
+          ),
+        );
+      } else if (data is Map) {
+        if (data['locations'] is List) {
+          results = List<Map<String, dynamic>>.from(
+            (data['locations'] as List).map(
+              (e) => _flattenLocation(Map<String, dynamic>.from(e as Map)),
+            ),
+          );
+        } else if (data['data'] is List) {
+          results = List<Map<String, dynamic>>.from(
+            (data['data'] as List).map(
+              (e) => _flattenLocation(Map<String, dynamic>.from(e as Map)),
+            ),
+          );
+        }
+      }
+
+      return Success(results ?? []);
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(
+        UnknownError('Error searching nearest locations: $e', originalError: e),
+      );
+    }
+  }
 }

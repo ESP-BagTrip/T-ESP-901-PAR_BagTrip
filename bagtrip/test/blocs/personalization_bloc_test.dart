@@ -394,7 +394,10 @@ void main() {
         constraints: 'none',
       ),
       act: (bloc) => bloc.add(SaveAndFinishPersonalization()),
-      expect: () => [isA<PersonalizationCompleted>()],
+      expect: () => [
+        isA<PersonalizationLoaded>().having((s) => s.isSaving, 'saving', true),
+        isA<PersonalizationCompleted>(),
+      ],
       verify: (_) {
         verify(() => mockStorage.setTravelTypes('user-1', any())).called(1);
         verify(() => mockStorage.setTravelStyle('user-1', 'comfort')).called(1);

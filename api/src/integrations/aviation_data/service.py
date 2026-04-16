@@ -400,15 +400,23 @@ class AviationDataService:
 
         scored.sort(key=lambda x: (x[0], x[1]))
 
-        locations = []
+        locations: list[Location] = []
+        seen_cities: set[str] = set()
+
         for _, iata, data in scored:
             if len(locations) >= limit:
                 break
-            loc = self._to_location(iata, data)
-            if "AIRPORT" in sub_types or (
-                "CITY" in sub_types and loc.address.cityName.lower().startswith(kw)
-            ):
-                locations.append(loc)
+            city_lower = data.get("city", "").lower()
+
+            if "CITY" in sub_types and city_lower.startswith(kw):
+                city_key = f"{city_lower}:{data.get('country', '')}"
+                if city_key not in seen_cities:
+                    seen_cities.add(city_key)
+                    locations.append(self._to_city_location(iata, data))
+                    continue
+
+            if "AIRPORT" in sub_types:
+                locations.append(self._to_location(iata, data))
 
         return locations
 
@@ -431,6 +439,39 @@ class AviationDataService:
         distances.sort(key=lambda x: x[0])
 
         return [self._to_location(iata, data) for _, iata, data in distances[:limit]]
+
+    def _to_city_location(self, iata_code: str, data: dict) -> Location:
+        """Convert an airportsdata entry to a CITY Location (deduplicated by city name)."""
+        country_code = data.get("country", "")
+        country_name = _COUNTRY_NAMES.get(country_code, country_code)
+        region_code = _COUNTRY_CONTINENT_MAP.get(country_code, "")
+        city = data.get("city", "")
+
+        return Location(
+            type="location",
+            subType="CITY",
+            name=city,
+            detailedName=f"{city}, {country_name}" if country_name else city,
+            id=f"C{iata_code}",
+            self_=LocationSelf(
+                href=f"/v1/travel/locations/C{iata_code}",
+                methods=["GET"],
+            ),
+            timeZoneOffset=_get_utc_offset(data.get("tz", "")),
+            iataCode=iata_code,
+            geoCode=LocationGeoCode(
+                latitude=data.get("lat", 0.0),
+                longitude=data.get("lon", 0.0),
+            ),
+            address=LocationAddress(
+                cityName=city,
+                cityCode=iata_code,
+                countryName=country_name,
+                countryCode=country_code,
+                regionCode=region_code,
+            ),
+            analytics=None,
+        )
 
     def _to_location(self, iata_code: str, data: dict) -> Location:
         """Convert an airportsdata entry to the Amadeus-compatible Location model."""

@@ -1321,6 +1321,9 @@
   "mapDestination": "Destination",
   "mapActivities": "Activities",
   "mapAccommodations": "Accommodations",
+  "originCityLabel": "DEPARTING FROM",
+  "originCityPlaceholder": "Your city",
+  "originCityHint": "Where will you start your trip?",
   "notFoundTitle": "Page not found",
   "notFoundSubtitle": "The page you are looking for doesn't exist or has been moved.",
   "notFoundCta": "Return home"

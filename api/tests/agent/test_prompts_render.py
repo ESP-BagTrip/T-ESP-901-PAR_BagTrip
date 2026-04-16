@@ -45,14 +45,27 @@ class TestRenderEnglish:
 
 class TestRenderFrench:
     @pytest.mark.parametrize("name", _ALL_TEMPLATE_NAMES)
-    def test_fr_template_is_not_empty(self, name):
-        # FR stubs include EN via Jinja `{% include %}`. They render non-empty
-        # and the body matches the EN prompt.
+    def test_fr_template_renders_non_empty(self, name):
+        fr = render(name, locale="fr")
+        assert isinstance(fr, str)
+        assert len(fr) > 50
+        # Must contain JSON schema example
+        assert "{" in fr and "}" in fr
+
+    @pytest.mark.parametrize("name", _ALL_TEMPLATE_NAMES)
+    def test_fr_template_is_in_french(self, name):
+        fr = render(name, locale="fr")
+        # All FR templates must contain French text, not just redirect to EN
+        french_markers = ["français", "doit", "réponse", "objet JSON", "utilise"]
+        assert any(marker in fr.lower() for marker in french_markers), (
+            f"FR template {name!r} does not appear to be in French"
+        )
+
+    @pytest.mark.parametrize("name", _ALL_TEMPLATE_NAMES)
+    def test_fr_template_differs_from_en(self, name):
         fr = render(name, locale="fr")
         en = render(name, locale="en")
-        assert len(fr) >= len(en) - 5  # may differ by a few bytes of whitespace
-        # Core markers from the EN prompt must survive the include
-        assert "{" in fr and "}" in fr
+        assert fr != en, f"FR template {name!r} is identical to EN — needs translation"
 
 
 class TestFallback:

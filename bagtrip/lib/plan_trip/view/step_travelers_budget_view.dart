@@ -1,4 +1,5 @@
 import 'package:bagtrip/design/app_haptics.dart';
+import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/budget_chip_selector.dart';
 import 'package:bagtrip/design/widgets/budget_preset_list.dart';
@@ -13,8 +14,34 @@ import 'package:bagtrip/plan_trip/widgets/traveler_breakdown_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class StepTravelersBudgetView extends StatelessWidget {
+class StepTravelersBudgetView extends StatefulWidget {
   const StepTravelersBudgetView({super.key});
+
+  @override
+  State<StepTravelersBudgetView> createState() =>
+      _StepTravelersBudgetViewState();
+}
+
+class _StepTravelersBudgetViewState extends State<StepTravelersBudgetView> {
+  final TextEditingController _originController = TextEditingController();
+  final FocusNode _originFocus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _originFocus.addListener(() => setState(() {}));
+    final origin = context.read<PlanTripBloc>().state.originCity;
+    if (origin != null && origin.isNotEmpty) {
+      _originController.text = origin;
+    }
+  }
+
+  @override
+  void dispose() {
+    _originFocus.dispose();
+    _originController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +83,8 @@ class StepTravelersBudgetView extends StatelessWidget {
           nbBabies: state.nbBabies,
         );
 
+        final focused = _originFocus.hasFocus;
+
         return ListView(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.space16,
@@ -63,7 +92,220 @@ class StepTravelersBudgetView extends StatelessWidget {
             AppSpacing.space16,
             AppSpacing.space16,
           ),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           children: [
+            // ── Origin city ──────────────────────────────────
+            Row(
+              children: [
+                const Icon(
+                  Icons.flight_takeoff_rounded,
+                  size: 16,
+                  color: ColorName.secondary,
+                ),
+                const SizedBox(width: AppSpacing.space8),
+                Text(
+                  l10n.originCityLabel,
+                  style: const TextStyle(
+                    fontFamily: FontFamily.b612,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: ColorName.secondary,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.space12),
+
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOutCubic,
+              decoration: BoxDecoration(
+                borderRadius: AppRadius.large16,
+                boxShadow: focused
+                    ? [
+                        BoxShadow(
+                          color: ColorName.secondary.withValues(alpha: 0.18),
+                          spreadRadius: 2,
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          offset: const Offset(0, 2),
+                          blurRadius: 8,
+                        ),
+                      ]
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          offset: const Offset(0, 2),
+                          blurRadius: 8,
+                        ),
+                      ],
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: ColorName.surface,
+                  borderRadius: AppRadius.large16,
+                  border: Border.all(
+                    color: focused
+                        ? ColorName.secondary.withValues(alpha: 0.45)
+                        : ColorName.primarySoftLight,
+                  ),
+                ),
+                child: TextField(
+                  controller: _originController,
+                  focusNode: _originFocus,
+                  onChanged: (v) {
+                    context.read<PlanTripBloc>().add(
+                      PlanTripEvent.searchOrigin(v.trim()),
+                    );
+                  },
+                  style: const TextStyle(
+                    fontFamily: FontFamily.b612,
+                    fontSize: 16,
+                    color: PersonalizationColors.textPrimary,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: l10n.originCityPlaceholder,
+                    hintStyle: const TextStyle(
+                      fontFamily: FontFamily.b612,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w300,
+                      color: ColorName.hint,
+                    ),
+                    prefixIcon: const Padding(
+                      padding: EdgeInsets.only(left: 14, right: 10),
+                      child: Icon(
+                        Icons.location_city_rounded,
+                        size: 20,
+                        color: ColorName.hint,
+                      ),
+                    ),
+                    prefixIconConstraints: const BoxConstraints(
+                      minWidth: 44,
+                      minHeight: 44,
+                    ),
+                    suffixIcon: _originController.text.isNotEmpty
+                        ? GestureDetector(
+                            onTap: () {
+                              _originController.clear();
+                              context.read<PlanTripBloc>().add(
+                                const PlanTripEvent.setOriginCity(''),
+                              );
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.only(right: 12),
+                              child: Icon(
+                                Icons.close_rounded,
+                                size: 18,
+                                color: ColorName.hint,
+                              ),
+                            ),
+                          )
+                        : null,
+                    suffixIconConstraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.space16,
+                      vertical: 14,
+                    ),
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+            ),
+
+            // Autocomplete suggestions
+            if (state.originSearchResults.isNotEmpty)
+              Container(
+                margin: const EdgeInsets.only(top: AppSpacing.space4),
+                decoration: BoxDecoration(
+                  color: ColorName.surface,
+                  borderRadius: AppRadius.large16,
+                  border: Border.all(color: ColorName.primarySoftLight),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      offset: const Offset(0, 4),
+                      blurRadius: 12,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: state.originSearchResults.asMap().entries.map((
+                    entry,
+                  ) {
+                    final idx = entry.key;
+                    final loc = entry.value;
+                    return Column(
+                      children: [
+                        if (idx > 0)
+                          const Divider(
+                            height: 1,
+                            thickness: 1,
+                            color: Color(0xFFE8EAED),
+                          ),
+                        InkWell(
+                          onTap: () {
+                            AppHaptics.light();
+                            _originController.text = loc.name;
+                            _originFocus.unfocus();
+                            context.read<PlanTripBloc>().add(
+                              PlanTripEvent.setOriginCity(loc.name),
+                            );
+                          },
+                          borderRadius: idx == 0
+                              ? const BorderRadius.vertical(
+                                  top: Radius.circular(16),
+                                )
+                              : idx == state.originSearchResults.length - 1
+                              ? const BorderRadius.vertical(
+                                  bottom: Radius.circular(16),
+                                )
+                              : BorderRadius.zero,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.space16,
+                              vertical: AppSpacing.space12,
+                            ),
+                            child: Row(
+                              children: [
+                                if (loc.countryCode.length == 2) ...[
+                                  Text(
+                                    _countryCodeToFlag(loc.countryCode),
+                                    style: const TextStyle(fontSize: 18),
+                                  ),
+                                  const SizedBox(width: AppSpacing.space12),
+                                ],
+                                Expanded(
+                                  child: Text(
+                                    loc.countryName.isNotEmpty
+                                        ? '${loc.name}, ${loc.countryName}'
+                                        : loc.name,
+                                    style: const TextStyle(
+                                      fontFamily: FontFamily.dMSerifDisplay,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                      color: ColorName.primaryDark,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ),
+
+            const SizedBox(height: AppSpacing.space24),
+
+            // ── Travelers ────────────────────────────────────
             Text(
               l10n.travelersLabel,
               style: const TextStyle(
@@ -196,6 +438,14 @@ class StepTravelersBudgetView extends StatelessWidget {
         );
       },
     );
+  }
+
+  String _countryCodeToFlag(String code) {
+    if (code.length != 2) return '';
+    return String.fromCharCodes([
+      code.codeUnitAt(0) - 0x41 + 0x1F1E6,
+      code.codeUnitAt(1) - 0x41 + 0x1F1E6,
+    ]);
   }
 }
 

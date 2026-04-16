@@ -2616,6 +2616,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapAccommodations => 'Accommodations';
 
   @override
+  String get originCityLabel => 'DEPARTING FROM';
+
+  @override
+  String get originCityPlaceholder => 'Your city';
+
+  @override
+  String get originCityHint => 'Where will you start your trip?';
+
+  @override
   String get notFoundTitle => 'Page not found';
 
   @override
