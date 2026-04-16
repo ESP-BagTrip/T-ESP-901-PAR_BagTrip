@@ -33,6 +33,11 @@ class ActiveTripHomeView extends StatefulWidget {
   State<ActiveTripHomeView> createState() => _ActiveTripHomeViewState();
 }
 
+/// Key attached to the "Tomorrow" section header — exported so tests can
+/// assert presence/absence of the section (distinct from the
+/// [QuickActionsBar] entry which uses the same "Tomorrow" label).
+const tomorrowSectionHeaderKey = ValueKey('tomorrow-section-header');
+
 class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
   String? _previousCurrentActivityId;
   bool _completionDialogShown = false;
@@ -257,6 +262,7 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
                   child: Padding(
                     padding: hPadding.copyWith(top: AppSpacing.space32),
                     child: Column(
+                      key: tomorrowSectionHeaderKey,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
