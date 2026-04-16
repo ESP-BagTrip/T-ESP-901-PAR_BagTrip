@@ -1,5 +1,8 @@
 import 'dart:math' as math;
 
+import 'package:bagtrip/core/extensions/datetime_ext.dart';
+import 'package:bagtrip/core/extensions/price_format_ext.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -552,9 +555,9 @@ class _TimelineCard extends StatelessWidget {
           width: 28,
           child: Column(
             children: [
-              Container(height: 18, width: 1, color: const Color(0x22000000)),
+              Container(height: 18, width: 1, color: AppColors.reviewDivider),
               _TlDot(type: event.type),
-              Container(height: 74, width: 1, color: const Color(0x22000000)),
+              Container(height: 74, width: 1, color: AppColors.reviewDivider),
             ],
           ),
         ),
@@ -597,7 +600,7 @@ class _TimelineCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontFamily: FontFamily.b612,
-                        color: Color(0xFF8D8B86),
+                        color: AppColors.reviewMuted,
                       ),
                     ),
                   ],
@@ -760,7 +763,6 @@ class _BoardingPassCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  // const SizedBox(height: 8),
                   Row(
                     children: [
                       Text(
@@ -918,7 +920,7 @@ class _HotelPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final nights = math.max(dates.$2.difference(dates.$1).inDays, 1);
+    final nights = math.max(dates.$1.nightsUntil(dates.$2), 1);
     final perNight = plan.accommodationPrice > 0
         ? plan.accommodationPrice / nights
         : 0;
@@ -937,7 +939,7 @@ class _HotelPanel extends StatelessWidget {
                 height: 88,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color(0xFF123D6A), ColorName.primaryDark],
+                    colors: [AppColors.reviewHeroDark, ColorName.primaryDark],
                   ),
                   borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                 ),
@@ -995,10 +997,7 @@ class _HotelPanel extends StatelessWidget {
                           DateFormat('d MMM').format(dates.$2),
                         ),
                         (l10n.reviewHotelNights, '$nights'),
-                        (
-                          l10n.reviewHotelPerNight,
-                          '${perNight.toStringAsFixed(0)} €',
-                        ),
+                        (l10n.reviewHotelPerNight, perNight.formatPrice()),
                       ],
                     ),
                   ],
@@ -1416,7 +1415,7 @@ class _PackItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(15),
+      borderRadius: AppRadius.large16,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
@@ -1427,7 +1426,7 @@ class _PackItem extends StatelessWidget {
                   ? Icons.check_circle_rounded
                   : Icons.radio_button_unchecked_rounded,
               size: 18,
-              color: checked ? ColorName.secondary : const Color(0xFFC8C5BE),
+              color: checked ? ColorName.secondary : AppColors.reviewUnchecked,
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -1476,7 +1475,7 @@ class _BudgetPanel extends StatelessWidget {
   final Map<String, dynamic> budgetBreakdown;
   final int durationDays;
 
-  static const _ink = Color(0xFF171513);
+  static const _ink = AppColors.reviewInk;
 
   @override
   Widget build(BuildContext context) {
@@ -1490,7 +1489,7 @@ class _BudgetPanel extends StatelessWidget {
             l10n.reviewBudgetUnavailable,
             style: const TextStyle(
               fontFamily: FontFamily.b612,
-              color: Color(0xFF928F89),
+              color: AppColors.reviewSubtle,
             ),
           ),
         ),
@@ -1509,7 +1508,7 @@ class _BudgetPanel extends StatelessWidget {
         DecoratedBox(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: AppRadius.large16,
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.06),
@@ -1528,7 +1527,7 @@ class _BudgetPanel extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${resolvedTotal.toStringAsFixed(0)} €',
+                      resolvedTotal.formatPrice(),
                       style: const TextStyle(
                         fontFamily: FontFamily.dMSerifDisplay,
                         fontSize: 28,
@@ -1598,7 +1597,7 @@ class _BudgetPanel extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '${entry.amount.toStringAsFixed(0)} €',
+                          entry.amount.formatPrice(),
                           style: const TextStyle(
                             fontFamily: FontFamily.b612,
                             fontSize: 12.5,
@@ -1667,9 +1666,9 @@ class _BudgetPanel extends StatelessWidget {
     'flights' => ColorName.primary,
     'accommodation' => ColorName.primaryDark,
     'meals' => ColorName.warning,
-    'transport' => const Color(0xFFE8A4B8),
+    'transport' => AppColors.budgetTransport,
     'activities' => ColorName.secondary,
-    _ => const Color(0xFF8B8882),
+    _ => AppColors.budgetDefault,
   };
 }
 
