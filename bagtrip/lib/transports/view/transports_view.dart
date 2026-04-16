@@ -1,9 +1,12 @@
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/review/hero_nav_button.dart';
+import 'package:bagtrip/design/widgets/review/sub_page_hero.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/transports/bloc/transport_bloc.dart';
@@ -35,142 +38,157 @@ class TransportsView extends StatelessWidget {
     final isOwner = role == 'OWNER';
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.transportsTitle),
-        actions: [
-          if (isOwner && !isCompleted && AdaptivePlatform.isIOS)
-            IconButton(
-              icon: const Icon(CupertinoIcons.add),
-              tooltip: l10n.addTransportTooltip,
-              onPressed: () => _showAddSheet(context),
-            ),
-        ],
-      ),
-      body: BlocConsumer<TransportBloc, TransportState>(
-        listener: (context, state) {
-          if (state is TransportError) {
-            AppSnackBar.showError(
-              context,
-              message: toUserFriendlyMessage(state.error, l10n),
-            );
-            context.read<TransportBloc>().add(LoadTransports(tripId: tripId));
-          }
-        },
-        builder: (context, state) {
-          if (state is TransportLoading) {
-            return const LoadingView();
-          }
+      backgroundColor: ColorName.surfaceVariant,
+      body: Column(
+        children: [
+          SubPageHero(
+            title: l10n.transportsTitle,
+            trailing: [
+              if (isOwner && !isCompleted && AdaptivePlatform.isIOS)
+                HeroNavButton(
+                  icon: CupertinoIcons.add,
+                  onPressed: () => _showAddSheet(context),
+                  tooltip: l10n.addTransportTooltip,
+                ),
+            ],
+          ),
+          Expanded(
+            child: BlocConsumer<TransportBloc, TransportState>(
+              listener: (context, state) {
+                if (state is TransportError) {
+                  AppSnackBar.showError(
+                    context,
+                    message: toUserFriendlyMessage(state.error, l10n),
+                  );
+                  context.read<TransportBloc>().add(
+                    LoadTransports(tripId: tripId),
+                  );
+                }
+              },
+              builder: (context, state) {
+                if (state is TransportLoading) {
+                  return const LoadingView();
+                }
 
-          if (state is TransportError) {
-            return ErrorView(
-              message: toUserFriendlyMessage(state.error, l10n),
-              onRetry: () => context.read<TransportBloc>().add(
-                LoadTransports(tripId: tripId),
-              ),
-            );
-          }
-
-          if (state is TransportsLoaded) {
-            if (state.transports.isEmpty) {
-              return _EmptyState(
-                onAdd: isOwner && !isCompleted
-                    ? () => _showAddSheet(context)
-                    : null,
-              );
-            }
-
-            return CustomScrollView(
-              slivers: [
-                if (state.mainFlights.isNotEmpty)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.space24,
-                        AppSpacing.space16,
-                        AppSpacing.space24,
-                        AppSpacing.space8,
-                      ),
-                      child: Text(
-                        l10n.mainFlightsSection,
-                        style: TextStyle(
-                          fontFamily: FontFamily.b612,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
+                if (state is TransportError) {
+                  return ErrorView(
+                    message: toUserFriendlyMessage(state.error, l10n),
+                    onRetry: () => context.read<TransportBloc>().add(
+                      LoadTransports(tripId: tripId),
                     ),
-                  ),
-                if (state.mainFlights.isNotEmpty)
-                  SliverToBoxAdapter(
-                    child: MainFlightsSection(
-                      flights: state.mainFlights,
-                      onEdit: isOwner && !isCompleted
-                          ? (flight) => _showEditSheet(context, flight)
+                  );
+                }
+
+                if (state is TransportsLoaded) {
+                  if (state.transports.isEmpty) {
+                    return _EmptyState(
+                      onAdd: isOwner && !isCompleted
+                          ? () => _showAddSheet(context)
                           : null,
-                      onDelete: isOwner && !isCompleted
-                          ? (id) => context.read<TransportBloc>().add(
-                              DeleteManualFlight(tripId: tripId, flightId: id),
-                            )
-                          : null,
-                    ),
-                  ),
-                if (state.internalFlights.isNotEmpty) ...[
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.space24,
-                        AppSpacing.space24,
-                        AppSpacing.space24,
-                        AppSpacing.space8,
-                      ),
-                      child: Text(
-                        l10n.internalFlightsSection,
-                        style: TextStyle(
-                          fontFamily: FontFamily.b612,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SliverPadding(
-                    padding: AppSpacing.horizontalSpace24,
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        final flight = state.internalFlights[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: AppSpacing.space12,
+                    );
+                  }
+
+                  return CustomScrollView(
+                    slivers: [
+                      if (state.mainFlights.isNotEmpty)
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              AppSpacing.space24,
+                              AppSpacing.space16,
+                              AppSpacing.space24,
+                              AppSpacing.space8,
+                            ),
+                            child: Text(
+                              l10n.mainFlightsSection,
+                              style: TextStyle(
+                                fontFamily: FontFamily.b612,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
                           ),
-                          child: FlightCard(
-                            flight: flight,
-                            compact: true,
+                        ),
+                      if (state.mainFlights.isNotEmpty)
+                        SliverToBoxAdapter(
+                          child: MainFlightsSection(
+                            flights: state.mainFlights,
                             onEdit: isOwner && !isCompleted
-                                ? () => _showEditSheet(context, flight)
+                                ? (flight) => _showEditSheet(context, flight)
                                 : null,
                             onDelete: isOwner && !isCompleted
-                                ? () => context.read<TransportBloc>().add(
+                                ? (id) => context.read<TransportBloc>().add(
                                     DeleteManualFlight(
                                       tripId: tripId,
-                                      flightId: flight.id,
+                                      flightId: id,
                                     ),
                                   )
                                 : null,
                           ),
-                        );
-                      }, childCount: state.internalFlights.length),
-                    ),
-                  ),
-                ],
-                const SliverToBoxAdapter(child: SizedBox(height: 100)),
-              ],
-            );
-          }
+                        ),
+                      if (state.internalFlights.isNotEmpty) ...[
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              AppSpacing.space24,
+                              AppSpacing.space24,
+                              AppSpacing.space24,
+                              AppSpacing.space8,
+                            ),
+                            child: Text(
+                              l10n.internalFlightsSection,
+                              style: TextStyle(
+                                fontFamily: FontFamily.b612,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                        ),
+                        SliverPadding(
+                          padding: AppSpacing.horizontalSpace24,
+                          sliver: SliverList(
+                            delegate: SliverChildBuilderDelegate((
+                              context,
+                              index,
+                            ) {
+                              final flight = state.internalFlights[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                  bottom: AppSpacing.space12,
+                                ),
+                                child: FlightCard(
+                                  flight: flight,
+                                  compact: true,
+                                  onEdit: isOwner && !isCompleted
+                                      ? () => _showEditSheet(context, flight)
+                                      : null,
+                                  onDelete: isOwner && !isCompleted
+                                      ? () => context.read<TransportBloc>().add(
+                                          DeleteManualFlight(
+                                            tripId: tripId,
+                                            flightId: flight.id,
+                                          ),
+                                        )
+                                      : null,
+                                ),
+                              );
+                            }, childCount: state.internalFlights.length),
+                          ),
+                        ),
+                      ],
+                      const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                    ],
+                  );
+                }
 
-          return const SizedBox.shrink();
-        },
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: isOwner && !isCompleted && !AdaptivePlatform.isIOS
           ? BlocBuilder<TransportBloc, TransportState>(

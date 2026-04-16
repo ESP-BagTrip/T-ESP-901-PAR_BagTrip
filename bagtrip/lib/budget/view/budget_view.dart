@@ -11,6 +11,9 @@ import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
+import 'package:bagtrip/design/widgets/review/hero_nav_button.dart';
+import 'package:bagtrip/design/widgets/review/sub_page_hero.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/budget_item.dart';
 import 'package:bagtrip/utils/error_display.dart';
@@ -34,55 +37,64 @@ class BudgetView extends StatelessWidget {
   Widget build(BuildContext context) {
     final canEdit = role != 'VIEWER' && !isCompleted;
 
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.budgetItems),
-        actions: [
-          if (canEdit && AdaptivePlatform.isIOS)
-            IconButton(
-              icon: const Icon(CupertinoIcons.add),
-              tooltip: AppLocalizations.of(context)!.addExpenseTooltip,
-              onPressed: () => _showForm(context, tripId),
+      backgroundColor: ColorName.surfaceVariant,
+      body: Column(
+        children: [
+          SubPageHero(
+            title: l10n.budgetItems,
+            trailing: [
+              if (canEdit && AdaptivePlatform.isIOS)
+                HeroNavButton(
+                  icon: CupertinoIcons.add,
+                  tooltip: l10n.addExpenseTooltip,
+                  onPressed: () => _showForm(context, tripId),
+                ),
+            ],
+          ),
+          Expanded(
+            child: BlocConsumer<BudgetBloc, BudgetState>(
+              listener: (context, state) {
+                if (state is BudgetEstimated) {
+                  _showEstimateSheet(context);
+                }
+                if (state is BudgetQuotaExceeded) {
+                  PremiumPaywall.show(context);
+                }
+              },
+              builder: (context, state) {
+                if (state is BudgetLoading) {
+                  return const LoadingView();
+                }
+                if (state is BudgetEstimating) {
+                  return const LoadingView();
+                }
+                if (state is BudgetError) {
+                  return ErrorView(
+                    message: toUserFriendlyMessage(
+                      state.error,
+                      AppLocalizations.of(context)!,
+                    ),
+                    onRetry: () => context.read<BudgetBloc>().add(
+                      LoadBudget(tripId: tripId),
+                    ),
+                  );
+                }
+                if (state is BudgetLoaded || state is BudgetEstimated) {
+                  final items = state is BudgetLoaded
+                      ? state.items
+                      : (state as BudgetEstimated).items;
+                  final summary = state is BudgetLoaded
+                      ? state.summary
+                      : (state as BudgetEstimated).summary;
+                  return _buildContent(context, items, summary, canEdit);
+                }
+                return const SizedBox.shrink();
+              },
             ),
+          ),
         ],
-      ),
-      body: BlocConsumer<BudgetBloc, BudgetState>(
-        listener: (context, state) {
-          if (state is BudgetEstimated) {
-            _showEstimateSheet(context);
-          }
-          if (state is BudgetQuotaExceeded) {
-            PremiumPaywall.show(context);
-          }
-        },
-        builder: (context, state) {
-          if (state is BudgetLoading) {
-            return const LoadingView();
-          }
-          if (state is BudgetEstimating) {
-            return const LoadingView();
-          }
-          if (state is BudgetError) {
-            return ErrorView(
-              message: toUserFriendlyMessage(
-                state.error,
-                AppLocalizations.of(context)!,
-              ),
-              onRetry: () =>
-                  context.read<BudgetBloc>().add(LoadBudget(tripId: tripId)),
-            );
-          }
-          if (state is BudgetLoaded || state is BudgetEstimated) {
-            final items = state is BudgetLoaded
-                ? state.items
-                : (state as BudgetEstimated).items;
-            final summary = state is BudgetLoaded
-                ? state.summary
-                : (state as BudgetEstimated).summary;
-            return _buildContent(context, items, summary, canEdit);
-          }
-          return const SizedBox.shrink();
-        },
       ),
       floatingActionButton: canEdit && !AdaptivePlatform.isIOS
           ? FloatingActionButton.extended(

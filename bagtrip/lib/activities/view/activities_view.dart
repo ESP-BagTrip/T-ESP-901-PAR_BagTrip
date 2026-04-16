@@ -13,6 +13,9 @@ import 'package:bagtrip/activities/widgets/activity_card.dart';
 import 'package:bagtrip/activities/widgets/activity_form.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
+import 'package:bagtrip/design/widgets/review/hero_nav_button.dart';
+import 'package:bagtrip/design/widgets/review/sub_page_hero.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -46,176 +49,188 @@ class ActivitiesView extends StatelessWidget {
         }
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(AppLocalizations.of(context)!.activitiesTitle),
-          actions: [
-            if (canEdit)
-              IconButton(
-                icon: const Icon(Icons.auto_awesome),
-                tooltip: AppLocalizations.of(
-                  context,
-                )!.activitiesSuggestionsTitle,
-                onPressed: () {
-                  context.read<ActivityBloc>().add(
-                    SuggestActivities(tripId: tripId),
-                  );
-                },
-              ),
-            if (canEdit && AdaptivePlatform.isIOS)
-              IconButton(
-                icon: const Icon(CupertinoIcons.add),
-                tooltip: AppLocalizations.of(context)!.addActivityTooltip,
-                onPressed: () => _showForm(context, tripId),
-              ),
-          ],
-        ),
-        body: BlocBuilder<ActivityBloc, ActivityState>(
-          builder: (context, state) {
-            if (state is ActivityLoading ||
-                state is ActivitySuggestionsLoading) {
-              return const LoadingView();
-            }
-            if (state is ActivityError) {
-              return ErrorView(
-                message: toUserFriendlyMessage(
-                  state.error,
-                  AppLocalizations.of(context)!,
-                ),
-                onRetry: () => context.read<ActivityBloc>().add(
-                  LoadActivities(tripId: tripId),
-                ),
-              );
-            }
-            if (state is ActivitiesLoaded ||
-                state is ActivitySuggestionsLoaded) {
-              final activities = state is ActivitiesLoaded
-                  ? state.activities
-                  : (state as ActivitySuggestionsLoaded).activities;
-              final hasMore = state is ActivitiesLoaded
-                  ? state.hasMore
-                  : (state as ActivitySuggestionsLoaded).hasMore;
-              final isLoadingMore = state is ActivitiesLoaded
-                  ? state.isLoadingMore
-                  : (state as ActivitySuggestionsLoaded).isLoadingMore;
-
-              final hasSuggested = activities.any(
-                (a) => a.validationStatus == ValidationStatus.suggested,
-              );
-
-              return Column(
-                children: [
-                  if (hasSuggested)
-                    Container(
-                      margin: const EdgeInsets.fromLTRB(
-                        AppSpacing.space16,
-                        AppSpacing.space8,
-                        AppSpacing.space16,
-                        AppSpacing.space4,
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: PersonalizationColors.accentBlue.withValues(
-                          alpha: 0.08,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.auto_awesome,
-                            size: 16,
-                            color: PersonalizationColors.accentBlue,
-                          ),
-                          const SizedBox(width: AppSpacing.space8),
-                          Expanded(
-                            child: Text(
-                              AppLocalizations.of(
-                                context,
-                              )!.activityDisclaimerSubtitle,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: PersonalizationColors.accentBlue,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  Expanded(
-                    child: PaginatedList<Activity>(
-                      items: activities,
-                      hasMore: hasMore,
-                      isLoadingMore: isLoadingMore,
-                      onLoadMore: () => context.read<ActivityBloc>().add(
-                        LoadMoreActivities(tripId: tripId),
-                      ),
-                      onRefresh: () async {
-                        context.read<ActivityBloc>().add(
-                          LoadActivities(tripId: tripId),
-                        );
-                      },
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.space16,
-                        AppSpacing.space16,
-                        AppSpacing.space16,
-                        100,
-                      ),
-                      emptyWidget: ElegantEmptyState(
-                        icon: Icons.event_outlined,
-                        title: AppLocalizations.of(
-                          context,
-                        )!.emptyActivitiesTitle,
-                        subtitle: AppLocalizations.of(
-                          context,
-                        )!.emptyActivitiesSubtitle,
-                      ),
-                      groupBy: _groupByDay,
-                      sectionHeaderBuilder: (context, dateKey) => Padding(
-                        padding: AppSpacing.verticalSpace8,
-                        child: Text(
-                          DateFormat(
-                            'EEEE d MMMM yyyy',
-                          ).format(DateTime.parse(dateKey)),
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      itemBuilder: (context, activity, _) => ActivityCard(
-                        activity: activity,
-                        isViewer: role == 'VIEWER' || isCompleted,
-                        onEdit: () =>
-                            _showForm(context, tripId, activity: activity),
-                        onDelete: () {
-                          final l10n = AppLocalizations.of(context)!;
-                          showAdaptiveAlertDialog(
-                            context: context,
-                            title: l10n.activityDeleteTitle,
-                            content: l10n.activityDeleteConfirm,
-                            confirmLabel: l10n.deleteButton,
-                            cancelLabel: l10n.cancelButton,
-                            isDestructive: true,
-                            onConfirm: () {
-                              context.read<ActivityBloc>().add(
-                                DeleteActivity(
-                                  tripId: tripId,
-                                  activityId: activity.id,
-                                ),
-                              );
-                            },
-                          );
-                        },
-                        onValidate: () => _showValidateModal(context, activity),
-                      ),
-                    ),
+        backgroundColor: ColorName.surfaceVariant,
+        body: Column(
+          children: [
+            SubPageHero(
+              title: AppLocalizations.of(context)!.activitiesTitle,
+              trailing: [
+                if (canEdit)
+                  HeroNavButton(
+                    icon: Icons.auto_awesome,
+                    tooltip: AppLocalizations.of(
+                      context,
+                    )!.activitiesSuggestionsTitle,
+                    onPressed: () {
+                      context.read<ActivityBloc>().add(
+                        SuggestActivities(tripId: tripId),
+                      );
+                    },
+                  ),
+                if (canEdit && AdaptivePlatform.isIOS) ...[
+                  const SizedBox(width: AppSpacing.space8),
+                  HeroNavButton(
+                    icon: CupertinoIcons.add,
+                    tooltip: AppLocalizations.of(context)!.addActivityTooltip,
+                    onPressed: () => _showForm(context, tripId),
                   ),
                 ],
-              );
-            }
-            return const SizedBox.shrink();
-          },
+              ],
+            ),
+            Expanded(
+              child: BlocBuilder<ActivityBloc, ActivityState>(
+                builder: (context, state) {
+                  if (state is ActivityLoading ||
+                      state is ActivitySuggestionsLoading) {
+                    return const LoadingView();
+                  }
+                  if (state is ActivityError) {
+                    return ErrorView(
+                      message: toUserFriendlyMessage(
+                        state.error,
+                        AppLocalizations.of(context)!,
+                      ),
+                      onRetry: () => context.read<ActivityBloc>().add(
+                        LoadActivities(tripId: tripId),
+                      ),
+                    );
+                  }
+                  if (state is ActivitiesLoaded ||
+                      state is ActivitySuggestionsLoaded) {
+                    final activities = state is ActivitiesLoaded
+                        ? state.activities
+                        : (state as ActivitySuggestionsLoaded).activities;
+                    final hasMore = state is ActivitiesLoaded
+                        ? state.hasMore
+                        : (state as ActivitySuggestionsLoaded).hasMore;
+                    final isLoadingMore = state is ActivitiesLoaded
+                        ? state.isLoadingMore
+                        : (state as ActivitySuggestionsLoaded).isLoadingMore;
+
+                    final hasSuggested = activities.any(
+                      (a) => a.validationStatus == ValidationStatus.suggested,
+                    );
+
+                    return Column(
+                      children: [
+                        if (hasSuggested)
+                          Container(
+                            margin: const EdgeInsets.fromLTRB(
+                              AppSpacing.space16,
+                              AppSpacing.space8,
+                              AppSpacing.space16,
+                              AppSpacing.space4,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: PersonalizationColors.accentBlue
+                                  .withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.auto_awesome,
+                                  size: 16,
+                                  color: PersonalizationColors.accentBlue,
+                                ),
+                                const SizedBox(width: AppSpacing.space8),
+                                Expanded(
+                                  child: Text(
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.activityDisclaimerSubtitle,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: PersonalizationColors.accentBlue,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        Expanded(
+                          child: PaginatedList<Activity>(
+                            items: activities,
+                            hasMore: hasMore,
+                            isLoadingMore: isLoadingMore,
+                            onLoadMore: () => context.read<ActivityBloc>().add(
+                              LoadMoreActivities(tripId: tripId),
+                            ),
+                            onRefresh: () async {
+                              context.read<ActivityBloc>().add(
+                                LoadActivities(tripId: tripId),
+                              );
+                            },
+                            padding: const EdgeInsets.fromLTRB(
+                              AppSpacing.space16,
+                              AppSpacing.space16,
+                              AppSpacing.space16,
+                              100,
+                            ),
+                            emptyWidget: ElegantEmptyState(
+                              icon: Icons.event_outlined,
+                              title: AppLocalizations.of(
+                                context,
+                              )!.emptyActivitiesTitle,
+                              subtitle: AppLocalizations.of(
+                                context,
+                              )!.emptyActivitiesSubtitle,
+                            ),
+                            groupBy: _groupByDay,
+                            sectionHeaderBuilder: (context, dateKey) => Padding(
+                              padding: AppSpacing.verticalSpace8,
+                              child: Text(
+                                DateFormat(
+                                  'EEEE d MMMM yyyy',
+                                ).format(DateTime.parse(dateKey)),
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            itemBuilder: (context, activity, _) => ActivityCard(
+                              activity: activity,
+                              isViewer: role == 'VIEWER' || isCompleted,
+                              onEdit: () => _showForm(
+                                context,
+                                tripId,
+                                activity: activity,
+                              ),
+                              onDelete: () {
+                                final l10n = AppLocalizations.of(context)!;
+                                showAdaptiveAlertDialog(
+                                  context: context,
+                                  title: l10n.activityDeleteTitle,
+                                  content: l10n.activityDeleteConfirm,
+                                  confirmLabel: l10n.deleteButton,
+                                  cancelLabel: l10n.cancelButton,
+                                  isDestructive: true,
+                                  onConfirm: () {
+                                    context.read<ActivityBloc>().add(
+                                      DeleteActivity(
+                                        tripId: tripId,
+                                        activityId: activity.id,
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                              onValidate: () =>
+                                  _showValidateModal(context, activity),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+          ],
         ),
         floatingActionButton: canEdit && !AdaptivePlatform.isIOS
             ? FloatingActionButton.extended(

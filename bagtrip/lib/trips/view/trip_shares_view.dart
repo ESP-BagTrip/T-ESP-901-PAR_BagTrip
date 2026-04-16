@@ -6,6 +6,9 @@ import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/review/hero_nav_button.dart';
+import 'package:bagtrip/design/widgets/review/sub_page_hero.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip_share.dart';
@@ -70,17 +73,7 @@ class _TripSharesViewState extends State<TripSharesView> {
     final isOwner = widget.role == 'OWNER';
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.sharesTitle),
-        actions: [
-          if (isOwner && AdaptivePlatform.isIOS)
-            IconButton(
-              icon: const Icon(CupertinoIcons.person_add),
-              tooltip: l10n.inviteTooltip,
-              onPressed: () => _showInviteSheet(context),
-            ),
-        ],
-      ),
+      backgroundColor: ColorName.surfaceVariant,
       floatingActionButton: isOwner && !AdaptivePlatform.isIOS
           ? FloatingActionButton.extended(
               onPressed: () => _showInviteSheet(context),
@@ -88,95 +81,113 @@ class _TripSharesViewState extends State<TripSharesView> {
               label: Text(l10n.sharesInviteButton),
             )
           : null,
-      body: BlocConsumer<TripShareBloc, TripShareState>(
-        listener: (context, state) {
-          if (state is TripShareError) {
-            final msg = switch (state.error) {
-              NotFoundError() => l10n.shareErrorUserNotFound,
-              ValidationError(:final message)
-                  when message.contains('already') =>
-                l10n.shareErrorAlreadyShared,
-              ValidationError(:final message)
-                  when message.contains('yourself') =>
-                l10n.shareErrorSelfShare,
-              _ => toUserFriendlyMessage(state.error, l10n),
-            };
-            AppSnackBar.showError(context, message: msg);
-          }
-          if (state is TripShareQuotaExceeded) {
-            AppSnackBar.showError(context, message: l10n.errorQuota);
-          }
-          if (state is TripShareLoaded) {
-            // Success feedback after create/delete is handled by the sheet
-          }
-        },
-        builder: (context, state) {
-          final shares = state is TripShareLoaded
-              ? state.shares
-              : <TripShare>[];
-          final isLoading = state is TripShareLoading;
+      body: Column(
+        children: [
+          SubPageHero(
+            title: l10n.sharesTitle,
+            trailing: [
+              if (isOwner && AdaptivePlatform.isIOS)
+                HeroNavButton(
+                  icon: CupertinoIcons.person_add,
+                  tooltip: l10n.inviteTooltip,
+                  onPressed: () => _showInviteSheet(context),
+                ),
+            ],
+          ),
+          Expanded(
+            child: BlocConsumer<TripShareBloc, TripShareState>(
+              listener: (context, state) {
+                if (state is TripShareError) {
+                  final msg = switch (state.error) {
+                    NotFoundError() => l10n.shareErrorUserNotFound,
+                    ValidationError(:final message)
+                        when message.contains('already') =>
+                      l10n.shareErrorAlreadyShared,
+                    ValidationError(:final message)
+                        when message.contains('yourself') =>
+                      l10n.shareErrorSelfShare,
+                    _ => toUserFriendlyMessage(state.error, l10n),
+                  };
+                  AppSnackBar.showError(context, message: msg);
+                }
+                if (state is TripShareQuotaExceeded) {
+                  AppSnackBar.showError(context, message: l10n.errorQuota);
+                }
+                if (state is TripShareLoaded) {
+                  // Success feedback after create/delete is handled by the sheet
+                }
+              },
+              builder: (context, state) {
+                final shares = state is TripShareLoaded
+                    ? state.shares
+                    : <TripShare>[];
+                final isLoading = state is TripShareLoading;
 
-          if (isLoading) return const LoadingView();
+                if (isLoading) return const LoadingView();
 
-          if (shares.isEmpty) {
-            return ElegantEmptyState(
-              icon: Icons.people_outline,
-              title: l10n.sharesEmpty,
-              subtitle: l10n.sharesEmptySubtitle,
-            );
-          }
+                if (shares.isEmpty) {
+                  return ElegantEmptyState(
+                    icon: Icons.people_outline,
+                    title: l10n.sharesEmpty,
+                    subtitle: l10n.sharesEmptySubtitle,
+                  );
+                }
 
-          return ListView.builder(
-            padding: AppSpacing.allEdgeInsetSpace16,
-            itemCount: shares.length,
-            itemBuilder: (context, index) {
-              final share = shares[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: isOwner
-                    ? Dismissible(
-                        key: ValueKey(share.id),
-                        direction: DismissDirection.endToStart,
-                        confirmDismiss: (_) async {
-                          AppHaptics.medium();
-                          return _showRevokeDialog(context, share);
-                        },
-                        background: Container(
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.error,
-                            borderRadius: AppRadius.large16,
-                          ),
-                          alignment: Alignment.centerRight,
-                          padding: AppSpacing.horizontalSpace16,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Text(
-                                l10n.sharesRevokeButton,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontFamily: FontFamily.b612,
+                return ListView.builder(
+                  padding: AppSpacing.allEdgeInsetSpace16,
+                  itemCount: shares.length,
+                  itemBuilder: (context, index) {
+                    final share = shares[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: isOwner
+                          ? Dismissible(
+                              key: ValueKey(share.id),
+                              direction: DismissDirection.endToStart,
+                              confirmDismiss: (_) async {
+                                AppHaptics.medium();
+                                return _showRevokeDialog(context, share);
+                              },
+                              background: Container(
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.error,
+                                  borderRadius: AppRadius.large16,
+                                ),
+                                alignment: Alignment.centerRight,
+                                padding: AppSpacing.horizontalSpace16,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      l10n.sharesRevokeButton,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontFamily: FontFamily.b612,
+                                      ),
+                                    ),
+                                    const SizedBox(width: AppSpacing.space8),
+                                    const Icon(
+                                      Icons.person_remove,
+                                      color: Colors.white,
+                                    ),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(width: AppSpacing.space8),
-                              const Icon(
-                                Icons.person_remove,
-                                color: Colors.white,
+                              child: _ShareCard(
+                                share: share,
+                                showRemove: true,
+                                onRemove: () =>
+                                    _showRevokeDialog(context, share),
                               ),
-                            ],
-                          ),
-                        ),
-                        child: _ShareCard(
-                          share: share,
-                          showRemove: true,
-                          onRemove: () => _showRevokeDialog(context, share),
-                        ),
-                      )
-                    : _ShareCard(share: share, showRemove: false),
-              );
-            },
-          );
-        },
+                            )
+                          : _ShareCard(share: share, showRemove: false),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

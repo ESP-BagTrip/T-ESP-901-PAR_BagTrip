@@ -1472,6 +1472,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emptyAccommodationsSubtitle => 'Add your hotels and lodgings';
 
   @override
+  String get emptyFlightsTitle => 'Ready to fly?';
+
+  @override
+  String get emptyFlightsSubtitle =>
+      'Add your flights to track dates and times';
+
+  @override
+  String get noActivitiesThisDay => 'Nothing planned for this day yet';
+
+  @override
   String get emptyActivitiesTitle => 'What will you discover?';
 
   @override
@@ -1482,6 +1492,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get emptyBaggageSubtitle => 'Add items to your luggage list';
+
+  @override
+  String baggageProgressLabel(int packed, int total) {
+    return '$packed / $total packed';
+  }
+
+  @override
+  String get emptySharesTitle => 'Travel together';
+
+  @override
+  String get emptySharesSubtitle =>
+      'Invite travel partners to collaborate on this trip';
+
+  @override
+  String get budgetSeeAllExpenses => 'See all expenses';
+
+  @override
+  String budgetOverBudgetBanner(String amount) {
+    return 'Over budget by $amount';
+  }
 
   @override
   String get emptyBudgetTitle => 'Track your expenses';
@@ -2500,6 +2530,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addBaggageItemTooltip => 'Add an item';
+
+  @override
+  String get addFlightTooltip => 'Add a flight';
+
+  @override
+  String get sharesAddMemberTooltip => 'Invite member';
+
+  @override
+  String get myTripFallback => 'My trip';
+
+  @override
+  String get completionSegmentsSheetTitle => 'Still missing';
 
   @override
   String get shareTooltip => 'Share';
