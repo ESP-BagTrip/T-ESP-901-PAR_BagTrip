@@ -921,7 +921,7 @@ void main() {
     }
 
     blocTest<PlanTripBloc, PlanTripState>(
-      'Success path parses suggestions and derives season from startDate',
+      'Success path parses all fields including imageUrl and weatherSummary',
       build: () {
         when(
           () => mockAuthRepo.getCurrentUser(),
@@ -943,6 +943,9 @@ void main() {
               'country': 'Italy',
               'iata': 'FCO',
               'match_reason': 'You love history',
+              'image_url': 'https://images.unsplash.com/rome.jpg',
+              'weather_summary': 'Sunny 28C',
+              'topActivities': ['Colosseum', 'Vatican'],
             },
           ]),
         );
@@ -964,8 +967,12 @@ void main() {
             .having((s) => s.aiSuggestions, 'count', hasLength(1)),
       ],
       verify: (bloc) {
-        expect(bloc.state.aiSuggestions.first.city, 'Rome');
-        expect(bloc.state.aiSuggestions.first.matchReason, 'You love history');
+        final dest = bloc.state.aiSuggestions.first;
+        expect(dest.city, 'Rome');
+        expect(dest.matchReason, 'You love history');
+        expect(dest.imageUrl, 'https://images.unsplash.com/rome.jpg');
+        expect(dest.weatherSummary, 'Sunny 28C');
+        expect(dest.topActivities, ['Colosseum', 'Vatican']);
         verify(
           () => mockAiRepo.getInspiration(
             travelTypes: 'culture',

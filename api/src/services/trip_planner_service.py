@@ -29,6 +29,7 @@ from sqlalchemy.orm import Session
 from src.agent.budget import BudgetExceeded
 from src.api.ai.plan_trip_schemas import PlanTripRequest
 from src.config.env import settings
+from src.integrations.unsplash import unsplash_client
 from src.models.user import User
 from src.services.plan_service import PlanService
 from src.utils.logger import logger
@@ -123,6 +124,25 @@ def _build_initial_state(request: PlanTripRequest) -> dict:
     }
 
 
+async def _enrich_destinations_with_images(destinations: list[dict]) -> list[dict]:
+    """Fetch Unsplash cover images for each destination (parallel, with fallback)."""
+
+    async def _fetch_one(dest: dict) -> dict:
+        city = dest.get("city", "")
+        if not city:
+            return dest
+        country = dest.get("country", "")
+        query = f"{city}, {country}" if country else city
+        url = await unsplash_client.fetch_cover_image(query)
+        if not url:
+            url = unsplash_client.get_fallback_url(query)
+        dest["image_url"] = url
+        return dest
+
+    await asyncio.gather(*[_fetch_one(d) for d in destinations])
+    return destinations
+
+
 class TripPlannerService:
     """SSE trip-planning orchestrator."""
 
@@ -163,6 +183,7 @@ class TripPlannerService:
             if request.mode == "destinations_only":
                 try:
                     destinations = await _quick_destination_suggestions(initial_state)
+                    await _enrich_destinations_with_images(destinations)
                     yield _sse("destinations", {"destinations": destinations})
                     yield _sse(
                         "complete",
@@ -236,6 +257,12 @@ class TripPlannerService:
                     if event_key in sent_events:
                         continue
                     sent_events.add(event_key)
+
+                    # Enrich destinations with Unsplash cover images
+                    if event_type == "destinations":
+                        dests = event_data.get("destinations", [])
+                        if dests:
+                            await _enrich_destinations_with_images(dests)
 
                     yield _sse(event_type, event_data)
 

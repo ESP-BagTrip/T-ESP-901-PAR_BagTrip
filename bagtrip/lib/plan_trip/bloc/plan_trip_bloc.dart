@@ -296,6 +296,12 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
               iata: m['iata'] as String?,
               matchReason:
                   m['match_reason'] as String? ?? m['matchReason'] as String?,
+              imageUrl: m['image_url'] as String? ?? m['imageUrl'] as String?,
+              weatherSummary:
+                  m['weather_summary'] as String? ??
+                  m['weatherSummary'] as String?,
+              topActivities:
+                  (m['topActivities'] as List?)?.cast<String>() ?? [],
             );
           }).toList();
           if (suggestions.isEmpty) {
