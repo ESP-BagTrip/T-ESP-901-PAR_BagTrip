@@ -46,13 +46,23 @@ async def _quick_destination_suggestions(state: Any) -> list[dict]:
     # Local import: LLMService drags optional deps we don't want at module load.
     from src.services.llm_service import LLMService
 
-    prompt = """Suggest 3-4 travel destinations as a JSON object.
-Consider the user's preferences and return ONLY a valid JSON object (no explanation):
-{
+    locale = state.get("locale", "en")
+
+    lang_instruction = (
+        "Réponds UNIQUEMENT en français. Les valeurs match_reason, weather_summary "
+        "et topActivities doivent être rédigées en français."
+        if locale == "fr"
+        else "Respond ONLY in English."
+    )
+
+    prompt = f"""Suggest 3-4 travel destinations as a JSON object.
+Consider the user's preferences and return ONLY a valid JSON object (no explanation).
+{lang_instruction}
+{{
   "destinations": [
-    {"city": "...", "country": "...", "match_reason": "Short reason why this matches"}
+    {{"city": "...", "country": "...", "match_reason": "...", "weather_summary": "...", "topActivities": ["...", "..."]}}
   ]
-}"""
+}}"""
 
     parts = []
     if state.get("travel_types"):
@@ -75,7 +85,7 @@ Consider the user's preferences and return ONLY a valid JSON object (no explanat
     llm_service = LLMService()
     result = await llm_service.acall_llm(prompt, user_prompt)
     destinations = result.get("destinations", [])
-    logger.info("Quick destination suggestions", {"count": len(destinations)})
+    logger.info("Quick destination suggestions", {"count": len(destinations), "locale": locale})
     return destinations
 
 
