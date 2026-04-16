@@ -60,6 +60,86 @@ void main() {
   });
 
   // ─────────────────────────────────────────────────────────────────────────
+  // LoadPersonalization — pre-fill from preferences
+  // ─────────────────────────────────────────────────────────────────────────
+
+  group('loadPersonalization', () {
+    const user = User(id: 'user-1', email: 'x@x');
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'pre-fills travelers and budget from personalization storage',
+      build: () {
+        when(
+          () => mockAuthRepo.getCurrentUser(),
+        ).thenAnswer((_) async => const Success(user));
+        when(
+          () => mockStorage.getCompanions('user-1'),
+        ).thenAnswer((_) async => 'couple');
+        when(
+          () => mockStorage.getBudget('user-1'),
+        ).thenAnswer((_) async => 'moderate');
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(const PlanTripEvent.loadPersonalization()),
+      expect: () => [
+        isA<PlanTripState>()
+            .having((s) => s.nbAdults, 'adults', 2)
+            .having((s) => s.nbChildren, 'children', 0)
+            .having((s) => s.budgetPreset, 'budget', BudgetPreset.comfortable),
+      ],
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'family maps to 2 adults + 2 children',
+      build: () {
+        when(
+          () => mockAuthRepo.getCurrentUser(),
+        ).thenAnswer((_) async => const Success(user));
+        when(
+          () => mockStorage.getCompanions('user-1'),
+        ).thenAnswer((_) async => 'family');
+        when(() => mockStorage.getBudget('user-1')).thenAnswer((_) async => '');
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(const PlanTripEvent.loadPersonalization()),
+      expect: () => [
+        isA<PlanTripState>()
+            .having((s) => s.nbAdults, 'adults', 2)
+            .having((s) => s.nbChildren, 'children', 2)
+            .having((s) => s.budgetPreset, 'budget', isNull),
+      ],
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'empty storage does not change defaults',
+      build: () {
+        when(
+          () => mockAuthRepo.getCurrentUser(),
+        ).thenAnswer((_) async => const Success(user));
+        when(
+          () => mockStorage.getCompanions('user-1'),
+        ).thenAnswer((_) async => '');
+        when(() => mockStorage.getBudget('user-1')).thenAnswer((_) async => '');
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(const PlanTripEvent.loadPersonalization()),
+      expect: () => <PlanTripState>[],
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'auth failure is silently ignored',
+      build: () {
+        when(
+          () => mockAuthRepo.getCurrentUser(),
+        ).thenThrow(Exception('offline'));
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(const PlanTripEvent.loadPersonalization()),
+      expect: () => <PlanTripState>[],
+    );
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Navigation
   // ─────────────────────────────────────────────────────────────────────────
 

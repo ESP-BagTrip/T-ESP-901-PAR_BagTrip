@@ -2,6 +2,10 @@ part of 'plan_trip_bloc.dart';
 
 @freezed
 sealed class PlanTripEvent with _$PlanTripEvent {
+  // Init
+  const factory PlanTripEvent.loadPersonalization() =
+      PlanTripLoadPersonalization;
+
   // Navigation
   const factory PlanTripEvent.nextStep() = PlanTripNextStep;
   const factory PlanTripEvent.previousStep() = PlanTripPreviousStep;

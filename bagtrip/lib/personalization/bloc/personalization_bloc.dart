@@ -240,39 +240,10 @@ class PersonalizationBloc
       return;
     }
 
-    // Save to local storage
-    await _storage.setTravelTypes(
-      userId,
-      current.selectedTravelTypes.join(','),
-    );
-    if (isClosed) return;
-    if (current.travelStyle != null) {
-      await _storage.setTravelStyle(userId, current.travelStyle!);
-      if (isClosed) return;
-    }
-    if (current.budget != null) {
-      await _storage.setBudget(userId, current.budget!);
-      if (isClosed) return;
-    }
-    if (current.companions != null) {
-      await _storage.setCompanions(userId, current.companions!);
-      if (isClosed) return;
-    }
-    if (current.travelFrequency != null) {
-      await _storage.setTravelFrequency(userId, current.travelFrequency!);
-      if (isClosed) return;
-    }
-    if (current.constraints != null) {
-      await _storage.setConstraints(userId, current.constraints!);
-      if (isClosed) return;
-    }
-    await _storage.setPersonalizationPromptSeen(userId);
-    if (isClosed) return;
-    await _storage.setPersonalizationWelcomeSeen(userId);
-    if (isClosed) return;
+    emit(current.copyWith(isSaving: true, saveErrorOrNull: () => null));
 
-    // Persist to backend (best effort)
-    await _profileRepository.updateProfile(
+    // 1. Persist to API first
+    final result = await _profileRepository.updateProfile(
       travelTypes: current.selectedTravelTypes.toList(),
       travelStyle: current.travelStyle ?? 'flexible',
       budget: current.budget,
@@ -282,6 +253,49 @@ class PersonalizationBloc
     );
     if (isClosed) return;
 
-    emit(PersonalizationCompleted());
+    switch (result) {
+      case Success():
+        // 2. API confirmed — now write to local cache
+        await _storage.setTravelTypes(
+          userId,
+          current.selectedTravelTypes.join(','),
+        );
+        if (isClosed) return;
+        if (current.travelStyle != null) {
+          await _storage.setTravelStyle(userId, current.travelStyle!);
+          if (isClosed) return;
+        }
+        if (current.budget != null) {
+          await _storage.setBudget(userId, current.budget!);
+          if (isClosed) return;
+        }
+        if (current.companions != null) {
+          await _storage.setCompanions(userId, current.companions!);
+          if (isClosed) return;
+        }
+        if (current.travelFrequency != null) {
+          await _storage.setTravelFrequency(userId, current.travelFrequency!);
+          if (isClosed) return;
+        }
+        if (current.constraints != null) {
+          await _storage.setConstraints(userId, current.constraints!);
+          if (isClosed) return;
+        }
+        await _storage.setPersonalizationPromptSeen(userId);
+        if (isClosed) return;
+        await _storage.setPersonalizationWelcomeSeen(userId);
+        if (isClosed) return;
+
+        emit(PersonalizationCompleted());
+
+      case Failure(:final error):
+        // 3. API failed — do NOT write to local cache
+        emit(
+          current.copyWith(
+            isSaving: false,
+            saveErrorOrNull: () => error.toString(),
+          ),
+        );
+    }
   }
 }

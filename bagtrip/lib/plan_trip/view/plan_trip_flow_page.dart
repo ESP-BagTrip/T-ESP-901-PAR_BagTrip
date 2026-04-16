@@ -54,7 +54,8 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
 
     return BlocProvider(
       create: (_) {
-        final bloc = PlanTripBloc();
+        final bloc = PlanTripBloc()
+          ..add(const PlanTripEvent.loadPersonalization());
         if (widget.initialDestination != null) {
           bloc.add(
             PlanTripEvent.selectManualDestination(widget.initialDestination!),

@@ -42,6 +42,8 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
        _authRepository = authRepository ?? getIt<AuthRepository>(),
        _storage = personalizationStorage ?? getIt<PersonalizationStorage>(),
        super(const PlanTripState()) {
+    // Init
+    on<PlanTripLoadPersonalization>(_onLoadPersonalization);
     // Navigation
     on<PlanTripNextStep>(_onNextStep);
     on<PlanTripPreviousStep>(_onPreviousStep);
@@ -69,6 +71,72 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     on<PlanTripCreateTrip>(_onCreateTrip);
     on<PlanTripBackToProposals>(_onBackToProposals);
     on<PlanTripUpdateReviewDates>(_onUpdateReviewDates);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Init — pre-fill from personalization
+  // ---------------------------------------------------------------------------
+
+  Future<void> _onLoadPersonalization(
+    PlanTripLoadPersonalization event,
+    Emitter<PlanTripState> emit,
+  ) async {
+    try {
+      final userResult = await _authRepository.getCurrentUser();
+      if (isClosed) return;
+      final userId = userResult.dataOrNull?.id ?? '';
+      if (userId.isEmpty) return;
+
+      final companions = await _storage.getCompanions(userId);
+      if (isClosed) return;
+      final budget = await _storage.getBudget(userId);
+      if (isClosed) return;
+
+      int? adults;
+      int? children;
+      int? babies;
+      if (companions.isNotEmpty) {
+        (adults, children, babies) = _companionDefaults(companions);
+      }
+
+      BudgetPreset? budgetPreset;
+      if (budget.isNotEmpty) {
+        budgetPreset = _mapBudgetPreset(budget);
+      }
+
+      if (adults != null || budgetPreset != null) {
+        emit(
+          state.copyWith(
+            nbAdults: adults ?? state.nbAdults,
+            nbChildren: children ?? state.nbChildren,
+            nbBabies: babies ?? state.nbBabies,
+            budgetPreset: budgetPreset ?? state.budgetPreset,
+          ),
+        );
+      }
+    } catch (_) {
+      // Pre-fill is best-effort — user can still set values manually.
+    }
+  }
+
+  static (int, int, int) _companionDefaults(String companions) {
+    return switch (companions) {
+      'solo' => (1, 0, 0),
+      'couple' => (2, 0, 0),
+      'family' => (2, 2, 0),
+      'friends' => (3, 0, 0),
+      _ => (1, 0, 0),
+    };
+  }
+
+  static BudgetPreset? _mapBudgetPreset(String budget) {
+    return switch (budget) {
+      'economical' => BudgetPreset.backpacker,
+      'moderate' => BudgetPreset.comfortable,
+      'comfort' => BudgetPreset.premium,
+      'luxury' => BudgetPreset.noLimit,
+      _ => null,
+    };
   }
 
   // ---------------------------------------------------------------------------

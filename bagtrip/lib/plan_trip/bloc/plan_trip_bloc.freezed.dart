@@ -55,10 +55,11 @@ extension PlanTripEventPatterns on PlanTripEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( PlanTripNextStep value)?  nextStep,TResult Function( PlanTripPreviousStep value)?  previousStep,TResult Function( PlanTripGoToStep value)?  goToStep,TResult Function( PlanTripSetDateMode value)?  setDateMode,TResult Function( PlanTripSetExactDates value)?  setExactDates,TResult Function( PlanTripSetMonthPreference value)?  setMonthPreference,TResult Function( PlanTripSetFlexibleDuration value)?  setFlexibleDuration,TResult Function( PlanTripSetTravelerCounts value)?  setTravelerCounts,TResult Function( PlanTripSetBudgetPreset value)?  setBudgetPreset,TResult Function( PlanTripSetOriginCity value)?  setOriginCity,TResult Function( PlanTripSearchDestination value)?  searchDestination,TResult Function( PlanTripSelectManualDestination value)?  selectManualDestination,TResult Function( PlanTripRequestAiSuggestions value)?  requestAiSuggestions,TResult Function( PlanTripSelectAiDestination value)?  selectAiDestination,TResult Function( PlanTripSwipeProposal value)?  swipeProposal,TResult Function( PlanTripStartGeneration value)?  startGeneration,TResult Function( PlanTripRetryGeneration value)?  retryGeneration,TResult Function( PlanTripCreateTrip value)?  createTrip,TResult Function( PlanTripBackToProposals value)?  backToProposals,TResult Function( PlanTripUpdateReviewDates value)?  updateReviewDates,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( PlanTripLoadPersonalization value)?  loadPersonalization,TResult Function( PlanTripNextStep value)?  nextStep,TResult Function( PlanTripPreviousStep value)?  previousStep,TResult Function( PlanTripGoToStep value)?  goToStep,TResult Function( PlanTripSetDateMode value)?  setDateMode,TResult Function( PlanTripSetExactDates value)?  setExactDates,TResult Function( PlanTripSetMonthPreference value)?  setMonthPreference,TResult Function( PlanTripSetFlexibleDuration value)?  setFlexibleDuration,TResult Function( PlanTripSetTravelerCounts value)?  setTravelerCounts,TResult Function( PlanTripSetBudgetPreset value)?  setBudgetPreset,TResult Function( PlanTripSetOriginCity value)?  setOriginCity,TResult Function( PlanTripSearchDestination value)?  searchDestination,TResult Function( PlanTripSelectManualDestination value)?  selectManualDestination,TResult Function( PlanTripRequestAiSuggestions value)?  requestAiSuggestions,TResult Function( PlanTripSelectAiDestination value)?  selectAiDestination,TResult Function( PlanTripSwipeProposal value)?  swipeProposal,TResult Function( PlanTripStartGeneration value)?  startGeneration,TResult Function( PlanTripRetryGeneration value)?  retryGeneration,TResult Function( PlanTripCreateTrip value)?  createTrip,TResult Function( PlanTripBackToProposals value)?  backToProposals,TResult Function( PlanTripUpdateReviewDates value)?  updateReviewDates,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case PlanTripNextStep() when nextStep != null:
+case PlanTripLoadPersonalization() when loadPersonalization != null:
+return loadPersonalization(_that);case PlanTripNextStep() when nextStep != null:
 return nextStep(_that);case PlanTripPreviousStep() when previousStep != null:
 return previousStep(_that);case PlanTripGoToStep() when goToStep != null:
 return goToStep(_that);case PlanTripSetDateMode() when setDateMode != null:
@@ -96,10 +97,11 @@ return updateReviewDates(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( PlanTripNextStep value)  nextStep,required TResult Function( PlanTripPreviousStep value)  previousStep,required TResult Function( PlanTripGoToStep value)  goToStep,required TResult Function( PlanTripSetDateMode value)  setDateMode,required TResult Function( PlanTripSetExactDates value)  setExactDates,required TResult Function( PlanTripSetMonthPreference value)  setMonthPreference,required TResult Function( PlanTripSetFlexibleDuration value)  setFlexibleDuration,required TResult Function( PlanTripSetTravelerCounts value)  setTravelerCounts,required TResult Function( PlanTripSetBudgetPreset value)  setBudgetPreset,required TResult Function( PlanTripSetOriginCity value)  setOriginCity,required TResult Function( PlanTripSearchDestination value)  searchDestination,required TResult Function( PlanTripSelectManualDestination value)  selectManualDestination,required TResult Function( PlanTripRequestAiSuggestions value)  requestAiSuggestions,required TResult Function( PlanTripSelectAiDestination value)  selectAiDestination,required TResult Function( PlanTripSwipeProposal value)  swipeProposal,required TResult Function( PlanTripStartGeneration value)  startGeneration,required TResult Function( PlanTripRetryGeneration value)  retryGeneration,required TResult Function( PlanTripCreateTrip value)  createTrip,required TResult Function( PlanTripBackToProposals value)  backToProposals,required TResult Function( PlanTripUpdateReviewDates value)  updateReviewDates,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( PlanTripLoadPersonalization value)  loadPersonalization,required TResult Function( PlanTripNextStep value)  nextStep,required TResult Function( PlanTripPreviousStep value)  previousStep,required TResult Function( PlanTripGoToStep value)  goToStep,required TResult Function( PlanTripSetDateMode value)  setDateMode,required TResult Function( PlanTripSetExactDates value)  setExactDates,required TResult Function( PlanTripSetMonthPreference value)  setMonthPreference,required TResult Function( PlanTripSetFlexibleDuration value)  setFlexibleDuration,required TResult Function( PlanTripSetTravelerCounts value)  setTravelerCounts,required TResult Function( PlanTripSetBudgetPreset value)  setBudgetPreset,required TResult Function( PlanTripSetOriginCity value)  setOriginCity,required TResult Function( PlanTripSearchDestination value)  searchDestination,required TResult Function( PlanTripSelectManualDestination value)  selectManualDestination,required TResult Function( PlanTripRequestAiSuggestions value)  requestAiSuggestions,required TResult Function( PlanTripSelectAiDestination value)  selectAiDestination,required TResult Function( PlanTripSwipeProposal value)  swipeProposal,required TResult Function( PlanTripStartGeneration value)  startGeneration,required TResult Function( PlanTripRetryGeneration value)  retryGeneration,required TResult Function( PlanTripCreateTrip value)  createTrip,required TResult Function( PlanTripBackToProposals value)  backToProposals,required TResult Function( PlanTripUpdateReviewDates value)  updateReviewDates,}){
 final _that = this;
 switch (_that) {
-case PlanTripNextStep():
+case PlanTripLoadPersonalization():
+return loadPersonalization(_that);case PlanTripNextStep():
 return nextStep(_that);case PlanTripPreviousStep():
 return previousStep(_that);case PlanTripGoToStep():
 return goToStep(_that);case PlanTripSetDateMode():
@@ -133,10 +135,11 @@ return updateReviewDates(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( PlanTripNextStep value)?  nextStep,TResult? Function( PlanTripPreviousStep value)?  previousStep,TResult? Function( PlanTripGoToStep value)?  goToStep,TResult? Function( PlanTripSetDateMode value)?  setDateMode,TResult? Function( PlanTripSetExactDates value)?  setExactDates,TResult? Function( PlanTripSetMonthPreference value)?  setMonthPreference,TResult? Function( PlanTripSetFlexibleDuration value)?  setFlexibleDuration,TResult? Function( PlanTripSetTravelerCounts value)?  setTravelerCounts,TResult? Function( PlanTripSetBudgetPreset value)?  setBudgetPreset,TResult? Function( PlanTripSetOriginCity value)?  setOriginCity,TResult? Function( PlanTripSearchDestination value)?  searchDestination,TResult? Function( PlanTripSelectManualDestination value)?  selectManualDestination,TResult? Function( PlanTripRequestAiSuggestions value)?  requestAiSuggestions,TResult? Function( PlanTripSelectAiDestination value)?  selectAiDestination,TResult? Function( PlanTripSwipeProposal value)?  swipeProposal,TResult? Function( PlanTripStartGeneration value)?  startGeneration,TResult? Function( PlanTripRetryGeneration value)?  retryGeneration,TResult? Function( PlanTripCreateTrip value)?  createTrip,TResult? Function( PlanTripBackToProposals value)?  backToProposals,TResult? Function( PlanTripUpdateReviewDates value)?  updateReviewDates,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( PlanTripLoadPersonalization value)?  loadPersonalization,TResult? Function( PlanTripNextStep value)?  nextStep,TResult? Function( PlanTripPreviousStep value)?  previousStep,TResult? Function( PlanTripGoToStep value)?  goToStep,TResult? Function( PlanTripSetDateMode value)?  setDateMode,TResult? Function( PlanTripSetExactDates value)?  setExactDates,TResult? Function( PlanTripSetMonthPreference value)?  setMonthPreference,TResult? Function( PlanTripSetFlexibleDuration value)?  setFlexibleDuration,TResult? Function( PlanTripSetTravelerCounts value)?  setTravelerCounts,TResult? Function( PlanTripSetBudgetPreset value)?  setBudgetPreset,TResult? Function( PlanTripSetOriginCity value)?  setOriginCity,TResult? Function( PlanTripSearchDestination value)?  searchDestination,TResult? Function( PlanTripSelectManualDestination value)?  selectManualDestination,TResult? Function( PlanTripRequestAiSuggestions value)?  requestAiSuggestions,TResult? Function( PlanTripSelectAiDestination value)?  selectAiDestination,TResult? Function( PlanTripSwipeProposal value)?  swipeProposal,TResult? Function( PlanTripStartGeneration value)?  startGeneration,TResult? Function( PlanTripRetryGeneration value)?  retryGeneration,TResult? Function( PlanTripCreateTrip value)?  createTrip,TResult? Function( PlanTripBackToProposals value)?  backToProposals,TResult? Function( PlanTripUpdateReviewDates value)?  updateReviewDates,}){
 final _that = this;
 switch (_that) {
-case PlanTripNextStep() when nextStep != null:
+case PlanTripLoadPersonalization() when loadPersonalization != null:
+return loadPersonalization(_that);case PlanTripNextStep() when nextStep != null:
 return nextStep(_that);case PlanTripPreviousStep() when previousStep != null:
 return previousStep(_that);case PlanTripGoToStep() when goToStep != null:
 return goToStep(_that);case PlanTripSetDateMode() when setDateMode != null:
@@ -173,9 +176,10 @@ return updateReviewDates(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  nextStep,TResult Function()?  previousStep,TResult Function( int step)?  goToStep,TResult Function( DateMode mode)?  setDateMode,TResult Function( DateTime start,  DateTime end)?  setExactDates,TResult Function( int month,  int year)?  setMonthPreference,TResult Function( DurationPreset preset)?  setFlexibleDuration,TResult Function( int? adults,  int? children,  int? babies)?  setTravelerCounts,TResult Function( BudgetPreset? preset)?  setBudgetPreset,TResult Function( String city)?  setOriginCity,TResult Function( String query)?  searchDestination,TResult Function( LocationResult location)?  selectManualDestination,TResult Function()?  requestAiSuggestions,TResult Function( AiDestination destination)?  selectAiDestination,TResult Function( int index)?  swipeProposal,TResult Function()?  startGeneration,TResult Function()?  retryGeneration,TResult Function()?  createTrip,TResult Function()?  backToProposals,TResult Function( DateTime start,  DateTime end)?  updateReviewDates,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loadPersonalization,TResult Function()?  nextStep,TResult Function()?  previousStep,TResult Function( int step)?  goToStep,TResult Function( DateMode mode)?  setDateMode,TResult Function( DateTime start,  DateTime end)?  setExactDates,TResult Function( int month,  int year)?  setMonthPreference,TResult Function( DurationPreset preset)?  setFlexibleDuration,TResult Function( int? adults,  int? children,  int? babies)?  setTravelerCounts,TResult Function( BudgetPreset? preset)?  setBudgetPreset,TResult Function( String city)?  setOriginCity,TResult Function( String query)?  searchDestination,TResult Function( LocationResult location)?  selectManualDestination,TResult Function()?  requestAiSuggestions,TResult Function( AiDestination destination)?  selectAiDestination,TResult Function( int index)?  swipeProposal,TResult Function()?  startGeneration,TResult Function()?  retryGeneration,TResult Function()?  createTrip,TResult Function()?  backToProposals,TResult Function( DateTime start,  DateTime end)?  updateReviewDates,required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case PlanTripNextStep() when nextStep != null:
+case PlanTripLoadPersonalization() when loadPersonalization != null:
+return loadPersonalization();case PlanTripNextStep() when nextStep != null:
 return nextStep();case PlanTripPreviousStep() when previousStep != null:
 return previousStep();case PlanTripGoToStep() when goToStep != null:
 return goToStep(_that.step);case PlanTripSetDateMode() when setDateMode != null:
@@ -213,9 +217,10 @@ return updateReviewDates(_that.start,_that.end);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  nextStep,required TResult Function()  previousStep,required TResult Function( int step)  goToStep,required TResult Function( DateMode mode)  setDateMode,required TResult Function( DateTime start,  DateTime end)  setExactDates,required TResult Function( int month,  int year)  setMonthPreference,required TResult Function( DurationPreset preset)  setFlexibleDuration,required TResult Function( int? adults,  int? children,  int? babies)  setTravelerCounts,required TResult Function( BudgetPreset? preset)  setBudgetPreset,required TResult Function( String city)  setOriginCity,required TResult Function( String query)  searchDestination,required TResult Function( LocationResult location)  selectManualDestination,required TResult Function()  requestAiSuggestions,required TResult Function( AiDestination destination)  selectAiDestination,required TResult Function( int index)  swipeProposal,required TResult Function()  startGeneration,required TResult Function()  retryGeneration,required TResult Function()  createTrip,required TResult Function()  backToProposals,required TResult Function( DateTime start,  DateTime end)  updateReviewDates,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loadPersonalization,required TResult Function()  nextStep,required TResult Function()  previousStep,required TResult Function( int step)  goToStep,required TResult Function( DateMode mode)  setDateMode,required TResult Function( DateTime start,  DateTime end)  setExactDates,required TResult Function( int month,  int year)  setMonthPreference,required TResult Function( DurationPreset preset)  setFlexibleDuration,required TResult Function( int? adults,  int? children,  int? babies)  setTravelerCounts,required TResult Function( BudgetPreset? preset)  setBudgetPreset,required TResult Function( String city)  setOriginCity,required TResult Function( String query)  searchDestination,required TResult Function( LocationResult location)  selectManualDestination,required TResult Function()  requestAiSuggestions,required TResult Function( AiDestination destination)  selectAiDestination,required TResult Function( int index)  swipeProposal,required TResult Function()  startGeneration,required TResult Function()  retryGeneration,required TResult Function()  createTrip,required TResult Function()  backToProposals,required TResult Function( DateTime start,  DateTime end)  updateReviewDates,}) {final _that = this;
 switch (_that) {
-case PlanTripNextStep():
+case PlanTripLoadPersonalization():
+return loadPersonalization();case PlanTripNextStep():
 return nextStep();case PlanTripPreviousStep():
 return previousStep();case PlanTripGoToStep():
 return goToStep(_that.step);case PlanTripSetDateMode():
@@ -249,9 +254,10 @@ return updateReviewDates(_that.start,_that.end);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  nextStep,TResult? Function()?  previousStep,TResult? Function( int step)?  goToStep,TResult? Function( DateMode mode)?  setDateMode,TResult? Function( DateTime start,  DateTime end)?  setExactDates,TResult? Function( int month,  int year)?  setMonthPreference,TResult? Function( DurationPreset preset)?  setFlexibleDuration,TResult? Function( int? adults,  int? children,  int? babies)?  setTravelerCounts,TResult? Function( BudgetPreset? preset)?  setBudgetPreset,TResult? Function( String city)?  setOriginCity,TResult? Function( String query)?  searchDestination,TResult? Function( LocationResult location)?  selectManualDestination,TResult? Function()?  requestAiSuggestions,TResult? Function( AiDestination destination)?  selectAiDestination,TResult? Function( int index)?  swipeProposal,TResult? Function()?  startGeneration,TResult? Function()?  retryGeneration,TResult? Function()?  createTrip,TResult? Function()?  backToProposals,TResult? Function( DateTime start,  DateTime end)?  updateReviewDates,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loadPersonalization,TResult? Function()?  nextStep,TResult? Function()?  previousStep,TResult? Function( int step)?  goToStep,TResult? Function( DateMode mode)?  setDateMode,TResult? Function( DateTime start,  DateTime end)?  setExactDates,TResult? Function( int month,  int year)?  setMonthPreference,TResult? Function( DurationPreset preset)?  setFlexibleDuration,TResult? Function( int? adults,  int? children,  int? babies)?  setTravelerCounts,TResult? Function( BudgetPreset? preset)?  setBudgetPreset,TResult? Function( String city)?  setOriginCity,TResult? Function( String query)?  searchDestination,TResult? Function( LocationResult location)?  selectManualDestination,TResult? Function()?  requestAiSuggestions,TResult? Function( AiDestination destination)?  selectAiDestination,TResult? Function( int index)?  swipeProposal,TResult? Function()?  startGeneration,TResult? Function()?  retryGeneration,TResult? Function()?  createTrip,TResult? Function()?  backToProposals,TResult? Function( DateTime start,  DateTime end)?  updateReviewDates,}) {final _that = this;
 switch (_that) {
-case PlanTripNextStep() when nextStep != null:
+case PlanTripLoadPersonalization() when loadPersonalization != null:
+return loadPersonalization();case PlanTripNextStep() when nextStep != null:
 return nextStep();case PlanTripPreviousStep() when previousStep != null:
 return previousStep();case PlanTripGoToStep() when goToStep != null:
 return goToStep(_that.step);case PlanTripSetDateMode() when setDateMode != null:
@@ -278,6 +284,38 @@ return updateReviewDates(_that.start,_that.end);case _:
 }
 
 }
+
+/// @nodoc
+
+
+class PlanTripLoadPersonalization implements PlanTripEvent {
+  const PlanTripLoadPersonalization();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlanTripLoadPersonalization);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'PlanTripEvent.loadPersonalization()';
+}
+
+
+}
+
+
+
 
 /// @nodoc
 

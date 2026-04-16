@@ -16,6 +16,8 @@ final class PersonalizationLoaded extends PersonalizationState {
   final String? companions;
   final String? travelFrequency;
   final String? constraints;
+  final bool isSaving;
+  final String? saveError;
 
   PersonalizationLoaded({
     required this.step,
@@ -26,6 +28,8 @@ final class PersonalizationLoaded extends PersonalizationState {
     this.companions,
     this.travelFrequency,
     this.constraints,
+    this.isSaving = false,
+    this.saveError,
   });
 
   PersonalizationLoaded copyWith({
@@ -37,6 +41,8 @@ final class PersonalizationLoaded extends PersonalizationState {
     String? companions,
     String? travelFrequency,
     String? constraints,
+    bool? isSaving,
+    String? Function()? saveErrorOrNull,
   }) {
     return PersonalizationLoaded(
       step: step ?? this.step,
@@ -47,6 +53,8 @@ final class PersonalizationLoaded extends PersonalizationState {
       companions: companions ?? this.companions,
       travelFrequency: travelFrequency ?? this.travelFrequency,
       constraints: constraints ?? this.constraints,
+      isSaving: isSaving ?? this.isSaving,
+      saveError: saveErrorOrNull != null ? saveErrorOrNull() : saveError,
     );
   }
 }
