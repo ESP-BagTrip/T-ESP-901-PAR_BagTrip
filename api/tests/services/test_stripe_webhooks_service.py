@@ -44,7 +44,7 @@ class TestStripeWebhooksService:
             intent = BookingIntent(status="INIT")
             mock_db_session.query.return_value.filter.return_value.first.side_effect = [
                 None,  # Event not found
-                intent  # Booking intent found
+                intent,  # Booking intent found
             ]
 
             result = StripeWebhooksService.process_event(mock_db_session, event)
@@ -52,6 +52,7 @@ class TestStripeWebhooksService:
             assert result.stripe_event_id == "evt_new"
             # Verify intent updated
             assert intent.status == "AUTHORIZED"
+
     def test_process_event_canceled(self, mock_db_session):
         """Test processing payment_intent.canceled."""
         event = MagicMock()
@@ -62,10 +63,7 @@ class TestStripeWebhooksService:
         event.data.object = {"metadata": {"booking_intent_id": str(uuid.uuid4())}}
 
         intent = BookingIntent(status="AUTHORIZED")
-        mock_db_session.query.return_value.filter.return_value.first.side_effect = [
-            None,
-            intent
-        ]
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, intent]
 
         StripeWebhooksService.process_event(mock_db_session, event)
         assert intent.status == "CANCELLED"
@@ -80,10 +78,7 @@ class TestStripeWebhooksService:
         event.data.object = {"metadata": {"booking_intent_id": str(uuid.uuid4())}}
 
         intent = BookingIntent(status="INIT")
-        mock_db_session.query.return_value.filter.return_value.first.side_effect = [
-            None,
-            intent
-        ]
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, intent]
 
         StripeWebhooksService.process_event(mock_db_session, event)
         assert intent.status == "FAILED"
@@ -106,13 +101,18 @@ class TestStripeWebhooksService:
 
         # Mock add so we can inspect the object
         added_event = None
+
         def side_effect_add(obj):
             nonlocal added_event
             added_event = obj
+
         mock_db_session.add.side_effect = side_effect_add
 
         # Patch _handle_event to raise exception
-        with patch("src.services.stripe_webhooks_service.StripeWebhooksService._handle_event", side_effect=Exception("Handler Error")):
+        with patch(
+            "src.services.stripe_webhooks_service.StripeWebhooksService._handle_event",
+            side_effect=Exception("Handler Error"),
+        ):
             result = StripeWebhooksService.process_event(mock_db_session, event)
 
             assert result.processing_error["error"] == "Handler Error"
@@ -124,7 +124,11 @@ class TestStripeWebhooksService:
         event.type = "customer.subscription.created"
         event.livemode = False
         event.to_dict.return_value = {}
-        event.data.object = {"customer": "cus_123", "id": "sub_123", "current_period_end": 1735689600}
+        event.data.object = {
+            "customer": "cus_123",
+            "id": "sub_123",
+            "current_period_end": 1735689600,
+        }
 
         user = User(id=uuid.uuid4(), plan="FREE", stripe_customer_id="cus_123")
         mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, user]
@@ -142,7 +146,12 @@ class TestStripeWebhooksService:
         event.to_dict.return_value = {}
         event.data.object = {"customer": "cus_123", "id": "sub_123"}
 
-        user = User(id=uuid.uuid4(), plan="PREMIUM", stripe_customer_id="cus_123", stripe_subscription_id="sub_123")
+        user = User(
+            id=uuid.uuid4(),
+            plan="PREMIUM",
+            stripe_customer_id="cus_123",
+            stripe_subscription_id="sub_123",
+        )
         mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, user]
 
         StripeWebhooksService.process_event(mock_db_session, event)
@@ -156,9 +165,18 @@ class TestStripeWebhooksService:
         event.type = "customer.subscription.updated"
         event.livemode = False
         event.to_dict.return_value = {}
-        event.data.object = {"customer": "cus_123", "status": "canceled", "current_period_end": 1735689600}
+        event.data.object = {
+            "customer": "cus_123",
+            "status": "canceled",
+            "current_period_end": 1735689600,
+        }
 
-        user = User(id=uuid.uuid4(), plan="PREMIUM", stripe_customer_id="cus_123", stripe_subscription_id="sub_123")
+        user = User(
+            id=uuid.uuid4(),
+            plan="PREMIUM",
+            stripe_customer_id="cus_123",
+            stripe_subscription_id="sub_123",
+        )
         mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, user]
 
         StripeWebhooksService.process_event(mock_db_session, event)
@@ -174,7 +192,7 @@ class TestStripeWebhooksService:
         event.to_dict.return_value = {}
         event.data.object = {
             "customer": "cus_123",
-            "lines": {"data": [{"period": {"end": 1735689600}}]}
+            "lines": {"data": [{"period": {"end": 1735689600}}]},
         }
 
         user = User(id=uuid.uuid4(), plan="FREE", stripe_customer_id="cus_123")

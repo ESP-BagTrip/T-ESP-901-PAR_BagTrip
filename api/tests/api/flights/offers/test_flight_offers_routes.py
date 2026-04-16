@@ -77,14 +77,13 @@ def trip_access(mock_trip_id):
 
 
 class TestGetFlightOffer:
-
     def test_get_flight_offer_success(self, client, mock_trip_id, mock_offer_id, trip_access):
         # Mock DB query for FlightOffer
         mock_offer = FlightOffer(
             id=mock_offer_id,
             trip_id=mock_trip_id,
             offer_json={"price": "100.00", "currency": "EUR"},
-            priced_offer_json=None
+            priced_offer_json=None,
         )
         mock_db_session.query.return_value.filter.return_value.first.return_value = mock_offer
 
@@ -115,9 +114,10 @@ class TestGetFlightOffer:
 
 
 class TestPriceFlightOffer:
-
     @patch("src.api.flights.offers.routes.FlightOfferPricingService")
-    def test_price_flight_offer_success(self, mock_pricing_service, client, mock_trip_id, mock_offer_id, trip_access):
+    def test_price_flight_offer_success(
+        self, mock_pricing_service, client, mock_trip_id, mock_offer_id, trip_access
+    ):
         # Mock FlightOfferPricingService.price_offer (Async)
         mock_priced_offer = MagicMock()
         mock_priced_offer.id = mock_offer_id
@@ -139,9 +139,13 @@ class TestPriceFlightOffer:
         )
 
     @patch("src.api.flights.offers.routes.FlightOfferPricingService")
-    def test_price_flight_offer_error(self, mock_pricing_service, client, mock_trip_id, mock_offer_id, trip_access):
+    def test_price_flight_offer_error(
+        self, mock_pricing_service, client, mock_trip_id, mock_offer_id, trip_access
+    ):
         # Mock FlightOfferPricingService raising AppError
-        mock_pricing_service.price_offer = AsyncMock(side_effect=AppError("PRICING_FAILED", 400, "Pricing failed"))
+        mock_pricing_service.price_offer = AsyncMock(
+            side_effect=AppError("PRICING_FAILED", 400, "Pricing failed")
+        )
 
         response = client.post(f"/v1/trips/{mock_trip_id}/flights/offers/{mock_offer_id}/price")
 

@@ -5,7 +5,16 @@ from src.enums import ActivityCategory, BaggageCategory
 
 def test_activity_category_values():
     """Verify new ActivityCategory enum has all expected values."""
-    expected = {"CULTURE", "NATURE", "FOOD", "SPORT", "SHOPPING", "NIGHTLIFE", "RELAXATION", "OTHER"}
+    expected = {
+        "CULTURE",
+        "NATURE",
+        "FOOD",
+        "SPORT",
+        "SHOPPING",
+        "NIGHTLIFE",
+        "RELAXATION",
+        "OTHER",
+    }
     actual = {e.value for e in ActivityCategory}
     assert actual == expected
 
@@ -19,7 +28,15 @@ def test_activity_old_values_removed():
 
 def test_baggage_category_values():
     """Verify new BaggageCategory enum has all expected values."""
-    expected = {"DOCUMENTS", "CLOTHING", "ELECTRONICS", "TOILETRIES", "HEALTH", "ACCESSORIES", "OTHER"}
+    expected = {
+        "DOCUMENTS",
+        "CLOTHING",
+        "ELECTRONICS",
+        "TOILETRIES",
+        "HEALTH",
+        "ACCESSORIES",
+        "OTHER",
+    }
     actual = {e.value for e in BaggageCategory}
     assert actual == expected
 

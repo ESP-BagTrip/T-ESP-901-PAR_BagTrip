@@ -29,9 +29,7 @@ class TestTripsService:
         mock_user.full_name = "John Doe"
         mock_db_session.query.return_value.filter.return_value.first.return_value = mock_user
 
-        trip = TripsService.create_trip(
-            mock_db_session, user_id, "Title", "PAR", "NYC"
-        )
+        trip = TripsService.create_trip(mock_db_session, user_id, "Title", "PAR", "NYC")
 
         assert trip.title == "Title"
         assert trip.user_id == user_id
@@ -64,9 +62,7 @@ class TestTripsService:
         """Test successful trip update — accepts Trip object directly."""
         trip = Trip(id=uuid.uuid4(), title="Old")
 
-        result = TripsService.update_trip(
-            mock_db_session, trip, title="New"
-        )
+        result = TripsService.update_trip(mock_db_session, trip, title="New")
 
         assert result.title == "New"
         mock_db_session.commit.assert_called_once()
@@ -77,9 +73,7 @@ class TestTripsService:
         trip.status = TripStatus.COMPLETED
 
         with pytest.raises(AppError) as exc:
-            TripsService.update_trip(
-                mock_db_session, trip, title="New"
-            )
+            TripsService.update_trip(mock_db_session, trip, title="New")
         assert exc.value.code == "TRIP_COMPLETED"
 
     def test_delete_trip_success(self, mock_db_session):

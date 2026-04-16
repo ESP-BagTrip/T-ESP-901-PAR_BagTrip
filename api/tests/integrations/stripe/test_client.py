@@ -30,6 +30,7 @@ class TestStripeClientInitialization:
             importlib.reload(stripe_client_module)
             assert stripe.api_key is None
 
+
 class TestStripeClient:
     """Tests for the StripeClient class."""
 
@@ -56,10 +57,7 @@ class TestStripeClient:
         pi = StripeClient.create_payment_intent(1000, "EUR")
         assert pi.id == "pi_123"
         mock_pi_create.assert_called_with(
-            amount=1000,
-            currency="eur",
-            capture_method="manual",
-            metadata={}
+            amount=1000, currency="eur", capture_method="manual", metadata={}
         )
 
         # Test with all optional parameters
@@ -70,7 +68,7 @@ class TestStripeClient:
             metadata=metadata,
             capture_method="automatic",
             customer="cus_123",
-            description="Test payment"
+            description="Test payment",
         )
         mock_pi_create.assert_called_with(
             amount=2000,
@@ -78,7 +76,7 @@ class TestStripeClient:
             capture_method="automatic",
             metadata=metadata,
             customer="cus_123",
-            description="Test payment"
+            description="Test payment",
         )
 
     @patch("stripe.PaymentIntent.capture")
@@ -126,4 +124,6 @@ class TestStripeClient:
 
         result = StripeClient.create_refund("ch_123", amount=500, reason="requested_by_customer")
         assert result == mock_refund
-        mock_create.assert_called_once_with(charge="ch_123", amount=500, reason="requested_by_customer")
+        mock_create.assert_called_once_with(
+            charge="ch_123", amount=500, reason="requested_by_customer"
+        )

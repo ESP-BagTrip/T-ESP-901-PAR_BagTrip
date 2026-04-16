@@ -113,7 +113,5 @@ class TestFlightOfferPricingService:
         mock_db_session.query.return_value.filter.return_value.first.return_value = None
 
         with pytest.raises(AppError) as exc:
-            await FlightOfferPricingService.price_offer(
-                mock_db_session, uuid.uuid4(), uuid.uuid4()
-            )
+            await FlightOfferPricingService.price_offer(mock_db_session, uuid.uuid4(), uuid.uuid4())
         assert exc.value.code == "OFFER_NOT_FOUND"

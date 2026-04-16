@@ -18,8 +18,7 @@ from src.agent.react_executor import parse_react_output, react_execute
 class TestParseReactOutputFinalAnswer:
     def test_simple_json(self):
         output = (
-            "Thought: I have all the data.\n"
-            'Final Answer: {"destinations": [{"city": "Paris"}]}'
+            'Thought: I have all the data.\nFinal Answer: {"destinations": [{"city": "Paris"}]}'
         )
         result = parse_react_output(output)
         assert isinstance(result, str)
@@ -148,10 +147,7 @@ class TestParseReactOutputAction:
 class TestParseReactOutputJsonRecovery:
     def test_malformed_json_recovery(self):
         """Regex r'\\{[^}]+\\}' extracts first JSON-like object."""
-        output = (
-            "Action: resolve_iata_code\n"
-            'Action Input: the city is {"city_name": "Tokyo"} okay'
-        )
+        output = 'Action: resolve_iata_code\nAction Input: the city is {"city_name": "Tokyo"} okay'
         result = parse_react_output(output)
         assert isinstance(result, tuple)
         assert result[1] == {"city_name": "Tokyo"}
@@ -163,10 +159,7 @@ class TestParseReactOutputJsonRecovery:
         assert result[1] == {"raw": "not valid at all"}
 
     def test_recovery_with_extra_text_around_json(self):
-        output = (
-            "Action: get_weather\n"
-            'Action Input: Here are the params: {"latitude": 35.6} end'
-        )
+        output = 'Action: get_weather\nAction Input: Here are the params: {"latitude": 35.6} end'
         result = parse_react_output(output)
         assert isinstance(result, tuple)
         assert result[1]["latitude"] == 35.6
@@ -194,13 +187,7 @@ class TestParseReactOutputDestinationsFallback:
         assert "Lisbon" in result
 
     def test_raw_json_destinations_multiline(self):
-        output = (
-            "{\n"
-            '  "destinations": [\n'
-            '    {"city": "Tokyo", "country": "Japan"}\n'
-            "  ]\n"
-            "}"
-        )
+        output = '{\n  "destinations": [\n    {"city": "Tokyo", "country": "Japan"}\n  ]\n}'
         result = parse_react_output(output)
         assert isinstance(result, str)
         parsed = json.loads(result)
@@ -237,9 +224,7 @@ class TestParseReactOutputEdgeCases:
         assert isinstance(result, str)
 
     def test_whitespace_around_action_name(self):
-        output = (
-            "Action:   resolve_iata_code  \n" 'Action Input: {"city_name": "Paris"}'
-        )
+        output = 'Action:   resolve_iata_code  \nAction Input: {"city_name": "Paris"}'
         result = parse_react_output(output)
         assert isinstance(result, tuple)
         assert result[0] == "resolve_iata_code"
@@ -254,9 +239,7 @@ class TestReactExecute:
     @pytest.mark.asyncio
     async def test_final_answer_first_iteration(self):
         """LLM returns Final Answer on first call => returns parsed JSON."""
-        mock_llm = AsyncMock(
-            return_value='Thought: done.\nFinal Answer: {"city": "Paris"}'
-        )
+        mock_llm = AsyncMock(return_value='Thought: done.\nFinal Answer: {"city": "Paris"}')
         with patch("src.agent.react_executor.LLMService") as mock_llm_cls:
             mock_llm_cls.return_value.acall_llm_messages = mock_llm
             result = await react_execute(
@@ -315,10 +298,7 @@ class TestReactExecute:
             nonlocal call_count
             call_count += 1
             if call_count == 1:
-                return (
-                    "Action: nonexistent_tool\n"
-                    'Action Input: {"foo": "bar"}'
-                )
+                return 'Action: nonexistent_tool\nAction Input: {"foo": "bar"}'
             # After seeing the error observation, LLM gives final answer
             return 'Final Answer: {"error": "tool not found"}'
 
@@ -344,12 +324,13 @@ class TestReactExecute:
             nonlocal iteration
             iteration += 1
             # Always return action until forced
-            if any("maximum number of tool calls" in m.content for m in messages if hasattr(m, "content")):
+            if any(
+                "maximum number of tool calls" in m.content
+                for m in messages
+                if hasattr(m, "content")
+            ):
                 return 'Final Answer: {"forced": true}'
-            return (
-                "Action: resolve_iata_code\n"
-                'Action Input: {"city_name": "Paris"}'
-            )
+            return 'Action: resolve_iata_code\nAction Input: {"city_name": "Paris"}'
 
         mock_tool_fn = AsyncMock(return_value={"iata": "CDG"})
         tool_registry = {
@@ -399,9 +380,7 @@ class TestReactExecute:
         async def bad_tool(**kwargs):
             raise TypeError("unexpected keyword argument")
 
-        tool_registry = {
-            "bad_tool": {"description": "Bad tool", "fn": bad_tool}
-        }
+        tool_registry = {"bad_tool": {"description": "Bad tool", "fn": bad_tool}}
 
         call_count = 0
 

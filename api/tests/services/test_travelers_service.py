@@ -75,9 +75,7 @@ class TestTravelersService:
         mock_db_session.query.return_value.filter.return_value.first.return_value = None
 
         with pytest.raises(AppError) as exc:
-            TravelersService.update_traveler(
-                mock_db_session, uuid.uuid4(), uuid.uuid4()
-            )
+            TravelersService.update_traveler(mock_db_session, uuid.uuid4(), uuid.uuid4())
         assert exc.value.code == "TRAVELER_NOT_FOUND"
 
     def test_delete_traveler_success(self, mock_db_session):

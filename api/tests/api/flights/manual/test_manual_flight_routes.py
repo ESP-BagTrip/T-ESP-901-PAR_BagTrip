@@ -94,7 +94,6 @@ def _make_mock_flight(flight_id, trip_id):
 
 @patch("src.api.flights.manual.routes.ManualFlightService")
 class TestUpdateManualFlight:
-
     def test_patch_success(self, mock_service, client, mock_trip_id, mock_flight_id, trip_access):
         mock_flight = _make_mock_flight(mock_flight_id, mock_trip_id)
         mock_flight.airline = "Air France Updated"
@@ -115,7 +114,9 @@ class TestUpdateManualFlight:
         call_kwargs = mock_service.update_manual_flight.call_args
         assert call_kwargs.kwargs.get("airline") == "Air France Updated"
 
-    def test_patch_partial_update(self, mock_service, client, mock_trip_id, mock_flight_id, trip_access):
+    def test_patch_partial_update(
+        self, mock_service, client, mock_trip_id, mock_flight_id, trip_access
+    ):
         mock_flight = _make_mock_flight(mock_flight_id, mock_trip_id)
         mock_flight.price = Decimal("500.00")
         mock_service.update_manual_flight.return_value = mock_flight
@@ -132,7 +133,9 @@ class TestUpdateManualFlight:
         # Only price should be in kwargs, not airline or other fields
         assert "airline" not in call_kwargs
 
-    def test_patch_flight_not_found(self, mock_service, client, mock_trip_id, mock_flight_id, trip_access):
+    def test_patch_flight_not_found(
+        self, mock_service, client, mock_trip_id, mock_flight_id, trip_access
+    ):
         mock_service.update_manual_flight.side_effect = AppError(
             "FLIGHT_NOT_FOUND", 404, "Manual flight not found"
         )
@@ -146,7 +149,9 @@ class TestUpdateManualFlight:
         assert response.status_code == 404
         assert response.json()["detail"]["code"] == "FLIGHT_NOT_FOUND"
 
-    def test_patch_trip_completed(self, mock_service, client, mock_trip_id, mock_flight_id, trip_access):
+    def test_patch_trip_completed(
+        self, mock_service, client, mock_trip_id, mock_flight_id, trip_access
+    ):
         mock_service.update_manual_flight.side_effect = AppError(
             "TRIP_COMPLETED", 403, "Cannot modify flights on a completed trip."
         )
@@ -160,7 +165,9 @@ class TestUpdateManualFlight:
         assert response.status_code == 403
         assert response.json()["detail"]["code"] == "TRIP_COMPLETED"
 
-    def test_patch_empty_body_accepted(self, mock_service, client, mock_trip_id, mock_flight_id, trip_access):
+    def test_patch_empty_body_accepted(
+        self, mock_service, client, mock_trip_id, mock_flight_id, trip_access
+    ):
         mock_flight = _make_mock_flight(mock_flight_id, mock_trip_id)
         mock_service.update_manual_flight.return_value = mock_flight
 
@@ -178,7 +185,6 @@ class TestUpdateManualFlight:
 
 @patch("src.api.flights.manual.routes.ManualFlightService")
 class TestCreateManualFlight:
-
     def test_create_success(self, mock_service, client, mock_trip_id, mock_flight_id, trip_access):
         mock_flight = _make_mock_flight(mock_flight_id, mock_trip_id)
         mock_service.create_manual_flight.return_value = mock_flight
@@ -209,7 +215,6 @@ class TestCreateManualFlight:
 
 @patch("src.api.flights.manual.routes.ManualFlightService")
 class TestDeleteManualFlight:
-
     def test_delete_success(self, mock_service, client, mock_trip_id, mock_flight_id, trip_access):
         mock_service.delete_manual_flight.return_value = None
 
@@ -220,7 +225,9 @@ class TestDeleteManualFlight:
         assert response.status_code == 204
         mock_service.delete_manual_flight.assert_called_once()
 
-    def test_delete_not_found(self, mock_service, client, mock_trip_id, mock_flight_id, trip_access):
+    def test_delete_not_found(
+        self, mock_service, client, mock_trip_id, mock_flight_id, trip_access
+    ):
         mock_service.delete_manual_flight.side_effect = AppError(
             "FLIGHT_NOT_FOUND", 404, "Manual flight not found"
         )

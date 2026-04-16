@@ -54,6 +54,7 @@ def mock_db_session():
 @pytest.fixture
 def override_get_db(mock_db_session):
     """Override the get_db dependency."""
+
     def _get_db():
         yield mock_db_session
 
@@ -65,10 +66,7 @@ def override_get_db(mock_db_session):
 @pytest.fixture
 def mock_user():
     """Create a mock user."""
-    return User(
-        id=uuid.uuid4(),
-        email="test@example.com"
-    )
+    return User(id=uuid.uuid4(), email="test@example.com")
 
 
 @pytest.fixture
@@ -125,17 +123,23 @@ class TestCreateBookingIntent:
     """Tests for POST /v1/trips/{tripId}/booking-intents."""
 
     @patch("src.api.booking_intents.routes.BookingIntentsService")
-    def test_create_booking_intent_success(self, mock_service, client, override_get_current_user, override_get_db, override_trip_access, mock_booking_intent, mock_trip):
+    def test_create_booking_intent_success(
+        self,
+        mock_service,
+        client,
+        override_get_current_user,
+        override_get_db,
+        override_trip_access,
+        mock_booking_intent,
+        mock_trip,
+    ):
         """Test successful booking intent creation."""
         mock_service.create_intent.return_value = mock_booking_intent
 
         trip_id = mock_trip.id
         flight_offer_id = uuid.uuid4()
 
-        payload = {
-            "type": "flight",
-            "flightOfferId": str(flight_offer_id)
-        }
+        payload = {"type": "flight", "flightOfferId": str(flight_offer_id)}
 
         response = client.post(f"/v1/trips/{trip_id}/booking-intents", json=payload)
 
@@ -148,7 +152,15 @@ class TestCreateBookingIntent:
         mock_service.create_intent.assert_called_once()
 
     @patch("src.api.booking_intents.routes.BookingIntentsService")
-    def test_create_booking_intent_error(self, mock_service, client, override_get_current_user, override_get_db, override_trip_access, mock_trip):
+    def test_create_booking_intent_error(
+        self,
+        mock_service,
+        client,
+        override_get_current_user,
+        override_get_db,
+        override_trip_access,
+        mock_trip,
+    ):
         """Test creation with service error."""
         mock_service.create_intent.side_effect = AppError("ERROR", 400, "Bad Request")
 
@@ -165,7 +177,9 @@ class TestGetBookingIntent:
     """Tests for GET /v1/booking-intents/{intentId}."""
 
     @patch("src.api.booking_intents.book_routes.BookingIntentsService")
-    def test_get_booking_intent_success(self, mock_service, client, override_get_current_user, override_get_db, mock_booking_intent):
+    def test_get_booking_intent_success(
+        self, mock_service, client, override_get_current_user, override_get_db, mock_booking_intent
+    ):
         """Test successful retrieval."""
         mock_service.get_intent_by_id.return_value = mock_booking_intent
 
@@ -180,7 +194,9 @@ class TestGetBookingIntent:
         mock_service.get_intent_by_id.assert_called_once()
 
     @patch("src.api.booking_intents.book_routes.BookingIntentsService")
-    def test_get_booking_intent_not_found_service_returns_none(self, mock_service, client, override_get_current_user, override_get_db):
+    def test_get_booking_intent_not_found_service_returns_none(
+        self, mock_service, client, override_get_current_user, override_get_db
+    ):
         """Test not found when service returns None."""
         mock_service.get_intent_by_id.return_value = None
 
@@ -192,7 +208,9 @@ class TestGetBookingIntent:
         assert response.json()["detail"]["error"] == "Booking intent not found"
 
     @patch("src.api.booking_intents.book_routes.BookingIntentsService")
-    def test_get_booking_intent_error(self, mock_service, client, override_get_current_user, override_get_db):
+    def test_get_booking_intent_error(
+        self, mock_service, client, override_get_current_user, override_get_db
+    ):
         """Test retrieval with AppError."""
         mock_service.get_intent_by_id.side_effect = AppError("ERROR", 500, "Internal Error")
 
@@ -208,7 +226,14 @@ class TestBookBookingIntent:
     """Tests for POST /v1/booking-intents/{intentId}/book."""
 
     @patch("src.api.booking_intents.book_routes.BookingOrchestratorService")
-    def test_book_flight_success(self, mock_orchestrator, client, override_get_current_user, override_get_db, mock_booking_intent):
+    def test_book_flight_success(
+        self,
+        mock_orchestrator,
+        client,
+        override_get_current_user,
+        override_get_db,
+        mock_booking_intent,
+    ):
         """Test successful flight booking."""
         mock_booking_intent.status = "CONFIRMED"
         mock_orchestrator.book = AsyncMock(return_value=mock_booking_intent)
@@ -216,10 +241,7 @@ class TestBookBookingIntent:
         intent_id = mock_booking_intent.id
         traveler_ids = [str(uuid.uuid4())]
 
-        payload = {
-            "travelerIds": traveler_ids,
-            "contacts": [{"email": "test@test.com"}]
-        }
+        payload = {"travelerIds": traveler_ids, "contacts": [{"email": "test@test.com"}]}
 
         response = client.post(f"/v1/booking-intents/{intent_id}/book", json=payload)
 
@@ -232,15 +254,14 @@ class TestBookBookingIntent:
         mock_orchestrator.book.assert_called_once()
 
     @patch("src.api.booking_intents.book_routes.BookingOrchestratorService")
-    def test_book_error(self, mock_orchestrator, client, override_get_current_user, override_get_db):
+    def test_book_error(
+        self, mock_orchestrator, client, override_get_current_user, override_get_db
+    ):
         """Test booking with error."""
         mock_orchestrator.book = AsyncMock(side_effect=AppError("ERROR", 400, "Booking failed"))
 
         intent_id = uuid.uuid4()
-        payload = {
-            "travelerIds": [],
-            "contacts": []
-        }
+        payload = {"travelerIds": [], "contacts": []}
 
         response = client.post(f"/v1/booking-intents/{intent_id}/book", json=payload)
 
@@ -248,7 +269,14 @@ class TestBookBookingIntent:
         assert response.json()["detail"]["error"] == "Booking failed"
 
     @patch("src.api.booking_intents.book_routes.BookingOrchestratorService")
-    def test_book_unknown_type(self, mock_orchestrator, client, override_get_current_user, override_get_db, mock_booking_intent):
+    def test_book_unknown_type(
+        self,
+        mock_orchestrator,
+        client,
+        override_get_current_user,
+        override_get_db,
+        mock_booking_intent,
+    ):
         """Test booking with unknown intent type — route returns flight amadeus shape."""
         mock_booking_intent.type = "unknown"
         mock_booking_intent.status = "CONFIRMED"
@@ -258,10 +286,7 @@ class TestBookBookingIntent:
         intent_id = mock_booking_intent.id
         traveler_ids = [str(uuid.uuid4())]
 
-        payload = {
-            "travelerIds": traveler_ids,
-            "contacts": [{"email": "test@test.com"}]
-        }
+        payload = {"travelerIds": traveler_ids, "contacts": [{"email": "test@test.com"}]}
 
         response = client.post(f"/v1/booking-intents/{intent_id}/book", json=payload)
 

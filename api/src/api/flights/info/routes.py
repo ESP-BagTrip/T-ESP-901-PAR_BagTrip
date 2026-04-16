@@ -7,8 +7,8 @@ from fastapi import APIRouter, Depends, Path
 from src.api.auth.middleware import get_current_user
 from src.api.flights.info.schemas import FlightInfoResponse
 from src.config.env import settings
-from src.integrations.airlabs.client import airlabs_client
 from src.models.user import User
+from src.services.airlabs_service import AirLabsService
 from src.utils.errors import AppError, create_http_exception
 
 router = APIRouter(prefix="/v1/travel/flights", tags=["Flight Info"])
@@ -38,7 +38,7 @@ async def get_flight_info(
             AppError("INVALID_FLIGHT_NUMBER", 400, f"Invalid IATA flight number: {flightNumber}")
         )
 
-    data = airlabs_client.lookup_flight(code)
+    data = AirLabsService.lookup_flight(code)
     if not data:
         raise create_http_exception(
             AppError("FLIGHT_NOT_FOUND", 404, f"No flight info found for {code}")

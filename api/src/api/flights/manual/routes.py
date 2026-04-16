@@ -1,5 +1,6 @@
 """Routes pour les vols manuels."""
 
+from decimal import Decimal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Path, status
@@ -42,7 +43,7 @@ async def create_manual_flight(
             arrival_airport=request.arrivalAirport,
             departure_date=request.departureDate,
             arrival_date=request.arrivalDate,
-            price=request.price,
+            price=Decimal(str(request.price)) if request.price is not None else None,
             currency=request.currency,
             notes=request.notes,
             flight_type=request.flightType,

@@ -12,6 +12,18 @@ repos:
         language: system
         pass_filenames: false
         files: ^api/
+      - id: api-mypy
+        name: "api: mypy src/"
+        entry: bash -lc 'cd api && uv run mypy src/'
+        language: system
+        pass_filenames: false
+        files: ^api/(src|pyproject\.toml)/.*\.(py|toml)$
+      - id: api-bandit
+        name: "api: bandit -r src/ -ll (medium+)"
+        entry: bash -lc 'cd api && uv run bandit -c pyproject.toml -r src/ --severity-level medium --confidence-level medium'
+        language: system
+        pass_filenames: false
+        files: ^api/(src|pyproject\.toml)/.*\.(py|toml)$
       - id: mobile-lint-format
         name: "mobile: flutter analyze && dart format ."
         entry: bash -lc 'cd bagtrip/ && flutter analyze && dart format .'

@@ -112,7 +112,7 @@ class BaggageItemsService:
     @staticmethod
     async def suggest_baggage_items(db: Session, trip: Trip) -> list[dict]:
         """Suggest baggage items via AI, deduplicating against existing items."""
-        from src.agent.prompts import BAGGAGE_PROMPT
+        from src.agent.prompts import render as render_prompt
         from src.services.llm_service import LLMService
 
         # Build prompt from trip data
@@ -137,7 +137,7 @@ class BaggageItemsService:
         # Call LLM
         llm = LLMService()
         try:
-            result = await llm.acall_llm(BAGGAGE_PROMPT, user_prompt)
+            result = await llm.acall_llm(render_prompt("baggage"), user_prompt)
             items = result.get("items", [])
         except Exception as e:
             logger.error("Baggage suggest LLM call failed", {"error": str(e)})

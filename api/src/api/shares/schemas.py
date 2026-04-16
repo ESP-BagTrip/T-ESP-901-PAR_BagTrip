@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class ShareCreateRequest(BaseModel):
@@ -26,9 +26,7 @@ class ShareResponse(BaseModel):
     userEmail: str = Field(alias="user_email")
     userFullName: str | None = Field(None, alias="user_full_name")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class ShareCreateResponse(BaseModel):
@@ -44,9 +42,7 @@ class ShareCreateResponse(BaseModel):
     status: str = "active"
     inviteToken: str | None = Field(None, alias="invite_token")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class PendingInviteResponse(BaseModel):
@@ -60,9 +56,7 @@ class PendingInviteResponse(BaseModel):
     createdAt: datetime = Field(alias="created_at")
     expiresAt: datetime = Field(alias="expires_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class ShareListResponse(BaseModel):

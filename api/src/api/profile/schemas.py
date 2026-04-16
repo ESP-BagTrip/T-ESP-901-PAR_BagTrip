@@ -3,7 +3,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProfileCreateUpdateRequest(BaseModel):
@@ -31,9 +31,7 @@ class ProfileResponse(BaseModel):
     created_at: datetime = Field(..., alias="createdAt")
     updated_at: datetime = Field(..., alias="updatedAt")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class ProfileCompletionResponse(BaseModel):
@@ -42,5 +40,4 @@ class ProfileCompletionResponse(BaseModel):
     is_completed: bool = Field(..., alias="isCompleted")
     missing_fields: list[str] = Field(..., alias="missingFields")
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)

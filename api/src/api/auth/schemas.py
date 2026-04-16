@@ -3,7 +3,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class SignupRequest(BaseModel):
@@ -36,9 +36,7 @@ class UserResponse(BaseModel):
     ai_generations_remaining: int | None = Field(None, alias="aiGenerationsRemaining")
     plan_expires_at: datetime | None = Field(None, alias="planExpiresAt")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class UpdateUserRequest(BaseModel):

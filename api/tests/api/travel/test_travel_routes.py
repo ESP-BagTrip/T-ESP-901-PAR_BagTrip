@@ -78,9 +78,7 @@ class TestSearchLocationsByKeyword:
         data = response.json()
         assert data["count"] == 1
         assert data["locations"][0]["name"] == "Paris"
-        mock_service.search_by_keyword.assert_called_once_with(
-            "paris", sub_type="CITY,AIRPORT"
-        )
+        mock_service.search_by_keyword.assert_called_once_with("paris", sub_type="CITY,AIRPORT")
 
     def test_search_locations_by_keyword_missing_params(self, mock_service, client):
         """Test search with missing query parameters."""
@@ -153,11 +151,11 @@ class TestSearchLocationNearest:
 
 
 # ============================================================================
-# FLIGHT ENDPOINTS — Still using amadeus_client
+# FLIGHT ENDPOINTS — Service facade (AmadeusService) mocked per test class.
 # ============================================================================
 
 
-@patch("src.api.travel.routes.amadeus_client", new_callable=AsyncMock)
+@patch("src.api.travel.routes.AmadeusService", new_callable=AsyncMock)
 class TestSearchFlightOffers:
     """Test suite for the search_flight_offers endpoint."""
 
@@ -239,7 +237,7 @@ class TestSearchFlightOffers:
         assert "cannot be used together" in response.json()["detail"]["error"]
 
 
-@patch("src.api.travel.routes.amadeus_client", new_callable=AsyncMock)
+@patch("src.api.travel.routes.AmadeusService", new_callable=AsyncMock)
 class TestSearchFlightDestinations:
     """Test suite for the search_flight_destinations endpoint."""
 
@@ -264,7 +262,7 @@ class TestSearchFlightDestinations:
         assert response.status_code == 422  # FastAPI validation
 
 
-@patch("src.api.travel.routes.amadeus_client", new_callable=AsyncMock)
+@patch("src.api.travel.routes.AmadeusService", new_callable=AsyncMock)
 class TestSearchFlightCheapestDates:
     """Test suite for the search_flight_cheapest_dates endpoint."""
 

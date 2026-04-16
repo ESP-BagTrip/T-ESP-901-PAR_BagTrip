@@ -115,7 +115,11 @@ def test_service_create_trip_passes_date_mode():
     db.add.side_effect = capture_add
 
     TripsService.create_trip(
-        db, user.id, "Test", None, None,
+        db,
+        user.id,
+        "Test",
+        None,
+        None,
         destination_name="Paris",
         date_mode="FLEXIBLE",
     )
@@ -144,7 +148,11 @@ def test_service_create_trip_default_date_mode():
     db.add.side_effect = capture_add
 
     TripsService.create_trip(
-        db, user.id, "Test", None, None,
+        db,
+        user.id,
+        "Test",
+        None,
+        None,
         destination_name="Paris",
     )
 
