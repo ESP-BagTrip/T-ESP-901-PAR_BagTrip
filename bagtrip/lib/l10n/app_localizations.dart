@@ -4827,6 +4827,24 @@ abstract class AppLocalizations {
   /// **'Hébergements'**
   String get mapAccommodations;
 
+  /// No description provided for @originCityLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'VILLE DE DÉPART'**
+  String get originCityLabel;
+
+  /// No description provided for @originCityPlaceholder.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre ville'**
+  String get originCityPlaceholder;
+
+  /// No description provided for @originCityHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'D\'où partez-vous ?'**
+  String get originCityHint;
+
   /// No description provided for @notFoundTitle.
   ///
   /// In fr, this message translates to:

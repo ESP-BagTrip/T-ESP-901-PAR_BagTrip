@@ -202,6 +202,15 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
       );
     }
     if (state.currentStep > 1) {
+      if (state.originCity != null && state.originCity!.isNotEmpty) {
+        items.add(
+          StepSummaryItem(
+            icon: Icons.flight_takeoff_rounded,
+            label: l10n.originCityLabel,
+            value: state.originCity!,
+          ),
+        );
+      }
       items.add(
         StepSummaryItem(
           icon: Icons.people_outline_rounded,

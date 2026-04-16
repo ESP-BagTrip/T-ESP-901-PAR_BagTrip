@@ -18,7 +18,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../helpers/mock_repositories.dart';
-import '../helpers/mock_services.dart';
+import '../helpers/mock_services.dart' hide MockLocationService;
 
 Trip _makeTrip() =>
     const Trip(id: 'trip-1', title: 'Barcelona', status: TripStatus.planned);
@@ -28,12 +28,14 @@ void main() {
   late MockAiRepository mockAiRepo;
   late MockAuthRepository mockAuthRepo;
   late MockPersonalizationStorage mockStorage;
+  late MockLocationService mockLocationService;
 
   setUp(() {
     mockTripRepo = MockTripRepository();
     mockAiRepo = MockAiRepository();
     mockAuthRepo = MockAuthRepository();
     mockStorage = MockPersonalizationStorage();
+    mockLocationService = MockLocationService();
   });
 
   PlanTripBloc buildBloc() => PlanTripBloc(
@@ -41,6 +43,7 @@ void main() {
     aiRepository: mockAiRepo,
     authRepository: mockAuthRepo,
     personalizationStorage: mockStorage,
+    locationService: mockLocationService,
   );
 
   group('initial state', () {
@@ -385,10 +388,27 @@ void main() {
     );
 
     blocTest<PlanTripBloc, PlanTripState>(
-      'successful search populates results from manual catalog',
-      build: buildBloc,
+      'successful search populates results from API',
+      build: () {
+        when(
+          () => mockLocationService.searchLocationsByKeyword(any(), any()),
+        ).thenAnswer(
+          (_) async => const Success([
+            {
+              'name': 'Paris',
+              'iataCode': 'PAR',
+              'city': 'Paris',
+              'countryCode': 'FR',
+              'countryName': 'France',
+              'subType': 'CITY',
+            },
+          ]),
+        );
+        return buildBloc();
+      },
       act: (bloc) => bloc.add(const PlanTripEvent.searchDestination('Paris')),
       expect: () => [
+        isA<PlanTripState>().having((s) => s.isSearching, 'searching', true),
         isA<PlanTripState>()
             .having((s) => s.isSearching, 'searching', false)
             .having((s) => s.searchResults.length, 'count', 1)

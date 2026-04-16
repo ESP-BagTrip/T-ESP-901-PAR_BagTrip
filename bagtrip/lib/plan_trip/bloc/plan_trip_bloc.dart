@@ -11,11 +11,11 @@ import 'package:bagtrip/plan_trip/models/date_mode.dart';
 import 'package:bagtrip/plan_trip/models/duration_preset.dart';
 import 'package:bagtrip/plan_trip/models/location_result.dart';
 import 'package:bagtrip/plan_trip/models/step_status.dart';
-import 'package:bagtrip/plan_trip/data/manual_destination_catalog.dart';
 import 'package:bagtrip/plan_trip/models/trip_plan.dart';
 import 'package:bagtrip/repositories/ai_repository.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/repositories/trip_repository.dart';
+import 'package:bagtrip/service/location_service.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -29,6 +29,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
   final AiRepository _aiRepository;
   final AuthRepository _authRepository;
   final PersonalizationStorage _storage;
+  final LocationService _locationService;
 
   StreamSubscription<Map<String, dynamic>>? _sseSubscription;
 
@@ -37,10 +38,12 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     AiRepository? aiRepository,
     AuthRepository? authRepository,
     PersonalizationStorage? personalizationStorage,
+    LocationService? locationService,
   }) : _tripRepository = tripRepository ?? getIt<TripRepository>(),
        _aiRepository = aiRepository ?? getIt<AiRepository>(),
        _authRepository = authRepository ?? getIt<AuthRepository>(),
        _storage = personalizationStorage ?? getIt<PersonalizationStorage>(),
+       _locationService = locationService ?? getIt<LocationService>(),
        super(const PlanTripState()) {
     // Init
     on<PlanTripLoadPersonalization>(_onLoadPersonalization);
@@ -57,6 +60,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     on<PlanTripSetTravelerCounts>(_onSetTravelerCounts);
     on<PlanTripSetBudgetPreset>(_onSetBudgetPreset);
     on<PlanTripSetOriginCity>(_onSetOriginCity);
+    on<PlanTripSearchOrigin>(_onSearchOrigin);
     // Step 2 — Destination
     on<PlanTripSearchDestination>(_onSearchDestination);
     on<PlanTripSelectManualDestination>(_onSelectManualDestination);
@@ -257,26 +261,82 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     PlanTripSetOriginCity event,
     Emitter<PlanTripState> emit,
   ) {
-    emit(state.copyWith(originCity: event.city));
+    emit(state.copyWith(originCity: event.city, originSearchResults: []));
+  }
+
+  Future<void> _onSearchOrigin(
+    PlanTripSearchOrigin event,
+    Emitter<PlanTripState> emit,
+  ) async {
+    if (event.query.length < 2) {
+      emit(state.copyWith(originSearchResults: []));
+      return;
+    }
+    final result = await _locationService.searchLocationsByKeyword(
+      event.query,
+      'CITY',
+    );
+    if (isClosed) return;
+    if (result case Success(:final data)) {
+      final locations = data
+          .take(6)
+          .map(
+            (m) => LocationResult(
+              name: m['name'] as String? ?? '',
+              iataCode: m['iataCode'] as String? ?? '',
+              city: m['city'] as String? ?? '',
+              countryCode: m['countryCode'] as String? ?? '',
+              countryName: m['countryName'] as String? ?? '',
+              subType: m['subType'] as String? ?? '',
+            ),
+          )
+          .toList();
+      emit(state.copyWith(originSearchResults: locations));
+    }
   }
 
   // ---------------------------------------------------------------------------
   // Step 2 — Destination
   // ---------------------------------------------------------------------------
 
-  void _onSearchDestination(
+  Future<void> _onSearchDestination(
     PlanTripSearchDestination event,
     Emitter<PlanTripState> emit,
-  ) {
+  ) async {
     if (event.query.length < 2) {
       emit(state.copyWith(searchResults: [], isSearching: false));
       return;
     }
-
-    final results = ManualDestinationCatalog.search(event.query);
-    emit(
-      state.copyWith(isSearching: false, searchResults: results, error: null),
+    emit(state.copyWith(isSearching: true));
+    final result = await _locationService.searchLocationsByKeyword(
+      event.query,
+      'CITY,AIRPORT',
     );
+    if (isClosed) return;
+    if (result case Success(:final data)) {
+      final locations = data
+          .take(8)
+          .map(
+            (m) => LocationResult(
+              name: m['name'] as String? ?? '',
+              iataCode: m['iataCode'] as String? ?? '',
+              city: m['city'] as String? ?? '',
+              countryCode: m['countryCode'] as String? ?? '',
+              countryName: m['countryName'] as String? ?? '',
+              subType: m['subType'] as String? ?? '',
+            ),
+          )
+          .toList();
+      emit(
+        state.copyWith(
+          isSearching: false,
+          searchResults: locations,
+          error: null,
+        ),
+      );
+    } else {
+      emit(state.copyWith(isSearching: false));
+    }
   }
 
   void _onSelectManualDestination(
