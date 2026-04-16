@@ -9,8 +9,8 @@ import 'package:dio/dio.dart';
 class ProfileRepositoryImpl implements ProfileRepository {
   final ApiClient _apiClient;
 
-  ProfileRepositoryImpl({ApiClient? apiClient})
-    : _apiClient = apiClient ?? ApiClient();
+  ProfileRepositoryImpl({required ApiClient apiClient})
+    : _apiClient = apiClient;
 
   @override
   Future<Result<TravelerProfile>> getProfile() async {

@@ -55,12 +55,11 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
         String? companions;
         final profileResult = await _profileRepository.getProfile();
         if (isClosed) return;
-        if (profileResult is Success) {
-          final travelerProfile = (profileResult as Success).data;
-          travelTypes = travelerProfile.travelTypes;
-          travelStyle = travelerProfile.travelStyle;
-          budget = travelerProfile.budget;
-          companions = travelerProfile.companions;
+        if (profileResult case Success(:final data)) {
+          travelTypes = data.travelTypes;
+          travelStyle = data.travelStyle;
+          budget = data.budget;
+          companions = data.companions;
         }
 
         final memberSince = user.createdAt ?? DateTime.now();

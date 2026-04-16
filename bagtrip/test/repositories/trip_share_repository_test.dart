@@ -151,4 +151,146 @@ void main() {
       expect(error.message, 'trip not found');
     });
   });
+
+  // ── Phase B reinforcement ─────────────────────────────────────────────
+
+  group('getSharesByTrip — reinforcement', () {
+    test('items envelope accepted', () async {
+      when(
+        () => mockApiClient.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: {
+            'items': [tripShareJson],
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/trips/trip-1/shares'),
+        ),
+      );
+      expect(await repo.getSharesByTrip('trip-1'), isA<Success>());
+    });
+
+    test('unknown shape returns empty Success', () async {
+      when(
+        () => mockApiClient.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: <String, dynamic>{},
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/trips/trip-1/shares'),
+        ),
+      );
+      final result = await repo.getSharesByTrip('trip-1');
+      expect(result, isA<Success>());
+      expect((result as Success).data, isEmpty);
+    });
+
+    test('non-200 returns Failure', () async {
+      when(
+        () => mockApiClient.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(path: '/trips/trip-1/shares'),
+        ),
+      );
+      expect(await repo.getSharesByTrip('trip-1'), isA<Failure>());
+    });
+  });
+
+  group('createShare — reinforcement', () {
+    test('includes optional message + custom role', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: tripShareJson,
+          statusCode: 201,
+          requestOptions: RequestOptions(path: '/trips/trip-1/shares'),
+        ),
+      );
+
+      await repo.createShare(
+        'trip-1',
+        email: 'friend@example.com',
+        message: 'Hi!',
+        role: 'EDITOR',
+      );
+
+      final captured = verify(
+        () => mockApiClient.post(
+          '/trips/trip-1/shares',
+          data: captureAny(named: 'data'),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).captured;
+      final payload = captured.single as Map<String, dynamic>;
+      expect(payload['role'], 'EDITOR');
+      expect(payload['message'], 'Hi!');
+    });
+
+    test('non-2xx returns Failure', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(path: '/trips/trip-1/shares'),
+        ),
+      );
+      expect(await repo.createShare('trip-1', email: 'a@b.c'), isA<Failure>());
+    });
+  });
+
+  group('deleteShare — reinforcement', () {
+    test('non-2xx returns Failure', () async {
+      when(
+        () => mockApiClient.delete(any(), options: any(named: 'options')),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(path: '/trips/trip-1/shares/share-1'),
+        ),
+      );
+      expect(await repo.deleteShare('trip-1', 'share-1'), isA<Failure>());
+    });
+
+    test('DioException returns Failure', () async {
+      when(
+        () => mockApiClient.delete(any(), options: any(named: 'options')),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/trips/trip-1/shares/share-1'),
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+      expect(await repo.deleteShare('trip-1', 'share-1'), isA<Failure>());
+    });
+  });
 }

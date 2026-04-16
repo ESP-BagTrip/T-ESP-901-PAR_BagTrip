@@ -15,6 +15,7 @@ import 'package:bagtrip/repositories/subscription_repository.dart';
 import 'package:bagtrip/repositories/ai_repository.dart';
 import 'package:bagtrip/repositories/transport_repository.dart';
 import 'package:bagtrip/repositories/weather_repository.dart';
+import 'package:bagtrip/service/location_service.dart';
 import 'package:bagtrip/core/cache/cache_service.dart';
 import 'package:bagtrip/core/cache/connectivity_service.dart';
 import 'package:bagtrip/service/trip_notification_scheduler.dart';
@@ -67,3 +68,5 @@ class MockTripNotificationScheduler extends Mock
 
 class MockPostTripDismissalStorage extends Mock
     implements PostTripDismissalStorage {}
+
+class MockLocationService extends Mock implements LocationService {}

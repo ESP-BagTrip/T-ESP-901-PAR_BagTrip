@@ -10,8 +10,8 @@ import 'package:dio/dio.dart';
 class ActivityRepositoryImpl implements ActivityRepository {
   final ApiClient _apiClient;
 
-  ActivityRepositoryImpl({ApiClient? apiClient})
-    : _apiClient = apiClient ?? ApiClient();
+  ActivityRepositoryImpl({required ApiClient apiClient})
+    : _apiClient = apiClient;
 
   @override
   Future<Result<List<Activity>>> getActivities(String tripId) async {

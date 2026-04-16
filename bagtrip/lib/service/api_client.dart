@@ -10,22 +10,40 @@ class ApiClient {
   late final Dio _dio;
   final String baseUrl;
   final StorageService _storageService;
+  final Dio Function(String baseUrl) _refreshDioFactory;
   bool _isRefreshing = false;
 
-  ApiClient({String? baseUrl, StorageService? storageService})
-    : baseUrl = baseUrl ?? AppConfig.apiBaseUrl,
-      _storageService = storageService ?? StorageService() {
-    _dio = Dio(
-      BaseOptions(
-        baseUrl: this.baseUrl,
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      ),
-    );
+  /// Build an ApiClient.
+  ///
+  /// In production, nothing is passed and everything is wired from config.
+  /// Tests can inject:
+  /// - [dio]: the main Dio instance — lets a test attach a `DioAdapter`
+  ///   from `http_mock_adapter` to intercept every request.
+  /// - [refreshDioFactory]: returns the Dio used by the refresh-token
+  ///   interceptor. Tests inject a second adapter-equipped Dio so the
+  ///   401-refresh loop can be exercised without a network.
+  ApiClient({
+    String? baseUrl,
+    StorageService? storageService,
+    Dio? dio,
+    Dio Function(String baseUrl)? refreshDioFactory,
+  }) : baseUrl = baseUrl ?? AppConfig.apiBaseUrl,
+       _storageService = storageService ?? StorageService(),
+       _refreshDioFactory =
+           refreshDioFactory ?? ((url) => Dio(BaseOptions(baseUrl: url))) {
+    _dio =
+        dio ??
+        Dio(
+          BaseOptions(
+            baseUrl: this.baseUrl,
+            connectTimeout: const Duration(seconds: 30),
+            receiveTimeout: const Duration(seconds: 30),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+          ),
+        );
 
     _dio.interceptors.add(PerformanceInterceptor());
 
@@ -81,8 +99,9 @@ class ApiClient {
       final refreshToken = await _storageService.getRefreshToken();
       if (refreshToken == null || refreshToken.isEmpty) return false;
 
-      // Use a separate Dio instance to avoid interceptor loops
-      final refreshDio = Dio(BaseOptions(baseUrl: baseUrl));
+      // Use a separate Dio instance to avoid interceptor loops.
+      // In tests, this is replaced by a factory returning an adapter-backed Dio.
+      final refreshDio = _refreshDioFactory(baseUrl);
       final response = await refreshDio.post(
         '/auth/refresh',
         data: {'refresh_token': refreshToken},

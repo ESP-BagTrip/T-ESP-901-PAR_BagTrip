@@ -3,6 +3,7 @@ import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/feedback.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/ai_repository.dart';
+import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/repositories/feedback_repository.dart';
 import 'package:bloc/bloc.dart';
 
@@ -13,8 +14,10 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
   FeedbackBloc({
     FeedbackRepository? feedbackRepository,
     AiRepository? aiRepository,
+    AuthRepository? authRepository,
   }) : _feedbackRepository = feedbackRepository ?? getIt<FeedbackRepository>(),
        _aiRepository = aiRepository ?? getIt<AiRepository>(),
+       _authRepository = authRepository ?? getIt<AuthRepository>(),
        super(FeedbackInitial()) {
     on<LoadFeedbacks>(_onLoadFeedbacks);
     on<SubmitFeedback>(_onSubmitFeedback);
@@ -23,6 +26,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
 
   final FeedbackRepository _feedbackRepository;
   final AiRepository _aiRepository;
+  final AuthRepository _authRepository;
 
   Future<void> _onLoadFeedbacks(
     LoadFeedbacks event,
@@ -66,6 +70,14 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     RequestPostTripSuggestion event,
     Emitter<FeedbackState> emit,
   ) async {
+    final userResult = await _authRepository.getCurrentUser();
+    if (isClosed) return;
+    final user = userResult.dataOrNull;
+    if (user != null && user.isFree) {
+      emit(PostTripSuggestionPremiumRequired());
+      return;
+    }
+
     emit(PostTripSuggestionLoading());
     final result = await _aiRepository.getPostTripSuggestion();
     if (isClosed) return;

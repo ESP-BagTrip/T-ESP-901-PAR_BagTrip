@@ -10,8 +10,8 @@ import 'package:dio/dio.dart';
 class BaggageRepositoryImpl implements BaggageRepository {
   final ApiClient _apiClient;
 
-  BaggageRepositoryImpl({ApiClient? apiClient})
-    : _apiClient = apiClient ?? ApiClient();
+  BaggageRepositoryImpl({required ApiClient apiClient})
+    : _apiClient = apiClient;
 
   @override
   Future<Result<BaggageItem>> createBaggageItem(
@@ -83,7 +83,7 @@ class BaggageRepositoryImpl implements BaggageRepository {
                 .toList(),
           );
         }
-        return const Failure(ServerError('Invalid response format'));
+        return loggedFailure(const ServerError('Invalid response format'));
       }
       return loggedFailure(
         UnknownError('fetch baggage items failed: ${response.statusCode}'),

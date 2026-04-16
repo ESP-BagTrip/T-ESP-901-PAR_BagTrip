@@ -26,7 +26,9 @@ abstract class BudgetItem with _$BudgetItem {
     required String tripId,
     required String label,
     required double amount,
-    @Default(BudgetCategory.other) BudgetCategory category,
+    @JsonKey(unknownEnumValue: BudgetCategory.other)
+    @Default(BudgetCategory.other)
+    BudgetCategory category,
     DateTime? date,
     @Default(true) bool isPlanned,
     String? sourceType,

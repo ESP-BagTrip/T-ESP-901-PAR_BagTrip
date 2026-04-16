@@ -20,6 +20,8 @@ class FeedbackError extends FeedbackState {
 
 class PostTripSuggestionLoading extends FeedbackState {}
 
+class PostTripSuggestionPremiumRequired extends FeedbackState {}
+
 class PostTripSuggestionLoaded extends FeedbackState {
   final Map<String, dynamic> suggestion;
   PostTripSuggestionLoaded({required this.suggestion});

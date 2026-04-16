@@ -10,8 +10,8 @@ import 'package:dio/dio.dart';
 class BookingRepositoryImpl implements BookingRepository {
   final ApiClient _apiClient;
 
-  BookingRepositoryImpl({ApiClient? apiClient})
-    : _apiClient = apiClient ?? ApiClient();
+  BookingRepositoryImpl({required ApiClient apiClient})
+    : _apiClient = apiClient;
 
   @override
   Future<Result<List<BookingResponse>>> listBookings() async {

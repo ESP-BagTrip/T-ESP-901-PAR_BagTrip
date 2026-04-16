@@ -259,5 +259,309 @@ void main() {
 
       expect(result, isA<Success>());
     });
+
+    test('non-200 returns Failure', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(
+            path: '/trips/trip-1/budget/estimate/accept',
+          ),
+        ),
+      );
+      expect(await repo.acceptBudgetEstimate('trip-1', 1200), isA<Failure>());
+    });
+
+    test('DioException returns Failure', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(
+            path: '/trips/trip-1/budget/estimate/accept',
+          ),
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+      expect(await repo.acceptBudgetEstimate('trip-1', 1200), isA<Failure>());
+    });
+  });
+
+  // ── Phase B reinforcement ─────────────────────────────────────────────
+
+  group('getBudgetItems — reinforcement', () {
+    test('items envelope accepted', () async {
+      when(
+        () => mockApiClient.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: {
+            'items': [budgetItemJson],
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/trips/trip-1/budget-items'),
+        ),
+      );
+      expect(await repo.getBudgetItems('trip-1'), isA<Success>());
+    });
+
+    test('unknown shape returns empty Success', () async {
+      when(
+        () => mockApiClient.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: <String, dynamic>{},
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/trips/trip-1/budget-items'),
+        ),
+      );
+      final result = await repo.getBudgetItems('trip-1');
+      expect(result, isA<Success>());
+      expect((result as Success).data, isEmpty);
+    });
+
+    test('non-200 returns Failure', () async {
+      when(
+        () => mockApiClient.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(path: '/trips/trip-1/budget-items'),
+        ),
+      );
+      expect(await repo.getBudgetItems('trip-1'), isA<Failure>());
+    });
+
+    test('DioException returns Failure', () async {
+      when(
+        () => mockApiClient.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/trips/trip-1/budget-items'),
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+      expect(await repo.getBudgetItems('trip-1'), isA<Failure>());
+    });
+  });
+
+  group('getBudgetSummary — reinforcement', () {
+    test('non-200 returns Failure', () async {
+      when(
+        () => mockApiClient.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(
+            path: '/trips/trip-1/budget-items/summary',
+          ),
+        ),
+      );
+      expect(await repo.getBudgetSummary('trip-1'), isA<Failure>());
+    });
+
+    test('DioException returns Failure', () async {
+      when(
+        () => mockApiClient.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(
+            path: '/trips/trip-1/budget-items/summary',
+          ),
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+      expect(await repo.getBudgetSummary('trip-1'), isA<Failure>());
+    });
+  });
+
+  group('createBudgetItem — reinforcement', () {
+    test('non-2xx returns Failure', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(path: '/trips/trip-1/budget-items'),
+        ),
+      );
+      expect(
+        await repo.createBudgetItem('trip-1', {'label': 'x'}),
+        isA<Failure>(),
+      );
+    });
+
+    test('DioException returns Failure', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/trips/trip-1/budget-items'),
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+      expect(
+        await repo.createBudgetItem('trip-1', {'label': 'x'}),
+        isA<Failure>(),
+      );
+    });
+  });
+
+  group('updateBudgetItem — reinforcement', () {
+    test('non-200 returns Failure', () async {
+      when(
+        () => mockApiClient.patch(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(
+            path: '/trips/trip-1/budget-items/bi-1',
+          ),
+        ),
+      );
+      expect(await repo.updateBudgetItem('trip-1', 'bi-1', {}), isA<Failure>());
+    });
+
+    test('DioException returns Failure', () async {
+      when(
+        () => mockApiClient.patch(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(
+            path: '/trips/trip-1/budget-items/bi-1',
+          ),
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+      expect(await repo.updateBudgetItem('trip-1', 'bi-1', {}), isA<Failure>());
+    });
+  });
+
+  group('deleteBudgetItem — reinforcement', () {
+    test('non-2xx returns Failure', () async {
+      when(
+        () => mockApiClient.delete(any(), options: any(named: 'options')),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(
+            path: '/trips/trip-1/budget-items/bi-1',
+          ),
+        ),
+      );
+      expect(await repo.deleteBudgetItem('trip-1', 'bi-1'), isA<Failure>());
+    });
+
+    test('DioException returns Failure', () async {
+      when(
+        () => mockApiClient.delete(any(), options: any(named: 'options')),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(
+            path: '/trips/trip-1/budget-items/bi-1',
+          ),
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+      expect(await repo.deleteBudgetItem('trip-1', 'bi-1'), isA<Failure>());
+    });
+  });
+
+  group('estimateBudget — reinforcement', () {
+    test('invalid shape returns Failure', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: <String, dynamic>{},
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/trips/trip-1/budget/estimate'),
+        ),
+      );
+      expect(await repo.estimateBudget('trip-1'), isA<Failure>());
+    });
+
+    test('non-200 returns Failure', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(path: '/trips/trip-1/budget/estimate'),
+        ),
+      );
+      expect(await repo.estimateBudget('trip-1'), isA<Failure>());
+    });
   });
 }

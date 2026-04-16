@@ -324,4 +324,236 @@ void main() {
       expect(result, isA<Failure>());
     });
   });
+
+  // ── Phase B reinforcement ─────────────────────────────────────────────
+
+  group('getManualFlights — reinforcement', () {
+    test('items envelope accepted', () async {
+      when(
+        () => mockApiClient.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: {
+            'items': [manualFlightJson],
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/trips/trip-1/flights/manual'),
+        ),
+      );
+      expect(await repo.getManualFlights('trip-1'), isA<Success>());
+    });
+
+    test('non-200 returns Failure', () async {
+      when(
+        () => mockApiClient.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(path: '/trips/trip-1/flights/manual'),
+        ),
+      );
+      expect(await repo.getManualFlights('trip-1'), isA<Failure>());
+    });
+  });
+
+  group('createManualFlight — reinforcement', () {
+    test('non-2xx returns Failure', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(path: '/trips/trip-1/flights/manual'),
+        ),
+      );
+      expect(
+        await repo.createManualFlight('trip-1', <String, dynamic>{}),
+        isA<Failure>(),
+      );
+    });
+
+    test('DioException returns Failure', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/trips/trip-1/flights/manual'),
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+      expect(
+        await repo.createManualFlight('trip-1', <String, dynamic>{}),
+        isA<Failure>(),
+      );
+    });
+  });
+
+  group('updateManualFlight — reinforcement', () {
+    test('non-200 returns Failure', () async {
+      when(
+        () => mockApiClient.patch(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(
+            path: '/trips/trip-1/flights/manual/fl-1',
+          ),
+        ),
+      );
+      expect(
+        await repo.updateManualFlight('trip-1', 'fl-1', {}),
+        isA<Failure>(),
+      );
+    });
+  });
+
+  group('deleteManualFlight — reinforcement', () {
+    test('non-2xx returns Failure', () async {
+      when(
+        () => mockApiClient.delete(any(), options: any(named: 'options')),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(
+            path: '/trips/trip-1/flights/manual/fl-1',
+          ),
+        ),
+      );
+      expect(await repo.deleteManualFlight('trip-1', 'fl-1'), isA<Failure>());
+    });
+
+    test('DioException returns Failure', () async {
+      when(
+        () => mockApiClient.delete(any(), options: any(named: 'options')),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(
+            path: '/trips/trip-1/flights/manual/fl-1',
+          ),
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+      expect(await repo.deleteManualFlight('trip-1', 'fl-1'), isA<Failure>());
+    });
+  });
+
+  group('searchFlightsPersisted — reinforcement', () {
+    test('non-2xx returns Failure', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(
+            path: '/trips/trip-1/flights/searches',
+          ),
+        ),
+      );
+      expect(
+        await repo.searchFlightsPersisted(
+          tripId: 'trip-1',
+          originIata: 'CDG',
+          destinationIata: 'JFK',
+          departureDate: '2027-06-01',
+          adults: 1,
+        ),
+        isA<Failure>(),
+      );
+    });
+
+    test('DioException returns Failure', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(
+            path: '/trips/trip-1/flights/searches',
+          ),
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+      expect(
+        await repo.searchFlightsPersisted(
+          tripId: 'trip-1',
+          originIata: 'CDG',
+          destinationIata: 'JFK',
+          departureDate: '2027-06-01',
+          adults: 1,
+        ),
+        isA<Failure>(),
+      );
+    });
+  });
+
+  group('lookupFlight — reinforcement', () {
+    test('non-200 returns Failure', () async {
+      when(
+        () => mockApiClient.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(path: '/travel/flights/AF123/info'),
+        ),
+      );
+      expect(await repo.lookupFlight('AF123'), isA<Failure>());
+    });
+
+    test('DioException returns Failure', () async {
+      when(
+        () => mockApiClient.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/travel/flights/AF123/info'),
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+      expect(await repo.lookupFlight('AF123'), isA<Failure>());
+    });
+  });
 }

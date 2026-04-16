@@ -16,6 +16,7 @@ import 'package:bagtrip/models/notification.dart';
 import 'package:bagtrip/models/feedback.dart';
 import 'package:bagtrip/models/trip_share.dart';
 import 'package:bagtrip/models/booking_response.dart';
+import 'package:bagtrip/models/payment_authorize_response.dart';
 import 'package:bagtrip/models/manual_flight.dart';
 import 'package:bagtrip/models/flight_info.dart';
 
@@ -328,6 +329,18 @@ BookingResponse makeBookingResponse({
     priceTotal: priceTotal,
     currency: currency,
     createdAt: createdAt ?? DateTime(2024, 5),
+  );
+}
+
+PaymentAuthorizeResponse makePaymentAuthorizeResponse({
+  String stripePaymentIntentId = 'pi_123',
+  String clientSecret = 'secret_123',
+  String status = 'requires_capture',
+}) {
+  return PaymentAuthorizeResponse(
+    stripePaymentIntentId: stripePaymentIntentId,
+    clientSecret: clientSecret,
+    status: status,
   );
 }
 

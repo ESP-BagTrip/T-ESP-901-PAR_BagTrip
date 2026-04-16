@@ -215,4 +215,206 @@ void main() {
       expect(result, isA<Failure>());
     });
   });
+
+  // ── Phase B reinforcement ─────────────────────────────────────────────
+
+  group('getByTrip — reinforcement', () {
+    test('items envelope accepted', () async {
+      when(
+        () => mockApiClient.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: {
+            'items': [baggageItemJson],
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/trips/trip-1/baggage'),
+        ),
+      );
+      expect(await repo.getByTrip('trip-1'), isA<Success>());
+    });
+
+    test('invalid shape returns Failure(ServerError)', () async {
+      when(
+        () => mockApiClient.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: <String, dynamic>{},
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/trips/trip-1/baggage'),
+        ),
+      );
+      final result = await repo.getByTrip('trip-1');
+      expect((result as Failure).error, isA<ServerError>());
+    });
+
+    test('non-200 returns Failure', () async {
+      when(
+        () => mockApiClient.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(path: '/trips/trip-1/baggage'),
+        ),
+      );
+      expect(await repo.getByTrip('trip-1'), isA<Failure>());
+    });
+  });
+
+  group('createBaggageItem — reinforcement', () {
+    test('non-2xx returns Failure', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(path: '/trips/trip-1/baggage'),
+        ),
+      );
+      expect(await repo.createBaggageItem('trip-1', name: 'x'), isA<Failure>());
+    });
+
+    test('DioException returns Failure', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/trips/trip-1/baggage'),
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+      expect(await repo.createBaggageItem('trip-1', name: 'x'), isA<Failure>());
+    });
+  });
+
+  group('updateBaggageItem — reinforcement', () {
+    test('non-200 returns Failure', () async {
+      when(
+        () => mockApiClient.patch(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(path: '/trips/trip-1/baggage/bag-1'),
+        ),
+      );
+      expect(
+        await repo.updateBaggageItem('trip-1', 'bag-1', {}),
+        isA<Failure>(),
+      );
+    });
+
+    test('DioException returns Failure', () async {
+      when(
+        () => mockApiClient.patch(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/trips/trip-1/baggage/bag-1'),
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+      expect(
+        await repo.updateBaggageItem('trip-1', 'bag-1', {}),
+        isA<Failure>(),
+      );
+    });
+  });
+
+  group('deleteBaggageItem — reinforcement', () {
+    test('non-2xx returns Failure', () async {
+      when(
+        () => mockApiClient.delete(any(), options: any(named: 'options')),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(path: '/trips/trip-1/baggage/bag-1'),
+        ),
+      );
+      expect(await repo.deleteBaggageItem('trip-1', 'bag-1'), isA<Failure>());
+    });
+
+    test('DioException returns Failure', () async {
+      when(
+        () => mockApiClient.delete(any(), options: any(named: 'options')),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/trips/trip-1/baggage/bag-1'),
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+      expect(await repo.deleteBaggageItem('trip-1', 'bag-1'), isA<Failure>());
+    });
+  });
+
+  group('suggestBaggage — reinforcement', () {
+    test('invalid shape returns Failure(ServerError)', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: <String, dynamic>{},
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/trips/trip-1/baggage/suggest'),
+        ),
+      );
+      final result = await repo.suggestBaggage('trip-1');
+      expect((result as Failure).error, isA<ServerError>());
+    });
+
+    test('non-200 returns Failure', () async {
+      when(
+        () => mockApiClient.post(
+          any(),
+          data: any(named: 'data'),
+          queryParameters: any(named: 'queryParameters'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          data: <String, dynamic>{},
+          requestOptions: RequestOptions(path: '/trips/trip-1/baggage/suggest'),
+        ),
+      );
+      expect(await repo.suggestBaggage('trip-1'), isA<Failure>());
+    });
+  });
 }
