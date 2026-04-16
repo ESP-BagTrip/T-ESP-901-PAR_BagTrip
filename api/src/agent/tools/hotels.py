@@ -67,6 +67,7 @@ async def search_real_hotels(
                     {
                         "name": hotel_info.get("name", "Unknown Hotel"),
                         "hotel_id": hotel_info.get("hotelId", ""),
+                        "rating": hotel_info.get("rating"),
                         "price_total": price,
                         "currency": offer.price.currency if offer.price else "EUR",
                         "check_in": offer.checkInDate,

@@ -35,6 +35,7 @@ async def assemble_node(state: TripPlanState) -> dict:
         "accommodations": state.get("accommodations", []),
         "baggage": state.get("baggage_items", []),
         "budget": state.get("budget_estimation", {}),
+        "flight_offers": state.get("flight_offers", []),
         "duration_days": state.get("duration_days"),
         "departure_date": state.get("departure_date"),
         "return_date": state.get("return_date"),

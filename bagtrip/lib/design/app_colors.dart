@@ -140,6 +140,21 @@ class AppColors {
   static const Color errorBg = Color(0xFFFFEBEE); // red.shade50
   static const Color errorText = Color(0xFFD32F2F); // red.shade700
 
+  // --- Review step (neutral warm grays used by step_review_view) ---
+  static const Color reviewMuted = Color(0xFF8D8B86);
+  static const Color reviewSubtle = Color(0xFF928F89);
+  static const Color reviewFaint = Color(0xFF9A9893);
+  static const Color reviewInk = Color(0xFF171513);
+  static const Color reviewUnchecked = Color(0xFFC8C5BE);
+  static const Color reviewDivider = Color(0x22000000);
+  static const Color reviewBorderLight = Color(0x1A000000);
+  static const Color reviewDividerFaint = Color(0x12000000);
+  static const Color reviewHeroDark = Color(0xCC0D3055);
+
+  // --- Budget breakdown (review panel pastel ring chart) ---
+  static const Color budgetTransport = Color(0xFFE8A4B8);
+  static const Color budgetDefault = Color(0xFF8B8882);
+
   // --- Overlays / shadows / dividers ---
   static const Color white = ColorName.surface; // #FFFFFF
   static final Color shadowLight = const Color(
