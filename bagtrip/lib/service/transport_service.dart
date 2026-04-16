@@ -10,8 +10,8 @@ import 'package:dio/dio.dart';
 class TransportRepositoryImpl implements TransportRepository {
   final ApiClient _apiClient;
 
-  TransportRepositoryImpl({ApiClient? apiClient})
-    : _apiClient = apiClient ?? ApiClient();
+  TransportRepositoryImpl({required ApiClient apiClient})
+    : _apiClient = apiClient;
 
   @override
   Future<Result<ManualFlight>> createManualFlight(

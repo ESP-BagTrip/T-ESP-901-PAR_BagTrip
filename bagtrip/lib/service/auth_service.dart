@@ -15,9 +15,11 @@ class AuthRepositoryImpl implements AuthRepository {
   final ApiClient _apiClient;
   final StorageService _storageService;
 
-  AuthRepositoryImpl({ApiClient? apiClient, StorageService? storageService})
-    : _apiClient = apiClient ?? ApiClient(),
-      _storageService = storageService ?? StorageService();
+  AuthRepositoryImpl({
+    required ApiClient apiClient,
+    required StorageService storageService,
+  }) : _apiClient = apiClient,
+       _storageService = storageService;
 
   @override
   Future<Result<AuthResponse>> login(String email, String password) async {

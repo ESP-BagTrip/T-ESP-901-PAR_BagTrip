@@ -27,6 +27,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<GoogleSignInRequested>(_onGoogleSignInRequested);
     on<AppleSignInRequested>(_onAppleSignInRequested);
     on<LogoutRequested>(_onLogoutRequested);
+    on<DeleteAccountRequested>(_onDeleteAccountRequested);
     on<AuthModeChanged>(_onAuthModeChanged);
   }
 
@@ -135,6 +136,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await getIt<CacheService>().clearAll();
     if (isClosed) return;
     emit(AuthInitial());
+  }
+
+  Future<void> _onDeleteAccountRequested(
+    DeleteAccountRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    final result = await _authRepository.deleteAccount();
+    if (isClosed) return;
+    switch (result) {
+      case Success():
+        add(LogoutRequested());
+      case Failure(:final error):
+        emit(AuthError(error: error, isLoginMode: _isLoginMode));
+    }
   }
 
   void _onAuthModeChanged(AuthModeChanged event, Emitter<AuthState> emit) {

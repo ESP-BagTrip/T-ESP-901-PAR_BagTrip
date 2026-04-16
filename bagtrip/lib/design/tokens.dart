@@ -1,3 +1,4 @@
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:flutter/material.dart';
 
 /// Centralized spacing tokens (logical pixels) and convenient EdgeInsets.
@@ -140,4 +141,58 @@ class AppRadius {
 
   /// Pilule (bords entièrement arrondis), comme dans la maquette.
   static const BorderRadius pill = BorderRadius.all(Radius.circular(999));
+}
+
+/// Centralized elevation tokens. These replace the `BoxShadow(color:
+/// ColorName.primary.withValues(alpha: 0.0x), ...)` duplicates that had
+/// accumulated across ~30 card widgets (activity card, budget item card,
+/// trip section card, flight card, etc.).
+///
+/// Use the pre-combined list constants (`AppShadows.card`, etc.) when you
+/// just need "the standard card elevation" — or pick individual shadows
+/// if you're building something bespoke.
+class AppShadows {
+  const AppShadows._();
+
+  /// Soft primary-tinted drop shadow (8% alpha, 4px offset, 6px blur).
+  /// Used as the main elevation of cards.
+  static final BoxShadow cardPrimary = BoxShadow(
+    color: ColorName.primary.withValues(alpha: 0.08),
+    offset: const Offset(0, 4),
+    blurRadius: 6,
+    spreadRadius: -1,
+  );
+
+  /// Ambient companion shadow (4% alpha, 2px offset, 4px blur).
+  /// Usually paired with [cardPrimary] to ground the element.
+  static final BoxShadow cardAmbient = BoxShadow(
+    color: ColorName.primary.withValues(alpha: 0.04),
+    offset: const Offset(0, 2),
+    blurRadius: 4,
+    spreadRadius: -1,
+  );
+
+  /// Standard card elevation: primary drop + ambient. This is what
+  /// 90% of cards in the app actually want.
+  static final List<BoxShadow> card = [cardPrimary, cardAmbient];
+}
+
+/// Centralized animation duration tokens. Replace
+/// `Duration(milliseconds: 200)` / `300` / `600` scattered across the
+/// codebase so tempo changes land everywhere at once.
+class AppAnimationDurations {
+  const AppAnimationDurations._();
+
+  /// Micro interaction (150 ms) — tap ripples, icon flips.
+  static const Duration microInteraction = Duration(milliseconds: 150);
+
+  /// Quick (200 ms) — chip/button hover states, subtle reveals.
+  static const Duration quick = Duration(milliseconds: 200);
+
+  /// Standard (300 ms) — bottom sheet, list item mutations, the default
+  /// Material transition.
+  static const Duration standard = Duration(milliseconds: 300);
+
+  /// Lengthy (600 ms) — hero transitions, longer celebratory animations.
+  static const Duration lengthy = Duration(milliseconds: 600);
 }

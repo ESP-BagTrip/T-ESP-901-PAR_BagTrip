@@ -161,5 +161,118 @@ void main() {
         expect((emitted as AuthModeChangedState).isLoginMode, isFalse);
       },
     );
+
+    // ── Phase C reinforcement: remaining branches ───────────────────────
+
+    blocTest<AuthBloc, AuthState>(
+      'login success calls CrashlyticsService.setUserId',
+      build: () {
+        when(
+          () => mockAuthRepo.login(any(), any()),
+        ).thenAnswer((_) async => Success(makeAuthResponse()));
+        return AuthBloc(authRepository: mockAuthRepo);
+      },
+      act: (bloc) => bloc.add(LoginRequested(email: 'a@b.com', password: 'pw')),
+      expect: () => [isA<AuthLoading>(), isA<AuthSuccess>()],
+      verify: (_) {
+        verify(
+          () => mockCrashlyticsService.setUserId(any(that: isNotEmpty)),
+        ).called(1);
+      },
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'register failure emits AuthError',
+      build: () {
+        when(() => mockAuthRepo.register(any(), any(), any())).thenAnswer(
+          (_) async => const Failure(ValidationError('email taken')),
+        );
+        return AuthBloc(authRepository: mockAuthRepo);
+      },
+      act: (bloc) =>
+          bloc.add(RegisterRequested(email: 'x@y.com', password: 'pw')),
+      expect: () => [isA<AuthLoading>(), isA<AuthError>()],
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'Google sign-in success emits AuthSuccess',
+      build: () {
+        when(
+          () => mockAuthRepo.loginWithGoogle(),
+        ).thenAnswer((_) async => Success(makeAuthResponse()));
+        return AuthBloc(authRepository: mockAuthRepo);
+      },
+      act: (bloc) => bloc.add(GoogleSignInRequested()),
+      expect: () => [isA<AuthLoading>(), isA<AuthSuccess>()],
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'Google sign-in non-cancel failure emits AuthError',
+      build: () {
+        when(
+          () => mockAuthRepo.loginWithGoogle(),
+        ).thenAnswer((_) async => const Failure(ServerError('nope')));
+        return AuthBloc(authRepository: mockAuthRepo);
+      },
+      act: (bloc) => bloc.add(GoogleSignInRequested()),
+      expect: () => [isA<AuthLoading>(), isA<AuthError>()],
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'Apple sign-in success emits AuthSuccess',
+      build: () {
+        when(
+          () => mockAuthRepo.loginWithApple(),
+        ).thenAnswer((_) async => Success(makeAuthResponse()));
+        return AuthBloc(authRepository: mockAuthRepo);
+      },
+      act: (bloc) => bloc.add(AppleSignInRequested()),
+      expect: () => [isA<AuthLoading>(), isA<AuthSuccess>()],
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'Apple sign-in non-cancel failure emits AuthError',
+      build: () {
+        when(
+          () => mockAuthRepo.loginWithApple(),
+        ).thenAnswer((_) async => const Failure(ServerError('nope')));
+        return AuthBloc(authRepository: mockAuthRepo);
+      },
+      act: (bloc) => bloc.add(AppleSignInRequested()),
+      expect: () => [isA<AuthLoading>(), isA<AuthError>()],
+    );
+
+    // ── DeleteAccountRequested ──────────────────────────────────────────
+
+    blocTest<AuthBloc, AuthState>(
+      'deleteAccount success triggers logout flow',
+      build: () {
+        when(
+          () => mockAuthRepo.deleteAccount(),
+        ).thenAnswer((_) async => const Success(null));
+        when(
+          () => mockAuthRepo.logout(),
+        ).thenAnswer((_) async => const Success(null));
+        return AuthBloc(authRepository: mockAuthRepo);
+      },
+      act: (bloc) => bloc.add(DeleteAccountRequested()),
+      expect: () => [isA<AuthLoading>(), isA<AuthInitial>()],
+      verify: (_) {
+        verify(() => mockAuthRepo.deleteAccount()).called(1);
+        verify(() => mockAuthRepo.logout()).called(1);
+      },
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'deleteAccount failure emits AuthError',
+      build: () {
+        when(
+          () => mockAuthRepo.deleteAccount(),
+        ).thenAnswer((_) async => const Failure(ServerError('boom')));
+        return AuthBloc(authRepository: mockAuthRepo);
+      },
+      act: (bloc) => bloc.add(DeleteAccountRequested()),
+      expect: () => [isA<AuthError>()],
+    );
   });
 }

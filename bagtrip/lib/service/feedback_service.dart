@@ -9,8 +9,8 @@ import 'package:dio/dio.dart';
 class FeedbackRepositoryImpl implements FeedbackRepository {
   final ApiClient _apiClient;
 
-  FeedbackRepositoryImpl({ApiClient? apiClient})
-    : _apiClient = apiClient ?? ApiClient();
+  FeedbackRepositoryImpl({required ApiClient apiClient})
+    : _apiClient = apiClient;
 
   @override
   Future<Result<TripFeedback>> submitFeedback(

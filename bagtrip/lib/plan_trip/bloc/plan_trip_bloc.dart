@@ -650,7 +650,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
   Future<void> _onBackToProposals(
     PlanTripBackToProposals event,
     Emitter<PlanTripState> emit,
-  ) {
+  ) async {
     unawaited(_cancelSseStream());
     emit(
       state.copyWith(

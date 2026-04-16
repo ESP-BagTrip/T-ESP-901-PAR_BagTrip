@@ -9,8 +9,8 @@ import 'package:dio/dio.dart';
 class TravelerRepositoryImpl implements TravelerRepository {
   final ApiClient _apiClient;
 
-  TravelerRepositoryImpl({ApiClient? apiClient})
-    : _apiClient = apiClient ?? ApiClient();
+  TravelerRepositoryImpl({required ApiClient apiClient})
+    : _apiClient = apiClient;
 
   @override
   Future<Result<Traveler>> createTraveler(

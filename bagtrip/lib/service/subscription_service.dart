@@ -8,8 +8,8 @@ import 'package:dio/dio.dart';
 class SubscriptionRepositoryImpl implements SubscriptionRepository {
   final ApiClient _apiClient;
 
-  SubscriptionRepositoryImpl({ApiClient? apiClient})
-    : _apiClient = apiClient ?? ApiClient();
+  SubscriptionRepositoryImpl({required ApiClient apiClient})
+    : _apiClient = apiClient;
 
   @override
   Future<Result<String>> getCheckoutUrl() async {

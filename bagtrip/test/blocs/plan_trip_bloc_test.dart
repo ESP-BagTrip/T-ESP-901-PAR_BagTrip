@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_redundant_argument_values
+
 import 'dart:async';
 
 import 'package:bagtrip/core/app_error.dart';
@@ -10,6 +12,7 @@ import 'package:bagtrip/plan_trip/models/budget_preset.dart';
 import 'package:bagtrip/plan_trip/models/date_mode.dart';
 import 'package:bagtrip/plan_trip/models/duration_preset.dart';
 import 'package:bagtrip/plan_trip/models/location_result.dart';
+import 'package:bagtrip/plan_trip/models/trip_plan.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -657,5 +660,692 @@ void main() {
       await controller2.close();
       await bloc.close();
     });
+
+    test('quota exceeded short-circuits with generationError', () async {
+      const outOfQuota = User(
+        id: 'user-1',
+        email: 'x@x',
+        aiGenerationsRemaining: 0,
+      );
+      when(
+        () => mockAuthRepo.getCurrentUser(),
+      ).thenAnswer((_) async => const Success(outOfQuota));
+
+      final bloc = buildBloc();
+      bloc.add(const PlanTripEvent.startGeneration());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(bloc.state.generationError, 'AI generation quota exceeded');
+      verifyNever(
+        () => mockAiRepo.planTripStream(
+          travelTypes: any(named: 'travelTypes'),
+          budgetRange: any(named: 'budgetRange'),
+          durationDays: any(named: 'durationDays'),
+          companions: any(named: 'companions'),
+          constraints: any(named: 'constraints'),
+          departureDate: any(named: 'departureDate'),
+          returnDate: any(named: 'returnDate'),
+          originCity: any(named: 'originCity'),
+        ),
+      );
+
+      await bloc.close();
+    });
+
+    Future<PlanTripBloc> bootGeneratingBloc(
+      StreamController<Map<String, dynamic>> controller, {
+      PlanTripState? seedOverride,
+    }) async {
+      stubForGeneration(
+        authRepo: mockAuthRepo,
+        storage: mockStorage,
+        aiRepo: mockAiRepo,
+        controller: controller,
+      );
+      final bloc = buildBloc();
+      if (seedOverride != null) bloc.emit(seedOverride);
+      bloc.add(const PlanTripEvent.startGeneration());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      return bloc;
+    }
+
+    test('progress event updates generationMessage', () async {
+      final controller = StreamController<Map<String, dynamic>>();
+      final bloc = await bootGeneratingBloc(controller);
+
+      controller.add({
+        'event': 'progress',
+        'data': {'message': 'Phase 1'},
+      });
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(bloc.state.generationMessage, 'Phase 1');
+
+      await controller.close();
+      await bloc.close();
+    });
+
+    test('destinations → activities step cascade sets progress 0.2', () async {
+      final controller = StreamController<Map<String, dynamic>>();
+      final bloc = await bootGeneratingBloc(controller);
+
+      controller.add({'event': 'destinations', 'data': <String, dynamic>{}});
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(bloc.state.generationProgress, 0.2);
+
+      await controller.close();
+      await bloc.close();
+    });
+
+    test('activities event advances progress to 0.4', () async {
+      final controller = StreamController<Map<String, dynamic>>();
+      final bloc = await bootGeneratingBloc(controller);
+      controller.add({'event': 'activities', 'data': <String, dynamic>{}});
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(bloc.state.generationProgress, 0.4);
+      await controller.close();
+      await bloc.close();
+    });
+
+    test('accommodations event advances progress to 0.6', () async {
+      final controller = StreamController<Map<String, dynamic>>();
+      final bloc = await bootGeneratingBloc(controller);
+      controller.add({'event': 'accommodations', 'data': <String, dynamic>{}});
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(bloc.state.generationProgress, 0.6);
+      await controller.close();
+      await bloc.close();
+    });
+
+    test('baggage event advances progress to 0.8', () async {
+      final controller = StreamController<Map<String, dynamic>>();
+      final bloc = await bootGeneratingBloc(controller);
+      controller.add({'event': 'baggage', 'data': <String, dynamic>{}});
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(bloc.state.generationProgress, 0.8);
+      await controller.close();
+      await bloc.close();
+    });
+
+    test('budget event advances progress to 0.9', () async {
+      final controller = StreamController<Map<String, dynamic>>();
+      final bloc = await bootGeneratingBloc(controller);
+      controller.add({'event': 'budget', 'data': <String, dynamic>{}});
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(bloc.state.generationProgress, 0.9);
+      await controller.close();
+      await bloc.close();
+    });
+
+    test(
+      'complete with tripPlan builds TripPlan and advances to step 5',
+      () async {
+        final controller = StreamController<Map<String, dynamic>>();
+        final bloc = await bootGeneratingBloc(controller);
+
+        controller.add({
+          'event': 'complete',
+          'data': {
+            'tripPlan': {
+              'destination': {
+                'city': 'Lisbon',
+                'country': 'Portugal',
+                'iata': 'LIS',
+              },
+              'duration_days': 6,
+              'activities': [
+                {
+                  'title': 'Tram ride',
+                  'description': 'Hop on the 28',
+                  'category': 'CULTURE',
+                },
+                {
+                  'title': 'Belém',
+                  'description': 'Pastries',
+                  'category': 'FOOD',
+                },
+              ],
+              'accommodations': [
+                {
+                  'name': 'Hotel X',
+                  'price_per_night': 120,
+                  'currency': 'EUR',
+                  'source': 'amadeus',
+                },
+              ],
+              'baggage': [
+                {'name': 'Passport', 'reason': 'ID'},
+              ],
+              'budget': {
+                'flights': {
+                  'amount': 200,
+                  'source': 'amadeus',
+                  'details': 'CDG→LIS',
+                },
+                'accommodation': {'amount': 720},
+                'meals': {'amount': 180},
+                'transport': {'amount': 60},
+                'activities': {'amount': 40},
+              },
+              'weather': {'avg_temp_c': 21},
+            },
+          },
+        });
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        expect(bloc.state.currentStep, 5);
+        expect(bloc.state.generationProgress, 1.0);
+        final plan = bloc.state.generatedPlan!;
+        expect(plan.destinationCity, 'Lisbon');
+        expect(plan.durationDays, 6);
+        expect(plan.budgetEur, 1200);
+        expect(plan.highlights, ['Tram ride', 'Belém']);
+        expect(plan.accommodationName, 'Hotel X');
+        expect(plan.essentialItems, ['Passport']);
+
+        await controller.close();
+        await bloc.close();
+      },
+    );
+
+    test('complete without tripPlan is a no-op', () async {
+      final controller = StreamController<Map<String, dynamic>>();
+      final bloc = await bootGeneratingBloc(controller);
+      controller.add({'event': 'complete', 'data': <String, dynamic>{}});
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(bloc.state.generatedPlan, isNull);
+      await controller.close();
+      await bloc.close();
+    });
+
+    test('error event sets generationError from payload', () async {
+      final controller = StreamController<Map<String, dynamic>>();
+      final bloc = await bootGeneratingBloc(controller);
+      controller.add({
+        'event': 'error',
+        'data': {'message': 'upstream failed'},
+      });
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(bloc.state.generationError, 'upstream failed');
+      await controller.close();
+      await bloc.close();
+    });
+
+    test('done with no plan advances to step 5 with empty plan', () async {
+      final controller = StreamController<Map<String, dynamic>>();
+      final bloc = await bootGeneratingBloc(controller);
+      controller.add({'event': 'done', 'data': <String, dynamic>{}});
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(bloc.state.currentStep, 5);
+      expect(bloc.state.generationProgress, 1.0);
+      await controller.close();
+      await bloc.close();
+    });
+
+    test('unknown event type is a no-op (default branch)', () async {
+      final controller = StreamController<Map<String, dynamic>>();
+      final bloc = await bootGeneratingBloc(controller);
+      final before = bloc.state;
+      controller.add({'event': 'sparkle', 'data': <String, dynamic>{}});
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(bloc.state, before);
+      await controller.close();
+      await bloc.close();
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Step 2 — RequestAiSuggestions
+  // ─────────────────────────────────────────────────────────────────────────
+
+  group('requestAiSuggestions', () {
+    const user = User(id: 'user-1', email: 'x@x');
+
+    void stubStorage({
+      String travelTypes = 'culture',
+      String budget = 'medium',
+      String companions = 'couple',
+      String constraints = '',
+    }) {
+      when(
+        () => mockStorage.getTravelTypes('user-1'),
+      ).thenAnswer((_) async => travelTypes);
+      when(
+        () => mockStorage.getBudget('user-1'),
+      ).thenAnswer((_) async => budget);
+      when(
+        () => mockStorage.getCompanions('user-1'),
+      ).thenAnswer((_) async => companions);
+      when(
+        () => mockStorage.getConstraints('user-1'),
+      ).thenAnswer((_) async => constraints);
+    }
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'Success path parses suggestions and derives season from startDate',
+      build: () {
+        when(
+          () => mockAuthRepo.getCurrentUser(),
+        ).thenAnswer((_) async => const Success(user));
+        stubStorage();
+        when(
+          () => mockAiRepo.getInspiration(
+            travelTypes: any(named: 'travelTypes'),
+            budgetRange: any(named: 'budgetRange'),
+            durationDays: any(named: 'durationDays'),
+            companions: any(named: 'companions'),
+            season: any(named: 'season'),
+            constraints: any(named: 'constraints'),
+          ),
+        ).thenAnswer(
+          (_) async => const Success([
+            {
+              'city': 'Rome',
+              'country': 'Italy',
+              'iata': 'FCO',
+              'match_reason': 'You love history',
+            },
+          ]),
+        );
+        return buildBloc();
+      },
+      seed: () => PlanTripState(
+        startDate: DateTime(2026, 7, 1),
+        endDate: DateTime(2026, 7, 8),
+      ),
+      act: (bloc) => bloc.add(const PlanTripEvent.requestAiSuggestions()),
+      expect: () => [
+        isA<PlanTripState>().having(
+          (s) => s.isLoadingAiSuggestions,
+          'loading',
+          true,
+        ),
+        isA<PlanTripState>()
+            .having((s) => s.isLoadingAiSuggestions, 'loading', false)
+            .having((s) => s.aiSuggestions, 'count', hasLength(1)),
+      ],
+      verify: (bloc) {
+        expect(bloc.state.aiSuggestions.first.city, 'Rome');
+        expect(bloc.state.aiSuggestions.first.matchReason, 'You love history');
+        verify(
+          () => mockAiRepo.getInspiration(
+            travelTypes: 'culture',
+            budgetRange: 'medium',
+            durationDays: 7,
+            companions: 'couple',
+            season: 'été',
+            constraints: null,
+          ),
+        ).called(1);
+      },
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'derives season from preferredMonth when startDate is null',
+      build: () {
+        when(
+          () => mockAuthRepo.getCurrentUser(),
+        ).thenAnswer((_) async => const Success(user));
+        stubStorage();
+        when(
+          () => mockAiRepo.getInspiration(
+            travelTypes: any(named: 'travelTypes'),
+            budgetRange: any(named: 'budgetRange'),
+            durationDays: any(named: 'durationDays'),
+            companions: any(named: 'companions'),
+            season: any(named: 'season'),
+            constraints: any(named: 'constraints'),
+          ),
+        ).thenAnswer(
+          (_) async => const Success([
+            {'city': 'Oslo', 'country': 'Norway'},
+          ]),
+        );
+        return buildBloc();
+      },
+      seed: () => const PlanTripState(
+        preferredMonth: 12,
+        preferredYear: 2026,
+        dateMode: DateMode.month,
+      ),
+      act: (bloc) => bloc.add(const PlanTripEvent.requestAiSuggestions()),
+      verify: (_) {
+        verify(
+          () => mockAiRepo.getInspiration(
+            travelTypes: any(named: 'travelTypes'),
+            budgetRange: any(named: 'budgetRange'),
+            durationDays: any(named: 'durationDays'),
+            companions: any(named: 'companions'),
+            season: 'hiver',
+            constraints: any(named: 'constraints'),
+          ),
+        ).called(1);
+      },
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'empty suggestion list emits error state',
+      build: () {
+        when(
+          () => mockAuthRepo.getCurrentUser(),
+        ).thenAnswer((_) async => const Success(user));
+        stubStorage();
+        when(
+          () => mockAiRepo.getInspiration(
+            travelTypes: any(named: 'travelTypes'),
+            budgetRange: any(named: 'budgetRange'),
+            durationDays: any(named: 'durationDays'),
+            companions: any(named: 'companions'),
+            season: any(named: 'season'),
+            constraints: any(named: 'constraints'),
+          ),
+        ).thenAnswer((_) async => const Success([]));
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(const PlanTripEvent.requestAiSuggestions()),
+      verify: (bloc) {
+        expect(bloc.state.error, isA<UnknownError>());
+        expect(bloc.state.aiSuggestions, isEmpty);
+      },
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'Failure surfaces error',
+      build: () {
+        when(
+          () => mockAuthRepo.getCurrentUser(),
+        ).thenAnswer((_) async => const Success(user));
+        stubStorage();
+        when(
+          () => mockAiRepo.getInspiration(
+            travelTypes: any(named: 'travelTypes'),
+            budgetRange: any(named: 'budgetRange'),
+            durationDays: any(named: 'durationDays'),
+            companions: any(named: 'companions'),
+            season: any(named: 'season'),
+            constraints: any(named: 'constraints'),
+          ),
+        ).thenAnswer((_) async => const Failure(NetworkError('offline')));
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(const PlanTripEvent.requestAiSuggestions()),
+      verify: (bloc) {
+        expect(bloc.state.error, isA<NetworkError>());
+      },
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'unexpected exception is wrapped in UnknownError',
+      build: () {
+        when(() => mockAuthRepo.getCurrentUser()).thenThrow(Exception('boom'));
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(const PlanTripEvent.requestAiSuggestions()),
+      verify: (bloc) {
+        expect(bloc.state.error, isA<UnknownError>());
+      },
+    );
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // SwipeProposal
+  // ─────────────────────────────────────────────────────────────────────────
+
+  group('swipeProposal', () {
+    blocTest<PlanTripBloc, PlanTripState>(
+      'selects the destination at the swiped index and advances to step 4',
+      build: buildBloc,
+      seed: () => const PlanTripState(
+        aiSuggestions: [
+          AiDestination(city: 'Rome', country: 'Italy'),
+          AiDestination(city: 'Lisbon', country: 'Portugal'),
+        ],
+      ),
+      act: (bloc) => bloc.add(const PlanTripEvent.swipeProposal(1)),
+      expect: () => [
+        isA<PlanTripState>()
+            .having((s) => s.selectedAiDestination?.city, 'city', 'Lisbon')
+            .having((s) => s.currentStep, 'step', 4),
+      ],
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'out-of-range index is a no-op',
+      build: buildBloc,
+      seed: () => const PlanTripState(
+        aiSuggestions: [AiDestination(city: 'Rome', country: 'Italy')],
+      ),
+      act: (bloc) => bloc.add(const PlanTripEvent.swipeProposal(99)),
+      expect: () => <PlanTripState>[],
+    );
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Misc setters + updateReviewDates + AI create path + manual failure
+  // ─────────────────────────────────────────────────────────────────────────
+
+  group('misc setters', () {
+    blocTest<PlanTripBloc, PlanTripState>(
+      'setOriginCity updates originCity',
+      build: buildBloc,
+      act: (bloc) => bloc.add(const PlanTripEvent.setOriginCity('Paris')),
+      expect: () => [
+        isA<PlanTripState>().having((s) => s.originCity, 'origin', 'Paris'),
+      ],
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'updateReviewDates sets dates and flips dateMode to exact',
+      build: buildBloc,
+      seed: () => const PlanTripState(dateMode: DateMode.flexible),
+      act: (bloc) => bloc.add(
+        PlanTripEvent.updateReviewDates(
+          DateTime(2026, 5),
+          DateTime(2026, 5, 10),
+        ),
+      ),
+      expect: () => [
+        isA<PlanTripState>()
+            .having((s) => s.dateMode, 'mode', DateMode.exact)
+            .having((s) => s.startDate, 'start', DateTime(2026, 5))
+            .having((s) => s.endDate, 'end', DateTime(2026, 5, 10)),
+      ],
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'setTravelerCounts clamps values to [min, max] range',
+      build: buildBloc,
+      act: (bloc) => bloc.add(
+        const PlanTripEvent.setTravelerCounts(
+          adults: 0, // clamped up to 1
+          children: 99, // clamped down to 10
+          babies: 5,
+        ),
+      ),
+      expect: () => [
+        isA<PlanTripState>()
+            .having((s) => s.nbAdults, 'adults', 1)
+            .having((s) => s.nbChildren, 'children', 10)
+            .having((s) => s.nbBabies, 'babies', 5),
+      ],
+    );
+  });
+
+  group('create trip — AI flow', () {
+    blocTest<PlanTripBloc, PlanTripState>(
+      'accepts the generated plan and stores createdTripId',
+      build: () {
+        when(
+          () => mockAiRepo.acceptInspiration(
+            any(),
+            startDate: any(named: 'startDate'),
+            endDate: any(named: 'endDate'),
+            dateMode: any(named: 'dateMode'),
+            originCity: any(named: 'originCity'),
+          ),
+        ).thenAnswer(
+          (_) async => const Success(<String, dynamic>{'id': 'trip-42'}),
+        );
+        return buildBloc();
+      },
+      seed: () => PlanTripState(
+        generatedPlan: const TripPlan(
+          destinationCity: 'Lisbon',
+          destinationCountry: 'Portugal',
+          durationDays: 5,
+          budgetEur: 1000,
+          accommodationName: 'Hotel X',
+          accommodationPrice: 120,
+          accommodationSource: 'amadeus',
+          flightRoute: 'CDG→LIS',
+          flightDetails: 'AF123',
+          flightPrice: 200,
+          flightSource: 'amadeus',
+          dayProgram: ['Tram ride'],
+          dayDescriptions: ['Hop on the 28'],
+          dayCategories: ['CULTURE'],
+          essentialItems: ['Passport'],
+          essentialReasons: ['ID'],
+          highlights: [],
+        ),
+        startDate: DateTime(2026, 6),
+        endDate: DateTime(2026, 6, 7),
+      ),
+      act: (bloc) => bloc.add(const PlanTripEvent.createTrip()),
+      verify: (bloc) {
+        expect(bloc.state.createdTripId, 'trip-42');
+        expect(bloc.state.isCreating, false);
+      },
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'falls back to tripId key when id is absent',
+      build: () {
+        when(
+          () => mockAiRepo.acceptInspiration(
+            any(),
+            startDate: any(named: 'startDate'),
+            endDate: any(named: 'endDate'),
+            dateMode: any(named: 'dateMode'),
+            originCity: any(named: 'originCity'),
+          ),
+        ).thenAnswer(
+          (_) async => const Success(<String, dynamic>{'tripId': 't-7'}),
+        );
+        return buildBloc();
+      },
+      seed: () => PlanTripState(
+        generatedPlan: const TripPlan(
+          destinationCity: 'X',
+          destinationCountry: 'Y',
+          durationDays: 3,
+          budgetEur: 100,
+          accommodationName: '',
+          accommodationPrice: 0,
+          accommodationSource: 'estimated',
+          flightRoute: '',
+          flightDetails: '',
+          flightPrice: 0,
+          flightSource: 'estimated',
+          dayProgram: [],
+          dayDescriptions: [],
+          dayCategories: [],
+          essentialItems: [],
+          essentialReasons: [],
+          highlights: [],
+        ),
+        startDate: DateTime(2026, 6),
+        endDate: DateTime(2026, 6, 4),
+      ),
+      act: (bloc) => bloc.add(const PlanTripEvent.createTrip()),
+      verify: (bloc) {
+        expect(bloc.state.createdTripId, 't-7');
+      },
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'createTrip (AI) without generatedPlan surfaces ServerError',
+      build: buildBloc,
+      act: (bloc) => bloc.add(const PlanTripEvent.createTrip()),
+      verify: (bloc) {
+        expect(bloc.state.error, isA<ServerError>());
+        expect(bloc.state.isCreating, false);
+      },
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'AI create failure surfaces error',
+      build: () {
+        when(
+          () => mockAiRepo.acceptInspiration(
+            any(),
+            startDate: any(named: 'startDate'),
+            endDate: any(named: 'endDate'),
+            dateMode: any(named: 'dateMode'),
+            originCity: any(named: 'originCity'),
+          ),
+        ).thenAnswer((_) async => const Failure(NetworkError('offline')));
+        return buildBloc();
+      },
+      seed: () => PlanTripState(
+        generatedPlan: const TripPlan(
+          destinationCity: 'X',
+          destinationCountry: 'Y',
+          durationDays: 3,
+          budgetEur: 100,
+          accommodationName: '',
+          accommodationPrice: 0,
+          accommodationSource: 'estimated',
+          flightRoute: '',
+          flightDetails: '',
+          flightPrice: 0,
+          flightSource: 'estimated',
+          dayProgram: [],
+          dayDescriptions: [],
+          dayCategories: [],
+          essentialItems: [],
+          essentialReasons: [],
+          highlights: [],
+        ),
+        startDate: DateTime(2026, 6),
+        endDate: DateTime(2026, 6, 4),
+      ),
+      act: (bloc) => bloc.add(const PlanTripEvent.createTrip()),
+      verify: (bloc) {
+        expect(bloc.state.error, isA<NetworkError>());
+      },
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'manual create failure surfaces error',
+      build: () {
+        when(
+          () => mockTripRepo.createTrip(
+            title: any(named: 'title'),
+            destinationName: any(named: 'destinationName'),
+            destinationIata: any(named: 'destinationIata'),
+            startDate: any(named: 'startDate'),
+            endDate: any(named: 'endDate'),
+            nbTravelers: any(named: 'nbTravelers'),
+            budgetTotal: any(named: 'budgetTotal'),
+          ),
+        ).thenAnswer((_) async => const Failure(NetworkError('offline')));
+        return buildBloc();
+      },
+      seed: () => PlanTripState(
+        isManualFlow: true,
+        selectedManualDestination: const LocationResult(
+          name: 'Rome',
+          iataCode: 'FCO',
+        ),
+        startDate: DateTime(2026, 5),
+        endDate: DateTime(2026, 5, 8),
+        budgetPreset: BudgetPreset.comfortable,
+      ),
+      act: (bloc) => bloc.add(const PlanTripEvent.createTrip()),
+      verify: (bloc) {
+        expect(bloc.state.error, isA<NetworkError>());
+        expect(bloc.state.isCreating, false);
+      },
+    );
   });
 }
