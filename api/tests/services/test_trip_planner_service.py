@@ -23,6 +23,7 @@ from src.api.ai.plan_trip_schemas import PlanTripRequest
 from src.services.trip_planner_service import (
     TripPlannerService,
     _build_initial_state,
+    _enrich_destinations_with_images,
     _quick_destination_suggestions,
     _sse,
 )
@@ -132,6 +133,27 @@ class TestQuickDestinationSuggestions:
         _, user_prompt = fake_llm.acall_llm.call_args.args
         assert "diverse" in user_prompt.lower()
 
+    @pytest.mark.asyncio
+    async def test_fr_locale_injects_french_instruction(self):
+        state = {"locale": "fr", "travel_types": "culture"}
+        fake_llm = MagicMock()
+        fake_llm.acall_llm = AsyncMock(return_value={"destinations": [{"city": "Lyon"}]})
+        with patch("src.services.llm_service.LLMService", return_value=fake_llm):
+            await _quick_destination_suggestions(state)
+        system_prompt, _ = fake_llm.acall_llm.call_args.args
+        assert "français" in system_prompt.lower()
+
+    @pytest.mark.asyncio
+    async def test_en_locale_injects_english_instruction(self):
+        state = {"locale": "en"}
+        fake_llm = MagicMock()
+        fake_llm.acall_llm = AsyncMock(return_value={"destinations": []})
+        with patch("src.services.llm_service.LLMService", return_value=fake_llm):
+            await _quick_destination_suggestions(state)
+        system_prompt, _ = fake_llm.acall_llm.call_args.args
+        assert "english" in system_prompt.lower()
+        assert "français" not in system_prompt.lower()
+
 
 # ---------------------------------------------------------------------------
 # stream_plan() — integration-style with stubbed graph
@@ -171,13 +193,49 @@ def _parse_sse_events(lines: list[str]) -> list[tuple[str, dict]]:
     return events
 
 
+class TestEnrichDestinationsWithImages:
+    @pytest.mark.asyncio
+    async def test_adds_image_url_from_unsplash(self):
+        destinations = [{"city": "Tokyo", "country": "Japan"}]
+        with patch("src.services.trip_planner_service.unsplash_client") as mock_unsplash:
+            mock_unsplash.fetch_cover_image = AsyncMock(
+                return_value="https://unsplash.com/tokyo.jpg"
+            )
+            result = await _enrich_destinations_with_images(destinations)
+        assert result[0]["image_url"] == "https://unsplash.com/tokyo.jpg"
+
+    @pytest.mark.asyncio
+    async def test_uses_fallback_when_unsplash_returns_none(self):
+        destinations = [{"city": "Paris", "country": "France"}]
+        with patch("src.services.trip_planner_service.unsplash_client") as mock_unsplash:
+            mock_unsplash.fetch_cover_image = AsyncMock(return_value=None)
+            mock_unsplash.get_fallback_url = MagicMock(return_value="https://fallback.jpg")
+            result = await _enrich_destinations_with_images(destinations)
+        assert result[0]["image_url"] == "https://fallback.jpg"
+
+    @pytest.mark.asyncio
+    async def test_skips_empty_city(self):
+        destinations = [{"country": "Unknown"}]
+        with patch("src.services.trip_planner_service.unsplash_client") as mock_unsplash:
+            mock_unsplash.fetch_cover_image = AsyncMock()
+            result = await _enrich_destinations_with_images(destinations)
+        mock_unsplash.fetch_cover_image.assert_not_awaited()
+        assert "image_url" not in result[0]
+
+
 class TestStreamPlan:
     @pytest.mark.asyncio
     async def test_destinations_only_fast_path(self, mock_db_session):
         req = PlanTripRequest(mode="destinations_only", travelTypes="nature")
-        with patch(
-            "src.services.trip_planner_service._quick_destination_suggestions",
-            AsyncMock(return_value=[{"city": "Kyoto"}]),
+        with (
+            patch(
+                "src.services.trip_planner_service._quick_destination_suggestions",
+                AsyncMock(return_value=[{"city": "Kyoto"}]),
+            ),
+            patch(
+                "src.services.trip_planner_service._enrich_destinations_with_images",
+                AsyncMock(side_effect=lambda dests: dests),
+            ),
         ):
             lines = await _collect(TripPlannerService.stream_plan(req, "u1", mock_db_session))
 

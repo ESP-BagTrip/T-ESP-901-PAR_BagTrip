@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/core/app_error.dart';
@@ -10,11 +11,12 @@ import 'package:bagtrip/plan_trip/models/date_mode.dart';
 import 'package:bagtrip/plan_trip/models/duration_preset.dart';
 import 'package:bagtrip/plan_trip/models/location_result.dart';
 import 'package:bagtrip/plan_trip/models/step_status.dart';
-import 'package:bagtrip/plan_trip/data/manual_destination_catalog.dart';
 import 'package:bagtrip/plan_trip/models/trip_plan.dart';
 import 'package:bagtrip/repositories/ai_repository.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/repositories/trip_repository.dart';
+import 'package:bagtrip/service/geo_location_service.dart';
+import 'package:bagtrip/service/location_service.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -28,6 +30,8 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
   final AiRepository _aiRepository;
   final AuthRepository _authRepository;
   final PersonalizationStorage _storage;
+  final LocationService _locationService;
+  final GeoLocationService _geoService;
 
   StreamSubscription<Map<String, dynamic>>? _sseSubscription;
 
@@ -36,11 +40,17 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     AiRepository? aiRepository,
     AuthRepository? authRepository,
     PersonalizationStorage? personalizationStorage,
+    LocationService? locationService,
+    GeoLocationService? geoLocationService,
   }) : _tripRepository = tripRepository ?? getIt<TripRepository>(),
        _aiRepository = aiRepository ?? getIt<AiRepository>(),
        _authRepository = authRepository ?? getIt<AuthRepository>(),
        _storage = personalizationStorage ?? getIt<PersonalizationStorage>(),
+       _locationService = locationService ?? getIt<LocationService>(),
+       _geoService = geoLocationService ?? getIt<GeoLocationService>(),
        super(const PlanTripState()) {
+    // Init
+    on<PlanTripLoadPersonalization>(_onLoadPersonalization);
     // Navigation
     on<PlanTripNextStep>(_onNextStep);
     on<PlanTripPreviousStep>(_onPreviousStep);
@@ -54,6 +64,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     on<PlanTripSetTravelerCounts>(_onSetTravelerCounts);
     on<PlanTripSetBudgetPreset>(_onSetBudgetPreset);
     on<PlanTripSetOriginCity>(_onSetOriginCity);
+    on<PlanTripSearchOrigin>(_onSearchOrigin);
     // Step 2 — Destination
     on<PlanTripSearchDestination>(_onSearchDestination);
     on<PlanTripSelectManualDestination>(_onSelectManualDestination);
@@ -68,6 +79,83 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     on<PlanTripCreateTrip>(_onCreateTrip);
     on<PlanTripBackToProposals>(_onBackToProposals);
     on<PlanTripUpdateReviewDates>(_onUpdateReviewDates);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Init — pre-fill from personalization
+  // ---------------------------------------------------------------------------
+
+  Future<void> _onLoadPersonalization(
+    PlanTripLoadPersonalization event,
+    Emitter<PlanTripState> emit,
+  ) async {
+    try {
+      final userResult = await _authRepository.getCurrentUser();
+      if (isClosed) return;
+      final userId = userResult.dataOrNull?.id ?? '';
+      if (userId.isEmpty) return;
+
+      final companions = await _storage.getCompanions(userId);
+      if (isClosed) return;
+      final budget = await _storage.getBudget(userId);
+      if (isClosed) return;
+
+      int? adults;
+      int? children;
+      int? babies;
+      if (companions.isNotEmpty) {
+        (adults, children, babies) = _companionDefaults(companions);
+      }
+
+      BudgetPreset? budgetPreset;
+      if (budget.isNotEmpty) {
+        budgetPreset = _mapBudgetPreset(budget);
+      }
+
+      if (adults != null || budgetPreset != null) {
+        emit(
+          state.copyWith(
+            nbAdults: adults ?? state.nbAdults,
+            nbChildren: children ?? state.nbChildren,
+            nbBabies: babies ?? state.nbBabies,
+            budgetPreset: budgetPreset ?? state.budgetPreset,
+          ),
+        );
+      }
+
+      // Pre-fill origin from device geolocation (best-effort, non-blocking)
+      if (state.originCity == null || state.originCity!.isEmpty) {
+        final geoResult = await _geoService.getNearestCity();
+        if (isClosed) return;
+        if (geoResult case Success(:final data)) {
+          if (data.name.isNotEmpty) {
+            emit(state.copyWith(originCity: data.name));
+          }
+        }
+      }
+    } catch (_) {
+      // Pre-fill is best-effort — user can still set values manually.
+    }
+  }
+
+  static (int, int, int) _companionDefaults(String companions) {
+    return switch (companions) {
+      'solo' => (1, 0, 0),
+      'couple' => (2, 0, 0),
+      'family' => (2, 2, 0),
+      'friends' => (3, 0, 0),
+      _ => (1, 0, 0),
+    };
+  }
+
+  static BudgetPreset? _mapBudgetPreset(String budget) {
+    return switch (budget) {
+      'economical' => BudgetPreset.backpacker,
+      'moderate' => BudgetPreset.comfortable,
+      'comfort' => BudgetPreset.premium,
+      'luxury' => BudgetPreset.noLimit,
+      _ => null,
+    };
   }
 
   // ---------------------------------------------------------------------------
@@ -188,26 +276,82 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     PlanTripSetOriginCity event,
     Emitter<PlanTripState> emit,
   ) {
-    emit(state.copyWith(originCity: event.city));
+    emit(state.copyWith(originCity: event.city, originSearchResults: []));
+  }
+
+  Future<void> _onSearchOrigin(
+    PlanTripSearchOrigin event,
+    Emitter<PlanTripState> emit,
+  ) async {
+    if (event.query.length < 2) {
+      emit(state.copyWith(originSearchResults: []));
+      return;
+    }
+    final result = await _locationService.searchLocationsByKeyword(
+      event.query,
+      'CITY',
+    );
+    if (isClosed) return;
+    if (result case Success(:final data)) {
+      final locations = data
+          .take(6)
+          .map(
+            (m) => LocationResult(
+              name: m['name'] as String? ?? '',
+              iataCode: m['iataCode'] as String? ?? '',
+              city: m['city'] as String? ?? '',
+              countryCode: m['countryCode'] as String? ?? '',
+              countryName: m['countryName'] as String? ?? '',
+              subType: m['subType'] as String? ?? '',
+            ),
+          )
+          .toList();
+      emit(state.copyWith(originSearchResults: locations));
+    }
   }
 
   // ---------------------------------------------------------------------------
   // Step 2 — Destination
   // ---------------------------------------------------------------------------
 
-  void _onSearchDestination(
+  Future<void> _onSearchDestination(
     PlanTripSearchDestination event,
     Emitter<PlanTripState> emit,
-  ) {
+  ) async {
     if (event.query.length < 2) {
       emit(state.copyWith(searchResults: [], isSearching: false));
       return;
     }
-
-    final results = ManualDestinationCatalog.search(event.query);
-    emit(
-      state.copyWith(isSearching: false, searchResults: results, error: null),
+    emit(state.copyWith(isSearching: true));
+    final result = await _locationService.searchLocationsByKeyword(
+      event.query,
+      'CITY,AIRPORT',
     );
+    if (isClosed) return;
+    if (result case Success(:final data)) {
+      final locations = data
+          .take(8)
+          .map(
+            (m) => LocationResult(
+              name: m['name'] as String? ?? '',
+              iataCode: m['iataCode'] as String? ?? '',
+              city: m['city'] as String? ?? '',
+              countryCode: m['countryCode'] as String? ?? '',
+              countryName: m['countryName'] as String? ?? '',
+              subType: m['subType'] as String? ?? '',
+            ),
+          )
+          .toList();
+      emit(
+        state.copyWith(
+          isSearching: false,
+          searchResults: locations,
+          error: null,
+        ),
+      );
+    } else {
+      emit(state.copyWith(isSearching: false));
+    }
   }
 
   void _onSelectManualDestination(
@@ -274,6 +418,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         };
       }
 
+      final locale = PlatformDispatcher.instance.locale.languageCode;
       final result = await _aiRepository.getInspiration(
         travelTypes: travelTypes,
         budgetRange: budget,
@@ -281,6 +426,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         companions: companions,
         season: season,
         constraints: constraints,
+        locale: locale,
       );
       if (isClosed) return;
 
@@ -296,6 +442,12 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
               iata: m['iata'] as String?,
               matchReason:
                   m['match_reason'] as String? ?? m['matchReason'] as String?,
+              imageUrl: m['image_url'] as String? ?? m['imageUrl'] as String?,
+              weatherSummary:
+                  m['weather_summary'] as String? ??
+                  m['weatherSummary'] as String?,
+              topActivities:
+                  (m['topActivities'] as List?)?.cast<String>() ?? [],
             );
           }).toList();
           if (suggestions.isEmpty) {
@@ -443,6 +595,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
           originCity: params['originCity'] as String?,
           destinationCity: params['destinationCity'] as String?,
           destinationIata: params['destinationIata'] as String?,
+          locale: PlatformDispatcher.instance.locale.languageCode,
         )
         .listen(
           (sseEvent) {

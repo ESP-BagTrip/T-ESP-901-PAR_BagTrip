@@ -8,6 +8,7 @@ abstract class AiRepository {
     String? companions,
     String? season,
     String? constraints,
+    String? locale,
   });
   Future<Result<Map<String, dynamic>>> acceptInspiration(
     Map<String, dynamic> suggestion, {
@@ -33,5 +34,6 @@ abstract class AiRepository {
     String? destinationCity,
     String? destinationIata,
     String? mode,
+    String? locale,
   });
 }

@@ -18,7 +18,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../helpers/mock_repositories.dart';
-import '../helpers/mock_services.dart';
+import '../helpers/mock_services.dart' hide MockLocationService;
 
 Trip _makeTrip() =>
     const Trip(id: 'trip-1', title: 'Barcelona', status: TripStatus.planned);
@@ -28,12 +28,16 @@ void main() {
   late MockAiRepository mockAiRepo;
   late MockAuthRepository mockAuthRepo;
   late MockPersonalizationStorage mockStorage;
+  late MockLocationService mockLocationService;
+  late MockGeoLocationService mockGeoService;
 
   setUp(() {
     mockTripRepo = MockTripRepository();
     mockAiRepo = MockAiRepository();
     mockAuthRepo = MockAuthRepository();
     mockStorage = MockPersonalizationStorage();
+    mockLocationService = MockLocationService();
+    mockGeoService = MockGeoLocationService();
   });
 
   PlanTripBloc buildBloc() => PlanTripBloc(
@@ -41,6 +45,8 @@ void main() {
     aiRepository: mockAiRepo,
     authRepository: mockAuthRepo,
     personalizationStorage: mockStorage,
+    locationService: mockLocationService,
+    geoLocationService: mockGeoService,
   );
 
   group('initial state', () {
@@ -57,6 +63,117 @@ void main() {
       expect(bloc.state.aiSuggestions, isEmpty);
       bloc.close();
     });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // LoadPersonalization — pre-fill from preferences
+  // ─────────────────────────────────────────────────────────────────────────
+
+  group('loadPersonalization', () {
+    const user = User(id: 'user-1', email: 'x@x');
+
+    void stubGeoFailure() {
+      when(
+        () => mockGeoService.getNearestCity(),
+      ).thenAnswer((_) async => const Failure(UnknownError('no permission')));
+    }
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'pre-fills travelers and budget from personalization storage',
+      build: () {
+        when(
+          () => mockAuthRepo.getCurrentUser(),
+        ).thenAnswer((_) async => const Success(user));
+        when(
+          () => mockStorage.getCompanions('user-1'),
+        ).thenAnswer((_) async => 'couple');
+        when(
+          () => mockStorage.getBudget('user-1'),
+        ).thenAnswer((_) async => 'moderate');
+        stubGeoFailure();
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(const PlanTripEvent.loadPersonalization()),
+      expect: () => [
+        isA<PlanTripState>()
+            .having((s) => s.nbAdults, 'adults', 2)
+            .having((s) => s.nbChildren, 'children', 0)
+            .having((s) => s.budgetPreset, 'budget', BudgetPreset.comfortable),
+      ],
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'pre-fills origin city from geolocation',
+      build: () {
+        when(
+          () => mockAuthRepo.getCurrentUser(),
+        ).thenAnswer((_) async => const Success(user));
+        when(
+          () => mockStorage.getCompanions('user-1'),
+        ).thenAnswer((_) async => '');
+        when(() => mockStorage.getBudget('user-1')).thenAnswer((_) async => '');
+        when(() => mockGeoService.getNearestCity()).thenAnswer(
+          (_) async =>
+              const Success(LocationResult(name: 'Marseille', iataCode: 'MRS')),
+        );
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(const PlanTripEvent.loadPersonalization()),
+      expect: () => [
+        isA<PlanTripState>().having((s) => s.originCity, 'origin', 'Marseille'),
+      ],
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'family maps to 2 adults + 2 children',
+      build: () {
+        when(
+          () => mockAuthRepo.getCurrentUser(),
+        ).thenAnswer((_) async => const Success(user));
+        when(
+          () => mockStorage.getCompanions('user-1'),
+        ).thenAnswer((_) async => 'family');
+        when(() => mockStorage.getBudget('user-1')).thenAnswer((_) async => '');
+        stubGeoFailure();
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(const PlanTripEvent.loadPersonalization()),
+      expect: () => [
+        isA<PlanTripState>()
+            .having((s) => s.nbAdults, 'adults', 2)
+            .having((s) => s.nbChildren, 'children', 2)
+            .having((s) => s.budgetPreset, 'budget', isNull),
+      ],
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'empty storage with geo failure does not change defaults',
+      build: () {
+        when(
+          () => mockAuthRepo.getCurrentUser(),
+        ).thenAnswer((_) async => const Success(user));
+        when(
+          () => mockStorage.getCompanions('user-1'),
+        ).thenAnswer((_) async => '');
+        when(() => mockStorage.getBudget('user-1')).thenAnswer((_) async => '');
+        stubGeoFailure();
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(const PlanTripEvent.loadPersonalization()),
+      expect: () => <PlanTripState>[],
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'auth failure is silently ignored',
+      build: () {
+        when(
+          () => mockAuthRepo.getCurrentUser(),
+        ).thenThrow(Exception('offline'));
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(const PlanTripEvent.loadPersonalization()),
+      expect: () => <PlanTripState>[],
+    );
   });
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -305,10 +422,27 @@ void main() {
     );
 
     blocTest<PlanTripBloc, PlanTripState>(
-      'successful search populates results from manual catalog',
-      build: buildBloc,
+      'successful search populates results from API',
+      build: () {
+        when(
+          () => mockLocationService.searchLocationsByKeyword(any(), any()),
+        ).thenAnswer(
+          (_) async => const Success([
+            {
+              'name': 'Paris',
+              'iataCode': 'PAR',
+              'city': 'Paris',
+              'countryCode': 'FR',
+              'countryName': 'France',
+              'subType': 'CITY',
+            },
+          ]),
+        );
+        return buildBloc();
+      },
       act: (bloc) => bloc.add(const PlanTripEvent.searchDestination('Paris')),
       expect: () => [
+        isA<PlanTripState>().having((s) => s.isSearching, 'searching', true),
         isA<PlanTripState>()
             .having((s) => s.isSearching, 'searching', false)
             .having((s) => s.searchResults.length, 'count', 1)
@@ -511,6 +645,7 @@ void main() {
           departureDate: any(named: 'departureDate'),
           returnDate: any(named: 'returnDate'),
           originCity: any(named: 'originCity'),
+          locale: any(named: 'locale'),
         ),
       ).thenAnswer((_) => controller.stream);
     }
@@ -637,6 +772,7 @@ void main() {
           departureDate: any(named: 'departureDate'),
           returnDate: any(named: 'returnDate'),
           originCity: any(named: 'originCity'),
+          locale: any(named: 'locale'),
         ),
       ).thenAnswer((_) {
         callCount++;
@@ -686,6 +822,7 @@ void main() {
           departureDate: any(named: 'departureDate'),
           returnDate: any(named: 'returnDate'),
           originCity: any(named: 'originCity'),
+          locale: any(named: 'locale'),
         ),
       );
 
@@ -921,7 +1058,7 @@ void main() {
     }
 
     blocTest<PlanTripBloc, PlanTripState>(
-      'Success path parses suggestions and derives season from startDate',
+      'Success path parses all fields including imageUrl and weatherSummary',
       build: () {
         when(
           () => mockAuthRepo.getCurrentUser(),
@@ -935,6 +1072,7 @@ void main() {
             companions: any(named: 'companions'),
             season: any(named: 'season'),
             constraints: any(named: 'constraints'),
+            locale: any(named: 'locale'),
           ),
         ).thenAnswer(
           (_) async => const Success([
@@ -943,6 +1081,9 @@ void main() {
               'country': 'Italy',
               'iata': 'FCO',
               'match_reason': 'You love history',
+              'image_url': 'https://images.unsplash.com/rome.jpg',
+              'weather_summary': 'Sunny 28C',
+              'topActivities': ['Colosseum', 'Vatican'],
             },
           ]),
         );
@@ -964,8 +1105,12 @@ void main() {
             .having((s) => s.aiSuggestions, 'count', hasLength(1)),
       ],
       verify: (bloc) {
-        expect(bloc.state.aiSuggestions.first.city, 'Rome');
-        expect(bloc.state.aiSuggestions.first.matchReason, 'You love history');
+        final dest = bloc.state.aiSuggestions.first;
+        expect(dest.city, 'Rome');
+        expect(dest.matchReason, 'You love history');
+        expect(dest.imageUrl, 'https://images.unsplash.com/rome.jpg');
+        expect(dest.weatherSummary, 'Sunny 28C');
+        expect(dest.topActivities, ['Colosseum', 'Vatican']);
         verify(
           () => mockAiRepo.getInspiration(
             travelTypes: 'culture',
@@ -974,6 +1119,7 @@ void main() {
             companions: 'couple',
             season: 'été',
             constraints: null,
+            locale: any(named: 'locale'),
           ),
         ).called(1);
       },
@@ -994,6 +1140,7 @@ void main() {
             companions: any(named: 'companions'),
             season: any(named: 'season'),
             constraints: any(named: 'constraints'),
+            locale: any(named: 'locale'),
           ),
         ).thenAnswer(
           (_) async => const Success([
@@ -1017,6 +1164,7 @@ void main() {
             companions: any(named: 'companions'),
             season: 'hiver',
             constraints: any(named: 'constraints'),
+            locale: any(named: 'locale'),
           ),
         ).called(1);
       },
@@ -1037,6 +1185,7 @@ void main() {
             companions: any(named: 'companions'),
             season: any(named: 'season'),
             constraints: any(named: 'constraints'),
+            locale: any(named: 'locale'),
           ),
         ).thenAnswer((_) async => const Success([]));
         return buildBloc();
@@ -1063,6 +1212,7 @@ void main() {
             companions: any(named: 'companions'),
             season: any(named: 'season'),
             constraints: any(named: 'constraints'),
+            locale: any(named: 'locale'),
           ),
         ).thenAnswer((_) async => const Failure(NetworkError('offline')));
         return buildBloc();

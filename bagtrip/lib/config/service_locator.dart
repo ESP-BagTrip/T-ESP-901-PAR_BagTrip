@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 
 import 'package:bagtrip/config/app_config.dart';
+import 'package:bagtrip/service/geo_location_service.dart';
 import 'package:bagtrip/service/storage_service.dart';
 import 'package:bagtrip/service/api_client.dart';
 import 'package:bagtrip/service/auth_service.dart';
@@ -165,4 +166,9 @@ void setupServiceLocator() {
 
   // 6. LocationService (uses Dio directly, not ApiClient)
   getIt.registerLazySingleton<LocationService>(() => LocationService());
+
+  // 7. GeoLocationService (device GPS → nearest city via API)
+  getIt.registerLazySingleton<GeoLocationService>(
+    () => GeoLocationService(locationService: getIt<LocationService>()),
+  );
 }

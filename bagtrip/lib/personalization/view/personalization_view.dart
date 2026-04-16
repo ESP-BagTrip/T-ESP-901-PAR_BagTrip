@@ -45,6 +45,12 @@ class PersonalizationView extends StatelessWidget {
               const HomeRoute().go(context);
           }
         }
+        if (state is PersonalizationLoaded && state.saveError != null) {
+          final l10n = AppLocalizations.of(context)!;
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.errorNetwork)));
+        }
       },
       child: BlocBuilder<PersonalizationBloc, PersonalizationState>(
         builder: (context, state) {
@@ -170,13 +176,15 @@ class PersonalizationView extends StatelessWidget {
                     label: isLastStep
                         ? l10n.personalizationFinish
                         : l10n.personalizationContinue,
-                    onPressed: () {
-                      if (isLastStep) {
-                        bloc.add(SaveAndFinishPersonalization());
-                      } else {
-                        bloc.add(PersonalizationNextStep());
-                      }
-                    },
+                    onPressed: state.isSaving
+                        ? null
+                        : () {
+                            if (isLastStep) {
+                              bloc.add(SaveAndFinishPersonalization());
+                            } else {
+                              bloc.add(PersonalizationNextStep());
+                            }
+                          },
                   ),
                   if (state.step == 1) ...[
                     const SizedBox(height: AppSpacing.space16),

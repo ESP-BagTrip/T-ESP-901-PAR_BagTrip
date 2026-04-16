@@ -10,10 +10,13 @@ import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
+import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
+import 'package:bagtrip/trips/bloc/trip_management_bloc.dart'
+    show LoadTripsByStatus, TripManagementBloc;
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
 import 'package:bagtrip/trip_detail/widgets/date_range_picker_sheet.dart';
 import 'package:bagtrip/trip_detail/widgets/quick_actions_row.dart';
@@ -46,6 +49,12 @@ class TripDetailView extends StatelessWidget {
       body: BlocConsumer<TripDetailBloc, TripDetailState>(
         listener: (context, state) {
           if (state is TripDetailDeleted) {
+            context.read<HomeBloc>().add(RefreshHome());
+            for (final s in ['ongoing', 'planned', 'completed']) {
+              context.read<TripManagementBloc>().add(
+                LoadTripsByStatus(status: s),
+              );
+            }
             const HomeRoute().go(context);
           }
           if (state is TripDetailError) {
