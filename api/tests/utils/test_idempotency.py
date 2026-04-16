@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -50,7 +50,7 @@ class TestIdempotencyCacheMemory:
         # Manually expire the entry
         for key in memory_cache._memory_cache:
             val, _ = memory_cache._memory_cache[key]
-            memory_cache._memory_cache[key] = (val, datetime.utcnow() - timedelta(seconds=120))
+            memory_cache._memory_cache[key] = (val, datetime.now(UTC) - timedelta(seconds=120))
         assert memory_cache.get("tool", {"k": "v"}) is None
 
     def test_cleanup_removes_expired(self, memory_cache):
@@ -58,7 +58,7 @@ class TestIdempotencyCacheMemory:
         # Expire it
         for key in list(memory_cache._memory_cache):
             val, _ = memory_cache._memory_cache[key]
-            memory_cache._memory_cache[key] = (val, datetime.utcnow() - timedelta(seconds=120))
+            memory_cache._memory_cache[key] = (val, datetime.now(UTC) - timedelta(seconds=120))
         # Setting a new key triggers cleanup
         memory_cache.set("tool", {"k": "new"}, "new_result")
         assert len(memory_cache._memory_cache) == 1
