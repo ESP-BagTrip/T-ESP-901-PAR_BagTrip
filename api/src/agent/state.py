@@ -43,6 +43,7 @@ class TripPlanState(TypedDict, total=False):
 
     # === Budget output ===
     budget_estimation: dict
+    flight_offers: list[dict]  # Raw Amadeus flight offers for Flutter display
 
     # === Accumulated across nodes (need reducer for parallel fan-in) ===
     events: Annotated[list[dict], operator.add]

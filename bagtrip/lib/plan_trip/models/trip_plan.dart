@@ -25,6 +25,16 @@ abstract class TripPlan with _$TripPlan {
     @Default('') String flightDetails,
     @Default(0.0) double flightPrice,
     @Default('estimated') String flightSource,
+    // Flight offer details (from Amadeus)
+    @Default('') String originIata,
+    @Default('') String flightAirline,
+    @Default('') String flightNumber,
+    @Default('') String flightDeparture,
+    @Default('') String flightArrival,
+    @Default('') String flightDuration,
+    @Default('') String returnDeparture,
+    @Default('') String returnArrival,
+    @Default('') String returnDuration,
     // Day-by-day
     @Default([]) List<String> dayProgram,
     @Default([]) List<String> dayDescriptions,
@@ -32,6 +42,8 @@ abstract class TripPlan with _$TripPlan {
     // Baggage
     @Default([]) List<String> essentialItems,
     @Default([]) List<String> essentialReasons,
+    // Hotel rating
+    @Default(0) int hotelRating,
     // Budget breakdown
     @Default({}) Map<String, dynamic> budgetBreakdown,
     // Weather

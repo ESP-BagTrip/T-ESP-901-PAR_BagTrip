@@ -725,6 +725,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
   /// [TripPlan] instead of [TripSummary].
   TripPlan _tripPlanFromSseData(Map<String, dynamic> tripPlan) {
     final dest = tripPlan['destination'] as Map<String, dynamic>? ?? {};
+    final originIata = tripPlan['origin_iata'] as String? ?? '';
     final weather = tripPlan['weather'] as Map<String, dynamic>? ?? {};
     final activities =
         (tripPlan['activities'] as List?)?.cast<Map<String, dynamic>>() ?? [];
@@ -734,6 +735,9 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     final baggage =
         (tripPlan['baggage'] as List?)?.cast<Map<String, dynamic>>() ?? [];
     final budget = tripPlan['budget'] as Map<String, dynamic>? ?? {};
+    final flightOffers =
+        (tripPlan['flight_offers'] as List?)?.cast<Map<String, dynamic>>() ??
+        [];
 
     // Highlights from top activities
     final highlights = activities
@@ -770,6 +774,40 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       flightSource = flightBudget['source'] as String? ?? 'estimated';
       flightDetails = flightBudget['details'] as String? ?? '';
       flightRoute = flightBudget['details'] as String? ?? '';
+    }
+
+    // Best flight offer from Amadeus (raw data for display)
+    String flightAirline = '';
+    String flightNumber = '';
+    String flightDepartureIso = '';
+    String flightArrivalIso = '';
+    String flightDurationIso = '';
+    String returnDepartureIso = '';
+    String returnArrivalIso = '';
+    String returnDurationIso = '';
+    if (flightOffers.isNotEmpty) {
+      final sorted = List<Map<String, dynamic>>.from(flightOffers)
+        ..sort(
+          (a, b) => ((a['price'] as num?) ?? double.maxFinite).compareTo(
+            (b['price'] as num?) ?? double.maxFinite,
+          ),
+        );
+      final best = sorted.first;
+      flightAirline =
+          best['airline_name'] as String? ?? best['airline'] as String? ?? '';
+      flightNumber = best['flight_number'] as String? ?? '';
+      flightDepartureIso = best['departure'] as String? ?? '';
+      flightArrivalIso = best['arrival'] as String? ?? '';
+      flightDurationIso = best['duration'] as String? ?? '';
+      returnDepartureIso = best['return_departure'] as String? ?? '';
+      returnArrivalIso = best['return_arrival'] as String? ?? '';
+      returnDurationIso = best['return_duration'] as String? ?? '';
+    }
+
+    // Hotel rating
+    int hotelRating = 0;
+    if (accommodations.isNotEmpty) {
+      hotelRating = (accommodations.first['rating'] as num?)?.toInt() ?? 0;
     }
 
     // Day-by-day from activities
@@ -814,6 +852,15 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       final totalMin = (budget['total_min'] as num?)?.toInt() ?? 0;
       budgetEur = totalMax > 0 ? totalMax : totalMin;
     }
+    if (budgetEur == 0) {
+      // Last-resort fallback: sum already-extracted real prices
+      double fallbackTotal = accommodationPrice + flightPrice;
+      for (final a in activities) {
+        final cost = a['estimated_cost'];
+        if (cost is num) fallbackTotal += cost;
+      }
+      budgetEur = fallbackTotal.toInt();
+    }
 
     return TripPlan(
       destinationCity: dest['city'] as String? ?? '',
@@ -830,6 +877,16 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       flightDetails: flightDetails,
       flightPrice: flightPrice,
       flightSource: flightSource,
+      originIata: originIata,
+      flightAirline: flightAirline,
+      flightNumber: flightNumber,
+      flightDeparture: flightDepartureIso,
+      flightArrival: flightArrivalIso,
+      flightDuration: flightDurationIso,
+      returnDeparture: returnDepartureIso,
+      returnArrival: returnArrivalIso,
+      returnDuration: returnDurationIso,
+      hotelRating: hotelRating,
       dayProgram: dayProgram,
       dayDescriptions: dayDescriptions,
       dayCategories: dayCategories,

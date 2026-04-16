@@ -3242,6 +3242,18 @@ abstract class AppLocalizations {
   /// **'Total'**
   String get reviewBudgetTotal;
 
+  /// No description provided for @reviewBudgetEstimationPrefix.
+  ///
+  /// In fr, this message translates to:
+  /// **'estimation'**
+  String get reviewBudgetEstimationPrefix;
+
+  /// No description provided for @reviewBudgetUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Estimation du budget indisponible'**
+  String get reviewBudgetUnavailable;
+
   /// No description provided for @reviewSourceVerified.
   ///
   /// In fr, this message translates to:
@@ -3289,6 +3301,114 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Aucune activité prévue'**
   String get reviewNoActivities;
+
+  /// No description provided for @reviewTabOverview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aperçu'**
+  String get reviewTabOverview;
+
+  /// No description provided for @reviewTabFlights.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vols'**
+  String get reviewTabFlights;
+
+  /// No description provided for @reviewTabHotel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hôtel'**
+  String get reviewTabHotel;
+
+  /// No description provided for @reviewTabItinerary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Itinéraire'**
+  String get reviewTabItinerary;
+
+  /// No description provided for @reviewTabEssentials.
+  ///
+  /// In fr, this message translates to:
+  /// **'Essentiels'**
+  String get reviewTabEssentials;
+
+  /// No description provided for @reviewTabBudget.
+  ///
+  /// In fr, this message translates to:
+  /// **'Budget'**
+  String get reviewTabBudget;
+
+  /// No description provided for @reviewTimelineFlight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vol'**
+  String get reviewTimelineFlight;
+
+  /// No description provided for @reviewTimelineActivity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activité'**
+  String get reviewTimelineActivity;
+
+  /// No description provided for @reviewTimelineCheckIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Check-in'**
+  String get reviewTimelineCheckIn;
+
+  /// No description provided for @reviewTimelineCheckOut.
+  ///
+  /// In fr, this message translates to:
+  /// **'Check-out'**
+  String get reviewTimelineCheckOut;
+
+  /// No description provided for @reviewFlightOutbound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aller'**
+  String get reviewFlightOutbound;
+
+  /// No description provided for @reviewFlightReturn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour'**
+  String get reviewFlightReturn;
+
+  /// No description provided for @reviewFlightDeparture.
+  ///
+  /// In fr, this message translates to:
+  /// **'Départ'**
+  String get reviewFlightDeparture;
+
+  /// No description provided for @reviewFlightArrival.
+  ///
+  /// In fr, this message translates to:
+  /// **'Arrivée'**
+  String get reviewFlightArrival;
+
+  /// No description provided for @reviewHotelCheckIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Check-in'**
+  String get reviewHotelCheckIn;
+
+  /// No description provided for @reviewHotelCheckOut.
+  ///
+  /// In fr, this message translates to:
+  /// **'Check-out'**
+  String get reviewHotelCheckOut;
+
+  /// No description provided for @reviewHotelNights.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nuits'**
+  String get reviewHotelNights;
+
+  /// No description provided for @reviewHotelPerNight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Par nuit'**
+  String get reviewHotelPerNight;
 
   /// No description provided for @homeActiveTripTitle.
   ///
