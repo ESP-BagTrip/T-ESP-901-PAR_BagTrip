@@ -6,7 +6,7 @@ Uses Redis when REDIS_URL is configured, with automatic fallback to in-memory.
 import hashlib
 import json
 import threading
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from src.utils.logger import logger
@@ -90,7 +90,7 @@ class IdempotencyCache:
         with self._lock:
             if key in self._memory_cache:
                 result, timestamp = self._memory_cache[key]
-                if datetime.utcnow() - timestamp < timedelta(seconds=self.ttl_seconds):
+                if datetime.now(UTC) - timestamp < timedelta(seconds=self.ttl_seconds):
                     logger.info(f"Cache hit (memory) for {tool_name} with key {key[:8]}...")
                     return result
                 del self._memory_cache[key]
@@ -99,12 +99,12 @@ class IdempotencyCache:
     def _memory_set(self, key: str, result: Any):
         """In-memory cache store."""
         with self._lock:
-            self._memory_cache[key] = (result, datetime.utcnow())
+            self._memory_cache[key] = (result, datetime.now(UTC))
             self._cleanup()
 
     def _cleanup(self):
         """Nettoie les entrées expirées (in-memory only)."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         expired_keys = [
             key
             for key, (_, timestamp) in self._memory_cache.items()

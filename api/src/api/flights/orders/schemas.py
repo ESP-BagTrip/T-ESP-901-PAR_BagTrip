@@ -10,8 +10,8 @@ class FlightOrderResponse(BaseModel):
     """Réponse d'un flight order."""
 
     id: UUID
-    status: str | None
-    bookingReference: str | None
+    status: str | None = None
+    bookingReference: str | None = None
     paymentId: str | None = None
     ticketUrl: str | None = None
     createdAt: datetime
