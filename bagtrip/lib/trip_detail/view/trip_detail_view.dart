@@ -363,103 +363,10 @@ class _LoadedTripViewState extends State<_LoadedTripView>
         ),
       );
     }
-    if (!_canEdit) return const SizedBox.shrink();
-
-    return AnimatedBuilder(
-      animation: _tabController,
-      builder: (_, _) {
-        final label = _ctaLabelForTab(_tabController.index, l10n);
-        if (label == null) return const SizedBox.shrink();
-        return PanelFooterCta(
-          controller: _footerController,
-          child: SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.space16,
-                AppSpacing.space8,
-                AppSpacing.space16,
-                AppSpacing.space16,
-              ),
-              child: PillCtaButton(
-                label: label,
-                onTap: () => _handleTabCta(context, _tabController.index),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  String? _ctaLabelForTab(int index, AppLocalizations l10n) {
-    // Overview (0) has no add action. Shares (6 when owner) has its own add.
-    switch (index) {
-      case 0:
-        return null;
-      case 1:
-        return l10n.addFlightTooltip;
-      case 2:
-        return l10n.addAccommodationTooltip;
-      case 3:
-        return l10n.addActivity;
-      case 4:
-        return l10n.addBaggageItemTooltip;
-      case 5:
-        return l10n.addExpenseTooltip;
-      case 6:
-        return l10n.sharesAddMemberTooltip;
-      default:
-        return null;
-    }
-  }
-
-  void _handleTabCta(BuildContext context, int index) {
-    AppHaptics.light();
-    // Panels wire up their own edit sheets in Steps 4–7. For now we simply
-    // push the legacy route so the user always has a path to add content.
-    final trip = state.trip;
-    final role = trip.role ?? 'OWNER';
-    final isCompleted = state.isCompleted;
-    switch (index) {
-      case 1:
-        TransportsRoute(
-          tripId: widget.tripId,
-          role: role,
-          isCompleted: isCompleted,
-        ).push(context);
-      case 2:
-        AccommodationsRoute(
-          tripId: widget.tripId,
-          role: role,
-          isCompleted: isCompleted,
-          tripStartDate: trip.startDate?.toIso8601String(),
-          tripEndDate: trip.endDate?.toIso8601String(),
-          destinationIata: trip.destinationIata,
-        ).push(context);
-      case 3:
-        ActivitiesRoute(
-          tripId: widget.tripId,
-          role: role,
-          isCompleted: isCompleted,
-        ).push(context);
-      case 4:
-        BaggageRoute(
-          tripId: widget.tripId,
-          role: role,
-          isCompleted: isCompleted,
-        ).push(context);
-      case 5:
-        BudgetRoute(
-          tripId: widget.tripId,
-          role: role,
-          isCompleted: isCompleted,
-        ).push(context);
-      case 6:
-        SharesRoute(tripId: widget.tripId, role: role).go(context);
-      default:
-        break;
-    }
+    // Per-tab footer CTA is obsolete: each panel owns its own FAB and the
+    // preview sheets surface edit / delete. Trip-level footer remains for
+    // the completed ("give review") case only.
+    return const SizedBox.shrink();
   }
 
   // ── Overflow menu + editors ─────────────────────────────────────────────
@@ -478,10 +385,10 @@ class _LoadedTripViewState extends State<_LoadedTripView>
       case HeroOverflowAction.editTravelers:
         await _showTravelersEditor(context);
       case HeroOverflowAction.share:
-        SharesRoute(
-          tripId: widget.tripId,
-          role: state.trip.role ?? 'OWNER',
-        ).go(context);
+        if (_hasSharesTab) {
+          AppHaptics.light();
+          _tabController.animateTo(6);
+        }
       case HeroOverflowAction.markAsReady:
         _markAsReady(context);
       case HeroOverflowAction.markAsCompleted:

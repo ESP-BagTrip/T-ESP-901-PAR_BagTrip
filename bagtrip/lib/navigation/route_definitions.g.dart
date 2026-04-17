@@ -198,10 +198,6 @@ RouteBase get $homeRoute => GoRouteData.$route(
               factory: $TransportsRoute._fromState,
             ),
             GoRouteData.$route(
-              path: 'shares',
-              factory: $SharesRoute._fromState,
-            ),
-            GoRouteData.$route(
               path: 'feedback',
               factory: $FeedbackRoute._fromState,
             ),
@@ -529,34 +525,6 @@ mixin $TransportsRoute on GoRouteData {
       if (_self.isCompleted != false)
         'is-completed': _self.isCompleted.toString(),
     },
-  );
-
-  @override
-  void go(BuildContext context) => context.go(location);
-
-  @override
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
-
-  @override
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
-
-  @override
-  void replace(BuildContext context) => context.replace(location);
-}
-
-mixin $SharesRoute on GoRouteData {
-  static SharesRoute _fromState(GoRouterState state) => SharesRoute(
-    tripId: state.pathParameters['tripId']!,
-    role: state.uri.queryParameters['role'] ?? 'OWNER',
-  );
-
-  SharesRoute get _self => this as SharesRoute;
-
-  @override
-  String get location => GoRouteData.$location(
-    '/home/${Uri.encodeComponent(_self.tripId)}/shares',
-    queryParams: {if (_self.role != 'OWNER') 'role': _self.role},
   );
 
   @override
