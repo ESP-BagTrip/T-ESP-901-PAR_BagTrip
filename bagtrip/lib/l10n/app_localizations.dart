@@ -3710,6 +3710,18 @@ abstract class AppLocalizations {
   /// **'Marquer {destination} comme terminé'**
   String activeTripEndTripCardSubtitle(String destination);
 
+  /// No description provided for @activeTripWeatherUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Météo indisponible'**
+  String get activeTripWeatherUnavailable;
+
+  /// No description provided for @activeTripWeatherRainShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'{percent} % de pluie'**
+  String activeTripWeatherRainShort(int percent);
+
   /// No description provided for @completionDates.
   ///
   /// In fr, this message translates to:

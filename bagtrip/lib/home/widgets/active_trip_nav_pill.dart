@@ -46,18 +46,11 @@ class _ActiveTripNavPillState extends State<ActiveTripNavPill>
           AppHaptics.light();
           context.read<HomeBloc>().add(PreferIdleHomeOverview());
         },
-        borderRadius: AppRadius.large16,
+        borderRadius: AppRadius.large24,
         child: Ink(
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
-            borderRadius: AppRadius.large16,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            borderRadius: AppRadius.large24,
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(
@@ -110,7 +103,7 @@ class _ActiveTripNavPillState extends State<ActiveTripNavPill>
                         l10n.homeNavPillTitle,
                         style: TextStyle(
                           fontFamily: FontFamily.dMSans,
-                          fontSize: 15,
+                          fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: theme.colorScheme.onSurface,
                         ),

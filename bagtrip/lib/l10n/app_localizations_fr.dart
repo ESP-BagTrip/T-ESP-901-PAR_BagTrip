@@ -2045,6 +2045,14 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get activeTripWeatherUnavailable => 'Météo indisponible';
+
+  @override
+  String activeTripWeatherRainShort(int percent) {
+    return '$percent % de pluie';
+  }
+
+  @override
   String get completionDates => 'Dates';
 
   @override

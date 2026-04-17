@@ -994,6 +994,15 @@
       }
     }
   },
+  "activeTripWeatherUnavailable": "Météo indisponible",
+  "activeTripWeatherRainShort": "{percent} % de pluie",
+  "@activeTripWeatherRainShort": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "completionDates": "Dates",
   "completionFlights": "Vols",
   "completionAccommodation": "Hôtels",

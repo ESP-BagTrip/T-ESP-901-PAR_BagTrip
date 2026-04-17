@@ -1,8 +1,10 @@
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/view/active_trip_home_view.dart';
+import 'package:bagtrip/home/widgets/active_trip_weather_card.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/models/trip.dart';
+import 'package:bagtrip/models/weather_summary.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,6 +26,7 @@ void main() {
     String? fullName = 'Test User',
     String destinationName = 'Tokyo',
     List<Activity>? allActivities,
+    WeatherSummary? weatherData,
   }) {
     final user = makeUser(fullName: fullName);
     final now = DateTime.now();
@@ -38,6 +41,10 @@ void main() {
       user: user,
       activeTrip: trip,
       allActivities: allActivities ?? const [],
+      weatherData: weatherData,
+      weatherSummary: weatherData != null
+          ? '${weatherData.avgTempC.round()}°C · ${weatherData.description}'
+          : null,
     );
 
     when(() => mockHomeBloc.state).thenReturn(state);
@@ -65,7 +72,7 @@ void main() {
       await tester.pumpWidget(buildApp());
       await tester.pump(const Duration(seconds: 1));
 
-      expect(find.text('Tokyo'), findsOneWidget);
+      expect(find.text('Tokyo'), findsNWidgets(2));
     });
 
     testWidgets('hero shows day counter', (tester) async {
@@ -143,6 +150,39 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Plan a trip'), findsNothing);
+    });
+
+    testWidgets('weather card shows summary and is not tappable', (
+      tester,
+    ) async {
+      final weather = const WeatherSummary(
+        avgTempC: 8,
+        description: 'Cloudy',
+        rainProbability: 25,
+        source: 'test',
+      );
+      await tester.pumpWidget(buildApp(weatherData: weather));
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.byType(ActiveTripWeatherCard), findsOneWidget);
+      expect(find.textContaining('8°C • Cloudy'), findsOneWidget);
+      expect(find.textContaining('25% rain'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(ActiveTripWeatherCard),
+          matching: find.byType(InkWell),
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('weather card shows unavailable when no weather data', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildApp());
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text('Weather unavailable'), findsOneWidget);
     });
   });
 }
