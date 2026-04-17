@@ -2740,4 +2740,55 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0 · $_temp1';
   }
+
+  @override
+  String get blankTransportsTitle => 'À vous les airs.';
+
+  @override
+  String get blankTransportsSubtitle =>
+      'Aller, retour, vols internes — on garde tout sous la main.';
+
+  @override
+  String get blankTransportsPrimary => 'Ajouter le premier vol';
+
+  @override
+  String transportsHeroMeta(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vols',
+      one: '1 vol',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get blankAccommodationsTitle => 'Où poser vos valises ?';
+
+  @override
+  String get blankAccommodationsSubtitle =>
+      'Hôtel, Airbnb, canapé d’ami — note-le ici pour les rappels de check-in.';
+
+  @override
+  String get blankAccommodationsPrimary => 'Ajouter un hébergement';
+
+  @override
+  String get blankAccommodationsSecondary => 'Suggestions IA';
+
+  @override
+  String accommodationsHeroMeta(int count, int nights) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hébergements',
+      one: '1 hébergement',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      nights,
+      locale: localeName,
+      other: '$nights nuits',
+      one: '1 nuit',
+    );
+    return '$_temp0 · $_temp1';
+  }
 }

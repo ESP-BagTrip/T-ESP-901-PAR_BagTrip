@@ -1365,5 +1365,25 @@
       "count": {"type": "int"},
       "days": {"type": "int"}
     }
+  },
+  "blankTransportsTitle": "Let’s get you there.",
+  "blankTransportsSubtitle": "Outbound, return, internal connections — we’ll track them all.",
+  "blankTransportsPrimary": "Add your first flight",
+  "transportsHeroMeta": "{count, plural, =1{1 flight} other{{count} flights}}",
+  "@transportsHeroMeta": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "blankAccommodationsTitle": "Where will you rest your head?",
+  "blankAccommodationsSubtitle": "Hotel, Airbnb, friend’s couch — log it here for check-in reminders.",
+  "blankAccommodationsPrimary": "Add a stay",
+  "blankAccommodationsSecondary": "Get AI suggestions",
+  "accommodationsHeroMeta": "{count, plural, =1{1 stay} other{{count} stays}} · {nights, plural, =1{1 night} other{{nights} nights}}",
+  "@accommodationsHeroMeta": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "nights": {"type": "int"}
+    }
   }
 }
