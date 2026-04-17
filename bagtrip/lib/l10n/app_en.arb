@@ -1434,5 +1434,7 @@
   "baggageAllPackedMessage": "All packed — ready to roll.",
   "budgetRecentExpenses": "Recent",
   "activityValidateAction": "Validate",
-  "activitySuggestedBadge": "Suggested"
+  "activitySuggestedBadge": "Suggested",
+  "shareCopyLink": "Copy invite link",
+  "shareRevokeAccess": "Revoke access"
 }

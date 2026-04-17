@@ -1,17 +1,22 @@
+import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
+import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/review/sheets/quick_preview_sheet.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip_share.dart';
-import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
+import 'package:bagtrip/trips/widgets/share_invite_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
-/// Shares tab (owner-only). Lists invitees with role pill + trash icon.
-/// Tap a row routes to the full `/shares` page for invite flow.
+/// Shares tab (owner-only). The panel owns the full invite / revoke
+/// lifecycle — there is no dedicated `/shares` sub-page anymore (it was
+/// a pure mirror).
 class SharesPanel extends StatelessWidget {
   const SharesPanel({
     super.key,
@@ -24,9 +29,66 @@ class SharesPanel extends StatelessWidget {
   final List<TripShare> shares;
   final String role;
 
+  Future<void> _showInviteSheet(BuildContext context) async {
+    final bloc = context.read<TripDetailBloc>();
+    final l10n = AppLocalizations.of(context)!;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ShareInviteSheet(
+        tripId: tripId,
+        onSubmit: ({required email, required role, message}) {
+          AppHaptics.medium();
+          bloc.add(
+            CreateShareFromDetail(email: email, role: role, message: message),
+          );
+          AppSnackBar.showSuccess(context, message: l10n.shareInviteSuccess);
+        },
+      ),
+    );
+  }
+
+  void _delete(BuildContext context, TripShare share) {
+    AppHaptics.medium();
+    context.read<TripDetailBloc>().add(
+      DeleteShareFromDetail(shareId: share.id),
+    );
+  }
+
+  Future<void> _showPreview(BuildContext context, TripShare share) async {
+    final l10n = AppLocalizations.of(context)!;
+    AppHaptics.light();
+    await showQuickPreviewSheet(
+      context: context,
+      icon: Icons.person_rounded,
+      title: share.userFullName ?? share.userEmail,
+      subtitle: share.role,
+      body: _SharePreviewBody(share: share),
+      primaryAction: QuickPreviewAction(
+        label: l10n.shareCopyLink,
+        icon: Icons.link_rounded,
+        onPressed: () {
+          Navigator.of(context).pop();
+          AppSnackBar.showSuccess(context, message: l10n.shareInviteLinkCopied);
+        },
+      ),
+      destructiveAction: QuickPreviewAction(
+        label: l10n.shareRevokeAccess,
+        icon: Icons.person_remove_rounded,
+        onPressed: () {
+          Navigator.of(context).pop();
+          _delete(context, share);
+        },
+        isDestructive: true,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+
     if (shares.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(AppSpacing.space24),
@@ -34,6 +96,8 @@ class SharesPanel extends StatelessWidget {
           icon: Icons.people_alt_rounded,
           title: l10n.emptySharesTitle,
           subtitle: l10n.emptySharesSubtitle,
+          ctaLabel: l10n.panelInviteCollaborator,
+          onCta: () => _showInviteSheet(context),
         ),
       );
     }
@@ -45,10 +109,28 @@ class SharesPanel extends StatelessWidget {
         AppSpacing.space16,
         AppSpacing.space24,
       ),
-      itemCount: shares.length,
+      itemCount: shares.length + 1,
       separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.space8),
       itemBuilder: (context, index) {
-        final share = shares[index];
+        if (index == 0) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.space8),
+            child: OutlinedButton.icon(
+              onPressed: () => _showInviteSheet(context),
+              icon: const Icon(Icons.person_add_rounded, size: 18),
+              label: Text(l10n.panelInviteCollaborator),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+                foregroundColor: ColorName.primaryDark,
+                side: const BorderSide(color: ColorName.primarySoftLight),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: AppRadius.large16,
+                ),
+              ),
+            ),
+          );
+        }
+        final share = shares[index - 1];
         return Dismissible(
           key: ValueKey('share-${share.id}'),
           direction: DismissDirection.endToStart,
@@ -57,14 +139,20 @@ class SharesPanel extends StatelessWidget {
             AppHaptics.medium();
             return true;
           },
-          onDismissed: (_) {
-            context.read<TripDetailBloc>().add(
-              DeleteShareFromDetail(shareId: share.id),
-            );
-          },
-          child: _ShareRow(
-            share: share,
-            onTap: () => SharesRoute(tripId: tripId, role: role).go(context),
+          onDismissed: (_) => _delete(context, share),
+          child: AdaptiveContextMenu(
+            actions: [
+              AdaptiveContextAction(
+                label: l10n.shareRevokeAccess,
+                icon: Icons.person_remove_rounded,
+                onPressed: () => _delete(context, share),
+                isDestructive: true,
+              ),
+            ],
+            child: _ShareRow(
+              share: share,
+              onTap: () => _showPreview(context, share),
+            ),
           ),
         );
       },
@@ -105,16 +193,32 @@ class _ShareRow extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.space12),
               Expanded(
-                child: Text(
-                  share.userEmail,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontFamily: FontFamily.dMSans,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: ColorName.primaryDark,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      share.userFullName ?? share.userEmail,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontFamily: FontFamily.dMSans,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: ColorName.primaryDark,
+                      ),
+                    ),
+                    if (share.userFullName != null)
+                      Text(
+                        share.userEmail,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: FontFamily.dMSans,
+                          fontSize: 12,
+                          color: ColorName.hint,
+                        ),
+                      ),
+                  ],
                 ),
               ),
               Container(
@@ -152,6 +256,43 @@ class _ShareRow extends StatelessWidget {
         .take(2)
         .map((s) => s[0].toUpperCase())
         .join();
+  }
+}
+
+class _SharePreviewBody extends StatelessWidget {
+  const _SharePreviewBody({required this.share});
+
+  final TripShare share;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final invitedAt = share.invitedAt;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          share.userEmail,
+          style: const TextStyle(
+            fontFamily: FontFamily.dMSans,
+            fontSize: 14,
+            color: ColorName.primaryDark,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.space16),
+        if (invitedAt != null)
+          Text(
+            l10n.tripShareInvitedOnDate(
+              DateFormat('dd/MM/yyyy').format(invitedAt),
+            ),
+            style: const TextStyle(
+              fontFamily: FontFamily.dMSans,
+              fontSize: 12,
+              color: ColorName.hint,
+            ),
+          ),
+      ],
+    );
   }
 }
 
