@@ -21,6 +21,12 @@ class ManualFlightForm extends StatefulWidget {
   final DateTime? initialDepartureDate;
   final DateTime? initialArrivalDate;
 
+  /// Optional submission hook. When provided, the form invokes
+  /// `onSave(data)` with the collected payload and the caller is
+  /// responsible for dispatching (e.g. to `TripDetailBloc` from a panel).
+  /// When `null`, falls back to the legacy behaviour on `TransportBloc`.
+  final void Function(Map<String, dynamic> data)? onSave;
+
   const ManualFlightForm({
     super.key,
     required this.tripId,
@@ -29,6 +35,7 @@ class ManualFlightForm extends StatefulWidget {
     this.initialArrivalAirport,
     this.initialDepartureDate,
     this.initialArrivalDate,
+    this.onSave,
   });
 
   @override
@@ -168,7 +175,9 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
       if (_notesCtrl.text.isNotEmpty) 'notes': _notesCtrl.text,
     };
 
-    if (_isEditMode) {
+    if (widget.onSave != null) {
+      widget.onSave!(data);
+    } else if (_isEditMode) {
       context.read<TransportBloc>().add(
         UpdateManualFlight(
           tripId: widget.tripId,
