@@ -2694,4 +2694,50 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get notFoundCta => 'Retour à l\'accueil';
+
+  @override
+  String get subpageHeroBadgeViewer => 'Lecture seule';
+
+  @override
+  String get subpageHeroBadgeCompleted => 'Terminé';
+
+  @override
+  String get blankActivitiesTitle => 'Ton itinéraire est vide';
+
+  @override
+  String get blankActivitiesSubtitle =>
+      'Planifie ce qui rendra ce voyage mémorable.';
+
+  @override
+  String get blankActivitiesPrimary => 'Ajouter la première activité';
+
+  @override
+  String get blankActivitiesSecondary => 'Laisser l’IA composer une journée';
+
+  @override
+  String get blankActivitiesNoDatesTitle => 'Avant de planifier…';
+
+  @override
+  String get blankActivitiesNoDatesSubtitle =>
+      'Choisis les dates du voyage d’abord — on saura alors quand planifier.';
+
+  @override
+  String get blankActivitiesNoDatesPrimary => 'Retour à l’aperçu';
+
+  @override
+  String activitiesHeroMeta(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count activités',
+      one: '1 activité',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days jours',
+      one: '1 jour',
+    );
+    return '$_temp0 · $_temp1';
+  }
 }

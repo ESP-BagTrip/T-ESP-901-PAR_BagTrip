@@ -4934,6 +4934,66 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Retour à l\'accueil'**
   String get notFoundCta;
+
+  /// No description provided for @subpageHeroBadgeViewer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lecture seule'**
+  String get subpageHeroBadgeViewer;
+
+  /// No description provided for @subpageHeroBadgeCompleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminé'**
+  String get subpageHeroBadgeCompleted;
+
+  /// No description provided for @blankActivitiesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ton itinéraire est vide'**
+  String get blankActivitiesTitle;
+
+  /// No description provided for @blankActivitiesSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planifie ce qui rendra ce voyage mémorable.'**
+  String get blankActivitiesSubtitle;
+
+  /// No description provided for @blankActivitiesPrimary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter la première activité'**
+  String get blankActivitiesPrimary;
+
+  /// No description provided for @blankActivitiesSecondary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Laisser l’IA composer une journée'**
+  String get blankActivitiesSecondary;
+
+  /// No description provided for @blankActivitiesNoDatesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avant de planifier…'**
+  String get blankActivitiesNoDatesTitle;
+
+  /// No description provided for @blankActivitiesNoDatesSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisis les dates du voyage d’abord — on saura alors quand planifier.'**
+  String get blankActivitiesNoDatesSubtitle;
+
+  /// No description provided for @blankActivitiesNoDatesPrimary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour à l’aperçu'**
+  String get blankActivitiesNoDatesPrimary;
+
+  /// No description provided for @activitiesHeroMeta.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 activité} other{{count} activités}} · {days, plural, =1{1 jour} other{{days} jours}}'**
+  String activitiesHeroMeta(int count, int days);
 }
 
 class _AppLocalizationsDelegate
