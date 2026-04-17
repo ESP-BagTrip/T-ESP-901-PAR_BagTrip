@@ -2772,4 +2772,73 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0 · $_temp1';
   }
+
+  @override
+  String get blankBaggageTitle => 'Packing starts with one item.';
+
+  @override
+  String get blankBaggageSubtitle =>
+      'Build a checklist you can tick off before every trip.';
+
+  @override
+  String get blankBaggagePrimary => 'Add first item';
+
+  @override
+  String get blankBaggageSecondary => 'Suggest from my trip';
+
+  @override
+  String baggageHeroMeta(int packed, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      packed,
+      locale: localeName,
+      other: '$packed of $total packed',
+      zero: 'nothing packed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get blankBudgetTitle => 'What’s this trip worth to you?';
+
+  @override
+  String get blankBudgetSubtitle =>
+      'Set a budget, track expenses — we’ll warn you before it slips.';
+
+  @override
+  String get blankBudgetPrimary => 'Add first expense';
+
+  @override
+  String get blankBudgetSecondary => 'Estimate with AI';
+
+  @override
+  String budgetHeroMeta(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count expenses',
+      one: '1 expense',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get blankSharesTitle => 'Plan together.';
+
+  @override
+  String get blankSharesSubtitle =>
+      'Invite a partner, friend, or colleague. They’ll see the trip, you stay in control.';
+
+  @override
+  String get blankSharesPrimary => 'Invite your first guest';
+
+  @override
+  String sharesHeroMeta(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count guests',
+      one: '1 guest',
+    );
+    return '$_temp0';
+  }
 }

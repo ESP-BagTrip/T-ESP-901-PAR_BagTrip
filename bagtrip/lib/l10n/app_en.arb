@@ -1385,5 +1385,35 @@
       "count": {"type": "int"},
       "nights": {"type": "int"}
     }
+  },
+  "blankBaggageTitle": "Packing starts with one item.",
+  "blankBaggageSubtitle": "Build a checklist you can tick off before every trip.",
+  "blankBaggagePrimary": "Add first item",
+  "blankBaggageSecondary": "Suggest from my trip",
+  "baggageHeroMeta": "{packed, plural, =0{nothing packed} other{{packed} of {total} packed}}",
+  "@baggageHeroMeta": {
+    "placeholders": {
+      "packed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "blankBudgetTitle": "What’s this trip worth to you?",
+  "blankBudgetSubtitle": "Set a budget, track expenses — we’ll warn you before it slips.",
+  "blankBudgetPrimary": "Add first expense",
+  "blankBudgetSecondary": "Estimate with AI",
+  "budgetHeroMeta": "{count, plural, =1{1 expense} other{{count} expenses}}",
+  "@budgetHeroMeta": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "blankSharesTitle": "Plan together.",
+  "blankSharesSubtitle": "Invite a partner, friend, or colleague. They’ll see the trip, you stay in control.",
+  "blankSharesPrimary": "Invite your first guest",
+  "sharesHeroMeta": "{count, plural, =1{1 guest} other{{count} guests}}",
+  "@sharesHeroMeta": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
   }
 }

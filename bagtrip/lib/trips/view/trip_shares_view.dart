@@ -1,13 +1,18 @@
 import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
-import 'package:bagtrip/components/elegant_empty_state.dart';
+import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/design/app_haptics.dart';
+import 'package:bagtrip/design/subpage_state.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/review/animated_count.dart';
+import 'package:bagtrip/design/widgets/review/blank_canvas_hero.dart';
+import 'package:bagtrip/design/widgets/review/density_aware_list_view.dart';
 import 'package:bagtrip/design/widgets/review/panel_footer_cta.dart';
 import 'package:bagtrip/design/widgets/review/pill_cta_button.dart';
-import 'package:bagtrip/design/widgets/review/sub_page_hero.dart';
+import 'package:bagtrip/design/widgets/review/state_responsive_hero.dart';
+import 'package:bagtrip/design/widgets/review/tap_scale_aware.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -90,117 +95,163 @@ class _TripSharesViewState extends State<TripSharesView>
 
     return Scaffold(
       backgroundColor: ColorName.surfaceVariant,
-      body: Column(
-        children: [
-          SubPageHero(title: l10n.sharesTitle),
-          Expanded(
-            child: BlocConsumer<TripShareBloc, TripShareState>(
-              listener: (context, state) {
-                if (state is TripShareError) {
-                  final msg = switch (state.error) {
-                    NotFoundError() => l10n.shareErrorUserNotFound,
-                    ValidationError(:final message)
-                        when message.contains('already') =>
-                      l10n.shareErrorAlreadyShared,
-                    ValidationError(:final message)
-                        when message.contains('yourself') =>
-                      l10n.shareErrorSelfShare,
-                    _ => toUserFriendlyMessage(state.error, l10n),
-                  };
-                  AppSnackBar.showError(context, message: msg);
-                } else if (state is TripShareQuotaExceeded) {
-                  AppSnackBar.showError(context, message: l10n.errorQuota);
-                } else if (state is TripShareLoaded) {
-                  context.read<TripDetailBloc>().add(RefreshTripDetail());
-                }
-              },
-              builder: (context, state) {
-                if (state is TripShareLoading) return const LoadingView();
-                final shares = state is TripShareLoaded
-                    ? state.shares
-                    : <TripShare>[];
+      body: BlocConsumer<TripShareBloc, TripShareState>(
+        listener: (context, state) {
+          if (state is TripShareError) {
+            final msg = switch (state.error) {
+              NotFoundError() => l10n.shareErrorUserNotFound,
+              ValidationError(:final message)
+                  when message.contains('already') =>
+                l10n.shareErrorAlreadyShared,
+              ValidationError(:final message)
+                  when message.contains('yourself') =>
+                l10n.shareErrorSelfShare,
+              _ => toUserFriendlyMessage(state.error, l10n),
+            };
+            AppSnackBar.showError(context, message: msg);
+          } else if (state is TripShareQuotaExceeded) {
+            AppSnackBar.showError(context, message: l10n.errorQuota);
+          } else if (state is TripShareLoaded) {
+            context.read<TripDetailBloc>().add(RefreshTripDetail());
+          }
+        },
+        builder: (context, state) {
+          final isLoading = state is TripShareLoading;
+          final hasError = state is TripShareError;
+          final shares = state is TripShareLoaded
+              ? state.shares
+              : const <TripShare>[];
+          // canEdit == isOwner for shares page. The "isCompleted" axis does
+          // not apply (shares work regardless of trip status).
+          final screenState = resolveSubpageState(
+            isLoading: isLoading,
+            hasError: hasError,
+            count: shares.length,
+            canEdit: _isOwner,
+            isCompleted: false,
+          );
+          switch (screenState) {
+            case SubpageScreenState.booting:
+              return const LoadingView();
+            case SubpageScreenState.error:
+              return ErrorView(
+                message: toUserFriendlyMessage(
+                  (state as TripShareError).error,
+                  l10n,
+                ),
+                onRetry: () => context.read<TripShareBloc>().add(
+                  LoadShares(tripId: widget.tripId),
+                ),
+              );
+            case SubpageScreenState.blankCanvas:
+              return _buildBlankCanvas(context, l10n);
+            case SubpageScreenState.sparse:
+            case SubpageScreenState.dense:
+            case SubpageScreenState.viewer:
+            case SubpageScreenState.archive:
+              final density = densityOf(screenState)!;
+              return _buildPopulated(
+                context,
+                l10n,
+                shares,
+                screenState,
+                density,
+              );
+          }
+        },
+      ),
+    );
+  }
 
-                if (shares.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.all(AppSpacing.space24),
-                    child: ElegantEmptyState(
-                      icon: Icons.people_outline,
-                      title: l10n.sharesEmpty,
-                      subtitle: _isOwner ? l10n.sharesEmptySubtitle : null,
-                    ),
-                  );
-                }
+  Widget _buildBlankCanvas(BuildContext context, AppLocalizations l10n) {
+    return BlankCanvasHero(
+      icon: Icons.people_outline_rounded,
+      title: l10n.blankSharesTitle,
+      subtitle: l10n.blankSharesSubtitle,
+      primaryLabel: l10n.blankSharesPrimary,
+      primaryLeadingIcon: Icons.person_add_rounded,
+      onPrimary: () {
+        AppHaptics.medium();
+        _showInviteSheet(context);
+      },
+      breathingIconBuilder: BlankCanvasBreathing.drift(),
+    );
+  }
 
-                return ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.space16,
-                    AppSpacing.space16,
-                    AppSpacing.space16,
-                    AppSpacing.space32 + 72,
-                  ),
-                  itemCount: shares.length,
-                  separatorBuilder: (_, _) =>
-                      const SizedBox(height: AppSpacing.space12),
-                  itemBuilder: (context, index) {
-                    final share = shares[index];
-                    final card = _ShareCard(
-                      share: share,
-                      showRemove: _isOwner,
-                      onRemove: _isOwner
-                          ? () => _showRevokeDialog(context, share)
-                          : null,
-                    );
-                    if (!_isOwner) return card;
-                    return Dismissible(
-                      key: ValueKey(share.id),
-                      direction: DismissDirection.endToStart,
-                      confirmDismiss: (_) async {
-                        AppHaptics.medium();
-                        return _showRevokeDialog(context, share);
-                      },
-                      background: Container(
-                        decoration: const BoxDecoration(
-                          color: ColorName.error,
-                          borderRadius: AppRadius.large16,
-                        ),
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(
-                          right: AppSpacing.space24,
-                        ),
-                        child: const Icon(
-                          Icons.person_remove_rounded,
-                          color: Colors.white,
-                        ),
-                      ),
-                      child: card,
-                    );
+  Widget _buildPopulated(
+    BuildContext context,
+    AppLocalizations l10n,
+    List<TripShare> shares,
+    SubpageScreenState screenState,
+    HeroDensity density,
+  ) {
+    final isViewer = screenState == SubpageScreenState.viewer;
+    final interactive = !isViewer;
+
+    return Column(
+      children: [
+        StateResponsiveHero(
+          title: l10n.sharesTitle,
+          density: density,
+          meta: AnimatedCount(
+            value: shares.length,
+            formatter: l10n.sharesHeroMeta,
+          ),
+          badge: isViewer
+              ? HeroBadge(label: l10n.subpageHeroBadgeViewer)
+              : null,
+        ),
+        Expanded(
+          child: ScrollReactiveCtaScaffold(
+            controller: _footerController,
+            body: DensityAwareListView<TripShare>(
+              density: density,
+              items: shares,
+              itemBuilder: (context, share, _) {
+                final card = _ShareCard(
+                  share: share,
+                  showRemove: interactive,
+                  onRemove: interactive
+                      ? () => _showRevokeDialog(context, share)
+                      : null,
+                );
+                if (!interactive) return card;
+                return Dismissible(
+                  key: ValueKey(share.id),
+                  direction: DismissDirection.endToStart,
+                  confirmDismiss: (_) async {
+                    AppHaptics.medium();
+                    return _showRevokeDialog(context, share);
                   },
+                  background: Container(
+                    decoration: const BoxDecoration(
+                      color: ColorName.error,
+                      borderRadius: AppRadius.large16,
+                    ),
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: AppSpacing.space24),
+                    child: const Icon(
+                      Icons.person_remove_rounded,
+                      color: Colors.white,
+                    ),
+                  ),
+                  child: card,
                 );
               },
             ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: _isOwner
-          ? SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.space16,
-                  AppSpacing.space8,
-                  AppSpacing.space16,
-                  AppSpacing.space16,
-                ),
-                child: PanelFooterCta(
-                  controller: _footerController,
-                  child: PillCtaButton(
+            footer: interactive
+                ? PillCtaButton(
                     label: l10n.sharesInviteButton,
                     leadingIcon: Icons.person_add_rounded,
-                    onTap: () => _showInviteSheet(context),
-                  ),
-                ),
-              ),
-            )
-          : null,
+                    onTap: () {
+                      AppHaptics.medium();
+                      _showInviteSheet(context);
+                    },
+                  )
+                : null,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -219,7 +270,7 @@ class _ShareCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Container(
+    final content = Container(
       padding: const EdgeInsets.all(AppSpacing.space16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -291,5 +342,7 @@ class _ShareCard extends StatelessWidget {
         ],
       ),
     );
+    if (!showRemove) return content;
+    return TapScaleAware(onTap: () => AppHaptics.light(), child: content);
   }
 }

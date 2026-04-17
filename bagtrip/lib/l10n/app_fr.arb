@@ -1385,5 +1385,35 @@
       "count": {"type": "int"},
       "nights": {"type": "int"}
     }
+  },
+  "blankBaggageTitle": "Faire sa valise, ça commence par un objet.",
+  "blankBaggageSubtitle": "Construis la checklist que tu cocheras avant chaque départ.",
+  "blankBaggagePrimary": "Ajouter le premier objet",
+  "blankBaggageSecondary": "Suggestions pour ce voyage",
+  "baggageHeroMeta": "{packed, plural, =0{rien de prêt} other{{packed} sur {total} prêts}}",
+  "@baggageHeroMeta": {
+    "placeholders": {
+      "packed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "blankBudgetTitle": "Quel budget pour ce voyage ?",
+  "blankBudgetSubtitle": "Fixe un budget, suis les dépenses — on te prévient avant la dérive.",
+  "blankBudgetPrimary": "Ajouter la première dépense",
+  "blankBudgetSecondary": "Estimer avec l’IA",
+  "budgetHeroMeta": "{count, plural, =1{1 dépense} other{{count} dépenses}}",
+  "@budgetHeroMeta": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "blankSharesTitle": "Planifiez ensemble.",
+  "blankSharesSubtitle": "Invite un proche. Il voit le voyage, tu gardes le contrôle.",
+  "blankSharesPrimary": "Inviter un premier voyageur",
+  "sharesHeroMeta": "{count, plural, =1{1 invité} other{{count} invités}}",
+  "@sharesHeroMeta": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
   }
 }

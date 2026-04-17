@@ -5048,6 +5048,90 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{count, plural, =1{1 hébergement} other{{count} hébergements}} · {nights, plural, =1{1 nuit} other{{nights} nuits}}'**
   String accommodationsHeroMeta(int count, int nights);
+
+  /// No description provided for @blankBaggageTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Faire sa valise, ça commence par un objet.'**
+  String get blankBaggageTitle;
+
+  /// No description provided for @blankBaggageSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Construis la checklist que tu cocheras avant chaque départ.'**
+  String get blankBaggageSubtitle;
+
+  /// No description provided for @blankBaggagePrimary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter le premier objet'**
+  String get blankBaggagePrimary;
+
+  /// No description provided for @blankBaggageSecondary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suggestions pour ce voyage'**
+  String get blankBaggageSecondary;
+
+  /// No description provided for @baggageHeroMeta.
+  ///
+  /// In fr, this message translates to:
+  /// **'{packed, plural, =0{rien de prêt} other{{packed} sur {total} prêts}}'**
+  String baggageHeroMeta(int packed, int total);
+
+  /// No description provided for @blankBudgetTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quel budget pour ce voyage ?'**
+  String get blankBudgetTitle;
+
+  /// No description provided for @blankBudgetSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fixe un budget, suis les dépenses — on te prévient avant la dérive.'**
+  String get blankBudgetSubtitle;
+
+  /// No description provided for @blankBudgetPrimary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter la première dépense'**
+  String get blankBudgetPrimary;
+
+  /// No description provided for @blankBudgetSecondary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Estimer avec l’IA'**
+  String get blankBudgetSecondary;
+
+  /// No description provided for @budgetHeroMeta.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 dépense} other{{count} dépenses}}'**
+  String budgetHeroMeta(int count);
+
+  /// No description provided for @blankSharesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planifiez ensemble.'**
+  String get blankSharesTitle;
+
+  /// No description provided for @blankSharesSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Invite un proche. Il voit le voyage, tu gardes le contrôle.'**
+  String get blankSharesSubtitle;
+
+  /// No description provided for @blankSharesPrimary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inviter un premier voyageur'**
+  String get blankSharesPrimary;
+
+  /// No description provided for @sharesHeroMeta.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 invité} other{{count} invités}}'**
+  String sharesHeroMeta(int count);
 }
 
 class _AppLocalizationsDelegate
