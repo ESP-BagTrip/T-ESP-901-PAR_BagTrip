@@ -24,6 +24,8 @@ part 'trip_detail_state.dart';
 part 'trip_detail_trip_handlers.dart';
 part 'trip_detail_activity_handlers.dart';
 part 'trip_detail_transport_handlers.dart';
+part 'trip_detail_baggage_handlers.dart';
+part 'trip_detail_budget_handlers.dart';
 part 'trip_detail_misc_handlers.dart';
 
 /// Central hub for a trip's detail screen.
@@ -93,13 +95,27 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     // Transport: flights + accommodations
     // (see trip_detail_transport_handlers.dart).
     on<AddFlightToDetail>(_onAddFlightToDetail);
+    on<CreateFlightFromDetail>(_onCreateFlightFromDetail);
+    on<UpdateFlightFromDetail>(_onUpdateFlightFromDetail);
     on<DeleteFlightFromDetail>(_onDeleteFlight);
+    on<CreateAccommodationFromDetail>(_onCreateAccommodationFromDetail);
+    on<UpdateAccommodationFromDetail>(_onUpdateAccommodationFromDetail);
     on<DeleteAccommodationFromDetail>(_onDeleteAccommodation);
 
-    // Baggage + budget + shares (see trip_detail_misc_handlers.dart).
+    // Baggage (see trip_detail_baggage_handlers.dart).
     on<ToggleBaggagePackedFromDetail>(_onToggleBaggagePacked);
+    on<CreateBaggageItemFromDetail>(_onCreateBaggageItemFromDetail);
+    on<UpdateBaggageItemFromDetail>(_onUpdateBaggageItemFromDetail);
     on<DeleteBaggageItemFromDetail>(_onDeleteBaggageItem);
+
+    // Budget (see trip_detail_budget_handlers.dart).
     on<CreateBudgetItemFromDetail>(_onCreateBudgetItemFromDetail);
+    on<UpdateBudgetItemFromDetail>(_onUpdateBudgetItemFromDetail);
+    on<DeleteBudgetItemFromDetail>(_onDeleteBudgetItemFromDetail);
+    on<RefreshBudgetSummaryFromDetail>(_onRefreshBudgetSummaryFromDetail);
+
+    // Shares (see trip_detail_misc_handlers.dart).
+    on<CreateShareFromDetail>(_onCreateShareFromDetail);
     on<DeleteShareFromDetail>(_onDeleteShare);
   }
 
@@ -135,6 +151,7 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
       _accommodationRepository.getByTrip(_tripId!),
       _baggageRepository.getByTrip(_tripId!),
       _budgetRepository.getBudgetSummary(_tripId!),
+      _budgetRepository.getBudgetItems(_tripId!),
       _tripShareRepository.getSharesByTrip(_tripId!),
     ]);
 
@@ -180,7 +197,16 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
       }(),
     };
 
-    final sharesResult = results[4] as Result<List<TripShare>>;
+    final budgetItemsResult = results[4] as Result<List<BudgetItem>>;
+    final budgetItems = switch (budgetItemsResult) {
+      Success(:final data) => data,
+      Failure(:final error) => () {
+        sectionErrors['budget'] = error;
+        return <BudgetItem>[];
+      }(),
+    };
+
+    final sharesResult = results[5] as Result<List<TripShare>>;
     final shares = switch (sharesResult) {
       Success(:final data) => data,
       Failure(:final error) => () {
@@ -203,6 +229,7 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
         accommodations: accommodations,
         baggageItems: baggageItems,
         budgetSummary: budgetSummary,
+        budgetItems: budgetItems,
         shares: shares,
         completionResult: completion,
         deferredLoaded: true,
@@ -283,6 +310,7 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
       _accommodationRepository.getByTrip(tripId),
       _baggageRepository.getByTrip(tripId),
       _budgetRepository.getBudgetSummary(tripId),
+      _budgetRepository.getBudgetItems(tripId),
       _tripShareRepository.getSharesByTrip(tripId),
     ]);
 
@@ -294,7 +322,8 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     final accommodationsResult = results[3] as Result<List<Accommodation>>;
     final baggageResult = results[4] as Result<List<BaggageItem>>;
     final budgetResult = results[5] as Result<BudgetSummary>;
-    final sharesResult = results[6] as Result<List<TripShare>>;
+    final budgetItemsResult = results[6] as Result<List<BudgetItem>>;
+    final sharesResult = results[7] as Result<List<TripShare>>;
 
     final Trip trip;
     switch (tripResult) {
@@ -335,6 +364,13 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
         return null;
       }(),
     };
+    final budgetItems = switch (budgetItemsResult) {
+      Success(:final data) => data,
+      Failure(:final error) => () {
+        sectionErrors['budget'] = error;
+        return <BudgetItem>[];
+      }(),
+    };
     final shares = switch (sharesResult) {
       Success(:final data) => data,
       Failure(:final error) => () {
@@ -359,6 +395,7 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
         accommodations: accommodations,
         baggageItems: baggageItems,
         budgetSummary: budgetSummary,
+        budgetItems: budgetItems,
         shares: shares,
         selectedDayIndex: prevSelectedDay,
         userRole: trip.role ?? 'OWNER',
@@ -434,13 +471,19 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
           );
         }
       case 'budget':
-        final result = await _budgetRepository.getBudgetSummary(_tripId!);
+        final results = await Future.wait([
+          _budgetRepository.getBudgetSummary(_tripId!),
+          _budgetRepository.getBudgetItems(_tripId!),
+        ]);
         if (isClosed || state is! TripDetailLoaded) return;
-        if (result case Success(:final data)) {
+        final summaryResult = results[0] as Result<BudgetSummary>;
+        final itemsResult = results[1] as Result<List<BudgetItem>>;
+        if (summaryResult case Success(:final data)) {
           final current = state as TripDetailLoaded;
           emit(
             current.copyWith(
               budgetSummary: data,
+              budgetItems: itemsResult.dataOrNull ?? current.budgetItems,
               sectionErrors: _clearSectionError(current, section),
             ),
           );

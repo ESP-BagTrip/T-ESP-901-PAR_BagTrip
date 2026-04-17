@@ -13,6 +13,7 @@ final class TripDetailLoaded extends TripDetailState {
   final List<Accommodation> accommodations;
   final List<BaggageItem> baggageItems;
   final BudgetSummary? budgetSummary;
+  final List<BudgetItem> budgetItems;
   final List<TripShare> shares;
   final int selectedDayIndex;
   final String userRole;
@@ -33,6 +34,7 @@ final class TripDetailLoaded extends TripDetailState {
     required this.accommodations,
     required this.baggageItems,
     this.budgetSummary,
+    this.budgetItems = const [],
     required this.shares,
     this.selectedDayIndex = 0,
     this.userRole = 'OWNER',
@@ -113,6 +115,7 @@ final class TripDetailLoaded extends TripDetailState {
     List<BaggageItem>? baggageItems,
     BudgetSummary? budgetSummary,
     bool clearBudgetSummary = false,
+    List<BudgetItem>? budgetItems,
     List<TripShare>? shares,
     int? selectedDayIndex,
     String? userRole,
@@ -141,6 +144,7 @@ final class TripDetailLoaded extends TripDetailState {
       budgetSummary: clearBudgetSummary
           ? null
           : (budgetSummary ?? this.budgetSummary),
+      budgetItems: budgetItems ?? this.budgetItems,
       shares: shares ?? this.shares,
       selectedDayIndex: selectedDayIndex ?? this.selectedDayIndex,
       userRole: userRole ?? this.userRole,
