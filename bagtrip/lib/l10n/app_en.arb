@@ -1415,5 +1415,21 @@
     "placeholders": {
       "count": {"type": "int"}
     }
-  }
+  },
+  "panelQuickAddItem": "Add item",
+  "panelQuickAddExpense": "Add expense",
+  "panelQuickAddActivity": "Add activity",
+  "panelQuickAddFlight": "Add flight",
+  "panelQuickAddStay": "Add stay",
+  "panelInviteCollaborator": "Invite",
+  "panelActionEdit": "Edit",
+  "panelActionDelete": "Delete",
+  "panelActionDuplicate": "Duplicate",
+  "panelOpenFullBaggage": "See full checklist",
+  "panelOpenFullBudget": "See full breakdown",
+  "panelOpenFullActivities": "See full itinerary",
+  "panelOpenFullFlights": "See all flights",
+  "panelOpenFullAccommodations": "See all stays",
+  "panelOpenFullShares": "Manage access",
+  "baggageAllPackedMessage": "All packed — ready to roll."
 }

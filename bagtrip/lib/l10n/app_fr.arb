@@ -1415,5 +1415,21 @@
     "placeholders": {
       "count": {"type": "int"}
     }
-  }
+  },
+  "panelQuickAddItem": "Ajouter un objet",
+  "panelQuickAddExpense": "Ajouter une dépense",
+  "panelQuickAddActivity": "Ajouter une activité",
+  "panelQuickAddFlight": "Ajouter un vol",
+  "panelQuickAddStay": "Ajouter un hébergement",
+  "panelInviteCollaborator": "Inviter",
+  "panelActionEdit": "Modifier",
+  "panelActionDelete": "Supprimer",
+  "panelActionDuplicate": "Dupliquer",
+  "panelOpenFullBaggage": "Voir la checklist complète",
+  "panelOpenFullBudget": "Voir le détail complet",
+  "panelOpenFullActivities": "Voir l’itinéraire complet",
+  "panelOpenFullFlights": "Voir tous les vols",
+  "panelOpenFullAccommodations": "Voir tous les hébergements",
+  "panelOpenFullShares": "Gérer les accès",
+  "baggageAllPackedMessage": "Tout est prêt — bon voyage."
 }
