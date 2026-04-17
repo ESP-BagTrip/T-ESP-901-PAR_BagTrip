@@ -2908,4 +2908,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get baggageAllPackedMessage => 'Tout est prêt — bon voyage.';
+
+  @override
+  String get budgetRecentExpenses => 'Récentes';
 }

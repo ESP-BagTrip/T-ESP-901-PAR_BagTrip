@@ -2889,4 +2889,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get baggageAllPackedMessage => 'All packed — ready to roll.';
+
+  @override
+  String get budgetRecentExpenses => 'Recent';
 }

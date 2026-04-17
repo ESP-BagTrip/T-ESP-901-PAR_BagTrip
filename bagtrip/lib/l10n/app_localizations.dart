@@ -5228,6 +5228,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Tout est prêt — bon voyage.'**
   String get baggageAllPackedMessage;
+
+  /// No description provided for @budgetRecentExpenses.
+  ///
+  /// In fr, this message translates to:
+  /// **'Récentes'**
+  String get budgetRecentExpenses;
 }
 
 class _AppLocalizationsDelegate
