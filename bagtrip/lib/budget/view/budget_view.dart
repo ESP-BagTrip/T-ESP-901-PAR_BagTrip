@@ -1,27 +1,30 @@
 import 'package:bagtrip/budget/bloc/budget_bloc.dart';
 import 'package:bagtrip/budget/widgets/budget_estimate_sheet.dart';
-import 'package:bagtrip/budget/widgets/budget_item_card.dart';
 import 'package:bagtrip/budget/widgets/budget_item_form.dart';
-import 'package:bagtrip/budget/widgets/budget_summary_header.dart';
-import 'package:bagtrip/design/widgets/review/budget_alert_banner.dart';
 import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
-import 'package:bagtrip/core/platform/adaptive_platform.dart';
-import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/core/extensions/price_format_ext.dart';
+import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
+import 'package:bagtrip/design/widgets/review/budget_alert_banner.dart';
+import 'package:bagtrip/design/widgets/review/budget_stripe.dart';
 import 'package:bagtrip/design/widgets/review/hero_nav_button.dart';
+import 'package:bagtrip/design/widgets/review/panel_footer_cta.dart';
+import 'package:bagtrip/design/widgets/review/pill_cta_button.dart';
 import 'package:bagtrip/design/widgets/review/sub_page_hero.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/budget_item.dart';
+import 'package:bagtrip/plan_trip/helpers/budget_breakdown.dart';
+import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/utils/error_display.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class BudgetView extends StatelessWidget {
+class BudgetView extends StatefulWidget {
   final String tripId;
   final String role;
   final bool isCompleted;
@@ -34,9 +37,29 @@ class BudgetView extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final canEdit = role != 'VIEWER' && !isCompleted;
+  State<BudgetView> createState() => _BudgetViewState();
+}
 
+class _BudgetViewState extends State<BudgetView> with TickerProviderStateMixin {
+  late final PanelFooterCtaController _footerController;
+
+  @override
+  void initState() {
+    super.initState();
+    _footerController = PanelFooterCtaController(vsync: this);
+    _footerController.show();
+  }
+
+  @override
+  void dispose() {
+    _footerController.dispose();
+    super.dispose();
+  }
+
+  bool get _canEdit => widget.role != 'VIEWER' && !widget.isCompleted;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: ColorName.surfaceVariant,
@@ -44,40 +67,41 @@ class BudgetView extends StatelessWidget {
         children: [
           SubPageHero(
             title: l10n.budgetItems,
-            trailing: [
-              if (canEdit && AdaptivePlatform.isIOS)
-                HeroNavButton(
-                  icon: CupertinoIcons.add,
-                  tooltip: l10n.addExpenseTooltip,
-                  onPressed: () => _showForm(context, tripId),
-                ),
-            ],
+            trailing: _canEdit
+                ? [
+                    HeroNavButton(
+                      icon: Icons.auto_awesome_rounded,
+                      tooltip: l10n.budgetEstimateButton,
+                      onPressed: () {
+                        AppHaptics.light();
+                        context.read<BudgetBloc>().add(
+                          EstimateBudget(tripId: widget.tripId),
+                        );
+                      },
+                    ),
+                  ]
+                : null,
           ),
           Expanded(
             child: BlocConsumer<BudgetBloc, BudgetState>(
               listener: (context, state) {
                 if (state is BudgetEstimated) {
                   _showEstimateSheet(context);
-                }
-                if (state is BudgetQuotaExceeded) {
+                } else if (state is BudgetQuotaExceeded) {
                   PremiumPaywall.show(context);
+                } else if (state is BudgetLoaded) {
+                  context.read<TripDetailBloc>().add(RefreshTripDetail());
                 }
               },
               builder: (context, state) {
-                if (state is BudgetLoading) {
-                  return const LoadingView();
-                }
-                if (state is BudgetEstimating) {
+                if (state is BudgetLoading || state is BudgetEstimating) {
                   return const LoadingView();
                 }
                 if (state is BudgetError) {
                   return ErrorView(
-                    message: toUserFriendlyMessage(
-                      state.error,
-                      AppLocalizations.of(context)!,
-                    ),
+                    message: toUserFriendlyMessage(state.error, l10n),
                     onRetry: () => context.read<BudgetBloc>().add(
-                      LoadBudget(tripId: tripId),
+                      LoadBudget(tripId: widget.tripId),
                     ),
                   );
                 }
@@ -88,7 +112,7 @@ class BudgetView extends StatelessWidget {
                   final summary = state is BudgetLoaded
                       ? state.summary
                       : (state as BudgetEstimated).summary;
-                  return _buildContent(context, items, summary, canEdit);
+                  return _buildContent(context, items, summary);
                 }
                 return const SizedBox.shrink();
               },
@@ -96,11 +120,24 @@ class BudgetView extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: canEdit && !AdaptivePlatform.isIOS
-          ? FloatingActionButton.extended(
-              onPressed: () => _showForm(context, tripId),
-              icon: const Icon(Icons.add),
-              label: Text(AppLocalizations.of(context)!.addExpense),
+      bottomNavigationBar: _canEdit
+          ? SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.space16,
+                  AppSpacing.space8,
+                  AppSpacing.space16,
+                  AppSpacing.space16,
+                ),
+                child: PanelFooterCta(
+                  controller: _footerController,
+                  child: PillCtaButton(
+                    label: AppLocalizations.of(context)!.addExpense,
+                    leadingIcon: Icons.add_rounded,
+                    onTap: () => _showForm(context, widget.tripId),
+                  ),
+                ),
+              ),
             )
           : null,
     );
@@ -110,225 +147,315 @@ class BudgetView extends StatelessWidget {
     BuildContext context,
     List<BudgetItem> items,
     BudgetSummary summary,
-    bool canEdit,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    final isViewer = role == 'VIEWER';
-    final isReadOnly = isViewer || isCompleted;
-
-    if (items.isEmpty && !isReadOnly) {
-      return ElegantEmptyState(
-        icon: Icons.wallet_outlined,
-        title: l10n.emptyBudgetTitle,
-        subtitle: l10n.emptyBudgetSubtitle,
+    if (items.isEmpty && summary.totalBudget <= 0) {
+      return Padding(
+        padding: const EdgeInsets.all(AppSpacing.space24),
+        child: ElegantEmptyState(
+          icon: Icons.wallet_outlined,
+          title: l10n.emptyBudgetTitle,
+          subtitle: _canEdit ? l10n.emptyBudgetSubtitle : null,
+        ),
       );
     }
 
-    if (isViewer) {
-      return ListView(
-        padding: AppSpacing.allEdgeInsetSpace16,
-        children: [BudgetSummaryHeader(summary: summary, isViewer: true)],
-      );
-    }
-
-    // Separate confirmed and forecasted items
     final confirmedItems = items
-        .where((item) => item.sourceType != null || !item.isPlanned)
+        .where((i) => i.sourceType != null || !i.isPlanned)
         .toList();
     final forecastedItems = items
-        .where((item) => item.sourceType == null && item.isPlanned)
+        .where((i) => i.sourceType == null && i.isPlanned)
         .toList();
 
     return ListView(
-      padding: AppSpacing.allEdgeInsetSpace16,
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.space16,
+        AppSpacing.space16,
+        AppSpacing.space16,
+        AppSpacing.space32 + 72,
+      ),
       children: [
-        if (summary.alertLevel != null) BudgetAlertBanner(summary: summary),
-        BudgetSummaryHeader(summary: summary),
-
-        // Estimate button
-        if (canEdit)
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.space16),
-            child: OutlinedButton.icon(
-              onPressed: () => context.read<BudgetBloc>().add(
-                EstimateBudget(tripId: tripId),
-              ),
-              icon: const Icon(Icons.auto_awesome, size: 18),
-              label: Text(l10n.budgetEstimateButton),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                side: const BorderSide(color: AppColors.primary),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: AppRadius.medium8,
-                ),
-                padding: const EdgeInsets.symmetric(
-                  vertical: AppSpacing.space16,
-                ),
-              ),
-            ),
-          ),
-
-        if (summary.byCategory.isNotEmpty) ...[
-          Text(
-            l10n.expenseCategory,
-            style: Theme.of(
-              context,
-            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: AppSpacing.space8),
-          Wrap(
-            spacing: AppSpacing.space8,
-            runSpacing: AppSpacing.space4,
-            children: summary.byCategory.entries.map((entry) {
-              return Chip(
-                label: Text(
-                  '${entry.key}: ${entry.value.toStringAsFixed(2)} \u20ac',
-                ),
-                backgroundColor: _categoryColor(context, entry.key),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: AppSpacing.space16),
+        if (summary.alertLevel != null) ...[
+          BudgetAlertBanner(summary: summary),
+          const SizedBox(height: AppSpacing.space12),
         ],
-
-        // Confirmed section
+        BudgetStripe(
+          total: summary.totalBudget,
+          subtitle: l10n.reviewBudgetEstimationPrefix,
+          entries: _entries(summary, l10n),
+        ),
+        const SizedBox(height: AppSpacing.space16),
         if (confirmedItems.isNotEmpty) ...[
-          _buildSectionHeader(context, l10n.budgetConfirmed),
-          ...confirmedItems.map(
-            (item) => BudgetItemCard(
-              item: item,
-              onEdit: isReadOnly
-                  ? null
-                  : () => _showForm(context, tripId, item: item),
-              onDelete: isReadOnly
-                  ? null
-                  : () => context.read<BudgetBloc>().add(
-                      DeleteBudgetItem(tripId: tripId, itemId: item.id),
-                    ),
-            ),
+          _SectionLabel(text: l10n.budgetConfirmed),
+          const SizedBox(height: AppSpacing.space8),
+          _ItemGroup(
+            items: confirmedItems,
+            canEdit: _canEdit,
+            tripId: widget.tripId,
+            onEdit: (item) => _showForm(context, widget.tripId, item: item),
           ),
           const SizedBox(height: AppSpacing.space16),
         ],
-
-        // Forecasted section
         if (forecastedItems.isNotEmpty) ...[
-          _buildSectionHeader(context, l10n.budgetForecasted),
-          ...forecastedItems.map(
-            (item) => BudgetItemCard(
-              item: item,
-              onEdit: isReadOnly
-                  ? null
-                  : () => _showForm(context, tripId, item: item),
-              onDelete: isReadOnly
-                  ? null
-                  : () => context.read<BudgetBloc>().add(
-                      DeleteBudgetItem(tripId: tripId, itemId: item.id),
-                    ),
-            ),
+          _SectionLabel(text: l10n.budgetForecasted),
+          const SizedBox(height: AppSpacing.space8),
+          _ItemGroup(
+            items: forecastedItems,
+            canEdit: _canEdit,
+            tripId: widget.tripId,
+            onEdit: (item) => _showForm(context, widget.tripId, item: item),
           ),
         ],
-
-        const SizedBox(height: 100),
       ],
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.space8),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.bold,
-          color: AppColors.onSurface,
-        ),
-      ),
-    );
+  List<BudgetStripeEntry> _entries(
+    BudgetSummary summary,
+    AppLocalizations l10n,
+  ) {
+    final remapped = <String, dynamic>{};
+    summary.byCategory.forEach((key, value) {
+      final normalized = _normalize(key);
+      if (normalized != null) remapped[normalized] = value;
+    });
+    return extractBudgetEntries(l10n, remapped);
   }
 
-  Color _categoryColor(BuildContext context, String category) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    switch (category.toUpperCase()) {
-      case 'FLIGHT':
-        return isDark ? AppColors.categoryFlightDark : AppColors.categoryFlight;
-      case 'ACCOMMODATION':
-        return isDark
-            ? AppColors.categoryAccommodationDark
-            : AppColors.categoryAccommodation;
-      case 'FOOD':
-        return isDark ? AppColors.categoryFoodDark : AppColors.categoryFood;
-      case 'ACTIVITY':
-        return isDark
-            ? AppColors.categoryActivityDark
-            : AppColors.categoryActivity;
-      case 'TRANSPORT':
-        return isDark
-            ? AppColors.categoryTransportDark
-            : AppColors.categoryTransport;
-      default:
-        return isDark ? AppColors.categoryOtherDark : AppColors.categoryOther;
+  String? _normalize(String key) {
+    final lower = key.toLowerCase();
+    if (lower.contains('flight')) return 'flights';
+    if (lower.contains('accommodation') || lower.contains('hotel')) {
+      return 'accommodation';
     }
+    if (lower.contains('food') || lower.contains('meal')) return 'meals';
+    if (lower.contains('transport')) return 'transport';
+    if (lower.contains('activit')) return 'activities';
+    return null;
   }
 
   void _showForm(BuildContext context, String tripId, {BudgetItem? item}) {
     final bloc = context.read<BudgetBloc>();
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (sheetCtx) => Container(
-        decoration: BoxDecoration(
-          color: Theme.of(sheetCtx).scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: AppSpacing.space12),
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    sheetCtx,
-                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            BudgetItemForm(
-              tripId: tripId,
-              item: item,
-              onSave: (data) {
-                if (item != null) {
-                  bloc.add(
-                    UpdateBudgetItem(
-                      tripId: tripId,
-                      itemId: item.id,
-                      data: data,
-                    ),
-                  );
-                } else {
-                  bloc.add(CreateBudgetItem(tripId: tripId, data: data));
-                }
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+      builder: (sheetCtx) => _FormWrapper(
+        child: BlocProvider.value(
+          value: bloc,
+          child: BudgetItemForm(
+            tripId: tripId,
+            item: item,
+            onSave: (data) {
+              if (item != null) {
+                bloc.add(
+                  UpdateBudgetItem(tripId: tripId, itemId: item.id, data: data),
+                );
+              } else {
+                bloc.add(CreateBudgetItem(tripId: tripId, data: data));
+              }
+              Navigator.of(sheetCtx).pop();
+            },
+          ),
         ),
       ),
     );
   }
 
   void _showEstimateSheet(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => BlocProvider.value(
         value: context.read<BudgetBloc>(),
-        child: BudgetEstimateSheet(tripId: tripId),
+        child: BudgetEstimateSheet(tripId: widget.tripId),
+      ),
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel({required this.text});
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text.toUpperCase(),
+      style: const TextStyle(
+        fontFamily: FontFamily.dMSans,
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 1.2,
+        color: ColorName.hint,
+      ),
+    );
+  }
+}
+
+class _ItemGroup extends StatelessWidget {
+  const _ItemGroup({
+    required this.items,
+    required this.canEdit,
+    required this.tripId,
+    required this.onEdit,
+  });
+
+  final List<BudgetItem> items;
+  final bool canEdit;
+  final String tripId;
+  final ValueChanged<BudgetItem> onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: AppRadius.large16,
+        border: Border.all(color: ColorName.primarySoftLight),
+      ),
+      child: ListView.separated(
+        padding: EdgeInsets.zero,
+        primary: false,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: items.length,
+        separatorBuilder: (_, _) =>
+            const Divider(height: 1, color: ColorName.primarySoftLight),
+        itemBuilder: (context, idx) {
+          final item = items[idx];
+          return _BudgetItemRow(
+            item: item,
+            canEdit: canEdit,
+            onEdit: () => onEdit(item),
+            onDelete: () {
+              AppHaptics.medium();
+              context.read<BudgetBloc>().add(
+                DeleteBudgetItem(tripId: tripId, itemId: item.id),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _BudgetItemRow extends StatelessWidget {
+  const _BudgetItemRow({
+    required this.item,
+    required this.canEdit,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final BudgetItem item;
+  final bool canEdit;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: canEdit ? onEdit : null,
+      borderRadius: AppRadius.large16,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.space16,
+          vertical: AppSpacing.space12,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.label,
+                    style: const TextStyle(
+                      fontFamily: FontFamily.dMSerifDisplay,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: ColorName.primaryDark,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.space4),
+                  Text(
+                    item.category.name.toUpperCase(),
+                    style: const TextStyle(
+                      fontFamily: FontFamily.dMSans,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.8,
+                      color: ColorName.hint,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              item.amount.formatPrice(),
+              style: const TextStyle(
+                fontFamily: FontFamily.dMSerifDisplay,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: ColorName.primaryDark,
+              ),
+            ),
+            if (canEdit)
+              IconButton(
+                onPressed: onDelete,
+                icon: const Icon(
+                  Icons.delete_outline_rounded,
+                  size: 18,
+                  color: ColorName.hint,
+                ),
+                visualDensity: VisualDensity.compact,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FormWrapper extends StatelessWidget {
+  const _FormWrapper({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadius.cornerRadius24),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: AppSpacing.space12),
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: ColorName.hint.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          Flexible(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: child,
+            ),
+          ),
+        ],
       ),
     );
   }
