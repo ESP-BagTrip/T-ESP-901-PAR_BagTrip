@@ -170,34 +170,48 @@ RouteBase get $homeRoute => GoRouteData.$route(
       path: 'trip/:tripId',
       factory: $TripDetailRoute._fromState,
     ),
-    GoRouteData.$route(
-      path: ':tripId',
-      factory: $TripHomeRoute._fromState,
+    ShellRouteData.$route(
+      factory: $TripDetailShellRouteExtension._fromState,
       routes: [
         GoRouteData.$route(
-          path: 'accommodations',
-          factory: $AccommodationsRoute._fromState,
+          path: ':tripId',
+          factory: $TripHomeRoute._fromState,
+          routes: [
+            GoRouteData.$route(
+              path: 'accommodations',
+              factory: $AccommodationsRoute._fromState,
+            ),
+            GoRouteData.$route(
+              path: 'baggage',
+              factory: $BaggageRoute._fromState,
+            ),
+            GoRouteData.$route(
+              path: 'activities',
+              factory: $ActivitiesRoute._fromState,
+            ),
+            GoRouteData.$route(
+              path: 'budget',
+              factory: $BudgetRoute._fromState,
+            ),
+            GoRouteData.$route(
+              path: 'transports',
+              factory: $TransportsRoute._fromState,
+            ),
+            GoRouteData.$route(
+              path: 'shares',
+              factory: $SharesRoute._fromState,
+            ),
+            GoRouteData.$route(
+              path: 'feedback',
+              factory: $FeedbackRoute._fromState,
+            ),
+            GoRouteData.$route(
+              path: 'post-trip',
+              factory: $PostTripRoute._fromState,
+            ),
+            GoRouteData.$route(path: 'map', factory: $MapRoute._fromState),
+          ],
         ),
-        GoRouteData.$route(path: 'baggage', factory: $BaggageRoute._fromState),
-        GoRouteData.$route(
-          path: 'activities',
-          factory: $ActivitiesRoute._fromState,
-        ),
-        GoRouteData.$route(path: 'budget', factory: $BudgetRoute._fromState),
-        GoRouteData.$route(
-          path: 'transports',
-          factory: $TransportsRoute._fromState,
-        ),
-        GoRouteData.$route(path: 'shares', factory: $SharesRoute._fromState),
-        GoRouteData.$route(
-          path: 'feedback',
-          factory: $FeedbackRoute._fromState,
-        ),
-        GoRouteData.$route(
-          path: 'post-trip',
-          factory: $PostTripRoute._fromState,
-        ),
-        GoRouteData.$route(path: 'map', factory: $MapRoute._fromState),
       ],
     ),
   ],
@@ -295,6 +309,11 @@ mixin $TripDetailRoute on GoRouteData {
 
   @override
   void replace(BuildContext context) => context.replace(location);
+}
+
+extension $TripDetailShellRouteExtension on TripDetailShellRoute {
+  static TripDetailShellRoute _fromState(GoRouterState state) =>
+      const TripDetailShellRoute();
 }
 
 mixin $TripHomeRoute on GoRouteData {
