@@ -2,8 +2,10 @@ import 'package:bagtrip/components/optimized_image.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
+import 'package:bagtrip/home/widgets/active_trip_weather_card.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
+import 'package:bagtrip/models/weather_summary.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:flutter/material.dart';
 
@@ -12,12 +14,14 @@ class ActiveTripHero extends StatelessWidget {
   final Trip trip;
   final int currentDay;
   final int totalDays;
+  final WeatherSummary? weather;
 
   const ActiveTripHero({
     super.key,
     required this.trip,
     required this.currentDay,
     required this.totalDays,
+    this.weather,
   });
 
   static const Color _navy = Color(0xFF1A2B48);
@@ -100,25 +104,36 @@ class ActiveTripHero extends StatelessWidget {
                   Positioned(
                     top: AppSpacing.space16,
                     right: AppSpacing.space16,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.space12,
-                        vertical: AppSpacing.space8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.35),
-                        borderRadius: AppRadius.pill,
-                      ),
-                      child: Text(
-                        l10n.homeActiveTripDay(currentDay, totalDays),
-                        style: const TextStyle(
-                          fontFamily: FontFamily.dMSans,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                          letterSpacing: 0.2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.space12,
+                            vertical: AppSpacing.space8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.35),
+                            borderRadius: AppRadius.pill,
+                          ),
+                          child: Text(
+                            l10n.homeActiveTripDay(currentDay, totalDays),
+                            style: const TextStyle(
+                              fontFamily: FontFamily.dMSans,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: AppSpacing.space8),
+                        ActiveTripWeatherCard(
+                          weather: weather,
+                          destinationTimezone: trip.destinationTimezone,
+                        ),
+                      ],
                     ),
                   ),
                   Positioned(

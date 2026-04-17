@@ -2,127 +2,126 @@ import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/weather_summary.dart';
+import 'package:bagtrip/utils/destination_time.dart';
 import 'package:flutter/material.dart';
 
-/// Read-only weather row under « Voyages & accueil » (no tap, no chevron).
+/// Semi-transparent weather pill for the active trip hero (condition icon + min–max).
+///
+/// Night icon when destination local hour is before 6 or from 20:00 onward
+/// ([nowInDestination]).
 class ActiveTripWeatherCard extends StatelessWidget {
   const ActiveTripWeatherCard({
     super.key,
     required this.weather,
-    required this.destinationLabel,
+    required this.destinationTimezone,
   });
 
+  /// Stable finder target for widget tests.
+  static const ValueKey<String> heroWeatherKey = ValueKey<String>(
+    'activeTripHeroWeather',
+  );
+
   final WeatherSummary? weather;
-  final String destinationLabel;
+  final String? destinationTimezone;
 
   static const Color _sunAmber = Color(0xFFFFC107);
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final dest = destinationLabel.trim();
-    final locationLine = _locationSubtitle(
-      dest.isNotEmpty ? dest : l10n.tripCardNoDestination,
-    );
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: AppRadius.large24,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.space16,
-          vertical: AppSpacing.space12,
+    return ClipRRect(
+      borderRadius: AppRadius.large16,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.22),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
+          borderRadius: AppRadius.large16,
         ),
-        child: Row(
-          children: [
-            _WeatherGlyph(weather: weather),
-            const SizedBox(width: AppSpacing.space12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    weather != null
-                        ? '${weather!.avgTempC.round()}°C • ${weather!.description}'
-                        : l10n.activeTripWeatherUnavailable,
-                    style: TextStyle(
-                      fontFamily: FontFamily.dMSans,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.space4),
-                  Text(
-                    locationLine,
-                    style: TextStyle(
-                      fontFamily: FontFamily.dMSans,
-                      fontSize: 12,
-                      height: 1.25,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.space12,
+            vertical: AppSpacing.space8,
+          ),
+          child: Column(
+            key: heroWeatherKey,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _HeroWeatherGlyph(
+                weather: weather,
+                destinationTimezone: destinationTimezone,
+                sunAmber: _sunAmber,
               ),
-            ),
-            if (weather != null) ...[
-              const SizedBox(width: AppSpacing.space8),
+              const SizedBox(height: AppSpacing.space4),
               Text(
-                l10n.activeTripWeatherRainShort(weather!.rainProbability),
-                textAlign: TextAlign.end,
-                style: TextStyle(
+                weather != null
+                    ? _temperatureLine(weather!)
+                    : l10n.activeTripWeatherUnavailable,
+                style: const TextStyle(
                   fontFamily: FontFamily.dMSans,
-                  fontSize: 11.5,
-                  height: 1.25,
-                  color: theme.colorScheme.onSurfaceVariant,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                  height: 1.2,
                 ),
+                textAlign: TextAlign.center,
               ),
             ],
-          ],
+          ),
         ),
       ),
     );
   }
 
-  /// Prefer "City • Country" when [raw] contains a comma; keep explicit bullets.
-  static String _locationSubtitle(String raw) {
-    final t = raw.trim();
-    if (t.contains('•')) return t;
-    final comma = t.indexOf(',');
-    if (comma > 0 && comma < t.length - 1) {
-      final a = t.substring(0, comma).trim();
-      final b = t.substring(comma + 1).trim();
-      if (a.isNotEmpty && b.isNotEmpty) return '$a • $b';
-    }
-    return t;
+  static String _temperatureLine(WeatherSummary w) {
+    final min = (w.minTempC ?? w.avgTempC).round();
+    final max = (w.maxTempC ?? w.avgTempC).round();
+    return '$min°C – $max°C';
   }
 }
 
-class _WeatherGlyph extends StatelessWidget {
-  const _WeatherGlyph({required this.weather});
+class _HeroWeatherGlyph extends StatelessWidget {
+  const _HeroWeatherGlyph({
+    required this.weather,
+    required this.destinationTimezone,
+    required this.sunAmber,
+  });
 
   final WeatherSummary? weather;
+  final String? destinationTimezone;
+  final Color sunAmber;
+
+  /// Local "night" for icon choice (destination clock).
+  static bool _isLocalNight(DateTime local) =>
+      local.hour < 6 || local.hour >= 20;
+
+  static bool _wind(String d) =>
+      d.contains('wind') ||
+      d.contains('vent') ||
+      d.contains('gust') ||
+      d.contains('storm') ||
+      d.contains('tempête') ||
+      d.contains('tempete');
 
   @override
   Widget build(BuildContext context) {
     if (weather == null) {
       return Icon(
         Icons.wb_cloudy_outlined,
-        size: 36,
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
+        size: 22,
+        color: Colors.white.withValues(alpha: 0.85),
       );
     }
+
+    final local = nowInDestination(destinationTimezone);
+    if (_isLocalNight(local)) {
+      return Icon(
+        Icons.nightlight_round,
+        size: 22,
+        color: Colors.white.withValues(alpha: 0.9),
+      );
+    }
+
     final d = weather!.description.toLowerCase();
     if (d.contains('rain') ||
         d.contains('pluie') ||
@@ -130,49 +129,59 @@ class _WeatherGlyph extends StatelessWidget {
         d.contains('shower')) {
       return Icon(
         Icons.umbrella,
-        size: 34,
-        color: Theme.of(context).colorScheme.primary,
+        size: 22,
+        color: Colors.white.withValues(alpha: 0.95),
       );
     }
     if (d.contains('snow') || d.contains('neige')) {
-      return const Icon(Icons.ac_unit, size: 34, color: Color(0xFF64B5F6));
-    }
-    if (d.contains('sun') ||
-        d.contains('clear') ||
-        d.contains('dégagé') ||
-        d.contains('degage')) {
-      return const Icon(
-        Icons.wb_sunny,
-        size: 34,
-        color: ActiveTripWeatherCard._sunAmber,
+      return Icon(
+        Icons.ac_unit,
+        size: 22,
+        color: Colors.white.withValues(alpha: 0.95),
       );
     }
-    if (d.contains('cloud') || d.contains('nuage') || d.contains('overcast')) {
+    if (_wind(d)) {
+      return Icon(
+        Icons.air,
+        size: 22,
+        color: Colors.white.withValues(alpha: 0.9),
+      );
+    }
+    if (d.contains('clear') ||
+        d.contains('sun') ||
+        d.contains('dégagé') ||
+        d.contains('degage') ||
+        d.contains('pleasant') ||
+        d.contains('hot') ||
+        d.contains('warm')) {
+      return Icon(Icons.wb_sunny, size: 22, color: sunAmber);
+    }
+    if (d.contains('cloud') ||
+        d.contains('nuage') ||
+        d.contains('overcast') ||
+        d.contains('cool')) {
       return Icon(
         Icons.wb_cloudy,
-        size: 36,
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
+        size: 22,
+        color: Colors.white.withValues(alpha: 0.9),
       );
     }
     return SizedBox(
-      width: 40,
-      height: 36,
+      width: 28,
+      height: 22,
       child: Stack(
+        clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
           Icon(
             Icons.wb_cloudy_outlined,
-            size: 36,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            size: 22,
+            color: Colors.white.withValues(alpha: 0.85),
           ),
-          const Positioned(
-            top: 0,
-            right: 0,
-            child: Icon(
-              Icons.wb_sunny,
-              size: 18,
-              color: ActiveTripWeatherCard._sunAmber,
-            ),
+          Positioned(
+            top: -2,
+            right: -4,
+            child: Icon(Icons.wb_sunny, size: 14, color: sunAmber),
           ),
         ],
       ),

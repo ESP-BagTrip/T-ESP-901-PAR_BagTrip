@@ -72,7 +72,7 @@ void main() {
       await tester.pumpWidget(buildApp());
       await tester.pump(const Duration(seconds: 1));
 
-      expect(find.text('Tokyo'), findsNWidgets(2));
+      expect(find.text('Tokyo'), findsOneWidget);
     });
 
     testWidgets('hero shows day counter', (tester) async {
@@ -152,11 +152,13 @@ void main() {
       expect(find.text('Plan a trip'), findsNothing);
     });
 
-    testWidgets('weather card shows summary and is not tappable', (
+    testWidgets('hero weather pill shows min–max and is not tappable', (
       tester,
     ) async {
       final weather = const WeatherSummary(
         avgTempC: 8,
+        minTempC: 5,
+        maxTempC: 12,
         description: 'Cloudy',
         rainProbability: 25,
         source: 'test',
@@ -165,8 +167,7 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
 
       expect(find.byType(ActiveTripWeatherCard), findsOneWidget);
-      expect(find.textContaining('8°C • Cloudy'), findsOneWidget);
-      expect(find.textContaining('25% rain'), findsOneWidget);
+      expect(find.text('5°C – 12°C'), findsOneWidget);
       expect(
         find.descendant(
           of: find.byType(ActiveTripWeatherCard),

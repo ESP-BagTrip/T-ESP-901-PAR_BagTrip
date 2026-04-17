@@ -14,7 +14,6 @@ import 'package:bagtrip/home/helpers/today_activities.dart';
 import 'package:bagtrip/home/widgets/active_trip_hero.dart';
 import 'package:bagtrip/home/widgets/active_trip_nav_pill.dart';
 import 'package:bagtrip/home/widgets/active_trip_quick_actions_section.dart';
-import 'package:bagtrip/home/widgets/active_trip_weather_card.dart';
 import 'package:bagtrip/home/widgets/end_active_trip_sheet.dart';
 import 'package:bagtrip/home/widgets/now_indicator_row.dart';
 import 'package:bagtrip/home/widgets/quick_expense_sheet.dart';
@@ -182,6 +181,7 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
                   trip: trip,
                   currentDay: widget.state.currentDay,
                   totalDays: widget.state.totalDays,
+                  weather: widget.state.weatherData,
                 ),
               ),
             ),
@@ -193,19 +193,6 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
               child: Padding(
                 padding: hPadding.copyWith(top: AppSpacing.space16),
                 child: const ActiveTripNavPill(),
-              ),
-            ),
-          ),
-
-          SliverToBoxAdapter(
-            child: StaggeredFadeIn(
-              index: fi++,
-              child: Padding(
-                padding: hPadding.copyWith(top: AppSpacing.space16),
-                child: ActiveTripWeatherCard(
-                  weather: widget.state.weatherData,
-                  destinationLabel: trip.destinationName ?? trip.title ?? '',
-                ),
               ),
             ),
           ),

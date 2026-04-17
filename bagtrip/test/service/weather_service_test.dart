@@ -16,6 +16,8 @@ Response _response({required int statusCode, Object? data}) => Response(
 
 Map<String, dynamic> _weatherJson() => <String, dynamic>{
   'avg_temp_c': 21.5,
+  'min_temp_c': 18.0,
+  'max_temp_c': 24.0,
   'description': 'Sunny',
   'rain_probability': 10,
   'source': 'open-meteo',
@@ -41,6 +43,8 @@ void main() {
       expect(result, isA<Success>());
       final summary = (result as Success).data;
       expect(summary.avgTempC, 21.5);
+      expect(summary.minTempC, 18.0);
+      expect(summary.maxTempC, 24.0);
       expect(summary.description, 'Sunny');
       expect(summary.rainProbability, 10);
       expect(summary.source, 'open-meteo');
