@@ -1349,5 +1349,21 @@
   "originCityHint": "Where will you start your trip?",
   "notFoundTitle": "Page not found",
   "notFoundSubtitle": "The page you are looking for doesn't exist or has been moved.",
-  "notFoundCta": "Return home"
+  "notFoundCta": "Return home",
+  "subpageHeroBadgeViewer": "Read only",
+  "subpageHeroBadgeCompleted": "Completed",
+  "blankActivitiesTitle": "Your itinerary is empty",
+  "blankActivitiesSubtitle": "Plan what makes this trip worth remembering.",
+  "blankActivitiesPrimary": "Add your first activity",
+  "blankActivitiesSecondary": "Let AI plan a day",
+  "blankActivitiesNoDatesTitle": "Before we plan…",
+  "blankActivitiesNoDatesSubtitle": "Set your trip dates first so we know when we’re going.",
+  "blankActivitiesNoDatesPrimary": "Back to overview",
+  "activitiesHeroMeta": "{count, plural, =1{1 activity} other{{count} activities}} · {days, plural, =1{1 day} other{{days} days}}",
+  "@activitiesHeroMeta": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "days": {"type": "int"}
+    }
+  }
 }

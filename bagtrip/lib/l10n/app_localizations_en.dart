@@ -2675,4 +2675,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notFoundCta => 'Return home';
+
+  @override
+  String get subpageHeroBadgeViewer => 'Read only';
+
+  @override
+  String get subpageHeroBadgeCompleted => 'Completed';
+
+  @override
+  String get blankActivitiesTitle => 'Your itinerary is empty';
+
+  @override
+  String get blankActivitiesSubtitle =>
+      'Plan what makes this trip worth remembering.';
+
+  @override
+  String get blankActivitiesPrimary => 'Add your first activity';
+
+  @override
+  String get blankActivitiesSecondary => 'Let AI plan a day';
+
+  @override
+  String get blankActivitiesNoDatesTitle => 'Before we plan…';
+
+  @override
+  String get blankActivitiesNoDatesSubtitle =>
+      'Set your trip dates first so we know when we’re going.';
+
+  @override
+  String get blankActivitiesNoDatesPrimary => 'Back to overview';
+
+  @override
+  String activitiesHeroMeta(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count activities',
+      one: '1 activity',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return '$_temp0 · $_temp1';
+  }
 }
