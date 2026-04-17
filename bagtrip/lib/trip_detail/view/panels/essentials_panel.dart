@@ -2,6 +2,7 @@ import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/review/pack_item.dart';
+import 'package:bagtrip/design/widgets/review/progress_strip.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -55,7 +56,10 @@ class EssentialsPanel extends StatelessWidget {
         AppSpacing.space24,
       ),
       children: [
-        _ProgressStrip(packed: packed, total: items.length),
+        ProgressStrip(
+          label: l10n.baggageProgressLabel(packed, items.length).toUpperCase(),
+          progress: items.isEmpty ? 0 : packed / items.length,
+        ),
         const SizedBox(height: AppSpacing.space16),
         ...groups.entries.map(
           (section) => Padding(
@@ -165,59 +169,6 @@ class _PackRow extends StatelessWidget {
       checked: item.isPacked,
       onTap: onTap,
       onDelete: onDelete,
-    );
-  }
-}
-
-class _ProgressStrip extends StatelessWidget {
-  const _ProgressStrip({required this.packed, required this.total});
-
-  final int packed;
-  final int total;
-
-  @override
-  Widget build(BuildContext context) {
-    final progress = total == 0 ? 0.0 : (packed / total).clamp(0.0, 1.0);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              AppLocalizations.of(
-                context,
-              )!.baggageProgressLabel(packed, total).toUpperCase(),
-              style: const TextStyle(
-                fontFamily: FontFamily.dMSans,
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
-                color: ColorName.hint,
-              ),
-            ),
-            const Spacer(),
-            Text(
-              '${(progress * 100).round()}%',
-              style: const TextStyle(
-                fontFamily: FontFamily.dMSerifDisplay,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: ColorName.primaryDark,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.space8),
-        ClipRRect(
-          borderRadius: AppRadius.pill,
-          child: LinearProgressIndicator(
-            value: progress,
-            minHeight: 6,
-            backgroundColor: ColorName.primarySoftLight,
-            valueColor: const AlwaysStoppedAnimation(ColorName.secondary),
-          ),
-        ),
-      ],
     );
   }
 }
