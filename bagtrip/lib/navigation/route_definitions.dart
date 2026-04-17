@@ -27,11 +27,13 @@ import 'package:bagtrip/pages/profile_page.dart';
 import 'package:bagtrip/pages/splash_page.dart';
 import 'package:bagtrip/pages/subscription/subscription_cancel_page.dart';
 import 'package:bagtrip/pages/subscription/subscription_success_page.dart';
-import 'package:bagtrip/trip_detail/view/trip_detail_page.dart';
+import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
+import 'package:bagtrip/trip_detail/view/trip_detail_view.dart';
 import 'package:bagtrip/pages/trip_shares_page.dart';
 import 'package:bagtrip/plan_trip/models/location_result.dart';
 import 'package:bagtrip/plan_trip/view/plan_trip_flow_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 part 'route_definitions.g.dart';
@@ -88,6 +90,9 @@ class PersonalizationRoute extends GoRouteData with $PersonalizationRoute {
 
 // ---------------------------------------------------------------------------
 // Deep link — direct trip access
+//
+// Redirects `/trip/:tripId` to `/home/:tripId` so the deep link traverses the
+// `TripDetailShellRoute` that provisions `TripDetailBloc` for the sub-pages.
 // ---------------------------------------------------------------------------
 
 @TypedGoRoute<DeepLinkTripRoute>(path: '/trip/:tripId')
@@ -96,11 +101,8 @@ class DeepLinkTripRoute extends GoRouteData with $DeepLinkTripRoute {
   final String tripId;
 
   @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      buildSlideTransitionPage<void>(
-        state: state,
-        child: TripDetailPage(tripId: tripId),
-      );
+  String? redirect(BuildContext context, GoRouterState state) =>
+      TripHomeRoute(tripId: tripId).location;
 }
 
 // ---------------------------------------------------------------------------
@@ -113,18 +115,22 @@ class DeepLinkTripRoute extends GoRouteData with $DeepLinkTripRoute {
     TypedGoRoute<PlanTripRoute>(path: 'plan'),
     TypedGoRoute<TripFlightSearchRoute>(path: 'flight-search'),
     TypedGoRoute<TripDetailRoute>(path: 'trip/:tripId'),
-    TypedGoRoute<TripHomeRoute>(
-      path: ':tripId',
+    TypedShellRoute<TripDetailShellRoute>(
       routes: [
-        TypedGoRoute<AccommodationsRoute>(path: 'accommodations'),
-        TypedGoRoute<BaggageRoute>(path: 'baggage'),
-        TypedGoRoute<ActivitiesRoute>(path: 'activities'),
-        TypedGoRoute<BudgetRoute>(path: 'budget'),
-        TypedGoRoute<TransportsRoute>(path: 'transports'),
-        TypedGoRoute<SharesRoute>(path: 'shares'),
-        TypedGoRoute<FeedbackRoute>(path: 'feedback'),
-        TypedGoRoute<PostTripRoute>(path: 'post-trip'),
-        TypedGoRoute<MapRoute>(path: 'map'),
+        TypedGoRoute<TripHomeRoute>(
+          path: ':tripId',
+          routes: [
+            TypedGoRoute<AccommodationsRoute>(path: 'accommodations'),
+            TypedGoRoute<BaggageRoute>(path: 'baggage'),
+            TypedGoRoute<ActivitiesRoute>(path: 'activities'),
+            TypedGoRoute<BudgetRoute>(path: 'budget'),
+            TypedGoRoute<TransportsRoute>(path: 'transports'),
+            TypedGoRoute<SharesRoute>(path: 'shares'),
+            TypedGoRoute<FeedbackRoute>(path: 'feedback'),
+            TypedGoRoute<PostTripRoute>(path: 'post-trip'),
+            TypedGoRoute<MapRoute>(path: 'map'),
+          ],
+        ),
       ],
     ),
   ],
@@ -135,6 +141,28 @@ class HomeRoute extends GoRouteData with $HomeRoute {
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       const NoTransitionPage(child: HomePage());
+}
+
+/// Shell that provisions a single `TripDetailBloc` shared by `TripHomeRoute`
+/// and all its trip-scoped sub-routes (`activities`, `transports`,
+/// `accommodations`, `baggage`, `budget`, `shares`, `feedback`, `post-trip`,
+/// `map`). The `ValueKey(tripId)` forces a fresh bloc per trip so switching
+/// trip ids re-creates the provider rather than reusing stale state.
+class TripDetailShellRoute extends ShellRouteData {
+  const TripDetailShellRoute();
+
+  @override
+  Widget builder(BuildContext context, GoRouterState state, Widget navigator) {
+    final tripId = state.pathParameters['tripId'];
+    if (tripId == null || tripId.isEmpty) {
+      return navigator;
+    }
+    return BlocProvider<TripDetailBloc>(
+      key: ValueKey('trip-detail-bloc-$tripId'),
+      create: (_) => TripDetailBloc()..add(LoadTripDetail(tripId: tripId)),
+      child: navigator,
+    );
+  }
 }
 
 class PlanTripRoute extends GoRouteData with $PlanTripRoute {
@@ -163,16 +191,16 @@ class TripFlightSearchRoute extends GoRouteData with $TripFlightSearchRoute {
       );
 }
 
+/// Legacy path kept for backward compatibility. Redirects to `/home/:tripId`
+/// so the navigation traverses `TripDetailShellRoute` and gets a shared
+/// `TripDetailBloc`.
 class TripDetailRoute extends GoRouteData with $TripDetailRoute {
   const TripDetailRoute({required this.tripId});
   final String tripId;
 
   @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      buildHeroTransitionPage<void>(
-        state: state,
-        child: TripDetailPage(tripId: tripId),
-      );
+  String? redirect(BuildContext context, GoRouterState state) =>
+      TripHomeRoute(tripId: tripId).location;
 }
 
 class TripHomeRoute extends GoRouteData with $TripHomeRoute {
@@ -184,7 +212,7 @@ class TripHomeRoute extends GoRouteData with $TripHomeRoute {
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       buildSlideTransitionPage<void>(
         state: state,
-        child: TripDetailPage(tripId: tripId),
+        child: TripDetailView(tripId: tripId),
       );
 }
 
