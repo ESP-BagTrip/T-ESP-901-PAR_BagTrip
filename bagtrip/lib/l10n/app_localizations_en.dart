@@ -2892,4 +2892,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get budgetRecentExpenses => 'Recent';
+
+  @override
+  String get activityValidateAction => 'Validate';
+
+  @override
+  String get activitySuggestedBadge => 'Suggested';
 }

@@ -5234,6 +5234,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Récentes'**
   String get budgetRecentExpenses;
+
+  /// No description provided for @activityValidateAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valider'**
+  String get activityValidateAction;
+
+  /// No description provided for @activitySuggestedBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suggérée'**
+  String get activitySuggestedBadge;
 }
 
 class _AppLocalizationsDelegate
