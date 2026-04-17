@@ -1,6 +1,6 @@
 import 'package:bagtrip/components/elegant_empty_state.dart';
-import 'package:bagtrip/core/extensions/price_format_ext.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/review/budget_alert_banner.dart';
 import 'package:bagtrip/design/widgets/review/budget_stripe.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -48,7 +48,7 @@ class BudgetPanel extends StatelessWidget {
     }
 
     final entries = _breakdownEntries(summary, l10n);
-    final isOverBudget = (summary.percentConsumed ?? 0) > 100;
+    final hasAlert = summary.alertLevel != null;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -58,8 +58,8 @@ class BudgetPanel extends StatelessWidget {
         AppSpacing.space24,
       ),
       children: [
-        if (isOverBudget) _OverBudgetBanner(summary: summary),
-        if (isOverBudget) const SizedBox(height: AppSpacing.space12),
+        if (hasAlert) BudgetAlertBanner(summary: summary),
+        if (hasAlert) const SizedBox(height: AppSpacing.space12),
         BudgetStripe(
           total: summary.totalBudget,
           entries: entries,
@@ -129,46 +129,5 @@ class BudgetPanel extends StatelessWidget {
     if (lower.contains('transport')) return 'transport';
     if (lower.contains('activit')) return 'activities';
     return null;
-  }
-}
-
-class _OverBudgetBanner extends StatelessWidget {
-  const _OverBudgetBanner({required this.summary});
-
-  final BudgetSummary summary;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final delta = (summary.totalSpent - summary.totalBudget).clamp(0, 1e9);
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.space12),
-      decoration: BoxDecoration(
-        color: ColorName.warning.withValues(alpha: 0.12),
-        borderRadius: AppRadius.large16,
-        border: Border.all(color: ColorName.warning.withValues(alpha: 0.35)),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.warning_amber_rounded,
-            color: ColorName.warning,
-            size: 20,
-          ),
-          const SizedBox(width: AppSpacing.space8),
-          Expanded(
-            child: Text(
-              l10n.budgetOverBudgetBanner(delta.toDouble().formatPrice()),
-              style: const TextStyle(
-                fontFamily: FontFamily.dMSans,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: ColorName.primaryDark,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
