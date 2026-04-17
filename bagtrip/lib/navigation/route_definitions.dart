@@ -29,7 +29,6 @@ import 'package:bagtrip/pages/subscription/subscription_cancel_page.dart';
 import 'package:bagtrip/pages/subscription/subscription_success_page.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/view/trip_detail_view.dart';
-import 'package:bagtrip/pages/trip_shares_page.dart';
 import 'package:bagtrip/plan_trip/models/location_result.dart';
 import 'package:bagtrip/plan_trip/view/plan_trip_flow_page.dart';
 import 'package:flutter/material.dart';
@@ -125,7 +124,6 @@ class DeepLinkTripRoute extends GoRouteData with $DeepLinkTripRoute {
             TypedGoRoute<ActivitiesRoute>(path: 'activities'),
             TypedGoRoute<BudgetRoute>(path: 'budget'),
             TypedGoRoute<TransportsRoute>(path: 'transports'),
-            TypedGoRoute<SharesRoute>(path: 'shares'),
             TypedGoRoute<FeedbackRoute>(path: 'feedback'),
             TypedGoRoute<PostTripRoute>(path: 'post-trip'),
             TypedGoRoute<MapRoute>(path: 'map'),
@@ -355,20 +353,6 @@ class MapRoute extends GoRouteData with $MapRoute {
       buildSlideTransitionPage<void>(
         state: state,
         child: TripLocationsPage(tripId: tripId),
-      );
-}
-
-class SharesRoute extends GoRouteData with $SharesRoute {
-  const SharesRoute({required this.tripId, this.role = 'OWNER'});
-
-  final String tripId;
-  final String role;
-
-  @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      buildSlideTransitionPage<void>(
-        state: state,
-        child: TripSharesPage(tripId: tripId, role: role),
       );
 }
 

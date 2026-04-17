@@ -186,7 +186,7 @@ class NotificationCard extends StatelessWidget {
         TransportsRoute(tripId: tripId).go(context);
         break;
       case 'shares':
-        SharesRoute(tripId: tripId).go(context);
+        TripHomeRoute(tripId: tripId).go(context);
         break;
       case 'post-trip':
         PostTripRoute(tripId: tripId).go(context);

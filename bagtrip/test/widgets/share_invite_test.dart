@@ -1,16 +1,12 @@
 import 'package:bagtrip/components/snack_bar_scope.dart';
-import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/trips/bloc/trip_share_bloc.dart';
-import 'package:bagtrip/trips/view/trip_shares_view.dart';
 import 'package:bagtrip/trips/widgets/share_invite_sheet.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-
-import '../helpers/test_fixtures.dart';
 
 class MockTripShareBloc extends MockBloc<TripShareEvent, TripShareState>
     implements TripShareBloc {}
@@ -44,28 +40,11 @@ void main() {
     );
   }
 
-  /// Builds the full shares view for FAB/role/revoke tests.
-  Widget buildView({String role = 'OWNER', TripShareState? state}) {
-    when(() => mockBloc.state).thenReturn(state ?? TripShareLoaded(shares: []));
-    return MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      locale: const Locale('en'),
-      home: SnackBarScope(
-        child: BlocProvider<TripShareBloc>.value(
-          value: mockBloc,
-          child: TripSharesView(tripId: 'trip-1', role: role),
-        ),
-      ),
-    );
-  }
-
   group('ShareInviteSheet — email validation', () {
     testWidgets('shows "required" error for empty email', (tester) async {
       await tester.pumpWidget(buildSheet());
       await tester.pumpAndSettle();
 
-      // Tap send without entering email
       await tester.tap(find.text('Send invite'));
       await tester.pumpAndSettle();
 
@@ -106,115 +85,43 @@ void main() {
         ),
       ).called(1);
     });
-  });
 
-  group('ShareInviteSheet — error messages', () {
-    testWidgets('user not found shows specific message', (tester) async {
-      final errorState = TripShareError(
-        error: const NotFoundError('User not found'),
-      );
-      whenListen(
-        mockBloc,
-        Stream.fromIterable([errorState]),
-        initialState: TripShareLoaded(shares: []),
-      );
-      await tester.pumpWidget(buildView(state: errorState));
-      await tester.pump();
-      await tester.pump(const Duration(seconds: 1));
-
-      expect(
-        find.text('This person must create an account first'),
-        findsOneWidget,
-      );
-
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pump(const Duration(seconds: 1));
-    });
-
-    testWidgets('already shared shows specific message', (tester) async {
-      final errorState = TripShareError(
-        error: const ValidationError('Trip already shared with this user'),
-      );
-      whenListen(
-        mockBloc,
-        Stream.fromIterable([errorState]),
-        initialState: TripShareLoaded(shares: []),
-      );
-      await tester.pumpWidget(buildView(state: errorState));
-      await tester.pump();
-      await tester.pump(const Duration(seconds: 1));
-
-      expect(find.text('Already shared with this person'), findsOneWidget);
-
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pump(const Duration(seconds: 1));
-    });
-  });
-
-  group('Swipe to revoke', () {
-    testWidgets('dismissible exists for owner', (tester) async {
-      final shares = [makeTripShare()];
+    testWidgets('onSubmit callback receives email / role / message', (
+      tester,
+    ) async {
+      String? capturedEmail;
+      String? capturedRole;
+      String? capturedMessage;
       await tester.pumpWidget(
-        buildView(state: TripShareLoaded(shares: shares)),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byType(Dismissible), findsOneWidget);
-    });
-
-    testWidgets('remove button triggers confirmation dialog', (tester) async {
-      final shares = [makeTripShare()];
-      await tester.pumpWidget(
-        buildView(state: TripShareLoaded(shares: shares)),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byIcon(Icons.remove_circle_outline));
-      await tester.pumpAndSettle();
-
-      // Dialog title
-      expect(find.text('Remove access'), findsOneWidget);
-    });
-  });
-
-  group('Viewer role', () {
-    testWidgets('hides FAB when role is VIEWER', (tester) async {
-      await tester.pumpWidget(buildView(role: 'VIEWER'));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(FloatingActionButton), findsNothing);
-    });
-
-    testWidgets('hides remove button when role is VIEWER', (tester) async {
-      final shares = [makeTripShare()];
-      await tester.pumpWidget(
-        buildView(
-          role: 'VIEWER',
-          state: TripShareLoaded(shares: shares),
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          home: SnackBarScope(
+            child: Scaffold(
+              body: ShareInviteSheet(
+                tripId: 'trip-1',
+                onSubmit: ({required email, required role, message}) {
+                  capturedEmail = email;
+                  capturedRole = role;
+                  capturedMessage = message;
+                },
+              ),
+            ),
+          ),
         ),
       );
-      await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.remove_circle_outline), findsNothing);
-      expect(find.byType(Dismissible), findsNothing);
-    });
-  });
-
-  group('EDITOR role', () {
-    testWidgets('hides FAB and revoke when role is EDITOR', (tester) async {
-      final shares = [makeTripShare()];
-      await tester.pumpWidget(
-        buildView(
-          role: 'EDITOR',
-          state: TripShareLoaded(shares: shares),
-        ),
+      await tester.enterText(
+        find.byType(TextFormField).first,
+        'friend@example.com',
       );
+      await tester.tap(find.text('Send invite'));
       await tester.pumpAndSettle();
 
-      // EDITOR should not see FAB or revoke buttons (only OWNER can manage shares)
-      expect(find.byType(FloatingActionButton), findsNothing);
-      expect(find.byIcon(Icons.remove_circle_outline), findsNothing);
-      expect(find.byType(Dismissible), findsNothing);
+      expect(capturedEmail, 'friend@example.com');
+      expect(capturedRole, 'VIEWER');
+      expect(capturedMessage, isNull);
     });
   });
 }
