@@ -1,19 +1,22 @@
 import 'package:bagtrip/budget/bloc/budget_bloc.dart';
 import 'package:bagtrip/budget/widgets/budget_estimate_sheet.dart';
 import 'package:bagtrip/budget/widgets/budget_item_form.dart';
-import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/core/extensions/price_format_ext.dart';
 import 'package:bagtrip/design/app_haptics.dart';
+import 'package:bagtrip/design/subpage_state.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
+import 'package:bagtrip/design/widgets/review/animated_count.dart';
+import 'package:bagtrip/design/widgets/review/blank_canvas_hero.dart';
 import 'package:bagtrip/design/widgets/review/budget_alert_banner.dart';
 import 'package:bagtrip/design/widgets/review/budget_stripe.dart';
 import 'package:bagtrip/design/widgets/review/hero_nav_button.dart';
 import 'package:bagtrip/design/widgets/review/panel_footer_cta.dart';
 import 'package:bagtrip/design/widgets/review/pill_cta_button.dart';
-import 'package:bagtrip/design/widgets/review/sub_page_hero.dart';
+import 'package:bagtrip/design/widgets/review/state_responsive_hero.dart';
+import 'package:bagtrip/design/widgets/review/tap_scale_aware.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -63,103 +66,107 @@ class _BudgetViewState extends State<BudgetView> with TickerProviderStateMixin {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: ColorName.surfaceVariant,
-      body: Column(
-        children: [
-          SubPageHero(
-            title: l10n.budgetItems,
-            trailing: _canEdit
-                ? [
-                    HeroNavButton(
-                      icon: Icons.auto_awesome_rounded,
-                      tooltip: l10n.budgetEstimateButton,
-                      onPressed: () {
-                        AppHaptics.light();
-                        context.read<BudgetBloc>().add(
-                          EstimateBudget(tripId: widget.tripId),
-                        );
-                      },
-                    ),
-                  ]
-                : null,
-          ),
-          Expanded(
-            child: BlocConsumer<BudgetBloc, BudgetState>(
-              listener: (context, state) {
-                if (state is BudgetEstimated) {
-                  _showEstimateSheet(context);
-                } else if (state is BudgetQuotaExceeded) {
-                  PremiumPaywall.show(context);
-                } else if (state is BudgetLoaded) {
-                  context.read<TripDetailBloc>().add(RefreshTripDetail());
-                }
-              },
-              builder: (context, state) {
-                if (state is BudgetLoading || state is BudgetEstimating) {
-                  return const LoadingView();
-                }
-                if (state is BudgetError) {
-                  return ErrorView(
-                    message: toUserFriendlyMessage(state.error, l10n),
-                    onRetry: () => context.read<BudgetBloc>().add(
-                      LoadBudget(tripId: widget.tripId),
-                    ),
-                  );
-                }
-                if (state is BudgetLoaded || state is BudgetEstimated) {
-                  final items = state is BudgetLoaded
-                      ? state.items
-                      : (state as BudgetEstimated).items;
-                  final summary = state is BudgetLoaded
-                      ? state.summary
-                      : (state as BudgetEstimated).summary;
-                  return _buildContent(context, items, summary);
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-          ),
-        ],
+      body: BlocConsumer<BudgetBloc, BudgetState>(
+        listener: (context, state) {
+          if (state is BudgetEstimated) {
+            _showEstimateSheet(context);
+          } else if (state is BudgetQuotaExceeded) {
+            PremiumPaywall.show(context);
+          } else if (state is BudgetLoaded) {
+            context.read<TripDetailBloc>().add(RefreshTripDetail());
+          }
+        },
+        builder: (context, state) {
+          final isLoading = state is BudgetLoading || state is BudgetEstimating;
+          final hasError = state is BudgetError;
+          final items = switch (state) {
+            BudgetLoaded() => state.items,
+            BudgetEstimated() => state.items,
+            _ => const <BudgetItem>[],
+          };
+          final summary = switch (state) {
+            BudgetLoaded() => state.summary,
+            BudgetEstimated() => state.summary,
+            _ => null,
+          };
+          // Keep blank canvas only when no budget at all — empty list with a
+          // defined totalBudget still warrants the populated view.
+          final effectiveCount =
+              items.length +
+              ((summary != null && summary.totalBudget > 0) ? 1 : 0);
+          final screenState = resolveSubpageState(
+            isLoading: isLoading,
+            hasError: hasError,
+            count: effectiveCount,
+            canEdit: _canEdit,
+            isCompleted: widget.isCompleted,
+          );
+          switch (screenState) {
+            case SubpageScreenState.booting:
+              return const LoadingView();
+            case SubpageScreenState.error:
+              return ErrorView(
+                message: toUserFriendlyMessage(
+                  (state as BudgetError).error,
+                  l10n,
+                ),
+                onRetry: () => context.read<BudgetBloc>().add(
+                  LoadBudget(tripId: widget.tripId),
+                ),
+              );
+            case SubpageScreenState.blankCanvas:
+              return _buildBlankCanvas(context, l10n);
+            case SubpageScreenState.sparse:
+            case SubpageScreenState.dense:
+            case SubpageScreenState.viewer:
+            case SubpageScreenState.archive:
+              final density = densityOf(screenState)!;
+              return _buildPopulated(
+                context,
+                l10n,
+                items,
+                summary!,
+                screenState,
+                density,
+              );
+          }
+        },
       ),
-      bottomNavigationBar: _canEdit
-          ? SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.space16,
-                  AppSpacing.space8,
-                  AppSpacing.space16,
-                  AppSpacing.space16,
-                ),
-                child: PanelFooterCta(
-                  controller: _footerController,
-                  child: PillCtaButton(
-                    label: AppLocalizations.of(context)!.addExpense,
-                    leadingIcon: Icons.add_rounded,
-                    onTap: () => _showForm(context, widget.tripId),
-                  ),
-                ),
-              ),
-            )
-          : null,
     );
   }
 
-  Widget _buildContent(
+  Widget _buildBlankCanvas(BuildContext context, AppLocalizations l10n) {
+    return BlankCanvasHero(
+      icon: Icons.wallet_outlined,
+      title: l10n.blankBudgetTitle,
+      subtitle: l10n.blankBudgetSubtitle,
+      primaryLabel: l10n.blankBudgetPrimary,
+      primaryLeadingIcon: Icons.add_rounded,
+      onPrimary: () {
+        AppHaptics.medium();
+        _showForm(context, widget.tripId);
+      },
+      secondaryLabel: l10n.blankBudgetSecondary,
+      secondaryLeadingIcon: Icons.auto_awesome_rounded,
+      onSecondary: () {
+        AppHaptics.light();
+        context.read<BudgetBloc>().add(EstimateBudget(tripId: widget.tripId));
+      },
+      breathingIconBuilder: BlankCanvasBreathing.rotate(),
+    );
+  }
+
+  Widget _buildPopulated(
     BuildContext context,
+    AppLocalizations l10n,
     List<BudgetItem> items,
     BudgetSummary summary,
+    SubpageScreenState screenState,
+    HeroDensity density,
   ) {
-    final l10n = AppLocalizations.of(context)!;
-    if (items.isEmpty && summary.totalBudget <= 0) {
-      return Padding(
-        padding: const EdgeInsets.all(AppSpacing.space24),
-        child: ElegantEmptyState(
-          icon: Icons.wallet_outlined,
-          title: l10n.emptyBudgetTitle,
-          subtitle: _canEdit ? l10n.emptyBudgetSubtitle : null,
-        ),
-      );
-    }
-
+    final isViewer = screenState == SubpageScreenState.viewer;
+    final isArchive = screenState == SubpageScreenState.archive;
+    final interactive = !isViewer && !isArchive;
     final confirmedItems = items
         .where((i) => i.sourceType != null || !i.isPlanned)
         .toList();
@@ -167,45 +174,98 @@ class _BudgetViewState extends State<BudgetView> with TickerProviderStateMixin {
         .where((i) => i.sourceType == null && i.isPlanned)
         .toList();
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.space16,
-        AppSpacing.space16,
-        AppSpacing.space16,
-        AppSpacing.space32 + 72,
-      ),
+    return Column(
       children: [
-        if (summary.alertLevel != null) ...[
-          BudgetAlertBanner(summary: summary),
-          const SizedBox(height: AppSpacing.space12),
-        ],
-        BudgetStripe(
-          total: summary.totalBudget,
-          subtitle: l10n.reviewBudgetEstimationPrefix,
-          entries: _entries(summary, l10n),
+        StateResponsiveHero(
+          title: l10n.budgetItems,
+          density: density,
+          meta: AnimatedCount(
+            value: items.length,
+            formatter: l10n.budgetHeroMeta,
+          ),
+          badge: isViewer
+              ? HeroBadge(label: l10n.subpageHeroBadgeViewer)
+              : isArchive
+              ? HeroBadge(
+                  label: l10n.subpageHeroBadgeCompleted,
+                  tone: HeroBadgeTone.success,
+                )
+              : null,
+          trailing: interactive
+              ? [
+                  HeroNavButton(
+                    icon: Icons.auto_awesome_rounded,
+                    tooltip: l10n.budgetEstimateButton,
+                    onPressed: () {
+                      AppHaptics.light();
+                      context.read<BudgetBloc>().add(
+                        EstimateBudget(tripId: widget.tripId),
+                      );
+                    },
+                  ),
+                ]
+              : null,
         ),
-        const SizedBox(height: AppSpacing.space16),
-        if (confirmedItems.isNotEmpty) ...[
-          _SectionLabel(text: l10n.budgetConfirmed),
-          const SizedBox(height: AppSpacing.space8),
-          _ItemGroup(
-            items: confirmedItems,
-            canEdit: _canEdit,
-            tripId: widget.tripId,
-            onEdit: (item) => _showForm(context, widget.tripId, item: item),
+        Expanded(
+          child: ScrollReactiveCtaScaffold(
+            controller: _footerController,
+            body: ListView(
+              padding: EdgeInsets.only(
+                left: density == HeroDensity.sparse ? 24 : 12,
+                right: density == HeroDensity.sparse ? 24 : 12,
+                top: density == HeroDensity.sparse ? 24 : 12,
+                bottom:
+                    (density == HeroDensity.sparse ? 24 : 12) +
+                    (interactive ? 96 : 24),
+              ),
+              children: [
+                if (summary.alertLevel != null) ...[
+                  BudgetAlertBanner(summary: summary),
+                  const SizedBox(height: AppSpacing.space12),
+                ],
+                BudgetStripe(
+                  total: summary.totalBudget,
+                  subtitle: l10n.reviewBudgetEstimationPrefix,
+                  entries: _entries(summary, l10n),
+                ),
+                const SizedBox(height: AppSpacing.space16),
+                if (confirmedItems.isNotEmpty) ...[
+                  _SectionLabel(text: l10n.budgetConfirmed),
+                  const SizedBox(height: AppSpacing.space8),
+                  _ItemGroup(
+                    items: confirmedItems,
+                    canEdit: interactive,
+                    tripId: widget.tripId,
+                    onEdit: (item) =>
+                        _showForm(context, widget.tripId, item: item),
+                  ),
+                  const SizedBox(height: AppSpacing.space16),
+                ],
+                if (forecastedItems.isNotEmpty) ...[
+                  _SectionLabel(text: l10n.budgetForecasted),
+                  const SizedBox(height: AppSpacing.space8),
+                  _ItemGroup(
+                    items: forecastedItems,
+                    canEdit: interactive,
+                    tripId: widget.tripId,
+                    onEdit: (item) =>
+                        _showForm(context, widget.tripId, item: item),
+                  ),
+                ],
+              ],
+            ),
+            footer: interactive
+                ? PillCtaButton(
+                    label: l10n.addExpense,
+                    leadingIcon: Icons.add_rounded,
+                    onTap: () {
+                      AppHaptics.medium();
+                      _showForm(context, widget.tripId);
+                    },
+                  )
+                : null,
           ),
-          const SizedBox(height: AppSpacing.space16),
-        ],
-        if (forecastedItems.isNotEmpty) ...[
-          _SectionLabel(text: l10n.budgetForecasted),
-          const SizedBox(height: AppSpacing.space8),
-          _ItemGroup(
-            items: forecastedItems,
-            canEdit: _canEdit,
-            tripId: widget.tripId,
-            onEdit: (item) => _showForm(context, widget.tripId, item: item),
-          ),
-        ],
+        ),
       ],
     );
   }
@@ -357,65 +417,69 @@ class _BudgetItemRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: canEdit ? onEdit : null,
-      borderRadius: AppRadius.large16,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.space16,
-          vertical: AppSpacing.space12,
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.label,
-                    style: const TextStyle(
-                      fontFamily: FontFamily.dMSerifDisplay,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: ColorName.primaryDark,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.space4),
-                  Text(
-                    item.category.name.toUpperCase(),
-                    style: const TextStyle(
-                      fontFamily: FontFamily.dMSans,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.8,
-                      color: ColorName.hint,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Text(
-              item.amount.formatPrice(),
-              style: const TextStyle(
-                fontFamily: FontFamily.dMSerifDisplay,
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                color: ColorName.primaryDark,
-              ),
-            ),
-            if (canEdit)
-              IconButton(
-                onPressed: onDelete,
-                icon: const Icon(
-                  Icons.delete_outline_rounded,
-                  size: 18,
-                  color: ColorName.hint,
-                ),
-                visualDensity: VisualDensity.compact,
-              ),
-          ],
-        ),
+    final content = Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.space16,
+        vertical: AppSpacing.space12,
       ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.label,
+                  style: const TextStyle(
+                    fontFamily: FontFamily.dMSerifDisplay,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: ColorName.primaryDark,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.space4),
+                Text(
+                  item.category.name.toUpperCase(),
+                  style: const TextStyle(
+                    fontFamily: FontFamily.dMSans,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.8,
+                    color: ColorName.hint,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            item.amount.formatPrice(),
+            style: const TextStyle(
+              fontFamily: FontFamily.dMSerifDisplay,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: ColorName.primaryDark,
+            ),
+          ),
+          if (canEdit)
+            IconButton(
+              onPressed: onDelete,
+              icon: const Icon(
+                Icons.delete_outline_rounded,
+                size: 18,
+                color: ColorName.hint,
+              ),
+              visualDensity: VisualDensity.compact,
+            ),
+        ],
+      ),
+    );
+    if (!canEdit) return content;
+    return TapScaleAware(
+      onTap: () {
+        AppHaptics.light();
+        onEdit();
+      },
+      child: content,
     );
   }
 }
