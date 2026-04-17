@@ -2,21 +2,25 @@ import 'package:bagtrip/accommodations/bloc/accommodation_bloc.dart';
 import 'package:bagtrip/accommodations/widgets/add_accommodation_sheet.dart';
 import 'package:bagtrip/accommodations/widgets/hotel_search_sheet.dart';
 import 'package:bagtrip/accommodations/widgets/manual_accommodation_form.dart';
-import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/core/extensions/datetime_ext.dart';
 import 'package:bagtrip/core/extensions/price_format_ext.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
+import 'package:bagtrip/design/subpage_state.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
+import 'package:bagtrip/design/widgets/review/animated_count.dart';
+import 'package:bagtrip/design/widgets/review/blank_canvas_hero.dart';
+import 'package:bagtrip/design/widgets/review/density_aware_list_view.dart';
 import 'package:bagtrip/design/widgets/review/hero_nav_button.dart';
 import 'package:bagtrip/design/widgets/review/hotel_stats_grid.dart';
 import 'package:bagtrip/design/widgets/review/panel_footer_cta.dart';
 import 'package:bagtrip/design/widgets/review/pill_cta_button.dart';
 import 'package:bagtrip/design/widgets/review/sheets/ai_suggestions_sheet.dart';
-import 'package:bagtrip/design/widgets/review/sub_page_hero.dart';
+import 'package:bagtrip/design/widgets/review/state_responsive_hero.dart';
+import 'package:bagtrip/design/widgets/review/tap_scale_aware.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -94,113 +98,164 @@ class _AccommodationsViewState extends State<AccommodationsView>
       ],
       child: Scaffold(
         backgroundColor: ColorName.surfaceVariant,
-        body: Column(
-          children: [
-            SubPageHero(
-              title: l10n.accommodationsTitle,
-              trailing: _canEdit
-                  ? [
-                      HeroNavButton(
-                        icon: Icons.auto_awesome_rounded,
-                        tooltip: l10n.accommodationAiSuggestTitle,
-                        onPressed: () {
-                          AppHaptics.light();
-                          context.read<AccommodationBloc>().add(
-                            SuggestAccommodations(tripId: widget.tripId),
-                          );
-                        },
-                      ),
-                    ]
-                  : null,
-            ),
-            Expanded(
-              child: BlocBuilder<AccommodationBloc, AccommodationState>(
-                builder: (context, state) {
-                  if (state is AccommodationLoading ||
-                      state is AccommodationSuggestionsLoading) {
-                    return const LoadingView();
-                  }
-                  if (state is AccommodationError) {
-                    return ErrorView(
-                      message: toUserFriendlyMessage(state.error, l10n),
-                      onRetry: () => context.read<AccommodationBloc>().add(
-                        LoadAccommodations(tripId: widget.tripId),
-                      ),
-                    );
-                  }
-                  if (state is! AccommodationsLoaded) {
-                    return const SizedBox.shrink();
-                  }
-                  final accommodations = state.accommodations;
-                  if (accommodations.isEmpty) {
-                    return Padding(
-                      padding: const EdgeInsets.all(AppSpacing.space24),
-                      child: ElegantEmptyState(
-                        icon: Icons.hotel_outlined,
-                        title: l10n.emptyAccommodationsTitle,
-                        subtitle: _canEdit
-                            ? l10n.emptyAccommodationsSubtitle
-                            : null,
-                      ),
-                    );
-                  }
-                  final locale = Localizations.localeOf(context).languageCode;
-                  return ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.space16,
-                      AppSpacing.space16,
-                      AppSpacing.space16,
-                      AppSpacing.space32 + 72,
-                    ),
-                    itemCount: accommodations.length,
-                    separatorBuilder: (_, _) =>
-                        const SizedBox(height: AppSpacing.space16),
-                    itemBuilder: (context, index) {
-                      final acc = accommodations[index];
-                      return _AccommodationRow(
-                        accommodation: acc,
-                        locale: locale,
-                        l10n: l10n,
-                        canEdit: _canEdit,
-                        onEdit: () => _showEditSheet(context, acc),
-                        onDelete: () {
-                          AppHaptics.medium();
-                          context.read<AccommodationBloc>().add(
-                            DeleteAccommodation(
-                              tripId: widget.tripId,
-                              accommodationId: acc.id,
-                            ),
-                          );
-                        },
+        body: BlocBuilder<AccommodationBloc, AccommodationState>(
+          builder: (context, state) {
+            final isLoading =
+                state is AccommodationLoading ||
+                state is AccommodationSuggestionsLoading;
+            final hasError = state is AccommodationError;
+            final items = state is AccommodationsLoaded
+                ? state.accommodations
+                : const <Accommodation>[];
+            final screenState = resolveSubpageState(
+              isLoading: isLoading,
+              hasError: hasError,
+              count: items.length,
+              canEdit: _canEdit,
+              isCompleted: widget.isCompleted,
+            );
+            switch (screenState) {
+              case SubpageScreenState.booting:
+                return const LoadingView();
+              case SubpageScreenState.error:
+                return ErrorView(
+                  message: toUserFriendlyMessage(
+                    (state as AccommodationError).error,
+                    l10n,
+                  ),
+                  onRetry: () => context.read<AccommodationBloc>().add(
+                    LoadAccommodations(tripId: widget.tripId),
+                  ),
+                );
+              case SubpageScreenState.blankCanvas:
+                return _buildBlankCanvas(context, l10n);
+              case SubpageScreenState.sparse:
+              case SubpageScreenState.dense:
+              case SubpageScreenState.viewer:
+              case SubpageScreenState.archive:
+                final density = densityOf(screenState)!;
+                return _buildPopulated(
+                  context,
+                  l10n,
+                  items,
+                  screenState,
+                  density,
+                );
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBlankCanvas(BuildContext context, AppLocalizations l10n) {
+    return BlankCanvasHero(
+      icon: Icons.hotel_outlined,
+      title: l10n.blankAccommodationsTitle,
+      subtitle: l10n.blankAccommodationsSubtitle,
+      primaryLabel: l10n.blankAccommodationsPrimary,
+      primaryLeadingIcon: Icons.add_rounded,
+      onPrimary: () {
+        AppHaptics.medium();
+        _showAddSheet(context);
+      },
+      secondaryLabel: l10n.blankAccommodationsSecondary,
+      secondaryLeadingIcon: Icons.auto_awesome_rounded,
+      onSecondary: () {
+        AppHaptics.light();
+        context.read<AccommodationBloc>().add(
+          SuggestAccommodations(tripId: widget.tripId),
+        );
+      },
+      breathingIconBuilder: BlankCanvasBreathing.softShadow(),
+    );
+  }
+
+  Widget _buildPopulated(
+    BuildContext context,
+    AppLocalizations l10n,
+    List<Accommodation> accommodations,
+    SubpageScreenState screenState,
+    HeroDensity density,
+  ) {
+    final isViewer = screenState == SubpageScreenState.viewer;
+    final isArchive = screenState == SubpageScreenState.archive;
+    final interactive = !isViewer && !isArchive;
+    final locale = Localizations.localeOf(context).languageCode;
+
+    final totalNights = accommodations.fold<int>(0, (sum, a) {
+      if (a.checkIn == null || a.checkOut == null) return sum;
+      return sum + a.checkIn!.nightsUntil(a.checkOut!).clamp(0, 365);
+    });
+
+    return Column(
+      children: [
+        StateResponsiveHero(
+          title: l10n.accommodationsTitle,
+          density: density,
+          meta: AnimatedCount(
+            value: accommodations.length,
+            formatter: (n) => l10n.accommodationsHeroMeta(n, totalNights),
+          ),
+          badge: isViewer
+              ? HeroBadge(label: l10n.subpageHeroBadgeViewer)
+              : isArchive
+              ? HeroBadge(
+                  label: l10n.subpageHeroBadgeCompleted,
+                  tone: HeroBadgeTone.success,
+                )
+              : null,
+          trailing: interactive
+              ? [
+                  HeroNavButton(
+                    icon: Icons.auto_awesome_rounded,
+                    tooltip: l10n.accommodationAiSuggestTitle,
+                    onPressed: () {
+                      AppHaptics.light();
+                      context.read<AccommodationBloc>().add(
+                        SuggestAccommodations(tripId: widget.tripId),
                       );
                     },
+                  ),
+                ]
+              : null,
+        ),
+        Expanded(
+          child: ScrollReactiveCtaScaffold(
+            controller: _footerController,
+            body: DensityAwareListView<Accommodation>(
+              density: density,
+              items: accommodations,
+              itemBuilder: (context, acc, _) => _AccommodationRow(
+                accommodation: acc,
+                locale: locale,
+                l10n: l10n,
+                canEdit: interactive,
+                onEdit: () => _showEditSheet(context, acc),
+                onDelete: () {
+                  AppHaptics.medium();
+                  context.read<AccommodationBloc>().add(
+                    DeleteAccommodation(
+                      tripId: widget.tripId,
+                      accommodationId: acc.id,
+                    ),
                   );
                 },
               ),
             ),
-          ],
+            footer: interactive
+                ? PillCtaButton(
+                    label: l10n.accommodationAddTitle,
+                    leadingIcon: Icons.add_rounded,
+                    onTap: () {
+                      AppHaptics.medium();
+                      _showAddSheet(context);
+                    },
+                  )
+                : null,
+          ),
         ),
-        bottomNavigationBar: _canEdit
-            ? SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.space16,
-                    AppSpacing.space8,
-                    AppSpacing.space16,
-                    AppSpacing.space16,
-                  ),
-                  child: PanelFooterCta(
-                    controller: _footerController,
-                    child: PillCtaButton(
-                      label: l10n.accommodationAddTitle,
-                      leadingIcon: Icons.add_rounded,
-                      onTap: () => _showAddSheet(context),
-                    ),
-                  ),
-                ),
-              )
-            : null,
-      ),
+      ],
     );
   }
 
@@ -325,9 +380,15 @@ class _AccommodationRow extends StatelessWidget {
       accommodation: accommodation,
       l10n: l10n,
       locale: locale,
-      onTap: canEdit ? onEdit : null,
     );
     if (!canEdit) return card;
+    final tappable = TapScaleAware(
+      onTap: () {
+        AppHaptics.light();
+        onEdit();
+      },
+      child: card,
+    );
     return Dismissible(
       key: ValueKey('accommodation-${accommodation.id}'),
       direction: DismissDirection.endToStart,
@@ -341,7 +402,7 @@ class _AccommodationRow extends StatelessWidget {
         child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
       ),
       onDismissed: (_) => onDelete(),
-      child: card,
+      child: tappable,
     );
   }
 }
@@ -351,13 +412,11 @@ class _HotelCard extends StatelessWidget {
     required this.accommodation,
     required this.l10n,
     required this.locale,
-    required this.onTap,
   });
 
   final Accommodation accommodation;
   final AppLocalizations l10n;
   final String locale;
-  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -369,7 +428,7 @@ class _HotelCard extends StatelessWidget {
     final perNight = accommodation.pricePerNight;
     final fmt = DateFormat('d MMM', locale);
 
-    final card = Container(
+    return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: AppRadius.large16,
@@ -443,16 +502,6 @@ class _HotelCard extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-
-    if (onTap == null) return card;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: AppRadius.large16,
-        onTap: onTap,
-        child: card,
       ),
     );
   }

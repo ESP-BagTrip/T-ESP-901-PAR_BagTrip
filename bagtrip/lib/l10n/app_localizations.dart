@@ -4994,6 +4994,60 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{count, plural, =1{1 activité} other{{count} activités}} · {days, plural, =1{1 jour} other{{days} jours}}'**
   String activitiesHeroMeta(int count, int days);
+
+  /// No description provided for @blankTransportsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'À vous les airs.'**
+  String get blankTransportsTitle;
+
+  /// No description provided for @blankTransportsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aller, retour, vols internes — on garde tout sous la main.'**
+  String get blankTransportsSubtitle;
+
+  /// No description provided for @blankTransportsPrimary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter le premier vol'**
+  String get blankTransportsPrimary;
+
+  /// No description provided for @transportsHeroMeta.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 vol} other{{count} vols}}'**
+  String transportsHeroMeta(int count);
+
+  /// No description provided for @blankAccommodationsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Où poser vos valises ?'**
+  String get blankAccommodationsTitle;
+
+  /// No description provided for @blankAccommodationsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hôtel, Airbnb, canapé d’ami — note-le ici pour les rappels de check-in.'**
+  String get blankAccommodationsSubtitle;
+
+  /// No description provided for @blankAccommodationsPrimary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un hébergement'**
+  String get blankAccommodationsPrimary;
+
+  /// No description provided for @blankAccommodationsSecondary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suggestions IA'**
+  String get blankAccommodationsSecondary;
+
+  /// No description provided for @accommodationsHeroMeta.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 hébergement} other{{count} hébergements}} · {nights, plural, =1{1 nuit} other{{nights} nuits}}'**
+  String accommodationsHeroMeta(int count, int nights);
 }
 
 class _AppLocalizationsDelegate

@@ -1365,5 +1365,25 @@
       "count": {"type": "int"},
       "days": {"type": "int"}
     }
+  },
+  "blankTransportsTitle": "À vous les airs.",
+  "blankTransportsSubtitle": "Aller, retour, vols internes — on garde tout sous la main.",
+  "blankTransportsPrimary": "Ajouter le premier vol",
+  "transportsHeroMeta": "{count, plural, =1{1 vol} other{{count} vols}}",
+  "@transportsHeroMeta": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "blankAccommodationsTitle": "Où poser vos valises ?",
+  "blankAccommodationsSubtitle": "Hôtel, Airbnb, canapé d’ami — note-le ici pour les rappels de check-in.",
+  "blankAccommodationsPrimary": "Ajouter un hébergement",
+  "blankAccommodationsSecondary": "Suggestions IA",
+  "accommodationsHeroMeta": "{count, plural, =1{1 hébergement} other{{count} hébergements}} · {nights, plural, =1{1 nuit} other{{nights} nuits}}",
+  "@accommodationsHeroMeta": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "nights": {"type": "int"}
+    }
   }
 }

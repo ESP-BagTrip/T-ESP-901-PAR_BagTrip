@@ -1,13 +1,16 @@
 import 'package:bagtrip/components/app_snackbar.dart';
-import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/design/app_haptics.dart';
+import 'package:bagtrip/design/subpage_state.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/review/animated_count.dart';
+import 'package:bagtrip/design/widgets/review/blank_canvas_hero.dart';
 import 'package:bagtrip/design/widgets/review/boarding_pass_card.dart';
 import 'package:bagtrip/design/widgets/review/panel_footer_cta.dart';
 import 'package:bagtrip/design/widgets/review/pill_cta_button.dart';
-import 'package:bagtrip/design/widgets/review/sub_page_hero.dart';
+import 'package:bagtrip/design/widgets/review/state_responsive_hero.dart';
+import 'package:bagtrip/design/widgets/review/tap_scale_aware.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -61,109 +64,180 @@ class _TransportsViewState extends State<TransportsView>
 
     return Scaffold(
       backgroundColor: ColorName.surfaceVariant,
-      body: Column(
-        children: [
-          SubPageHero(title: l10n.transportsTitle),
-          Expanded(
-            child: BlocConsumer<TransportBloc, TransportState>(
-              listener: (context, state) {
-                if (state is TransportError) {
-                  AppSnackBar.showError(
-                    context,
-                    message: toUserFriendlyMessage(state.error, l10n),
-                  );
-                  context.read<TransportBloc>().add(
-                    LoadTransports(tripId: widget.tripId),
-                  );
-                } else if (state is TransportsLoaded) {
-                  context.read<TripDetailBloc>().add(RefreshTripDetail());
-                }
-              },
-              builder: (context, state) {
-                if (state is TransportLoading) return const LoadingView();
-                if (state is TransportError) {
-                  return ErrorView(
-                    message: toUserFriendlyMessage(state.error, l10n),
-                    onRetry: () => context.read<TransportBloc>().add(
-                      LoadTransports(tripId: widget.tripId),
-                    ),
-                  );
-                }
-                if (state is! TransportsLoaded) return const SizedBox.shrink();
-                if (state.transports.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.all(AppSpacing.space24),
-                    child: ElegantEmptyState(
-                      icon: Icons.flight_takeoff_rounded,
-                      title: l10n.emptyTransportsTitle,
-                      subtitle: _canEdit ? l10n.emptyTransportsSubtitle : null,
-                    ),
-                  );
-                }
+      body: BlocConsumer<TransportBloc, TransportState>(
+        listener: (context, state) {
+          if (state is TransportError) {
+            AppSnackBar.showError(
+              context,
+              message: toUserFriendlyMessage(state.error, l10n),
+            );
+          } else if (state is TransportsLoaded) {
+            context.read<TripDetailBloc>().add(RefreshTripDetail());
+          }
+        },
+        builder: (context, state) {
+          final isLoading = state is TransportLoading;
+          final hasError = state is TransportError;
+          final flights = state is TransportsLoaded
+              ? state.transports
+              : const <ManualFlight>[];
+          final screenState = resolveSubpageState(
+            isLoading: isLoading,
+            hasError: hasError,
+            count: flights.length,
+            canEdit: _canEdit,
+            isCompleted: widget.isCompleted,
+          );
 
-                final locale = Localizations.localeOf(context).languageCode;
-                return ListView(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.space16,
-                    AppSpacing.space16,
-                    AppSpacing.space16,
-                    AppSpacing.space32 + 72,
-                  ),
-                  children: [
-                    if (state.mainFlights.isNotEmpty) ...[
-                      _SectionLabel(text: l10n.mainFlightsSection),
-                      const SizedBox(height: AppSpacing.space12),
-                      ...state.mainFlights.map(
-                        (f) => _FlightRow(
-                          flight: f,
-                          canEdit: _canEdit,
-                          locale: locale,
-                          onEdit: () => _showEditSheet(context, f),
-                          onDelete: () => _deleteFlight(context, f.id),
-                        ),
-                      ),
-                    ],
-                    if (state.internalFlights.isNotEmpty) ...[
-                      const SizedBox(height: AppSpacing.space16),
-                      _SectionLabel(text: l10n.internalFlightsSection),
-                      const SizedBox(height: AppSpacing.space12),
-                      ...state.internalFlights.map(
-                        (f) => _FlightRow(
-                          flight: f,
-                          canEdit: _canEdit,
-                          locale: locale,
-                          onEdit: () => _showEditSheet(context, f),
-                          onDelete: () => _deleteFlight(context, f.id),
-                        ),
-                      ),
-                    ],
-                  ],
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: _canEdit
-          ? SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.space16,
-                  AppSpacing.space8,
-                  AppSpacing.space16,
-                  AppSpacing.space16,
+          switch (screenState) {
+            case SubpageScreenState.booting:
+              return const LoadingView();
+            case SubpageScreenState.error:
+              return ErrorView(
+                message: toUserFriendlyMessage(
+                  (state as TransportError).error,
+                  l10n,
                 ),
-                child: PanelFooterCta(
-                  controller: _footerController,
-                  child: PillCtaButton(
+                onRetry: () => context.read<TransportBloc>().add(
+                  LoadTransports(tripId: widget.tripId),
+                ),
+              );
+            case SubpageScreenState.blankCanvas:
+              return _buildBlankCanvas(context, l10n);
+            case SubpageScreenState.sparse:
+            case SubpageScreenState.dense:
+            case SubpageScreenState.viewer:
+            case SubpageScreenState.archive:
+              final density = densityOf(screenState)!;
+              return _buildPopulated(
+                context,
+                l10n,
+                state as TransportsLoaded,
+                screenState,
+                density,
+              );
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildBlankCanvas(BuildContext context, AppLocalizations l10n) {
+    return BlankCanvasHero(
+      icon: Icons.flight_takeoff_rounded,
+      title: l10n.blankTransportsTitle,
+      subtitle: l10n.blankTransportsSubtitle,
+      primaryLabel: l10n.blankTransportsPrimary,
+      primaryLeadingIcon: Icons.add_rounded,
+      onPrimary: () {
+        AppHaptics.medium();
+        _showAddSheet(context);
+      },
+      breathingIconBuilder: BlankCanvasBreathing.tilt(),
+    );
+  }
+
+  Widget _buildPopulated(
+    BuildContext context,
+    AppLocalizations l10n,
+    TransportsLoaded state,
+    SubpageScreenState screenState,
+    HeroDensity density,
+  ) {
+    final isViewer = screenState == SubpageScreenState.viewer;
+    final isArchive = screenState == SubpageScreenState.archive;
+    final interactive = !isViewer && !isArchive;
+    final locale = Localizations.localeOf(context).languageCode;
+
+    final children = <Widget>[];
+    if (state.mainFlights.isNotEmpty) {
+      children.add(_SectionLabel(text: l10n.mainFlightsSection));
+      for (final f in state.mainFlights) {
+        children.add(
+          _FlightRow(
+            flight: f,
+            canEdit: interactive,
+            locale: locale,
+            onEdit: () => _showEditSheet(context, f),
+            onDelete: () => _deleteFlight(context, f.id),
+          ),
+        );
+      }
+    }
+    if (state.internalFlights.isNotEmpty) {
+      if (children.isNotEmpty) {
+        children.add(const SizedBox(height: AppSpacing.space16));
+      }
+      children.add(_SectionLabel(text: l10n.internalFlightsSection));
+      for (final f in state.internalFlights) {
+        children.add(
+          _FlightRow(
+            flight: f,
+            canEdit: interactive,
+            locale: locale,
+            onEdit: () => _showEditSheet(context, f),
+            onDelete: () => _deleteFlight(context, f.id),
+          ),
+        );
+      }
+    }
+
+    final body = ListView(
+      padding: EdgeInsets.only(
+        left: density == HeroDensity.sparse ? 24 : 12,
+        right: density == HeroDensity.sparse ? 24 : 12,
+        top: density == HeroDensity.sparse ? 24 : 12,
+        bottom:
+            (density == HeroDensity.sparse ? 24 : 12) + (interactive ? 96 : 24),
+      ),
+      children: [
+        for (int i = 0; i < children.length; i++) ...[
+          children[i],
+          if (i != children.length - 1)
+            SizedBox(
+              height: density == HeroDensity.sparse
+                  ? AppSpacing.space16
+                  : AppSpacing.space8,
+            ),
+        ],
+      ],
+    );
+
+    return Column(
+      children: [
+        StateResponsiveHero(
+          title: l10n.transportsTitle,
+          density: density,
+          meta: AnimatedCount(
+            value: state.transports.length,
+            formatter: l10n.transportsHeroMeta,
+          ),
+          badge: isViewer
+              ? HeroBadge(label: l10n.subpageHeroBadgeViewer)
+              : isArchive
+              ? HeroBadge(
+                  label: l10n.subpageHeroBadgeCompleted,
+                  tone: HeroBadgeTone.success,
+                )
+              : null,
+        ),
+        Expanded(
+          child: ScrollReactiveCtaScaffold(
+            controller: _footerController,
+            body: body,
+            footer: interactive
+                ? PillCtaButton(
                     label: l10n.addFlight,
                     leadingIcon: Icons.add_rounded,
-                    onTap: () => _showAddSheet(context),
-                  ),
-                ),
-              ),
-            )
-          : null,
+                    onTap: () {
+                      AppHaptics.medium();
+                      _showAddSheet(context);
+                    },
+                  )
+                : null,
+          ),
+        ),
+      ],
     );
   }
 
@@ -207,14 +281,17 @@ class _SectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text.toUpperCase(),
-      style: const TextStyle(
-        fontFamily: FontFamily.dMSans,
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 1.2,
-        color: ColorName.hint,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.space12),
+      child: Text(
+        text.toUpperCase(),
+        style: const TextStyle(
+          fontFamily: FontFamily.dMSans,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1.2,
+          color: ColorName.hint,
+        ),
       ),
     );
   }
@@ -238,15 +315,15 @@ class _FlightRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final card = Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.space12),
-      child: BoardingPassCard(
-        title: _title(l10n),
-        flight: _toModel(l10n),
-        onTap: canEdit ? onEdit : null,
-      ),
-    );
+    final card = BoardingPassCard(title: _title(l10n), flight: _toModel());
     if (!canEdit) return card;
+    final tappable = TapScaleAware(
+      onTap: () {
+        AppHaptics.light();
+        onEdit();
+      },
+      child: card,
+    );
     return Dismissible(
       key: ValueKey('transport-${flight.id}'),
       direction: DismissDirection.endToStart,
@@ -257,11 +334,10 @@ class _FlightRow extends StatelessWidget {
           color: ColorName.error.withValues(alpha: 0.9),
           borderRadius: AppRadius.large16,
         ),
-        margin: const EdgeInsets.only(bottom: AppSpacing.space12),
         child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
       ),
       onDismissed: (_) => onDelete(),
-      child: card,
+      child: tappable,
     );
   }
 
@@ -273,7 +349,7 @@ class _FlightRow extends StatelessWidget {
     return l10n.reviewFlightOutbound;
   }
 
-  BoardingPassModel _toModel(AppLocalizations l10n) {
+  BoardingPassModel _toModel() {
     final origin = flight.departureAirport?.isNotEmpty == true
         ? flight.departureAirport!
         : '---';
