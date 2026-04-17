@@ -74,11 +74,15 @@ class _BudgetItemFormState extends State<BudgetItemForm> {
     final l10n = AppLocalizations.of(context)!;
     final bottomInsets = MediaQuery.of(context).viewInsets.bottom;
 
-    return Padding(
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       padding: EdgeInsets.only(
         left: AppSpacing.space24,
         right: AppSpacing.space24,
-        top: AppSpacing.space16,
+        top: AppSpacing.space12,
         bottom: bottomInsets + AppSpacing.space16,
       ),
       child: Form(
@@ -88,6 +92,17 @@ class _BudgetItemFormState extends State<BudgetItemForm> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.space16),
               // Title
               Text(
                 widget.item != null ? l10n.editExpense : l10n.addExpense,
