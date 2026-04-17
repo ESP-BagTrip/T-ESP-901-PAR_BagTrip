@@ -245,6 +245,7 @@ class _LoadedTripViewState extends State<_LoadedTripView>
                         BudgetPanel(
                           tripId: widget.tripId,
                           budgetSummary: state.budgetSummary,
+                          budgetItems: state.budgetItems,
                           totalDays: state.totalDays,
                           canEdit: _canEdit,
                           isCompleted: state.isCompleted,

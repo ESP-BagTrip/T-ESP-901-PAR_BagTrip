@@ -1431,5 +1431,6 @@
   "panelOpenFullFlights": "See all flights",
   "panelOpenFullAccommodations": "See all stays",
   "panelOpenFullShares": "Manage access",
-  "baggageAllPackedMessage": "All packed — ready to roll."
+  "baggageAllPackedMessage": "All packed — ready to roll.",
+  "budgetRecentExpenses": "Recent"
 }

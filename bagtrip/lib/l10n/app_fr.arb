@@ -1431,5 +1431,6 @@
   "panelOpenFullFlights": "Voir tous les vols",
   "panelOpenFullAccommodations": "Voir tous les hébergements",
   "panelOpenFullShares": "Gérer les accès",
-  "baggageAllPackedMessage": "Tout est prêt — bon voyage."
+  "baggageAllPackedMessage": "Tout est prêt — bon voyage.",
+  "budgetRecentExpenses": "Récentes"
 }
