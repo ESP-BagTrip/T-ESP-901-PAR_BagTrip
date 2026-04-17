@@ -2841,4 +2841,52 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get panelQuickAddItem => 'Add item';
+
+  @override
+  String get panelQuickAddExpense => 'Add expense';
+
+  @override
+  String get panelQuickAddActivity => 'Add activity';
+
+  @override
+  String get panelQuickAddFlight => 'Add flight';
+
+  @override
+  String get panelQuickAddStay => 'Add stay';
+
+  @override
+  String get panelInviteCollaborator => 'Invite';
+
+  @override
+  String get panelActionEdit => 'Edit';
+
+  @override
+  String get panelActionDelete => 'Delete';
+
+  @override
+  String get panelActionDuplicate => 'Duplicate';
+
+  @override
+  String get panelOpenFullBaggage => 'See full checklist';
+
+  @override
+  String get panelOpenFullBudget => 'See full breakdown';
+
+  @override
+  String get panelOpenFullActivities => 'See full itinerary';
+
+  @override
+  String get panelOpenFullFlights => 'See all flights';
+
+  @override
+  String get panelOpenFullAccommodations => 'See all stays';
+
+  @override
+  String get panelOpenFullShares => 'Manage access';
+
+  @override
+  String get baggageAllPackedMessage => 'All packed — ready to roll.';
 }

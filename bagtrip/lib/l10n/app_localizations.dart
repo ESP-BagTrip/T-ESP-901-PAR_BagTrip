@@ -5132,6 +5132,102 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{count, plural, =1{1 invité} other{{count} invités}}'**
   String sharesHeroMeta(int count);
+
+  /// No description provided for @panelQuickAddItem.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un objet'**
+  String get panelQuickAddItem;
+
+  /// No description provided for @panelQuickAddExpense.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une dépense'**
+  String get panelQuickAddExpense;
+
+  /// No description provided for @panelQuickAddActivity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une activité'**
+  String get panelQuickAddActivity;
+
+  /// No description provided for @panelQuickAddFlight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un vol'**
+  String get panelQuickAddFlight;
+
+  /// No description provided for @panelQuickAddStay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un hébergement'**
+  String get panelQuickAddStay;
+
+  /// No description provided for @panelInviteCollaborator.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inviter'**
+  String get panelInviteCollaborator;
+
+  /// No description provided for @panelActionEdit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get panelActionEdit;
+
+  /// No description provided for @panelActionDelete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer'**
+  String get panelActionDelete;
+
+  /// No description provided for @panelActionDuplicate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dupliquer'**
+  String get panelActionDuplicate;
+
+  /// No description provided for @panelOpenFullBaggage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir la checklist complète'**
+  String get panelOpenFullBaggage;
+
+  /// No description provided for @panelOpenFullBudget.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir le détail complet'**
+  String get panelOpenFullBudget;
+
+  /// No description provided for @panelOpenFullActivities.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir l’itinéraire complet'**
+  String get panelOpenFullActivities;
+
+  /// No description provided for @panelOpenFullFlights.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir tous les vols'**
+  String get panelOpenFullFlights;
+
+  /// No description provided for @panelOpenFullAccommodations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir tous les hébergements'**
+  String get panelOpenFullAccommodations;
+
+  /// No description provided for @panelOpenFullShares.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gérer les accès'**
+  String get panelOpenFullShares;
+
+  /// No description provided for @baggageAllPackedMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout est prêt — bon voyage.'**
+  String get baggageAllPackedMessage;
 }
 
 class _AppLocalizationsDelegate

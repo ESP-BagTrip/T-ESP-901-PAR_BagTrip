@@ -21,7 +21,19 @@ class BaggageEditForm extends StatefulWidget {
   final String tripId;
   final BaggageItem item;
 
-  const BaggageEditForm({super.key, required this.tripId, required this.item});
+  /// Optional submission hook. When provided, the form calls it with the
+  /// `{name, quantity, category}` payload and the caller is responsible
+  /// for dispatching (e.g. to `TripDetailBloc` from a panel). When `null`,
+  /// falls back to the legacy behaviour: dispatches [UpdateBaggageItem] on
+  /// the ambient [BaggageBloc].
+  final void Function(Map<String, dynamic> data)? onSubmit;
+
+  const BaggageEditForm({
+    super.key,
+    required this.tripId,
+    required this.item,
+    this.onSubmit,
+  });
 
   @override
   State<BaggageEditForm> createState() => _BaggageEditFormState();
@@ -49,15 +61,24 @@ class _BaggageEditFormState extends State<BaggageEditForm> {
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
-    context.read<BaggageBloc>().add(
-      UpdateBaggageItem(
-        tripId: widget.tripId,
-        itemId: widget.item.id,
-        name: _nameController.text.trim(),
-        quantity: _quantity,
-        category: _category,
-      ),
-    );
+    final data = <String, dynamic>{
+      'name': _nameController.text.trim(),
+      'quantity': _quantity,
+      'category': _category,
+    };
+    if (widget.onSubmit != null) {
+      widget.onSubmit!(data);
+    } else {
+      context.read<BaggageBloc>().add(
+        UpdateBaggageItem(
+          tripId: widget.tripId,
+          itemId: widget.item.id,
+          name: data['name'] as String,
+          quantity: data['quantity'] as int,
+          category: data['category'] as String,
+        ),
+      );
+    }
     Navigator.of(context).pop();
   }
 

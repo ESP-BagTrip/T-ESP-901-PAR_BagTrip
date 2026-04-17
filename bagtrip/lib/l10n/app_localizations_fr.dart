@@ -2860,4 +2860,52 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get panelQuickAddItem => 'Ajouter un objet';
+
+  @override
+  String get panelQuickAddExpense => 'Ajouter une dépense';
+
+  @override
+  String get panelQuickAddActivity => 'Ajouter une activité';
+
+  @override
+  String get panelQuickAddFlight => 'Ajouter un vol';
+
+  @override
+  String get panelQuickAddStay => 'Ajouter un hébergement';
+
+  @override
+  String get panelInviteCollaborator => 'Inviter';
+
+  @override
+  String get panelActionEdit => 'Modifier';
+
+  @override
+  String get panelActionDelete => 'Supprimer';
+
+  @override
+  String get panelActionDuplicate => 'Dupliquer';
+
+  @override
+  String get panelOpenFullBaggage => 'Voir la checklist complète';
+
+  @override
+  String get panelOpenFullBudget => 'Voir le détail complet';
+
+  @override
+  String get panelOpenFullActivities => 'Voir l’itinéraire complet';
+
+  @override
+  String get panelOpenFullFlights => 'Voir tous les vols';
+
+  @override
+  String get panelOpenFullAccommodations => 'Voir tous les hébergements';
+
+  @override
+  String get panelOpenFullShares => 'Gérer les accès';
+
+  @override
+  String get baggageAllPackedMessage => 'Tout est prêt — bon voyage.';
 }
