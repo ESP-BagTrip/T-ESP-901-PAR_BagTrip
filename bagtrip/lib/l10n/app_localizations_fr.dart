@@ -2911,4 +2911,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get budgetRecentExpenses => 'Récentes';
+
+  @override
+  String get activityValidateAction => 'Valider';
+
+  @override
+  String get activitySuggestedBadge => 'Suggérée';
 }

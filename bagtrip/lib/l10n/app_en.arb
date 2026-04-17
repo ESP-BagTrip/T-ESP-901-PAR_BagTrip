@@ -1432,5 +1432,7 @@
   "panelOpenFullAccommodations": "See all stays",
   "panelOpenFullShares": "Manage access",
   "baggageAllPackedMessage": "All packed — ready to roll.",
-  "budgetRecentExpenses": "Recent"
+  "budgetRecentExpenses": "Recent",
+  "activityValidateAction": "Validate",
+  "activitySuggestedBadge": "Suggested"
 }

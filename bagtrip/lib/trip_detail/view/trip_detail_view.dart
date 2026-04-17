@@ -228,6 +228,7 @@ class _LoadedTripViewState extends State<_LoadedTripView>
                         ),
                         ItineraryPanel(
                           tripId: widget.tripId,
+                          tripStartDate: state.trip.startDate,
                           activities: state.activities,
                           totalDays: state.totalDays,
                           selectedDayIndex: state.selectedDayIndex,

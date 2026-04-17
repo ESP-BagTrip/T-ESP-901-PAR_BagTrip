@@ -1432,5 +1432,7 @@
   "panelOpenFullAccommodations": "Voir tous les hébergements",
   "panelOpenFullShares": "Gérer les accès",
   "baggageAllPackedMessage": "Tout est prêt — bon voyage.",
-  "budgetRecentExpenses": "Récentes"
+  "budgetRecentExpenses": "Récentes",
+  "activityValidateAction": "Valider",
+  "activitySuggestedBadge": "Suggérée"
 }
