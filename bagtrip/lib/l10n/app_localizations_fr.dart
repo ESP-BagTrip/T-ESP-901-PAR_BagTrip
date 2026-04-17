@@ -2917,4 +2917,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get activitySuggestedBadge => 'Suggérée';
+
+  @override
+  String get shareCopyLink => 'Copier le lien d’invitation';
+
+  @override
+  String get shareRevokeAccess => 'Révoquer l’accès';
 }

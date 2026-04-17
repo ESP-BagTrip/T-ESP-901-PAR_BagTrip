@@ -1434,5 +1434,7 @@
   "baggageAllPackedMessage": "Tout est prêt — bon voyage.",
   "budgetRecentExpenses": "Récentes",
   "activityValidateAction": "Valider",
-  "activitySuggestedBadge": "Suggérée"
+  "activitySuggestedBadge": "Suggérée",
+  "shareCopyLink": "Copier le lien d’invitation",
+  "shareRevokeAccess": "Révoquer l’accès"
 }

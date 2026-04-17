@@ -5246,6 +5246,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Suggérée'**
   String get activitySuggestedBadge;
+
+  /// No description provided for @shareCopyLink.
+  ///
+  /// In fr, this message translates to:
+  /// **'Copier le lien d’invitation'**
+  String get shareCopyLink;
+
+  /// No description provided for @shareRevokeAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Révoquer l’accès'**
+  String get shareRevokeAccess;
 }
 
 class _AppLocalizationsDelegate

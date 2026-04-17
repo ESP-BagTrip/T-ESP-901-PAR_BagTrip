@@ -2898,4 +2898,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activitySuggestedBadge => 'Suggested';
+
+  @override
+  String get shareCopyLink => 'Copy invite link';
+
+  @override
+  String get shareRevokeAccess => 'Revoke access';
 }
