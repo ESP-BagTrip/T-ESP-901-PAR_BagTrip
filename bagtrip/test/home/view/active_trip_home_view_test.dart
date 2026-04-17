@@ -3,17 +3,27 @@ import 'package:bagtrip/home/view/active_trip_home_view.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/models/trip.dart';
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/test_fixtures.dart';
 
+class MockHomeBloc extends MockBloc<HomeEvent, HomeState> implements HomeBloc {}
+
 void main() {
+  late MockHomeBloc mockHomeBloc;
+
+  setUp(() {
+    mockHomeBloc = MockHomeBloc();
+  });
+
   Widget buildApp({
     String? fullName = 'Test User',
     String destinationName = 'Tokyo',
     List<Activity>? allActivities,
-    String? weatherSummary,
   }) {
     final user = makeUser(fullName: fullName);
     final now = DateTime.now();
@@ -28,37 +38,34 @@ void main() {
       user: user,
       activeTrip: trip,
       allActivities: allActivities ?? const [],
-      weatherSummary: weatherSummary,
     );
+
+    when(() => mockHomeBloc.state).thenReturn(state);
 
     return MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('en'),
-      home: Scaffold(body: ActiveTripHomeView(state: state)),
+      home: BlocProvider<HomeBloc>.value(
+        value: mockHomeBloc,
+        child: Scaffold(body: ActiveTripHomeView(state: state)),
+      ),
     );
   }
 
   group('ActiveTripHomeView', () {
-    testWidgets('greeting shows user name', (tester) async {
-      await tester.pumpWidget(buildApp(fullName: 'Alice Smith'));
-      await tester.pump(const Duration(seconds: 1));
-
-      expect(find.text('Welcome, Alice'), findsOneWidget);
-    });
-
-    testWidgets('greeting fallback when no name', (tester) async {
-      await tester.pumpWidget(buildApp(fullName: null));
-      await tester.pump(const Duration(seconds: 1));
-
-      expect(find.text('Good morning'), findsOneWidget);
-    });
-
-    testWidgets('hero shows destination', (tester) async {
+    testWidgets('shows trip in progress eyebrow', (tester) async {
       await tester.pumpWidget(buildApp());
       await tester.pump(const Duration(seconds: 1));
 
-      expect(find.text('Your trip to Tokyo'), findsOneWidget);
+      expect(find.text('TRIP IN PROGRESS'), findsOneWidget);
+    });
+
+    testWidgets('hero shows destination name', (tester) async {
+      await tester.pumpWidget(buildApp());
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text('Tokyo'), findsOneWidget);
     });
 
     testWidgets('hero shows day counter', (tester) async {
@@ -122,11 +129,12 @@ void main() {
       expect(find.text('No activities planned today'), findsOneWidget);
     });
 
-    testWidgets('quick actions visible', (tester) async {
+    testWidgets('quick actions section visible', (tester) async {
       await tester.pumpWidget(buildApp());
       await tester.pump(const Duration(seconds: 1));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -500));
+      await tester.pump(const Duration(seconds: 1));
 
-      // Section header is always present regardless of time-dependent actions
       expect(find.textContaining('Quick actions'), findsOneWidget);
     });
 
@@ -135,20 +143,6 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Plan a trip'), findsNothing);
-    });
-
-    testWidgets('weather shown when present', (tester) async {
-      await tester.pumpWidget(buildApp(weatherSummary: '25°C Sunny'));
-      await tester.pump(const Duration(seconds: 1));
-
-      expect(find.text('25°C Sunny'), findsOneWidget);
-    });
-
-    testWidgets('weather hidden when null', (tester) async {
-      await tester.pumpWidget(buildApp());
-      await tester.pump(const Duration(seconds: 1));
-
-      expect(find.text('25°C Sunny'), findsNothing);
     });
   });
 }

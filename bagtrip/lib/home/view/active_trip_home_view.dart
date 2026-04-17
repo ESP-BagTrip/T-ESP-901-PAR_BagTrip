@@ -1,26 +1,25 @@
+import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
 import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/staggered_fade_in.dart';
-import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
-import 'package:bagtrip/models/trip.dart';
-import 'package:bagtrip/home/cubit/today_tick_cubit.dart';
 import 'package:bagtrip/home/cubit/quick_expense_cubit.dart';
-import 'package:bagtrip/home/helpers/contextual_actions_helper.dart';
+import 'package:bagtrip/home/cubit/today_tick_cubit.dart';
+import 'package:bagtrip/home/helpers/camera_launcher.dart';
 import 'package:bagtrip/home/helpers/map_launcher.dart';
 import 'package:bagtrip/home/helpers/today_activities.dart';
-import 'package:bagtrip/home/widgets/quick_expense_sheet.dart';
 import 'package:bagtrip/home/widgets/active_trip_hero.dart';
+import 'package:bagtrip/home/widgets/active_trip_nav_pill.dart';
+import 'package:bagtrip/home/widgets/active_trip_quick_actions_section.dart';
+import 'package:bagtrip/home/widgets/end_active_trip_sheet.dart';
 import 'package:bagtrip/home/widgets/now_indicator_row.dart';
-import 'package:bagtrip/home/helpers/camera_launcher.dart';
-import 'package:bagtrip/home/widgets/quick_actions_bar.dart';
-import 'package:bagtrip/home/widgets/weather_detail_sheet.dart';
+import 'package:bagtrip/home/widgets/quick_expense_sheet.dart';
 import 'package:bagtrip/home/widgets/timeline_activity_row.dart';
-import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/models/trip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -73,6 +72,17 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
     });
   }
 
+  void _scrollToTomorrow() {
+    final target = _tomorrowSectionKey.currentContext;
+    if (target == null) return;
+    Scrollable.ensureVisible(
+      target,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
+      alignment: 0.12,
+    );
+  }
+
   void _showCompletionDialog(Trip trip) {
     final l10n = AppLocalizations.of(context)!;
     showAdaptiveAlertDialog(
@@ -108,7 +118,6 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
 
   Widget _buildContent(BuildContext context, DateTime tickNow) {
     final l10n = AppLocalizations.of(context)!;
-    final name = widget.state.displayName;
     final trip = widget.state.activeTrip;
     final result = classifyTodayActivities(
       allActivities: widget.state.allActivities,
@@ -153,167 +162,265 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
       right: MediaQuery.paddingOf(context).right + AppSpacing.space24,
     );
 
-    int fadeIndex = 0;
+    final timelineItemCount = _countTimelineItems(allTimeline, result);
+    int fi = 0;
 
-    return CustomScrollView(
-      slivers: [
-        // Greeting
-        SliverToBoxAdapter(
-          child: StaggeredFadeIn(
-            index: fadeIndex++,
-            child: Padding(
-              padding: hPadding.copyWith(top: AppSpacing.space24),
-              child: Text(
-                name.isNotEmpty
-                    ? l10n.homeGreeting(name)
-                    : l10n.planifierGreeting,
-                style: TextStyle(
-                  fontFamily: FontFamily.b612,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: Theme.of(context).colorScheme.onSurface,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // Hero card
-        SliverToBoxAdapter(
-          child: StaggeredFadeIn(
-            index: fadeIndex++,
-            child: Padding(
-              padding: hPadding.copyWith(top: AppSpacing.space24),
-              child: ActiveTripHero(
-                trip: trip,
-                currentDay: widget.state.currentDay,
-                totalDays: widget.state.totalDays,
-                weatherSummary: widget.state.weatherSummary,
-              ),
-            ),
-          ),
-        ),
-
-        // Today's schedule header
-        SliverToBoxAdapter(
-          child: StaggeredFadeIn(
-            index: fadeIndex++,
-            child: Padding(
-              padding: hPadding.copyWith(top: AppSpacing.space32),
-              child: Text(
-                l10n.homeTodayActivities,
-                style: TextStyle(
-                  fontFamily: FontFamily.b612,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.onSurface,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // Timeline or empty state
-        if (allTimeline.isEmpty)
+    return ColoredBox(
+      color: const Color(0xFFF5F7FA),
+      child: CustomScrollView(
+        slivers: [
+          // Hero
           SliverToBoxAdapter(
             child: StaggeredFadeIn(
-              index: fadeIndex++,
+              index: fi++,
               child: Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.space16),
-                child: ElegantEmptyState(
-                  icon: Icons.event_note,
-                  title: l10n.homeNoActivitiesToday,
+                padding: hPadding.copyWith(
+                  top: MediaQuery.paddingOf(context).top + AppSpacing.space16,
+                ),
+                child: ActiveTripHero(
+                  trip: trip,
+                  currentDay: widget.state.currentDay,
+                  totalDays: widget.state.totalDays,
                 ),
               ),
             ),
-          )
-        else
-          SliverList(
-            delegate: SliverChildBuilderDelegate((context, index) {
-              // Build combined list: all-day + timed with now indicator
-              final items = _buildTimelineItems(
-                allTimeline,
-                result,
-                nowTime,
-                tickNow,
-                currentRemainingMinutes,
-                context,
-              );
-              if (index >= items.length) return null;
-              return StaggeredFadeIn(
-                index: fadeIndex + index,
-                child: Padding(padding: hPadding, child: items[index]),
-              );
-            }, childCount: _countTimelineItems(allTimeline, result)),
           ),
 
-        // Tomorrow section
-        if (result.tomorrowActivities.isNotEmpty) ...[
           SliverToBoxAdapter(
-            key: _tomorrowSectionKey,
+            child: StaggeredFadeIn(
+              index: fi++,
+              child: Padding(
+                padding: hPadding.copyWith(top: AppSpacing.space16),
+                child: const ActiveTripNavPill(),
+              ),
+            ),
+          ),
+
+          // Today's schedule header
+          SliverToBoxAdapter(
+            child: StaggeredFadeIn(
+              index: fi++,
+              child: Padding(
+                padding: hPadding.copyWith(top: AppSpacing.space32),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.homeTodayActivities,
+                        style: TextStyle(
+                          fontFamily: FontFamily.dMSans,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                    if (result.currentActivity != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.space12,
+                          vertical: AppSpacing.space4,
+                        ),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF34B7A4),
+                          borderRadius: AppRadius.pill,
+                        ),
+                        child: Text(
+                          l10n.homeSectionNowBadge,
+                          style: const TextStyle(
+                            fontFamily: FontFamily.dMSans,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            letterSpacing: 0.4,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Timeline or empty state
+          if (allTimeline.isEmpty)
+            SliverToBoxAdapter(
+              child: StaggeredFadeIn(
+                index: fi++,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.space16),
+                  child: ElegantEmptyState(
+                    icon: Icons.event_note,
+                    title: l10n.homeNoActivitiesToday,
+                  ),
+                ),
+              ),
+            )
+          else
+            SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                // Build combined list: all-day + timed with now indicator
+                final items = _buildTimelineItems(
+                  allTimeline,
+                  result,
+                  nowTime,
+                  tickNow,
+                  currentRemainingMinutes,
+                  context,
+                );
+                if (index >= items.length) return null;
+                return StaggeredFadeIn(
+                  index: fi + index,
+                  child: Padding(padding: hPadding, child: items[index]),
+                );
+              }, childCount: timelineItemCount),
+            ),
+
+          // Tomorrow section
+          if (result.tomorrowActivities.isNotEmpty) ...[
+            SliverToBoxAdapter(
+              key: _tomorrowSectionKey,
+              child: Builder(
+                builder: (context) {
+                  final tomorrowHeaderIndex = fi + timelineItemCount;
+                  return StaggeredFadeIn(
+                    index: tomorrowHeaderIndex,
+                    child: Padding(
+                      padding: hPadding.copyWith(top: AppSpacing.space32),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                l10n.activeTripsTomorrow,
+                                style: TextStyle(
+                                  fontFamily: FontFamily.dMSans,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.space8),
+                              Text(
+                                l10n.activeTripsTomorrowCount(
+                                  result.tomorrowActivities.length,
+                                ),
+                                style: TextStyle(
+                                  fontFamily: FontFamily.dMSans,
+                                  fontSize: 14,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (result.isTomorrowLastDay) ...[
+                            const SizedBox(height: AppSpacing.space8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.space12,
+                                vertical: AppSpacing.space8,
+                              ),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFFFE8B3),
+                                borderRadius: AppRadius.large16,
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.info_outline_rounded,
+                                    size: 18,
+                                    color: ColorName.warning,
+                                  ),
+                                  const SizedBox(width: AppSpacing.space8),
+                                  Expanded(
+                                    child: Text(
+                                      l10n.activeTripsTomorrowLastDay,
+                                      style: const TextStyle(
+                                        fontFamily: FontFamily.dMSans,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFFB45309),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: _CollapsibleTomorrowSection(
+                activities: result.tomorrowActivities,
+                hPadding: hPadding,
+                baseFadeIndex: fi + timelineItemCount + 1,
+              ),
+            ),
+          ],
+
+          // Quick actions
+          SliverToBoxAdapter(
             child: Builder(
               builder: (context) {
-                final itemCount = _countTimelineItems(allTimeline, result);
-                final idx = fadeIndex + itemCount;
+                final tomorrowBlock = result.tomorrowActivities.isNotEmpty
+                    ? result.tomorrowActivities.length + 2
+                    : 0;
+                final emptyBump = allTimeline.isEmpty ? 1 : 0;
+                final quickIndex =
+                    fi + timelineItemCount + tomorrowBlock + emptyBump;
                 return StaggeredFadeIn(
-                  index: idx,
+                  index: quickIndex,
                   child: Padding(
                     padding: hPadding.copyWith(top: AppSpacing.space32),
                     child: Column(
                       key: tomorrowSectionHeaderKey,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Text(
-                              l10n.activeTripsTomorrow,
-                              style: TextStyle(
-                                fontFamily: FontFamily.b612,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Theme.of(context).colorScheme.onSurface,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.space8),
-                            Text(
-                              l10n.activeTripsTomorrowCount(
-                                result.tomorrowActivities.length,
-                              ),
-                              style: TextStyle(
-                                fontFamily: FontFamily.b612,
-                                fontSize: 12,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (result.isTomorrowLastDay) ...[
-                          const SizedBox(height: AppSpacing.space8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.space12,
-                              vertical: AppSpacing.space4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: ColorName.warning.withValues(alpha: 0.1),
-                              borderRadius: AppRadius.pill,
-                            ),
-                            child: Text(
-                              l10n.activeTripsTomorrowLastDay,
-                              style: const TextStyle(
-                                fontFamily: FontFamily.b612,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: ColorName.warning,
-                              ),
-                            ),
+                        Text(
+                          l10n.activeTripsQuickActions,
+                          style: TextStyle(
+                            fontFamily: FontFamily.dMSans,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
-                        ],
+                        ),
+                        const SizedBox(height: AppSpacing.space16),
+                        ActiveTripQuickActionsSection(
+                          navigateEnabled:
+                              _resolveNavigateTarget(result) != null,
+                          onNavigate: _resolveNavigateTarget(result) != null
+                              ? () => launchMapNavigation(
+                                  context,
+                                  _resolveNavigateTarget(result)!,
+                                )
+                              : null,
+                          onExpense: () =>
+                              _showQuickExpenseSheet(context, trip.id),
+                          onPhoto: () => launchCamera(context),
+                          tomorrowEnabled: result.tomorrowActivities.isNotEmpty,
+                          onTomorrow: result.tomorrowActivities.isNotEmpty
+                              ? _scrollToTomorrow
+                              : null,
+                          onEndTrip: () => showEndActiveTripSheet(context),
+                          destinationLabel: () {
+                            final raw =
+                                trip.destinationName ?? trip.title ?? '';
+                            return raw.trim().isNotEmpty
+                                ? raw.trim()
+                                : l10n.tripCardNoDestination;
+                          }(),
+                        ),
                       ],
                     ),
                   ),
@@ -321,94 +428,15 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
               },
             ),
           ),
+
+          // Bottom padding (tab bar hidden on this screen; keep safe area only)
           SliverToBoxAdapter(
-            child: _CollapsibleTomorrowSection(
-              activities: result.tomorrowActivities,
-              hPadding: hPadding,
-              baseFadeIndex:
-                  fadeIndex + _countTimelineItems(allTimeline, result) + 1,
+            child: SizedBox(
+              height: MediaQuery.paddingOf(context).bottom + AppSpacing.space24,
             ),
           ),
         ],
-
-        // Quick actions
-        SliverToBoxAdapter(
-          child: Builder(
-            builder: (context) {
-              final itemCount = _countTimelineItems(allTimeline, result);
-              final tomorrowCount = result.tomorrowActivities.isNotEmpty
-                  ? result.tomorrowActivities.length + 1
-                  : 0;
-              final idx =
-                  fadeIndex +
-                  itemCount +
-                  tomorrowCount +
-                  (allTimeline.isEmpty ? 1 : 0);
-              return StaggeredFadeIn(
-                index: idx,
-                child: Padding(
-                  padding: hPadding.copyWith(top: AppSpacing.space32),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.activeTripsQuickActions,
-                        style: TextStyle(
-                          fontFamily: FontFamily.b612,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.onSurface,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.space16),
-                      QuickActionsBar(
-                        tripId: trip.id,
-                        actions: resolveContextualActions(
-                          hour: tickNow.hour,
-                          hasCurrentActivity: result.currentActivity != null,
-                          hasNextActivity: result.nextActivity != null,
-                        ),
-                        onNavigateTap: _resolveNavigateTarget(result) != null
-                            ? () => launchMapNavigation(
-                                context,
-                                _resolveNavigateTarget(result)!,
-                              )
-                            : null,
-                        onExpenseTap: () =>
-                            _showQuickExpenseSheet(context, trip.id),
-                        onWeatherTap: () => showWeatherDetailSheet(
-                          context,
-                          weather: widget.state.weatherData,
-                          destinationName: trip.destinationName,
-                        ),
-                        onPhotoTap: () => launchCamera(context),
-                        onTomorrowTap: () {
-                          final ctx = _tomorrowSectionKey.currentContext;
-                          if (ctx != null) {
-                            Scrollable.ensureVisible(
-                              ctx,
-                              duration: const Duration(milliseconds: 400),
-                              curve: Curves.easeInOut,
-                            );
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-
-        // Bottom padding
-        SliverToBoxAdapter(
-          child: SizedBox(
-            height: AdaptivePlatform.isIOS ? 100 : AppSpacing.space32,
-          ),
-        ),
-      ],
+      ),
     );
   }
 

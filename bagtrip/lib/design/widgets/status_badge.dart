@@ -24,7 +24,7 @@ class StatusBadge extends StatelessWidget {
     return switch (type) {
       StatusType.pending => l10n.statusPending,
       StatusType.confirmed => l10n.statusConfirmed,
-      StatusType.forecasted => l10n.statusForecasted,
+      StatusType.forecasted => "l10n.statusForecasted",
       StatusType.active => l10n.statusActive,
       StatusType.completed => l10n.statusCompleted,
     };

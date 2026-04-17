@@ -1946,6 +1946,43 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get homeActiveTripEyebrow => 'VOYAGE EN COURS';
+
+  @override
+  String get homeNavPillTitle => 'Voyages & accueil';
+
+  @override
+  String get homeNavPillSubtitle => 'Gérer mes voyages, créer un nouveau';
+
+  @override
+  String get homeResumeActiveTripCta => 'Continuer le voyage';
+
+  @override
+  String get homeResumeActiveTripSubtitle => 'Votre voyage est toujours actif';
+
+  @override
+  String get homeSectionNowBadge => 'MAINTENANT';
+
+  @override
+  String get endTripSheetTitle => 'Fin du voyage ?';
+
+  @override
+  String get endTripSheetMessage =>
+      'Vous pouvez terminer ce voyage maintenant ou décider plus tard.';
+
+  @override
+  String get endTripSheetTerminate => 'Terminer';
+
+  @override
+  String get endTripSheetPostpone => 'Reporter';
+
+  @override
+  String get toastTripCompleted => 'Voyage terminé';
+
+  @override
+  String get qaEndTrip => 'Fin voyage';
+
+  @override
   String get homeTodayActivities => 'Programme du jour';
 
   @override
@@ -1976,6 +2013,36 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get activeTripsQuickActions => 'Actions rapides';
+
+  @override
+  String get activeTripQuickActionNavigateSubtitle =>
+      'Ouvrir l\'itinéraire dans Plans';
+
+  @override
+  String get activeTripQuickActionExpenseSubtitle =>
+      'Suivi du budget pour ce voyage';
+
+  @override
+  String get activeTripQuickActionPhotoTitle => 'Photo du voyage';
+
+  @override
+  String get activeTripQuickActionPhotoSubtitle =>
+      'Capturer et ajouter au journal';
+
+  @override
+  String get activeTripQuickActionTomorrowTitle => 'Passer à demain';
+
+  @override
+  String get activeTripQuickActionTomorrowSubtitle =>
+      'Afficher le programme de demain';
+
+  @override
+  String get activeTripEndTripCardTitle => 'Terminer le voyage';
+
+  @override
+  String activeTripEndTripCardSubtitle(String destination) {
+    return 'Marquer $destination comme terminé';
+  }
 
   @override
   String get completionDates => 'Dates';

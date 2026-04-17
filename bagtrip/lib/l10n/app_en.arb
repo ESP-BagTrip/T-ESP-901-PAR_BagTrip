@@ -952,6 +952,18 @@
       }
     }
   },
+  "homeActiveTripEyebrow": "TRIP IN PROGRESS",
+  "homeNavPillTitle": "Trips & home",
+  "homeNavPillSubtitle": "Manage trips, create a new one",
+  "homeResumeActiveTripCta": "Continue trip",
+  "homeResumeActiveTripSubtitle": "Your trip is still active",
+  "homeSectionNowBadge": "NOW",
+  "endTripSheetTitle": "End trip?",
+  "endTripSheetMessage": "You can finish this trip now or decide later.",
+  "endTripSheetTerminate": "End trip",
+  "endTripSheetPostpone": "Decide later",
+  "toastTripCompleted": "Trip completed",
+  "qaEndTrip": "End trip",
   "homeTodayActivities": "Today's schedule",
   "homeNoActivitiesToday": "No activities planned today",
   "tripCardNoDestination": "No destination",
@@ -967,6 +979,21 @@
     }
   },
   "activeTripsQuickActions": "Quick actions",
+  "activeTripQuickActionNavigateSubtitle": "Open directions in Maps",
+  "activeTripQuickActionExpenseSubtitle": "Budget tracking for this trip",
+  "activeTripQuickActionPhotoTitle": "Trip photo",
+  "activeTripQuickActionPhotoSubtitle": "Capture and add to your journal",
+  "activeTripQuickActionTomorrowTitle": "Go to tomorrow",
+  "activeTripQuickActionTomorrowSubtitle": "Show tomorrow's schedule",
+  "activeTripEndTripCardTitle": "End trip",
+  "activeTripEndTripCardSubtitle": "Mark {destination} as finished",
+  "@activeTripEndTripCardSubtitle": {
+    "placeholders": {
+      "destination": {
+        "type": "String"
+      }
+    }
+  },
   "completionDates": "Dates",
   "completionFlights": "Flights",
   "completionAccommodation": "Hotels",

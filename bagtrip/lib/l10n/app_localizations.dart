@@ -3542,6 +3542,78 @@ abstract class AppLocalizations {
   /// **'Jour {current} sur {total}'**
   String homeActiveTripDay(int current, int total);
 
+  /// No description provided for @homeActiveTripEyebrow.
+  ///
+  /// In fr, this message translates to:
+  /// **'VOYAGE EN COURS'**
+  String get homeActiveTripEyebrow;
+
+  /// No description provided for @homeNavPillTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voyages & accueil'**
+  String get homeNavPillTitle;
+
+  /// No description provided for @homeNavPillSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gérer mes voyages, créer un nouveau'**
+  String get homeNavPillSubtitle;
+
+  /// No description provided for @homeResumeActiveTripCta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Continuer le voyage'**
+  String get homeResumeActiveTripCta;
+
+  /// No description provided for @homeResumeActiveTripSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre voyage est toujours actif'**
+  String get homeResumeActiveTripSubtitle;
+
+  /// No description provided for @homeSectionNowBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'MAINTENANT'**
+  String get homeSectionNowBadge;
+
+  /// No description provided for @endTripSheetTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fin du voyage ?'**
+  String get endTripSheetTitle;
+
+  /// No description provided for @endTripSheetMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous pouvez terminer ce voyage maintenant ou décider plus tard.'**
+  String get endTripSheetMessage;
+
+  /// No description provided for @endTripSheetTerminate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminer'**
+  String get endTripSheetTerminate;
+
+  /// No description provided for @endTripSheetPostpone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reporter'**
+  String get endTripSheetPostpone;
+
+  /// No description provided for @toastTripCompleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voyage terminé'**
+  String get toastTripCompleted;
+
+  /// No description provided for @qaEndTrip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fin voyage'**
+  String get qaEndTrip;
+
   /// No description provided for @homeTodayActivities.
   ///
   /// In fr, this message translates to:
@@ -3589,6 +3661,54 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Actions rapides'**
   String get activeTripsQuickActions;
+
+  /// No description provided for @activeTripQuickActionNavigateSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir l\'itinéraire dans Plans'**
+  String get activeTripQuickActionNavigateSubtitle;
+
+  /// No description provided for @activeTripQuickActionExpenseSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivi du budget pour ce voyage'**
+  String get activeTripQuickActionExpenseSubtitle;
+
+  /// No description provided for @activeTripQuickActionPhotoTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo du voyage'**
+  String get activeTripQuickActionPhotoTitle;
+
+  /// No description provided for @activeTripQuickActionPhotoSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Capturer et ajouter au journal'**
+  String get activeTripQuickActionPhotoSubtitle;
+
+  /// No description provided for @activeTripQuickActionTomorrowTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passer à demain'**
+  String get activeTripQuickActionTomorrowTitle;
+
+  /// No description provided for @activeTripQuickActionTomorrowSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Afficher le programme de demain'**
+  String get activeTripQuickActionTomorrowSubtitle;
+
+  /// No description provided for @activeTripEndTripCardTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminer le voyage'**
+  String get activeTripEndTripCardTitle;
+
+  /// No description provided for @activeTripEndTripCardSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Marquer {destination} comme terminé'**
+  String activeTripEndTripCardSubtitle(String destination);
 
   /// No description provided for @completionDates.
   ///

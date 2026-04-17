@@ -24,6 +24,7 @@ void main() {
   });
 
   Widget buildApp(HomeActiveTrip state) {
+    when(() => mockHomeBloc.state).thenReturn(state);
     return MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
@@ -53,18 +54,18 @@ void main() {
   }
 
   group('ActiveTripHomeView', () {
-    testWidgets('shows greeting with user first name', (tester) async {
+    testWidgets('shows trip in progress eyebrow', (tester) async {
       when(() => mockHomeBloc.state).thenReturn(makeActiveState());
       await tester.pumpWidget(buildApp(makeActiveState()));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
-      expect(find.textContaining('Test'), findsOneWidget);
+      expect(find.text('TRIP IN PROGRESS'), findsOneWidget);
     });
 
     testWidgets('shows empty state when no activities today', (tester) async {
       when(() => mockHomeBloc.state).thenReturn(makeActiveState());
       await tester.pumpWidget(buildApp(makeActiveState()));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('No activities planned today'), findsOneWidget);
     });
@@ -95,12 +96,13 @@ void main() {
 
       expect(find.text('Current Activity'), findsOneWidget);
       expect(find.byType(TimelineActivityRow), findsOneWidget);
+      expect(find.text('NOW'), findsWidgets);
     });
 
     testWidgets('shows today schedule header', (tester) async {
       when(() => mockHomeBloc.state).thenReturn(makeActiveState());
       await tester.pumpWidget(buildApp(makeActiveState()));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text("Today's schedule"), findsOneWidget);
     });
@@ -108,7 +110,9 @@ void main() {
     testWidgets('shows quick actions section', (tester) async {
       when(() => mockHomeBloc.state).thenReturn(makeActiveState());
       await tester.pumpWidget(buildApp(makeActiveState()));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Quick actions'), findsOneWidget);
     });

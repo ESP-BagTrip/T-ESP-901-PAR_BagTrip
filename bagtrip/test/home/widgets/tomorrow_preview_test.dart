@@ -61,7 +61,9 @@ void main() {
       );
 
       await tester.pumpWidget(buildApp(state));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -350));
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Tomorrow'), findsOneWidget);
     });
@@ -96,7 +98,9 @@ void main() {
       );
 
       await tester.pumpWidget(buildApp(state));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('2 activities'), findsOneWidget);
     });
@@ -128,7 +132,9 @@ void main() {
       );
 
       await tester.pumpWidget(buildApp(state));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Last day of the trip'), findsOneWidget);
     });
@@ -148,7 +154,7 @@ void main() {
       );
 
       await tester.pumpWidget(buildApp(state));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       // The "Tomorrow" text may also appear as a QuickActionsBar entry when
       // the CI runner is in the evening (hour >= 18 UTC). Assert directly on
@@ -188,11 +194,11 @@ void main() {
       );
 
       await tester.pumpWidget(buildApp(state));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       // Scroll down to reveal the "Show all" button
       await tester.drag(find.byType(CustomScrollView), const Offset(0, -600));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       // "Show all (5)" button should exist
       expect(find.textContaining('Show all'), findsOneWidget);

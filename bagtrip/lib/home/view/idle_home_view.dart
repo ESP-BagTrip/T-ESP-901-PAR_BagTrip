@@ -12,6 +12,7 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class IdleHomeView extends StatefulWidget {
   final HomeIdle state;
@@ -82,6 +83,19 @@ class _IdleHomeViewState extends State<IdleHomeView>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(height: screenHeight * 0.07),
+
+                    if (widget.state.backgroundOngoingTrip != null)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.space32,
+                        ),
+                        child: _OngoingTripResumeBanner(
+                          trip: widget.state.backgroundOngoingTrip!,
+                        ),
+                      ),
+
+                    if (widget.state.backgroundOngoingTrip != null)
+                      const SizedBox(height: AppSpacing.space16),
 
                     // Greeting — time-aware, bold, left-aligned
                     Padding(
@@ -171,6 +185,105 @@ class _IdleHomeViewState extends State<IdleHomeView>
     if (tripCount == 0) return l10n.homeSubtitleEmpty;
     if (tripCount == 1) return l10n.homeSubtitleOneTrip;
     return l10n.homeSubtitleTrips(tripCount);
+  }
+}
+
+class _OngoingTripResumeBanner extends StatelessWidget {
+  final Trip trip;
+
+  const _OngoingTripResumeBanner({required this.trip});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final brightness = Theme.of(context).brightness;
+    final name = trip.destinationName ?? trip.title ?? '';
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          AppHaptics.light();
+          context.read<HomeBloc>().add(ResumeActiveTripHome());
+        },
+        borderRadius: AppRadius.large16,
+        child: Ink(
+          decoration: BoxDecoration(
+            color: ColorName.surface,
+            borderRadius: AppRadius.large16,
+            boxShadow: [
+              BoxShadow(
+                color: ColorName.primaryTrueDark.withValues(alpha: 0.08),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.space16,
+              vertical: AppSpacing.space12,
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.flight_takeoff_rounded,
+                  color: ColorName.primary,
+                  size: 28,
+                ),
+                const SizedBox(width: AppSpacing.space12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name.isNotEmpty ? name : l10n.tripCardNoDestination,
+                        style: TextStyle(
+                          fontFamily: FontFamily.dMSans,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: PersonalizationColors.textPrimaryOf(
+                            brightness,
+                          ),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        l10n.homeResumeActiveTripSubtitle,
+                        style: TextStyle(
+                          fontFamily: FontFamily.dMSans,
+                          fontSize: 13,
+                          color: PersonalizationColors.textTertiaryOf(
+                            brightness,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.space8),
+                Text(
+                  l10n.homeResumeActiveTripCta,
+                  style: const TextStyle(
+                    fontFamily: FontFamily.dMSans,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: ColorName.primary,
+                  ),
+                ),
+                const Icon(
+                  Icons.chevron_right,
+                  color: ColorName.primary,
+                  size: 22,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
