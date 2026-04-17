@@ -3,19 +3,19 @@ import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/core/app_error.dart';
-import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/design/widgets/review/hero_nav_button.dart';
+import 'package:bagtrip/design/widgets/review/panel_footer_cta.dart';
+import 'package:bagtrip/design/widgets/review/pill_cta_button.dart';
 import 'package:bagtrip/design/widgets/review/sub_page_hero.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip_share.dart';
+import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trips/bloc/trip_share_bloc.dart';
 import 'package:bagtrip/trips/widgets/share_invite_sheet.dart';
 import 'package:bagtrip/utils/error_display.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -30,10 +30,28 @@ class TripSharesView extends StatefulWidget {
   State<TripSharesView> createState() => _TripSharesViewState();
 }
 
-class _TripSharesViewState extends State<TripSharesView> {
+class _TripSharesViewState extends State<TripSharesView>
+    with TickerProviderStateMixin {
+  late final PanelFooterCtaController _footerController;
+
+  @override
+  void initState() {
+    super.initState();
+    _footerController = PanelFooterCtaController(vsync: this);
+    _footerController.show();
+  }
+
+  @override
+  void dispose() {
+    _footerController.dispose();
+    super.dispose();
+  }
+
+  bool get _isOwner => widget.role == 'OWNER';
+
   void _showInviteSheet(BuildContext context) {
     final bloc = context.read<TripShareBloc>();
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -69,31 +87,12 @@ class _TripSharesViewState extends State<TripSharesView> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final isOwner = widget.role == 'OWNER';
 
     return Scaffold(
       backgroundColor: ColorName.surfaceVariant,
-      floatingActionButton: isOwner && !AdaptivePlatform.isIOS
-          ? FloatingActionButton.extended(
-              onPressed: () => _showInviteSheet(context),
-              icon: const Icon(Icons.person_add),
-              label: Text(l10n.sharesInviteButton),
-            )
-          : null,
       body: Column(
         children: [
-          SubPageHero(
-            title: l10n.sharesTitle,
-            trailing: [
-              if (isOwner && AdaptivePlatform.isIOS)
-                HeroNavButton(
-                  icon: CupertinoIcons.person_add,
-                  tooltip: l10n.inviteTooltip,
-                  onPressed: () => _showInviteSheet(context),
-                ),
-            ],
-          ),
+          SubPageHero(title: l10n.sharesTitle),
           Expanded(
             child: BlocConsumer<TripShareBloc, TripShareState>(
               listener: (context, state) {
@@ -109,78 +108,71 @@ class _TripSharesViewState extends State<TripSharesView> {
                     _ => toUserFriendlyMessage(state.error, l10n),
                   };
                   AppSnackBar.showError(context, message: msg);
-                }
-                if (state is TripShareQuotaExceeded) {
+                } else if (state is TripShareQuotaExceeded) {
                   AppSnackBar.showError(context, message: l10n.errorQuota);
-                }
-                if (state is TripShareLoaded) {
-                  // Success feedback after create/delete is handled by the sheet
+                } else if (state is TripShareLoaded) {
+                  context.read<TripDetailBloc>().add(RefreshTripDetail());
                 }
               },
               builder: (context, state) {
+                if (state is TripShareLoading) return const LoadingView();
                 final shares = state is TripShareLoaded
                     ? state.shares
                     : <TripShare>[];
-                final isLoading = state is TripShareLoading;
-
-                if (isLoading) return const LoadingView();
 
                 if (shares.isEmpty) {
-                  return ElegantEmptyState(
-                    icon: Icons.people_outline,
-                    title: l10n.sharesEmpty,
-                    subtitle: l10n.sharesEmptySubtitle,
+                  return Padding(
+                    padding: const EdgeInsets.all(AppSpacing.space24),
+                    child: ElegantEmptyState(
+                      icon: Icons.people_outline,
+                      title: l10n.sharesEmpty,
+                      subtitle: _isOwner ? l10n.sharesEmptySubtitle : null,
+                    ),
                   );
                 }
 
-                return ListView.builder(
-                  padding: AppSpacing.allEdgeInsetSpace16,
+                return ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.space16,
+                    AppSpacing.space16,
+                    AppSpacing.space16,
+                    AppSpacing.space32 + 72,
+                  ),
                   itemCount: shares.length,
+                  separatorBuilder: (_, _) =>
+                      const SizedBox(height: AppSpacing.space12),
                   itemBuilder: (context, index) {
                     final share = shares[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: isOwner
-                          ? Dismissible(
-                              key: ValueKey(share.id),
-                              direction: DismissDirection.endToStart,
-                              confirmDismiss: (_) async {
-                                AppHaptics.medium();
-                                return _showRevokeDialog(context, share);
-                              },
-                              background: Container(
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.error,
-                                  borderRadius: AppRadius.large16,
-                                ),
-                                alignment: Alignment.centerRight,
-                                padding: AppSpacing.horizontalSpace16,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      l10n.sharesRevokeButton,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontFamily: FontFamily.b612,
-                                      ),
-                                    ),
-                                    const SizedBox(width: AppSpacing.space8),
-                                    const Icon(
-                                      Icons.person_remove,
-                                      color: Colors.white,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              child: _ShareCard(
-                                share: share,
-                                showRemove: true,
-                                onRemove: () =>
-                                    _showRevokeDialog(context, share),
-                              ),
-                            )
-                          : _ShareCard(share: share, showRemove: false),
+                    final card = _ShareCard(
+                      share: share,
+                      showRemove: _isOwner,
+                      onRemove: _isOwner
+                          ? () => _showRevokeDialog(context, share)
+                          : null,
+                    );
+                    if (!_isOwner) return card;
+                    return Dismissible(
+                      key: ValueKey(share.id),
+                      direction: DismissDirection.endToStart,
+                      confirmDismiss: (_) async {
+                        AppHaptics.medium();
+                        return _showRevokeDialog(context, share);
+                      },
+                      background: Container(
+                        decoration: const BoxDecoration(
+                          color: ColorName.error,
+                          borderRadius: AppRadius.large16,
+                        ),
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(
+                          right: AppSpacing.space24,
+                        ),
+                        child: const Icon(
+                          Icons.person_remove_rounded,
+                          color: Colors.white,
+                        ),
+                      ),
+                      child: card,
                     );
                   },
                 );
@@ -189,62 +181,114 @@ class _TripSharesViewState extends State<TripSharesView> {
           ),
         ],
       ),
+      bottomNavigationBar: _isOwner
+          ? SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.space16,
+                  AppSpacing.space8,
+                  AppSpacing.space16,
+                  AppSpacing.space16,
+                ),
+                child: PanelFooterCta(
+                  controller: _footerController,
+                  child: PillCtaButton(
+                    label: l10n.sharesInviteButton,
+                    leadingIcon: Icons.person_add_rounded,
+                    onTap: () => _showInviteSheet(context),
+                  ),
+                ),
+              ),
+            )
+          : null,
     );
   }
 }
 
 class _ShareCard extends StatelessWidget {
-  final TripShare share;
-  final bool showRemove;
-  final VoidCallback? onRemove;
-
   const _ShareCard({
     required this.share,
     required this.showRemove,
     this.onRemove,
   });
 
+  final TripShare share;
+  final bool showRemove;
+  final VoidCallback? onRemove;
+
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: AppSpacing.allEdgeInsetSpace12,
-        child: Row(
-          children: [
-            const CircleAvatar(child: Icon(Icons.person)),
-            const SizedBox(width: AppSpacing.space12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    share.userFullName ?? share.userEmail,
-                    style: Theme.of(context).textTheme.bodyLarge,
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.space16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: AppRadius.large16,
+        border: Border.all(color: ColorName.primarySoftLight),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 22,
+            backgroundColor: ColorName.primary.withValues(alpha: 0.12),
+            child: const Icon(Icons.person_rounded, color: ColorName.primary),
+          ),
+          const SizedBox(width: AppSpacing.space12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  share.userFullName ?? share.userEmail,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: FontFamily.dMSerifDisplay,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: ColorName.primaryDark,
                   ),
-                  if (share.userFullName != null)
-                    Text(
-                      share.userEmail,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
+                ),
+                if (share.userFullName != null) ...[
+                  const SizedBox(height: 2),
                   Text(
-                    AppLocalizations.of(context)!.tripShareInvitedOnDate(
-                      DateFormat(
-                        'dd/MM/yyyy',
-                      ).format(share.invitedAt ?? DateTime.now()),
+                    share.userEmail,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontFamily: FontFamily.dMSans,
+                      fontSize: 12,
+                      color: ColorName.hint,
                     ),
-                    style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
-              ),
+                const SizedBox(height: 2),
+                Text(
+                  l10n.tripShareInvitedOnDate(
+                    DateFormat(
+                      'dd/MM/yyyy',
+                    ).format(share.invitedAt ?? DateTime.now()),
+                  ),
+                  style: const TextStyle(
+                    fontFamily: FontFamily.dMSans,
+                    fontSize: 11,
+                    color: ColorName.hint,
+                  ),
+                ),
+              ],
             ),
-            if (showRemove)
-              IconButton(
-                icon: const Icon(Icons.remove_circle_outline),
-                tooltip: AppLocalizations.of(context)!.removeAccessTooltip,
-                onPressed: onRemove,
+          ),
+          if (showRemove)
+            IconButton(
+              icon: const Icon(
+                Icons.remove_circle_outline,
+                color: ColorName.hint,
               ),
-          ],
-        ),
+              tooltip: l10n.removeAccessTooltip,
+              onPressed: onRemove,
+              visualDensity: VisualDensity.compact,
+            ),
+        ],
       ),
     );
   }
