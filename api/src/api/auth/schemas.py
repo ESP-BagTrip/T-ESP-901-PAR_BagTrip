@@ -5,8 +5,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
+from src.api.common.base_schema import BagtripRequestModel
 
-class SignupRequest(BaseModel):
+
+class SignupRequest(BagtripRequestModel):
     """Requête d'inscription selon PLAN.md."""
 
     email: EmailStr
@@ -15,7 +17,7 @@ class SignupRequest(BaseModel):
     phone: str | None = None
 
 
-class LoginRequest(BaseModel):
+class LoginRequest(BagtripRequestModel):
     """Requête de connexion."""
 
     email: EmailStr
@@ -39,20 +41,20 @@ class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
-class UpdateUserRequest(BaseModel):
+class UpdateUserRequest(BagtripRequestModel):
     """Requête de mise à jour du profil utilisateur."""
 
     fullName: str | None = None
     phone: str | None = None
 
 
-class GoogleSignInRequest(BaseModel):
+class GoogleSignInRequest(BagtripRequestModel):
     """Requête de connexion avec Google."""
 
     idToken: str = Field(..., description="Google ID token")
 
 
-class AppleSignInRequest(BaseModel):
+class AppleSignInRequest(BagtripRequestModel):
     """Requête de connexion avec Apple."""
 
     idToken: str = Field(..., description="Apple ID token")
@@ -68,25 +70,25 @@ class AuthResponse(BaseModel):
     user: UserResponse
 
 
-class RefreshTokenRequest(BaseModel):
+class RefreshTokenRequest(BagtripRequestModel):
     """Requête de rafraîchissement de token."""
 
     refresh_token: str
 
 
-class LogoutRequest(BaseModel):
+class LogoutRequest(BagtripRequestModel):
     """Requête de déconnexion."""
 
     refresh_token: str | None = None
 
 
-class ForgotPasswordRequest(BaseModel):
+class ForgotPasswordRequest(BagtripRequestModel):
     """Requête de réinitialisation de mot de passe."""
 
     email: EmailStr
 
 
-class ResetPasswordRequest(BaseModel):
+class ResetPasswordRequest(BagtripRequestModel):
     """Requête de changement de mot de passe via token."""
 
     token: str

@@ -21,10 +21,19 @@ from src.api.accommodations.schemas import (
     AccommodationUpdateRequest,
 )
 from src.api.activities.schemas import ActivityUpdateRequest
+from src.api.baggage.schemas import (
+    BaggageItemCreateRequest,
+    BaggageItemUpdateRequest,
+)
+from src.api.budget_items.schemas import (
+    BudgetItemCreateRequest,
+    BudgetItemUpdateRequest,
+)
 from src.api.flights.manual.schemas import (
     ManualFlightCreateRequest,
     ManualFlightUpdateRequest,
 )
+from src.api.trips.schemas import TripTrackingUpdateRequest
 
 
 @pytest.mark.parametrize(
@@ -95,6 +104,42 @@ from src.api.flights.manual.schemas import (
             {"flight_number": "VY8017", "departure_airport": "CDG", "arrival_airport": "BCN"},
             "flightNumber",
             "VY8017",
+        ),
+        (
+            BaggageItemCreateRequest,
+            {"name": "Passport", "is_packed": True},
+            "isPacked",
+            True,
+        ),
+        (
+            BaggageItemUpdateRequest,
+            {"is_packed": False},
+            "isPacked",
+            False,
+        ),
+        (
+            BudgetItemCreateRequest,
+            {"label": "Hotel", "amount": 120.0, "is_planned": True},
+            "isPlanned",
+            True,
+        ),
+        (
+            BudgetItemUpdateRequest,
+            {"is_planned": False},
+            "isPlanned",
+            False,
+        ),
+        (
+            TripTrackingUpdateRequest,
+            {"flights_tracking": "SKIPPED"},
+            "flightsTracking",
+            "SKIPPED",
+        ),
+        (
+            TripTrackingUpdateRequest,
+            {"accommodations_tracking": "SKIPPED"},
+            "accommodationsTracking",
+            "SKIPPED",
         ),
     ],
 )

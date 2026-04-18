@@ -5,10 +5,11 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from src.api.common.base_schema import BagtripRequestModel
 from src.enums import DateMode, TrackingStatus, TripOrigin, TripStatus
 
 
-class TripCreateRequest(BaseModel):
+class TripCreateRequest(BagtripRequestModel):
     """Requête de création de trip."""
 
     title: str | None = None
@@ -38,7 +39,7 @@ class TripCreateRequest(BaseModel):
         return self
 
 
-class TripUpdateRequest(BaseModel):
+class TripUpdateRequest(BagtripRequestModel):
     """Requête de mise à jour de trip."""
 
     title: str | None = None
@@ -83,7 +84,7 @@ class TripResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
-class TripTrackingUpdateRequest(BaseModel):
+class TripTrackingUpdateRequest(BagtripRequestModel):
     """Requête de mise à jour des flags de tracking d'un trip.
 
     Au moins un des deux champs doit être présent. Utilisé par l'utilisateur
@@ -127,7 +128,7 @@ class TripDetailResponse(BaseModel):
     flightOrder: dict | None = None
 
 
-class TripStatusUpdateRequest(BaseModel):
+class TripStatusUpdateRequest(BagtripRequestModel):
     """Requête de mise à jour du statut d'un trip."""
 
     status: TripStatus

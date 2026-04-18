@@ -5,8 +5,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from src.api.common.base_schema import BagtripRequestModel
 
-class ProfileCreateUpdateRequest(BaseModel):
+
+class ProfileCreateUpdateRequest(BagtripRequestModel):
     """Requête de création/mise à jour du profil voyageur."""
 
     travelTypes: list[str] | None = None

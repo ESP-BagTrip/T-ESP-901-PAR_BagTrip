@@ -3,10 +3,11 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from src.api.common.base_schema import BagtripRequestModel
 from src.enums import BudgetCategory
 
 
-class BudgetItemCreateRequest(BaseModel):
+class BudgetItemCreateRequest(BagtripRequestModel):
     label: str
     amount: float
     category: BudgetCategory | None = None
@@ -14,7 +15,7 @@ class BudgetItemCreateRequest(BaseModel):
     isPlanned: bool | None = None
 
 
-class BudgetItemUpdateRequest(BaseModel):
+class BudgetItemUpdateRequest(BagtripRequestModel):
     label: str | None = None
     amount: float | None = None
     category: BudgetCategory | None = None
@@ -46,10 +47,8 @@ class BudgetEstimateResponse(BaseModel):
     estimation: dict
 
 
-class AcceptEstimateRequest(BaseModel):
+class AcceptEstimateRequest(BagtripRequestModel):
     budget_total: float = Field(..., alias="budget_total", gt=0)
-
-    model_config = ConfigDict(populate_by_name=True)
 
 
 class BudgetSummaryResponse(BaseModel):

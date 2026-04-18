@@ -5,37 +5,35 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from src.api.common.base_schema import BagtripRequestModel
 
-class AccommodationCreateRequest(BaseModel):
+
+class AccommodationCreateRequest(BagtripRequestModel):
     """Requête de création d'hébergement."""
 
     name: str
     address: str | None = None
-    checkIn: datetime | None = Field(default=None, alias="check_in")
-    checkOut: datetime | None = Field(default=None, alias="check_out")
-    pricePerNight: float | None = Field(default=None, alias="price_per_night")
+    checkIn: datetime | None = None
+    checkOut: datetime | None = None
+    pricePerNight: float | None = None
     currency: str | None = None
-    bookingReference: str | None = Field(default=None, alias="booking_reference")
+    bookingReference: str | None = None
     notes: str | None = None
-    validationStatus: str | None = Field(default=None, alias="validation_status")
-
-    model_config = ConfigDict(populate_by_name=True)
+    validationStatus: str | None = None
 
 
-class AccommodationUpdateRequest(BaseModel):
+class AccommodationUpdateRequest(BagtripRequestModel):
     """Requête de mise à jour d'hébergement."""
 
     name: str | None = None
     address: str | None = None
-    checkIn: datetime | None = Field(default=None, alias="check_in")
-    checkOut: datetime | None = Field(default=None, alias="check_out")
-    pricePerNight: float | None = Field(default=None, alias="price_per_night")
+    checkIn: datetime | None = None
+    checkOut: datetime | None = None
+    pricePerNight: float | None = None
     currency: str | None = None
-    bookingReference: str | None = Field(default=None, alias="booking_reference")
+    bookingReference: str | None = None
     notes: str | None = None
-    validationStatus: str | None = Field(default=None, alias="validation_status")
-
-    model_config = ConfigDict(populate_by_name=True)
+    validationStatus: str | None = None
 
 
 class AccommodationResponse(BaseModel):
