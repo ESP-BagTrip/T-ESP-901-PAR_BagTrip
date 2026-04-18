@@ -1082,11 +1082,16 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
             'source': plan.accommodationSource,
           },
         ],
-      if (plan.flightRoute.isNotEmpty && plan.flightPrice > 0)
+      // Flight gate: we want a flight persisted as soon as *any* layer produced
+      // data — Amadeus horaires, LLM budget route, or even just the user's
+      // origin/destination IATA. Gating on `flightPrice > 0` used to drop the
+      // entire flight silently when the LLM omitted the budget breakdown even
+      // though Amadeus had returned the offer (SMP-316 / Barcelone bug).
+      if (_hasOutboundFlight(plan))
         'flight': {
-          'route': plan.flightRoute,
-          'details': plan.flightDetails,
-          'price': plan.flightPrice,
+          'route': _flightRouteOrDeriveFrom(plan),
+          if (plan.flightDetails.isNotEmpty) 'details': plan.flightDetails,
+          if (plan.flightPrice > 0) 'price': plan.flightPrice,
           'source': plan.flightSource,
           if (plan.flightAirline.isNotEmpty) 'airline': plan.flightAirline,
           if (plan.flightNumber.isNotEmpty) 'flight_number': plan.flightNumber,
@@ -1095,10 +1100,10 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
           if (plan.flightArrival.isNotEmpty) 'arrival_date': plan.flightArrival,
           if (plan.flightDuration.isNotEmpty) 'duration': plan.flightDuration,
         },
-      if (plan.returnDeparture.isNotEmpty || plan.returnArrival.isNotEmpty)
+      if (_hasReturnFlight(plan))
         'return_flight': {
-          'route': plan.flightRoute,
-          'details': plan.flightDetails,
+          'route': _returnRouteOrDeriveFrom(plan),
+          if (plan.flightDetails.isNotEmpty) 'details': plan.flightDetails,
           'source': plan.flightSource,
           if (plan.flightAirline.isNotEmpty) 'airline': plan.flightAirline,
           if (plan.flightNumber.isNotEmpty) 'flight_number': plan.flightNumber,
@@ -1117,6 +1122,46 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       }),
       'matchReason': 'Planned with real-time data',
     };
+  }
+
+  /// Whether we have *any* evidence of an outbound flight in the plan.
+  /// Covers the three sources that populate TripPlan today: Amadeus (timestamps),
+  /// LLM budget breakdown (route string), and the user's origin/destination
+  /// IATA (which at worst yield a placeholder route).
+  static bool _hasOutboundFlight(TripPlan plan) {
+    if (plan.flightRoute.isNotEmpty) return true;
+    if (plan.flightDeparture.isNotEmpty || plan.flightArrival.isNotEmpty) {
+      return true;
+    }
+    final hasOrigin = plan.originIata.isNotEmpty;
+    final hasDest = plan.destinationIata?.isNotEmpty ?? false;
+    return hasOrigin && hasDest;
+  }
+
+  static bool _hasReturnFlight(TripPlan plan) {
+    if (plan.returnDeparture.isNotEmpty || plan.returnArrival.isNotEmpty) {
+      return true;
+    }
+    // If we have an outbound, a return is always implied at this stage — the
+    // user can edit it later. Explicit return fields only exist when Amadeus
+    // found a round-trip.
+    return _hasOutboundFlight(plan);
+  }
+
+  static String _flightRouteOrDeriveFrom(TripPlan plan) {
+    if (plan.flightRoute.isNotEmpty) return plan.flightRoute;
+    final origin = plan.originIata;
+    final dest = plan.destinationIata ?? '';
+    if (origin.isEmpty && dest.isEmpty) return '';
+    return '$origin → $dest'.trim();
+  }
+
+  static String _returnRouteOrDeriveFrom(TripPlan plan) {
+    // Return leg swaps origin and destination.
+    final origin = plan.originIata;
+    final dest = plan.destinationIata ?? '';
+    if (origin.isEmpty && dest.isEmpty) return plan.flightRoute;
+    return '$dest → $origin'.trim();
   }
 
   Future<void> _cancelSseStream() async {

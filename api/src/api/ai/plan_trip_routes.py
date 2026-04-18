@@ -422,6 +422,13 @@ async def accept_plan(
         flight_data = suggestion.get("flight")
         if flight_data and isinstance(flight_data, dict):
             dep_airport, arr_airport = _parse_flight_route(flight_data.get("route", ""))
+            # Fallback: when the LLM omits the route string but the trip has
+            # IATA codes (all AI-generated trips do), use those so the flight
+            # row ships with proper airports instead of NULL.
+            if not dep_airport and trip.origin_iata:
+                dep_airport = trip.origin_iata
+            if not arr_airport and trip.destination_iata:
+                arr_airport = trip.destination_iata
             outbound = _build_manual_flight(
                 trip_id=trip.id,
                 flight_data=flight_data,

@@ -215,9 +215,16 @@ class StepReviewView extends StatelessWidget {
     TripPlan plan,
     AppLocalizations l10n,
   ) {
-    final hasReturn =
+    final hasReturnData =
         plan.returnDeparture.isNotEmpty || plan.returnArrival.isNotEmpty;
-    if (!hasReturn && plan.flightRoute.isEmpty) return null;
+    final hasOutboundData =
+        plan.flightRoute.isNotEmpty ||
+        plan.originIata.isNotEmpty ||
+        (plan.destinationIata?.isNotEmpty ?? false);
+    // If we have an outbound there's always a return — show it even when
+    // Amadeus didn't surface specific return-leg timestamps. Times render as
+    // em-dash placeholders and the user can validate / edit later.
+    if (!hasReturnData && !hasOutboundData) return null;
     final iata = _extractIata(plan.flightRoute, plan.flightDetails);
     final origin = iata?.$1 ?? plan.originIata;
     final dest = iata?.$2 ?? (plan.destinationIata ?? '');
