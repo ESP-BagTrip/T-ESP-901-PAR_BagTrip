@@ -3458,6 +3458,78 @@ abstract class AppLocalizations {
   /// **'Par nuit'**
   String get reviewHotelPerNight;
 
+  /// No description provided for @reviewSummaryLine.
+  ///
+  /// In fr, this message translates to:
+  /// **'{days} jours à {city} pour {travelers}'**
+  String reviewSummaryLine(int days, String city, String travelers);
+
+  /// No description provided for @reviewSummaryTravelers.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 voyageur} other{{count} voyageurs}}'**
+  String reviewSummaryTravelers(int count);
+
+  /// No description provided for @reviewJourneyHeader.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre voyage'**
+  String get reviewJourneyHeader;
+
+  /// No description provided for @reviewDayTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jour {day} · {date}'**
+  String reviewDayTitle(int day, String date);
+
+  /// No description provided for @reviewDayFree.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une journée libre'**
+  String get reviewDayFree;
+
+  /// No description provided for @reviewFlightDurationHm.
+  ///
+  /// In fr, this message translates to:
+  /// **'{hours}h{minutes}'**
+  String reviewFlightDurationHm(int hours, String minutes);
+
+  /// No description provided for @reviewHotelArrival.
+  ///
+  /// In fr, this message translates to:
+  /// **'Arrivée'**
+  String get reviewHotelArrival;
+
+  /// No description provided for @reviewHotelStayNights.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 nuit} other{{count} nuits}}'**
+  String reviewHotelStayNights(int count);
+
+  /// No description provided for @reviewBudgetHeader.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le budget'**
+  String get reviewBudgetHeader;
+
+  /// No description provided for @reviewBudgetPerPerson.
+  ///
+  /// In fr, this message translates to:
+  /// **'{amount} par voyageur'**
+  String reviewBudgetPerPerson(String amount);
+
+  /// No description provided for @reviewDecisionHeader.
+  ///
+  /// In fr, this message translates to:
+  /// **'À vous de choisir'**
+  String get reviewDecisionHeader;
+
+  /// No description provided for @reviewDecisionPrimary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planifier ce voyage'**
+  String get reviewDecisionPrimary;
+
   /// No description provided for @homeActiveTripTitle.
   ///
   /// In fr, this message translates to:

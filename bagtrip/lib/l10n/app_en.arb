@@ -887,6 +887,52 @@
   "reviewHotelCheckOut": "Check-out",
   "reviewHotelNights": "Nights",
   "reviewHotelPerNight": "Per night",
+  "reviewSummaryLine": "{days} days in {city} for {travelers}",
+  "@reviewSummaryLine": {
+    "placeholders": {
+      "days": {"type": "int"},
+      "city": {"type": "String"},
+      "travelers": {"type": "String"}
+    }
+  },
+  "reviewSummaryTravelers": "{count, plural, =1{1 traveler} other{{count} travelers}}",
+  "@reviewSummaryTravelers": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "reviewJourneyHeader": "Your journey",
+  "reviewDayTitle": "Day {day} · {date}",
+  "@reviewDayTitle": {
+    "placeholders": {
+      "day": {"type": "int"},
+      "date": {"type": "String"}
+    }
+  },
+  "reviewDayFree": "A free day",
+  "reviewFlightDurationHm": "{hours}h{minutes}",
+  "@reviewFlightDurationHm": {
+    "placeholders": {
+      "hours": {"type": "int"},
+      "minutes": {"type": "String"}
+    }
+  },
+  "reviewHotelArrival": "Check-in",
+  "reviewHotelStayNights": "{count, plural, =1{1 night} other{{count} nights}}",
+  "@reviewHotelStayNights": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "reviewBudgetHeader": "The budget",
+  "reviewBudgetPerPerson": "{amount} per traveler",
+  "@reviewBudgetPerPerson": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "reviewDecisionHeader": "Your call",
+  "reviewDecisionPrimary": "Plan this trip",
   "homeActiveTripTitle": "Your trip to {destination}",
   "@homeActiveTripTitle": {
     "placeholders": {

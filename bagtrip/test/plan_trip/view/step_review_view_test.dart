@@ -1,9 +1,17 @@
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/design/widgets/review/review_budget_reveal.dart';
+import 'package:bagtrip/design/widgets/review/review_cinematic_hero.dart';
+import 'package:bagtrip/design/widgets/review/review_day_timeline.dart';
+import 'package:bagtrip/design/widgets/review/review_decision_inline.dart';
+import 'package:bagtrip/design/widgets/review/review_inline_flight.dart';
+import 'package:bagtrip/design/widgets/review/review_inline_hotel.dart';
+import 'package:bagtrip/design/widgets/review/review_summary_line.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
 import 'package:bagtrip/plan_trip/models/location_result.dart';
 import 'package:bagtrip/plan_trip/models/trip_plan.dart';
 import 'package:bagtrip/plan_trip/view/step_review_view.dart';
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -38,6 +46,7 @@ void main() {
         value: mockBloc,
         child: const StepReviewView(),
       ),
+      size: const Size(400, 2400),
     );
     await tester.pump();
   }
@@ -45,23 +54,34 @@ void main() {
   const fullPlan = TripPlan(
     destinationCity: 'Lisbon',
     destinationCountry: 'Portugal',
+    destinationIata: 'LIS',
     durationDays: 5,
     budgetEur: 1000,
     highlights: ['Tram ride', 'Belem tower'],
     accommodationName: 'Hotel X',
-    accommodationSubtitle: '3 nights',
+    accommodationSubtitle: 'Alfama',
     accommodationPrice: 120,
     accommodationSource: 'amadeus',
-    flightRoute: 'CDG to LIS',
+    hotelRating: 4,
+    flightRoute: 'CDG → LIS',
     flightDetails: 'AF123',
     flightPrice: 200,
     flightSource: 'amadeus',
+    originIata: 'CDG',
+    flightAirline: 'Air France',
+    flightNumber: 'AF1234',
+    flightDeparture: '2026-06-01T14:20:00',
+    flightArrival: '2026-06-01T16:40:00',
+    flightDuration: 'PT2H20M',
+    returnDeparture: '2026-06-06T09:00:00',
+    returnArrival: '2026-06-06T11:45:00',
+    returnDuration: 'PT2H45M',
     dayProgram: ['Tram ride', 'Museum'],
     dayDescriptions: ['Hop on the 28', 'Visit Gulbenkian'],
     dayCategories: ['CULTURE', 'CULTURE'],
     essentialItems: ['Passport', 'Adapter'],
     essentialReasons: ['ID', 'Power plugs'],
-    budgetBreakdown: {'flight': 200, 'hotel': 500, 'food': 300},
+    budgetBreakdown: {'flights': 200, 'accommodation': 500, 'meals': 300},
   );
 
   final reviewDates = {
@@ -69,13 +89,33 @@ void main() {
     'endDate': DateTime(2026, 6, 7),
   };
 
-  group('StepReviewView', () {
-    testWidgets('renders shimmer when generatedPlan is null', (tester) async {
+  group('StepReviewView — editorial scroll', () {
+    testWidgets('shows adaptive spinner when plan is null', (tester) async {
       await pump(tester, const PlanTripState());
       expect(find.byType(StepReviewView), findsOneWidget);
+      expect(find.byType(ReviewCinematicHero), findsNothing);
     });
 
-    testWidgets('renders full review when generatedPlan is populated', (
+    testWidgets('renders hero, summary, timeline, budget, decision in order', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        PlanTripState(
+          generatedPlan: fullPlan,
+          startDate: reviewDates['startDate'],
+          endDate: reviewDates['endDate'],
+          nbAdults: 2,
+        ),
+      );
+      expect(find.byType(ReviewCinematicHero), findsOneWidget);
+      expect(find.byType(ReviewSummaryLine), findsOneWidget);
+      expect(find.byType(ReviewDayTimeline), findsOneWidget);
+      expect(find.byType(ReviewBudgetReveal), findsOneWidget);
+      expect(find.byType(ReviewDecisionInline), findsOneWidget);
+    });
+
+    testWidgets('renders outbound + return inline flights across days', (
       tester,
     ) async {
       await pump(
@@ -86,12 +126,59 @@ void main() {
           endDate: reviewDates['endDate'],
         ),
       );
-      expect(find.byType(StepReviewView), findsOneWidget);
+      // Outbound on day 1 + return on last day → two inline flight tiles.
+      expect(find.byType(ReviewInlineFlight), findsNWidgets(2));
     });
 
-    testWidgets('renders review with isCreating=true (spinner in CTA)', (
+    testWidgets('renders the hotel arrival on day 1', (tester) async {
+      await pump(
+        tester,
+        PlanTripState(
+          generatedPlan: fullPlan,
+          startDate: reviewDates['startDate'],
+          endDate: reviewDates['endDate'],
+        ),
+      );
+      expect(find.byType(ReviewInlineHotel), findsOneWidget);
+    });
+
+    testWidgets('tapping primary fires createTrip event', (tester) async {
+      await pump(
+        tester,
+        PlanTripState(
+          generatedPlan: fullPlan,
+          startDate: reviewDates['startDate'],
+          endDate: reviewDates['endDate'],
+        ),
+      );
+      await tester.ensureVisible(find.byType(ReviewDecisionInline));
+      await tester.pump();
+      await tester.tap(find.text('Plan this trip'));
+      await tester.pump();
+      verify(() => mockBloc.add(const PlanTripEvent.createTrip())).called(1);
+    });
+
+    testWidgets('tapping secondary fires backToProposals event', (
       tester,
     ) async {
+      await pump(
+        tester,
+        PlanTripState(
+          generatedPlan: fullPlan,
+          startDate: reviewDates['startDate'],
+          endDate: reviewDates['endDate'],
+        ),
+      );
+      await tester.ensureVisible(find.byType(ReviewDecisionInline));
+      await tester.pump();
+      await tester.tap(find.text('See other destinations'));
+      await tester.pump();
+      verify(
+        () => mockBloc.add(const PlanTripEvent.backToProposals()),
+      ).called(1);
+    });
+
+    testWidgets('disables CTAs while isCreating', (tester) async {
       await pump(
         tester,
         PlanTripState(
@@ -101,10 +188,14 @@ void main() {
           isCreating: true,
         ),
       );
-      expect(find.byType(StepReviewView), findsOneWidget);
+      await tester.ensureVisible(find.byType(ReviewDecisionInline));
+      await tester.pump();
+      await tester.tap(find.text('See other destinations'));
+      await tester.pump();
+      verifyNever(() => mockBloc.add(const PlanTripEvent.backToProposals()));
     });
 
-    testWidgets('renders with error present (snackbar listener path)', (
+    testWidgets('error in state triggers snackbar via listener', (
       tester,
     ) async {
       await pump(
@@ -119,7 +210,7 @@ void main() {
       expect(find.byType(StepReviewView), findsOneWidget);
     });
 
-    testWidgets('renders manual flow with selectedManualDestination', (
+    testWidgets('manual flow with selected destination still renders', (
       tester,
     ) async {
       const manual = LocationResult(
@@ -140,27 +231,30 @@ void main() {
           selectedManualDestination: manual,
         ),
       );
-      expect(find.byType(StepReviewView), findsOneWidget);
+      expect(find.byType(ReviewCinematicHero), findsOneWidget);
     });
 
-    testWidgets(
-      'renders minimal plan (no highlights, flights, accommodations)',
-      (tester) async {
-        await pump(
-          tester,
-          PlanTripState(
-            generatedPlan: const TripPlan(
-              destinationCity: 'X',
-              destinationCountry: 'Y',
-              durationDays: 3,
-              budgetEur: 100,
-            ),
-            startDate: reviewDates['startDate'],
-            endDate: reviewDates['endDate'],
+    testWidgets('minimal plan (no flight, no hotel) hides inline tiles', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        PlanTripState(
+          generatedPlan: const TripPlan(
+            destinationCity: 'X',
+            destinationCountry: 'Y',
+            durationDays: 3,
+            budgetEur: 100,
           ),
-        );
-        expect(find.byType(StepReviewView), findsOneWidget);
-      },
-    );
+          startDate: reviewDates['startDate'],
+          endDate: reviewDates['endDate'],
+        ),
+      );
+      expect(find.byType(ReviewInlineFlight), findsNothing);
+      expect(find.byType(ReviewInlineHotel), findsNothing);
+      // "A free day" should appear for all 3 days since there are no
+      // activities, flights, or hotel.
+      expect(find.text('A free day'), findsNWidgets(3));
+    });
   });
 }

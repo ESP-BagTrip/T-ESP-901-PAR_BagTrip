@@ -1876,6 +1876,66 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reviewHotelPerNight => 'Par nuit';
 
   @override
+  String reviewSummaryLine(int days, String city, String travelers) {
+    return '$days jours à $city pour $travelers';
+  }
+
+  @override
+  String reviewSummaryTravelers(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count voyageurs',
+      one: '1 voyageur',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewJourneyHeader => 'Votre voyage';
+
+  @override
+  String reviewDayTitle(int day, String date) {
+    return 'Jour $day · $date';
+  }
+
+  @override
+  String get reviewDayFree => 'Une journée libre';
+
+  @override
+  String reviewFlightDurationHm(int hours, String minutes) {
+    return '${hours}h$minutes';
+  }
+
+  @override
+  String get reviewHotelArrival => 'Arrivée';
+
+  @override
+  String reviewHotelStayNights(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nuits',
+      one: '1 nuit',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewBudgetHeader => 'Le budget';
+
+  @override
+  String reviewBudgetPerPerson(String amount) {
+    return '$amount par voyageur';
+  }
+
+  @override
+  String get reviewDecisionHeader => 'À vous de choisir';
+
+  @override
+  String get reviewDecisionPrimary => 'Planifier ce voyage';
+
+  @override
   String homeActiveTripTitle(String destination) {
     return 'Votre voyage à $destination';
   }
