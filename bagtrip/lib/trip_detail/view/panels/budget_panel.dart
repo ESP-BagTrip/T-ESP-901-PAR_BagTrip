@@ -7,14 +7,12 @@ import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/category_mappers.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/review/budget_alert_banner.dart';
-import 'package:bagtrip/design/widgets/review/budget_stripe.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/design/widgets/review/sheets/quick_preview_sheet.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/budget_item.dart';
-import 'package:bagtrip/plan_trip/helpers/budget_breakdown.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -42,8 +40,6 @@ class BudgetPanel extends StatelessWidget {
   final bool canEdit;
   final bool isCompleted;
   final String role;
-
-  static const int _recentCount = 5;
 
   Future<void> _showAddSheet(BuildContext context) async {
     final bloc = context.read<TripDetailBloc>();
@@ -120,10 +116,10 @@ class BudgetPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final summary = budgetSummary;
-    final hasNothing =
-        (summary == null ||
-            (summary.totalBudget <= 0 && summary.byCategory.isEmpty)) &&
-        budgetItems.isEmpty;
+    final hasSummaryTotals =
+        summary != null &&
+        (summary.confirmedTotal > 0 || summary.forecastedTotal > 0);
+    final hasNothing = !hasSummaryTotals && budgetItems.isEmpty;
 
     if (hasNothing) {
       return Padding(
@@ -139,16 +135,12 @@ class BudgetPanel extends StatelessWidget {
     }
 
     final hasAlert = summary?.alertLevel != null;
-    final entries = summary == null
-        ? const <BudgetStripeEntry>[]
-        : _breakdownEntries(summary, l10n);
-    final sortedItems = [...budgetItems]
-      ..sort((a, b) {
-        final aDate = a.date ?? a.createdAt ?? DateTime(1970);
-        final bDate = b.date ?? b.createdAt ?? DateTime(1970);
-        return bDate.compareTo(aDate);
-      });
-    final recent = sortedItems.take(_recentCount).toList();
+    final forecasted = _sortDesc(
+      budgetItems.where((i) => i.isPlanned).toList(),
+    );
+    final confirmed = _sortDesc(
+      budgetItems.where((i) => !i.isPlanned).toList(),
+    );
 
     return Stack(
       children: [
@@ -164,40 +156,29 @@ class BudgetPanel extends StatelessWidget {
               BudgetAlertBanner(summary: summary),
               const SizedBox(height: AppSpacing.space12),
             ],
-            if (summary != null &&
-                (summary.confirmedTotal > 0 ||
-                    summary.forecastedTotal > 0)) ...[
+            if (hasSummaryTotals) ...[
               _DualTotalCard(summary: summary, l10n: l10n),
-              const SizedBox(height: AppSpacing.space16),
-            ],
-            if (summary != null && summary.totalBudget > 0)
-              BudgetStripe(
-                total: summary.totalBudget,
-                entries: entries,
-                subtitle: _subtitle(l10n),
-              ),
-            if (recent.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.space24),
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.space8),
-                child: Text(
-                  l10n.budgetRecentExpenses.toUpperCase(),
-                  style: const TextStyle(
-                    fontFamily: FontFamily.dMSans,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.2,
-                    color: ColorName.hint,
-                  ),
-                ),
-              ),
-              _RecentList(
-                items: recent,
-                canEdit: canEdit,
-                onItemTap: (item) => _showPreview(context, item),
-                onItemDelete: (item) => _deleteItem(context, item),
-              ),
             ],
+            _BudgetSection(
+              title: l10n.budgetForecastHeader,
+              subtitle: l10n.budgetForecastSubtitle,
+              items: forecasted,
+              canEdit: canEdit,
+              emptyMessage: l10n.budgetForecastEmpty,
+              onItemTap: (item) => _showPreview(context, item),
+              onItemDelete: (item) => _deleteItem(context, item),
+            ),
+            const SizedBox(height: AppSpacing.space24),
+            _BudgetSection(
+              title: l10n.budgetRealHeader,
+              subtitle: l10n.budgetRealSubtitle,
+              items: confirmed,
+              canEdit: canEdit,
+              emptyMessage: l10n.budgetRealEmpty,
+              onItemTap: (item) => _showPreview(context, item),
+              onItemDelete: (item) => _deleteItem(context, item),
+            ),
           ],
         ),
         if (canEdit)
@@ -213,33 +194,109 @@ class BudgetPanel extends StatelessWidget {
     );
   }
 
-  String _subtitle(AppLocalizations l10n) {
-    if (totalDays <= 0) return l10n.reviewBudgetEstimationPrefix;
-    return '${l10n.reviewBudgetEstimationPrefix} · ${l10n.summaryDaysCount(totalDays)}';
-  }
-
-  List<BudgetStripeEntry> _breakdownEntries(
-    BudgetSummary summary,
-    AppLocalizations l10n,
-  ) {
-    final remapped = <String, dynamic>{};
-    summary.byCategory.forEach((key, value) {
-      final normalized = _normalize(key);
-      if (normalized != null) remapped[normalized] = value;
+  List<BudgetItem> _sortDesc(List<BudgetItem> list) {
+    list.sort((a, b) {
+      final aDate = a.date ?? a.createdAt ?? DateTime(1970);
+      final bDate = b.date ?? b.createdAt ?? DateTime(1970);
+      return bDate.compareTo(aDate);
     });
-    return extractBudgetEntries(l10n, remapped);
+    return list;
   }
+}
 
-  String? _normalize(String key) {
-    final lower = key.toLowerCase();
-    if (lower.contains('flight')) return 'flights';
-    if (lower.contains('accommodation') || lower.contains('hotel')) {
-      return 'accommodation';
-    }
-    if (lower.contains('food') || lower.contains('meal')) return 'meals';
-    if (lower.contains('transport')) return 'transport';
-    if (lower.contains('activit')) return 'activities';
-    return null;
+/// A single budget section (Forecasted / Real). Shows a serif section title,
+/// a quiet subtitle, and a rounded list of items — or a light empty hint
+/// when the section is empty. Both sections are always rendered so the user
+/// can see the two totals at a glance.
+class _BudgetSection extends StatelessWidget {
+  const _BudgetSection({
+    required this.title,
+    required this.subtitle,
+    required this.items,
+    required this.canEdit,
+    required this.emptyMessage,
+    required this.onItemTap,
+    required this.onItemDelete,
+  });
+
+  final String title;
+  final String subtitle;
+  final List<BudgetItem> items;
+  final bool canEdit;
+  final String emptyMessage;
+  final void Function(BudgetItem) onItemTap;
+  final void Function(BudgetItem) onItemDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title.toUpperCase(),
+          style: const TextStyle(
+            fontFamily: FontFamily.b612,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 2.4,
+            color: Color(0xFF6B7280),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.space4),
+        Text(
+          subtitle,
+          style: TextStyle(
+            fontFamily: FontFamily.dMSans,
+            fontSize: 12,
+            color: AppColors.reviewInk.withValues(alpha: 0.55),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.space12),
+        if (items.isEmpty)
+          _EmptySectionPlaceholder(message: emptyMessage)
+        else
+          _RecentList(
+            items: items,
+            canEdit: canEdit,
+            onItemTap: onItemTap,
+            onItemDelete: onItemDelete,
+          ),
+      ],
+    );
+  }
+}
+
+class _EmptySectionPlaceholder extends StatelessWidget {
+  const _EmptySectionPlaceholder({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFFFBFAF7),
+        borderRadius: AppRadius.large24,
+        border: Border.all(
+          color: const Color(0xFF0D1F35).withValues(alpha: 0.06),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.space16,
+          vertical: AppSpacing.space16,
+        ),
+        child: Text(
+          message,
+          style: TextStyle(
+            fontFamily: FontFamily.dMSans,
+            fontSize: 13,
+            fontStyle: FontStyle.italic,
+            color: AppColors.reviewInk.withValues(alpha: 0.55),
+          ),
+        ),
+      ),
+    );
   }
 }
 

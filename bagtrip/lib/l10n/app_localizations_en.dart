@@ -3016,7 +3016,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budgetRealHeader => 'Real';
 
   @override
+  String get budgetRealSubtitle => 'What you\'ve actually spent and validated.';
+
+  @override
+  String get budgetRealEmpty =>
+      'No expense logged yet. Add one to start tracking.';
+
+  @override
   String get budgetForecastHeader => 'Forecast';
+
+  @override
+  String get budgetForecastSubtitle =>
+      'What the plan estimates you will spend.';
+
+  @override
+  String get budgetForecastEmpty =>
+      'No forecast yet. Add a planned item or let the AI plan fill this in.';
 
   @override
   String budgetDeltaOver(String amount) {

@@ -1504,7 +1504,11 @@
     }
   },
   "budgetRealHeader": "Réel",
+  "budgetRealSubtitle": "Ce que vous avez déjà dépensé et validé.",
+  "budgetRealEmpty": "Aucune dépense pour l'instant. Ajoutez-en une pour démarrer le suivi.",
   "budgetForecastHeader": "Prévisionnel",
+  "budgetForecastSubtitle": "Ce que le plan estime que vous dépenserez.",
+  "budgetForecastEmpty": "Pas de prévision pour l'instant. Ajoutez une ligne planifiée ou laissez l'IA la remplir.",
   "budgetDeltaOver": "Le réel dépasse le prévisionnel de {amount}",
   "@budgetDeltaOver": {
     "placeholders": {"amount": {"type": "String"}}

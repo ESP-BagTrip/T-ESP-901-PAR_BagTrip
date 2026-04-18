@@ -3036,7 +3036,22 @@ class AppLocalizationsFr extends AppLocalizations {
   String get budgetRealHeader => 'Réel';
 
   @override
+  String get budgetRealSubtitle => 'Ce que vous avez déjà dépensé et validé.';
+
+  @override
+  String get budgetRealEmpty =>
+      'Aucune dépense pour l\'instant. Ajoutez-en une pour démarrer le suivi.';
+
+  @override
   String get budgetForecastHeader => 'Prévisionnel';
+
+  @override
+  String get budgetForecastSubtitle =>
+      'Ce que le plan estime que vous dépenserez.';
+
+  @override
+  String get budgetForecastEmpty =>
+      'Pas de prévision pour l\'instant. Ajoutez une ligne planifiée ou laissez l\'IA la remplir.';
 
   @override
   String budgetDeltaOver(String amount) {

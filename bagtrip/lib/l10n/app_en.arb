@@ -1504,7 +1504,11 @@
     }
   },
   "budgetRealHeader": "Real",
+  "budgetRealSubtitle": "What you've actually spent and validated.",
+  "budgetRealEmpty": "No expense logged yet. Add one to start tracking.",
   "budgetForecastHeader": "Forecast",
+  "budgetForecastSubtitle": "What the plan estimates you will spend.",
+  "budgetForecastEmpty": "No forecast yet. Add a planned item or let the AI plan fill this in.",
   "budgetDeltaOver": "Real is {amount} above the forecast",
   "@budgetDeltaOver": {
     "placeholders": {"amount": {"type": "String"}}

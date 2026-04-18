@@ -5421,11 +5421,35 @@ abstract class AppLocalizations {
   /// **'Réel'**
   String get budgetRealHeader;
 
+  /// No description provided for @budgetRealSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce que vous avez déjà dépensé et validé.'**
+  String get budgetRealSubtitle;
+
+  /// No description provided for @budgetRealEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune dépense pour l\'instant. Ajoutez-en une pour démarrer le suivi.'**
+  String get budgetRealEmpty;
+
   /// No description provided for @budgetForecastHeader.
   ///
   /// In fr, this message translates to:
   /// **'Prévisionnel'**
   String get budgetForecastHeader;
+
+  /// No description provided for @budgetForecastSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce que le plan estime que vous dépenserez.'**
+  String get budgetForecastSubtitle;
+
+  /// No description provided for @budgetForecastEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas de prévision pour l\'instant. Ajoutez une ligne planifiée ou laissez l\'IA la remplir.'**
+  String get budgetForecastEmpty;
 
   /// No description provided for @budgetDeltaOver.
   ///
