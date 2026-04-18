@@ -340,6 +340,29 @@ async def update_trip_status(
 
 
 @router.get(
+    "/{tripId}/completion-debug",
+    summary="Per-segment completion breakdown (dev-only)",
+    description=(
+        "Returns the four completion segments (flights / accommodations / "
+        "activities / baggage) with total, done, skipped, percentage. "
+        "Disabled in production — the endpoint answers 404 when NODE_ENV=production."
+    ),
+)
+async def get_trip_completion_debug(
+    access: Annotated[TripAccess, Depends(get_trip_owner_access)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Debug endpoint — expose the completion formula for support cases."""
+    from src.config.env import settings
+
+    if settings.NODE_ENV == "production":
+        raise create_http_exception(
+            AppError("NOT_AVAILABLE_IN_PROD", 404, "Debug endpoints are disabled in production"),
+        )
+    return TripsService.compute_completion_breakdown(db, access.trip)
+
+
+@router.get(
     "/{tripId}/weather",
     response_model=WeatherResponse,
     summary="Get current weather for trip destination",

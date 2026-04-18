@@ -400,6 +400,66 @@ class TestUpdateTripTracking:
         assert response.status_code == 403
 
 
+class TestCompletionDebug:
+    """Tests for GET /v1/trips/{tripId}/completion-debug."""
+
+    @patch("src.api.trips.routes.TripsService")
+    def test_returns_breakdown_in_dev(
+        self,
+        mock_service,
+        client,
+        override_get_current_user,
+        override_get_db,
+        override_trip_access,
+        mock_trip,
+    ):
+        from src.config.env import settings
+
+        original = settings.NODE_ENV
+        settings.NODE_ENV = "development"
+        try:
+            mock_service.compute_completion_breakdown.return_value = {
+                "overall": 25,
+                "segments": {
+                    "flights": {"total": 0, "done": 0, "skipped": False, "percentage": 0},
+                    "accommodations": {
+                        "total": 1,
+                        "done": 1,
+                        "skipped": False,
+                        "percentage": 100,
+                    },
+                    "activities": {"total": 7, "done": 0, "skipped": False, "percentage": 0},
+                    "baggage": {"total": 15, "done": 0, "skipped": False, "percentage": 0},
+                },
+            }
+            response = client.get(f"/v1/trips/{mock_trip.id}/completion-debug")
+        finally:
+            settings.NODE_ENV = original
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["overall"] == 25
+        assert body["segments"]["accommodations"]["percentage"] == 100
+
+    def test_returns_404_in_production(
+        self,
+        client,
+        override_get_current_user,
+        override_get_db,
+        override_trip_access,
+        mock_trip,
+    ):
+        from src.config.env import settings
+
+        original = settings.NODE_ENV
+        settings.NODE_ENV = "production"
+        try:
+            response = client.get(f"/v1/trips/{mock_trip.id}/completion-debug")
+        finally:
+            settings.NODE_ENV = original
+        assert response.status_code == 404
+
+
 class TestDeleteTrip:
     """Tests for DELETE /v1/trips/{tripId}."""
 

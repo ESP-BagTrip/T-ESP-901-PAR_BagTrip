@@ -248,6 +248,69 @@ class TripsService:
         return result
 
     @staticmethod
+    def compute_completion_breakdown(db: Session, trip: Trip) -> dict[str, dict[str, object]]:
+        """Per-segment debug view of the completion formula.
+
+        Mirrors :meth:`compute_completion_batch` for a single trip and exposes
+        the intermediate counts so support / devs can tell **why** a trip shows
+        a given score. Used by `/v1/trips/{id}/completion-debug`.
+        """
+        validated_values = (ValidationStatus.VALIDATED, ValidationStatus.MANUAL)
+
+        def _pair(model, filter_done) -> tuple[int, int]:
+            total = db.query(model).filter(model.trip_id == trip.id).count()
+            done = db.query(model).filter(model.trip_id == trip.id).filter(filter_done).count()
+            return total, done
+
+        flight_total, flight_done = _pair(
+            ManualFlight, ManualFlight.validation_status.in_(validated_values)
+        )
+        acc_total, acc_done = _pair(
+            Accommodation, Accommodation.validation_status.in_(validated_values)
+        )
+        act_total, act_done = _pair(Activity, Activity.validation_status.in_(validated_values))
+        bag_total, bag_done = _pair(BaggageItem, BaggageItem.is_packed.is_(True))
+
+        def _segment(total: int, done: int, *, skipped: bool) -> int:
+            if skipped:
+                return 100
+            if total == 0:
+                return 0
+            return round(done / total * 100)
+
+        flights_skipped = trip.flights_tracking == TrackingStatus.SKIPPED
+        acc_skipped = trip.accommodations_tracking == TrackingStatus.SKIPPED
+
+        segments = {
+            "flights": {
+                "total": flight_total,
+                "done": flight_done,
+                "skipped": flights_skipped,
+                "percentage": _segment(flight_total, flight_done, skipped=flights_skipped),
+            },
+            "accommodations": {
+                "total": acc_total,
+                "done": acc_done,
+                "skipped": acc_skipped,
+                "percentage": _segment(acc_total, acc_done, skipped=acc_skipped),
+            },
+            "activities": {
+                "total": act_total,
+                "done": act_done,
+                "skipped": False,
+                "percentage": _segment(act_total, act_done, skipped=False),
+            },
+            "baggage": {
+                "total": bag_total,
+                "done": bag_done,
+                "skipped": False,
+                "percentage": _segment(bag_total, bag_done, skipped=False),
+            },
+        }
+        overall = round(sum(int(seg["percentage"]) for seg in segments.values()) / len(segments))
+        return {"overall": overall, "segments": segments}
+
+    @staticmethod
     def get_trip_by_id(db: Session, trip_id: UUID, user_id: UUID) -> Trip | None:
         """Récupérer un trip par ID (vérifie que l'utilisateur en est propriétaire)."""
         return db.query(Trip).filter(Trip.id == trip_id, Trip.user_id == user_id).first()
