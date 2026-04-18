@@ -20,11 +20,12 @@ from src.api.ai.plan_trip_schemas import AcceptPlanRequest, PlanTripRequest
 from src.api.auth.middleware import get_current_user
 from src.api.auth.plan_guard import require_ai_quota
 from src.config.database import get_db
-from src.enums import FlightType, ValidationStatus
+from src.enums import BudgetCategory, FlightType, ValidationStatus
 from src.integrations.aviation_data.service import AviationDataService
 from src.models.accommodation import Accommodation
 from src.models.activity import Activity
 from src.models.baggage_item import BaggageItem
+from src.models.budget_item import BudgetItem
 from src.models.manual_flight import ManualFlight
 from src.models.user import User
 from src.services.trip_planner_service import TripPlannerService
@@ -134,6 +135,75 @@ def _parse_iso_datetime(value: object) -> datetime | None:
         return datetime.fromisoformat(value)
     except ValueError:
         return None
+
+
+def _compute_nights(start: date | None, end: date | None) -> int:
+    """Number of nights between two trip dates, 0 when either side is missing."""
+    if start is None or end is None:
+        return 0
+    delta = (end - start).days
+    return max(delta, 0)
+
+
+def _combine_date_to_utc_datetime(value: date | None) -> datetime | None:
+    """Accommodation.check_in/check_out are `DateTime(timezone=True)`; the trip
+    carries plain dates, so we combine them to midnight UTC."""
+    from datetime import UTC, time
+
+    if value is None:
+        return None
+    return datetime.combine(value, time.min, tzinfo=UTC)
+
+
+def _build_budget_item(
+    *,
+    trip_id,
+    label: str,
+    amount: float,
+    category: str,
+    source_type: str | None = None,
+    source_id=None,
+    item_date: date | None = None,
+) -> BudgetItem:
+    """Factory for forecast budget lines created at plan acceptance time."""
+    return BudgetItem(
+        trip_id=trip_id,
+        label=label,
+        amount=amount,
+        category=category,
+        date=item_date,
+        is_planned=True,
+        source_type=source_type,
+        source_id=source_id,
+    )
+
+
+def _maybe_add_flight_budget(
+    db,
+    trip_id,
+    flight: ManualFlight,
+    flight_data: dict,
+) -> None:
+    """Add a forecast BudgetItem for a flight leg when the suggestion has a
+    price. Skip silently when the LLM omits it (we keep the flight row; budget
+    just doesn't count the leg)."""
+    price = flight_data.get("price")
+    if not price:
+        return
+    label = (
+        f"{flight.flight_type.title()} flight "
+        f"{flight.departure_airport or '?'}→{flight.arrival_airport or '?'}"
+    )
+    db.add(
+        _build_budget_item(
+            trip_id=trip_id,
+            label=label,
+            amount=float(price),
+            category=BudgetCategory.FLIGHT,
+            source_type="manual_flight",
+            source_id=flight.id,
+        )
+    )
 
 
 def _build_manual_flight(
@@ -300,34 +370,68 @@ async def accept_plan(
                     validation_status=ValidationStatus.SUGGESTED,
                 )
                 db.add(activity)
+                db.flush()
+                estimated = act.get("estimatedCost")
+                if estimated:
+                    db.add(
+                        _build_budget_item(
+                            trip_id=trip.id,
+                            label=activity.title,
+                            amount=float(estimated),
+                            category=BudgetCategory.ACTIVITY,
+                            source_type="activity",
+                            source_id=activity.id,
+                            item_date=activity_date,
+                        )
+                    )
 
-        # --- Persist accommodations ---
+        # --- Persist accommodations + forecast budget line ---
         accommodations_data = suggestion.get("accommodations", [])
+        trip_nights = _compute_nights(trip.start_date, trip.end_date)
         for acc in accommodations_data:
+            check_in_value = _combine_date_to_utc_datetime(trip.start_date)
+            check_out_value = _combine_date_to_utc_datetime(trip.end_date)
             accommodation = Accommodation(
                 trip_id=trip.id,
                 name=acc.get("name", "Hébergement"),
                 address=acc.get("address"),
+                check_in=check_in_value,
+                check_out=check_out_value,
                 price_per_night=acc.get("price_per_night"),
                 currency=acc.get("currency", "EUR"),
                 notes=acc.get("notes"),
                 validation_status=ValidationStatus.SUGGESTED,
             )
             db.add(accommodation)
+            db.flush()  # get accommodation.id for the budget item source_id
+            price_per_night = acc.get("price_per_night")
+            if price_per_night and trip_nights > 0:
+                total_amount = float(price_per_night) * trip_nights
+                db.add(
+                    _build_budget_item(
+                        trip_id=trip.id,
+                        label=accommodation.name,
+                        amount=total_amount,
+                        category=BudgetCategory.ACCOMMODATION,
+                        source_type="accommodation",
+                        source_id=accommodation.id,
+                    )
+                )
 
-        # --- Persist AI-suggested flights (outbound + optional return) ---
+        # --- Persist AI-suggested flights (outbound + optional return) + budget ---
         flight_data = suggestion.get("flight")
         if flight_data and isinstance(flight_data, dict):
             dep_airport, arr_airport = _parse_flight_route(flight_data.get("route", ""))
-            db.add(
-                _build_manual_flight(
-                    trip_id=trip.id,
-                    flight_data=flight_data,
-                    flight_type=FlightType.MAIN,
-                    dep_airport=dep_airport,
-                    arr_airport=arr_airport,
-                )
+            outbound = _build_manual_flight(
+                trip_id=trip.id,
+                flight_data=flight_data,
+                flight_type=FlightType.MAIN,
+                dep_airport=dep_airport,
+                arr_airport=arr_airport,
             )
+            db.add(outbound)
+            db.flush()
+            _maybe_add_flight_budget(db, trip.id, outbound, flight_data)
 
             # Return flight — LLM may surface it as suggestion["return_flight"].
             # Airports are swapped so the row reads as "home IATA ← destination".
@@ -338,15 +442,16 @@ async def accept_plan(
                 # the return route — the payload is otherwise complete.
                 if not ret_dep and not ret_arr:
                     ret_dep, ret_arr = arr_airport, dep_airport
-                db.add(
-                    _build_manual_flight(
-                        trip_id=trip.id,
-                        flight_data=return_data,
-                        flight_type=FlightType.RETURN,
-                        dep_airport=ret_dep,
-                        arr_airport=ret_arr,
-                    )
+                return_flight = _build_manual_flight(
+                    trip_id=trip.id,
+                    flight_data=return_data,
+                    flight_type=FlightType.RETURN,
+                    dep_airport=ret_dep,
+                    arr_airport=ret_arr,
                 )
+                db.add(return_flight)
+                db.flush()
+                _maybe_add_flight_budget(db, trip.id, return_flight, return_data)
 
         # --- Persist baggage items (AI-generated or i18n defaults) ---
         ai_baggage = suggestion.get("baggage", [])

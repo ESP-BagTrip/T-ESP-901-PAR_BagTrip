@@ -1,10 +1,12 @@
 """Tests for Phase 4 (API-6/7/8): IATA, baggage, destination selection."""
 
-from datetime import datetime
+from datetime import UTC, date, datetime, time
 
 from src.api.ai.plan_trip_routes import (
     _DEFAULT_BAGGAGE_I18N,
     _build_manual_flight,
+    _combine_date_to_utc_datetime,
+    _compute_nights,
     _get_default_baggage,
     _parse_iso_datetime,
 )
@@ -164,6 +166,30 @@ def test_parse_iso_datetime_handles_valid_and_invalid():
     assert _parse_iso_datetime("") is None
     assert _parse_iso_datetime("not-a-date") is None
     assert _parse_iso_datetime(None) is None
+
+
+def test_compute_nights_basic():
+    assert _compute_nights(date(2026, 4, 23), date(2026, 4, 30)) == 7
+
+
+def test_compute_nights_returns_zero_on_missing():
+    assert _compute_nights(None, date(2026, 1, 1)) == 0
+    assert _compute_nights(date(2026, 1, 1), None) == 0
+    assert _compute_nights(None, None) == 0
+
+
+def test_compute_nights_clamps_negative():
+    assert _compute_nights(date(2026, 5, 10), date(2026, 5, 1)) == 0
+
+
+def test_combine_date_to_utc_datetime_uses_midnight():
+    result = _combine_date_to_utc_datetime(date(2026, 4, 23))
+    assert result == datetime(2026, 4, 23, 0, 0, tzinfo=UTC)
+    assert result.time() == time.min
+
+
+def test_combine_date_to_utc_datetime_accepts_none():
+    assert _combine_date_to_utc_datetime(None) is None
 
 
 def test_return_flight_swaps_airports_when_route_missing():
