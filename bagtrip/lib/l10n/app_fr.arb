@@ -1490,5 +1490,27 @@
   "panelSkipFlightsCta": "Ne pas suivre mes vols",
   "panelSkipAccommodationsCta": "Ne pas suivre mes hébergements",
   "panelResumeFlightsCta": "Reprendre le suivi de mes vols",
-  "panelResumeAccommodationsCta": "Reprendre le suivi de mes hébergements"
+  "panelResumeAccommodationsCta": "Reprendre le suivi de mes hébergements",
+  "validationBoardEyebrow": "Validation",
+  "validationBoardSubtitle": "Ce qu'il reste à valider avant de partir.",
+  "validationBoardStatusSkipped": "Vous gérez ça vous-même",
+  "validationBoardStatusNothing": "Rien à valider pour l'instant",
+  "validationBoardStatusAllDone": "Tout est validé",
+  "validationBoardStatusRemaining": "{remaining} sur {total} à valider",
+  "@validationBoardStatusRemaining": {
+    "placeholders": {
+      "remaining": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "budgetRealHeader": "Réel",
+  "budgetForecastHeader": "Prévisionnel",
+  "budgetDeltaOver": "Le réel dépasse le prévisionnel de {amount}",
+  "@budgetDeltaOver": {
+    "placeholders": {"amount": {"type": "String"}}
+  },
+  "budgetDeltaUnder": "Il reste {amount} sur le prévisionnel",
+  "@budgetDeltaUnder": {
+    "placeholders": {"amount": {"type": "String"}}
+  }
 }

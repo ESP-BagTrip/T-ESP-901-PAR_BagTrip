@@ -3010,4 +3010,41 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get panelResumeAccommodationsCta =>
       'Reprendre le suivi de mes hébergements';
+
+  @override
+  String get validationBoardEyebrow => 'Validation';
+
+  @override
+  String get validationBoardSubtitle =>
+      'Ce qu\'il reste à valider avant de partir.';
+
+  @override
+  String get validationBoardStatusSkipped => 'Vous gérez ça vous-même';
+
+  @override
+  String get validationBoardStatusNothing => 'Rien à valider pour l\'instant';
+
+  @override
+  String get validationBoardStatusAllDone => 'Tout est validé';
+
+  @override
+  String validationBoardStatusRemaining(int remaining, int total) {
+    return '$remaining sur $total à valider';
+  }
+
+  @override
+  String get budgetRealHeader => 'Réel';
+
+  @override
+  String get budgetForecastHeader => 'Prévisionnel';
+
+  @override
+  String budgetDeltaOver(String amount) {
+    return 'Le réel dépasse le prévisionnel de $amount';
+  }
+
+  @override
+  String budgetDeltaUnder(String amount) {
+    return 'Il reste $amount sur le prévisionnel';
+  }
 }

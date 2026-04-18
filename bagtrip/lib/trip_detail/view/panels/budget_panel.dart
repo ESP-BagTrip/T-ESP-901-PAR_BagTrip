@@ -2,6 +2,7 @@ import 'package:bagtrip/budget/widgets/budget_item_form.dart';
 import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
 import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/core/extensions/price_format_ext.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/category_mappers.dart';
 import 'package:bagtrip/design/tokens.dart';
@@ -13,7 +14,6 @@ import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/budget_item.dart';
-import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/plan_trip/helpers/budget_breakdown.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:flutter/material.dart';
@@ -44,14 +44,6 @@ class BudgetPanel extends StatelessWidget {
   final String role;
 
   static const int _recentCount = 5;
-
-  void _openFullPage(BuildContext context) {
-    BudgetRoute(
-      tripId: tripId,
-      role: role,
-      isCompleted: isCompleted,
-    ).push(context);
-  }
 
   Future<void> _showAddSheet(BuildContext context) async {
     final bloc = context.read<TripDetailBloc>();
@@ -121,8 +113,6 @@ class BudgetPanel extends StatelessWidget {
               isDestructive: true,
             )
           : null,
-      openFullLabel: l10n.panelOpenFullBudget,
-      onOpenFull: () => _openFullPage(context),
     );
   }
 
@@ -174,6 +164,12 @@ class BudgetPanel extends StatelessWidget {
               BudgetAlertBanner(summary: summary),
               const SizedBox(height: AppSpacing.space12),
             ],
+            if (summary != null &&
+                (summary.confirmedTotal > 0 ||
+                    summary.forecastedTotal > 0)) ...[
+              _DualTotalCard(summary: summary, l10n: l10n),
+              const SizedBox(height: AppSpacing.space16),
+            ],
             if (summary != null && summary.totalBudget > 0)
               BudgetStripe(
                 total: summary.totalBudget,
@@ -202,21 +198,6 @@ class BudgetPanel extends StatelessWidget {
                 onItemDelete: (item) => _deleteItem(context, item),
               ),
             ],
-            const SizedBox(height: AppSpacing.space16),
-            Center(
-              child: TextButton(
-                onPressed: () => _openFullPage(context),
-                child: Text(
-                  l10n.panelOpenFullBudget,
-                  style: const TextStyle(
-                    fontFamily: FontFamily.dMSans,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: ColorName.hint,
-                  ),
-                ),
-              ),
-            ),
           ],
         ),
         if (canEdit)
@@ -259,6 +240,126 @@ class BudgetPanel extends StatelessWidget {
     if (lower.contains('transport')) return 'transport';
     if (lower.contains('activit')) return 'activities';
     return null;
+  }
+}
+
+/// Luxury card surfacing the two totals the user asked for: **real** (already
+/// validated expenses) vs **forecasted** (proposed, pending validation).
+/// The backend already splits them via `BudgetSummary.confirmedTotal` and
+/// `forecastedTotal`; this widget just renders them side-by-side with a
+/// hairline divider and a whisper delta.
+class _DualTotalCard extends StatelessWidget {
+  const _DualTotalCard({required this.summary, required this.l10n});
+
+  final BudgetSummary summary;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    final delta = summary.confirmedTotal - summary.forecastedTotal;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFFFBFAF7),
+        borderRadius: AppRadius.large24,
+        border: Border.all(
+          color: const Color(0xFF0D1F35).withValues(alpha: 0.06),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.space24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            IntrinsicHeight(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _DualTotalColumn(
+                      label: l10n.budgetRealHeader,
+                      amount: summary.confirmedTotal,
+                      accent: AppColors.reviewInk,
+                    ),
+                  ),
+                  const VerticalDivider(
+                    width: AppSpacing.space24,
+                    thickness: 0.5,
+                    color: AppColors.reviewDividerFaint,
+                  ),
+                  Expanded(
+                    child: _DualTotalColumn(
+                      label: l10n.budgetForecastHeader,
+                      amount: summary.forecastedTotal,
+                      accent: AppColors.reviewMuted,
+                      italic: true,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (delta != 0) ...[
+              const SizedBox(height: AppSpacing.space16),
+              Text(
+                delta > 0
+                    ? l10n.budgetDeltaOver(delta.formatPrice())
+                    : l10n.budgetDeltaUnder((-delta).formatPrice()),
+                style: TextStyle(
+                  fontFamily: FontFamily.dMSans,
+                  fontSize: 12,
+                  letterSpacing: 0.2,
+                  color: AppColors.reviewInk.withValues(alpha: 0.55),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DualTotalColumn extends StatelessWidget {
+  const _DualTotalColumn({
+    required this.label,
+    required this.amount,
+    required this.accent,
+    this.italic = false,
+  });
+
+  final String label;
+  final double amount;
+  final Color accent;
+  final bool italic;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: const TextStyle(
+            fontFamily: FontFamily.b612,
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 2.8,
+            color: Color(0xFF6B7280),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.space8),
+        Text(
+          amount.formatPrice(),
+          style: TextStyle(
+            fontFamily: FontFamily.dMSerifDisplay,
+            fontSize: 32,
+            height: 1,
+            fontWeight: FontWeight.w400,
+            letterSpacing: -1,
+            fontStyle: italic ? FontStyle.italic : FontStyle.normal,
+            color: accent,
+          ),
+        ),
+      ],
+    );
   }
 }
 

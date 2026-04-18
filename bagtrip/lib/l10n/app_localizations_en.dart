@@ -2990,4 +2990,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get panelResumeAccommodationsCta => 'Let BagTrip track my stays again';
+
+  @override
+  String get validationBoardEyebrow => 'Validation';
+
+  @override
+  String get validationBoardSubtitle =>
+      'What\'s left before your trip is locked in.';
+
+  @override
+  String get validationBoardStatusSkipped => 'You\'re handling this yourself';
+
+  @override
+  String get validationBoardStatusNothing => 'Nothing to validate yet';
+
+  @override
+  String get validationBoardStatusAllDone => 'All validated';
+
+  @override
+  String validationBoardStatusRemaining(int remaining, int total) {
+    return '$remaining of $total left';
+  }
+
+  @override
+  String get budgetRealHeader => 'Real';
+
+  @override
+  String get budgetForecastHeader => 'Forecast';
+
+  @override
+  String budgetDeltaOver(String amount) {
+    return 'Real is $amount above the forecast';
+  }
+
+  @override
+  String budgetDeltaUnder(String amount) {
+    return 'Real is $amount under the forecast';
+  }
 }

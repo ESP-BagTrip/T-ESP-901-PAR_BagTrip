@@ -15,7 +15,6 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/accommodation.dart';
 import 'package:bagtrip/models/trip.dart';
-import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/view/panels/skipped_panel_state.dart';
 import 'package:flutter/material.dart';
@@ -42,17 +41,6 @@ class HotelPanel extends StatelessWidget {
   final bool canEdit;
   final bool isCompleted;
   final String role;
-
-  void _openFullPage(BuildContext context) {
-    AccommodationsRoute(
-      tripId: tripId,
-      role: role,
-      isCompleted: isCompleted,
-      tripStartDate: trip.startDate?.toIso8601String(),
-      tripEndDate: trip.endDate?.toIso8601String(),
-      destinationIata: trip.destinationIata,
-    ).push(context);
-  }
 
   Future<void> _showAddSheet(BuildContext context) async {
     final bloc = context.read<TripDetailBloc>();
@@ -118,14 +106,7 @@ class HotelPanel extends StatelessWidget {
                 _showEditSheet(context, acc);
               },
             )
-          : QuickPreviewAction(
-              label: l10n.panelOpenFullAccommodations,
-              icon: Icons.arrow_forward_rounded,
-              onPressed: () {
-                Navigator.of(context).pop();
-                _openFullPage(context);
-              },
-            ),
+          : null,
       destructiveAction: canEdit
           ? QuickPreviewAction(
               label: l10n.panelActionDelete,
@@ -137,8 +118,6 @@ class HotelPanel extends StatelessWidget {
               isDestructive: true,
             )
           : null,
-      openFullLabel: l10n.panelOpenFullAccommodations,
-      onOpenFull: () => _openFullPage(context),
     );
   }
 
@@ -220,27 +199,11 @@ class HotelPanel extends StatelessWidget {
             AppSpacing.space16,
             AppSpacing.space56 + AppSpacing.space40,
           ),
-          itemCount: sortedList.length + (canEdit ? 2 : 1),
+          itemCount: sortedList.length + (canEdit ? 1 : 0),
           separatorBuilder: (_, _) =>
               const SizedBox(height: AppSpacing.space16),
           itemBuilder: (context, index) {
-            if (index == sortedList.length) {
-              return Center(
-                child: TextButton(
-                  onPressed: () => _openFullPage(context),
-                  child: Text(
-                    l10n.panelOpenFullAccommodations,
-                    style: const TextStyle(
-                      fontFamily: FontFamily.dMSans,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: ColorName.hint,
-                    ),
-                  ),
-                ),
-              );
-            }
-            if (canEdit && index == sortedList.length + 1) {
+            if (canEdit && index == sortedList.length) {
               return Center(
                 child: TextButton(
                   onPressed: () => _toggleTracking(context, skip: true),

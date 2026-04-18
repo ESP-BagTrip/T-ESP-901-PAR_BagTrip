@@ -23,7 +23,7 @@ import 'package:bagtrip/trip_detail/view/panels/essentials_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/flights_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/hotel_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/itinerary_panel.dart';
-import 'package:bagtrip/trip_detail/view/panels/overview_panel.dart';
+import 'package:bagtrip/trip_detail/view/panels/validation_board_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/shares_panel.dart';
 import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
 import 'package:bagtrip/trip_detail/widgets/date_range_picker_sheet.dart';
@@ -209,7 +209,7 @@ class _LoadedTripViewState extends State<_LoadedTripView>
                     child: TabBarView(
                       controller: _tabController,
                       children: [
-                        OverviewPanel(
+                        ValidationBoardPanel(
                           state: state,
                           onJumpToTab: _tabController.animateTo,
                         ),

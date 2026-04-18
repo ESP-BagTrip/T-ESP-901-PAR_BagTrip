@@ -5378,6 +5378,66 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Reprendre le suivi de mes hébergements'**
   String get panelResumeAccommodationsCta;
+
+  /// No description provided for @validationBoardEyebrow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Validation'**
+  String get validationBoardEyebrow;
+
+  /// No description provided for @validationBoardSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce qu\'il reste à valider avant de partir.'**
+  String get validationBoardSubtitle;
+
+  /// No description provided for @validationBoardStatusSkipped.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous gérez ça vous-même'**
+  String get validationBoardStatusSkipped;
+
+  /// No description provided for @validationBoardStatusNothing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien à valider pour l\'instant'**
+  String get validationBoardStatusNothing;
+
+  /// No description provided for @validationBoardStatusAllDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout est validé'**
+  String get validationBoardStatusAllDone;
+
+  /// No description provided for @validationBoardStatusRemaining.
+  ///
+  /// In fr, this message translates to:
+  /// **'{remaining} sur {total} à valider'**
+  String validationBoardStatusRemaining(int remaining, int total);
+
+  /// No description provided for @budgetRealHeader.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réel'**
+  String get budgetRealHeader;
+
+  /// No description provided for @budgetForecastHeader.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prévisionnel'**
+  String get budgetForecastHeader;
+
+  /// No description provided for @budgetDeltaOver.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le réel dépasse le prévisionnel de {amount}'**
+  String budgetDeltaOver(String amount);
+
+  /// No description provided for @budgetDeltaUnder.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il reste {amount} sur le prévisionnel'**
+  String budgetDeltaUnder(String amount);
 }
 
 class _AppLocalizationsDelegate

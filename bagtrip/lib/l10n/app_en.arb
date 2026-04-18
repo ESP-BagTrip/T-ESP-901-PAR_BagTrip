@@ -1490,5 +1490,27 @@
   "panelSkipFlightsCta": "Don't track my flights",
   "panelSkipAccommodationsCta": "Don't track my stays",
   "panelResumeFlightsCta": "Let BagTrip track my flights again",
-  "panelResumeAccommodationsCta": "Let BagTrip track my stays again"
+  "panelResumeAccommodationsCta": "Let BagTrip track my stays again",
+  "validationBoardEyebrow": "Validation",
+  "validationBoardSubtitle": "What's left before your trip is locked in.",
+  "validationBoardStatusSkipped": "You're handling this yourself",
+  "validationBoardStatusNothing": "Nothing to validate yet",
+  "validationBoardStatusAllDone": "All validated",
+  "validationBoardStatusRemaining": "{remaining} of {total} left",
+  "@validationBoardStatusRemaining": {
+    "placeholders": {
+      "remaining": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "budgetRealHeader": "Real",
+  "budgetForecastHeader": "Forecast",
+  "budgetDeltaOver": "Real is {amount} above the forecast",
+  "@budgetDeltaOver": {
+    "placeholders": {"amount": {"type": "String"}}
+  },
+  "budgetDeltaUnder": "Real is {amount} under the forecast",
+  "@budgetDeltaUnder": {
+    "placeholders": {"amount": {"type": "String"}}
+  }
 }

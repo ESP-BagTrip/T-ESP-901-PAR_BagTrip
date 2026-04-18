@@ -10,7 +10,6 @@ import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
-import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -97,14 +96,6 @@ class ItineraryPanel extends StatelessWidget {
     ActivityCategory.relaxation => 'RELAX',
     ActivityCategory.other => 'ACT',
   };
-
-  void _openFullPage(BuildContext context) {
-    ActivitiesRoute(
-      tripId: tripId,
-      role: role,
-      isCompleted: isCompleted,
-    ).push(context);
-  }
 
   Future<void> _showAddSheet(BuildContext context) async {
     final bloc = context.read<TripDetailBloc>();
@@ -203,8 +194,6 @@ class ItineraryPanel extends StatelessWidget {
               isDestructive: true,
             )
           : null,
-      openFullLabel: l10n.panelOpenFullActivities,
-      onOpenFull: () => _openFullPage(context),
     );
   }
 
@@ -306,23 +295,10 @@ class ItineraryPanel extends StatelessWidget {
                   onTap: () => _showPreview(context, activity),
                   onEdit: () => _showEditSheet(context, activity),
                   onDelete: () => _delete(context, activity),
+                  onValidate: () => _validate(context, activity),
                   categoryLabel: _categoryLabel,
                 ),
               ),
-            Center(
-              child: TextButton(
-                onPressed: () => _openFullPage(context),
-                child: Text(
-                  l10n.panelOpenFullActivities,
-                  style: const TextStyle(
-                    fontFamily: FontFamily.dMSans,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: ColorName.hint,
-                  ),
-                ),
-              ),
-            ),
           ],
         ),
         if (canEdit)
@@ -346,6 +322,7 @@ class _ActivityRow extends StatelessWidget {
     required this.onTap,
     required this.onEdit,
     required this.onDelete,
+    required this.onValidate,
     required this.categoryLabel,
   });
 
@@ -354,17 +331,57 @@ class _ActivityRow extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback onValidate;
   final String Function(ActivityCategory) categoryLabel;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final tile = ActivityTile(
+    final isSuggested = activity.validationStatus == ValidationStatus.suggested;
+    Widget tile = ActivityTile(
       title: activity.title,
       description: activity.description ?? '',
       category: categoryLabel(activity.category),
       onTap: onTap,
     );
+
+    if (canEdit && isSuggested) {
+      tile = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          tile,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.space16,
+              0,
+              AppSpacing.space16,
+              AppSpacing.space12,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _InlineActionButton(
+                    icon: Icons.check_rounded,
+                    label: l10n.activityValidateAction,
+                    accent: ColorName.secondary,
+                    onTap: onValidate,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.space8),
+                Expanded(
+                  child: _InlineActionButton(
+                    icon: Icons.close_rounded,
+                    label: l10n.panelActionDelete,
+                    accent: ColorName.error,
+                    onTap: onDelete,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
 
     if (!canEdit) return tile;
 
@@ -401,6 +418,61 @@ class _ActivityRow extends StatelessWidget {
           ),
         ],
         child: tile,
+      ),
+    );
+  }
+}
+
+class _InlineActionButton extends StatelessWidget {
+  const _InlineActionButton({
+    required this.icon,
+    required this.label,
+    required this.accent,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color accent;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: AppRadius.pill,
+      child: Ink(
+        decoration: BoxDecoration(
+          borderRadius: AppRadius.pill,
+          border: Border.all(color: accent.withValues(alpha: 0.6)),
+          color: accent.withValues(alpha: 0.05),
+        ),
+        padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.space8,
+          horizontal: AppSpacing.space12,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 14, color: accent),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontFamily: FontFamily.dMSans,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.2,
+                  color: accent,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

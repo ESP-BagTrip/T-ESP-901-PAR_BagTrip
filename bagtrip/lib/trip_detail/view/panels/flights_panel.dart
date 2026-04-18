@@ -10,7 +10,6 @@ import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/manual_flight.dart';
-import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/transports/widgets/manual_flight_form.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/view/panels/skipped_panel_state.dart';
@@ -41,14 +40,6 @@ class FlightsPanel extends StatelessWidget {
   /// `TRACKED` (default) or `SKIPPED`. When skipped, the panel shows a
   /// stylized opt-out card instead of the list.
   final String tracking;
-
-  void _openFullPage(BuildContext context) {
-    TransportsRoute(
-      tripId: tripId,
-      role: role,
-      isCompleted: isCompleted,
-    ).push(context);
-  }
 
   Future<void> _showAddSheet(BuildContext context) async {
     final bloc = context.read<TripDetailBloc>();
@@ -111,14 +102,7 @@ class FlightsPanel extends StatelessWidget {
                 _showEditSheet(context, flight);
               },
             )
-          : QuickPreviewAction(
-              label: l10n.panelOpenFullFlights,
-              icon: Icons.arrow_forward_rounded,
-              onPressed: () {
-                Navigator.of(context).pop();
-                _openFullPage(context);
-              },
-            ),
+          : null,
       destructiveAction: canEdit
           ? QuickPreviewAction(
               label: l10n.panelActionDelete,
@@ -130,8 +114,6 @@ class FlightsPanel extends StatelessWidget {
               isDestructive: true,
             )
           : null,
-      openFullLabel: l10n.panelOpenFullFlights,
-      onOpenFull: () => _openFullPage(context),
     );
   }
 
@@ -217,27 +199,11 @@ class FlightsPanel extends StatelessWidget {
             AppSpacing.space16,
             AppSpacing.space56 + AppSpacing.space40,
           ),
-          itemCount: sortedFlights.length + (canEdit ? 2 : 1),
+          itemCount: sortedFlights.length + (canEdit ? 1 : 0),
           separatorBuilder: (_, _) =>
               const SizedBox(height: AppSpacing.space16),
           itemBuilder: (context, index) {
-            if (index == sortedFlights.length) {
-              return Center(
-                child: TextButton(
-                  onPressed: () => _openFullPage(context),
-                  child: Text(
-                    l10n.panelOpenFullFlights,
-                    style: const TextStyle(
-                      fontFamily: FontFamily.dMSans,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: ColorName.hint,
-                    ),
-                  ),
-                ),
-              );
-            }
-            if (canEdit && index == sortedFlights.length + 1) {
+            if (canEdit && index == sortedFlights.length) {
               return Center(
                 child: TextButton(
                   onPressed: () => _toggleTracking(context, skip: true),
