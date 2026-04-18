@@ -193,6 +193,39 @@ class TestUpdateActivity:
             )
         assert response.status_code == 404
 
+    def test_accepts_snake_case_validation_status(self, client: TestClient) -> None:
+        """Regression: the mobile client sends snake_case. The PATCH schema must
+        accept `validation_status` as an alias for `validationStatus`, otherwise
+        the update is silently dropped (hit on SMP-316)."""
+        activity = _make_activity(validation_status="VALIDATED")
+        with patch(
+            "src.api.activities.routes.ActivityService.update",
+            return_value=activity,
+        ) as mock_update:
+            response = client.patch(
+                f"/v1/trips/{TRIP_ID}/activities/{uuid.uuid4()}",
+                json={"validation_status": "VALIDATED"},
+            )
+        assert response.status_code == 200
+        assert response.json()["validation_status"] == "VALIDATED"
+        # The route unpacks the parsed DTO into kwargs; the alias must map into
+        # `validation_status` so the service actually applies the change.
+        assert mock_update.call_args.kwargs["validation_status"] == "VALIDATED"
+
+    def test_accepts_camel_case_validation_status(self, client: TestClient) -> None:
+        """camelCase keys keep working (other callers / tests rely on it)."""
+        activity = _make_activity(validation_status="VALIDATED")
+        with patch(
+            "src.api.activities.routes.ActivityService.update",
+            return_value=activity,
+        ) as mock_update:
+            response = client.patch(
+                f"/v1/trips/{TRIP_ID}/activities/{uuid.uuid4()}",
+                json={"validationStatus": "VALIDATED"},
+            )
+        assert response.status_code == 200
+        assert mock_update.call_args.kwargs["validation_status"] == "VALIDATED"
+
 
 class TestDeleteActivity:
     def test_success(self, client: TestClient) -> None:

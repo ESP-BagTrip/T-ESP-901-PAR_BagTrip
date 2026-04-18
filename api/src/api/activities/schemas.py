@@ -30,14 +30,16 @@ class ActivityUpdateRequest(BaseModel):
     title: str | None = None
     date: dt.date | None = None
     description: str | None = None
-    startTime: dt.time | None = None
-    endTime: dt.time | None = None
+    startTime: dt.time | None = Field(default=None, alias="start_time")
+    endTime: dt.time | None = Field(default=None, alias="end_time")
     location: str | None = None
     category: ActivityCategory | None = None
-    estimatedCost: float | None = None
-    isBooked: bool | None = None
-    isDone: bool | None = None
-    validationStatus: str | None = None
+    estimatedCost: float | None = Field(default=None, alias="estimated_cost")
+    isBooked: bool | None = Field(default=None, alias="is_booked")
+    isDone: bool | None = Field(default=None, alias="is_done")
+    validationStatus: str | None = Field(default=None, alias="validation_status")
+
+    model_config = ConfigDict(populate_by_name=True)
 
     @model_validator(mode="after")
     def validate_time_range(self) -> "ActivityUpdateRequest":

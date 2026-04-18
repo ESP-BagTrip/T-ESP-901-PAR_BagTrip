@@ -11,12 +11,15 @@ class AccommodationCreateRequest(BaseModel):
 
     name: str
     address: str | None = None
-    checkIn: datetime | None = None
-    checkOut: datetime | None = None
-    pricePerNight: float | None = None
+    checkIn: datetime | None = Field(default=None, alias="check_in")
+    checkOut: datetime | None = Field(default=None, alias="check_out")
+    pricePerNight: float | None = Field(default=None, alias="price_per_night")
     currency: str | None = None
-    bookingReference: str | None = None
+    bookingReference: str | None = Field(default=None, alias="booking_reference")
     notes: str | None = None
+    validationStatus: str | None = Field(default=None, alias="validation_status")
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class AccommodationUpdateRequest(BaseModel):
@@ -24,12 +27,15 @@ class AccommodationUpdateRequest(BaseModel):
 
     name: str | None = None
     address: str | None = None
-    checkIn: datetime | None = None
-    checkOut: datetime | None = None
-    pricePerNight: float | None = None
+    checkIn: datetime | None = Field(default=None, alias="check_in")
+    checkOut: datetime | None = Field(default=None, alias="check_out")
+    pricePerNight: float | None = Field(default=None, alias="price_per_night")
     currency: str | None = None
-    bookingReference: str | None = None
+    bookingReference: str | None = Field(default=None, alias="booking_reference")
     notes: str | None = None
+    validationStatus: str | None = Field(default=None, alias="validation_status")
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class AccommodationResponse(BaseModel):
@@ -45,6 +51,7 @@ class AccommodationResponse(BaseModel):
     currency: str | None = None
     bookingReference: str | None = Field(None, alias="booking_reference")
     notes: str | None = None
+    validationStatus: str = Field(default="MANUAL", alias="validation_status")
     createdAt: datetime = Field(..., alias="created_at")
     updatedAt: datetime = Field(..., alias="updated_at")
 

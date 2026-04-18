@@ -9,31 +9,37 @@ from pydantic import BaseModel, ConfigDict, Field
 class ManualFlightCreateRequest(BaseModel):
     """Requête de création de vol manuel."""
 
-    flightNumber: str
+    flightNumber: str = Field(..., alias="flight_number")
     airline: str | None = None
-    departureAirport: str | None = None
-    arrivalAirport: str | None = None
-    departureDate: datetime | None = None
-    arrivalDate: datetime | None = None
+    departureAirport: str | None = Field(default=None, alias="departure_airport")
+    arrivalAirport: str | None = Field(default=None, alias="arrival_airport")
+    departureDate: datetime | None = Field(default=None, alias="departure_date")
+    arrivalDate: datetime | None = Field(default=None, alias="arrival_date")
     price: float | None = None
     currency: str | None = None
     notes: str | None = None
-    flightType: str = "MAIN"
+    flightType: str = Field(default="MAIN", alias="flight_type")
+    validationStatus: str | None = Field(default=None, alias="validation_status")
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class ManualFlightUpdateRequest(BaseModel):
     """Requête de mise à jour partielle d'un vol manuel."""
 
-    flightNumber: str | None = None
+    flightNumber: str | None = Field(default=None, alias="flight_number")
     airline: str | None = None
-    departureAirport: str | None = None
-    arrivalAirport: str | None = None
-    departureDate: datetime | None = None
-    arrivalDate: datetime | None = None
+    departureAirport: str | None = Field(default=None, alias="departure_airport")
+    arrivalAirport: str | None = Field(default=None, alias="arrival_airport")
+    departureDate: datetime | None = Field(default=None, alias="departure_date")
+    arrivalDate: datetime | None = Field(default=None, alias="arrival_date")
     price: float | None = None
     currency: str | None = None
     notes: str | None = None
-    flightType: str | None = None
+    flightType: str | None = Field(default=None, alias="flight_type")
+    validationStatus: str | None = Field(default=None, alias="validation_status")
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class ManualFlightResponse(BaseModel):
@@ -51,6 +57,7 @@ class ManualFlightResponse(BaseModel):
     currency: str | None = None
     notes: str | None = None
     flightType: str = Field(..., alias="flight_type")
+    validationStatus: str = Field(default="MANUAL", alias="validation_status")
     createdAt: datetime = Field(..., alias="created_at")
     updatedAt: datetime = Field(..., alias="updated_at")
 
