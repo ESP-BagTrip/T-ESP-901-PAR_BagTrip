@@ -10,7 +10,6 @@ import 'package:bagtrip/design/widgets/review/review_day_timeline.dart';
 import 'package:bagtrip/design/widgets/review/review_decision_inline.dart';
 import 'package:bagtrip/design/widgets/review/review_inline_flight.dart';
 import 'package:bagtrip/design/widgets/review/review_inline_hotel.dart';
-import 'package:bagtrip/design/widgets/review/review_summary_line.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
@@ -67,21 +66,12 @@ class StepReviewView extends StatelessWidget {
                   travelersLabel: l10n.reviewSummaryTravelers(
                     state.nbTravelers,
                   ),
-                  onEditDates: () => _showDateEditor(context, state),
                   onBack: () => context.read<PlanTripBloc>().add(
                     const PlanTripEvent.backToProposals(),
                   ),
                   onClose: () => const HomeRoute().go(context),
                 ),
-                ReviewSummaryLine(
-                  text: l10n.reviewSummaryLine(
-                    plan.durationDays,
-                    plan.destinationCity,
-                    l10n.reviewSummaryTravelers(state.nbTravelers),
-                  ),
-                ),
                 ReviewDayTimeline(
-                  header: l10n.reviewJourneyHeader,
                   days: days,
                   freeDayLabel: l10n.reviewDayFree,
                   dayTitleBuilder: (data) =>
@@ -323,28 +313,5 @@ class StepReviewView extends StatelessWidget {
     if (travelers <= 1 || budgetTotal <= 0) return '';
     final perPerson = budgetTotal / travelers;
     return l10n.reviewBudgetPerPerson(perPerson.formatPrice());
-  }
-
-  // --------------------------------------------------------------------------
-  // Date editor sheet
-  // --------------------------------------------------------------------------
-
-  Future<void> _showDateEditor(
-    BuildContext context,
-    PlanTripState state,
-  ) async {
-    final (start, end) = state.representativeDates;
-    final now = DateTime.now();
-    final range = await showDateRangePicker(
-      context: context,
-      firstDate: now,
-      lastDate: now.add(const Duration(days: 730)),
-      initialDateRange: DateTimeRange(start: start, end: end),
-    );
-    if (range != null && context.mounted) {
-      context.read<PlanTripBloc>().add(
-        PlanTripEvent.updateReviewDates(range.start, range.end),
-      );
-    }
   }
 }

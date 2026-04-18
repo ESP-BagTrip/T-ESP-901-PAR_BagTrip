@@ -6,11 +6,10 @@ import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:flutter/material.dart';
 
-/// Cinematic, full-bleed hero placed at the top of the review page.
+/// Cinematic, full-bleed hero at the top of the review.
 ///
-/// Renders a real cover image (destination photo or country fallback) with
-/// a rich dark gradient overlay for text legibility. Metadata floats in a
-/// glassmorphic pill so the photo stays the protagonist.
+/// Read-only by design: no edit affordances. The photo is the statement,
+/// the type is the overture, the metadata pill whispers the context.
 class ReviewCinematicHero extends StatelessWidget {
   const ReviewCinematicHero({
     super.key,
@@ -20,7 +19,6 @@ class ReviewCinematicHero extends StatelessWidget {
     required this.durationLabel,
     required this.travelersLabel,
     required this.coverImageUrl,
-    this.onEditDates,
     this.onBack,
     this.onClose,
   });
@@ -31,11 +29,10 @@ class ReviewCinematicHero extends StatelessWidget {
   final String durationLabel;
   final String travelersLabel;
 
-  /// Best-effort cover image URL. Never empty: caller composes from the
+  /// Best-effort cover image URL. Never empty — caller composes from the
   /// AI destination or the continent fallback.
   final String coverImageUrl;
 
-  final VoidCallback? onEditDates;
   final VoidCallback? onBack;
   final VoidCallback? onClose;
 
@@ -44,7 +41,7 @@ class ReviewCinematicHero extends StatelessWidget {
     final topPadding = MediaQuery.of(context).padding.top;
 
     return SizedBox(
-      height: topPadding + 460,
+      height: topPadding + 480,
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -78,14 +75,13 @@ class ReviewCinematicHero extends StatelessWidget {
                 Positioned(
                   left: AppSpacing.space24,
                   right: AppSpacing.space24,
-                  bottom: AppSpacing.space24,
+                  bottom: AppSpacing.space32,
                   child: _HeroMetadata(
                     city: city,
                     country: country,
                     dateRangeLabel: dateRangeLabel,
                     durationLabel: durationLabel,
                     travelersLabel: travelersLabel,
-                    onEditDates: onEditDates,
                   ),
                 ),
               ],
@@ -98,7 +94,7 @@ class ReviewCinematicHero extends StatelessWidget {
 }
 
 // -----------------------------------------------------------------------------
-// Cover image + overlays
+// Cover + overlays
 // -----------------------------------------------------------------------------
 
 class _CoverImage extends StatelessWidget {
@@ -125,12 +121,12 @@ class _BottomGradient extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          stops: [0.0, 0.35, 0.7, 1.0],
+          stops: [0.0, 0.4, 0.75, 1.0],
           colors: [
             Colors.transparent,
-            Color(0x33000000),
-            Color(0xAA000000),
-            Color(0xF0000000),
+            Color(0x22000000),
+            Color(0x99000000),
+            Color(0xEE000000),
           ],
         ),
       ),
@@ -150,10 +146,10 @@ class _TopScrim extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0x66000000), Colors.transparent],
+            colors: [Color(0x55000000), Colors.transparent],
           ),
         ),
-        child: SizedBox(height: 140, width: double.infinity),
+        child: SizedBox(height: 130, width: double.infinity),
       ),
     );
   }
@@ -177,7 +173,7 @@ class _GradientPlaceholder extends StatelessWidget {
 }
 
 // -----------------------------------------------------------------------------
-// Top chrome (back / close) with glass blur backdrop
+// Chrome
 // -----------------------------------------------------------------------------
 
 class _GlassIconButton extends StatelessWidget {
@@ -195,15 +191,15 @@ class _GlassIconButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(100),
         child: ClipOval(
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
             child: Container(
-              width: 40,
-              height: 40,
+              width: 42,
+              height: 42,
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.25),
+                color: Colors.black.withValues(alpha: 0.22),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.18),
+                  color: Colors.white.withValues(alpha: 0.22),
                   width: 0.5,
                 ),
               ),
@@ -218,7 +214,7 @@ class _GlassIconButton extends StatelessWidget {
 }
 
 // -----------------------------------------------------------------------------
-// Metadata (country + city + glassmorphic dates pill)
+// Metadata block: country eyebrow, city, thin rule, dates · duration · travelers
 // -----------------------------------------------------------------------------
 
 class _HeroMetadata extends StatelessWidget {
@@ -228,7 +224,6 @@ class _HeroMetadata extends StatelessWidget {
     required this.dateRangeLabel,
     required this.durationLabel,
     required this.travelersLabel,
-    required this.onEditDates,
   });
 
   final String city;
@@ -236,7 +231,6 @@ class _HeroMetadata extends StatelessWidget {
   final String dateRangeLabel;
   final String durationLabel;
   final String travelersLabel;
-  final VoidCallback? onEditDates;
 
   @override
   Widget build(BuildContext context) {
@@ -251,8 +245,8 @@ class _HeroMetadata extends StatelessWidget {
               fontFamily: FontFamily.b612,
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              letterSpacing: 3.2,
-              color: Colors.white.withValues(alpha: 0.8),
+              letterSpacing: 4,
+              color: Colors.white.withValues(alpha: 0.78),
               shadows: const [Shadow(color: Color(0x66000000), blurRadius: 8)],
             ),
           ),
@@ -263,133 +257,91 @@ class _HeroMetadata extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             fontFamily: FontFamily.dMSerifDisplay,
-            fontSize: 56,
+            fontSize: 60,
             height: 0.95,
             fontWeight: FontWeight.w400,
-            letterSpacing: -1.5,
+            letterSpacing: -2,
             color: Colors.white,
-            shadows: [Shadow(color: Color(0x99000000), blurRadius: 16)],
+            shadows: [Shadow(color: Color(0x99000000), blurRadius: 18)],
           ),
         ),
         const SizedBox(height: AppSpacing.space16),
-        _GlassMetadataPill(
+        Container(
+          width: 32,
+          height: 1,
+          color: Colors.white.withValues(alpha: 0.5),
+        ),
+        const SizedBox(height: AppSpacing.space16),
+        _Whisper(
           dateRangeLabel: dateRangeLabel,
           durationLabel: durationLabel,
           travelersLabel: travelersLabel,
-          onEditDates: onEditDates,
         ),
       ],
     );
   }
 }
 
-class _GlassMetadataPill extends StatelessWidget {
-  const _GlassMetadataPill({
+class _Whisper extends StatelessWidget {
+  const _Whisper({
     required this.dateRangeLabel,
     required this.durationLabel,
     required this.travelersLabel,
-    required this.onEditDates,
   });
 
   final String dateRangeLabel;
   final String durationLabel;
   final String travelersLabel;
-  final VoidCallback? onEditDates;
 
   @override
   Widget build(BuildContext context) {
-    final content = Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.space16,
-        vertical: AppSpacing.space12,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.calendar_today_rounded,
-            size: 14,
-            color: Colors.white,
-          ),
-          const SizedBox(width: AppSpacing.space8),
-          Flexible(
-            child: Text(
-              dateRangeLabel,
-              style: const TextStyle(
-                fontFamily: FontFamily.dMSans,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(
+          child: Text(
+            dateRangeLabel,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontFamily: FontFamily.dMSans,
+              fontSize: 13.5,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.2,
+              color: Colors.white,
+              shadows: [Shadow(color: Color(0x66000000), blurRadius: 6)],
             ),
           ),
-          const SizedBox(width: AppSpacing.space12),
-          _Dot(),
-          const SizedBox(width: AppSpacing.space12),
-          Text(
-            durationLabel,
+        ),
+        const SizedBox(width: AppSpacing.space12),
+        _Dot(),
+        const SizedBox(width: AppSpacing.space12),
+        Text(
+          durationLabel,
+          style: TextStyle(
+            fontFamily: FontFamily.dMSans,
+            fontSize: 13.5,
+            fontWeight: FontWeight.w400,
+            color: Colors.white.withValues(alpha: 0.82),
+            shadows: const [Shadow(color: Color(0x66000000), blurRadius: 6)],
+          ),
+        ),
+        const SizedBox(width: AppSpacing.space12),
+        _Dot(),
+        const SizedBox(width: AppSpacing.space12),
+        Flexible(
+          child: Text(
+            travelersLabel,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontFamily: FontFamily.dMSans,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: Colors.white.withValues(alpha: 0.85),
+              fontSize: 13.5,
+              fontWeight: FontWeight.w400,
+              color: Colors.white.withValues(alpha: 0.82),
+              shadows: const [Shadow(color: Color(0x66000000), blurRadius: 6)],
             ),
           ),
-          const SizedBox(width: AppSpacing.space12),
-          _Dot(),
-          const SizedBox(width: AppSpacing.space12),
-          Flexible(
-            child: Text(
-              travelersLabel,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontFamily: FontFamily.dMSans,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: Colors.white.withValues(alpha: 0.85),
-              ),
-            ),
-          ),
-          if (onEditDates != null) ...[
-            const SizedBox(width: AppSpacing.space8),
-            Icon(
-              Icons.edit_outlined,
-              size: 13,
-              color: Colors.white.withValues(alpha: 0.6),
-            ),
-          ],
-        ],
-      ),
-    );
-
-    final pill = ClipRRect(
-      borderRadius: AppRadius.pill,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.14),
-            borderRadius: AppRadius.pill,
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.18),
-              width: 0.5,
-            ),
-          ),
-          child: content,
         ),
-      ),
-    );
-
-    if (onEditDates == null) return pill;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onEditDates,
-        borderRadius: AppRadius.pill,
-        child: pill,
-      ),
+      ],
     );
   }
 }
@@ -401,7 +353,7 @@ class _Dot extends StatelessWidget {
       width: 3,
       height: 3,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.55),
+        color: Colors.white.withValues(alpha: 0.6),
         shape: BoxShape.circle,
       ),
     );

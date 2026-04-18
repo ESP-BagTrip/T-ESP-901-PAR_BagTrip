@@ -1,11 +1,12 @@
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:flutter/material.dart';
 
-/// Final decision block at the end of the scroll. A confident primary CTA
-/// with inner glow, paired with a quieter "try something else" link.
+/// Final decision at the end of the scroll.
+///
+/// A solid ink pill (no screaming gradient) paired with a quiet text link
+/// for the alternative path. Luxury via restraint.
 class ReviewDecisionInline extends StatelessWidget {
   const ReviewDecisionInline({
     super.key,
@@ -29,50 +30,54 @@ class ReviewDecisionInline extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.space24,
-        AppSpacing.space32,
-        AppSpacing.space24,
         AppSpacing.space40,
+        AppSpacing.space24,
+        AppSpacing.space48,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            header,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: FontFamily.b612,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 3,
-              color: AppColors.reviewFaint.withValues(alpha: 0.9),
+          Center(
+            child: Text(
+              header,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: FontFamily.b612,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 3.2,
+                color: AppColors.reviewInk.withValues(alpha: 0.5),
+              ),
             ),
           ),
           const SizedBox(height: AppSpacing.space16),
-          _GradientCta(
+          _InkCta(
             label: primaryLabel,
             onTap: onPrimary,
             isLoading: isPrimaryLoading,
           ),
-          const SizedBox(height: AppSpacing.space12),
+          const SizedBox(height: AppSpacing.space16),
           Center(
             child: TextButton(
               onPressed: onSecondary,
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.space16,
-                  vertical: AppSpacing.space12,
+                  vertical: AppSpacing.space8,
                 ),
                 foregroundColor: AppColors.reviewSubtle,
+                overlayColor: Colors.transparent,
               ),
               child: Text(
                 secondaryLabel,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: FontFamily.dMSans,
-                  fontSize: 14,
+                  fontSize: 13.5,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.reviewSubtle,
+                  color: AppColors.reviewInk.withValues(alpha: 0.55),
                   decoration: TextDecoration.underline,
-                  decorationThickness: 1,
+                  decorationThickness: 0.8,
+                  decorationColor: AppColors.reviewInk.withValues(alpha: 0.3),
                 ),
               ),
             ),
@@ -83,8 +88,8 @@ class ReviewDecisionInline extends StatelessWidget {
   }
 }
 
-class _GradientCta extends StatefulWidget {
-  const _GradientCta({
+class _InkCta extends StatefulWidget {
+  const _InkCta({
     required this.label,
     required this.onTap,
     required this.isLoading,
@@ -95,10 +100,10 @@ class _GradientCta extends StatefulWidget {
   final bool isLoading;
 
   @override
-  State<_GradientCta> createState() => _GradientCtaState();
+  State<_InkCta> createState() => _InkCtaState();
 }
 
-class _GradientCtaState extends State<_GradientCta> {
+class _InkCtaState extends State<_InkCta> {
   bool _pressed = false;
 
   void _setPressed(bool value) {
@@ -124,29 +129,22 @@ class _GradientCtaState extends State<_GradientCta> {
         duration: const Duration(milliseconds: 140),
         child: DecoratedBox(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: enabled
-                  ? const [Color(0xFF1B3A5E), ColorName.primaryDark]
-                  : [
-                      ColorName.primaryDark.withValues(alpha: 0.4),
-                      ColorName.primaryDark.withValues(alpha: 0.4),
-                    ],
-            ),
+            color: enabled
+                ? const Color(0xFF0D1F35)
+                : const Color(0xFF0D1F35).withValues(alpha: 0.4),
             borderRadius: AppRadius.pill,
             boxShadow: enabled
                 ? [
                     BoxShadow(
-                      color: ColorName.primaryDark.withValues(alpha: 0.35),
-                      blurRadius: 18,
-                      offset: const Offset(0, 8),
+                      color: const Color(0xFF0D1F35).withValues(alpha: 0.28),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
                     ),
                   ]
                 : const [],
           ),
           child: SizedBox(
-            height: 56,
+            height: 58,
             child: Center(
               child: widget.isLoading
                   ? const SizedBox(
@@ -157,26 +155,15 @@ class _GradientCtaState extends State<_GradientCta> {
                         valueColor: AlwaysStoppedAnimation(Colors.white),
                       ),
                     )
-                  : Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          widget.label,
-                          style: const TextStyle(
-                            fontFamily: FontFamily.dMSerifDisplay,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                            fontSize: 17,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.space8),
-                        const Icon(
-                          Icons.arrow_forward_rounded,
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                      ],
+                  : Text(
+                      widget.label,
+                      style: const TextStyle(
+                        fontFamily: FontFamily.dMSerifDisplay,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.white,
+                        fontSize: 18,
+                        letterSpacing: 0.3,
+                      ),
                     ),
             ),
           ),

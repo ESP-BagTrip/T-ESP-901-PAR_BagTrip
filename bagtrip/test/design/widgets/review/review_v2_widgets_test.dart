@@ -11,7 +11,6 @@ import 'package:bagtrip/design/widgets/review/review_day_timeline.dart';
 import 'package:bagtrip/design/widgets/review/review_decision_inline.dart';
 import 'package:bagtrip/design/widgets/review/review_inline_flight.dart';
 import 'package:bagtrip/design/widgets/review/review_inline_hotel.dart';
-import 'package:bagtrip/design/widgets/review/review_summary_line.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -60,46 +59,23 @@ void main() {
       expect(closeTapped, isTrue);
     });
 
-    testWidgets('edit-dates pencil only appears when onEditDates is set', (
-      tester,
-    ) async {
-      await pumpLocalized(
-        tester,
-        const ReviewCinematicHero(
-          city: 'Lisbon',
-          country: 'Portugal',
-          dateRangeLabel: '12 — 19 Apr',
-          durationLabel: '7 days',
-          travelersLabel: '2 travelers',
-          coverImageUrl: 'https://example.com/cover.jpg',
-        ),
-      );
-      expect(find.byIcon(Icons.edit_outlined), findsNothing);
-
-      await pumpLocalized(
-        tester,
-        ReviewCinematicHero(
-          city: 'Lisbon',
-          country: 'Portugal',
-          dateRangeLabel: '12 — 19 Apr',
-          durationLabel: '7 days',
-          travelersLabel: '2 travelers',
-          coverImageUrl: 'https://example.com/cover.jpg',
-          onEditDates: () {},
-        ),
-      );
-      expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
-    });
-  });
-
-  group('ReviewSummaryLine', () {
-    testWidgets('renders the editorial text', (tester) async {
-      await pumpLocalized(
-        tester,
-        const ReviewSummaryLine(text: '7 days in Lisbon for 2 travelers'),
-      );
-      expect(find.text('7 days in Lisbon for 2 travelers'), findsOneWidget);
-    });
+    testWidgets(
+      'never renders an edit-dates affordance (review is read-only)',
+      (tester) async {
+        await pumpLocalized(
+          tester,
+          const ReviewCinematicHero(
+            city: 'Lisbon',
+            country: 'Portugal',
+            dateRangeLabel: '12 — 19 Apr',
+            durationLabel: '7 days',
+            travelersLabel: '2 travelers',
+            coverImageUrl: 'https://example.com/cover.jpg',
+          ),
+        );
+        expect(find.byIcon(Icons.edit_outlined), findsNothing);
+      },
+    );
   });
 
   group('ReviewInlineFlight', () {
@@ -223,7 +199,7 @@ void main() {
   });
 
   group('ReviewDayCard', () {
-    testWidgets('renders day title, flight, hotel and activities', (
+    testWidgets('renders serif day number, uppercase date, and events', (
       tester,
     ) async {
       const data = ReviewDayCardData(
@@ -256,10 +232,11 @@ void main() {
         const ReviewDayCard(
           data: data,
           freeDayLabel: 'A free day',
-          dayTitle: 'Day 1 · Mon 12 Apr',
+          dayTitle: 'Mon 12 Apr',
         ),
       );
-      expect(find.text('Day 1 · Mon 12 Apr'), findsOneWidget);
+      expect(find.text('01'), findsOneWidget);
+      expect(find.text('MON 12 APR'), findsOneWidget);
       expect(find.byType(ReviewInlineFlight), findsOneWidget);
       expect(find.byType(ReviewInlineHotel), findsOneWidget);
       expect(find.text('Tram 28'), findsOneWidget);
@@ -279,7 +256,7 @@ void main() {
         const ReviewDayCard(
           data: data,
           freeDayLabel: 'A free day',
-          dayTitle: 'Day 2 · Tue 13 Apr',
+          dayTitle: 'Tue 13 Apr',
         ),
       );
       expect(find.text('A free day'), findsOneWidget);
@@ -287,7 +264,9 @@ void main() {
   });
 
   group('ReviewDayTimeline', () {
-    testWidgets('renders header and iterates days', (tester) async {
+    testWidgets('iterates days without rendering a section header', (
+      tester,
+    ) async {
       const days = [
         ReviewDayCardData(
           dayNumber: 1,
@@ -307,22 +286,20 @@ void main() {
       await pumpLocalized(
         tester,
         ReviewDayTimeline(
-          header: 'Your journey',
           days: days,
           freeDayLabel: 'A free day',
-          dayTitleBuilder: (data) => 'Day ${data.dayNumber}',
+          dayTitleBuilder: (data) => data.dateLabel,
         ),
       );
-      expect(find.text('Your journey'), findsOneWidget);
-      expect(find.text('Day 1'), findsOneWidget);
-      expect(find.text('Day 2'), findsOneWidget);
+      expect(find.text('01'), findsOneWidget);
+      expect(find.text('02'), findsOneWidget);
       expect(find.text('A'), findsOneWidget);
       expect(find.text('B'), findsOneWidget);
     });
   });
 
   group('ReviewBudgetReveal', () {
-    testWidgets('renders header, total, per-person line and stripe legend', (
+    testWidgets('renders eyebrow, total, per-person line and legend', (
       tester,
     ) async {
       await pumpLocalized(

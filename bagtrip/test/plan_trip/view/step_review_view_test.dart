@@ -5,7 +5,6 @@ import 'package:bagtrip/design/widgets/review/review_day_timeline.dart';
 import 'package:bagtrip/design/widgets/review/review_decision_inline.dart';
 import 'package:bagtrip/design/widgets/review/review_inline_flight.dart';
 import 'package:bagtrip/design/widgets/review/review_inline_hotel.dart';
-import 'package:bagtrip/design/widgets/review/review_summary_line.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
 import 'package:bagtrip/plan_trip/models/location_result.dart';
 import 'package:bagtrip/plan_trip/models/trip_plan.dart';
@@ -96,7 +95,7 @@ void main() {
       expect(find.byType(ReviewCinematicHero), findsNothing);
     });
 
-    testWidgets('renders hero, summary, timeline, budget, decision in order', (
+    testWidgets('renders hero, timeline, budget, decision in order', (
       tester,
     ) async {
       await pump(
@@ -109,7 +108,6 @@ void main() {
         ),
       );
       expect(find.byType(ReviewCinematicHero), findsOneWidget);
-      expect(find.byType(ReviewSummaryLine), findsOneWidget);
       expect(find.byType(ReviewDayTimeline), findsOneWidget);
       expect(find.byType(ReviewBudgetReveal), findsOneWidget);
       expect(find.byType(ReviewDecisionInline), findsOneWidget);
