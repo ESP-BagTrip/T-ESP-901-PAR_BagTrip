@@ -1,17 +1,22 @@
-"""Tests for Phase 4 (API-6/7/8): IATA, baggage, destination selection."""
+"""Tests for Phase 4 (API-6/7/8): IATA, baggage, destination selection.
+
+Helpers moved from `api.ai.plan_trip_routes` to
+`services.plan_acceptance_service` in SMP-316. Tests import from the new
+location.
+"""
 
 from datetime import UTC, date, datetime, time
 
-from src.api.ai.plan_trip_routes import (
-    _DEFAULT_BAGGAGE_I18N,
-    _build_manual_flight,
-    _combine_date_to_utc_datetime,
-    _compute_nights,
-    _get_default_baggage,
-    _parse_iso_datetime,
-)
 from src.api.ai.plan_trip_schemas import AcceptPlanRequest
 from src.enums import FlightType, ValidationStatus
+from src.services.plan_acceptance_service import (
+    _DEFAULT_BAGGAGE_I18N,
+    _build_manual_flight,
+    combine_date_to_utc_datetime as _combine_date_to_utc_datetime,
+    compute_nights as _compute_nights,
+    get_default_baggage as _get_default_baggage,
+    parse_iso_datetime as _parse_iso_datetime,
+)
 
 # --- API-6: IATA extraction ---
 
