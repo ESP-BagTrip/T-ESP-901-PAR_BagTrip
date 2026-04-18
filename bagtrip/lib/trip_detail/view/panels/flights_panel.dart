@@ -1,5 +1,6 @@
 import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
 import 'package:bagtrip/components/elegant_empty_state.dart';
+import 'package:bagtrip/core/trip_enums.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/review/boarding_pass_card.dart';
@@ -12,6 +13,7 @@ import 'package:bagtrip/models/manual_flight.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/transports/widgets/manual_flight_form.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
+import 'package:bagtrip/trip_detail/view/panels/skipped_panel_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -27,6 +29,7 @@ class FlightsPanel extends StatelessWidget {
     required this.canEdit,
     required this.isCompleted,
     required this.role,
+    this.tracking = TrackingStatus.tracked,
   });
 
   final String tripId;
@@ -34,6 +37,10 @@ class FlightsPanel extends StatelessWidget {
   final bool canEdit;
   final bool isCompleted;
   final String role;
+
+  /// `TRACKED` (default) or `SKIPPED`. When skipped, the panel shows a
+  /// stylized opt-out card instead of the list.
+  final String tracking;
 
   void _openFullPage(BuildContext context) {
     TransportsRoute(
@@ -144,18 +151,56 @@ class FlightsPanel extends StatelessWidget {
     return sorted;
   }
 
+  void _toggleTracking(BuildContext context, {required bool skip}) {
+    AppHaptics.medium();
+    context.read<TripDetailBloc>().add(
+      UpdateTripTrackingFromDetail(
+        flightsTracking: skip ? TrackingStatus.skipped : TrackingStatus.tracked,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    if (tracking == TrackingStatus.skipped) {
+      return SkippedPanelState(
+        title: l10n.panelSkippedFlightsTitle,
+        message: l10n.panelSkippedFlightsMessage,
+        resumeLabel: l10n.panelResumeFlightsCta,
+        onResume: canEdit ? () => _toggleTracking(context, skip: false) : null,
+      );
+    }
     if (flights.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(AppSpacing.space24),
-        child: ElegantEmptyState(
-          icon: Icons.flight_takeoff_rounded,
-          title: l10n.emptyFlightsTitle,
-          subtitle: canEdit ? l10n.emptyFlightsSubtitle : null,
-          ctaLabel: canEdit ? l10n.panelQuickAddFlight : null,
-          onCta: canEdit ? () => _showAddSheet(context) : null,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElegantEmptyState(
+              icon: Icons.flight_takeoff_rounded,
+              title: l10n.emptyFlightsTitle,
+              subtitle: canEdit ? l10n.emptyFlightsSubtitle : null,
+              ctaLabel: canEdit ? l10n.panelQuickAddFlight : null,
+              onCta: canEdit ? () => _showAddSheet(context) : null,
+            ),
+            if (canEdit) ...[
+              const SizedBox(height: AppSpacing.space16),
+              TextButton(
+                onPressed: () => _toggleTracking(context, skip: true),
+                child: Text(
+                  l10n.panelSkipFlightsCta,
+                  style: const TextStyle(
+                    fontFamily: FontFamily.dMSans,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.underline,
+                    color: ColorName.hint,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
       );
     }
@@ -172,7 +217,7 @@ class FlightsPanel extends StatelessWidget {
             AppSpacing.space16,
             AppSpacing.space56 + AppSpacing.space40,
           ),
-          itemCount: sortedFlights.length + 1,
+          itemCount: sortedFlights.length + (canEdit ? 2 : 1),
           separatorBuilder: (_, _) =>
               const SizedBox(height: AppSpacing.space16),
           itemBuilder: (context, index) {
@@ -186,6 +231,23 @@ class FlightsPanel extends StatelessWidget {
                       fontFamily: FontFamily.dMSans,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
+                      color: ColorName.hint,
+                    ),
+                  ),
+                ),
+              );
+            }
+            if (canEdit && index == sortedFlights.length + 1) {
+              return Center(
+                child: TextButton(
+                  onPressed: () => _toggleTracking(context, skip: true),
+                  child: Text(
+                    l10n.panelSkipFlightsCta,
+                    style: const TextStyle(
+                      fontFamily: FontFamily.dMSans,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      decoration: TextDecoration.underline,
                       color: ColorName.hint,
                     ),
                   ),

@@ -15,6 +15,7 @@ import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
+import 'package:bagtrip/plan_trip/helpers/destination_cover.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
 import 'package:bagtrip/trip_detail/view/panels/budget_panel.dart';
@@ -172,6 +173,7 @@ class _LoadedTripViewState extends State<_LoadedTripView>
           daysLabel: _heroDaysLabel(l10n),
           dateRangeLabel: _heroDateRangeLabel(context, trip),
           budgetLabel: _heroBudgetLabel(),
+          coverImageUrl: _resolveCoverImage(trip),
           onEditDates: _canEdit ? () => _showDateRangePicker(context) : null,
           onBack: () => const HomeRoute().go(context),
           onOverflow: () => _handleOverflow(context),
@@ -217,6 +219,7 @@ class _LoadedTripViewState extends State<_LoadedTripView>
                           canEdit: _canEdit,
                           isCompleted: state.isCompleted,
                           role: state.trip.role ?? 'OWNER',
+                          tracking: state.trip.flightsTracking,
                         ),
                         HotelPanel(
                           tripId: widget.tripId,
@@ -299,6 +302,17 @@ class _LoadedTripViewState extends State<_LoadedTripView>
     return totalBudget.formatPrice();
   }
 
+  /// Cover image for the hero: prefer the URL stored on the trip (populated by
+  /// the backend at accept time from Unsplash), fall back to the shared
+  /// destination-cover helper so manual trips also get an image.
+  String? _resolveCoverImage(Trip trip) {
+    final fromBackend = trip.coverImageUrl;
+    if (fromBackend != null && fromBackend.isNotEmpty) return fromBackend;
+    final city = trip.destinationName ?? trip.title ?? '';
+    if (city.isEmpty) return null;
+    return destinationCoverUrl(city: city, country: '');
+  }
+
   Widget? _buildStatusBadge(AppLocalizations l10n) {
     if (state.isViewer) {
       return _StatusPill(
@@ -325,8 +339,8 @@ class _LoadedTripViewState extends State<_LoadedTripView>
   ];
 
   List<bool> _incompleteFlags() {
-    final segments = state.completionResult.segments;
-    bool incomplete(CompletionSegmentType t) => segments[t] == false;
+    final result = state.completionResult;
+    bool incomplete(CompletionSegmentType t) => !result.segment(t).isComplete;
     return [
       // Overview — derived from all other domains
       false,
@@ -334,7 +348,8 @@ class _LoadedTripViewState extends State<_LoadedTripView>
       incomplete(CompletionSegmentType.accommodation),
       incomplete(CompletionSegmentType.activities),
       incomplete(CompletionSegmentType.baggage),
-      incomplete(CompletionSegmentType.budget),
+      // Budget chip is read-only (real vs forecast) — no badge.
+      false,
       if (_hasSharesTab) false,
     ];
   }
@@ -509,7 +524,7 @@ class _LoadedTripViewState extends State<_LoadedTripView>
     final segments = state.completionResult.segments;
     final incomplete = <CompletionSegmentType>[
       for (final entry in segments.entries)
-        if (entry.value == false) entry.key,
+        if (!entry.value.isComplete) entry.key,
     ];
     if (incomplete.isEmpty) return;
 
@@ -573,34 +588,28 @@ class _LoadedTripViewState extends State<_LoadedTripView>
 
   IconData _iconForSegment(CompletionSegmentType type) {
     return switch (type) {
-      CompletionSegmentType.dates => Icons.calendar_today_rounded,
       CompletionSegmentType.flights => Icons.flight_takeoff_rounded,
       CompletionSegmentType.accommodation => Icons.hotel_rounded,
       CompletionSegmentType.activities => Icons.hiking_rounded,
       CompletionSegmentType.baggage => Icons.luggage_rounded,
-      CompletionSegmentType.budget => Icons.account_balance_wallet_rounded,
     };
   }
 
   String _labelForSegment(CompletionSegmentType type, AppLocalizations l10n) {
     return switch (type) {
-      CompletionSegmentType.dates => l10n.datesLabel,
       CompletionSegmentType.flights => l10n.reviewTabFlights,
       CompletionSegmentType.accommodation => l10n.reviewTabHotel,
       CompletionSegmentType.activities => l10n.reviewTabItinerary,
       CompletionSegmentType.baggage => l10n.reviewTabEssentials,
-      CompletionSegmentType.budget => l10n.reviewTabBudget,
     };
   }
 
   int? _tabIndexForSegment(CompletionSegmentType type) {
     return switch (type) {
-      CompletionSegmentType.dates => null,
       CompletionSegmentType.flights => 1,
       CompletionSegmentType.accommodation => 2,
       CompletionSegmentType.activities => 3,
       CompletionSegmentType.baggage => 4,
-      CompletionSegmentType.budget => 5,
     };
   }
 }

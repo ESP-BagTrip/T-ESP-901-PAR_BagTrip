@@ -1482,5 +1482,13 @@
   "activityValidateAction": "Validate",
   "activitySuggestedBadge": "Suggested",
   "shareCopyLink": "Copy invite link",
-  "shareRevokeAccess": "Revoke access"
+  "shareRevokeAccess": "Revoke access",
+  "panelSkippedFlightsTitle": "Flights are on you",
+  "panelSkippedFlightsMessage": "You told BagTrip to stay out of your flights. We won't track times, nudge you on departure day, or count flights in your completion.",
+  "panelSkippedAccommodationsTitle": "Stays are on you",
+  "panelSkippedAccommodationsMessage": "You're handling accommodations yourself. BagTrip won't suggest check-in reminders or count them in your completion.",
+  "panelSkipFlightsCta": "Don't track my flights",
+  "panelSkipAccommodationsCta": "Don't track my stays",
+  "panelResumeFlightsCta": "Let BagTrip track my flights again",
+  "panelResumeAccommodationsCta": "Let BagTrip track my stays again"
 }

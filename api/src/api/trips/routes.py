@@ -16,6 +16,7 @@ from src.api.trips.schemas import (
     TripPaginatedResponse,
     TripResponse,
     TripStatusUpdateRequest,
+    TripTrackingUpdateRequest,
     TripUpdateRequest,
     WeatherResponse,
 )
@@ -255,6 +256,39 @@ async def update_trip(
             cover_image_url=request.coverImageUrl,
             budget_total=request.budgetTotal,
             date_mode=request.dateMode,
+        )
+        resp = TripResponse.model_validate(trip)
+        resp.role = "OWNER"
+        _enrich_with_completion(db, [trip], [resp])
+        return resp
+    except AppError as e:
+        raise create_http_exception(e) from e
+
+
+@router.patch(
+    "/{tripId}/tracking",
+    response_model=TripResponse,
+    summary="Update trip tracking flags",
+    description=(
+        "Toggle whether BagTrip should track flights / accommodations for this trip. "
+        "Users who book elsewhere set these to SKIPPED — companion mode alerts are "
+        "suppressed for skipped domains and completion segments are treated as done."
+    ),
+)
+async def update_trip_tracking(
+    request: TripTrackingUpdateRequest,
+    access: Annotated[TripAccess, Depends(get_trip_owner_access)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Mettre à jour les flags flights_tracking / accommodations_tracking."""
+    try:
+        trip = TripsService.update_tracking(
+            db=db,
+            trip=access.trip,
+            flights_tracking=request.flightsTracking.value if request.flightsTracking else None,
+            accommodations_tracking=(
+                request.accommodationsTracking.value if request.accommodationsTracking else None
+            ),
         )
         resp = TripResponse.model_validate(trip)
         resp.role = "OWNER"

@@ -5,7 +5,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from src.enums import DateMode, TripOrigin, TripStatus
+from src.enums import DateMode, TrackingStatus, TripOrigin, TripStatus
 
 
 class TripCreateRequest(BaseModel):
@@ -72,6 +72,8 @@ class TripResponse(BaseModel):
     budgetTotal: float | None = Field(default=None, alias="budget_total")
     origin: str | None = None
     dateMode: str = Field(default="EXACT", alias="date_mode")
+    flightsTracking: str = Field(default="TRACKED", alias="flights_tracking")
+    accommodationsTracking: str = Field(default="TRACKED", alias="accommodations_tracking")
     archivedAt: datetime | None = Field(default=None, alias="archived_at")
     createdAt: datetime = Field(alias="created_at")
     updatedAt: datetime = Field(alias="updated_at")
@@ -79,6 +81,25 @@ class TripResponse(BaseModel):
     completionPercentage: int = Field(default=0, alias="completion_percentage")
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+
+class TripTrackingUpdateRequest(BaseModel):
+    """Requête de mise à jour des flags de tracking d'un trip.
+
+    Au moins un des deux champs doit être présent. Utilisé par l'utilisateur
+    pour dire "je ne veux pas que BagTrip gère mes vols/hébergements".
+    """
+
+    flightsTracking: TrackingStatus | None = None
+    accommodationsTracking: TrackingStatus | None = None
+
+    @model_validator(mode="after")
+    def at_least_one(self) -> "TripTrackingUpdateRequest":
+        if self.flightsTracking is None and self.accommodationsTracking is None:
+            raise ValueError(
+                "At least one of flightsTracking or accommodationsTracking is required"
+            )
+        return self
 
 
 class TripListResponse(BaseModel):

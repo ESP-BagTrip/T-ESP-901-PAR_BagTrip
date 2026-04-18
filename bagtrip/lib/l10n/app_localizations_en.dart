@@ -2964,4 +2964,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shareRevokeAccess => 'Revoke access';
+
+  @override
+  String get panelSkippedFlightsTitle => 'Flights are on you';
+
+  @override
+  String get panelSkippedFlightsMessage =>
+      'You told BagTrip to stay out of your flights. We won\'t track times, nudge you on departure day, or count flights in your completion.';
+
+  @override
+  String get panelSkippedAccommodationsTitle => 'Stays are on you';
+
+  @override
+  String get panelSkippedAccommodationsMessage =>
+      'You\'re handling accommodations yourself. BagTrip won\'t suggest check-in reminders or count them in your completion.';
+
+  @override
+  String get panelSkipFlightsCta => 'Don\'t track my flights';
+
+  @override
+  String get panelSkipAccommodationsCta => 'Don\'t track my stays';
+
+  @override
+  String get panelResumeFlightsCta => 'Let BagTrip track my flights again';
+
+  @override
+  String get panelResumeAccommodationsCta => 'Let BagTrip track my stays again';
 }

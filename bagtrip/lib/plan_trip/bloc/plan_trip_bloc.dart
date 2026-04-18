@@ -1088,6 +1088,24 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
           'details': plan.flightDetails,
           'price': plan.flightPrice,
           'source': plan.flightSource,
+          if (plan.flightAirline.isNotEmpty) 'airline': plan.flightAirline,
+          if (plan.flightNumber.isNotEmpty) 'flight_number': plan.flightNumber,
+          if (plan.flightDeparture.isNotEmpty)
+            'departure_date': plan.flightDeparture,
+          if (plan.flightArrival.isNotEmpty) 'arrival_date': plan.flightArrival,
+          if (plan.flightDuration.isNotEmpty) 'duration': plan.flightDuration,
+        },
+      if (plan.returnDeparture.isNotEmpty || plan.returnArrival.isNotEmpty)
+        'return_flight': {
+          'route': plan.flightRoute,
+          'details': plan.flightDetails,
+          'source': plan.flightSource,
+          if (plan.flightAirline.isNotEmpty) 'airline': plan.flightAirline,
+          if (plan.flightNumber.isNotEmpty) 'flight_number': plan.flightNumber,
+          if (plan.returnDeparture.isNotEmpty)
+            'departure_date': plan.returnDeparture,
+          if (plan.returnArrival.isNotEmpty) 'arrival_date': plan.returnArrival,
+          if (plan.returnDuration.isNotEmpty) 'duration': plan.returnDuration,
         },
       'baggage': List.generate(plan.essentialItems.length, (i) {
         return {

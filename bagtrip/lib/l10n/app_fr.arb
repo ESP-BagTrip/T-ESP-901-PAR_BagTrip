@@ -1482,5 +1482,13 @@
   "activityValidateAction": "Valider",
   "activitySuggestedBadge": "Suggérée",
   "shareCopyLink": "Copier le lien d’invitation",
-  "shareRevokeAccess": "Révoquer l’accès"
+  "shareRevokeAccess": "Révoquer l’accès",
+  "panelSkippedFlightsTitle": "Vos vols, sans nous",
+  "panelSkippedFlightsMessage": "Vous avez demandé à BagTrip de ne pas gérer vos vols. Aucun rappel, aucun suivi, rien dans votre progression.",
+  "panelSkippedAccommodationsTitle": "Vos hébergements, sans nous",
+  "panelSkippedAccommodationsMessage": "Vous gérez vos hébergements vous-même. BagTrip n'enverra pas de rappels et ne les compte pas dans votre progression.",
+  "panelSkipFlightsCta": "Ne pas suivre mes vols",
+  "panelSkipAccommodationsCta": "Ne pas suivre mes hébergements",
+  "panelResumeFlightsCta": "Reprendre le suivi de mes vols",
+  "panelResumeAccommodationsCta": "Reprendre le suivi de mes hébergements"
 }

@@ -3,6 +3,7 @@ import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
 import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/core/extensions/datetime_ext.dart';
 import 'package:bagtrip/core/extensions/price_format_ext.dart';
+import 'package:bagtrip/core/trip_enums.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
@@ -16,6 +17,7 @@ import 'package:bagtrip/models/accommodation.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
+import 'package:bagtrip/trip_detail/view/panels/skipped_panel_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -150,18 +152,58 @@ class HotelPanel extends StatelessWidget {
     return sorted;
   }
 
+  void _toggleTracking(BuildContext context, {required bool skip}) {
+    AppHaptics.medium();
+    context.read<TripDetailBloc>().add(
+      UpdateTripTrackingFromDetail(
+        accommodationsTracking: skip
+            ? TrackingStatus.skipped
+            : TrackingStatus.tracked,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    if (trip.accommodationsTracking == TrackingStatus.skipped) {
+      return SkippedPanelState(
+        title: l10n.panelSkippedAccommodationsTitle,
+        message: l10n.panelSkippedAccommodationsMessage,
+        resumeLabel: l10n.panelResumeAccommodationsCta,
+        onResume: canEdit ? () => _toggleTracking(context, skip: false) : null,
+      );
+    }
     if (accommodations.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(AppSpacing.space24),
-        child: ElegantEmptyState(
-          icon: Icons.hotel_rounded,
-          title: l10n.emptyAccommodationsTitle,
-          subtitle: canEdit ? l10n.emptyAccommodationsSubtitle : null,
-          ctaLabel: canEdit ? l10n.panelQuickAddStay : null,
-          onCta: canEdit ? () => _showAddSheet(context) : null,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElegantEmptyState(
+              icon: Icons.hotel_rounded,
+              title: l10n.emptyAccommodationsTitle,
+              subtitle: canEdit ? l10n.emptyAccommodationsSubtitle : null,
+              ctaLabel: canEdit ? l10n.panelQuickAddStay : null,
+              onCta: canEdit ? () => _showAddSheet(context) : null,
+            ),
+            if (canEdit) ...[
+              const SizedBox(height: AppSpacing.space16),
+              TextButton(
+                onPressed: () => _toggleTracking(context, skip: true),
+                child: Text(
+                  l10n.panelSkipAccommodationsCta,
+                  style: const TextStyle(
+                    fontFamily: FontFamily.dMSans,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.underline,
+                    color: ColorName.hint,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
       );
     }
@@ -178,7 +220,7 @@ class HotelPanel extends StatelessWidget {
             AppSpacing.space16,
             AppSpacing.space56 + AppSpacing.space40,
           ),
-          itemCount: sortedList.length + 1,
+          itemCount: sortedList.length + (canEdit ? 2 : 1),
           separatorBuilder: (_, _) =>
               const SizedBox(height: AppSpacing.space16),
           itemBuilder: (context, index) {
@@ -192,6 +234,23 @@ class HotelPanel extends StatelessWidget {
                       fontFamily: FontFamily.dMSans,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
+                      color: ColorName.hint,
+                    ),
+                  ),
+                ),
+              );
+            }
+            if (canEdit && index == sortedList.length + 1) {
+              return Center(
+                child: TextButton(
+                  onPressed: () => _toggleTracking(context, skip: true),
+                  child: Text(
+                    l10n.panelSkipAccommodationsCta,
+                    style: const TextStyle(
+                      fontFamily: FontFamily.dMSans,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      decoration: TextDecoration.underline,
                       color: ColorName.hint,
                     ),
                   ),

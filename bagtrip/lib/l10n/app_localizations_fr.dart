@@ -2983,4 +2983,31 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get shareRevokeAccess => 'Révoquer l’accès';
+
+  @override
+  String get panelSkippedFlightsTitle => 'Vos vols, sans nous';
+
+  @override
+  String get panelSkippedFlightsMessage =>
+      'Vous avez demandé à BagTrip de ne pas gérer vos vols. Aucun rappel, aucun suivi, rien dans votre progression.';
+
+  @override
+  String get panelSkippedAccommodationsTitle => 'Vos hébergements, sans nous';
+
+  @override
+  String get panelSkippedAccommodationsMessage =>
+      'Vous gérez vos hébergements vous-même. BagTrip n\'enverra pas de rappels et ne les compte pas dans votre progression.';
+
+  @override
+  String get panelSkipFlightsCta => 'Ne pas suivre mes vols';
+
+  @override
+  String get panelSkipAccommodationsCta => 'Ne pas suivre mes hébergements';
+
+  @override
+  String get panelResumeFlightsCta => 'Reprendre le suivi de mes vols';
+
+  @override
+  String get panelResumeAccommodationsCta =>
+      'Reprendre le suivi de mes hébergements';
 }

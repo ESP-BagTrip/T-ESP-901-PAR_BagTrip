@@ -9,7 +9,7 @@ event dedup and heartbeat logic all moved to the service.
 from __future__ import annotations
 
 import contextlib
-from datetime import date, time, timedelta
+from datetime import date, datetime, time, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request
@@ -20,6 +20,7 @@ from src.api.ai.plan_trip_schemas import AcceptPlanRequest, PlanTripRequest
 from src.api.auth.middleware import get_current_user
 from src.api.auth.plan_guard import require_ai_quota
 from src.config.database import get_db
+from src.enums import FlightType, ValidationStatus
 from src.integrations.aviation_data.service import AviationDataService
 from src.models.accommodation import Accommodation
 from src.models.activity import Activity
@@ -123,6 +124,54 @@ def _parse_flight_route(route: str) -> tuple[str | None, str | None]:
     if len(codes) == 1:
         return codes[0], None
     return None, None
+
+
+def _parse_iso_datetime(value: object) -> datetime | None:
+    """Best-effort parse of an ISO 8601 datetime string. Returns None on failure."""
+    if not value or not isinstance(value, str):
+        return None
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        return None
+
+
+def _build_manual_flight(
+    *,
+    trip_id,
+    flight_data: dict,
+    flight_type: str,
+    dep_airport: str | None,
+    arr_airport: str | None,
+) -> ManualFlight:
+    """Build a ManualFlight row from a suggestion's flight dict.
+
+    Populates every column the LLM surfaces (airline, flight_number, times,
+    price, duration) and marks the row as SUGGESTED so the client can
+    distinguish proposed vs. user-validated flights.
+    """
+    price = flight_data.get("price")
+    duration = flight_data.get("duration")
+    notes_bits = [f"AI suggestion ({flight_data.get('source', 'estimated')})"]
+    if duration:
+        notes_bits.append(f"duration={duration}")
+    details = flight_data.get("details")
+    if details:
+        notes_bits.append(str(details))
+    return ManualFlight(
+        trip_id=trip_id,
+        flight_number=flight_data.get("flight_number") or "TBD",
+        airline=flight_data.get("airline"),
+        departure_airport=dep_airport,
+        arrival_airport=arr_airport,
+        departure_date=_parse_iso_datetime(flight_data.get("departure_date")),
+        arrival_date=_parse_iso_datetime(flight_data.get("arrival_date")),
+        price=price,
+        currency=flight_data.get("currency", "EUR"),
+        notes=" · ".join(notes_bits),
+        flight_type=flight_type,
+        validation_status=ValidationStatus.SUGGESTED,
+    )
 
 
 @router.post("/plan-trip/accept")
@@ -248,7 +297,7 @@ async def accept_plan(
                     location=act.get("location"),
                     category=act.get("category", "OTHER"),
                     estimated_cost=act.get("estimatedCost"),
-                    validation_status="SUGGESTED",
+                    validation_status=ValidationStatus.SUGGESTED,
                 )
                 db.add(activity)
 
@@ -262,24 +311,42 @@ async def accept_plan(
                 price_per_night=acc.get("price_per_night"),
                 currency=acc.get("currency", "EUR"),
                 notes=acc.get("notes"),
+                validation_status=ValidationStatus.SUGGESTED,
             )
             db.add(accommodation)
 
-        # --- Persist AI-suggested flight ---
+        # --- Persist AI-suggested flights (outbound + optional return) ---
         flight_data = suggestion.get("flight")
         if flight_data and isinstance(flight_data, dict):
             dep_airport, arr_airport = _parse_flight_route(flight_data.get("route", ""))
-            flight = ManualFlight(
-                trip_id=trip.id,
-                flight_number="TBD",
-                departure_airport=dep_airport,
-                arrival_airport=arr_airport,
-                price=flight_data.get("price"),
-                currency="EUR",
-                notes=f"AI suggestion ({flight_data.get('source', 'estimated')})",
-                flight_type="AI_SUGGESTED",
+            db.add(
+                _build_manual_flight(
+                    trip_id=trip.id,
+                    flight_data=flight_data,
+                    flight_type=FlightType.MAIN,
+                    dep_airport=dep_airport,
+                    arr_airport=arr_airport,
+                )
             )
-            db.add(flight)
+
+            # Return flight — LLM may surface it as suggestion["return_flight"].
+            # Airports are swapped so the row reads as "home IATA ← destination".
+            return_data = suggestion.get("return_flight")
+            if return_data and isinstance(return_data, dict):
+                ret_dep, ret_arr = _parse_flight_route(return_data.get("route", ""))
+                # Fall back to the inverse of the outbound when the LLM omits
+                # the return route — the payload is otherwise complete.
+                if not ret_dep and not ret_arr:
+                    ret_dep, ret_arr = arr_airport, dep_airport
+                db.add(
+                    _build_manual_flight(
+                        trip_id=trip.id,
+                        flight_data=return_data,
+                        flight_type=FlightType.RETURN,
+                        dep_airport=ret_dep,
+                        arr_airport=ret_arr,
+                    )
+                )
 
         # --- Persist baggage items (AI-generated or i18n defaults) ---
         ai_baggage = suggestion.get("baggage", [])

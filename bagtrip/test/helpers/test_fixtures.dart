@@ -19,6 +19,41 @@ import 'package:bagtrip/models/booking_response.dart';
 import 'package:bagtrip/models/payment_authorize_response.dart';
 import 'package:bagtrip/models/manual_flight.dart';
 import 'package:bagtrip/models/flight_info.dart';
+import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
+
+/// Empty [CompletionResult] seed for widget / bloc tests that need a valid
+/// snapshot without exercising the real scoring logic.
+CompletionResult makeCompletionResult({
+  int percentage = 0,
+  bool flightsSkipped = false,
+  bool accommodationsSkipped = false,
+}) {
+  return CompletionResult(
+    percentage: percentage,
+    segments: {
+      CompletionSegmentType.flights: CompletionSegment(
+        done: 0,
+        total: 0,
+        isSkipped: flightsSkipped,
+      ),
+      CompletionSegmentType.accommodation: CompletionSegment(
+        done: 0,
+        total: 0,
+        isSkipped: accommodationsSkipped,
+      ),
+      CompletionSegmentType.activities: const CompletionSegment(
+        done: 0,
+        total: 0,
+        isSkipped: false,
+      ),
+      CompletionSegmentType.baggage: const CompletionSegment(
+        done: 0,
+        total: 0,
+        isSkipped: false,
+      ),
+    },
+  );
+}
 
 User makeUser({
   String id = 'user-1',
@@ -63,10 +98,13 @@ Trip makeTrip({
   TripStatus status = TripStatus.draft,
   String? destinationName = 'Paris',
   String? destinationTimezone,
+  String? coverImageUrl,
   int? nbTravelers = 2,
   DateTime? startDate,
   DateTime? endDate,
   double? budgetTotal,
+  String flightsTracking = 'TRACKED',
+  String accommodationsTracking = 'TRACKED',
 }) {
   return Trip(
     id: id,
@@ -75,10 +113,13 @@ Trip makeTrip({
     status: status,
     destinationName: destinationName,
     destinationTimezone: destinationTimezone,
+    coverImageUrl: coverImageUrl,
     nbTravelers: nbTravelers,
     startDate: startDate ?? DateTime(2024, 6),
     endDate: endDate ?? DateTime(2024, 6, 7),
     budgetTotal: budgetTotal,
+    flightsTracking: flightsTracking,
+    accommodationsTracking: accommodationsTracking,
   );
 }
 
@@ -187,6 +228,7 @@ Accommodation makeAccommodation({
   String? currency,
   String? bookingReference,
   String? notes,
+  ValidationStatus validationStatus = ValidationStatus.manual,
 }) {
   return Accommodation(
     id: id,
@@ -199,6 +241,7 @@ Accommodation makeAccommodation({
     currency: currency,
     bookingReference: bookingReference,
     notes: notes,
+    validationStatus: validationStatus,
   );
 }
 
@@ -353,6 +396,8 @@ ManualFlight makeManualFlight({
   String? arrivalAirport = 'JFK',
   DateTime? departureDate,
   DateTime? arrivalDate,
+  String flightType = 'MAIN',
+  ValidationStatus validationStatus = ValidationStatus.manual,
 }) {
   return ManualFlight(
     id: id,
@@ -363,6 +408,8 @@ ManualFlight makeManualFlight({
     arrivalAirport: arrivalAirport,
     departureDate: departureDate ?? DateTime(2024, 6),
     arrivalDate: arrivalDate ?? DateTime(2024, 6),
+    flightType: flightType,
+    validationStatus: validationStatus,
   );
 }
 

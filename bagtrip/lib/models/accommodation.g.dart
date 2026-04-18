@@ -22,6 +22,13 @@ _Accommodation _$AccommodationFromJson(Map<String, dynamic> json) =>
       currency: json['currency'] as String?,
       bookingReference: json['booking_reference'] as String?,
       notes: json['notes'] as String?,
+      validationStatus:
+          $enumDecodeNullable(
+            _$ValidationStatusEnumMap,
+            json['validation_status'],
+            unknownValue: ValidationStatus.manual,
+          ) ??
+          ValidationStatus.manual,
       createdAt: json['created_at'] == null
           ? null
           : DateTime.parse(json['created_at'] as String),
@@ -30,18 +37,26 @@ _Accommodation _$AccommodationFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['updated_at'] as String),
     );
 
-Map<String, dynamic> _$AccommodationToJson(_Accommodation instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'trip_id': instance.tripId,
-      'name': instance.name,
-      'address': instance.address,
-      'check_in': instance.checkIn?.toIso8601String(),
-      'check_out': instance.checkOut?.toIso8601String(),
-      'price_per_night': instance.pricePerNight,
-      'currency': instance.currency,
-      'booking_reference': instance.bookingReference,
-      'notes': instance.notes,
-      'created_at': instance.createdAt?.toIso8601String(),
-      'updated_at': instance.updatedAt?.toIso8601String(),
-    };
+Map<String, dynamic> _$AccommodationToJson(
+  _Accommodation instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'trip_id': instance.tripId,
+  'name': instance.name,
+  'address': instance.address,
+  'check_in': instance.checkIn?.toIso8601String(),
+  'check_out': instance.checkOut?.toIso8601String(),
+  'price_per_night': instance.pricePerNight,
+  'currency': instance.currency,
+  'booking_reference': instance.bookingReference,
+  'notes': instance.notes,
+  'validation_status': _$ValidationStatusEnumMap[instance.validationStatus]!,
+  'created_at': instance.createdAt?.toIso8601String(),
+  'updated_at': instance.updatedAt?.toIso8601String(),
+};
+
+const _$ValidationStatusEnumMap = {
+  ValidationStatus.suggested: 'SUGGESTED',
+  ValidationStatus.validated: 'VALIDATED',
+  ValidationStatus.manual: 'MANUAL',
+};

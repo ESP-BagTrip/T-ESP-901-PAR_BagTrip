@@ -5330,6 +5330,54 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Révoquer l’accès'**
   String get shareRevokeAccess;
+
+  /// No description provided for @panelSkippedFlightsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos vols, sans nous'**
+  String get panelSkippedFlightsTitle;
+
+  /// No description provided for @panelSkippedFlightsMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous avez demandé à BagTrip de ne pas gérer vos vols. Aucun rappel, aucun suivi, rien dans votre progression.'**
+  String get panelSkippedFlightsMessage;
+
+  /// No description provided for @panelSkippedAccommodationsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos hébergements, sans nous'**
+  String get panelSkippedAccommodationsTitle;
+
+  /// No description provided for @panelSkippedAccommodationsMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous gérez vos hébergements vous-même. BagTrip n\'enverra pas de rappels et ne les compte pas dans votre progression.'**
+  String get panelSkippedAccommodationsMessage;
+
+  /// No description provided for @panelSkipFlightsCta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ne pas suivre mes vols'**
+  String get panelSkipFlightsCta;
+
+  /// No description provided for @panelSkipAccommodationsCta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ne pas suivre mes hébergements'**
+  String get panelSkipAccommodationsCta;
+
+  /// No description provided for @panelResumeFlightsCta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reprendre le suivi de mes vols'**
+  String get panelResumeFlightsCta;
+
+  /// No description provided for @panelResumeAccommodationsCta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reprendre le suivi de mes hébergements'**
+  String get panelResumeAccommodationsCta;
 }
 
 class _AppLocalizationsDelegate

@@ -88,6 +88,8 @@ def mock_trip():
     trip.budget_total = None
     trip.origin = None
     trip.date_mode = "EXACT"
+    trip.flights_tracking = "TRACKED"
+    trip.accommodations_tracking = "TRACKED"
     trip.archived_at = None
     trip.role = None
     trip.created_at = datetime.now(UTC)
@@ -309,6 +311,93 @@ class TestUpdateTrip:
 
         assert response.status_code == 400
         assert response.json()["detail"]["error"] == "Update failed"
+
+
+class TestUpdateTripTracking:
+    """Tests for PATCH /v1/trips/{tripId}/tracking."""
+
+    @patch("src.api.trips.routes.TripsService")
+    def test_skip_flights(
+        self,
+        mock_service,
+        client,
+        override_get_current_user,
+        override_get_db,
+        mock_trip,
+        override_trip_access,
+    ):
+        mock_trip.flights_tracking = "SKIPPED"
+        mock_service.update_tracking.return_value = mock_trip
+        mock_service.compute_completion_batch.return_value = {mock_trip.id: 50}
+
+        response = client.patch(
+            f"/v1/trips/{mock_trip.id}/tracking",
+            json={"flightsTracking": "SKIPPED"},
+        )
+
+        assert response.status_code == 200
+        assert response.json()["flights_tracking"] == "SKIPPED"
+        mock_service.update_tracking.assert_called_once()
+        _, kwargs = mock_service.update_tracking.call_args
+        assert kwargs["flights_tracking"] == "SKIPPED"
+        assert kwargs["accommodations_tracking"] is None
+
+    @patch("src.api.trips.routes.TripsService")
+    def test_skip_both(
+        self,
+        mock_service,
+        client,
+        override_get_current_user,
+        override_get_db,
+        mock_trip,
+        override_trip_access,
+    ):
+        mock_trip.flights_tracking = "SKIPPED"
+        mock_trip.accommodations_tracking = "SKIPPED"
+        mock_service.update_tracking.return_value = mock_trip
+        mock_service.compute_completion_batch.return_value = {mock_trip.id: 100}
+
+        response = client.patch(
+            f"/v1/trips/{mock_trip.id}/tracking",
+            json={"flightsTracking": "SKIPPED", "accommodationsTracking": "SKIPPED"},
+        )
+
+        assert response.status_code == 200
+        _, kwargs = mock_service.update_tracking.call_args
+        assert kwargs["flights_tracking"] == "SKIPPED"
+        assert kwargs["accommodations_tracking"] == "SKIPPED"
+
+    def test_empty_payload_rejected(
+        self,
+        client,
+        override_get_current_user,
+        override_get_db,
+        override_trip_access,
+        mock_trip,
+    ):
+        response = client.patch(f"/v1/trips/{mock_trip.id}/tracking", json={})
+        assert response.status_code == 422
+
+    @patch("src.api.trips.routes.TripsService")
+    def test_trip_completed_error(
+        self,
+        mock_service,
+        client,
+        override_get_current_user,
+        override_get_db,
+        mock_trip,
+        override_trip_access,
+    ):
+        mock_service.update_tracking.side_effect = AppError(
+            "TRIP_COMPLETED", 403, "Cannot modify a completed trip."
+        )
+
+        response = client.patch(
+            f"/v1/trips/{mock_trip.id}/tracking",
+            json={"flightsTracking": "SKIPPED"},
+        )
+
+        assert response.status_code == 403
 
 
 class TestDeleteTrip:
