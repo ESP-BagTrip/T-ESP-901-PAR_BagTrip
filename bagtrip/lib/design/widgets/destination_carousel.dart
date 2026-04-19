@@ -16,6 +16,10 @@ class DestinationCarousel extends StatefulWidget {
   final double? height;
   final int initialPage;
 
+  /// When true (default), off-center pages scale down slightly. Set false for
+  /// uniform card size during scroll (e.g. home trip carousel).
+  final bool applyPageScale;
+
   const DestinationCarousel({
     super.key,
     required this.itemCount,
@@ -26,6 +30,7 @@ class DestinationCarousel extends StatefulWidget {
     this.showIndicators = true,
     this.height,
     this.initialPage = 0,
+    this.applyPageScale = true,
   });
 
   @override
@@ -67,9 +72,15 @@ class _DestinationCarouselState extends State<DestinationCarousel> {
           height: widget.height ?? 320,
           child: PageView.builder(
             controller: _pageController,
+            padEnds: false,
+            clipBehavior: Clip.none,
             itemCount: widget.itemCount,
             onPageChanged: _onPageChanged,
             itemBuilder: (context, index) {
+              final pageChild = widget.itemBuilder(context, index);
+              if (!widget.applyPageScale) {
+                return pageChild;
+              }
               return AnimatedBuilder(
                 animation: _pageController,
                 builder: (context, child) {
@@ -83,7 +94,7 @@ class _DestinationCarouselState extends State<DestinationCarousel> {
                   }
                   return Transform.scale(scale: scale, child: child);
                 },
-                child: widget.itemBuilder(context, index),
+                child: pageChild,
               );
             },
           ),

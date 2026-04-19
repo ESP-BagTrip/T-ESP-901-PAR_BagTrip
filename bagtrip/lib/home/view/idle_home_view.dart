@@ -14,6 +14,14 @@ import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+/// Scales the home carousel down in both dimensions so cards stay the same
+/// shape (width/height ratio) as before, only smaller.
+const double _idleHomeCarouselSizeScale = 0.85;
+const double _idleHomeCarouselHeightFraction =
+    0.52 * _idleHomeCarouselSizeScale;
+const double _idleHomeCarouselViewportFraction =
+    0.85 * _idleHomeCarouselSizeScale;
+
 class IdleHomeView extends StatefulWidget {
   final HomeIdle state;
 
@@ -60,7 +68,7 @@ class _IdleHomeViewState extends State<IdleHomeView>
     final trips = widget.state.upcomingTrips;
     final totalItems = 1 + trips.length;
     final screenHeight = MediaQuery.sizeOf(context).height;
-    final carouselHeight = screenHeight * 0.52;
+    final carouselHeight = screenHeight * _idleHomeCarouselHeightFraction;
 
     return Container(
       decoration: BoxDecoration(
@@ -72,6 +80,7 @@ class _IdleHomeViewState extends State<IdleHomeView>
       ),
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
+        clipBehavior: Clip.none,
         slivers: [
           SliverFillRemaining(
             hasScrollBody: false,
@@ -83,19 +92,6 @@ class _IdleHomeViewState extends State<IdleHomeView>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(height: screenHeight * 0.07),
-
-                    if (widget.state.backgroundOngoingTrip != null)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.space32,
-                        ),
-                        child: _OngoingTripResumeBanner(
-                          trip: widget.state.backgroundOngoingTrip!,
-                        ),
-                      ),
-
-                    if (widget.state.backgroundOngoingTrip != null)
-                      const SizedBox(height: AppSpacing.space16),
 
                     // Greeting — time-aware, bold, left-aligned
                     Padding(
@@ -134,26 +130,46 @@ class _IdleHomeViewState extends State<IdleHomeView>
                       ),
                     ),
 
-                    const SizedBox(height: AppSpacing.space24),
+                    if (widget.state.backgroundOngoingTrip != null)
+                      const SizedBox(height: AppSpacing.space16),
 
-                    // The carousel
-                    SizedBox(
-                      height: carouselHeight,
-                      child: DestinationCarousel(
-                        showIndicators: false,
+                    if (widget.state.backgroundOngoingTrip != null)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.space24,
+                        ),
+                        child: _OngoingTripResumeBanner(
+                          trip: widget.state.backgroundOngoingTrip!,
+                        ),
+                      ),
+
+                    if (widget.state.backgroundOngoingTrip != null)
+                      const SizedBox(height: AppSpacing.space16),
+
+                    // Carousel inset only — card margins stay symmetric so scroll UX stays even.
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(
+                        start: AppSpacing.space24,
+                      ),
+                      child: SizedBox(
                         height: carouselHeight,
-                        viewportFraction: 0.84,
-                        initialPage: trips.isNotEmpty ? 1 : 0,
-                        itemCount: totalItems,
-                        itemBuilder: (context, index) {
-                          if (index == 0) {
-                            return CreateTripCard(
-                              isFirstTrip: widget.state.isNewUser,
-                            );
-                          }
-                          final trip = trips[index - 1];
-                          return _HomeTripCard(trip: trip);
-                        },
+                        child: DestinationCarousel(
+                          showIndicators: false,
+                          height: carouselHeight,
+                          viewportFraction: _idleHomeCarouselViewportFraction,
+                          applyPageScale: false,
+                          initialPage: trips.isNotEmpty ? 1 : 0,
+                          itemCount: totalItems,
+                          itemBuilder: (context, index) {
+                            if (index == 0) {
+                              return CreateTripCard(
+                                isFirstTrip: widget.state.isNewUser,
+                              );
+                            }
+                            final trip = trips[index - 1];
+                            return _HomeTripCard(trip: trip);
+                          },
+                        ),
                       ),
                     ),
 
@@ -208,16 +224,9 @@ class _OngoingTripResumeBanner extends StatelessWidget {
         },
         borderRadius: AppRadius.large16,
         child: Ink(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: ColorName.surface,
             borderRadius: AppRadius.large16,
-            boxShadow: [
-              BoxShadow(
-                color: ColorName.primaryTrueDark.withValues(alpha: 0.08),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
-              ),
-            ],
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(
@@ -229,9 +238,9 @@ class _OngoingTripResumeBanner extends StatelessWidget {
                 const Icon(
                   Icons.flight_takeoff_rounded,
                   color: ColorName.primary,
-                  size: 28,
+                  size: 24,
                 ),
-                const SizedBox(width: AppSpacing.space12),
+                const SizedBox(width: AppSpacing.space16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -240,7 +249,7 @@ class _OngoingTripResumeBanner extends StatelessWidget {
                         name.isNotEmpty ? name : l10n.tripCardNoDestination,
                         style: TextStyle(
                           fontFamily: FontFamily.dMSans,
-                          fontSize: 16,
+                          fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: PersonalizationColors.textPrimaryOf(
                             brightness,
@@ -254,7 +263,7 @@ class _OngoingTripResumeBanner extends StatelessWidget {
                         l10n.homeResumeActiveTripSubtitle,
                         style: TextStyle(
                           fontFamily: FontFamily.dMSans,
-                          fontSize: 13,
+                          fontSize: 12,
                           color: PersonalizationColors.textTertiaryOf(
                             brightness,
                           ),
@@ -264,18 +273,9 @@ class _OngoingTripResumeBanner extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: AppSpacing.space8),
-                Text(
-                  l10n.homeResumeActiveTripCta,
-                  style: const TextStyle(
-                    fontFamily: FontFamily.dMSans,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: ColorName.primary,
-                  ),
-                ),
                 const Icon(
                   Icons.chevron_right,
-                  color: ColorName.primary,
+                  color: ColorName.textMutedLight,
                   size: 22,
                 ),
               ],
