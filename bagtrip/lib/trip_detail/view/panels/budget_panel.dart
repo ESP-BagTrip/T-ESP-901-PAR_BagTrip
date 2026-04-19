@@ -1,6 +1,5 @@
 import 'package:bagtrip/budget/widgets/budget_item_form.dart';
 import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
-import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/core/extensions/price_format_ext.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
@@ -119,21 +118,6 @@ class BudgetPanel extends StatelessWidget {
     final hasSummaryTotals =
         summary != null &&
         (summary.confirmedTotal > 0 || summary.forecastedTotal > 0);
-    final hasNothing = !hasSummaryTotals && budgetItems.isEmpty;
-
-    if (hasNothing) {
-      return Padding(
-        padding: const EdgeInsets.all(AppSpacing.space24),
-        child: ElegantEmptyState(
-          icon: Icons.account_balance_wallet_rounded,
-          title: l10n.emptyBudgetTitle,
-          subtitle: canEdit ? l10n.emptyBudgetSubtitle : null,
-          ctaLabel: canEdit ? l10n.panelQuickAddExpense : null,
-          onCta: canEdit ? () => _showAddSheet(context) : null,
-        ),
-      );
-    }
-
     final hasAlert = summary?.alertLevel != null;
     final forecasted = _sortDesc(
       budgetItems.where((i) => i.isPlanned).toList(),
@@ -141,6 +125,9 @@ class BudgetPanel extends StatelessWidget {
     final confirmed = _sortDesc(
       budgetItems.where((i) => !i.isPlanned).toList(),
     );
+    // Both sections are always rendered — even on brand-new trips with no
+    // items yet — so the user understands the forecast / real split and
+    // sees where future expenses will land.
 
     return Stack(
       children: [

@@ -1,6 +1,5 @@
 // ignore_for_file: avoid_redundant_argument_values
 
-import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/budget_item.dart';
@@ -82,7 +81,7 @@ void main() {
     );
   }
 
-  testWidgets('empty state shows CTA label when there is no summary or items', (
+  testWidgets('both sections render even when there is no item yet', (
     tester,
   ) async {
     await pump(
@@ -97,8 +96,11 @@ void main() {
         role: 'OWNER',
       ),
     );
-    expect(find.byType(ElegantEmptyState), findsOneWidget);
-    expect(find.text('Add expense'), findsOneWidget);
+    // Both section headers and their empty hints are visible on a fresh trip.
+    expect(find.text('FORECAST'), findsOneWidget);
+    expect(find.text('REAL'), findsOneWidget);
+    expect(find.textContaining('No forecast yet'), findsOneWidget);
+    expect(find.textContaining('No expense logged yet'), findsOneWidget);
   });
 
   testWidgets('renders both Forecast and Real section headers', (tester) async {
