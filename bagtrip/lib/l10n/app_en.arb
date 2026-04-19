@@ -965,6 +965,24 @@
   "toastTripCompleted": "Trip completed",
   "qaEndTrip": "End trip",
   "homeTodayActivities": "Today's schedule",
+  "activeHomeProgrammeTitle": "Schedule",
+  "activeHomeNoActivitiesDay": "No activities on this day",
+  "activeHomeContextPast": "Past",
+  "activeHomeContextToday": "TODAY",
+  "activeHomeContextTomorrow": "Tomorrow",
+  "activeHomeContextTripDay": "J{day}",
+  "@activeHomeContextTripDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "activeHomeLastTripDayBanner": "Last day of your trip",
+  "scheduleBadgeDone": "Done",
+  "scheduleBadgeNow": "Now",
+  "scheduleBadgeNext": "Next",
+  "scheduleBadgeLater": "Later",
   "homeNoActivitiesToday": "No activities planned today",
   "tripCardNoDestination": "No destination",
   "tripCardNoTitle": "Untitled trip",
@@ -985,6 +1003,8 @@
   "activeTripQuickActionPhotoSubtitle": "Capture and add to your journal",
   "activeTripQuickActionTomorrowTitle": "Go to tomorrow",
   "activeTripQuickActionTomorrowSubtitle": "Show tomorrow's schedule",
+  "activeTripQuickActionNextDayTitle": "Next day",
+  "activeTripQuickActionNextDaySubtitle": "Show the next day's schedule",
   "activeTripEndTripCardTitle": "End trip",
   "activeTripEndTripCardSubtitle": "Mark {destination} as finished",
   "@activeTripEndTripCardSubtitle": {

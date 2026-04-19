@@ -353,6 +353,19 @@ class _HomeTripCardState extends State<_HomeTripCard>
     return l10n.nextTripCountdown(days);
   }
 
+  /// True when trip starts within 1 calendar day (orange pill).
+  bool get _countdownImminent {
+    final start = widget.trip.startDate;
+    if (start == null) return false;
+    final now = DateTime.now();
+    final days = DateTime(
+      start.year,
+      start.month,
+      start.day,
+    ).difference(DateTime(now.year, now.month, now.day)).inDays;
+    return days > 0 && days <= 1;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -362,6 +375,7 @@ class _HomeTripCardState extends State<_HomeTripCard>
       _formatDateShort(widget.trip.endDate),
     ].where((s) => s.isNotEmpty).join(' — ');
     final countdown = _countdown(l10n);
+    final countdownUrgent = _countdownImminent;
 
     return GestureDetector(
       onTapDown: (_) => _pressController.forward(),
@@ -422,12 +436,16 @@ class _HomeTripCardState extends State<_HomeTripCard>
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: ColorName.primaryTrueDark.withValues(
-                            alpha: 0.35,
-                          ),
+                          color: countdownUrgent
+                              ? ColorName.warning.withValues(alpha: 0.92)
+                              : ColorName.primaryTrueDark.withValues(
+                                  alpha: 0.35,
+                                ),
                           borderRadius: AppRadius.pill,
                           border: Border.all(
-                            color: PersonalizationColors.surfaceGlassBorder,
+                            color: countdownUrgent
+                                ? ColorName.warning.withValues(alpha: 0.4)
+                                : PersonalizationColors.surfaceGlassBorder,
                           ),
                         ),
                         child: Text(
@@ -436,7 +454,9 @@ class _HomeTripCardState extends State<_HomeTripCard>
                             fontFamily: FontFamily.dMSans,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: ColorName.surface.withValues(alpha: 0.9),
+                            color: countdownUrgent
+                                ? Colors.white
+                                : ColorName.surface.withValues(alpha: 0.9),
                             letterSpacing: 0.2,
                           ),
                         ),

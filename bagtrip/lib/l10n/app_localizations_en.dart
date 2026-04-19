@@ -1970,6 +1970,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTodayActivities => 'Today\'s schedule';
 
   @override
+  String get activeHomeProgrammeTitle => 'Schedule';
+
+  @override
+  String get activeHomeNoActivitiesDay => 'No activities on this day';
+
+  @override
+  String get activeHomeContextPast => 'Past';
+
+  @override
+  String get activeHomeContextToday => 'TODAY';
+
+  @override
+  String get activeHomeContextTomorrow => 'Tomorrow';
+
+  @override
+  String activeHomeContextTripDay(int day) {
+    return 'J$day';
+  }
+
+  @override
+  String get activeHomeLastTripDayBanner => 'Last day of your trip';
+
+  @override
+  String get scheduleBadgeDone => 'Done';
+
+  @override
+  String get scheduleBadgeNow => 'Now';
+
+  @override
+  String get scheduleBadgeNext => 'Next';
+
+  @override
+  String get scheduleBadgeLater => 'Later';
+
+  @override
   String get homeNoActivitiesToday => 'No activities planned today';
 
   @override
@@ -2018,6 +2053,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get activeTripQuickActionTomorrowSubtitle =>
       'Show tomorrow\'s schedule';
+
+  @override
+  String get activeTripQuickActionNextDayTitle => 'Next day';
+
+  @override
+  String get activeTripQuickActionNextDaySubtitle =>
+      'Show the next day\'s schedule';
 
   @override
   String get activeTripEndTripCardTitle => 'End trip';

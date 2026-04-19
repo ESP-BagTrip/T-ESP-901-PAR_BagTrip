@@ -13,8 +13,8 @@ class ActiveTripQuickActionsSection extends StatelessWidget {
     this.onNavigate,
     required this.onExpense,
     required this.onPhoto,
-    required this.tomorrowEnabled,
-    this.onTomorrow,
+    required this.nextDayEnabled,
+    this.onNextDay,
     required this.onEndTrip,
     required this.destinationLabel,
   });
@@ -23,8 +23,8 @@ class ActiveTripQuickActionsSection extends StatelessWidget {
   final VoidCallback? onNavigate;
   final VoidCallback onExpense;
   final VoidCallback onPhoto;
-  final bool tomorrowEnabled;
-  final VoidCallback? onTomorrow;
+  final bool nextDayEnabled;
+  final VoidCallback? onNextDay;
   final VoidCallback onEndTrip;
   final String destinationLabel;
 
@@ -74,10 +74,10 @@ class ActiveTripQuickActionsSection extends StatelessWidget {
               _QuickActionRow(
                 icon: Icons.star_rounded,
                 iconColor: _semanticBlue,
-                title: l10n.activeTripQuickActionTomorrowTitle,
-                subtitle: l10n.activeTripQuickActionTomorrowSubtitle,
-                enabled: tomorrowEnabled,
-                onTap: onTomorrow,
+                title: l10n.activeTripQuickActionNextDayTitle,
+                subtitle: l10n.activeTripQuickActionNextDaySubtitle,
+                enabled: nextDayEnabled,
+                onTap: onNextDay,
                 showDivider: false,
               ),
             ],

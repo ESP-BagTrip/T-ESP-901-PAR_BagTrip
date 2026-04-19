@@ -3620,6 +3620,72 @@ abstract class AppLocalizations {
   /// **'Programme du jour'**
   String get homeTodayActivities;
 
+  /// No description provided for @activeHomeProgrammeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Programme'**
+  String get activeHomeProgrammeTitle;
+
+  /// No description provided for @activeHomeNoActivitiesDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune activité ce jour-là'**
+  String get activeHomeNoActivitiesDay;
+
+  /// No description provided for @activeHomeContextPast.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passé'**
+  String get activeHomeContextPast;
+
+  /// No description provided for @activeHomeContextToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'AUJOURD\'HUI'**
+  String get activeHomeContextToday;
+
+  /// No description provided for @activeHomeContextTomorrow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demain'**
+  String get activeHomeContextTomorrow;
+
+  /// No description provided for @activeHomeContextTripDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'J{day}'**
+  String activeHomeContextTripDay(int day);
+
+  /// No description provided for @activeHomeLastTripDayBanner.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernier jour de votre voyage'**
+  String get activeHomeLastTripDayBanner;
+
+  /// No description provided for @scheduleBadgeDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminé'**
+  String get scheduleBadgeDone;
+
+  /// No description provided for @scheduleBadgeNow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Maintenant'**
+  String get scheduleBadgeNow;
+
+  /// No description provided for @scheduleBadgeNext.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ensuite'**
+  String get scheduleBadgeNext;
+
+  /// No description provided for @scheduleBadgeLater.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus tard'**
+  String get scheduleBadgeLater;
+
   /// No description provided for @homeNoActivitiesToday.
   ///
   /// In fr, this message translates to:
@@ -3697,6 +3763,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Afficher le programme de demain'**
   String get activeTripQuickActionTomorrowSubtitle;
+
+  /// No description provided for @activeTripQuickActionNextDayTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jour suivant'**
+  String get activeTripQuickActionNextDayTitle;
+
+  /// No description provided for @activeTripQuickActionNextDaySubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Afficher le programme du jour suivant'**
+  String get activeTripQuickActionNextDaySubtitle;
 
   /// No description provided for @activeTripEndTripCardTitle.
   ///

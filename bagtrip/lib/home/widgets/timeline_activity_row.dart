@@ -19,6 +19,15 @@ class TimelineActivityRow extends StatefulWidget {
   final int? remainingMinutes;
   final VoidCallback? onNavigate;
 
+  /// When set (e.g. Terminé / Maintenant / Ensuite), replaces time in the capsule.
+  final String? capsuleScheduleBadge;
+
+  /// Past completed items (full day or ended slot): strikethrough + dimming.
+  final bool strikeThroughTitle;
+
+  /// Opacity for dimmed text; default 0.55, use 0.65 for schedule v3 past items.
+  final double? contentDimAlpha;
+
   const TimelineActivityRow({
     super.key,
     required this.activity,
@@ -29,6 +38,9 @@ class TimelineActivityRow extends StatefulWidget {
     this.minutesUntilNext,
     this.remainingMinutes,
     this.onNavigate,
+    this.capsuleScheduleBadge,
+    this.strikeThroughTitle = false,
+    this.contentDimAlpha,
   });
 
   @override
@@ -104,8 +116,11 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final dimmedAlpha = 0.55;
-    final isDimmed = widget.isPast && !widget.isCurrent && !widget.isNext;
+    final dimmedAlpha =
+        widget.contentDimAlpha ?? (widget.strikeThroughTitle ? 0.65 : 0.55);
+    final isDimmed =
+        widget.strikeThroughTitle ||
+        (widget.isPast && !widget.isCurrent && !widget.isNext);
 
     final spineColor = theme.colorScheme.outlineVariant.withValues(alpha: 0.6);
 
@@ -147,9 +162,11 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
     required double dimmedAlpha,
   }) {
     final accent = _accent(isDimmed);
-    final capsuleLabel = widget.isCurrent
-        ? l10n.homeSectionNowBadge
-        : (widget.activity.startTime ?? l10n.activeTripsAllDay);
+    final capsuleLabel =
+        widget.capsuleScheduleBadge ??
+        (widget.isCurrent
+            ? l10n.homeSectionNowBadge
+            : (widget.activity.startTime ?? l10n.activeTripsAllDay));
     final subtitle = _subtitleLine(l10n);
 
     final inner = Padding(
@@ -172,6 +189,9 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
               fontFamily: FontFamily.dMSans,
               fontSize: 15,
               fontWeight: FontWeight.w700,
+              decoration: widget.strikeThroughTitle
+                  ? TextDecoration.lineThrough
+                  : null,
               color: isDimmed
                   ? theme.colorScheme.onSurface.withValues(alpha: dimmedAlpha)
                   : theme.colorScheme.onSurface,

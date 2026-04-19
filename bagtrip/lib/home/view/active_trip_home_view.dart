@@ -10,7 +10,8 @@ import 'package:bagtrip/home/cubit/quick_expense_cubit.dart';
 import 'package:bagtrip/home/cubit/today_tick_cubit.dart';
 import 'package:bagtrip/home/helpers/camera_launcher.dart';
 import 'package:bagtrip/home/helpers/map_launcher.dart';
-import 'package:bagtrip/home/helpers/today_activities.dart';
+import 'package:bagtrip/home/helpers/selected_day_schedule.dart';
+import 'package:bagtrip/home/widgets/active_trip_day_navigator.dart';
 import 'package:bagtrip/home/widgets/active_trip_hero.dart';
 import 'package:bagtrip/home/widgets/active_trip_nav_pill.dart';
 import 'package:bagtrip/home/widgets/active_trip_quick_actions_section.dart';
@@ -19,9 +20,11 @@ import 'package:bagtrip/home/widgets/now_indicator_row.dart';
 import 'package:bagtrip/home/widgets/quick_expense_sheet.dart';
 import 'package:bagtrip/home/widgets/timeline_activity_row.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 class ActiveTripHomeView extends StatefulWidget {
   final HomeActiveTrip state;
@@ -40,11 +43,36 @@ const tomorrowSectionHeaderKey = ValueKey('tomorrow-section-header');
 class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
   String? _previousCurrentActivityId;
   bool _completionDialogShown = false;
-  final _tomorrowSectionKey = GlobalKey();
+  late int _selectedDayIndex0;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDayIndex0 = defaultSelectedDayIndex0(
+      trip: widget.state.activeTrip,
+      totalDays: widget.state.totalDays,
+      now: DateTime.now(),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final pending = widget.state.pendingCompletionTrip;
+      if (pending != null && !_completionDialogShown) {
+        _completionDialogShown = true;
+        _showCompletionDialog(pending);
+      }
+    });
+  }
 
   @override
   void didUpdateWidget(covariant ActiveTripHomeView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.state.activeTrip.id != widget.state.activeTrip.id) {
+      _selectedDayIndex0 = defaultSelectedDayIndex0(
+        trip: widget.state.activeTrip,
+        totalDays: widget.state.totalDays,
+        now: DateTime.now(),
+      );
+    }
     final pending = widget.state.pendingCompletionTrip;
     final oldPending = oldWidget.state.pendingCompletionTrip;
     if (pending != null && pending.id != oldPending?.id) {
@@ -57,30 +85,6 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
         _showCompletionDialog(pending);
       });
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final pending = widget.state.pendingCompletionTrip;
-      if (pending != null && !_completionDialogShown) {
-        _completionDialogShown = true;
-        _showCompletionDialog(pending);
-      }
-    });
-  }
-
-  void _scrollToTomorrow() {
-    final target = _tomorrowSectionKey.currentContext;
-    if (target == null) return;
-    Scrollable.ensureVisible(
-      target,
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeOutCubic,
-      alignment: 0.12,
-    );
   }
 
   void _showCompletionDialog(Trip trip) {
@@ -102,6 +106,36 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
     );
   }
 
+  int? _calendarTodayIndex0(DateTime tickNow) {
+    final t = widget.state.activeTrip;
+    if (t.startDate == null) return null;
+    final start = DateTime(
+      t.startDate!.year,
+      t.startDate!.month,
+      t.startDate!.day,
+    );
+    final today = DateTime(tickNow.year, tickNow.month, tickNow.day);
+    final d = today.difference(start).inDays;
+    if (d < 0 || d >= widget.state.totalDays) return null;
+    return d;
+  }
+
+  bool _sameCalendarDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  String _contextChipLabel(
+    AppLocalizations l10n,
+    DateTime selectedDay,
+    DateTime today,
+  ) {
+    final s = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+    final t = DateTime(today.year, today.month, today.day);
+    if (s.isBefore(t)) return l10n.activeHomeContextPast;
+    if (_sameCalendarDay(s, t)) return l10n.activeHomeContextToday;
+    if (s.difference(t).inDays == 1) return l10n.activeHomeContextTomorrow;
+    return l10n.activeHomeContextTripDay(_selectedDayIndex0 + 1);
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -119,33 +153,54 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
   Widget _buildContent(BuildContext context, DateTime tickNow) {
     final l10n = AppLocalizations.of(context)!;
     final trip = widget.state.activeTrip;
-    final result = classifyTodayActivities(
+    final totalDays = widget.state.totalDays;
+    final locale = Localizations.localeOf(context).toString();
+
+    final schedule = buildScheduleForSelectedDay(
       allActivities: widget.state.allActivities,
+      trip: trip,
+      selectedDayIndex0: _selectedDayIndex0,
+      totalDays: totalDays,
       now: tickNow,
-      tripEndDate: trip.endDate,
     );
 
-    // Haptic on current activity change
-    if (result.currentActivity != null &&
-        result.currentActivity!.id != _previousCurrentActivityId) {
+    final calToday0 = _calendarTodayIndex0(tickNow);
+    final todayIdxForNav =
+        calToday0 ??
+        defaultSelectedDayIndex0(
+          trip: trip,
+          totalDays: totalDays,
+          now: tickNow,
+        );
+
+    final todayNavSchedule = buildScheduleForSelectedDay(
+      allActivities: widget.state.allActivities,
+      trip: trip,
+      selectedDayIndex0: todayIdxForNav,
+      totalDays: totalDays,
+      now: tickNow,
+    );
+
+    if (todayNavSchedule.currentActivity != null &&
+        todayNavSchedule.currentActivity!.id != _previousCurrentActivityId) {
       if (_previousCurrentActivityId != null) {
         AppHaptics.medium();
       }
-      _previousCurrentActivityId = result.currentActivity!.id;
-    } else if (result.currentActivity == null &&
+      _previousCurrentActivityId = todayNavSchedule.currentActivity!.id;
+    } else if (todayNavSchedule.currentActivity == null &&
         _previousCurrentActivityId != null) {
       _previousCurrentActivityId = null;
     }
 
-    final allTimeline = [...result.allDayActivities, ...result.timedActivities];
+    final allTimeline = schedule.allTimeline;
 
     final nowTime =
         '${tickNow.hour.toString().padLeft(2, '0')}:${tickNow.minute.toString().padLeft(2, '0')}';
 
-    // Compute remaining minutes for current activity
     int? currentRemainingMinutes;
-    if (result.currentActivity?.endTime != null) {
-      final parts = result.currentActivity!.endTime!.split(':');
+    if (schedule.dayKind == SelectedDayKind.today &&
+        schedule.currentActivity?.endTime != null) {
+      final parts = schedule.currentActivity!.endTime!.split(':');
       if (parts.length == 2) {
         final endH = int.tryParse(parts[0]);
         final endM = int.tryParse(parts[1]);
@@ -162,14 +217,18 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
       right: MediaQuery.paddingOf(context).right + AppSpacing.space24,
     );
 
-    final timelineItemCount = _countTimelineItems(allTimeline, result);
+    final timelineItemCount = _countTimelineItems(schedule);
     int fi = 0;
+
+    final selectedCal = calendarDateForTripDay(trip, _selectedDayIndex0);
+    final todayCal = DateTime(tickNow.year, tickNow.month, tickNow.day);
+    final longDate = DateFormat.yMMMMEEEEd(locale).format(selectedCal);
 
     return ColoredBox(
       color: const Color(0xFFF5F7FA),
       child: CustomScrollView(
+        clipBehavior: Clip.none,
         slivers: [
-          // Hero
           SliverToBoxAdapter(
             child: StaggeredFadeIn(
               index: fi++,
@@ -180,7 +239,7 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
                 child: ActiveTripHero(
                   trip: trip,
                   currentDay: widget.state.currentDay,
-                  totalDays: widget.state.totalDays,
+                  totalDays: totalDays,
                   weather: widget.state.weatherData,
                 ),
               ),
@@ -197,54 +256,121 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
             ),
           ),
 
-          // Today's schedule header
+          // Programme unifié
           SliverToBoxAdapter(
             child: StaggeredFadeIn(
               index: fi++,
               child: Padding(
                 padding: hPadding.copyWith(top: AppSpacing.space32),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        l10n.homeTodayActivities,
-                        style: TextStyle(
-                          fontFamily: FontFamily.dMSans,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                    ),
-                    if (result.currentActivity != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.space12,
-                          vertical: AppSpacing.space4,
-                        ),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF34B7A4),
-                          borderRadius: AppRadius.pill,
-                        ),
-                        child: Text(
-                          l10n.homeSectionNowBadge,
-                          style: const TextStyle(
-                            fontFamily: FontFamily.dMSans,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            letterSpacing: 0.4,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            l10n.activeHomeProgrammeTitle,
+                            style: TextStyle(
+                              fontFamily: FontFamily.dMSerifDisplay,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w400,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                           ),
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.space16),
+                    ActiveTripDayNavigator(
+                      totalDays: totalDays,
+                      selectedDayIndex0: _selectedDayIndex0,
+                      tripStartDate: trip.startDate!,
+                      calendarTodayIndex0: calToday0,
+                      onDaySelected: (i) {
+                        setState(() => _selectedDayIndex0 = i);
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.space12),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.space12,
+                            vertical: AppSpacing.space8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: ColorName.secondary.withValues(alpha: 0.15),
+                            borderRadius: AppRadius.pill,
+                          ),
+                          child: Text(
+                            _contextChipLabel(l10n, selectedCal, todayCal),
+                            style: const TextStyle(
+                              fontFamily: FontFamily.dMSans,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: ColorName.secondary,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.space12),
+                        Expanded(
+                          child: Text(
+                            longDate,
+                            style: TextStyle(
+                              fontFamily: FontFamily.dMSans,
+                              fontSize: 14,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (_selectedDayIndex0 == totalDays - 1) ...[
+                      const SizedBox(height: AppSpacing.space12),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.space12,
+                          vertical: AppSpacing.space8,
+                        ),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFFE8B3),
+                          borderRadius: AppRadius.large24,
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.info_outline_rounded,
+                              size: 18,
+                              color: ColorName.warning,
+                            ),
+                            const SizedBox(width: AppSpacing.space8),
+                            Expanded(
+                              child: Text(
+                                l10n.activeHomeLastTripDayBanner,
+                                style: const TextStyle(
+                                  fontFamily: FontFamily.dMSans,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFFB45309),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                    ],
                   ],
                 ),
               ),
             ),
           ),
 
-          // Timeline or empty state
-          if (allTimeline.isEmpty)
+          if (schedule.isEmpty)
             SliverToBoxAdapter(
               child: StaggeredFadeIn(
                 index: fi++,
@@ -252,7 +378,7 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
                   padding: const EdgeInsets.only(top: AppSpacing.space16),
                   child: ElegantEmptyState(
                     icon: Icons.event_note,
-                    title: l10n.homeNoActivitiesToday,
+                    title: l10n.activeHomeNoActivitiesDay,
                   ),
                 ),
               ),
@@ -260,14 +386,13 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
           else
             SliverList(
               delegate: SliverChildBuilderDelegate((context, index) {
-                // Build combined list: all-day + timed with now indicator
                 final items = _buildTimelineItems(
                   allTimeline,
-                  result,
+                  schedule,
                   nowTime,
-                  tickNow,
                   currentRemainingMinutes,
                   context,
+                  l10n,
                 );
                 if (index >= items.length) return null;
                 return StaggeredFadeIn(
@@ -277,108 +402,11 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
               }, childCount: timelineItemCount),
             ),
 
-          // Tomorrow section
-          if (result.tomorrowActivities.isNotEmpty) ...[
-            SliverToBoxAdapter(
-              key: _tomorrowSectionKey,
-              child: Builder(
-                builder: (context) {
-                  final tomorrowHeaderIndex = fi + timelineItemCount;
-                  return StaggeredFadeIn(
-                    index: tomorrowHeaderIndex,
-                    child: Padding(
-                      padding: hPadding.copyWith(top: AppSpacing.space32),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                l10n.activeTripsTomorrow,
-                                style: TextStyle(
-                                  fontFamily: FontFamily.dMSans,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurface,
-                                ),
-                              ),
-                              const SizedBox(width: AppSpacing.space8),
-                              Text(
-                                l10n.activeTripsTomorrowCount(
-                                  result.tomorrowActivities.length,
-                                ),
-                                style: TextStyle(
-                                  fontFamily: FontFamily.dMSans,
-                                  fontSize: 14,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (result.isTomorrowLastDay) ...[
-                            const SizedBox(height: AppSpacing.space8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.space12,
-                                vertical: AppSpacing.space8,
-                              ),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFFFE8B3),
-                                borderRadius: AppRadius.large24,
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.info_outline_rounded,
-                                    size: 18,
-                                    color: ColorName.warning,
-                                  ),
-                                  const SizedBox(width: AppSpacing.space8),
-                                  Expanded(
-                                    child: Text(
-                                      l10n.activeTripsTomorrowLastDay,
-                                      style: const TextStyle(
-                                        fontFamily: FontFamily.dMSans,
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFFB45309),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: _CollapsibleTomorrowSection(
-                activities: result.tomorrowActivities,
-                hPadding: hPadding,
-                baseFadeIndex: fi + timelineItemCount + 1,
-              ),
-            ),
-          ],
-
-          // Quick actions
           SliverToBoxAdapter(
             child: Builder(
               builder: (context) {
-                final tomorrowBlock = result.tomorrowActivities.isNotEmpty
-                    ? result.tomorrowActivities.length + 2
-                    : 0;
-                final emptyBump = allTimeline.isEmpty ? 1 : 0;
-                final quickIndex =
-                    fi + timelineItemCount + tomorrowBlock + emptyBump;
+                final emptyBump = schedule.isEmpty ? 1 : 0;
+                final quickIndex = fi + timelineItemCount + emptyBump;
                 return StaggeredFadeIn(
                   index: quickIndex,
                   child: Padding(
@@ -399,19 +427,25 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
                         const SizedBox(height: AppSpacing.space16),
                         ActiveTripQuickActionsSection(
                           navigateEnabled:
-                              _resolveNavigateTarget(result) != null,
-                          onNavigate: _resolveNavigateTarget(result) != null
+                              _resolveNavigateTarget(todayNavSchedule) != null,
+                          onNavigate:
+                              _resolveNavigateTarget(todayNavSchedule) != null
                               ? () => launchMapNavigation(
                                   context,
-                                  _resolveNavigateTarget(result)!,
+                                  _resolveNavigateTarget(todayNavSchedule)!,
                                 )
                               : null,
                           onExpense: () =>
                               _showQuickExpenseSheet(context, trip.id),
                           onPhoto: () => launchCamera(context),
-                          tomorrowEnabled: result.tomorrowActivities.isNotEmpty,
-                          onTomorrow: result.tomorrowActivities.isNotEmpty
-                              ? _scrollToTomorrow
+                          nextDayEnabled:
+                              _selectedDayIndex0 < widget.state.totalDays - 1,
+                          onNextDay: _selectedDayIndex0 < totalDays - 1
+                              ? () {
+                                  setState(() {
+                                    _selectedDayIndex0++;
+                                  });
+                                }
                               : null,
                           onEndTrip: () => showEndActiveTripSheet(context),
                           destinationLabel: () {
@@ -430,7 +464,6 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
             ),
           ),
 
-          // Bottom padding (tab bar hidden on this screen; keep safe area only)
           SliverToBoxAdapter(
             child: SizedBox(
               height: MediaQuery.paddingOf(context).bottom + AppSpacing.space24,
@@ -441,9 +474,9 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
     );
   }
 
-  String? _resolveNavigateTarget(TodayActivitiesResult result) {
+  String? _resolveNavigateTarget(SelectedDayScheduleResult todaySch) {
     final loc =
-        result.currentActivity?.location ?? result.nextActivity?.location;
+        todaySch.currentActivity?.location ?? todaySch.nextActivity?.location;
     return (loc != null && loc.isNotEmpty) ? loc : null;
   }
 
@@ -459,50 +492,95 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
     );
   }
 
-  int _countTimelineItems(List allTimeline, TodayActivitiesResult result) {
-    // Count: allTimeline items + 1 for now indicator (if applicable)
-    final hasNowIndicator =
-        result.nowIndicatorIndex != null && result.timedActivities.isNotEmpty;
-    return allTimeline.length + (hasNowIndicator ? 1 : 0);
+  int _countTimelineItems(SelectedDayScheduleResult schedule) {
+    final hasTimed = schedule.timedActivities.isNotEmpty;
+    final hasNow =
+        schedule.dayKind == SelectedDayKind.today &&
+        schedule.nowIndicatorIndex != null &&
+        hasTimed;
+    return schedule.allTimeline.length + (hasNow ? 1 : 0);
+  }
+
+  String _capsuleBadge(
+    AppLocalizations l10n,
+    SelectedDayScheduleResult schedule,
+    bool isCurrentActivity,
+    bool isNext,
+    bool isPastSlot,
+    int indexInTimeline,
+  ) {
+    switch (schedule.dayKind) {
+      case SelectedDayKind.beforeToday:
+        return l10n.scheduleBadgeDone;
+      case SelectedDayKind.afterToday:
+        return indexInTimeline == 0
+            ? l10n.scheduleBadgeNext
+            : l10n.scheduleBadgeLater;
+      case SelectedDayKind.today:
+        if (isCurrentActivity) return l10n.scheduleBadgeNow;
+        if (isNext) return l10n.scheduleBadgeNext;
+        if (isPastSlot) return l10n.scheduleBadgeDone;
+        return l10n.scheduleBadgeLater;
+    }
   }
 
   List<Widget> _buildTimelineItems(
-    List allTimeline,
-    TodayActivitiesResult result,
+    List<Activity> allTimeline,
+    SelectedDayScheduleResult schedule,
     String nowTime,
-    DateTime tickNow,
     int? currentRemainingMinutes,
     BuildContext context,
+    AppLocalizations l10n,
   ) {
     final items = <Widget>[];
-    final allDayCount = result.allDayActivities.length;
+    final allDayCount = schedule.allDayActivities.length;
     final totalCount = allTimeline.length;
 
-    // The now indicator index is relative to timedActivities.
-    // In allTimeline, timed activities start at allDayCount.
-    final absNowIdx = result.nowIndicatorIndex != null
-        ? allDayCount + result.nowIndicatorIndex!
+    final absNowIdx =
+        schedule.dayKind == SelectedDayKind.today &&
+            schedule.nowIndicatorIndex != null
+        ? allDayCount + schedule.nowIndicatorIndex!
         : null;
 
     for (int i = 0; i < totalCount; i++) {
-      // Insert now indicator before this item if needed
       if (absNowIdx != null && i == absNowIdx) {
         items.add(const NowIndicatorRow());
       }
 
       final activity = allTimeline[i];
       final isCurrentActivity =
-          result.currentActivity != null &&
-          activity.id == result.currentActivity!.id;
-      final isNext = activity == result.nextActivity;
-      final isPast =
+          schedule.dayKind == SelectedDayKind.today &&
+          schedule.currentActivity != null &&
+          activity.id == schedule.currentActivity!.id;
+      final isNext =
+          schedule.dayKind == SelectedDayKind.today &&
+          schedule.nextActivity != null &&
+          activity.id == schedule.nextActivity!.id;
+      final isPastSlot =
+          schedule.dayKind == SelectedDayKind.today &&
           !isCurrentActivity &&
           !isNext &&
           activity.startTime != null &&
           activity.startTime!.compareTo(nowTime) <= 0;
 
+      final strikeThrough =
+          schedule.dayKind == SelectedDayKind.beforeToday ||
+          (schedule.dayKind == SelectedDayKind.today &&
+              isPastSlot &&
+              !isCurrentActivity &&
+              !isNext);
+
       final hasLocation =
           activity.location != null && activity.location!.isNotEmpty;
+
+      final capsuleBadge = _capsuleBadge(
+        l10n,
+        schedule,
+        isCurrentActivity,
+        isNext,
+        isPastSlot,
+        i,
+      );
 
       items.add(
         TimelineActivityRow(
@@ -510,129 +588,26 @@ class _ActiveTripHomeViewState extends State<ActiveTripHomeView> {
           isNext: isNext,
           isLast: i == totalCount - 1 && absNowIdx != totalCount,
           isCurrent: isCurrentActivity,
-          isPast: isPast,
-          minutesUntilNext: isNext ? result.minutesUntilNext : null,
+          isPast: isPastSlot,
+          minutesUntilNext: isNext ? schedule.minutesUntilNext : null,
           remainingMinutes: isCurrentActivity ? currentRemainingMinutes : null,
-          onNavigate: hasLocation
+          capsuleScheduleBadge: capsuleBadge,
+          strikeThroughTitle: strikeThrough,
+          contentDimAlpha: strikeThrough ? 0.65 : null,
+          onNavigate:
+              hasLocation &&
+                  !strikeThrough &&
+                  schedule.dayKind == SelectedDayKind.today
               ? () => launchMapNavigation(context, activity.location!)
               : null,
         ),
       );
     }
 
-    // Now indicator at end (all activities are past)
     if (absNowIdx != null && absNowIdx >= totalCount) {
       items.add(const NowIndicatorRow());
     }
 
     return items;
-  }
-}
-
-class _CollapsibleTomorrowSection extends StatefulWidget {
-  final List activities;
-  final EdgeInsets hPadding;
-  final int baseFadeIndex;
-
-  const _CollapsibleTomorrowSection({
-    required this.activities,
-    required this.hPadding,
-    required this.baseFadeIndex,
-  });
-
-  @override
-  State<_CollapsibleTomorrowSection> createState() =>
-      _CollapsibleTomorrowSectionState();
-}
-
-class _CollapsibleTomorrowSectionState
-    extends State<_CollapsibleTomorrowSection>
-    with SingleTickerProviderStateMixin {
-  bool _expanded = false;
-  late AnimationController _chevronController;
-  late Animation<double> _chevronRotation;
-
-  @override
-  void initState() {
-    super.initState();
-    _chevronController = AnimationController(
-      duration: const Duration(milliseconds: 200),
-      vsync: this,
-    );
-    _chevronRotation = Tween<double>(begin: 0, end: 0.5).animate(
-      CurvedAnimation(parent: _chevronController, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _chevronController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final showAll = _expanded || widget.activities.length <= 3;
-    final displayCount = showAll ? widget.activities.length : 3;
-
-    return Column(
-      children: [
-        for (int i = 0; i < displayCount; i++)
-          StaggeredFadeIn(
-            index: widget.baseFadeIndex + i,
-            child: Padding(
-              padding: widget.hPadding,
-              child: TimelineActivityRow(
-                activity: widget.activities[i],
-                isLast: i == displayCount - 1 && showAll,
-              ),
-            ),
-          ),
-        if (widget.activities.length > 3)
-          Padding(
-            padding: widget.hPadding.copyWith(top: AppSpacing.space8),
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _expanded = !_expanded;
-                  if (_expanded) {
-                    _chevronController.forward();
-                  } else {
-                    _chevronController.reverse();
-                  }
-                });
-              },
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    _expanded
-                        ? l10n.activeTripsTomorrowCollapse
-                        : l10n.activeTripsTomorrowShowAll(
-                            widget.activities.length,
-                          ),
-                    style: const TextStyle(
-                      fontFamily: FontFamily.b612,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: ColorName.primary,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.space4),
-                  RotationTransition(
-                    turns: _chevronRotation,
-                    child: const Icon(
-                      Icons.expand_more,
-                      size: 18,
-                      color: ColorName.primary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-      ],
-    );
   }
 }
