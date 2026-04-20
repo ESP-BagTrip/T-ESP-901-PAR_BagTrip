@@ -704,10 +704,29 @@
   "emptyTransportsSubtitle": "Ajoutez vos vols pour organiser votre voyage",
   "emptyAccommodationsTitle": "Où dormirez-vous ?",
   "emptyAccommodationsSubtitle": "Ajoutez vos hôtels et logements",
+  "emptyFlightsTitle": "Prêt à décoller ?",
+  "emptyFlightsSubtitle": "Ajoutez vos vols pour suivre dates et horaires",
+  "noActivitiesThisDay": "Rien de prévu ce jour",
   "emptyActivitiesTitle": "Que découvrirez-vous ?",
   "emptyActivitiesSubtitle": "Ajoutez des activités pour planifier votre voyage",
   "emptyBaggageTitle": "Que faut-il emporter ?",
   "emptyBaggageSubtitle": "Ajoutez des éléments à votre liste de bagages",
+  "baggageProgressLabel": "{packed} / {total} prêts",
+  "@baggageProgressLabel": {
+    "placeholders": {
+      "packed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "emptySharesTitle": "Voyagez ensemble",
+  "emptySharesSubtitle": "Invitez des compagnons pour collaborer sur ce voyage",
+  "budgetSeeAllExpenses": "Voir toutes les dépenses",
+  "budgetOverBudgetBanner": "Dépassement de {amount}",
+  "@budgetOverBudgetBanner": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
   "emptyBudgetTitle": "Suivez vos dépenses",
   "emptyBudgetSubtitle": "Suivez vos dépenses et planifiez votre budget voyage",
   "mapTitle": "Carte",
@@ -1262,6 +1281,10 @@
   "addTransportTooltip": "Ajouter un transport",
   "addExpenseTooltip": "Ajouter une depense",
   "addBaggageItemTooltip": "Ajouter un element",
+  "addFlightTooltip": "Ajouter un vol",
+  "sharesAddMemberTooltip": "Inviter un membre",
+  "myTripFallback": "Mon voyage",
+  "completionSegmentsSheetTitle": "Encore à compléter",
   "shareTooltip": "Partager",
   "backTooltip": "Retour",
   "deleteFlightTooltip": "Supprimer le vol",

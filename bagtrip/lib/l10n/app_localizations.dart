@@ -2780,6 +2780,24 @@ abstract class AppLocalizations {
   /// **'Ajoutez vos hôtels et logements'**
   String get emptyAccommodationsSubtitle;
 
+  /// No description provided for @emptyFlightsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prêt à décoller ?'**
+  String get emptyFlightsTitle;
+
+  /// No description provided for @emptyFlightsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez vos vols pour suivre dates et horaires'**
+  String get emptyFlightsSubtitle;
+
+  /// No description provided for @noActivitiesThisDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien de prévu ce jour'**
+  String get noActivitiesThisDay;
+
   /// No description provided for @emptyActivitiesTitle.
   ///
   /// In fr, this message translates to:
@@ -2803,6 +2821,36 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Ajoutez des éléments à votre liste de bagages'**
   String get emptyBaggageSubtitle;
+
+  /// No description provided for @baggageProgressLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'{packed} / {total} prêts'**
+  String baggageProgressLabel(int packed, int total);
+
+  /// No description provided for @emptySharesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voyagez ensemble'**
+  String get emptySharesTitle;
+
+  /// No description provided for @emptySharesSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Invitez des compagnons pour collaborer sur ce voyage'**
+  String get emptySharesSubtitle;
+
+  /// No description provided for @budgetSeeAllExpenses.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir toutes les dépenses'**
+  String get budgetSeeAllExpenses;
+
+  /// No description provided for @budgetOverBudgetBanner.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dépassement de {amount}'**
+  String budgetOverBudgetBanner(String amount);
 
   /// No description provided for @emptyBudgetTitle.
   ///
@@ -4616,6 +4664,30 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Ajouter un element'**
   String get addBaggageItemTooltip;
+
+  /// No description provided for @addFlightTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un vol'**
+  String get addFlightTooltip;
+
+  /// No description provided for @sharesAddMemberTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inviter un membre'**
+  String get sharesAddMemberTooltip;
+
+  /// No description provided for @myTripFallback.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon voyage'**
+  String get myTripFallback;
+
+  /// No description provided for @completionSegmentsSheetTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Encore à compléter'**
+  String get completionSegmentsSheetTitle;
 
   /// No description provided for @shareTooltip.
   ///

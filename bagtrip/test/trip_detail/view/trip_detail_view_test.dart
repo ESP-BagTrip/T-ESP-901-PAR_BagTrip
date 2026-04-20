@@ -1,6 +1,9 @@
 // ignore_for_file: avoid_redundant_argument_values
 
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/design/widgets/review/panel_chips_bar.dart';
+import 'package:bagtrip/design/widgets/review/review_hero.dart';
+import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/accommodation.dart';
 import 'package:bagtrip/models/activity.dart';
@@ -11,9 +14,14 @@ import 'package:bagtrip/models/trip_share.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
 import 'package:bagtrip/trip_detail/view/trip_detail_view.dart';
-import 'package:bagtrip/trip_detail/widgets/trip_completion_bar.dart';
-import 'package:bagtrip/trip_detail/widgets/trip_detail_shimmer.dart';
-import 'package:bagtrip/trip_detail/widgets/trip_timeline_section.dart';
+import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
+import 'package:bagtrip/trip_detail/widgets/review_shimmer.dart';
+import 'package:bagtrip/trips/bloc/trip_management_bloc.dart'
+    show
+        TripManagementBloc,
+        TripManagementEvent,
+        TripManagementState,
+        TripManagementInitial;
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,6 +32,13 @@ import '../../helpers/test_fixtures.dart';
 
 class _MockTripDetailBloc extends MockBloc<TripDetailEvent, TripDetailState>
     implements TripDetailBloc {}
+
+class _MockHomeBloc extends MockBloc<HomeEvent, HomeState>
+    implements HomeBloc {}
+
+class _MockTripManagementBloc
+    extends MockBloc<TripManagementEvent, TripManagementState>
+    implements TripManagementBloc {}
 
 TripDetailLoaded _loaded({
   Trip? trip,
@@ -54,14 +69,14 @@ TripDetailLoaded _loaded({
     completionResult:
         completion ??
         const CompletionResult(
-          percentage: 0,
+          percentage: 50,
           segments: {
             CompletionSegmentType.dates: true,
             CompletionSegmentType.flights: false,
             CompletionSegmentType.accommodation: false,
-            CompletionSegmentType.activities: false,
+            CompletionSegmentType.activities: true,
             CompletionSegmentType.baggage: false,
-            CompletionSegmentType.budget: false,
+            CompletionSegmentType.budget: true,
           },
         ),
   );
@@ -69,6 +84,8 @@ TripDetailLoaded _loaded({
 
 void main() {
   late _MockTripDetailBloc bloc;
+  late _MockHomeBloc homeBloc;
+  late _MockTripManagementBloc managementBloc;
 
   setUpAll(() {
     registerFallbackValue(RefreshTripDetail());
@@ -82,6 +99,10 @@ void main() {
 
   setUp(() {
     bloc = _MockTripDetailBloc();
+    homeBloc = _MockHomeBloc();
+    managementBloc = _MockTripManagementBloc();
+    when(() => homeBloc.state).thenReturn(HomeInitial());
+    when(() => managementBloc.state).thenReturn(TripManagementInitial());
   });
 
   Future<void> pumpView(
@@ -101,8 +122,12 @@ void main() {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         locale: const Locale('en'),
-        home: BlocProvider<TripDetailBloc>.value(
-          value: bloc,
+        home: MultiBlocProvider(
+          providers: [
+            BlocProvider<TripDetailBloc>.value(value: bloc),
+            BlocProvider<HomeBloc>.value(value: homeBloc),
+            BlocProvider<TripManagementBloc>.value(value: managementBloc),
+          ],
           child: const TripDetailView(tripId: 'trip-1'),
         ),
       ),
@@ -111,9 +136,9 @@ void main() {
   }
 
   group('TripDetailView', () {
-    testWidgets('renders shimmer during loading', (tester) async {
+    testWidgets('renders review shimmer during loading', (tester) async {
       await pumpView(tester, TripDetailLoading());
-      expect(find.byType(TripDetailShimmer), findsOneWidget);
+      expect(find.byType(ReviewShimmer), findsOneWidget);
     });
 
     testWidgets('renders error view with retry on error state', (tester) async {
@@ -124,13 +149,25 @@ void main() {
       expect(find.byType(TripDetailView), findsOneWidget);
     });
 
-    testWidgets('renders loaded content with minimal state', (tester) async {
-      await pumpView(tester, _loaded());
-      expect(find.byType(TripDetailView), findsOneWidget);
-      expect(find.byType(CustomScrollView), findsOneWidget);
-    });
+    testWidgets(
+      'renders ReviewHero + PanelChipsBar + CompletionRing when loaded',
+      (tester) async {
+        await pumpView(
+          tester,
+          _loaded(
+            trip: makeTrip(
+              startDate: DateTime(2026, 9),
+              endDate: DateTime(2026, 9, 5),
+            ),
+          ),
+        );
+        expect(find.byType(ReviewHero), findsOneWidget);
+        expect(find.byType(PanelChipsBar), findsOneWidget);
+        expect(find.byType(CompletionRing), findsOneWidget);
+      },
+    );
 
-    testWidgets('owner with valid dates sees completion bar', (tester) async {
+    testWidgets('owner sees 7 tab labels (including Sharing)', (tester) async {
       await pumpView(
         tester,
         _loaded(
@@ -140,12 +177,11 @@ void main() {
           ),
         ),
       );
-      expect(find.byType(TripCompletionBar), findsOneWidget);
+      expect(find.text('Overview'), findsOneWidget);
+      expect(find.text('Sharing'), findsOneWidget);
     });
 
-    testWidgets('viewer role hides completion bar and shows read-only banner', (
-      tester,
-    ) async {
+    testWidgets('viewer sees 6 tab labels (Sharing hidden)', (tester) async {
       await pumpView(
         tester,
         _loaded(
@@ -156,13 +192,27 @@ void main() {
           ),
         ),
       );
-      // Viewer => canEdit false => no completion bar
-      expect(find.byType(TripCompletionBar), findsNothing);
-      // Viewer read-only banner
-      expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
+      expect(find.text('Overview'), findsOneWidget);
+      expect(find.text('Sharing'), findsNothing);
     });
 
-    testWidgets('completed trip shows read-only lock banner', (tester) async {
+    testWidgets('viewer sees READ ONLY status pill', (tester) async {
+      await pumpView(
+        tester,
+        _loaded(
+          userRole: 'VIEWER',
+          trip: makeTrip(
+            startDate: DateTime(2026, 9),
+            endDate: DateTime(2026, 9, 5),
+          ),
+        ),
+      );
+      expect(find.text('READ ONLY'), findsOneWidget);
+    });
+
+    testWidgets('completed trip shows Completed badge + Give review CTA', (
+      tester,
+    ) async {
       await pumpView(
         tester,
         _loaded(
@@ -173,42 +223,11 @@ void main() {
           ),
         ),
       );
-      expect(find.byIcon(Icons.lock_outline), findsOneWidget);
-      // "Give review" CTA shown for completed trip
-      expect(find.byIcon(Icons.rate_review_outlined), findsOneWidget);
+      expect(find.text('COMPLETE TRIP'), findsOneWidget);
+      expect(find.text('Give a review'), findsOneWidget);
     });
 
-    testWidgets('draft trip shows "mark as ready" action and delete action', (
-      tester,
-    ) async {
-      await pumpView(
-        tester,
-        _loaded(
-          trip: makeTrip(
-            status: TripStatus.draft,
-            startDate: DateTime(2026, 9),
-            endDate: DateTime(2026, 9, 5),
-          ),
-        ),
-      );
-      expect(find.byType(TripDetailView), findsOneWidget);
-    });
-
-    testWidgets('ongoing trip shows "mark complete" action', (tester) async {
-      await pumpView(
-        tester,
-        _loaded(
-          trip: makeTrip(
-            status: TripStatus.ongoing,
-            startDate: DateTime(2026, 9),
-            endDate: DateTime(2026, 9, 5),
-          ),
-        ),
-      );
-      expect(find.byType(TripDetailView), findsOneWidget);
-    });
-
-    testWidgets('timeline section renders when totalDays > 0', (tester) async {
+    testWidgets('completion ring reflects percentage', (tester) async {
       await pumpView(
         tester,
         _loaded(
@@ -216,110 +235,11 @@ void main() {
             startDate: DateTime(2026, 9),
             endDate: DateTime(2026, 9, 5),
           ),
+          completion: const CompletionResult(percentage: 73, segments: {}),
         ),
       );
-      expect(find.byType(TripTimelineSection), findsOneWidget);
-    });
-
-    testWidgets('timeline section hidden when trip has no dates', (
-      tester,
-    ) async {
-      await pumpView(
-        tester,
-        _loaded(trip: makeTrip(startDate: null, endDate: null)),
-      );
-      expect(find.byType(TripDetailView), findsOneWidget);
-    });
-
-    testWidgets('deferredLoaded=false renders shimmer placeholders', (
-      tester,
-    ) async {
-      await pumpView(
-        tester,
-        _loaded(
-          deferredLoaded: false,
-          trip: makeTrip(
-            startDate: DateTime(2026, 9),
-            endDate: DateTime(2026, 9, 5),
-          ),
-        ),
-      );
-      expect(find.byType(TripDetailView), findsOneWidget);
-    });
-
-    testWidgets('sectionErrors on flights renders error indicator', (
-      tester,
-    ) async {
-      await pumpView(
-        tester,
-        _loaded(
-          sectionErrors: const {'flights': NetworkError('boom')},
-          trip: makeTrip(
-            startDate: DateTime(2026, 9),
-            endDate: DateTime(2026, 9, 5),
-          ),
-        ),
-      );
-      expect(find.byType(TripDetailView), findsOneWidget);
-    });
-
-    testWidgets('multiple section errors render all indicators', (
-      tester,
-    ) async {
-      await pumpView(
-        tester,
-        _loaded(
-          sectionErrors: const {
-            'flights': NetworkError('a'),
-            'accommodations': NetworkError('b'),
-            'baggage': NetworkError('c'),
-            'budget': NetworkError('d'),
-            'shares': NetworkError('e'),
-          },
-          trip: makeTrip(
-            startDate: DateTime(2026, 9),
-            endDate: DateTime(2026, 9, 5),
-          ),
-        ),
-      );
-      expect(find.byType(TripDetailView), findsOneWidget);
-    });
-
-    testWidgets('trip with many travelers renders stats row with 3 items', (
-      tester,
-    ) async {
-      await pumpView(
-        tester,
-        _loaded(
-          trip: makeTrip(
-            nbTravelers: 6,
-            startDate: DateTime(2026, 9),
-            endDate: DateTime(2026, 9, 5),
-          ),
-        ),
-      );
-      expect(find.byIcon(Icons.people_rounded), findsOneWidget);
-      expect(find.byIcon(Icons.date_range_rounded), findsOneWidget);
-    });
-
-    testWidgets('owner with activities + accommodations renders map section', (
-      tester,
-    ) async {
-      final activity = makeActivity().copyWith(location: 'Eiffel Tower');
-      final accommodation = makeAccommodation(address: '10 Rue de Rivoli');
-
-      await pumpView(
-        tester,
-        _loaded(
-          trip: makeTrip(
-            startDate: DateTime(2026, 9),
-            endDate: DateTime(2026, 9, 5),
-          ),
-          activities: [activity],
-          accommodations: [accommodation],
-        ),
-      );
-      expect(find.byType(TripDetailView), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text('73%'), findsOneWidget);
     });
 
     testWidgets('refresh indicator present on loaded state', (tester) async {
@@ -333,23 +253,6 @@ void main() {
         ),
       );
       expect(find.byType(RefreshIndicator), findsOneWidget);
-    });
-
-    testWidgets('planned trip (no draft button) does not show mark-ready', (
-      tester,
-    ) async {
-      await pumpView(
-        tester,
-        _loaded(
-          trip: makeTrip(
-            status: TripStatus.planned,
-            startDate: DateTime(2026, 9),
-            endDate: DateTime(2026, 9, 5),
-          ),
-        ),
-      );
-      expect(find.byIcon(Icons.check_circle), findsNothing);
-      expect(find.byIcon(Icons.delete_outline), findsNothing);
     });
   });
 }

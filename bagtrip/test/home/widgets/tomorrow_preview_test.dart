@@ -1,5 +1,6 @@
 import 'package:bagtrip/home/bloc/home_bloc.dart';
-import 'package:bagtrip/home/view/active_trip_home_view.dart';
+import 'package:bagtrip/home/view/active_trip_home_view.dart'
+    show ActiveTripHomeView, tomorrowSectionHeaderKey;
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:flutter/material.dart';
@@ -149,7 +150,10 @@ void main() {
       await tester.pumpWidget(buildApp(state));
       await tester.pumpAndSettle();
 
-      expect(find.text('Tomorrow'), findsNothing);
+      // The "Tomorrow" text may also appear as a QuickActionsBar entry when
+      // the CI runner is in the evening (hour >= 18 UTC). Assert directly on
+      // the section header key so the test stays deterministic.
+      expect(find.byKey(tomorrowSectionHeaderKey), findsNothing);
     });
 
     testWidgets('collapses to 3 items when >3 activities, shows "Show all"', (
