@@ -9,6 +9,8 @@ part of 'weather_summary.dart';
 _WeatherSummary _$WeatherSummaryFromJson(Map<String, dynamic> json) =>
     _WeatherSummary(
       avgTempC: (json['avg_temp_c'] as num).toDouble(),
+      minTempC: (json['min_temp_c'] as num?)?.toDouble(),
+      maxTempC: (json['max_temp_c'] as num?)?.toDouble(),
       description: json['description'] as String,
       rainProbability: (json['rain_probability'] as num?)?.toInt() ?? 0,
       source: json['source'] as String? ?? 'unknown',
@@ -17,6 +19,8 @@ _WeatherSummary _$WeatherSummaryFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$WeatherSummaryToJson(_WeatherSummary instance) =>
     <String, dynamic>{
       'avg_temp_c': instance.avgTempC,
+      'min_temp_c': instance.minTempC,
+      'max_temp_c': instance.maxTempC,
       'description': instance.description,
       'rain_probability': instance.rainProbability,
       'source': instance.source,

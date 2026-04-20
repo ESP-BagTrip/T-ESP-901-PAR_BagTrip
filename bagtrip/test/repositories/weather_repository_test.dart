@@ -41,6 +41,8 @@ void main() {
       final restored = WeatherSummary.fromJson(json);
 
       expect(restored.avgTempC, summary.avgTempC);
+      expect(restored.minTempC, summary.minTempC);
+      expect(restored.maxTempC, summary.maxTempC);
       expect(restored.description, summary.description);
       expect(restored.rainProbability, summary.rainProbability);
       expect(restored.source, summary.source);

@@ -19,14 +19,14 @@ import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
 import 'package:bagtrip/utils/destination_time.dart';
 import 'package:bloc/bloc.dart';
 
-part 'trip_detail_event.dart';
-part 'trip_detail_state.dart';
-part 'trip_detail_trip_handlers.dart';
 part 'trip_detail_activity_handlers.dart';
-part 'trip_detail_transport_handlers.dart';
 part 'trip_detail_baggage_handlers.dart';
 part 'trip_detail_budget_handlers.dart';
+part 'trip_detail_event.dart';
 part 'trip_detail_misc_handlers.dart';
+part 'trip_detail_state.dart';
+part 'trip_detail_transport_handlers.dart';
+part 'trip_detail_trip_handlers.dart';
 
 /// Central hub for a trip's detail screen.
 ///

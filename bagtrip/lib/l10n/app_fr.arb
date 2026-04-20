@@ -952,7 +952,37 @@
       }
     }
   },
+  "homeActiveTripEyebrow": "VOYAGE EN COURS",
+  "homeNavPillTitle": "Voyages & accueil",
+  "homeNavPillSubtitle": "Gérer mes voyages, créer un nouveau",
+  "homeResumeActiveTripCta": "Continuer le voyage",
+  "homeResumeActiveTripSubtitle": "Votre voyage est toujours actif",
+  "homeSectionNowBadge": "MAINTENANT",
+  "endTripSheetTitle": "Fin du voyage ?",
+  "endTripSheetMessage": "Vous pouvez terminer ce voyage maintenant ou décider plus tard.",
+  "endTripSheetTerminate": "Terminer",
+  "endTripSheetPostpone": "Reporter",
+  "toastTripCompleted": "Voyage terminé",
+  "qaEndTrip": "Fin voyage",
   "homeTodayActivities": "Programme du jour",
+  "activeHomeProgrammeTitle": "Programme",
+  "activeHomeNoActivitiesDay": "Aucune activité ce jour-là",
+  "activeHomeContextPast": "Passé",
+  "activeHomeContextToday": "AUJOURD'HUI",
+  "activeHomeContextTomorrow": "Demain",
+  "activeHomeContextTripDay": "J{day}",
+  "@activeHomeContextTripDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "activeHomeLastTripDayBanner": "Dernier jour de votre voyage",
+  "scheduleBadgeDone": "Terminé",
+  "scheduleBadgeNow": "Maintenant",
+  "scheduleBadgeNext": "Ensuite",
+  "scheduleBadgeLater": "Plus tard",
   "homeNoActivitiesToday": "Aucune activité prévue aujourd'hui",
   "tripCardNoDestination": "Pas de destination",
   "tripCardNoTitle": "Voyage sans titre",
@@ -967,6 +997,32 @@
     }
   },
   "activeTripsQuickActions": "Actions rapides",
+  "activeTripQuickActionNavigateSubtitle": "Ouvrir l'itinéraire dans Plans",
+  "activeTripQuickActionExpenseSubtitle": "Suivi du budget pour ce voyage",
+  "activeTripQuickActionPhotoTitle": "Photo du voyage",
+  "activeTripQuickActionPhotoSubtitle": "Capturer et ajouter au journal",
+  "activeTripQuickActionTomorrowTitle": "Passer à demain",
+  "activeTripQuickActionTomorrowSubtitle": "Afficher le programme de demain",
+  "activeTripQuickActionNextDayTitle": "Jour suivant",
+  "activeTripQuickActionNextDaySubtitle": "Afficher le programme du jour suivant",
+  "activeTripEndTripCardTitle": "Terminer le voyage",
+  "activeTripEndTripCardSubtitle": "Marquer {destination} comme terminé",
+  "@activeTripEndTripCardSubtitle": {
+    "placeholders": {
+      "destination": {
+        "type": "String"
+      }
+    }
+  },
+  "activeTripWeatherUnavailable": "Météo indisponible",
+  "activeTripWeatherRainShort": "{percent} % de pluie",
+  "@activeTripWeatherRainShort": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "completionDates": "Dates",
   "completionFlights": "Vols",
   "completionAccommodation": "Hôtels",

@@ -12,6 +12,15 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+/// Scales the home carousel down in both dimensions so cards stay the same
+/// shape (width/height ratio) as before, only smaller.
+const double _idleHomeCarouselSizeScale = 0.85;
+const double _idleHomeCarouselHeightFraction =
+    0.52 * _idleHomeCarouselSizeScale;
+const double _idleHomeCarouselViewportFraction =
+    0.85 * _idleHomeCarouselSizeScale;
 
 class IdleHomeView extends StatefulWidget {
   final HomeIdle state;
@@ -59,7 +68,7 @@ class _IdleHomeViewState extends State<IdleHomeView>
     final trips = widget.state.upcomingTrips;
     final totalItems = 1 + trips.length;
     final screenHeight = MediaQuery.sizeOf(context).height;
-    final carouselHeight = screenHeight * 0.52;
+    final carouselHeight = screenHeight * _idleHomeCarouselHeightFraction;
 
     return Container(
       decoration: BoxDecoration(
@@ -71,6 +80,7 @@ class _IdleHomeViewState extends State<IdleHomeView>
       ),
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
+        clipBehavior: Clip.none,
         slivers: [
           SliverFillRemaining(
             hasScrollBody: false,
@@ -120,26 +130,46 @@ class _IdleHomeViewState extends State<IdleHomeView>
                       ),
                     ),
 
-                    const SizedBox(height: AppSpacing.space24),
+                    if (widget.state.backgroundOngoingTrip != null)
+                      const SizedBox(height: AppSpacing.space16),
 
-                    // The carousel
-                    SizedBox(
-                      height: carouselHeight,
-                      child: DestinationCarousel(
-                        showIndicators: false,
+                    if (widget.state.backgroundOngoingTrip != null)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.space24,
+                        ),
+                        child: _OngoingTripResumeBanner(
+                          trip: widget.state.backgroundOngoingTrip!,
+                        ),
+                      ),
+
+                    if (widget.state.backgroundOngoingTrip != null)
+                      const SizedBox(height: AppSpacing.space16),
+
+                    // Carousel inset only — card margins stay symmetric so scroll UX stays even.
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(
+                        start: AppSpacing.space24,
+                      ),
+                      child: SizedBox(
                         height: carouselHeight,
-                        viewportFraction: 0.84,
-                        initialPage: trips.isNotEmpty ? 1 : 0,
-                        itemCount: totalItems,
-                        itemBuilder: (context, index) {
-                          if (index == 0) {
-                            return CreateTripCard(
-                              isFirstTrip: widget.state.isNewUser,
-                            );
-                          }
-                          final trip = trips[index - 1];
-                          return _HomeTripCard(trip: trip);
-                        },
+                        child: DestinationCarousel(
+                          showIndicators: false,
+                          height: carouselHeight,
+                          viewportFraction: _idleHomeCarouselViewportFraction,
+                          applyPageScale: false,
+                          initialPage: trips.isNotEmpty ? 1 : 0,
+                          itemCount: totalItems,
+                          itemBuilder: (context, index) {
+                            if (index == 0) {
+                              return CreateTripCard(
+                                isFirstTrip: widget.state.isNewUser,
+                              );
+                            }
+                            final trip = trips[index - 1];
+                            return _HomeTripCard(trip: trip);
+                          },
+                        ),
                       ),
                     ),
 
@@ -171,6 +201,89 @@ class _IdleHomeViewState extends State<IdleHomeView>
     if (tripCount == 0) return l10n.homeSubtitleEmpty;
     if (tripCount == 1) return l10n.homeSubtitleOneTrip;
     return l10n.homeSubtitleTrips(tripCount);
+  }
+}
+
+class _OngoingTripResumeBanner extends StatelessWidget {
+  final Trip trip;
+
+  const _OngoingTripResumeBanner({required this.trip});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final brightness = Theme.of(context).brightness;
+    final name = trip.destinationName ?? trip.title ?? '';
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          AppHaptics.light();
+          context.read<HomeBloc>().add(ResumeActiveTripHome());
+        },
+        borderRadius: AppRadius.large16,
+        child: Ink(
+          decoration: const BoxDecoration(
+            color: ColorName.surface,
+            borderRadius: AppRadius.large16,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.space16,
+              vertical: AppSpacing.space12,
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.flight_takeoff_rounded,
+                  color: ColorName.primary,
+                  size: 24,
+                ),
+                const SizedBox(width: AppSpacing.space16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name.isNotEmpty ? name : l10n.tripCardNoDestination,
+                        style: TextStyle(
+                          fontFamily: FontFamily.dMSans,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: PersonalizationColors.textPrimaryOf(
+                            brightness,
+                          ),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        l10n.homeResumeActiveTripSubtitle,
+                        style: TextStyle(
+                          fontFamily: FontFamily.dMSans,
+                          fontSize: 12,
+                          color: PersonalizationColors.textTertiaryOf(
+                            brightness,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.space8),
+                const Icon(
+                  Icons.chevron_right,
+                  color: ColorName.textMutedLight,
+                  size: 22,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -240,6 +353,19 @@ class _HomeTripCardState extends State<_HomeTripCard>
     return l10n.nextTripCountdown(days);
   }
 
+  /// True when trip starts within 1 calendar day (orange pill).
+  bool get _countdownImminent {
+    final start = widget.trip.startDate;
+    if (start == null) return false;
+    final now = DateTime.now();
+    final days = DateTime(
+      start.year,
+      start.month,
+      start.day,
+    ).difference(DateTime(now.year, now.month, now.day)).inDays;
+    return days > 0 && days <= 1;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -249,6 +375,7 @@ class _HomeTripCardState extends State<_HomeTripCard>
       _formatDateShort(widget.trip.endDate),
     ].where((s) => s.isNotEmpty).join(' — ');
     final countdown = _countdown(l10n);
+    final countdownUrgent = _countdownImminent;
 
     return GestureDetector(
       onTapDown: (_) => _pressController.forward(),
@@ -309,12 +436,16 @@ class _HomeTripCardState extends State<_HomeTripCard>
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: ColorName.primaryTrueDark.withValues(
-                            alpha: 0.35,
-                          ),
+                          color: countdownUrgent
+                              ? ColorName.warning.withValues(alpha: 0.92)
+                              : ColorName.primaryTrueDark.withValues(
+                                  alpha: 0.35,
+                                ),
                           borderRadius: AppRadius.pill,
                           border: Border.all(
-                            color: PersonalizationColors.surfaceGlassBorder,
+                            color: countdownUrgent
+                                ? ColorName.warning.withValues(alpha: 0.4)
+                                : PersonalizationColors.surfaceGlassBorder,
                           ),
                         ),
                         child: Text(
@@ -323,7 +454,9 @@ class _HomeTripCardState extends State<_HomeTripCard>
                             fontFamily: FontFamily.dMSans,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: ColorName.surface.withValues(alpha: 0.9),
+                            color: countdownUrgent
+                                ? Colors.white
+                                : ColorName.surface.withValues(alpha: 0.9),
                             letterSpacing: 0.2,
                           ),
                         ),

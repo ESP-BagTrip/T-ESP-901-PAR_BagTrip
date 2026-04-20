@@ -407,8 +407,11 @@ async def get_trip_weather(
 
     weather = await get_weather(lat, lon, start.isoformat(), end.isoformat())
 
+    avg = float(weather.get("avg_temp_c", 20))
     return WeatherResponse(
-        avg_temp_c=weather.get("avg_temp_c", 20),
+        avg_temp_c=avg,
+        min_temp_c=float(weather.get("min_temp_c", avg)),
+        max_temp_c=float(weather.get("max_temp_c", avg)),
         description=weather.get("description", "Unknown"),
         rain_probability=weather.get("rain_probability", 0),
         source=weather.get("source", "unknown"),

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$WeatherSummary {
 
-@JsonKey(name: 'avg_temp_c') double get avgTempC;@JsonKey(name: 'description') String get description;@JsonKey(name: 'rain_probability') int get rainProbability;@JsonKey(name: 'source') String get source;
+@JsonKey(name: 'avg_temp_c') double get avgTempC;@JsonKey(name: 'min_temp_c') double? get minTempC;@JsonKey(name: 'max_temp_c') double? get maxTempC;@JsonKey(name: 'description') String get description;@JsonKey(name: 'rain_probability') int get rainProbability;@JsonKey(name: 'source') String get source;
 /// Create a copy of WeatherSummary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $WeatherSummaryCopyWith<WeatherSummary> get copyWith => _$WeatherSummaryCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WeatherSummary&&(identical(other.avgTempC, avgTempC) || other.avgTempC == avgTempC)&&(identical(other.description, description) || other.description == description)&&(identical(other.rainProbability, rainProbability) || other.rainProbability == rainProbability)&&(identical(other.source, source) || other.source == source));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WeatherSummary&&(identical(other.avgTempC, avgTempC) || other.avgTempC == avgTempC)&&(identical(other.minTempC, minTempC) || other.minTempC == minTempC)&&(identical(other.maxTempC, maxTempC) || other.maxTempC == maxTempC)&&(identical(other.description, description) || other.description == description)&&(identical(other.rainProbability, rainProbability) || other.rainProbability == rainProbability)&&(identical(other.source, source) || other.source == source));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,avgTempC,description,rainProbability,source);
+int get hashCode => Object.hash(runtimeType,avgTempC,minTempC,maxTempC,description,rainProbability,source);
 
 @override
 String toString() {
-  return 'WeatherSummary(avgTempC: $avgTempC, description: $description, rainProbability: $rainProbability, source: $source)';
+  return 'WeatherSummary(avgTempC: $avgTempC, minTempC: $minTempC, maxTempC: $maxTempC, description: $description, rainProbability: $rainProbability, source: $source)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $WeatherSummaryCopyWith<$Res>  {
   factory $WeatherSummaryCopyWith(WeatherSummary value, $Res Function(WeatherSummary) _then) = _$WeatherSummaryCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'avg_temp_c') double avgTempC,@JsonKey(name: 'description') String description,@JsonKey(name: 'rain_probability') int rainProbability,@JsonKey(name: 'source') String source
+@JsonKey(name: 'avg_temp_c') double avgTempC,@JsonKey(name: 'min_temp_c') double? minTempC,@JsonKey(name: 'max_temp_c') double? maxTempC,@JsonKey(name: 'description') String description,@JsonKey(name: 'rain_probability') int rainProbability,@JsonKey(name: 'source') String source
 });
 
 
@@ -65,10 +65,12 @@ class _$WeatherSummaryCopyWithImpl<$Res>
 
 /// Create a copy of WeatherSummary
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? avgTempC = null,Object? description = null,Object? rainProbability = null,Object? source = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? avgTempC = null,Object? minTempC = freezed,Object? maxTempC = freezed,Object? description = null,Object? rainProbability = null,Object? source = null,}) {
   return _then(_self.copyWith(
 avgTempC: null == avgTempC ? _self.avgTempC : avgTempC // ignore: cast_nullable_to_non_nullable
-as double,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as double,minTempC: freezed == minTempC ? _self.minTempC : minTempC // ignore: cast_nullable_to_non_nullable
+as double?,maxTempC: freezed == maxTempC ? _self.maxTempC : maxTempC // ignore: cast_nullable_to_non_nullable
+as double?,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,rainProbability: null == rainProbability ? _self.rainProbability : rainProbability // ignore: cast_nullable_to_non_nullable
 as int,source: null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
 as String,
@@ -156,10 +158,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'avg_temp_c')  double avgTempC, @JsonKey(name: 'description')  String description, @JsonKey(name: 'rain_probability')  int rainProbability, @JsonKey(name: 'source')  String source)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'avg_temp_c')  double avgTempC, @JsonKey(name: 'min_temp_c')  double? minTempC, @JsonKey(name: 'max_temp_c')  double? maxTempC, @JsonKey(name: 'description')  String description, @JsonKey(name: 'rain_probability')  int rainProbability, @JsonKey(name: 'source')  String source)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _WeatherSummary() when $default != null:
-return $default(_that.avgTempC,_that.description,_that.rainProbability,_that.source);case _:
+return $default(_that.avgTempC,_that.minTempC,_that.maxTempC,_that.description,_that.rainProbability,_that.source);case _:
   return orElse();
 
 }
@@ -177,10 +179,10 @@ return $default(_that.avgTempC,_that.description,_that.rainProbability,_that.sou
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'avg_temp_c')  double avgTempC, @JsonKey(name: 'description')  String description, @JsonKey(name: 'rain_probability')  int rainProbability, @JsonKey(name: 'source')  String source)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'avg_temp_c')  double avgTempC, @JsonKey(name: 'min_temp_c')  double? minTempC, @JsonKey(name: 'max_temp_c')  double? maxTempC, @JsonKey(name: 'description')  String description, @JsonKey(name: 'rain_probability')  int rainProbability, @JsonKey(name: 'source')  String source)  $default,) {final _that = this;
 switch (_that) {
 case _WeatherSummary():
-return $default(_that.avgTempC,_that.description,_that.rainProbability,_that.source);case _:
+return $default(_that.avgTempC,_that.minTempC,_that.maxTempC,_that.description,_that.rainProbability,_that.source);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -197,10 +199,10 @@ return $default(_that.avgTempC,_that.description,_that.rainProbability,_that.sou
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'avg_temp_c')  double avgTempC, @JsonKey(name: 'description')  String description, @JsonKey(name: 'rain_probability')  int rainProbability, @JsonKey(name: 'source')  String source)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'avg_temp_c')  double avgTempC, @JsonKey(name: 'min_temp_c')  double? minTempC, @JsonKey(name: 'max_temp_c')  double? maxTempC, @JsonKey(name: 'description')  String description, @JsonKey(name: 'rain_probability')  int rainProbability, @JsonKey(name: 'source')  String source)?  $default,) {final _that = this;
 switch (_that) {
 case _WeatherSummary() when $default != null:
-return $default(_that.avgTempC,_that.description,_that.rainProbability,_that.source);case _:
+return $default(_that.avgTempC,_that.minTempC,_that.maxTempC,_that.description,_that.rainProbability,_that.source);case _:
   return null;
 
 }
@@ -212,10 +214,12 @@ return $default(_that.avgTempC,_that.description,_that.rainProbability,_that.sou
 @JsonSerializable()
 
 class _WeatherSummary implements WeatherSummary {
-  const _WeatherSummary({@JsonKey(name: 'avg_temp_c') required this.avgTempC, @JsonKey(name: 'description') required this.description, @JsonKey(name: 'rain_probability') this.rainProbability = 0, @JsonKey(name: 'source') this.source = 'unknown'});
+  const _WeatherSummary({@JsonKey(name: 'avg_temp_c') required this.avgTempC, @JsonKey(name: 'min_temp_c') this.minTempC, @JsonKey(name: 'max_temp_c') this.maxTempC, @JsonKey(name: 'description') required this.description, @JsonKey(name: 'rain_probability') this.rainProbability = 0, @JsonKey(name: 'source') this.source = 'unknown'});
   factory _WeatherSummary.fromJson(Map<String, dynamic> json) => _$WeatherSummaryFromJson(json);
 
 @override@JsonKey(name: 'avg_temp_c') final  double avgTempC;
+@override@JsonKey(name: 'min_temp_c') final  double? minTempC;
+@override@JsonKey(name: 'max_temp_c') final  double? maxTempC;
 @override@JsonKey(name: 'description') final  String description;
 @override@JsonKey(name: 'rain_probability') final  int rainProbability;
 @override@JsonKey(name: 'source') final  String source;
@@ -233,16 +237,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WeatherSummary&&(identical(other.avgTempC, avgTempC) || other.avgTempC == avgTempC)&&(identical(other.description, description) || other.description == description)&&(identical(other.rainProbability, rainProbability) || other.rainProbability == rainProbability)&&(identical(other.source, source) || other.source == source));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WeatherSummary&&(identical(other.avgTempC, avgTempC) || other.avgTempC == avgTempC)&&(identical(other.minTempC, minTempC) || other.minTempC == minTempC)&&(identical(other.maxTempC, maxTempC) || other.maxTempC == maxTempC)&&(identical(other.description, description) || other.description == description)&&(identical(other.rainProbability, rainProbability) || other.rainProbability == rainProbability)&&(identical(other.source, source) || other.source == source));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,avgTempC,description,rainProbability,source);
+int get hashCode => Object.hash(runtimeType,avgTempC,minTempC,maxTempC,description,rainProbability,source);
 
 @override
 String toString() {
-  return 'WeatherSummary(avgTempC: $avgTempC, description: $description, rainProbability: $rainProbability, source: $source)';
+  return 'WeatherSummary(avgTempC: $avgTempC, minTempC: $minTempC, maxTempC: $maxTempC, description: $description, rainProbability: $rainProbability, source: $source)';
 }
 
 
@@ -253,7 +257,7 @@ abstract mixin class _$WeatherSummaryCopyWith<$Res> implements $WeatherSummaryCo
   factory _$WeatherSummaryCopyWith(_WeatherSummary value, $Res Function(_WeatherSummary) _then) = __$WeatherSummaryCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'avg_temp_c') double avgTempC,@JsonKey(name: 'description') String description,@JsonKey(name: 'rain_probability') int rainProbability,@JsonKey(name: 'source') String source
+@JsonKey(name: 'avg_temp_c') double avgTempC,@JsonKey(name: 'min_temp_c') double? minTempC,@JsonKey(name: 'max_temp_c') double? maxTempC,@JsonKey(name: 'description') String description,@JsonKey(name: 'rain_probability') int rainProbability,@JsonKey(name: 'source') String source
 });
 
 
@@ -270,10 +274,12 @@ class __$WeatherSummaryCopyWithImpl<$Res>
 
 /// Create a copy of WeatherSummary
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? avgTempC = null,Object? description = null,Object? rainProbability = null,Object? source = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? avgTempC = null,Object? minTempC = freezed,Object? maxTempC = freezed,Object? description = null,Object? rainProbability = null,Object? source = null,}) {
   return _then(_WeatherSummary(
 avgTempC: null == avgTempC ? _self.avgTempC : avgTempC // ignore: cast_nullable_to_non_nullable
-as double,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as double,minTempC: freezed == minTempC ? _self.minTempC : minTempC // ignore: cast_nullable_to_non_nullable
+as double?,maxTempC: freezed == maxTempC ? _self.maxTempC : maxTempC // ignore: cast_nullable_to_non_nullable
+as double?,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,rainProbability: null == rainProbability ? _self.rainProbability : rainProbability // ignore: cast_nullable_to_non_nullable
 as int,source: null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
 as String,

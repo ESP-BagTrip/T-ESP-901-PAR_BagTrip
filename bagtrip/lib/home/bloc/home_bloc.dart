@@ -36,6 +36,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   List<String> _pendingOfflineTransitions = [];
   StreamSubscription<bool>? _connectivitySub;
+  bool _preferIdleDespiteOngoing = false;
 
   HomeBloc({
     TripRepository? tripRepository,
@@ -60,6 +61,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<ResetHome>(_onResetHome);
     on<ConfirmTripCompletion>(_onConfirmTripCompletion);
     on<DismissTripCompletion>(_onDismissTripCompletion);
+    on<PreferIdleHomeOverview>(_onPreferIdleHomeOverview);
+    on<ResumeActiveTripHome>(_onResumeActiveTripHome);
+    on<CompleteActiveTrip>(_onCompleteActiveTrip);
     on<_ConnectivityRestored>(_onConnectivityRestored);
 
     _connectivitySub = _connectivityService.onConnectivityChanged.listen((
@@ -85,7 +89,45 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   void _onResetHome(ResetHome event, Emitter<HomeState> emit) {
     _pendingOfflineTransitions = [];
+    _preferIdleDespiteOngoing = false;
     emit(HomeInitial());
+  }
+
+  Future<void> _onPreferIdleHomeOverview(
+    PreferIdleHomeOverview event,
+    Emitter<HomeState> emit,
+  ) async {
+    _preferIdleDespiteOngoing = true;
+    await _fetchAndEmitContextualState(emit);
+  }
+
+  Future<void> _onResumeActiveTripHome(
+    ResumeActiveTripHome event,
+    Emitter<HomeState> emit,
+  ) async {
+    _preferIdleDespiteOngoing = false;
+    await _fetchAndEmitContextualState(emit);
+  }
+
+  Future<void> _onCompleteActiveTrip(
+    CompleteActiveTrip event,
+    Emitter<HomeState> emit,
+  ) async {
+    if (state is! HomeActiveTrip) return;
+    final trip = (state as HomeActiveTrip).activeTrip;
+    final result = await _tripRepository.updateTripStatus(trip.id, 'completed');
+    if (isClosed) return;
+    if (result is Failure) {
+      dev.log('CompleteActiveTrip: updateTripStatus failed');
+      return;
+    }
+    _preferIdleDespiteOngoing = false;
+    unawaited(
+      _scheduler
+          .cancelTripNotifications(trip)
+          .catchError((e) => dev.log('Cancel notif error: $e')),
+    );
+    await _fetchAndEmitContextualState(emit);
   }
 
   Future<void> _fetchAndEmitContextualState(Emitter<HomeState> emit) async {
@@ -201,6 +243,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     if (mutableOngoing.isNotEmpty) {
       final activeTrip = _pickEarliestTrip(mutableOngoing);
 
+      if (_preferIdleDespiteOngoing) {
+        _emitTripManagerIdle(
+          emit,
+          user: user,
+          mutablePlanned: mutablePlanned,
+          completedTrips: completedTrips,
+          backgroundOngoingTrip: activeTrip,
+        );
+        return;
+      }
+
       // Fetch today's activities + weather in parallel
       final contextualResults = await Future.wait([
         _activityRepository.getActivities(activeTrip.id),
@@ -258,7 +311,21 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     }
 
     // Trip manager: has trips but none ongoing
-    // Schedule packing reminders for planned trips (fire-and-forget)
+    _emitTripManagerIdle(
+      emit,
+      user: user,
+      mutablePlanned: mutablePlanned,
+      completedTrips: completedTrips,
+    );
+  }
+
+  void _emitTripManagerIdle(
+    Emitter<HomeState> emit, {
+    required User user,
+    required List<Trip> mutablePlanned,
+    required List<Trip> completedTrips,
+    Trip? backgroundOngoingTrip,
+  }) {
     for (final trip in mutablePlanned) {
       unawaited(
         _scheduler
@@ -278,6 +345,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         nextTripCompletion: tripCompletion(nextTrip),
         upcomingTrips: mutablePlanned,
         completedTrips: completedTrips,
+        backgroundOngoingTrip: backgroundOngoingTrip,
       ),
     );
   }
@@ -308,6 +376,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           activeTrip: s.activeTrip,
           todayActivities: s.todayActivities,
           weatherSummary: s.weatherSummary,
+          weatherData: s.weatherData,
           allActivities: s.allActivities,
           completedTripId: event.tripId,
         ),
