@@ -2,12 +2,13 @@ import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
 import 'package:bagtrip/components/adaptive/adaptive_edit_dialog.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/components/error_view.dart';
-import 'package:bagtrip/components/staggered_fade_in.dart';
-import 'package:bagtrip/core/platform/adaptive_platform.dart';
-import 'package:bagtrip/design/app_animations.dart';
-import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/core/extensions/price_format_ext.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/review/panel_chips_bar.dart';
+import 'package:bagtrip/design/widgets/review/panel_footer_cta.dart';
+import 'package:bagtrip/design/widgets/review/pill_cta_button.dart';
+import 'package:bagtrip/design/widgets/review/review_hero.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
@@ -15,29 +16,29 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
+import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
+import 'package:bagtrip/trip_detail/view/panels/budget_panel.dart';
+import 'package:bagtrip/trip_detail/view/panels/essentials_panel.dart';
+import 'package:bagtrip/trip_detail/view/panels/flights_panel.dart';
+import 'package:bagtrip/trip_detail/view/panels/hotel_panel.dart';
+import 'package:bagtrip/trip_detail/view/panels/itinerary_panel.dart';
+import 'package:bagtrip/trip_detail/view/panels/overview_panel.dart';
+import 'package:bagtrip/trip_detail/view/panels/shares_panel.dart';
+import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
+import 'package:bagtrip/trip_detail/widgets/date_range_picker_sheet.dart';
+import 'package:bagtrip/trip_detail/widgets/hero_overflow_menu.dart';
+import 'package:bagtrip/trip_detail/widgets/review_shimmer.dart';
+import 'package:bagtrip/trip_detail/widgets/travelers_edit_sheet.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart'
     show LoadTripsByStatus, TripManagementBloc;
-import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
-import 'package:bagtrip/trip_detail/widgets/date_range_picker_sheet.dart';
-import 'package:bagtrip/trip_detail/widgets/quick_actions_row.dart';
-import 'package:bagtrip/trip_detail/widgets/travelers_edit_sheet.dart';
-import 'package:bagtrip/trip_detail/widgets/trip_accommodation_section.dart';
-import 'package:bagtrip/trip_detail/widgets/trip_baggage_section.dart';
-import 'package:bagtrip/trip_detail/widgets/section_error_indicator.dart';
-import 'package:bagtrip/trip_detail/widgets/trip_budget_section.dart';
-import 'package:bagtrip/trip_detail/widgets/trip_completion_bar.dart';
-import 'package:bagtrip/trip_detail/widgets/trip_detail_shimmer.dart';
-import 'package:bagtrip/trip_detail/widgets/trip_flights_section.dart';
-import 'package:bagtrip/trip_detail/widgets/trip_hero_header.dart';
-import 'package:bagtrip/trip_detail/widgets/trip_sharing_section.dart';
-import 'package:bagtrip/trip_detail/widgets/trip_timeline_section.dart';
-import 'package:bagtrip/trips/widgets/trip_section_card.dart';
 import 'package:bagtrip/utils/error_display.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:intl/intl.dart';
 
+/// New "wizard mirror" edit view: dark hero + pill chips bar + TabBarView
+/// with 7 domain panels. Replaces the legacy SliverAppBar + stacked-sections
+/// layout.
 class TripDetailView extends StatelessWidget {
   final String tripId;
 
@@ -46,8 +47,10 @@ class TripDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: ColorName.surfaceVariant,
       body: BlocConsumer<TripDetailBloc, TripDetailState>(
         listener: (context, state) {
+          final l10n = AppLocalizations.of(context)!;
           if (state is TripDetailDeleted) {
             context.read<HomeBloc>().add(RefreshHome());
             for (final s in ['ongoing', 'planned', 'completed']) {
@@ -60,31 +63,23 @@ class TripDetailView extends StatelessWidget {
           if (state is TripDetailError) {
             AppSnackBar.showError(
               context,
-              message: toUserFriendlyMessage(
-                state.error,
-                AppLocalizations.of(context)!,
-              ),
+              message: toUserFriendlyMessage(state.error, l10n),
             );
           }
           if (state is TripDetailLoaded && state.validationError != null) {
-            final l10n = AppLocalizations.of(context)!;
             AppSnackBar.showError(context, message: l10n.cannotFinalizeMessage);
           }
           if (state is TripDetailLoaded && state.operationError != null) {
             AppSnackBar.showError(
               context,
-              message: toUserFriendlyMessage(
-                state.operationError!,
-                AppLocalizations.of(context)!,
-              ),
+              message: toUserFriendlyMessage(state.operationError!, l10n),
             );
           }
         },
         builder: (context, state) {
           if (state is TripDetailLoading) {
-            return const TripDetailShimmer();
+            return const ReviewShimmer();
           }
-
           if (state is TripDetailError) {
             return ErrorView(
               message: toUserFriendlyMessage(
@@ -96,11 +91,9 @@ class TripDetailView extends StatelessWidget {
               ),
             );
           }
-
           if (state is TripDetailLoaded) {
-            return _LoadedContent(tripId: tripId, state: state);
+            return _LoadedTripView(tripId: tripId, state: state);
           }
-
           return const SizedBox.shrink();
         },
       ),
@@ -108,47 +101,405 @@ class TripDetailView extends StatelessWidget {
   }
 }
 
-class _LoadedContent extends StatefulWidget {
+class _LoadedTripView extends StatefulWidget {
+  const _LoadedTripView({required this.tripId, required this.state});
+
   final String tripId;
   final TripDetailLoaded state;
 
-  const _LoadedContent({required this.tripId, required this.state});
-
   @override
-  State<_LoadedContent> createState() => _LoadedContentState();
+  State<_LoadedTripView> createState() => _LoadedTripViewState();
 }
 
-class _LoadedContentState extends State<_LoadedContent> {
-  final _sectionKeys = <CompletionSegmentType, GlobalKey>{
-    CompletionSegmentType.flights: GlobalKey(),
-    CompletionSegmentType.accommodation: GlobalKey(),
-    CompletionSegmentType.activities: GlobalKey(),
-    CompletionSegmentType.baggage: GlobalKey(),
-    CompletionSegmentType.budget: GlobalKey(),
-  };
+class _LoadedTripViewState extends State<_LoadedTripView>
+    with TickerProviderStateMixin {
+  late TabController _tabController;
+  late final PanelFooterCtaController _footerController;
 
-  String get tripId => widget.tripId;
   TripDetailLoaded get state => widget.state;
-
   bool get _canEdit => state.canEdit;
+  bool get _hasSharesTab => state.isOwner;
+  int get _tabCount => _hasSharesTab ? 7 : 6;
 
-  String _formatDate(DateTime? date) {
-    if (date == null) return '';
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: _tabCount, vsync: this);
+    _tabController.addListener(_onTabChanged);
+    _footerController = PanelFooterCtaController(vsync: this);
   }
 
-  void _refreshAfterReturn(BuildContext context) {
-    if (context.mounted) {
-      context.read<TripDetailBloc>().add(RefreshTripDetail());
+  @override
+  void didUpdateWidget(covariant _LoadedTripView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final newCount = _tabCount;
+    if (_tabController.length != newCount) {
+      final old = _tabController;
+      old.removeListener(_onTabChanged);
+      _tabController = TabController(
+        length: newCount,
+        vsync: this,
+        initialIndex: old.index.clamp(0, newCount - 1),
+      );
+      _tabController.addListener(_onTabChanged);
+      old.dispose();
     }
   }
 
-  Future<void> _showTitleEditor(BuildContext context, Trip trip) async {
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging) return;
+    _footerController.show();
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_onTabChanged);
+    _tabController.dispose();
+    _footerController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final trip = state.trip;
+    final labels = _tabLabels(l10n);
+
+    return Column(
+      children: [
+        ReviewHero(
+          city: _heroCity(trip, l10n),
+          daysLabel: _heroDaysLabel(l10n),
+          dateRangeLabel: _heroDateRangeLabel(context, trip),
+          budgetLabel: _heroBudgetLabel(),
+          onEditDates: _canEdit ? () => _showDateRangePicker(context) : null,
+          onBack: () => const HomeRoute().go(context),
+          onOverflow: () => _handleOverflow(context),
+          trailing: CompletionRing(
+            percentage: state.completionResult.percentage,
+            onTap: _canEdit
+                ? () => _showCompletionSegmentsSheet(context)
+                : null,
+          ),
+          statusBadge: _buildStatusBadge(l10n),
+        ),
+        ColoredBox(
+          color: ColorName.primaryDark,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.space8),
+            child: PanelChipsBar(
+              labels: labels,
+              controller: _tabController,
+              incompleteFlags: _incompleteFlags(),
+            ),
+          ),
+        ),
+        Expanded(
+          child: Column(
+            children: [
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    context.read<TripDetailBloc>().add(RefreshTripDetail());
+                  },
+                  child: NotificationListener<ScrollNotification>(
+                    onNotification: _footerController.handleScrollNotification,
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        OverviewPanel(
+                          state: state,
+                          onJumpToTab: _tabController.animateTo,
+                        ),
+                        FlightsPanel(
+                          tripId: widget.tripId,
+                          flights: state.flights,
+                          canEdit: _canEdit,
+                          isCompleted: state.isCompleted,
+                          role: state.trip.role ?? 'OWNER',
+                        ),
+                        HotelPanel(
+                          tripId: widget.tripId,
+                          trip: state.trip,
+                          accommodations: state.accommodations,
+                          canEdit: _canEdit,
+                          isCompleted: state.isCompleted,
+                          role: state.trip.role ?? 'OWNER',
+                        ),
+                        ItineraryPanel(
+                          tripId: widget.tripId,
+                          activities: state.activities,
+                          totalDays: state.totalDays,
+                          selectedDayIndex: state.selectedDayIndex,
+                          canEdit: _canEdit,
+                          isCompleted: state.isCompleted,
+                          role: state.trip.role ?? 'OWNER',
+                        ),
+                        EssentialsPanel(
+                          tripId: widget.tripId,
+                          items: state.baggageItems,
+                          canEdit: _canEdit,
+                          isCompleted: state.isCompleted,
+                          role: state.trip.role ?? 'OWNER',
+                        ),
+                        BudgetPanel(
+                          tripId: widget.tripId,
+                          budgetSummary: state.budgetSummary,
+                          totalDays: state.totalDays,
+                          canEdit: _canEdit,
+                          isCompleted: state.isCompleted,
+                          role: state.trip.role ?? 'OWNER',
+                        ),
+                        if (_hasSharesTab)
+                          SharesPanel(
+                            tripId: widget.tripId,
+                            shares: state.shares,
+                            role: state.trip.role ?? 'OWNER',
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              _buildFooter(context, l10n),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── Hero helpers ────────────────────────────────────────────────────────
+
+  String _heroCity(Trip trip, AppLocalizations l10n) {
+    if (trip.destinationName != null && trip.destinationName!.isNotEmpty) {
+      return trip.destinationName!;
+    }
+    if (trip.title != null && trip.title!.isNotEmpty) return trip.title!;
+    return l10n.myTripFallback;
+  }
+
+  String _heroDaysLabel(AppLocalizations l10n) {
+    if (state.totalDays <= 0) return '';
+    return l10n.summaryDaysCount(state.totalDays).toUpperCase();
+  }
+
+  String _heroDateRangeLabel(BuildContext context, Trip trip) {
+    if (trip.startDate == null || trip.endDate == null) return '';
+    final locale = Localizations.localeOf(context).languageCode;
+    final fmt = DateFormat('d MMM yyyy', locale);
+    return '${fmt.format(trip.startDate!)} – ${fmt.format(trip.endDate!)}';
+  }
+
+  String _heroBudgetLabel() {
+    final totalBudget = state.budgetSummary?.totalBudget;
+    if (totalBudget == null || totalBudget <= 0) return '';
+    return totalBudget.formatPrice();
+  }
+
+  Widget? _buildStatusBadge(AppLocalizations l10n) {
+    if (state.isViewer) {
+      return _StatusPill(
+        label: l10n.viewerBadgeReadOnly,
+        color: ColorName.hint,
+      );
+    }
+    if (state.isCompleted) {
+      return _StatusPill(label: l10n.tripComplete, color: ColorName.secondary);
+    }
+    return null;
+  }
+
+  // ── Tab wiring ──────────────────────────────────────────────────────────
+
+  List<String> _tabLabels(AppLocalizations l10n) => [
+    l10n.reviewTabOverview,
+    l10n.reviewTabFlights,
+    l10n.reviewTabHotel,
+    l10n.reviewTabItinerary,
+    l10n.reviewTabEssentials,
+    l10n.reviewTabBudget,
+    if (_hasSharesTab) l10n.sharingSectionTitle,
+  ];
+
+  List<bool> _incompleteFlags() {
+    final segments = state.completionResult.segments;
+    bool incomplete(CompletionSegmentType t) => segments[t] == false;
+    return [
+      // Overview — derived from all other domains
+      false,
+      incomplete(CompletionSegmentType.flights),
+      incomplete(CompletionSegmentType.accommodation),
+      incomplete(CompletionSegmentType.activities),
+      incomplete(CompletionSegmentType.baggage),
+      incomplete(CompletionSegmentType.budget),
+      if (_hasSharesTab) false,
+    ];
+  }
+
+  // ── Footer CTA per tab ──────────────────────────────────────────────────
+
+  Widget _buildFooter(BuildContext context, AppLocalizations l10n) {
+    if (state.isCompleted) {
+      return PanelFooterCta(
+        controller: _footerController,
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.space16,
+              AppSpacing.space8,
+              AppSpacing.space16,
+              AppSpacing.space16,
+            ),
+            child: PillCtaButton(
+              label: l10n.tripGiveReview,
+              variant: PillVariant.outlined,
+              onTap: () => FeedbackRoute(tripId: widget.tripId).go(context),
+            ),
+          ),
+        ),
+      );
+    }
+    if (!_canEdit) return const SizedBox.shrink();
+
+    return AnimatedBuilder(
+      animation: _tabController,
+      builder: (_, _) {
+        final label = _ctaLabelForTab(_tabController.index, l10n);
+        if (label == null) return const SizedBox.shrink();
+        return PanelFooterCta(
+          controller: _footerController,
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.space16,
+                AppSpacing.space8,
+                AppSpacing.space16,
+                AppSpacing.space16,
+              ),
+              child: PillCtaButton(
+                label: label,
+                onTap: () => _handleTabCta(context, _tabController.index),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  String? _ctaLabelForTab(int index, AppLocalizations l10n) {
+    // Overview (0) has no add action. Shares (6 when owner) has its own add.
+    switch (index) {
+      case 0:
+        return null;
+      case 1:
+        return l10n.addFlightTooltip;
+      case 2:
+        return l10n.addAccommodationTooltip;
+      case 3:
+        return l10n.addActivity;
+      case 4:
+        return l10n.addBaggageItemTooltip;
+      case 5:
+        return l10n.addExpenseTooltip;
+      case 6:
+        return l10n.sharesAddMemberTooltip;
+      default:
+        return null;
+    }
+  }
+
+  void _handleTabCta(BuildContext context, int index) {
+    AppHaptics.light();
+    // Panels wire up their own edit sheets in Steps 4–7. For now we simply
+    // push the legacy route so the user always has a path to add content.
+    final trip = state.trip;
+    final role = trip.role ?? 'OWNER';
+    final isCompleted = state.isCompleted;
+    switch (index) {
+      case 1:
+        TransportsRoute(
+          tripId: widget.tripId,
+          role: role,
+          isCompleted: isCompleted,
+        ).push(context);
+      case 2:
+        AccommodationsRoute(
+          tripId: widget.tripId,
+          role: role,
+          isCompleted: isCompleted,
+          tripStartDate: trip.startDate?.toIso8601String(),
+          tripEndDate: trip.endDate?.toIso8601String(),
+          destinationIata: trip.destinationIata,
+        ).push(context);
+      case 3:
+        ActivitiesRoute(
+          tripId: widget.tripId,
+          role: role,
+          isCompleted: isCompleted,
+        ).push(context);
+      case 4:
+        BaggageRoute(
+          tripId: widget.tripId,
+          role: role,
+          isCompleted: isCompleted,
+        ).push(context);
+      case 5:
+        BudgetRoute(
+          tripId: widget.tripId,
+          role: role,
+          isCompleted: isCompleted,
+        ).push(context);
+      case 6:
+        SharesRoute(tripId: widget.tripId, role: role).go(context);
+      default:
+        break;
+    }
+  }
+
+  // ── Overflow menu + editors ─────────────────────────────────────────────
+
+  Future<void> _handleOverflow(BuildContext context) async {
+    final result = await showHeroOverflowMenu(
+      context: context,
+      trip: state.trip,
+      canEdit: _canEdit,
+      isOwner: state.isOwner,
+    );
+    if (!context.mounted || result == null) return;
+    switch (result) {
+      case HeroOverflowAction.editTitle:
+        await _showTitleEditor(context);
+      case HeroOverflowAction.editTravelers:
+        await _showTravelersEditor(context);
+      case HeroOverflowAction.share:
+        SharesRoute(
+          tripId: widget.tripId,
+          role: state.trip.role ?? 'OWNER',
+        ).go(context);
+      case HeroOverflowAction.markAsReady:
+        _markAsReady(context);
+      case HeroOverflowAction.markAsCompleted:
+        AppHaptics.medium();
+        context.read<TripDetailBloc>().add(
+          UpdateTripStatus(status: 'COMPLETED'),
+        );
+      case HeroOverflowAction.giveReview:
+        FeedbackRoute(tripId: widget.tripId).go(context);
+      case HeroOverflowAction.deleteTrip:
+        _confirmDelete(context);
+    }
+  }
+
+  Future<void> _showTitleEditor(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
     final newTitle = await showAdaptiveEditDialog(
       context: context,
       title: l10n.editTripTitle,
-      currentValue: trip.title ?? '',
+      currentValue: state.trip.title ?? '',
       confirmLabel: l10n.saveButton,
       cancelLabel: l10n.cancelButton,
     );
@@ -157,10 +508,7 @@ class _LoadedContentState extends State<_LoadedContent> {
     }
   }
 
-  Future<void> _showDateRangePicker(
-    BuildContext context,
-    TripDetailLoaded state,
-  ) async {
+  Future<void> _showDateRangePicker(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
     final bloc = context.read<TripDetailBloc>();
     final result = await showTripDateRangePicker(
@@ -168,13 +516,11 @@ class _LoadedContentState extends State<_LoadedContent> {
       currentStart: state.trip.startDate,
       currentEnd: state.trip.endDate,
     );
-
     if (result == null || !context.mounted) return;
 
     final newStart = result.start;
     final newEnd = result.end;
 
-    // Check for activities out of range
     final outOfRange = state.activities.where((a) {
       final d = DateTime(a.date.year, a.date.month, a.date.day);
       final s = DateTime(newStart.year, newStart.month, newStart.day);
@@ -196,14 +542,13 @@ class _LoadedContentState extends State<_LoadedContent> {
       );
       return;
     }
-
     bloc.add(UpdateTripDates(startDate: newStart, endDate: newEnd));
   }
 
-  Future<void> _showTravelersEditor(BuildContext context, Trip trip) async {
+  Future<void> _showTravelersEditor(BuildContext context) async {
     final newCount = await showTravelersEditSheet(
       context: context,
-      currentValue: trip.nbTravelers ?? 1,
+      currentValue: state.trip.nbTravelers ?? 1,
     );
     if (newCount != null && context.mounted) {
       context.read<TripDetailBloc>().add(
@@ -212,629 +557,173 @@ class _LoadedContentState extends State<_LoadedContent> {
     }
   }
 
-  void _scrollToSection(CompletionSegmentType type) {
-    if (type == CompletionSegmentType.dates) {
-      // Scroll to top (hero area)
-      Scrollable.ensureVisible(
-        context,
-        duration: AppAnimations.cardTransition,
-        curve: AppAnimations.standardCurve,
+  void _markAsReady(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final trip = state.trip;
+    final hasDestination =
+        trip.destinationName != null && trip.destinationName!.isNotEmpty;
+    final hasDates = trip.startDate != null && trip.endDate != null;
+    if (!hasDestination || !hasDates) {
+      final missing = <String>[];
+      if (!hasDestination) missing.add(l10n.finalizeMissingDestination);
+      if (!hasDates) missing.add(l10n.finalizeMissingDates);
+      showAdaptiveAlertDialog(
+        context: context,
+        title: l10n.cannotFinalizeTitle,
+        content: missing.join('\n'),
+        confirmLabel: 'OK',
+        cancelLabel: l10n.cancelButton,
       );
       return;
     }
-    final key = _sectionKeys[type];
-    if (key?.currentContext != null) {
-      Scrollable.ensureVisible(
-        key!.currentContext!,
-        duration: AppAnimations.cardTransition,
-        curve: AppAnimations.standardCurve,
-      );
-    }
+    AppHaptics.medium();
+    context.read<TripDetailBloc>().add(UpdateTripStatus(status: 'PLANNED'));
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final trip = state.trip;
+  void _confirmDelete(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-
-    final dateRange = [
-      if (trip.startDate != null) _formatDate(trip.startDate),
-      if (trip.endDate != null) _formatDate(trip.endDate),
-    ].join(' - ');
-
-    return RefreshIndicator(
-      onRefresh: () async {
-        context.read<TripDetailBloc>().add(RefreshTripDetail());
+    showAdaptiveAlertDialog(
+      context: context,
+      title: l10n.tripDeleteTitle,
+      content: l10n.tripDeleteConfirm,
+      confirmLabel: l10n.deleteButton,
+      cancelLabel: l10n.cancelButton,
+      isDestructive: true,
+      onConfirm: () {
+        context.read<TripDetailBloc>().add(DeleteTripDetail());
       },
-      child: CustomScrollView(
-        slivers: [
-          // ── SliverAppBar with hero ──────────────────────────────
-          SliverAppBar(
-            expandedHeight: 280,
-            pinned: true,
-            leading: IconButton(
-              icon: Icon(
-                AdaptivePlatform.isIOS ? CupertinoIcons.back : Icons.arrow_back,
-              ),
-              tooltip: l10n.backTooltip,
-              onPressed: () => const HomeRoute().go(context),
-            ),
-            actions: [
-              if (state.isOwner)
-                IconButton(
-                  icon: Icon(
-                    AdaptivePlatform.isIOS ? CupertinoIcons.share : Icons.share,
-                  ),
-                  tooltip: l10n.shareTooltip,
-                  onPressed: () => SharesRoute(
-                    tripId: tripId,
-                    role: trip.role ?? 'OWNER',
-                  ).go(context),
-                ),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(
-                left: 56,
-                bottom: 16,
-                right: 56,
-              ),
-              title: GestureDetector(
-                onTap: _canEdit ? () => _showTitleEditor(context, trip) : null,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        trip.title ?? 'Mon voyage',
-                        style: const TextStyle(
-                          fontFamily: FontFamily.b612,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (_canEdit) ...[
-                      const SizedBox(width: 6),
-                      Icon(
-                        Icons.edit,
-                        size: 14,
-                        color: Colors.white.withValues(alpha: 0.7),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              background: TripHeroHeader(
-                trip: trip,
-                dateRange: dateRange,
-                daysUntilTrip: state.daysUntilTrip,
-                currentDay: state.currentDay,
-                totalDays: state.totalDays,
-                isCompleted: state.isCompleted,
-                isOngoing: state.isOngoing,
-                isEditable: _canEdit,
-                onTapDates: _canEdit
-                    ? () => _showDateRangePicker(context, state)
-                    : null,
-              ),
+    );
+  }
+
+  Future<void> _showCompletionSegmentsSheet(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final segments = state.completionResult.segments;
+    final incomplete = <CompletionSegmentType>[
+      for (final entry in segments.entries)
+        if (entry.value == false) entry.key,
+    ];
+    if (incomplete.isEmpty) return;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(AppRadius.cornerRadius24),
             ),
           ),
-
-          // ── Viewer read-only banner ─────────────────────────────
-          if (state.isViewer)
-            SliverToBoxAdapter(
-              child: Container(
-                margin: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.space16,
-                  vertical: AppSpacing.space8,
-                ),
-                padding: AppSpacing.allEdgeInsetSpace12,
-                decoration: BoxDecoration(
-                  color: ColorName.primary.withValues(alpha: 0.08),
-                  borderRadius: AppRadius.medium8,
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.visibility_outlined,
-                      color: ColorName.primary,
-                      size: 20,
-                    ),
-                    const SizedBox(width: AppSpacing.space8),
-                    Expanded(
-                      child: Text(
-                        l10n.viewerBadgeReadOnly,
-                        style: const TextStyle(
-                          fontFamily: FontFamily.b612,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: ColorName.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-          // ── Read-only banner ────────────────────────────────────
-          if (state.isCompleted)
-            SliverToBoxAdapter(
-              child: Container(
-                margin: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.space16,
-                  vertical: AppSpacing.space8,
-                ),
-                padding: AppSpacing.allEdgeInsetSpace12,
-                decoration: const BoxDecoration(
-                  color: AppColors.surfaceLight,
-                  borderRadius: AppRadius.medium8,
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.lock_outline, color: AppColors.hint),
-                    const SizedBox(width: AppSpacing.space8),
-                    Expanded(child: Text(l10n.tripCompletedReadOnly)),
-                  ],
-                ),
-              ),
-            ),
-
-          // ── Stats row ───────────────────────────────────────────
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.space24,
-                vertical: AppSpacing.space8,
-              ),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.space16,
-                  vertical: 14,
-                ),
-                decoration: BoxDecoration(
-                  color: theme.cardTheme.color ?? theme.colorScheme.surface,
-                  borderRadius: AppRadius.large20,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.shadowLight,
-                      offset: const Offset(0, 2),
-                      blurRadius: 12,
-                    ),
-                    BoxShadow(color: AppColors.shadowFaint, blurRadius: 4),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    GestureDetector(
-                      onTap: _canEdit
-                          ? () => _showTravelersEditor(context, trip)
-                          : null,
-                      child: _StatItem(
-                        icon: Icons.people_rounded,
-                        value: '${trip.nbTravelers ?? 0}',
-                        label: l10n.tripTravelers,
-                      ),
-                    ),
-                    if (state.daysUntilTrip != null)
-                      _StatItem(
-                        icon: Icons.timer_rounded,
-                        value: '${state.daysUntilTrip}',
-                        label: l10n.tripDaysRemaining,
-                      ),
-                    if (state.totalDays > 0)
-                      _StatItem(
-                        icon: Icons.date_range_rounded,
-                        value: '${state.totalDays}',
-                        label: l10n.tripTravelDays,
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // ── Completion bar ──────────────────────────────────────
-          if (_canEdit)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.space24,
-                  vertical: AppSpacing.space8,
-                ),
-                child: TripCompletionBar(
-                  percentage: state.completionResult.percentage,
-                  segments: state.completionResult.segments,
-                  onSegmentTap: _scrollToSection,
-                ),
-              ),
-            ),
-
-          // ── Quick actions ───────────────────────────────────────
-          SliverToBoxAdapter(
-            child: QuickActionsRow(
-              trip: trip,
-              tripId: tripId,
-              isViewer: state.isViewer,
-              isCompleted: state.isCompleted,
-              onReturnFromAction: () => _refreshAfterReturn(context),
-            ),
-          ),
-
-          // ── Timeline section ────────────────────────────────────
-          if (state.totalDays > 0)
-            SliverToBoxAdapter(
-              key: _sectionKeys[CompletionSegmentType.activities],
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.space24,
-                  vertical: AppSpacing.space8,
-                ),
-                child: TripTimelineSection(
-                  trip: trip,
-                  activities: state.activities,
-                  selectedDayIndex: state.selectedDayIndex,
-                  totalDays: state.totalDays,
-                  isOwner: _canEdit,
-                  isCompleted: state.isCompleted,
-                  tripId: tripId,
-                ),
-              ),
-            ),
-
-          // ── Section cards ───────────────────────────────────────
-          SliverPadding(
-            padding: AppSpacing.horizontalSpace24,
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                const SizedBox(height: AppSpacing.space8),
-                StaggeredFadeIn(
-                  key: _sectionKeys[CompletionSegmentType.flights],
-                  index: 0,
-                  child: state.sectionErrors.containsKey('flights')
-                      ? SectionErrorIndicator(
-                          error: state.sectionErrors['flights']!,
-                          onRetry: () => context.read<TripDetailBloc>().add(
-                            RetryDeferredSection(section: 'flights'),
-                          ),
-                        )
-                      : state.deferredLoaded
-                      ? TripFlightsSection(
-                          flights: state.flights,
-                          tripId: tripId,
-                          trip: trip,
-                          isOwner: _canEdit,
-                          isCompleted: state.isCompleted,
-                        )
-                      : const _DeferredSectionShimmer(),
-                ),
-                const SizedBox(height: AppSpacing.space12),
-                StaggeredFadeIn(
-                  key: _sectionKeys[CompletionSegmentType.accommodation],
-                  index: 1,
-                  child: state.sectionErrors.containsKey('accommodations')
-                      ? SectionErrorIndicator(
-                          error: state.sectionErrors['accommodations']!,
-                          onRetry: () => context.read<TripDetailBloc>().add(
-                            RetryDeferredSection(section: 'accommodations'),
-                          ),
-                        )
-                      : state.deferredLoaded
-                      ? TripAccommodationSection(
-                          accommodations: state.accommodations,
-                          tripId: tripId,
-                          trip: trip,
-                          isOwner: _canEdit,
-                          isCompleted: state.isCompleted,
-                        )
-                      : const _DeferredSectionShimmer(),
-                ),
-                const SizedBox(height: AppSpacing.space12),
-                StaggeredFadeIn(
-                  index: 2,
-                  child: TripSectionCard(
-                    icon: Icons.hiking_rounded,
-                    title: l10n.activitiesTitle,
-                    itemCount: state.activities.length,
-                    previewItems: state.activities
-                        .take(3)
-                        .map((a) => a.title)
-                        .toList(),
-                    emptyLabel: l10n.addFirstActivity,
-                    onTap: () async {
-                      await ActivitiesRoute(
-                        tripId: tripId,
-                        role: trip.role ?? 'OWNER',
-                        isCompleted: state.isCompleted,
-                      ).push(context);
-                      if (!context.mounted) return;
-                      _refreshAfterReturn(context);
-                    },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: AppSpacing.space12),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                const SizedBox(height: AppSpacing.space12),
-                StaggeredFadeIn(
-                  key: _sectionKeys[CompletionSegmentType.baggage],
-                  index: 3,
-                  child: state.sectionErrors.containsKey('baggage')
-                      ? SectionErrorIndicator(
-                          error: state.sectionErrors['baggage']!,
-                          onRetry: () => context.read<TripDetailBloc>().add(
-                            RetryDeferredSection(section: 'baggage'),
-                          ),
-                        )
-                      : state.deferredLoaded
-                      ? TripBaggageSection(
-                          baggageItems: state.baggageItems,
-                          tripId: tripId,
-                          trip: trip,
-                          isOwner: _canEdit,
-                          isCompleted: state.isCompleted,
-                        )
-                      : const _DeferredSectionShimmer(),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.space16),
+                child: Text(
+                  l10n.completionSegmentsSheetTitle,
+                  style: const TextStyle(
+                    fontFamily: FontFamily.dMSerifDisplay,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: ColorName.primaryDark,
+                  ),
                 ),
-                const SizedBox(height: AppSpacing.space12),
-                StaggeredFadeIn(
-                  key: _sectionKeys[CompletionSegmentType.budget],
-                  index: 4,
-                  child: state.sectionErrors.containsKey('budget')
-                      ? SectionErrorIndicator(
-                          error: state.sectionErrors['budget']!,
-                          onRetry: () => context.read<TripDetailBloc>().add(
-                            RetryDeferredSection(section: 'budget'),
-                          ),
-                        )
-                      : state.deferredLoaded
-                      ? TripBudgetSection(
-                          budgetSummary: state.budgetSummary,
-                          tripId: tripId,
-                          trip: trip,
-                          isOwner: _canEdit,
-                          isCompleted: state.isCompleted,
-                        )
-                      : const _DeferredSectionShimmer(),
-                ),
-                const SizedBox(height: AppSpacing.space12),
-                StaggeredFadeIn(
-                  index: 5,
-                  child: state.sectionErrors.containsKey('shares')
-                      ? SectionErrorIndicator(
-                          error: state.sectionErrors['shares']!,
-                          onRetry: () => context.read<TripDetailBloc>().add(
-                            RetryDeferredSection(section: 'shares'),
-                          ),
-                        )
-                      : state.deferredLoaded
-                      ? TripSharingSection(
-                          shares: state.shares,
-                          tripId: tripId,
-                          trip: trip,
-                          isOwner: state.isOwner,
-                          isCompleted: state.isCompleted,
-                        )
-                      : const _DeferredSectionShimmer(),
-                ),
-                const SizedBox(height: AppSpacing.space12),
-                Builder(
-                  builder: (context) {
-                    final locationItems = <String>[
-                      ...state.activities
-                          .where(
-                            (a) => a.location != null && a.location!.isNotEmpty,
-                          )
-                          .map((a) => a.title),
-                      ...state.accommodations
-                          .where(
-                            (a) => a.address != null && a.address!.isNotEmpty,
-                          )
-                          .map((a) => a.name),
-                    ];
-                    return StaggeredFadeIn(
-                      index: 6,
-                      child: TripSectionCard(
-                        icon: Icons.map_rounded,
-                        title: l10n.mapTitle,
-                        itemCount: locationItems.length,
-                        previewItems: locationItems.take(3).toList(),
-                        emptyLabel: l10n.mapNoLocations,
-                        onTap: () => MapRoute(tripId: tripId).go(context),
-                      ),
-                    );
-                  },
-                ),
-              ]),
-            ),
-          ),
-
-          // ── Status action buttons ───────────────────────────────
-          if (trip.status == TripStatus.draft && _canEdit)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.space24,
-                  vertical: AppSpacing.space8,
-                ),
-                child: FilledButton.icon(
-                  onPressed: () {
-                    final hasDestination =
-                        trip.destinationName != null &&
-                        trip.destinationName!.isNotEmpty;
-                    final hasDates =
-                        trip.startDate != null && trip.endDate != null;
-
-                    if (!hasDestination || !hasDates) {
-                      final missing = <String>[];
-                      if (!hasDestination) {
-                        missing.add(l10n.finalizeMissingDestination);
-                      }
-                      if (!hasDates) {
-                        missing.add(l10n.finalizeMissingDates);
-                      }
-                      showAdaptiveAlertDialog(
-                        context: context,
-                        title: l10n.cannotFinalizeTitle,
-                        content: missing.join('\n'),
-                        confirmLabel: 'OK',
-                        cancelLabel: l10n.cancelButton,
-                      );
-                      return;
+              ),
+              ...incomplete.map(
+                (type) => ListTile(
+                  leading: Icon(_iconForSegment(type)),
+                  title: Text(_labelForSegment(type, l10n)),
+                  onTap: () {
+                    Navigator.of(sheetCtx).pop();
+                    final tabIndex = _tabIndexForSegment(type);
+                    if (tabIndex != null) {
+                      _tabController.animateTo(tabIndex);
                     }
-
-                    AppHaptics.medium();
-                    context.read<TripDetailBloc>().add(
-                      UpdateTripStatus(status: 'PLANNED'),
-                    );
                   },
-                  icon: const Icon(Icons.check_circle),
-                  label: Text(l10n.markAsReady),
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
                 ),
               ),
-            ),
-
-          if (trip.status == TripStatus.ongoing && _canEdit)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: AppSpacing.allEdgeInsetSpace24,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    context.read<TripDetailBloc>().add(
-                      UpdateTripStatus(status: 'COMPLETED'),
-                    );
-                  },
-                  icon: const Icon(Icons.check_circle_outline),
-                  label: Text(l10n.tripComplete),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                ),
-              ),
-            ),
-
-          if (state.isCompleted)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.space24,
-                  vertical: AppSpacing.space8,
-                ),
-                child: OutlinedButton.icon(
-                  onPressed: () => FeedbackRoute(tripId: tripId).go(context),
-                  icon: const Icon(Icons.rate_review_outlined),
-                  label: Text(l10n.tripGiveReview),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                ),
-              ),
-            ),
-
-          if (trip.status == TripStatus.draft && state.isOwner)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.space24,
-                  vertical: AppSpacing.space8,
-                ),
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    showAdaptiveAlertDialog(
-                      context: context,
-                      title: l10n.tripDeleteTitle,
-                      content: l10n.tripDeleteConfirm,
-                      confirmLabel: l10n.deleteButton,
-                      cancelLabel: l10n.cancelButton,
-                      isDestructive: true,
-                      onConfirm: () {
-                        context.read<TripDetailBloc>().add(DeleteTripDetail());
-                      },
-                    );
-                  },
-                  icon: const Icon(Icons.delete_outline),
-                  label: Text(l10n.tripDeleteTitle),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: theme.colorScheme.error,
-                    side: BorderSide(color: theme.colorScheme.error),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                ),
-              ),
-            ),
-
-          // ── Bottom padding ──────────────────────────────────────
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: AdaptivePlatform.isIOS ? 100 : AppSpacing.space32,
-            ),
+              const SizedBox(height: AppSpacing.space16),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
+  }
+
+  IconData _iconForSegment(CompletionSegmentType type) {
+    return switch (type) {
+      CompletionSegmentType.dates => Icons.calendar_today_rounded,
+      CompletionSegmentType.flights => Icons.flight_takeoff_rounded,
+      CompletionSegmentType.accommodation => Icons.hotel_rounded,
+      CompletionSegmentType.activities => Icons.hiking_rounded,
+      CompletionSegmentType.baggage => Icons.luggage_rounded,
+      CompletionSegmentType.budget => Icons.account_balance_wallet_rounded,
+    };
+  }
+
+  String _labelForSegment(CompletionSegmentType type, AppLocalizations l10n) {
+    return switch (type) {
+      CompletionSegmentType.dates => l10n.datesLabel,
+      CompletionSegmentType.flights => l10n.reviewTabFlights,
+      CompletionSegmentType.accommodation => l10n.reviewTabHotel,
+      CompletionSegmentType.activities => l10n.reviewTabItinerary,
+      CompletionSegmentType.baggage => l10n.reviewTabEssentials,
+      CompletionSegmentType.budget => l10n.reviewTabBudget,
+    };
+  }
+
+  int? _tabIndexForSegment(CompletionSegmentType type) {
+    return switch (type) {
+      CompletionSegmentType.dates => null,
+      CompletionSegmentType.flights => 1,
+      CompletionSegmentType.accommodation => 2,
+      CompletionSegmentType.activities => 3,
+      CompletionSegmentType.baggage => 4,
+      CompletionSegmentType.budget => 5,
+    };
   }
 }
 
-// ── Stat Item ────────────────────────────────────────────────────────────────
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({required this.label, required this.color});
 
-class _DeferredSectionShimmer extends StatelessWidget {
-  const _DeferredSectionShimmer();
-
-  @override
-  Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey.shade200,
-      highlightColor: Colors.grey.shade100,
-      child: Container(
-        height: 72,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: AppRadius.large16,
-        ),
-      ),
-    );
-  }
-}
-
-class _StatItem extends StatelessWidget {
-  final IconData icon;
-  final String value;
   final String label;
-
-  const _StatItem({
-    required this.icon,
-    required this.value,
-    required this.label,
-  });
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, color: ColorName.primary, size: 24),
-        const SizedBox(height: AppSpacing.space4),
-        Text(
-          value,
-          style: const TextStyle(
-            fontFamily: FontFamily.b612,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: ColorName.primaryTrueDark,
-          ),
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.space8,
+        vertical: AppSpacing.space4,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: AppRadius.pill,
+        border: Border.all(color: color.withValues(alpha: 0.5)),
+      ),
+      child: Text(
+        label.toUpperCase(),
+        style: TextStyle(
+          fontFamily: FontFamily.dMSans,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1,
+          color: color,
         ),
-        Text(
-          label,
-          style: const TextStyle(
-            fontFamily: FontFamily.b612,
-            fontSize: 11,
-            color: ColorName.textMutedLight,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

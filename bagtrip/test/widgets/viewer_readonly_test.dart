@@ -1,8 +1,10 @@
+import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
 import 'package:bagtrip/trip_detail/view/trip_detail_view.dart';
+import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,93 +13,102 @@ import 'package:mocktail/mocktail.dart';
 
 import '../helpers/test_fixtures.dart';
 
-class MockTripDetailBloc extends MockBloc<TripDetailEvent, TripDetailState>
+class _MockTripDetailBloc extends MockBloc<TripDetailEvent, TripDetailState>
     implements TripDetailBloc {}
 
+class _MockHomeBloc extends MockBloc<HomeEvent, HomeState>
+    implements HomeBloc {}
+
+class _MockTripManagementBloc
+    extends MockBloc<TripManagementEvent, TripManagementState>
+    implements TripManagementBloc {}
+
 void main() {
-  late MockTripDetailBloc mockBloc;
+  late _MockTripDetailBloc tripBloc;
+  late _MockHomeBloc homeBloc;
+  late _MockTripManagementBloc managementBloc;
 
   setUp(() {
-    mockBloc = MockTripDetailBloc();
+    tripBloc = _MockTripDetailBloc();
+    homeBloc = _MockHomeBloc();
+    managementBloc = _MockTripManagementBloc();
+    when(() => homeBloc.state).thenReturn(HomeInitial());
+    when(() => managementBloc.state).thenReturn(TripManagementInitial());
   });
 
-  TripDetailLoaded makeState({String role = 'OWNER'}) {
+  TripDetailLoaded makeLoaded({String role = 'OWNER'}) {
     return TripDetailLoaded(
-      trip: makeTrip(status: TripStatus.planned),
+      trip: makeTrip(
+        status: TripStatus.planned,
+        startDate: DateTime(2026, 9),
+        endDate: DateTime(2026, 9, 5),
+      ),
       activities: const [],
       flights: const [],
       accommodations: const [],
       baggageItems: const [],
       shares: const [],
       userRole: role,
-      completionResult: const CompletionResult(percentage: 0, segments: {}),
-    );
-  }
-
-  Widget buildApp({required TripDetailLoaded state}) {
-    when(() => mockBloc.state).thenReturn(state);
-    return MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      locale: const Locale('en'),
-      home: BlocProvider<TripDetailBloc>.value(
-        value: mockBloc,
-        child: const TripDetailView(tripId: 'trip-1'),
+      completionResult: const CompletionResult(
+        percentage: 0,
+        segments: {
+          CompletionSegmentType.dates: true,
+          CompletionSegmentType.flights: false,
+          CompletionSegmentType.accommodation: false,
+          CompletionSegmentType.activities: false,
+          CompletionSegmentType.baggage: false,
+          CompletionSegmentType.budget: false,
+        },
       ),
     );
   }
 
-  group('Viewer read-only badge', () {
-    testWidgets('shows "Read only" banner when role is VIEWER', (tester) async {
-      await tester.pumpWidget(buildApp(state: makeState(role: 'VIEWER')));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Read only'), findsOneWidget);
-      expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
-    });
-
-    testWidgets('hides "Read only" banner when role is OWNER', (tester) async {
-      await tester.pumpWidget(buildApp(state: makeState()));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Read only'), findsNothing);
-    });
-
-    testWidgets('share icon hidden for viewer', (tester) async {
-      await tester.pumpWidget(buildApp(state: makeState(role: 'VIEWER')));
-      await tester.pumpAndSettle();
-
-      // The share/person_add icon in AppBar should not be present
-      expect(find.byIcon(Icons.share), findsNothing);
-    });
-
-    testWidgets('completion bar hidden for viewer', (tester) async {
-      await tester.pumpWidget(buildApp(state: makeState(role: 'VIEWER')));
-      await tester.pumpAndSettle();
-
-      // TripCompletionBar should not be present
-      expect(
-        find.byType(
-          // ignore: undefined_identifier
-          // We look for the text that completion bar renders
-          SizedBox,
-          // We can't easily identify the completion bar by type,
-          // so let's verify the finalize button is hidden instead
+  Widget buildApp({required TripDetailLoaded state}) {
+    when(() => tripBloc.state).thenReturn(state);
+    whenListen(
+      tripBloc,
+      const Stream<TripDetailState>.empty(),
+      initialState: state,
+    );
+    return MediaQuery(
+      data: const MediaQueryData(size: Size(900, 2400)),
+      child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
+        home: MultiBlocProvider(
+          providers: [
+            BlocProvider<TripDetailBloc>.value(value: tripBloc),
+            BlocProvider<HomeBloc>.value(value: homeBloc),
+            BlocProvider<TripManagementBloc>.value(value: managementBloc),
+          ],
+          child: const TripDetailView(tripId: 'trip-1'),
         ),
-        findsWidgets,
-      );
+      ),
+    );
+  }
 
-      // Finalize button should NOT be visible for viewer
-      expect(find.text('Mark as ready'), findsNothing);
+  group('Viewer read-only state', () {
+    testWidgets('renders "READ ONLY" status pill for VIEWER', (tester) async {
+      await tester.pumpWidget(buildApp(state: makeLoaded(role: 'VIEWER')));
+      await tester.pump();
+      expect(find.text('READ ONLY'), findsOneWidget);
     });
 
-    testWidgets('edit icon not shown in title for viewer', (tester) async {
-      await tester.pumpWidget(buildApp(state: makeState(role: 'VIEWER')));
-      await tester.pumpAndSettle();
+    testWidgets('does not render status pill for OWNER of a planned trip', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildApp(state: makeLoaded()));
+      await tester.pump();
+      expect(find.text('READ ONLY'), findsNothing);
+    });
 
-      // The edit pencil icon in the FlexibleSpaceBar title should not appear
-      // because _canEdit = isOwner && !isCompleted = false for VIEWER
-      expect(find.byIcon(Icons.edit), findsNothing);
+    testWidgets('hides footer add CTA for VIEWER', (tester) async {
+      await tester.pumpWidget(buildApp(state: makeLoaded(role: 'VIEWER')));
+      await tester.pump();
+      // Viewer cannot edit → footer hidden, so no add-flight label present
+      expect(find.text('Add a flight'), findsNothing);
+      expect(find.text('Add an activity'), findsNothing);
     });
   });
 }

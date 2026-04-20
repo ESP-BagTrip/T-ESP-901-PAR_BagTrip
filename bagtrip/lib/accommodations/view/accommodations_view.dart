@@ -8,7 +8,10 @@ import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
+import 'package:bagtrip/design/widgets/review/hero_nav_button.dart';
+import 'package:bagtrip/design/widgets/review/sub_page_hero.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/cupertino.dart';
@@ -65,105 +68,117 @@ class AccommodationsView extends StatelessWidget {
         ),
       ],
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.accommodationsTitle),
-          actions: [
-            if (canEdit)
-              IconButton(
-                icon: const Icon(Icons.auto_awesome),
-                tooltip: l10n.accommodationAiSuggestTitle,
-                onPressed: () {
-                  context.read<AccommodationBloc>().add(
-                    SuggestAccommodations(tripId: tripId),
-                  );
+        backgroundColor: ColorName.surfaceVariant,
+        body: Column(
+          children: [
+            SubPageHero(
+              title: l10n.accommodationsTitle,
+              trailing: [
+                if (canEdit)
+                  HeroNavButton(
+                    icon: Icons.auto_awesome,
+                    tooltip: l10n.accommodationAiSuggestTitle,
+                    onPressed: () {
+                      context.read<AccommodationBloc>().add(
+                        SuggestAccommodations(tripId: tripId),
+                      );
+                    },
+                  ),
+                if (canEdit && AdaptivePlatform.isIOS) ...[
+                  const SizedBox(width: AppSpacing.space8),
+                  HeroNavButton(
+                    icon: CupertinoIcons.add,
+                    tooltip: l10n.addAccommodationTooltip,
+                    onPressed: () => _showAddSheet(context),
+                  ),
+                ],
+              ],
+            ),
+            Expanded(
+              child: BlocBuilder<AccommodationBloc, AccommodationState>(
+                builder: (context, state) {
+                  if (state is AccommodationLoading ||
+                      state is AccommodationSuggestionsLoading) {
+                    return const LoadingView();
+                  }
+                  if (state is AccommodationError) {
+                    return ErrorView(
+                      message: toUserFriendlyMessage(state.error, l10n),
+                      onRetry: () => context.read<AccommodationBloc>().add(
+                        LoadAccommodations(tripId: tripId),
+                      ),
+                    );
+                  }
+                  if (state is AccommodationsLoaded) {
+                    final accommodations = state.accommodations;
+                    if (accommodations.isEmpty) {
+                      return ElegantEmptyState(
+                        icon: Icons.hotel_outlined,
+                        title: l10n.emptyAccommodationsTitle,
+                        subtitle: l10n.emptyAccommodationsSubtitle,
+                      );
+                    }
+                    return CustomScrollView(
+                      slivers: [
+                        SliverPadding(
+                          padding: AppSpacing.allEdgeInsetSpace16,
+                          sliver: SliverList(
+                            delegate: SliverChildBuilderDelegate((
+                              context,
+                              index,
+                            ) {
+                              final accommodation = accommodations[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                  bottom: AppSpacing.space12,
+                                ),
+                                child: AccommodationCard(
+                                  accommodation: accommodation,
+                                  isViewer: !canEdit,
+                                  onEdit: canEdit
+                                      ? () {
+                                          final bloc = context
+                                              .read<AccommodationBloc>();
+                                          showModalBottomSheet(
+                                            context: context,
+                                            isScrollControlled: true,
+                                            backgroundColor: Colors.transparent,
+                                            builder: (_) => BlocProvider.value(
+                                              value: bloc,
+                                              child: ManualAccommodationForm(
+                                                tripId: tripId,
+                                                existing: accommodation,
+                                                tripStartDate: tripStartDate,
+                                                tripEndDate: tripEndDate,
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      : null,
+                                  onDelete: canEdit
+                                      ? () {
+                                          context.read<AccommodationBloc>().add(
+                                            DeleteAccommodation(
+                                              tripId: tripId,
+                                              accommodationId: accommodation.id,
+                                            ),
+                                          );
+                                        }
+                                      : null,
+                                ),
+                              );
+                            }, childCount: accommodations.length),
+                          ),
+                        ),
+                        const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                      ],
+                    );
+                  }
+                  return const SizedBox.shrink();
                 },
               ),
-            if (canEdit && AdaptivePlatform.isIOS)
-              IconButton(
-                icon: const Icon(CupertinoIcons.add),
-                tooltip: l10n.addAccommodationTooltip,
-                onPressed: () => _showAddSheet(context),
-              ),
+            ),
           ],
-        ),
-        body: BlocBuilder<AccommodationBloc, AccommodationState>(
-          builder: (context, state) {
-            if (state is AccommodationLoading ||
-                state is AccommodationSuggestionsLoading) {
-              return const LoadingView();
-            }
-            if (state is AccommodationError) {
-              return ErrorView(
-                message: toUserFriendlyMessage(state.error, l10n),
-                onRetry: () => context.read<AccommodationBloc>().add(
-                  LoadAccommodations(tripId: tripId),
-                ),
-              );
-            }
-            if (state is AccommodationsLoaded) {
-              final accommodations = state.accommodations;
-              if (accommodations.isEmpty) {
-                return ElegantEmptyState(
-                  icon: Icons.hotel_outlined,
-                  title: l10n.emptyAccommodationsTitle,
-                  subtitle: l10n.emptyAccommodationsSubtitle,
-                );
-              }
-              return CustomScrollView(
-                slivers: [
-                  SliverPadding(
-                    padding: AppSpacing.allEdgeInsetSpace16,
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        final accommodation = accommodations[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: AppSpacing.space12,
-                          ),
-                          child: AccommodationCard(
-                            accommodation: accommodation,
-                            isViewer: !canEdit,
-                            onEdit: canEdit
-                                ? () {
-                                    final bloc = context
-                                        .read<AccommodationBloc>();
-                                    showModalBottomSheet(
-                                      context: context,
-                                      isScrollControlled: true,
-                                      backgroundColor: Colors.transparent,
-                                      builder: (_) => BlocProvider.value(
-                                        value: bloc,
-                                        child: ManualAccommodationForm(
-                                          tripId: tripId,
-                                          existing: accommodation,
-                                          tripStartDate: tripStartDate,
-                                          tripEndDate: tripEndDate,
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                : null,
-                            onDelete: canEdit
-                                ? () {
-                                    context.read<AccommodationBloc>().add(
-                                      DeleteAccommodation(
-                                        tripId: tripId,
-                                        accommodationId: accommodation.id,
-                                      ),
-                                    );
-                                  }
-                                : null,
-                          ),
-                        );
-                      }, childCount: accommodations.length),
-                    ),
-                  ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
-                ],
-              );
-            }
-            return const SizedBox.shrink();
-          },
         ),
         floatingActionButton: canEdit && !AdaptivePlatform.isIOS
             ? FloatingActionButton.extended(
