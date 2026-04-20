@@ -118,6 +118,69 @@ final class CreateBudgetItemFromDetail extends TripDetailEvent {
   CreateBudgetItemFromDetail({required this.data});
 }
 
+final class UpdateBudgetItemFromDetail extends TripDetailEvent {
+  final String itemId;
+  final Map<String, dynamic> data;
+  UpdateBudgetItemFromDetail({required this.itemId, required this.data});
+}
+
+final class DeleteBudgetItemFromDetail extends TripDetailEvent {
+  final String itemId;
+  DeleteBudgetItemFromDetail({required this.itemId});
+}
+
+final class RefreshBudgetSummaryFromDetail extends TripDetailEvent {}
+
+final class CreateFlightFromDetail extends TripDetailEvent {
+  final Map<String, dynamic> data;
+  CreateFlightFromDetail({required this.data});
+}
+
+final class UpdateFlightFromDetail extends TripDetailEvent {
+  final String flightId;
+  final Map<String, dynamic> data;
+  UpdateFlightFromDetail({required this.flightId, required this.data});
+}
+
+final class CreateAccommodationFromDetail extends TripDetailEvent {
+  final Map<String, dynamic> data;
+  CreateAccommodationFromDetail({required this.data});
+}
+
+final class UpdateAccommodationFromDetail extends TripDetailEvent {
+  final String accommodationId;
+  final Map<String, dynamic> data;
+  UpdateAccommodationFromDetail({
+    required this.accommodationId,
+    required this.data,
+  });
+}
+
+final class CreateBaggageItemFromDetail extends TripDetailEvent {
+  final Map<String, dynamic> data;
+  CreateBaggageItemFromDetail({required this.data});
+}
+
+final class UpdateBaggageItemFromDetail extends TripDetailEvent {
+  final String baggageItemId;
+  final Map<String, dynamic> data;
+  UpdateBaggageItemFromDetail({
+    required this.baggageItemId,
+    required this.data,
+  });
+}
+
+final class CreateShareFromDetail extends TripDetailEvent {
+  final String email;
+  final String role;
+  final String? message;
+  CreateShareFromDetail({
+    required this.email,
+    required this.role,
+    this.message,
+  });
+}
+
 final class RetryDeferredSection extends TripDetailEvent {
   final String section;
   RetryDeferredSection({required this.section});

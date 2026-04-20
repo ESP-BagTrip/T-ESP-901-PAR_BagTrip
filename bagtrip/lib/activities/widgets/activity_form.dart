@@ -114,11 +114,15 @@ class _ActivityFormState extends State<ActivityForm> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Padding(
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       padding: EdgeInsets.only(
         left: AppSpacing.space16,
         right: AppSpacing.space16,
-        top: AppSpacing.space16,
+        top: AppSpacing.space12,
         bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.space16,
       ),
       child: Form(
@@ -128,6 +132,17 @@ class _ActivityFormState extends State<ActivityForm> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.space16),
               Text(
                 widget.activity != null
                     ? l10n.activityFormEdit

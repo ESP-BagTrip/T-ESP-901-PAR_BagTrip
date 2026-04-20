@@ -1,7 +1,7 @@
 import 'package:bagtrip/home/view/active_trip_home_view.dart';
 import 'package:bagtrip/home/view/idle_home_view.dart';
 import 'package:bagtrip/plan_trip/view/plan_trip_flow_page.dart';
-import 'package:bagtrip/trip_detail/view/trip_detail_page.dart';
+import 'package:bagtrip/trip_detail/view/trip_detail_view.dart';
 import 'package:bagtrip/post_trip/view/post_trip_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,7 +20,7 @@ final homeTripManager = homeIdle;
 final idleHomeView = find.byType(IdleHomeView);
 final activeTripHomeView = find.byType(ActiveTripHomeView);
 final planTripFlowPage = find.byType(PlanTripFlowPage);
-final tripDetailPage = find.byType(TripDetailPage);
+final tripDetailPage = find.byType(TripDetailView);
 final postTripPage = find.byType(PostTripPage);
 
 // ─── Legacy aliases ─────────────────────────────────────────────────────────

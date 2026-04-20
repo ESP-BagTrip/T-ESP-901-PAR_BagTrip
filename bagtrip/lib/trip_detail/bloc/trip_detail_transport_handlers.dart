@@ -96,4 +96,146 @@ extension _TripDetailTransportHandlers on TripDetailBloc {
       emit(loaded.copyWith(clearOperationError: true));
     }
   }
+
+  Future<void> _onCreateFlightFromDetail(
+    CreateFlightFromDetail event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+
+    final result = await _transportRepository.createManualFlight(
+      _tripId!,
+      event.data,
+    );
+
+    if (isClosed) return;
+    if (state is! TripDetailLoaded) return;
+    final current = state as TripDetailLoaded;
+
+    switch (result) {
+      case Success(:final data):
+        final updatedFlights = [...current.flights, data];
+        final completion = tripDetailCompletion(
+          trip: current.trip,
+          flights: updatedFlights,
+          accommodations: current.accommodations,
+          activities: current.activities,
+          baggageItems: current.baggageItems,
+        );
+        emit(
+          current.copyWith(
+            flights: updatedFlights,
+            completionResult: completion,
+          ),
+        );
+      case Failure(:final error):
+        emit(loaded.copyWith(operationError: error));
+        emit(loaded.copyWith(clearOperationError: true));
+    }
+  }
+
+  Future<void> _onUpdateFlightFromDetail(
+    UpdateFlightFromDetail event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+
+    final result = await _transportRepository.updateManualFlight(
+      _tripId!,
+      event.flightId,
+      event.data,
+    );
+
+    if (isClosed) return;
+    if (state is! TripDetailLoaded) return;
+    final current = state as TripDetailLoaded;
+
+    switch (result) {
+      case Success(:final data):
+        final updatedFlights = current.flights
+            .map((f) => f.id == event.flightId ? data : f)
+            .toList();
+        emit(current.copyWith(flights: updatedFlights));
+      case Failure(:final error):
+        emit(loaded.copyWith(operationError: error));
+        emit(loaded.copyWith(clearOperationError: true));
+    }
+  }
+
+  Future<void> _onCreateAccommodationFromDetail(
+    CreateAccommodationFromDetail event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+
+    final data = event.data;
+    final result = await _accommodationRepository.createAccommodation(
+      _tripId!,
+      name: data['name'] as String,
+      address: data['address'] as String?,
+      checkIn: data['checkIn'] as DateTime?,
+      checkOut: data['checkOut'] as DateTime?,
+      pricePerNight: (data['pricePerNight'] as num?)?.toDouble(),
+      currency: data['currency'] as String?,
+      bookingReference: data['bookingReference'] as String?,
+      notes: data['notes'] as String?,
+    );
+
+    if (isClosed) return;
+    if (state is! TripDetailLoaded) return;
+    final current = state as TripDetailLoaded;
+
+    switch (result) {
+      case Success(:final data):
+        final updatedAccommodations = [...current.accommodations, data];
+        final completion = tripDetailCompletion(
+          trip: current.trip,
+          flights: current.flights,
+          accommodations: updatedAccommodations,
+          activities: current.activities,
+          baggageItems: current.baggageItems,
+        );
+        emit(
+          current.copyWith(
+            accommodations: updatedAccommodations,
+            completionResult: completion,
+          ),
+        );
+      case Failure(:final error):
+        emit(loaded.copyWith(operationError: error));
+        emit(loaded.copyWith(clearOperationError: true));
+    }
+  }
+
+  Future<void> _onUpdateAccommodationFromDetail(
+    UpdateAccommodationFromDetail event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+
+    final result = await _accommodationRepository.updateAccommodation(
+      _tripId!,
+      event.accommodationId,
+      event.data,
+    );
+
+    if (isClosed) return;
+    if (state is! TripDetailLoaded) return;
+    final current = state as TripDetailLoaded;
+
+    switch (result) {
+      case Success(:final data):
+        final updatedAccommodations = current.accommodations
+            .map((a) => a.id == event.accommodationId ? data : a)
+            .toList();
+        emit(current.copyWith(accommodations: updatedAccommodations));
+      case Failure(:final error):
+        emit(loaded.copyWith(operationError: error));
+        emit(loaded.copyWith(clearOperationError: true));
+    }
+  }
 }

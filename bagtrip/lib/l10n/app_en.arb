@@ -887,6 +887,52 @@
   "reviewHotelCheckOut": "Check-out",
   "reviewHotelNights": "Nights",
   "reviewHotelPerNight": "Per night",
+  "reviewSummaryLine": "{days} days in {city} for {travelers}",
+  "@reviewSummaryLine": {
+    "placeholders": {
+      "days": {"type": "int"},
+      "city": {"type": "String"},
+      "travelers": {"type": "String"}
+    }
+  },
+  "reviewSummaryTravelers": "{count, plural, =1{1 traveler} other{{count} travelers}}",
+  "@reviewSummaryTravelers": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "reviewJourneyHeader": "Your journey",
+  "reviewDayTitle": "Day {day} · {date}",
+  "@reviewDayTitle": {
+    "placeholders": {
+      "day": {"type": "int"},
+      "date": {"type": "String"}
+    }
+  },
+  "reviewDayFree": "A free day",
+  "reviewFlightDurationHm": "{hours}h{minutes}",
+  "@reviewFlightDurationHm": {
+    "placeholders": {
+      "hours": {"type": "int"},
+      "minutes": {"type": "String"}
+    }
+  },
+  "reviewHotelArrival": "Check-in",
+  "reviewHotelStayNights": "{count, plural, =1{1 night} other{{count} nights}}",
+  "@reviewHotelStayNights": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "reviewBudgetHeader": "The budget",
+  "reviewBudgetPerPerson": "{amount} per traveler",
+  "@reviewBudgetPerPerson": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "reviewDecisionHeader": "Your call",
+  "reviewDecisionPrimary": "Plan this trip",
   "homeActiveTripTitle": "Your trip to {destination}",
   "@homeActiveTripTitle": {
     "placeholders": {
@@ -1349,5 +1395,92 @@
   "originCityHint": "Where will you start your trip?",
   "notFoundTitle": "Page not found",
   "notFoundSubtitle": "The page you are looking for doesn't exist or has been moved.",
-  "notFoundCta": "Return home"
+  "notFoundCta": "Return home",
+  "subpageHeroBadgeViewer": "Read only",
+  "subpageHeroBadgeCompleted": "Completed",
+  "blankActivitiesTitle": "Your itinerary is empty",
+  "blankActivitiesSubtitle": "Plan what makes this trip worth remembering.",
+  "blankActivitiesPrimary": "Add your first activity",
+  "blankActivitiesSecondary": "Let AI plan a day",
+  "blankActivitiesNoDatesTitle": "Before we plan…",
+  "blankActivitiesNoDatesSubtitle": "Set your trip dates first so we know when we’re going.",
+  "blankActivitiesNoDatesPrimary": "Back to overview",
+  "activitiesHeroMeta": "{count, plural, =1{1 activity} other{{count} activities}} · {days, plural, =1{1 day} other{{days} days}}",
+  "@activitiesHeroMeta": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "days": {"type": "int"}
+    }
+  },
+  "blankTransportsTitle": "Let’s get you there.",
+  "blankTransportsSubtitle": "Outbound, return, internal connections — we’ll track them all.",
+  "blankTransportsPrimary": "Add your first flight",
+  "transportsHeroMeta": "{count, plural, =1{1 flight} other{{count} flights}}",
+  "@transportsHeroMeta": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "blankAccommodationsTitle": "Where will you rest your head?",
+  "blankAccommodationsSubtitle": "Hotel, Airbnb, friend’s couch — log it here for check-in reminders.",
+  "blankAccommodationsPrimary": "Add a stay",
+  "blankAccommodationsSecondary": "Get AI suggestions",
+  "accommodationsHeroMeta": "{count, plural, =1{1 stay} other{{count} stays}} · {nights, plural, =1{1 night} other{{nights} nights}}",
+  "@accommodationsHeroMeta": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "nights": {"type": "int"}
+    }
+  },
+  "blankBaggageTitle": "Packing starts with one item.",
+  "blankBaggageSubtitle": "Build a checklist you can tick off before every trip.",
+  "blankBaggagePrimary": "Add first item",
+  "blankBaggageSecondary": "Suggest from my trip",
+  "baggageHeroMeta": "{packed, plural, =0{nothing packed} other{{packed} of {total} packed}}",
+  "@baggageHeroMeta": {
+    "placeholders": {
+      "packed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "blankBudgetTitle": "What’s this trip worth to you?",
+  "blankBudgetSubtitle": "Set a budget, track expenses — we’ll warn you before it slips.",
+  "blankBudgetPrimary": "Add first expense",
+  "blankBudgetSecondary": "Estimate with AI",
+  "budgetHeroMeta": "{count, plural, =1{1 expense} other{{count} expenses}}",
+  "@budgetHeroMeta": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "blankSharesTitle": "Plan together.",
+  "blankSharesSubtitle": "Invite a partner, friend, or colleague. They’ll see the trip, you stay in control.",
+  "blankSharesPrimary": "Invite your first guest",
+  "sharesHeroMeta": "{count, plural, =1{1 guest} other{{count} guests}}",
+  "@sharesHeroMeta": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "panelQuickAddItem": "Add item",
+  "panelQuickAddExpense": "Add expense",
+  "panelQuickAddActivity": "Add activity",
+  "panelQuickAddFlight": "Add flight",
+  "panelQuickAddStay": "Add stay",
+  "panelInviteCollaborator": "Invite",
+  "panelActionEdit": "Edit",
+  "panelActionDelete": "Delete",
+  "panelActionDuplicate": "Duplicate",
+  "panelOpenFullBaggage": "See full checklist",
+  "panelOpenFullBudget": "See full breakdown",
+  "panelOpenFullActivities": "See full itinerary",
+  "panelOpenFullFlights": "See all flights",
+  "panelOpenFullAccommodations": "See all stays",
+  "panelOpenFullShares": "Manage access",
+  "baggageAllPackedMessage": "All packed — ready to roll.",
+  "budgetRecentExpenses": "Recent",
+  "activityValidateAction": "Validate",
+  "activitySuggestedBadge": "Suggested",
+  "shareCopyLink": "Copy invite link",
+  "shareRevokeAccess": "Revoke access"
 }
