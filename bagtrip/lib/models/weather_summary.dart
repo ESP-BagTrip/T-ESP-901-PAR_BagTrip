@@ -7,6 +7,8 @@ part 'weather_summary.g.dart';
 abstract class WeatherSummary with _$WeatherSummary {
   const factory WeatherSummary({
     @JsonKey(name: 'avg_temp_c') required double avgTempC,
+    @JsonKey(name: 'min_temp_c') double? minTempC,
+    @JsonKey(name: 'max_temp_c') double? maxTempC,
     @JsonKey(name: 'description') required String description,
     @JsonKey(name: 'rain_probability') @Default(0) int rainProbability,
     @JsonKey(name: 'source') @Default('unknown') String source,

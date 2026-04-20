@@ -1,10 +1,13 @@
 import 'package:bagtrip/design/category_mappers.dart';
+import 'package:bagtrip/design/timeline_activity_accent.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:flutter/material.dart';
+
+const Color _timelineGrey = Color(0xFFB0B8C4);
 
 class TimelineActivityRow extends StatefulWidget {
   final Activity activity;
@@ -16,6 +19,15 @@ class TimelineActivityRow extends StatefulWidget {
   final int? remainingMinutes;
   final VoidCallback? onNavigate;
 
+  /// When set (e.g. Terminé / Maintenant / Ensuite), replaces time in the capsule.
+  final String? capsuleScheduleBadge;
+
+  /// Past completed items (full day or ended slot): strikethrough + dimming.
+  final bool strikeThroughTitle;
+
+  /// Opacity for dimmed text; default 0.55, use 0.65 for schedule v3 past items.
+  final double? contentDimAlpha;
+
   const TimelineActivityRow({
     super.key,
     required this.activity,
@@ -26,6 +38,9 @@ class TimelineActivityRow extends StatefulWidget {
     this.minutesUntilNext,
     this.remainingMinutes,
     this.onNavigate,
+    this.capsuleScheduleBadge,
+    this.strikeThroughTitle = false,
+    this.contentDimAlpha,
   });
 
   @override
@@ -59,10 +74,10 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
         duration: const Duration(seconds: 1),
         vsync: this,
       )..repeat(reverse: true);
-      _pulseOpacity = Tween<double>(begin: 0.4, end: 1.0).animate(
+      _pulseOpacity = Tween<double>(begin: 0.45, end: 1.0).animate(
         CurvedAnimation(parent: _pulseController!, curve: Curves.easeInOut),
       );
-      _pulseScale = Tween<double>(begin: 1.0, end: 1.4).animate(
+      _pulseScale = Tween<double>(begin: 1.0, end: 1.35).animate(
         CurvedAnimation(parent: _pulseController!, curve: Curves.easeInOut),
       );
     }
@@ -81,256 +96,58 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
     super.dispose();
   }
 
+  Color _accent(bool isDimmed) {
+    final base = timelineCardAccent(
+      activity: widget.activity,
+      isNow: widget.isCurrent,
+    );
+    return isDimmed ? base.withValues(alpha: 0.5) : base;
+  }
+
+  String? _subtitleLine(AppLocalizations l10n) {
+    final desc = widget.activity.description?.trim();
+    if (desc != null && desc.isNotEmpty) return desc;
+    final loc = widget.activity.location?.trim();
+    if (loc != null && loc.isNotEmpty) return loc;
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final dimmedAlpha = 0.6;
-    final isDimmed = widget.isPast && !widget.isCurrent && !widget.isNext;
+    final dimmedAlpha =
+        widget.contentDimAlpha ?? (widget.strikeThroughTitle ? 0.65 : 0.55);
+    final isDimmed =
+        widget.strikeThroughTitle ||
+        (widget.isPast && !widget.isCurrent && !widget.isNext);
+
+    final spineColor = theme.colorScheme.outlineVariant.withValues(alpha: 0.6);
 
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Timeline spine
           SizedBox(
             width: 32,
             child: Column(
               children: [
-                // Top connector
-                Expanded(
-                  child: Container(
-                    width: 2,
-                    color: ColorName.primary.withValues(alpha: 0.2),
-                  ),
-                ),
-                // Dot
-                _buildDot(theme),
-                // Bottom connector
+                Expanded(child: Container(width: 2, color: spineColor)),
+                _buildDot(isDimmed),
                 if (!widget.isLast)
-                  Expanded(
-                    child: Container(
-                      width: 2,
-                      color: ColorName.primary.withValues(alpha: 0.2),
-                    ),
-                  )
+                  Expanded(child: Container(width: 2, color: spineColor))
                 else
                   const Spacer(),
               ],
             ),
           ),
           const SizedBox(width: AppSpacing.space8),
-
-          // Card
           Expanded(
-            child: Container(
-              margin: const EdgeInsets.symmetric(vertical: AppSpacing.space4),
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.space16,
-                vertical: AppSpacing.space12,
-              ),
-              decoration: BoxDecoration(
-                color: widget.isCurrent
-                    ? theme.colorScheme.primaryContainer
-                    : widget.isNext
-                    ? ColorName.primary.withValues(alpha: 0.05)
-                    : theme.cardTheme.color ?? theme.colorScheme.surface,
-                borderRadius: AppRadius.medium8,
-                border: Border.all(
-                  color: widget.isCurrent
-                      ? theme.colorScheme.primary.withValues(alpha: 0.3)
-                      : widget.isNext
-                      ? ColorName.primary.withValues(alpha: 0.2)
-                      : theme.colorScheme.outlineVariant,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      // Time or all-day label
-                      SizedBox(
-                        width: 48,
-                        child: Text(
-                          widget.activity.startTime ?? l10n.activeTripsAllDay,
-                          style: TextStyle(
-                            fontFamily: FontFamily.b612,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: isDimmed
-                                ? theme.colorScheme.onSurface.withValues(
-                                    alpha: dimmedAlpha,
-                                  )
-                                : widget.isCurrent || widget.isNext
-                                ? ColorName.primary
-                                : ColorName.primary.withValues(alpha: 0.7),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.space12),
-                      // Title
-                      Expanded(
-                        child: Text(
-                          widget.activity.title,
-                          style: TextStyle(
-                            fontFamily: FontFamily.b612,
-                            fontSize: 14,
-                            color: isDimmed
-                                ? theme.colorScheme.onSurface.withValues(
-                                    alpha: dimmedAlpha,
-                                  )
-                                : theme.colorScheme.onSurface,
-                            fontWeight: widget.isCurrent || widget.isNext
-                                ? FontWeight.w600
-                                : FontWeight.w400,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      // "In X min" badge for next activity
-                      if (widget.isNext && widget.minutesUntilNext != null) ...[
-                        const SizedBox(width: AppSpacing.space8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.space8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: ColorName.primary.withValues(alpha: 0.08),
-                            borderRadius: AppRadius.pill,
-                          ),
-                          child: Text(
-                            l10n.timelineInMinutes(widget.minutesUntilNext!),
-                            style: const TextStyle(
-                              fontFamily: FontFamily.b612,
-                              fontSize: 11,
-                              color: ColorName.primary,
-                            ),
-                          ),
-                        ),
-                      ],
-                      // "In progress" badge for current activity
-                      if (widget.isCurrent && _pulseOpacity != null) ...[
-                        const SizedBox(width: AppSpacing.space8),
-                        AnimatedBuilder(
-                          animation: _pulseOpacity!,
-                          builder: (context, child) => Opacity(
-                            opacity: _pulseOpacity!.value,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.space8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primary.withValues(
-                                  alpha: 0.12,
-                                ),
-                                borderRadius: AppRadius.pill,
-                              ),
-                              child: Text(
-                                l10n.timelineInProgress,
-                                style: TextStyle(
-                                  fontFamily: FontFamily.b612,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: theme.colorScheme.primary,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                      const SizedBox(width: AppSpacing.space8),
-                      // Category icon
-                      Icon(
-                        widget.activity.category.icon,
-                        size: 18,
-                        color: isDimmed
-                            ? theme.colorScheme.outline.withValues(
-                                alpha: dimmedAlpha,
-                              )
-                            : theme.colorScheme.outline,
-                      ),
-                    ],
-                  ),
-                  // Remaining minutes + navigate for current activity
-                  if (widget.isCurrent) ...[
-                    if (widget.remainingMinutes != null) ...[
-                      const SizedBox(height: AppSpacing.space4),
-                      Text(
-                        l10n.timelineRemainingMinutes(widget.remainingMinutes!),
-                        style: TextStyle(
-                          fontFamily: FontFamily.b612,
-                          fontSize: 12,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                    if (widget.onNavigate != null) ...[
-                      const SizedBox(height: AppSpacing.space8),
-                      SizedBox(
-                        height: 32,
-                        child: TextButton.icon(
-                          onPressed: widget.onNavigate,
-                          icon: const Icon(Icons.navigation_outlined, size: 16),
-                          label: Text(
-                            l10n.timelineNavigate,
-                            style: const TextStyle(
-                              fontFamily: FontFamily.b612,
-                              fontSize: 12,
-                            ),
-                          ),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.space12,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                  // Navigate icon for non-current rows with location
-                  if (!widget.isCurrent &&
-                      widget.onNavigate != null &&
-                      widget.activity.location != null &&
-                      widget.activity.location!.isNotEmpty) ...[
-                    const SizedBox(height: AppSpacing.space4),
-                    GestureDetector(
-                      onTap: widget.onNavigate,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.navigation_outlined,
-                            size: 14,
-                            color: isDimmed
-                                ? theme.colorScheme.outline.withValues(
-                                    alpha: dimmedAlpha,
-                                  )
-                                : theme.colorScheme.outline,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            l10n.timelineNavigate,
-                            style: TextStyle(
-                              fontFamily: FontFamily.b612,
-                              fontSize: 11,
-                              color: isDimmed
-                                  ? theme.colorScheme.outline.withValues(
-                                      alpha: dimmedAlpha,
-                                    )
-                                  : theme.colorScheme.outline,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+            child: _buildCardShell(
+              theme: theme,
+              l10n: l10n,
+              isDimmed: isDimmed,
+              dimmedAlpha: dimmedAlpha,
             ),
           ),
         ],
@@ -338,28 +155,261 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
     );
   }
 
-  Widget _buildDot(ThemeData theme) {
+  Widget _buildCardShell({
+    required ThemeData theme,
+    required AppLocalizations l10n,
+    required bool isDimmed,
+    required double dimmedAlpha,
+  }) {
+    final accent = _accent(isDimmed);
+    final capsuleLabel =
+        widget.capsuleScheduleBadge ??
+        (widget.isCurrent
+            ? l10n.homeSectionNowBadge
+            : (widget.activity.startTime ?? l10n.activeTripsAllDay));
+    final subtitle = _subtitleLine(l10n);
+
+    final inner = Padding(
+      padding: const EdgeInsets.all(AppSpacing.space16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              _timeCapsule(capsuleLabel, accent, isDimmed),
+              const SizedBox(width: AppSpacing.space8),
+              _iconCircle(theme, accent, isDimmed),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.space8),
+          Text(
+            widget.activity.title,
+            style: TextStyle(
+              fontFamily: FontFamily.dMSans,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              decoration: widget.strikeThroughTitle
+                  ? TextDecoration.lineThrough
+                  : null,
+              color: isDimmed
+                  ? theme.colorScheme.onSurface.withValues(alpha: dimmedAlpha)
+                  : theme.colorScheme.onSurface,
+              height: 1.2,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: AppSpacing.space4),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontFamily: FontFamily.dMSans,
+                fontSize: 12,
+                height: 1.35,
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: isDimmed ? dimmedAlpha : 1,
+                ),
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+          if (widget.isCurrent && widget.remainingMinutes != null) ...[
+            const SizedBox(height: AppSpacing.space8),
+            Text(
+              l10n.timelineRemainingMinutes(widget.remainingMinutes!),
+              style: TextStyle(
+                fontFamily: FontFamily.dMSans,
+                fontSize: 12,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+          if (widget.isCurrent && widget.onNavigate != null) ...[
+            const SizedBox(height: AppSpacing.space8),
+            TextButton.icon(
+              onPressed: widget.onNavigate,
+              icon: const Icon(Icons.navigation_outlined, size: 16),
+              label: Text(
+                l10n.timelineNavigate,
+                style: const TextStyle(
+                  fontFamily: FontFamily.dMSans,
+                  fontSize: 12,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                visualDensity: VisualDensity.compact,
+                foregroundColor: accent,
+              ),
+            ),
+          ],
+          if (!widget.isCurrent &&
+              widget.onNavigate != null &&
+              widget.activity.location != null &&
+              widget.activity.location!.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.space4),
+            InkWell(
+              onTap: widget.onNavigate,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.navigation_outlined,
+                    size: 14,
+                    color: isDimmed
+                        ? theme.colorScheme.outline.withValues(
+                            alpha: dimmedAlpha,
+                          )
+                        : theme.colorScheme.outline,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    l10n.timelineNavigate,
+                    style: TextStyle(
+                      fontFamily: FontFamily.dMSans,
+                      fontSize: 11,
+                      color: isDimmed
+                          ? theme.colorScheme.outline.withValues(
+                              alpha: dimmedAlpha,
+                            )
+                          : theme.colorScheme.outline,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+
+    if (widget.isCurrent) {
+      return Container(
+        margin: const EdgeInsets.symmetric(vertical: AppSpacing.space4),
+        decoration: BoxDecoration(
+          borderRadius: AppRadius.large24,
+          border: Border.fromBorderSide(timelineCardBorderSide),
+          boxShadow: timelineCardBoxShadows,
+        ),
+        child: ClipRRect(
+          borderRadius: AppRadius.large24,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const ColoredBox(
+                color: timelineNowAccent,
+                child: SizedBox(height: 3, width: double.infinity),
+              ),
+              ColoredBox(color: ColorName.surface, child: inner),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: AppSpacing.space4),
+      decoration: BoxDecoration(
+        color: ColorName.surface,
+        borderRadius: AppRadius.large24,
+        border: Border.fromBorderSide(timelineCardBorderSide),
+        boxShadow: timelineCardBoxShadows,
+      ),
+      child: inner,
+    );
+  }
+
+  Widget _timeCapsule(String label, Color accent, bool isDimmed) {
+    final filled = widget.isCurrent;
+    if (widget.isCurrent && _pulseOpacity != null) {
+      return AnimatedBuilder(
+        animation: _pulseOpacity!,
+        builder: (context, child) => Opacity(
+          opacity: _pulseOpacity!.value,
+          child: _capsuleDecoration(
+            label: label,
+            accent: accent,
+            filled: filled,
+          ),
+        ),
+      );
+    }
+    return _capsuleDecoration(label: label, accent: accent, filled: filled);
+  }
+
+  Widget _capsuleDecoration({
+    required String label,
+    required Color accent,
+    required bool filled,
+  }) {
+    final r = timelineActivityLeadingSize / 2;
+    return Container(
+      height: timelineActivityLeadingSize,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space12),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: filled ? accent : timelineCapsuleBackground(accent),
+        borderRadius: BorderRadius.circular(r),
+      ),
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontFamily: FontFamily.dMSans,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          height: 1.1,
+          color: filled ? Colors.white : accent,
+          letterSpacing: filled ? 0.35 : 0.15,
+        ),
+      ),
+    );
+  }
+
+  Widget _iconCircle(ThemeData theme, Color accent, bool isDimmed) {
+    final a = isDimmed ? accent.withValues(alpha: 0.55) : accent;
+    final s = timelineActivityLeadingSize;
+    return Container(
+      width: s,
+      height: s,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: timelineIconCircleBackground(a),
+      ),
+      alignment: Alignment.center,
+      child: Icon(widget.activity.category.icon, size: 16, color: a),
+    );
+  }
+
+  Widget _buildDot(bool isDimmed) {
     if (widget.isCurrent && _pulseScale != null) {
       return SizedBox(
-        width: 20,
-        height: 20,
+        width: 22,
+        height: 22,
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Pulse ring
             AnimatedBuilder(
               animation: _pulseScale!,
               builder: (context, child) => Transform.scale(
                 scale: _pulseScale!.value,
                 child: Opacity(
-                  opacity: 1.0 - (_pulseScale!.value - 1.0) / 0.4,
+                  opacity: (1.0 - (_pulseScale!.value - 1.0) / 0.35).clamp(
+                    0.0,
+                    1.0,
+                  ),
                   child: Container(
-                    width: 14,
-                    height: 14,
+                    width: 16,
+                    height: 16,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                        color: timelineNowAccent.withValues(alpha: 0.4),
                         width: 2,
                       ),
                     ),
@@ -367,13 +417,12 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
                 ),
               ),
             ),
-            // Solid dot
             Container(
-              width: 14,
-              height: 14,
-              decoration: BoxDecoration(
+              width: 12,
+              height: 12,
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: theme.colorScheme.primary,
+                color: timelineNowAccent,
               ),
             ),
           ],
@@ -381,21 +430,31 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
       );
     }
 
-    final dotSize = widget.isNext ? 12.0 : 8.0;
+    if (widget.isNext) {
+      final accent = timelineCardAccent(
+        activity: widget.activity,
+        isNow: false,
+      );
+      final c = isDimmed ? accent.withValues(alpha: 0.5) : accent;
+      return Container(
+        width: 14,
+        height: 14,
+        decoration: BoxDecoration(shape: BoxShape.circle, color: c),
+      );
+    }
+
     return Container(
-      width: dotSize,
-      height: dotSize,
+      width: 10,
+      height: 10,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: widget.isNext ? ColorName.primary : Colors.transparent,
-        border: widget.isNext
-            ? null
-            : Border.all(
-                color: widget.isPast
-                    ? ColorName.primary.withValues(alpha: 0.2)
-                    : ColorName.primary.withValues(alpha: 0.4),
-                width: 2,
-              ),
+        color: widget.isPast
+            ? _timelineGrey.withValues(alpha: 0.35)
+            : _timelineGrey.withValues(alpha: 0.55),
+        border: Border.all(
+          color: _timelineGrey.withValues(alpha: 0.8),
+          width: 1.5,
+        ),
       ),
     );
   }

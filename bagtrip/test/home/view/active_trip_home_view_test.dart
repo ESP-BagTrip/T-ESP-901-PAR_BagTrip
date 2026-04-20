@@ -1,19 +1,32 @@
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/view/active_trip_home_view.dart';
+import 'package:bagtrip/home/widgets/active_trip_weather_card.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/models/trip.dart';
+import 'package:bagtrip/models/weather_summary.dart';
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/test_fixtures.dart';
 
+class MockHomeBloc extends MockBloc<HomeEvent, HomeState> implements HomeBloc {}
+
 void main() {
+  late MockHomeBloc mockHomeBloc;
+
+  setUp(() {
+    mockHomeBloc = MockHomeBloc();
+  });
+
   Widget buildApp({
     String? fullName = 'Test User',
     String destinationName = 'Tokyo',
     List<Activity>? allActivities,
-    String? weatherSummary,
+    WeatherSummary? weatherData,
   }) {
     final user = makeUser(fullName: fullName);
     final now = DateTime.now();
@@ -28,37 +41,38 @@ void main() {
       user: user,
       activeTrip: trip,
       allActivities: allActivities ?? const [],
-      weatherSummary: weatherSummary,
+      weatherData: weatherData,
+      weatherSummary: weatherData != null
+          ? '${weatherData.avgTempC.round()}°C · ${weatherData.description}'
+          : null,
     );
+
+    when(() => mockHomeBloc.state).thenReturn(state);
 
     return MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('en'),
-      home: Scaffold(body: ActiveTripHomeView(state: state)),
+      home: BlocProvider<HomeBloc>.value(
+        value: mockHomeBloc,
+        child: Scaffold(body: ActiveTripHomeView(state: state)),
+      ),
     );
   }
 
   group('ActiveTripHomeView', () {
-    testWidgets('greeting shows user name', (tester) async {
-      await tester.pumpWidget(buildApp(fullName: 'Alice Smith'));
-      await tester.pump(const Duration(seconds: 1));
-
-      expect(find.text('Welcome, Alice'), findsOneWidget);
-    });
-
-    testWidgets('greeting fallback when no name', (tester) async {
-      await tester.pumpWidget(buildApp(fullName: null));
-      await tester.pump(const Duration(seconds: 1));
-
-      expect(find.text('Good morning'), findsOneWidget);
-    });
-
-    testWidgets('hero shows destination', (tester) async {
+    testWidgets('shows trip in progress eyebrow', (tester) async {
       await tester.pumpWidget(buildApp());
       await tester.pump(const Duration(seconds: 1));
 
-      expect(find.text('Your trip to Tokyo'), findsOneWidget);
+      expect(find.text('TRIP IN PROGRESS'), findsOneWidget);
+    });
+
+    testWidgets('hero shows destination name', (tester) async {
+      await tester.pumpWidget(buildApp());
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text('Tokyo'), findsOneWidget);
     });
 
     testWidgets('hero shows day counter', (tester) async {
@@ -122,11 +136,12 @@ void main() {
       expect(find.text('No activities planned today'), findsOneWidget);
     });
 
-    testWidgets('quick actions visible', (tester) async {
+    testWidgets('quick actions section visible', (tester) async {
       await tester.pumpWidget(buildApp());
       await tester.pump(const Duration(seconds: 1));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -500));
+      await tester.pump(const Duration(seconds: 1));
 
-      // Section header is always present regardless of time-dependent actions
       expect(find.textContaining('Quick actions'), findsOneWidget);
     });
 
@@ -137,18 +152,38 @@ void main() {
       expect(find.text('Plan a trip'), findsNothing);
     });
 
-    testWidgets('weather shown when present', (tester) async {
-      await tester.pumpWidget(buildApp(weatherSummary: '25°C Sunny'));
+    testWidgets('hero weather pill shows min–max and is not tappable', (
+      tester,
+    ) async {
+      final weather = const WeatherSummary(
+        avgTempC: 8,
+        minTempC: 5,
+        maxTempC: 12,
+        description: 'Cloudy',
+        rainProbability: 25,
+        source: 'test',
+      );
+      await tester.pumpWidget(buildApp(weatherData: weather));
       await tester.pump(const Duration(seconds: 1));
 
-      expect(find.text('25°C Sunny'), findsOneWidget);
+      expect(find.byType(ActiveTripWeatherCard), findsOneWidget);
+      expect(find.text('5°C – 12°C'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(ActiveTripWeatherCard),
+          matching: find.byType(InkWell),
+        ),
+        findsNothing,
+      );
     });
 
-    testWidgets('weather hidden when null', (tester) async {
+    testWidgets('weather card shows unavailable when no weather data', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildApp());
       await tester.pump(const Duration(seconds: 1));
 
-      expect(find.text('25°C Sunny'), findsNothing);
+      expect(find.text('Weather unavailable'), findsOneWidget);
     });
   });
 }

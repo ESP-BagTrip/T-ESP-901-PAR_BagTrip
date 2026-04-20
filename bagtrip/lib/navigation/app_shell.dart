@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
+import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -61,57 +62,72 @@ class _AppShellState extends State<AppShell> {
     }
   }
 
+  /// Full-screen active trip home: no tab bar on the Home tab only.
+  bool _showTabBar(NavigationTab activeTab, HomeState homeState) {
+    if (!_isTopLevel) return false;
+    if (activeTab == NavigationTab.home && homeState is HomeActiveTrip) {
+      return false;
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentIndex = widget.navigationShell.currentIndex;
     final activeTab = _shellTabOrder[currentIndex];
 
-    final tabBar = BlocBuilder<NotificationBloc, NotificationState>(
-      builder: (context, notifState) {
-        int badgeCount = 0;
-        if (notifState is UnreadCountLoaded) {
-          badgeCount = notifState.count;
-        } else if (notifState is NotificationsLoaded) {
-          badgeCount = notifState.unreadCount;
-        }
-        return BottomTabBar(
-          activeTab: activeTab,
-          activityBadgeCount: badgeCount,
-          onTabChanged: (tab) {
-            final index = _shellTabOrder.indexOf(tab);
-            if (index >= 0 && index != currentIndex) {
-              widget.navigationShell.goBranch(index);
+    return BlocBuilder<HomeBloc, HomeState>(
+      builder: (context, homeState) {
+        final showTabBar = _showTabBar(activeTab, homeState);
+
+        final tabBar = BlocBuilder<NotificationBloc, NotificationState>(
+          builder: (context, notifState) {
+            int badgeCount = 0;
+            if (notifState is UnreadCountLoaded) {
+              badgeCount = notifState.count;
+            } else if (notifState is NotificationsLoaded) {
+              badgeCount = notifState.unreadCount;
             }
+            return BottomTabBar(
+              activeTab: activeTab,
+              activityBadgeCount: badgeCount,
+              onTabChanged: (tab) {
+                final index = _shellTabOrder.indexOf(tab);
+                if (index >= 0 && index != currentIndex) {
+                  widget.navigationShell.goBranch(index);
+                }
+              },
+            );
           },
         );
-      },
-    );
 
-    if (AdaptivePlatform.isIOS) {
-      return CupertinoPageScaffold(
-        child: Stack(
-          children: [
-            Column(
+        if (AdaptivePlatform.isIOS) {
+          return CupertinoPageScaffold(
+            child: Stack(
               children: [
-                const OfflineBanner(),
-                Expanded(child: widget.navigationShell),
+                Column(
+                  children: [
+                    const OfflineBanner(),
+                    Expanded(child: widget.navigationShell),
+                  ],
+                ),
+                if (showTabBar)
+                  Positioned(left: 0, right: 0, bottom: 0, child: tabBar),
               ],
             ),
-            if (_isTopLevel)
-              Positioned(left: 0, right: 0, bottom: 0, child: tabBar),
-          ],
-        ),
-      );
-    }
+          );
+        }
 
-    return Scaffold(
-      body: Column(
-        children: [
-          const OfflineBanner(),
-          Expanded(child: widget.navigationShell),
-        ],
-      ),
-      bottomNavigationBar: tabBar,
+        return Scaffold(
+          body: Column(
+            children: [
+              const OfflineBanner(),
+              Expanded(child: widget.navigationShell),
+            ],
+          ),
+          bottomNavigationBar: showTabBar ? tabBar : null,
+        );
+      },
     );
   }
 }

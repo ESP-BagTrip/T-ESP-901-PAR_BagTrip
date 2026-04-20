@@ -183,6 +183,8 @@ class WeatherResponse(BaseModel):
     """Réponse météo pour un trip."""
 
     avg_temp_c: float
+    min_temp_c: float
+    max_temp_c: float
     description: str
     rain_probability: int = 0
     source: str = "unknown"

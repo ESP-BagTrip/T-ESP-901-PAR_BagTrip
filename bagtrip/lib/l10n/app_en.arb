@@ -952,7 +952,37 @@
       }
     }
   },
+  "homeActiveTripEyebrow": "TRIP IN PROGRESS",
+  "homeNavPillTitle": "Trips & home",
+  "homeNavPillSubtitle": "Manage trips, create a new one",
+  "homeResumeActiveTripCta": "Continue trip",
+  "homeResumeActiveTripSubtitle": "Your trip is still active",
+  "homeSectionNowBadge": "NOW",
+  "endTripSheetTitle": "End trip?",
+  "endTripSheetMessage": "You can finish this trip now or decide later.",
+  "endTripSheetTerminate": "End trip",
+  "endTripSheetPostpone": "Decide later",
+  "toastTripCompleted": "Trip completed",
+  "qaEndTrip": "End trip",
   "homeTodayActivities": "Today's schedule",
+  "activeHomeProgrammeTitle": "Schedule",
+  "activeHomeNoActivitiesDay": "No activities on this day",
+  "activeHomeContextPast": "Past",
+  "activeHomeContextToday": "TODAY",
+  "activeHomeContextTomorrow": "Tomorrow",
+  "activeHomeContextTripDay": "J{day}",
+  "@activeHomeContextTripDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "activeHomeLastTripDayBanner": "Last day of your trip",
+  "scheduleBadgeDone": "Done",
+  "scheduleBadgeNow": "Now",
+  "scheduleBadgeNext": "Next",
+  "scheduleBadgeLater": "Later",
   "homeNoActivitiesToday": "No activities planned today",
   "tripCardNoDestination": "No destination",
   "tripCardNoTitle": "Untitled trip",
@@ -967,6 +997,32 @@
     }
   },
   "activeTripsQuickActions": "Quick actions",
+  "activeTripQuickActionNavigateSubtitle": "Open directions in Maps",
+  "activeTripQuickActionExpenseSubtitle": "Budget tracking for this trip",
+  "activeTripQuickActionPhotoTitle": "Trip photo",
+  "activeTripQuickActionPhotoSubtitle": "Capture and add to your journal",
+  "activeTripQuickActionTomorrowTitle": "Go to tomorrow",
+  "activeTripQuickActionTomorrowSubtitle": "Show tomorrow's schedule",
+  "activeTripQuickActionNextDayTitle": "Next day",
+  "activeTripQuickActionNextDaySubtitle": "Show the next day's schedule",
+  "activeTripEndTripCardTitle": "End trip",
+  "activeTripEndTripCardSubtitle": "Mark {destination} as finished",
+  "@activeTripEndTripCardSubtitle": {
+    "placeholders": {
+      "destination": {
+        "type": "String"
+      }
+    }
+  },
+  "activeTripWeatherUnavailable": "Weather unavailable",
+  "activeTripWeatherRainShort": "{percent}% rain",
+  "@activeTripWeatherRainShort": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "completionDates": "Dates",
   "completionFlights": "Flights",
   "completionAccommodation": "Hotels",

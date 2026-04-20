@@ -22,12 +22,16 @@ class HomeIdle extends HomeState {
   final Trip? nextTrip;
   final int nextTripCompletion;
 
+  /// Ongoing trip still active on the server; user chose "Voyages & accueil".
+  final Trip? backgroundOngoingTrip;
+
   HomeIdle({
     required this.user,
     this.upcomingTrips = const [],
     this.completedTrips = const [],
     this.nextTrip,
     this.nextTripCompletion = 0,
+    this.backgroundOngoingTrip,
   });
 
   String get displayName {
