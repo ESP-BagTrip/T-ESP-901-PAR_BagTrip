@@ -14,13 +14,8 @@ import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Scales the home carousel down in both dimensions so cards stay the same
-/// shape (width/height ratio) as before, only smaller.
-const double _idleHomeCarouselSizeScale = 0.85;
-const double _idleHomeCarouselHeightFraction =
-    0.52 * _idleHomeCarouselSizeScale;
-const double _idleHomeCarouselViewportFraction =
-    0.85 * _idleHomeCarouselSizeScale;
+const double _idleHomeCarouselHeightFraction = 0.52;
+const double _idleHomeCarouselViewportFraction = 0.84;
 
 class IdleHomeView extends StatefulWidget {
   final HomeIdle state;
