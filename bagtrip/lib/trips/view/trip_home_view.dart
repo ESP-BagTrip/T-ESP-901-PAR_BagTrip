@@ -108,10 +108,8 @@ class TripHomeView extends StatelessWidget {
                                   : Icons.share,
                               color: AppColors.white,
                             ),
-                            onPressed: () => SharesRoute(
-                              tripId: tripId,
-                              role: trip.role ?? 'OWNER',
-                            ).go(context),
+                            onPressed: () =>
+                                TripHomeRoute(tripId: tripId).go(context),
                           ),
                         ),
                     ],

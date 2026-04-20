@@ -50,6 +50,9 @@ void main() {
       () => mockBudgetRepo.getBudgetSummary(any()),
     ).thenAnswer((_) async => Success(makeBudgetSummary()));
     when(
+      () => mockBudgetRepo.getBudgetItems(any()),
+    ).thenAnswer((_) async => const Success([]));
+    when(
       () => mockTripShareRepo.getSharesByTrip(any()),
     ).thenAnswer((_) async => const Success([]));
   }
@@ -108,6 +111,9 @@ void main() {
           () => mockBudgetRepo.getBudgetSummary(any()),
         ).thenAnswer((_) async => Success(makeBudgetSummary()));
         when(
+          () => mockBudgetRepo.getBudgetItems(any()),
+        ).thenAnswer((_) async => const Success([]));
+        when(
           () => mockTripShareRepo.getSharesByTrip(any()),
         ).thenAnswer((_) async => const Success([]));
         return buildBloc();
@@ -136,6 +142,9 @@ void main() {
         ).thenAnswer((_) async => const Failure(NetworkError('timeout')));
         when(
           () => mockBudgetRepo.getBudgetSummary(any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('timeout')));
+        when(
+          () => mockBudgetRepo.getBudgetItems(any()),
         ).thenAnswer((_) async => const Failure(NetworkError('timeout')));
         when(
           () => mockTripShareRepo.getSharesByTrip(any()),
@@ -1599,6 +1608,446 @@ void main() {
         ),
         // Optimistic removal
         isA<TripDetailLoaded>().having((s) => s.shares, 'shares', isEmpty),
+      ],
+    );
+
+    // ── CreateFlightFromDetail ─────────────────────────────────────
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'CreateFlightFromDetail appends new flight on success',
+      build: () {
+        stubAllSuccess();
+        when(
+          () => mockTransportRepo.createManualFlight(any(), any()),
+        ).thenAnswer((_) async => Success(makeManualFlight()));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(CreateFlightFromDetail(data: {'flightNumber': 'AF123'}));
+      },
+      wait: const Duration(milliseconds: 300),
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>()
+            .having((s) => s.flights.length, 'flights.length', 1)
+            .having(
+              (s) => s.completionResult.segments[CompletionSegmentType.flights],
+              'flights segment',
+              true,
+            ),
+      ],
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'CreateFlightFromDetail surfaces operationError on failure',
+      build: () {
+        stubAllSuccess();
+        when(
+          () => mockTransportRepo.createManualFlight(any(), any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('err')));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(CreateFlightFromDetail(data: {'flightNumber': 'AF123'}));
+      },
+      wait: const Duration(milliseconds: 300),
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        // operationError then cleared
+        isA<TripDetailLoaded>().having(
+          (s) => s.operationError,
+          'operationError',
+          isNotNull,
+        ),
+        isA<TripDetailLoaded>().having(
+          (s) => s.operationError,
+          'operationError',
+          isNull,
+        ),
+      ],
+    );
+
+    // ── UpdateFlightFromDetail ─────────────────────────────────────
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'UpdateFlightFromDetail replaces flight in place',
+      build: () {
+        stubAllSuccess();
+        when(
+          () => mockTransportRepo.getManualFlights(any()),
+        ).thenAnswer((_) async => Success([makeManualFlight()]));
+        when(
+          () => mockTransportRepo.updateManualFlight(any(), any(), any()),
+        ).thenAnswer(
+          (_) async => Success(makeManualFlight(flightNumber: 'LH456')),
+        );
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(
+          UpdateFlightFromDetail(
+            flightId: 'flight-1',
+            data: {'flightNumber': 'LH456'},
+          ),
+        );
+      },
+      wait: const Duration(milliseconds: 300),
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>().having(
+          (s) => s.flights.first.flightNumber,
+          'flightNumber',
+          'LH456',
+        ),
+      ],
+    );
+
+    // ── CreateAccommodationFromDetail ──────────────────────────────
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'CreateAccommodationFromDetail appends and updates completion',
+      build: () {
+        stubAllSuccess();
+        when(
+          () => mockAccommodationRepo.createAccommodation(
+            any(),
+            name: any(named: 'name'),
+            address: any(named: 'address'),
+            checkIn: any(named: 'checkIn'),
+            checkOut: any(named: 'checkOut'),
+            pricePerNight: any(named: 'pricePerNight'),
+            currency: any(named: 'currency'),
+            bookingReference: any(named: 'bookingReference'),
+            notes: any(named: 'notes'),
+          ),
+        ).thenAnswer((_) async => Success(makeAccommodation()));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(CreateAccommodationFromDetail(data: {'name': 'Hotel'}));
+      },
+      wait: const Duration(milliseconds: 300),
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>()
+            .having((s) => s.accommodations.length, 'accommodations.length', 1)
+            .having(
+              (s) => s
+                  .completionResult
+                  .segments[CompletionSegmentType.accommodation],
+              'accommodation segment',
+              true,
+            ),
+      ],
+    );
+
+    // ── UpdateAccommodationFromDetail ──────────────────────────────
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'UpdateAccommodationFromDetail replaces accommodation in place',
+      build: () {
+        stubAllSuccess();
+        when(() => mockAccommodationRepo.getByTrip(any())).thenAnswer(
+          (_) async => Success([makeAccommodation(name: 'Old Hotel')]),
+        );
+        when(
+          () => mockAccommodationRepo.updateAccommodation(any(), any(), any()),
+        ).thenAnswer(
+          (_) async => Success(makeAccommodation(name: 'New Hotel')),
+        );
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(
+          UpdateAccommodationFromDetail(
+            accommodationId: 'acc-1',
+            data: {'name': 'New Hotel'},
+          ),
+        );
+      },
+      wait: const Duration(milliseconds: 300),
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>().having(
+          (s) => s.accommodations.first.name,
+          'name',
+          'New Hotel',
+        ),
+      ],
+    );
+
+    // ── CreateBaggageItemFromDetail ────────────────────────────────
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'CreateBaggageItemFromDetail appends and updates completion',
+      build: () {
+        stubAllSuccess();
+        when(
+          () => mockBaggageRepo.createBaggageItem(
+            any(),
+            name: any(named: 'name'),
+            quantity: any(named: 'quantity'),
+            isPacked: any(named: 'isPacked'),
+            category: any(named: 'category'),
+            notes: any(named: 'notes'),
+          ),
+        ).thenAnswer((_) async => Success(makeBaggageItem(isPacked: true)));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(CreateBaggageItemFromDetail(data: {'name': 'Passport'}));
+      },
+      wait: const Duration(milliseconds: 300),
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>().having(
+          (s) => s.baggageItems.length,
+          'baggageItems.length',
+          1,
+        ),
+      ],
+    );
+
+    // ── UpdateBaggageItemFromDetail ────────────────────────────────
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'UpdateBaggageItemFromDetail replaces item in place',
+      build: () {
+        stubAllSuccess();
+        when(
+          () => mockBaggageRepo.getByTrip(any()),
+        ).thenAnswer((_) async => Success([makeBaggageItem(name: 'Old')]));
+        when(
+          () => mockBaggageRepo.updateBaggageItem(any(), any(), any()),
+        ).thenAnswer((_) async => Success(makeBaggageItem(name: 'New')));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(
+          UpdateBaggageItemFromDetail(
+            baggageItemId: 'bag-1',
+            data: {'name': 'New'},
+          ),
+        );
+      },
+      wait: const Duration(milliseconds: 300),
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>().having(
+          (s) => s.baggageItems.first.name,
+          'name',
+          'New',
+        ),
+      ],
+    );
+
+    // ── UpdateBudgetItemFromDetail ─────────────────────────────────
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'UpdateBudgetItemFromDetail replaces item and refreshes summary',
+      build: () {
+        stubAllSuccess();
+        when(() => mockBudgetRepo.getBudgetItems(any())).thenAnswer(
+          (_) async => Success([makeBudgetItem(label: 'Taxi', amount: 30)]),
+        );
+        when(
+          () => mockBudgetRepo.updateBudgetItem(any(), any(), any()),
+        ).thenAnswer(
+          (_) async => Success(makeBudgetItem(label: 'Uber', amount: 40)),
+        );
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(
+          UpdateBudgetItemFromDetail(
+            itemId: 'budget-1',
+            data: {'label': 'Uber', 'amount': 40},
+          ),
+        );
+      },
+      wait: const Duration(milliseconds: 300),
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        // Replaced in place
+        isA<TripDetailLoaded>().having(
+          (s) => s.budgetItems.first.label,
+          'label',
+          'Uber',
+        ),
+        // RefreshBudgetSummary emits fresh state
+        isA<TripDetailLoaded>(),
+      ],
+    );
+
+    // ── DeleteBudgetItemFromDetail ─────────────────────────────────
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'DeleteBudgetItemFromDetail removes optimistically and refreshes',
+      build: () {
+        stubAllSuccess();
+        when(
+          () => mockBudgetRepo.getBudgetItems(any()),
+        ).thenAnswer((_) async => Success([makeBudgetItem()]));
+        when(
+          () => mockBudgetRepo.deleteBudgetItem(any(), any()),
+        ).thenAnswer((_) async => const Success(null));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(DeleteBudgetItemFromDetail(itemId: 'budget-1'));
+      },
+      wait: const Duration(milliseconds: 300),
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>().having(
+          (s) => s.budgetItems.length,
+          'budgetItems.length',
+          1,
+        ),
+        // Optimistic removal
+        isA<TripDetailLoaded>().having(
+          (s) => s.budgetItems,
+          'budgetItems',
+          isEmpty,
+        ),
+        // RefreshBudgetSummary emits fresh state
+        isA<TripDetailLoaded>(),
+      ],
+    );
+
+    // ── RefreshBudgetSummaryFromDetail ─────────────────────────────
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'RefreshBudgetSummaryFromDetail re-fetches summary + items only',
+      build: () {
+        stubAllSuccess();
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        // Override for the refresh call
+        when(
+          () => mockBudgetRepo.getBudgetSummary(any()),
+        ).thenAnswer((_) async => Success(makeBudgetSummary(totalSpent: 999)));
+        bloc.add(RefreshBudgetSummaryFromDetail());
+      },
+      wait: const Duration(milliseconds: 300),
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>().having(
+          (s) => s.budgetSummary?.totalSpent,
+          'totalSpent',
+          999,
+        ),
+      ],
+    );
+
+    // ── CreateShareFromDetail ──────────────────────────────────────
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'CreateShareFromDetail appends new share on success',
+      build: () {
+        stubAllSuccess();
+        when(
+          () => mockTripShareRepo.createShare(
+            any(),
+            email: any(named: 'email'),
+            role: any(named: 'role'),
+            message: any(named: 'message'),
+          ),
+        ).thenAnswer((_) async => Success(makeTripShare()));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(CreateShareFromDetail(email: 'a@b.com', role: 'VIEWER'));
+      },
+      wait: const Duration(milliseconds: 300),
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>().having(
+          (s) => s.shares.length,
+          'shares.length',
+          1,
+        ),
+      ],
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'CreateShareFromDetail surfaces operationError on failure',
+      build: () {
+        stubAllSuccess();
+        when(
+          () => mockTripShareRepo.createShare(
+            any(),
+            email: any(named: 'email'),
+            role: any(named: 'role'),
+            message: any(named: 'message'),
+          ),
+        ).thenAnswer((_) async => const Failure(NetworkError('err')));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(CreateShareFromDetail(email: 'a@b.com', role: 'VIEWER'));
+      },
+      wait: const Duration(milliseconds: 300),
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>().having(
+          (s) => s.operationError,
+          'operationError',
+          isNotNull,
+        ),
+        isA<TripDetailLoaded>().having(
+          (s) => s.operationError,
+          'operationError',
+          isNull,
+        ),
       ],
     );
   });

@@ -18,6 +18,13 @@ class ManualAccommodationForm extends StatefulWidget {
   final DateTime? tripEndDate;
   final Accommodation? existing;
 
+  /// Optional submission hook. When provided, the form invokes
+  /// `onSave(data)` with the collected payload and the caller is
+  /// responsible for dispatching (e.g. to `TripDetailBloc` from a panel).
+  /// When `null`, falls back to the legacy behaviour on
+  /// `AccommodationBloc`.
+  final void Function(Map<String, dynamic> data)? onSave;
+
   const ManualAccommodationForm({
     super.key,
     required this.tripId,
@@ -26,6 +33,7 @@ class ManualAccommodationForm extends StatefulWidget {
     this.tripStartDate,
     this.tripEndDate,
     this.existing,
+    this.onSave,
   });
 
   @override
@@ -188,7 +196,9 @@ class _ManualAccommodationFormState extends State<ManualAccommodationForm> {
       if (_notesCtrl.text.trim().isNotEmpty) 'notes': _notesCtrl.text.trim(),
     };
 
-    if (_isEditMode) {
+    if (widget.onSave != null) {
+      widget.onSave!(data);
+    } else if (_isEditMode) {
       context.read<AccommodationBloc>().add(
         UpdateAccommodation(
           tripId: widget.tripId,

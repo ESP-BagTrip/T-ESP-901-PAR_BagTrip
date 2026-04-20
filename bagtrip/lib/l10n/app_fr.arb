@@ -1349,5 +1349,92 @@
   "originCityHint": "D'où partez-vous ?",
   "notFoundTitle": "Page introuvable",
   "notFoundSubtitle": "La page que vous recherchez n'existe pas ou a été déplacée.",
-  "notFoundCta": "Retour à l'accueil"
+  "notFoundCta": "Retour à l'accueil",
+  "subpageHeroBadgeViewer": "Lecture seule",
+  "subpageHeroBadgeCompleted": "Terminé",
+  "blankActivitiesTitle": "Ton itinéraire est vide",
+  "blankActivitiesSubtitle": "Planifie ce qui rendra ce voyage mémorable.",
+  "blankActivitiesPrimary": "Ajouter la première activité",
+  "blankActivitiesSecondary": "Laisser l’IA composer une journée",
+  "blankActivitiesNoDatesTitle": "Avant de planifier…",
+  "blankActivitiesNoDatesSubtitle": "Choisis les dates du voyage d’abord — on saura alors quand planifier.",
+  "blankActivitiesNoDatesPrimary": "Retour à l’aperçu",
+  "activitiesHeroMeta": "{count, plural, =1{1 activité} other{{count} activités}} · {days, plural, =1{1 jour} other{{days} jours}}",
+  "@activitiesHeroMeta": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "days": {"type": "int"}
+    }
+  },
+  "blankTransportsTitle": "À vous les airs.",
+  "blankTransportsSubtitle": "Aller, retour, vols internes — on garde tout sous la main.",
+  "blankTransportsPrimary": "Ajouter le premier vol",
+  "transportsHeroMeta": "{count, plural, =1{1 vol} other{{count} vols}}",
+  "@transportsHeroMeta": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "blankAccommodationsTitle": "Où poser vos valises ?",
+  "blankAccommodationsSubtitle": "Hôtel, Airbnb, canapé d’ami — note-le ici pour les rappels de check-in.",
+  "blankAccommodationsPrimary": "Ajouter un hébergement",
+  "blankAccommodationsSecondary": "Suggestions IA",
+  "accommodationsHeroMeta": "{count, plural, =1{1 hébergement} other{{count} hébergements}} · {nights, plural, =1{1 nuit} other{{nights} nuits}}",
+  "@accommodationsHeroMeta": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "nights": {"type": "int"}
+    }
+  },
+  "blankBaggageTitle": "Faire sa valise, ça commence par un objet.",
+  "blankBaggageSubtitle": "Construis la checklist que tu cocheras avant chaque départ.",
+  "blankBaggagePrimary": "Ajouter le premier objet",
+  "blankBaggageSecondary": "Suggestions pour ce voyage",
+  "baggageHeroMeta": "{packed, plural, =0{rien de prêt} other{{packed} sur {total} prêts}}",
+  "@baggageHeroMeta": {
+    "placeholders": {
+      "packed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "blankBudgetTitle": "Quel budget pour ce voyage ?",
+  "blankBudgetSubtitle": "Fixe un budget, suis les dépenses — on te prévient avant la dérive.",
+  "blankBudgetPrimary": "Ajouter la première dépense",
+  "blankBudgetSecondary": "Estimer avec l’IA",
+  "budgetHeroMeta": "{count, plural, =1{1 dépense} other{{count} dépenses}}",
+  "@budgetHeroMeta": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "blankSharesTitle": "Planifiez ensemble.",
+  "blankSharesSubtitle": "Invite un proche. Il voit le voyage, tu gardes le contrôle.",
+  "blankSharesPrimary": "Inviter un premier voyageur",
+  "sharesHeroMeta": "{count, plural, =1{1 invité} other{{count} invités}}",
+  "@sharesHeroMeta": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "panelQuickAddItem": "Ajouter un objet",
+  "panelQuickAddExpense": "Ajouter une dépense",
+  "panelQuickAddActivity": "Ajouter une activité",
+  "panelQuickAddFlight": "Ajouter un vol",
+  "panelQuickAddStay": "Ajouter un hébergement",
+  "panelInviteCollaborator": "Inviter",
+  "panelActionEdit": "Modifier",
+  "panelActionDelete": "Supprimer",
+  "panelActionDuplicate": "Dupliquer",
+  "panelOpenFullBaggage": "Voir la checklist complète",
+  "panelOpenFullBudget": "Voir le détail complet",
+  "panelOpenFullActivities": "Voir l’itinéraire complet",
+  "panelOpenFullFlights": "Voir tous les vols",
+  "panelOpenFullAccommodations": "Voir tous les hébergements",
+  "panelOpenFullShares": "Gérer les accès",
+  "baggageAllPackedMessage": "Tout est prêt — bon voyage.",
+  "budgetRecentExpenses": "Récentes",
+  "activityValidateAction": "Valider",
+  "activitySuggestedBadge": "Suggérée",
+  "shareCopyLink": "Copier le lien d’invitation",
+  "shareRevokeAccess": "Révoquer l’accès"
 }
