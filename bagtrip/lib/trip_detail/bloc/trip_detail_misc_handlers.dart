@@ -1,129 +1,30 @@
 part of 'trip_detail_bloc.dart';
 
-/// Handlers for baggage, budget and share mutations. Grouped together
-/// because each domain only has 1–2 events here; splitting them into
-/// dedicated files would just add import noise.
+/// Handlers for share invites (create + delete). Kept in a dedicated file so
+/// the baggage and budget concerns live next to their siblings rather than
+/// lumped together in a catch-all bucket.
 extension _TripDetailMiscHandlers on TripDetailBloc {
-  Future<void> _onToggleBaggagePacked(
-    ToggleBaggagePackedFromDetail event,
+  Future<void> _onCreateShareFromDetail(
+    CreateShareFromDetail event,
     Emitter<TripDetailState> emit,
   ) async {
     if (state is! TripDetailLoaded || _tripId == null) return;
     final loaded = state as TripDetailLoaded;
 
-    final item = loaded.baggageItems
-        .where((b) => b.id == event.baggageItemId)
-        .firstOrNull;
-    if (item == null) return;
-
-    // Optimistic toggle
-    final updatedItems = loaded.baggageItems.map((b) {
-      if (b.id == event.baggageItemId) {
-        return b.copyWith(isPacked: !b.isPacked);
-      }
-      return b;
-    }).toList();
-    final completion = tripDetailCompletion(
-      trip: loaded.trip,
-      flights: loaded.flights,
-      accommodations: loaded.accommodations,
-      activities: loaded.activities,
-      baggageItems: updatedItems,
-    );
-    emit(
-      loaded.copyWith(baggageItems: updatedItems, completionResult: completion),
-    );
-
-    final result = await _baggageRepository.updateBaggageItem(
+    final result = await _tripShareRepository.createShare(
       _tripId!,
-      event.baggageItemId,
-      {'isPacked': !item.isPacked},
+      email: event.email,
+      role: event.role,
+      message: event.message,
     );
 
     if (isClosed) return;
-
-    if (result case Failure(:final error)) {
-      emit(loaded.copyWith(operationError: error));
-      emit(loaded.copyWith(clearOperationError: true));
-    }
-  }
-
-  Future<void> _onDeleteBaggageItem(
-    DeleteBaggageItemFromDetail event,
-    Emitter<TripDetailState> emit,
-  ) async {
-    if (state is! TripDetailLoaded || _tripId == null) return;
-    final loaded = state as TripDetailLoaded;
-
-    // Optimistic removal
-    final updatedItems = loaded.baggageItems
-        .where((b) => b.id != event.baggageItemId)
-        .toList();
-    final completion = tripDetailCompletion(
-      trip: loaded.trip,
-      flights: loaded.flights,
-      accommodations: loaded.accommodations,
-      activities: loaded.activities,
-      baggageItems: updatedItems,
-    );
-    emit(
-      loaded.copyWith(baggageItems: updatedItems, completionResult: completion),
-    );
-
-    final result = await _baggageRepository.deleteBaggageItem(
-      _tripId!,
-      event.baggageItemId,
-    );
-
-    if (isClosed) return;
-
-    if (result case Failure(:final error)) {
-      emit(loaded.copyWith(operationError: error));
-      emit(loaded.copyWith(clearOperationError: true));
-    }
-  }
-
-  Future<void> _onCreateBudgetItemFromDetail(
-    CreateBudgetItemFromDetail event,
-    Emitter<TripDetailState> emit,
-  ) async {
-    if (state is! TripDetailLoaded || _tripId == null) return;
-    final loaded = state as TripDetailLoaded;
-
-    // Optimistic update — approximate new budget summary
-    final amount = (event.data['amount'] as num?)?.toDouble() ?? 0;
-    if (loaded.budgetSummary != null) {
-      final current = loaded.budgetSummary!;
-      final newSpent = current.totalSpent + amount;
-      final newRemaining = current.totalBudget - newSpent;
-      final newPercent = current.totalBudget > 0
-          ? (newSpent / current.totalBudget) * 100
-          : 0.0;
-      String? newAlertLevel;
-      if (newPercent >= 100) {
-        newAlertLevel = 'DANGER';
-      } else if (newPercent >= 80) {
-        newAlertLevel = 'WARNING';
-      }
-      final optimistic = current.copyWith(
-        totalSpent: newSpent,
-        remaining: newRemaining,
-        percentConsumed: newPercent,
-        alertLevel: newAlertLevel,
-      );
-      emit(loaded.copyWith(budgetSummary: optimistic));
-    }
-
-    final result = await _budgetRepository.createBudgetItem(
-      _tripId!,
-      event.data,
-    );
-
-    if (isClosed) return;
+    if (state is! TripDetailLoaded) return;
+    final current = state as TripDetailLoaded;
 
     switch (result) {
-      case Success():
-        add(RefreshTripDetail());
+      case Success(:final data):
+        emit(current.copyWith(shares: [...current.shares, data]));
       case Failure(:final error):
         emit(loaded.copyWith(operationError: error));
         emit(loaded.copyWith(clearOperationError: true));

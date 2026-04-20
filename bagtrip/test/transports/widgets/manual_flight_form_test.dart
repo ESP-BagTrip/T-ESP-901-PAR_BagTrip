@@ -251,4 +251,61 @@ void main() {
       expect(find.text('Details'), findsOneWidget);
     });
   });
+
+  group('ManualFlightForm — panel mode (onSave callback)', () {
+    testWidgets('renders without a TransportBloc in scope', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: ManualFlightForm(tripId: 'trip-1', onSave: (_) {}),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ManualFlightForm), findsOneWidget);
+    });
+
+    testWidgets('does not touch TransportBloc when typing flight number', (
+      tester,
+    ) async {
+      // Guard against the regression that caused ProviderNotFoundException:
+      // typing 4+ chars used to fire a `context.read<TransportBloc>()` even
+      // when the form was driven from a panel without TransportBloc in scope.
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: ManualFlightForm(tripId: 'trip-1', onSave: (_) {}),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextFormField).first, 'AF1234');
+      await tester.pump(const Duration(seconds: 1));
+      // If the debounced lookup had fired, the test would throw a
+      // ProviderNotFoundException. Reaching this assertion means we correctly
+      // skipped the bloc read in panel mode.
+      expect(find.byType(ManualFlightForm), findsOneWidget);
+    });
+  });
 }

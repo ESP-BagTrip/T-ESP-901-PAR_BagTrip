@@ -1876,6 +1876,66 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reviewHotelPerNight => 'Par nuit';
 
   @override
+  String reviewSummaryLine(int days, String city, String travelers) {
+    return '$days jours à $city pour $travelers';
+  }
+
+  @override
+  String reviewSummaryTravelers(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count voyageurs',
+      one: '1 voyageur',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewJourneyHeader => 'Votre voyage';
+
+  @override
+  String reviewDayTitle(int day, String date) {
+    return 'Jour $day · $date';
+  }
+
+  @override
+  String get reviewDayFree => 'Une journée libre';
+
+  @override
+  String reviewFlightDurationHm(int hours, String minutes) {
+    return '${hours}h$minutes';
+  }
+
+  @override
+  String get reviewHotelArrival => 'Arrivée';
+
+  @override
+  String reviewHotelStayNights(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nuits',
+      one: '1 nuit',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewBudgetHeader => 'Le budget';
+
+  @override
+  String reviewBudgetPerPerson(String amount) {
+    return '$amount par voyageur';
+  }
+
+  @override
+  String get reviewDecisionHeader => 'À vous de choisir';
+
+  @override
+  String get reviewDecisionPrimary => 'Planifier ce voyage';
+
+  @override
   String homeActiveTripTitle(String destination) {
     return 'Votre voyage à $destination';
   }
@@ -2694,4 +2754,233 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get notFoundCta => 'Retour à l\'accueil';
+
+  @override
+  String get subpageHeroBadgeViewer => 'Lecture seule';
+
+  @override
+  String get subpageHeroBadgeCompleted => 'Terminé';
+
+  @override
+  String get blankActivitiesTitle => 'Ton itinéraire est vide';
+
+  @override
+  String get blankActivitiesSubtitle =>
+      'Planifie ce qui rendra ce voyage mémorable.';
+
+  @override
+  String get blankActivitiesPrimary => 'Ajouter la première activité';
+
+  @override
+  String get blankActivitiesSecondary => 'Laisser l’IA composer une journée';
+
+  @override
+  String get blankActivitiesNoDatesTitle => 'Avant de planifier…';
+
+  @override
+  String get blankActivitiesNoDatesSubtitle =>
+      'Choisis les dates du voyage d’abord — on saura alors quand planifier.';
+
+  @override
+  String get blankActivitiesNoDatesPrimary => 'Retour à l’aperçu';
+
+  @override
+  String activitiesHeroMeta(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count activités',
+      one: '1 activité',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days jours',
+      one: '1 jour',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get blankTransportsTitle => 'À vous les airs.';
+
+  @override
+  String get blankTransportsSubtitle =>
+      'Aller, retour, vols internes — on garde tout sous la main.';
+
+  @override
+  String get blankTransportsPrimary => 'Ajouter le premier vol';
+
+  @override
+  String transportsHeroMeta(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vols',
+      one: '1 vol',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get blankAccommodationsTitle => 'Où poser vos valises ?';
+
+  @override
+  String get blankAccommodationsSubtitle =>
+      'Hôtel, Airbnb, canapé d’ami — note-le ici pour les rappels de check-in.';
+
+  @override
+  String get blankAccommodationsPrimary => 'Ajouter un hébergement';
+
+  @override
+  String get blankAccommodationsSecondary => 'Suggestions IA';
+
+  @override
+  String accommodationsHeroMeta(int count, int nights) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hébergements',
+      one: '1 hébergement',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      nights,
+      locale: localeName,
+      other: '$nights nuits',
+      one: '1 nuit',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get blankBaggageTitle => 'Faire sa valise, ça commence par un objet.';
+
+  @override
+  String get blankBaggageSubtitle =>
+      'Construis la checklist que tu cocheras avant chaque départ.';
+
+  @override
+  String get blankBaggagePrimary => 'Ajouter le premier objet';
+
+  @override
+  String get blankBaggageSecondary => 'Suggestions pour ce voyage';
+
+  @override
+  String baggageHeroMeta(int packed, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      packed,
+      locale: localeName,
+      other: '$packed sur $total prêts',
+      zero: 'rien de prêt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get blankBudgetTitle => 'Quel budget pour ce voyage ?';
+
+  @override
+  String get blankBudgetSubtitle =>
+      'Fixe un budget, suis les dépenses — on te prévient avant la dérive.';
+
+  @override
+  String get blankBudgetPrimary => 'Ajouter la première dépense';
+
+  @override
+  String get blankBudgetSecondary => 'Estimer avec l’IA';
+
+  @override
+  String budgetHeroMeta(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dépenses',
+      one: '1 dépense',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get blankSharesTitle => 'Planifiez ensemble.';
+
+  @override
+  String get blankSharesSubtitle =>
+      'Invite un proche. Il voit le voyage, tu gardes le contrôle.';
+
+  @override
+  String get blankSharesPrimary => 'Inviter un premier voyageur';
+
+  @override
+  String sharesHeroMeta(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count invités',
+      one: '1 invité',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get panelQuickAddItem => 'Ajouter un objet';
+
+  @override
+  String get panelQuickAddExpense => 'Ajouter une dépense';
+
+  @override
+  String get panelQuickAddActivity => 'Ajouter une activité';
+
+  @override
+  String get panelQuickAddFlight => 'Ajouter un vol';
+
+  @override
+  String get panelQuickAddStay => 'Ajouter un hébergement';
+
+  @override
+  String get panelInviteCollaborator => 'Inviter';
+
+  @override
+  String get panelActionEdit => 'Modifier';
+
+  @override
+  String get panelActionDelete => 'Supprimer';
+
+  @override
+  String get panelActionDuplicate => 'Dupliquer';
+
+  @override
+  String get panelOpenFullBaggage => 'Voir la checklist complète';
+
+  @override
+  String get panelOpenFullBudget => 'Voir le détail complet';
+
+  @override
+  String get panelOpenFullActivities => 'Voir l’itinéraire complet';
+
+  @override
+  String get panelOpenFullFlights => 'Voir tous les vols';
+
+  @override
+  String get panelOpenFullAccommodations => 'Voir tous les hébergements';
+
+  @override
+  String get panelOpenFullShares => 'Gérer les accès';
+
+  @override
+  String get baggageAllPackedMessage => 'Tout est prêt — bon voyage.';
+
+  @override
+  String get budgetRecentExpenses => 'Récentes';
+
+  @override
+  String get activityValidateAction => 'Valider';
+
+  @override
+  String get activitySuggestedBadge => 'Suggérée';
+
+  @override
+  String get shareCopyLink => 'Copier le lien d’invitation';
+
+  @override
+  String get shareRevokeAccess => 'Révoquer l’accès';
 }

@@ -180,10 +180,7 @@ class _TripListTab extends StatelessWidget {
       itemBuilder: (context, trip, _) => TripCard(
         trip: trip,
         onTap: () => TripHomeRoute(tripId: trip.id).go(context),
-        onShare: () => SharesRoute(
-          tripId: trip.id,
-          role: trip.role ?? 'OWNER',
-        ).push(context),
+        onShare: () => TripHomeRoute(tripId: trip.id).push(context),
         onArchive: () {
           context.read<TripManagementBloc>().add(
             UpdateTripStatus(tripId: trip.id, status: 'completed'),
@@ -229,10 +226,7 @@ class _LegacyTripListTab extends StatelessWidget {
           return TripCard(
             trip: trip,
             onTap: () => TripHomeRoute(tripId: trip.id).go(context),
-            onShare: () => SharesRoute(
-              tripId: trip.id,
-              role: trip.role ?? 'OWNER',
-            ).push(context),
+            onShare: () => TripHomeRoute(tripId: trip.id).push(context),
             onArchive: () {
               context.read<TripManagementBloc>().add(
                 UpdateTripStatus(tripId: trip.id, status: 'completed'),

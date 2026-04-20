@@ -84,3 +84,59 @@ class PanelFooterCta extends StatelessWidget {
     );
   }
 }
+
+/// Body + sticky footer scaffold that wires up the scroll-reactive
+/// behavior of [PanelFooterCta] without the caller having to compose a
+/// [NotificationListener] manually.
+///
+/// ```dart
+/// ScrollReactiveCtaScaffold(
+///   controller: _footerController,
+///   body: DensityAwareListView(...),
+///   footer: PillCtaButton(label: 'Add flight', onTap: ...),
+/// )
+/// ```
+///
+/// When `footer == null`, the scaffold renders only the body (useful for
+/// read-only or archive states where no CTA should appear).
+class ScrollReactiveCtaScaffold extends StatelessWidget {
+  const ScrollReactiveCtaScaffold({
+    super.key,
+    required this.controller,
+    required this.body,
+    this.footer,
+  });
+
+  final PanelFooterCtaController controller;
+  final Widget body;
+
+  /// The footer widget (usually a [PillCtaButton]). When null, no footer
+  /// is rendered.
+  final Widget? footer;
+
+  @override
+  Widget build(BuildContext context) {
+    final listener = NotificationListener<ScrollNotification>(
+      onNotification: controller.handleScrollNotification,
+      child: body,
+    );
+    if (footer == null) return listener;
+    return Stack(
+      children: [
+        Positioned.fill(child: listener),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              child: PanelFooterCta(controller: controller, child: footer!),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
