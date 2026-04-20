@@ -3458,6 +3458,78 @@ abstract class AppLocalizations {
   /// **'Par nuit'**
   String get reviewHotelPerNight;
 
+  /// No description provided for @reviewSummaryLine.
+  ///
+  /// In fr, this message translates to:
+  /// **'{days} jours à {city} pour {travelers}'**
+  String reviewSummaryLine(int days, String city, String travelers);
+
+  /// No description provided for @reviewSummaryTravelers.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 voyageur} other{{count} voyageurs}}'**
+  String reviewSummaryTravelers(int count);
+
+  /// No description provided for @reviewJourneyHeader.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre voyage'**
+  String get reviewJourneyHeader;
+
+  /// No description provided for @reviewDayTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jour {day} · {date}'**
+  String reviewDayTitle(int day, String date);
+
+  /// No description provided for @reviewDayFree.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une journée libre'**
+  String get reviewDayFree;
+
+  /// No description provided for @reviewFlightDurationHm.
+  ///
+  /// In fr, this message translates to:
+  /// **'{hours}h{minutes}'**
+  String reviewFlightDurationHm(int hours, String minutes);
+
+  /// No description provided for @reviewHotelArrival.
+  ///
+  /// In fr, this message translates to:
+  /// **'Arrivée'**
+  String get reviewHotelArrival;
+
+  /// No description provided for @reviewHotelStayNights.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 nuit} other{{count} nuits}}'**
+  String reviewHotelStayNights(int count);
+
+  /// No description provided for @reviewBudgetHeader.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le budget'**
+  String get reviewBudgetHeader;
+
+  /// No description provided for @reviewBudgetPerPerson.
+  ///
+  /// In fr, this message translates to:
+  /// **'{amount} par voyageur'**
+  String reviewBudgetPerPerson(String amount);
+
+  /// No description provided for @reviewDecisionHeader.
+  ///
+  /// In fr, this message translates to:
+  /// **'À vous de choisir'**
+  String get reviewDecisionHeader;
+
+  /// No description provided for @reviewDecisionPrimary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planifier ce voyage'**
+  String get reviewDecisionPrimary;
+
   /// No description provided for @homeActiveTripTitle.
   ///
   /// In fr, this message translates to:
@@ -4934,6 +5006,330 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Retour à l\'accueil'**
   String get notFoundCta;
+
+  /// No description provided for @subpageHeroBadgeViewer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lecture seule'**
+  String get subpageHeroBadgeViewer;
+
+  /// No description provided for @subpageHeroBadgeCompleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminé'**
+  String get subpageHeroBadgeCompleted;
+
+  /// No description provided for @blankActivitiesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ton itinéraire est vide'**
+  String get blankActivitiesTitle;
+
+  /// No description provided for @blankActivitiesSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planifie ce qui rendra ce voyage mémorable.'**
+  String get blankActivitiesSubtitle;
+
+  /// No description provided for @blankActivitiesPrimary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter la première activité'**
+  String get blankActivitiesPrimary;
+
+  /// No description provided for @blankActivitiesSecondary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Laisser l’IA composer une journée'**
+  String get blankActivitiesSecondary;
+
+  /// No description provided for @blankActivitiesNoDatesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avant de planifier…'**
+  String get blankActivitiesNoDatesTitle;
+
+  /// No description provided for @blankActivitiesNoDatesSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisis les dates du voyage d’abord — on saura alors quand planifier.'**
+  String get blankActivitiesNoDatesSubtitle;
+
+  /// No description provided for @blankActivitiesNoDatesPrimary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour à l’aperçu'**
+  String get blankActivitiesNoDatesPrimary;
+
+  /// No description provided for @activitiesHeroMeta.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 activité} other{{count} activités}} · {days, plural, =1{1 jour} other{{days} jours}}'**
+  String activitiesHeroMeta(int count, int days);
+
+  /// No description provided for @blankTransportsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'À vous les airs.'**
+  String get blankTransportsTitle;
+
+  /// No description provided for @blankTransportsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aller, retour, vols internes — on garde tout sous la main.'**
+  String get blankTransportsSubtitle;
+
+  /// No description provided for @blankTransportsPrimary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter le premier vol'**
+  String get blankTransportsPrimary;
+
+  /// No description provided for @transportsHeroMeta.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 vol} other{{count} vols}}'**
+  String transportsHeroMeta(int count);
+
+  /// No description provided for @blankAccommodationsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Où poser vos valises ?'**
+  String get blankAccommodationsTitle;
+
+  /// No description provided for @blankAccommodationsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hôtel, Airbnb, canapé d’ami — note-le ici pour les rappels de check-in.'**
+  String get blankAccommodationsSubtitle;
+
+  /// No description provided for @blankAccommodationsPrimary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un hébergement'**
+  String get blankAccommodationsPrimary;
+
+  /// No description provided for @blankAccommodationsSecondary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suggestions IA'**
+  String get blankAccommodationsSecondary;
+
+  /// No description provided for @accommodationsHeroMeta.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 hébergement} other{{count} hébergements}} · {nights, plural, =1{1 nuit} other{{nights} nuits}}'**
+  String accommodationsHeroMeta(int count, int nights);
+
+  /// No description provided for @blankBaggageTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Faire sa valise, ça commence par un objet.'**
+  String get blankBaggageTitle;
+
+  /// No description provided for @blankBaggageSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Construis la checklist que tu cocheras avant chaque départ.'**
+  String get blankBaggageSubtitle;
+
+  /// No description provided for @blankBaggagePrimary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter le premier objet'**
+  String get blankBaggagePrimary;
+
+  /// No description provided for @blankBaggageSecondary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suggestions pour ce voyage'**
+  String get blankBaggageSecondary;
+
+  /// No description provided for @baggageHeroMeta.
+  ///
+  /// In fr, this message translates to:
+  /// **'{packed, plural, =0{rien de prêt} other{{packed} sur {total} prêts}}'**
+  String baggageHeroMeta(int packed, int total);
+
+  /// No description provided for @blankBudgetTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quel budget pour ce voyage ?'**
+  String get blankBudgetTitle;
+
+  /// No description provided for @blankBudgetSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fixe un budget, suis les dépenses — on te prévient avant la dérive.'**
+  String get blankBudgetSubtitle;
+
+  /// No description provided for @blankBudgetPrimary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter la première dépense'**
+  String get blankBudgetPrimary;
+
+  /// No description provided for @blankBudgetSecondary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Estimer avec l’IA'**
+  String get blankBudgetSecondary;
+
+  /// No description provided for @budgetHeroMeta.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 dépense} other{{count} dépenses}}'**
+  String budgetHeroMeta(int count);
+
+  /// No description provided for @blankSharesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planifiez ensemble.'**
+  String get blankSharesTitle;
+
+  /// No description provided for @blankSharesSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Invite un proche. Il voit le voyage, tu gardes le contrôle.'**
+  String get blankSharesSubtitle;
+
+  /// No description provided for @blankSharesPrimary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inviter un premier voyageur'**
+  String get blankSharesPrimary;
+
+  /// No description provided for @sharesHeroMeta.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 invité} other{{count} invités}}'**
+  String sharesHeroMeta(int count);
+
+  /// No description provided for @panelQuickAddItem.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un objet'**
+  String get panelQuickAddItem;
+
+  /// No description provided for @panelQuickAddExpense.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une dépense'**
+  String get panelQuickAddExpense;
+
+  /// No description provided for @panelQuickAddActivity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une activité'**
+  String get panelQuickAddActivity;
+
+  /// No description provided for @panelQuickAddFlight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un vol'**
+  String get panelQuickAddFlight;
+
+  /// No description provided for @panelQuickAddStay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un hébergement'**
+  String get panelQuickAddStay;
+
+  /// No description provided for @panelInviteCollaborator.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inviter'**
+  String get panelInviteCollaborator;
+
+  /// No description provided for @panelActionEdit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get panelActionEdit;
+
+  /// No description provided for @panelActionDelete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer'**
+  String get panelActionDelete;
+
+  /// No description provided for @panelActionDuplicate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dupliquer'**
+  String get panelActionDuplicate;
+
+  /// No description provided for @panelOpenFullBaggage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir la checklist complète'**
+  String get panelOpenFullBaggage;
+
+  /// No description provided for @panelOpenFullBudget.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir le détail complet'**
+  String get panelOpenFullBudget;
+
+  /// No description provided for @panelOpenFullActivities.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir l’itinéraire complet'**
+  String get panelOpenFullActivities;
+
+  /// No description provided for @panelOpenFullFlights.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir tous les vols'**
+  String get panelOpenFullFlights;
+
+  /// No description provided for @panelOpenFullAccommodations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir tous les hébergements'**
+  String get panelOpenFullAccommodations;
+
+  /// No description provided for @panelOpenFullShares.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gérer les accès'**
+  String get panelOpenFullShares;
+
+  /// No description provided for @baggageAllPackedMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout est prêt — bon voyage.'**
+  String get baggageAllPackedMessage;
+
+  /// No description provided for @budgetRecentExpenses.
+  ///
+  /// In fr, this message translates to:
+  /// **'Récentes'**
+  String get budgetRecentExpenses;
+
+  /// No description provided for @activityValidateAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valider'**
+  String get activityValidateAction;
+
+  /// No description provided for @activitySuggestedBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suggérée'**
+  String get activitySuggestedBadge;
+
+  /// No description provided for @shareCopyLink.
+  ///
+  /// In fr, this message translates to:
+  /// **'Copier le lien d’invitation'**
+  String get shareCopyLink;
+
+  /// No description provided for @shareRevokeAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Révoquer l’accès'**
+  String get shareRevokeAccess;
 }
 
 class _AppLocalizationsDelegate
