@@ -1,4 +1,5 @@
-import 'package:bagtrip/trips/view/trip_locations_page.dart';
+import 'package:bagtrip/accommodations/view/accommodations_page.dart';
+import 'package:bagtrip/baggage/view/baggage_page.dart';
 import 'package:bagtrip/flight_result_details/view/flight_result_details_page.dart';
 import 'package:bagtrip/flight_search/models/flight_search_prefill.dart';
 import 'package:bagtrip/flight_search_result/models/flight.dart';
@@ -26,8 +27,6 @@ import 'package:bagtrip/plan_trip/view/plan_trip_flow_page.dart';
 import 'package:bagtrip/post_trip/view/post_trip_page.dart';
 import 'package:bagtrip/profile/view/personal_info_page.dart';
 import 'package:bagtrip/profile/view/settings_page.dart';
-import 'package:bagtrip/transports/view/transports_page.dart';
-import 'package:bagtrip/trip_detail/view/trip_detail_page.dart';
 import 'package:bagtrip/trips/view/trip_locations_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
