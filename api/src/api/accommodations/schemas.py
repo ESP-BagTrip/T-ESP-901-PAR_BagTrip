@@ -5,8 +5,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from src.api.common.base_schema import BagtripRequestModel
 
-class AccommodationCreateRequest(BaseModel):
+
+class AccommodationCreateRequest(BagtripRequestModel):
     """Requête de création d'hébergement."""
 
     name: str
@@ -17,9 +19,10 @@ class AccommodationCreateRequest(BaseModel):
     currency: str | None = None
     bookingReference: str | None = None
     notes: str | None = None
+    validationStatus: str | None = None
 
 
-class AccommodationUpdateRequest(BaseModel):
+class AccommodationUpdateRequest(BagtripRequestModel):
     """Requête de mise à jour d'hébergement."""
 
     name: str | None = None
@@ -30,6 +33,7 @@ class AccommodationUpdateRequest(BaseModel):
     currency: str | None = None
     bookingReference: str | None = None
     notes: str | None = None
+    validationStatus: str | None = None
 
 
 class AccommodationResponse(BaseModel):
@@ -45,6 +49,7 @@ class AccommodationResponse(BaseModel):
     currency: str | None = None
     bookingReference: str | None = Field(None, alias="booking_reference")
     notes: str | None = None
+    validationStatus: str = Field(default="MANUAL", alias="validation_status")
     createdAt: datetime = Field(..., alias="created_at")
     updatedAt: datetime = Field(..., alias="updated_at")
 

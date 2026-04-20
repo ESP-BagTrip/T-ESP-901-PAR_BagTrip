@@ -96,7 +96,7 @@ class QuickActionsBar extends StatelessWidget {
       QuickActionType.aiSuggestion => (
         Icons.auto_awesome_outlined,
         l10n.qaAiSuggestion,
-        () => ActivitiesRoute(tripId: tripId).go(context),
+        () => TripHomeRoute(tripId: tripId).go(context),
       ),
       QuickActionType.map => (
         Icons.map_outlined,
@@ -106,7 +106,7 @@ class QuickActionsBar extends StatelessWidget {
       QuickActionType.todayExpenses => (
         Icons.receipt_outlined,
         l10n.qaTodayExpenses,
-        () => BudgetRoute(tripId: tripId).go(context),
+        () => TripHomeRoute(tripId: tripId).go(context),
       ),
       QuickActionType.tomorrow => (
         Icons.calendar_today_outlined,
@@ -116,7 +116,7 @@ class QuickActionsBar extends StatelessWidget {
       QuickActionType.budget => (
         Icons.account_balance_wallet_outlined,
         l10n.qaBudget,
-        () => BudgetRoute(tripId: tripId).go(context),
+        () => TripHomeRoute(tripId: tripId).go(context),
       ),
     };
   }

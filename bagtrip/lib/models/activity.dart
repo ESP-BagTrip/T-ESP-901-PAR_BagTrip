@@ -1,4 +1,7 @@
+import 'package:bagtrip/models/validation_status.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+export 'package:bagtrip/models/validation_status.dart';
 
 part 'activity.freezed.dart';
 part 'activity.g.dart';
@@ -21,16 +24,6 @@ enum ActivityCategory {
   relaxation,
   @JsonValue('OTHER')
   other,
-}
-
-@JsonEnum(alwaysCreate: true)
-enum ValidationStatus {
-  @JsonValue('SUGGESTED')
-  suggested,
-  @JsonValue('VALIDATED')
-  validated,
-  @JsonValue('MANUAL')
-  manual,
 }
 
 @freezed

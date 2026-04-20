@@ -211,6 +211,40 @@ class TripRepositoryImpl implements TripRepository {
   }
 
   @override
+  Future<Result<Trip>> updateTripTracking(
+    String tripId, {
+    String? flightsTracking,
+    String? accommodationsTracking,
+  }) async {
+    final data = <String, dynamic>{
+      if (flightsTracking != null) 'flightsTracking': flightsTracking,
+      if (accommodationsTracking != null)
+        'accommodationsTracking': accommodationsTracking,
+    };
+    if (data.isEmpty) {
+      return loggedFailure(
+        const ValidationError('updateTripTracking: no flag provided'),
+      );
+    }
+    try {
+      final response = await _apiClient.patch(
+        '/trips/$tripId/tracking',
+        data: data,
+      );
+      if (response.statusCode == 200) {
+        return Success(Trip.fromJson(response.data));
+      }
+      return loggedFailure(
+        UnknownError('update trip tracking failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
   Future<Result<Trip>> updateTrip(
     String tripId,
     Map<String, dynamic> updates,

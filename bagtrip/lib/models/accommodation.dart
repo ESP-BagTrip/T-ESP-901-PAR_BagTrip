@@ -1,3 +1,4 @@
+import 'package:bagtrip/models/validation_status.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'accommodation.freezed.dart';
@@ -16,6 +17,9 @@ abstract class Accommodation with _$Accommodation {
     String? currency,
     String? bookingReference,
     String? notes,
+    @JsonKey(unknownEnumValue: ValidationStatus.manual)
+    @Default(ValidationStatus.manual)
+    ValidationStatus validationStatus,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _Accommodation;

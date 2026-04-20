@@ -1,7 +1,4 @@
-import 'package:bagtrip/activities/view/activities_page.dart';
 import 'package:bagtrip/trips/view/trip_locations_page.dart';
-import 'package:bagtrip/transports/view/transports_page.dart';
-import 'package:bagtrip/budget/view/budget_page.dart';
 import 'package:bagtrip/flight_result_details/view/flight_result_details_page.dart';
 import 'package:bagtrip/flight_search/models/flight_search_prefill.dart';
 import 'package:bagtrip/flight_search_result/models/flight.dart';
@@ -121,9 +118,6 @@ class DeepLinkTripRoute extends GoRouteData with $DeepLinkTripRoute {
           routes: [
             TypedGoRoute<AccommodationsRoute>(path: 'accommodations'),
             TypedGoRoute<BaggageRoute>(path: 'baggage'),
-            TypedGoRoute<ActivitiesRoute>(path: 'activities'),
-            TypedGoRoute<BudgetRoute>(path: 'budget'),
-            TypedGoRoute<TransportsRoute>(path: 'transports'),
             TypedGoRoute<FeedbackRoute>(path: 'feedback'),
             TypedGoRoute<PostTripRoute>(path: 'post-trip'),
             TypedGoRoute<MapRoute>(path: 'map'),
@@ -266,76 +260,6 @@ class BaggageRoute extends GoRouteData with $BaggageRoute {
       buildSlideTransitionPage<void>(
         state: state,
         child: BaggageBlocPage(
-          tripId: tripId,
-          role: role,
-          isCompleted: isCompleted,
-        ),
-      );
-}
-
-class ActivitiesRoute extends GoRouteData with $ActivitiesRoute {
-  const ActivitiesRoute({
-    required this.tripId,
-    this.role = 'OWNER',
-    this.isCompleted = false,
-    this.tripStartDate,
-  });
-
-  final String tripId;
-  final String role;
-  final bool isCompleted;
-  final String? tripStartDate;
-
-  @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      buildSlideTransitionPage<void>(
-        state: state,
-        child: ActivitiesPage(
-          tripId: tripId,
-          role: role,
-          isCompleted: isCompleted,
-          tripStartDate: tripStartDate != null
-              ? DateTime.tryParse(tripStartDate!)
-              : null,
-        ),
-      );
-}
-
-class BudgetRoute extends GoRouteData with $BudgetRoute {
-  const BudgetRoute({
-    required this.tripId,
-    this.role = 'OWNER',
-    this.isCompleted = false,
-  });
-
-  final String tripId;
-  final String role;
-  final bool isCompleted;
-
-  @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      buildSlideTransitionPage<void>(
-        state: state,
-        child: BudgetPage(tripId: tripId, role: role, isCompleted: isCompleted),
-      );
-}
-
-class TransportsRoute extends GoRouteData with $TransportsRoute {
-  const TransportsRoute({
-    required this.tripId,
-    this.role = 'OWNER',
-    this.isCompleted = false,
-  });
-
-  final String tripId;
-  final String role;
-  final bool isCompleted;
-
-  @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      buildSlideTransitionPage<void>(
-        state: state,
-        child: TransportsPage(
           tripId: tripId,
           role: role,
           isCompleted: isCompleted,
@@ -570,6 +494,11 @@ GoRouteData tripFeatureRoute({
   required String role,
   required bool isCompleted,
 }) {
+  // Activities / budget / transports used to surface standalone sub-pages that
+  // duplicated the trip_detail panels. They were removed on SMP-316 — the
+  // feature tiles now funnel back to the trip detail home which hosts those
+  // panels natively. Accommodations / baggage still have dedicated sub-pages
+  // for their Amadeus-search / shopping-list experiences.
   return switch (featureRoute) {
     'accommodations' => AccommodationsRoute(
       tripId: tripId,
@@ -577,21 +506,6 @@ GoRouteData tripFeatureRoute({
       isCompleted: isCompleted,
     ),
     'baggage' => BaggageRoute(
-      tripId: tripId,
-      role: role,
-      isCompleted: isCompleted,
-    ),
-    'activities' => ActivitiesRoute(
-      tripId: tripId,
-      role: role,
-      isCompleted: isCompleted,
-    ),
-    'budget' => BudgetRoute(
-      tripId: tripId,
-      role: role,
-      isCompleted: isCompleted,
-    ),
-    'transports' => TransportsRoute(
       tripId: tripId,
       role: role,
       isCompleted: isCompleted,

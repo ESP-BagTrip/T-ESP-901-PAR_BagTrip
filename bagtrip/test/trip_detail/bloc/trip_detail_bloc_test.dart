@@ -85,7 +85,8 @@ void main() {
             .having((s) => s.deferredLoaded, 'deferredLoaded', false),
         isA<TripDetailLoaded>()
             .having((s) => s.deferredLoaded, 'deferredLoaded', true)
-            .having((s) => s.completionPercentage, 'completion', 17),
+            // Validation-aware formula: 0 items in every domain → 0%.
+            .having((s) => s.completionPercentage, 'completion', 0),
       ],
     );
 
@@ -182,17 +183,7 @@ void main() {
         accommodations: [],
         baggageItems: [],
         shares: [],
-        completionResult: const CompletionResult(
-          percentage: 20,
-          segments: {
-            CompletionSegmentType.dates: true,
-            CompletionSegmentType.flights: false,
-            CompletionSegmentType.accommodation: false,
-            CompletionSegmentType.activities: false,
-            CompletionSegmentType.baggage: false,
-            CompletionSegmentType.budget: false,
-          },
-        ),
+        completionResult: makeCompletionResult(percentage: 20),
         deferredLoaded: true,
       ),
       act: (bloc) => bloc.add(LoadDeferredSections()),
@@ -286,17 +277,7 @@ void main() {
         accommodations: [],
         baggageItems: [],
         shares: [],
-        completionResult: const CompletionResult(
-          percentage: 20,
-          segments: {
-            CompletionSegmentType.dates: true,
-            CompletionSegmentType.flights: false,
-            CompletionSegmentType.accommodation: false,
-            CompletionSegmentType.activities: false,
-            CompletionSegmentType.baggage: false,
-            CompletionSegmentType.budget: false,
-          },
-        ),
+        completionResult: makeCompletionResult(percentage: 20),
       ),
       act: (bloc) => bloc.add(SelectDay(dayIndex: 5)),
       expect: () => [
@@ -327,17 +308,7 @@ void main() {
         accommodations: [],
         baggageItems: [],
         shares: [],
-        completionResult: const CompletionResult(
-          percentage: 20,
-          segments: {
-            CompletionSegmentType.dates: true,
-            CompletionSegmentType.flights: false,
-            CompletionSegmentType.accommodation: false,
-            CompletionSegmentType.activities: false,
-            CompletionSegmentType.baggage: false,
-            CompletionSegmentType.budget: false,
-          },
-        ),
+        completionResult: makeCompletionResult(percentage: 20),
       ),
       act: (bloc) {
         bloc.add(ToggleSection(sectionId: 'activities'));
@@ -769,17 +740,7 @@ void main() {
         accommodations: [],
         baggageItems: [],
         shares: [],
-        completionResult: const CompletionResult(
-          percentage: 20,
-          segments: {
-            CompletionSegmentType.dates: true,
-            CompletionSegmentType.flights: false,
-            CompletionSegmentType.accommodation: false,
-            CompletionSegmentType.activities: false,
-            CompletionSegmentType.baggage: false,
-            CompletionSegmentType.budget: false,
-          },
-        ),
+        completionResult: makeCompletionResult(percentage: 20),
       ),
       act: (bloc) => bloc.add(AddFlightToDetail(flight: makeManualFlight())),
       expect: () => [
@@ -791,7 +752,9 @@ void main() {
               'AF123',
             )
             .having(
-              (s) => s.completionResult.segments[CompletionSegmentType.flights],
+              (s) => s.completionResult
+                  .segment(CompletionSegmentType.flights)
+                  .isComplete,
               'flights segment',
               true,
             ),
@@ -1193,17 +1156,7 @@ void main() {
         accommodations: [],
         baggageItems: [],
         shares: [],
-        completionResult: const CompletionResult(
-          percentage: 20,
-          segments: {
-            CompletionSegmentType.dates: true,
-            CompletionSegmentType.flights: false,
-            CompletionSegmentType.accommodation: false,
-            CompletionSegmentType.activities: false,
-            CompletionSegmentType.baggage: false,
-            CompletionSegmentType.budget: false,
-          },
-        ),
+        completionResult: makeCompletionResult(percentage: 20),
         daySuggestions: const [
           {'title': 'X'},
         ],
@@ -1491,7 +1444,9 @@ void main() {
         isA<TripDetailLoaded>()
             .having((s) => s.flights, 'flights', isEmpty)
             .having(
-              (s) => s.completionResult.segments[CompletionSegmentType.flights],
+              (s) => s.completionResult
+                  .segment(CompletionSegmentType.flights)
+                  .isComplete,
               'flights segment',
               false,
             ),
@@ -1530,9 +1485,9 @@ void main() {
         isA<TripDetailLoaded>()
             .having((s) => s.accommodations, 'accommodations', isEmpty)
             .having(
-              (s) => s
-                  .completionResult
-                  .segments[CompletionSegmentType.accommodation],
+              (s) => s.completionResult
+                  .segment(CompletionSegmentType.accommodation)
+                  .isComplete,
               'accommodation segment',
               false,
             ),
@@ -1571,7 +1526,9 @@ void main() {
         isA<TripDetailLoaded>()
             .having((s) => s.baggageItems, 'baggageItems', isEmpty)
             .having(
-              (s) => s.completionResult.segments[CompletionSegmentType.baggage],
+              (s) => s.completionResult
+                  .segment(CompletionSegmentType.baggage)
+                  .isComplete,
               'baggage segment',
               false,
             ),
@@ -1635,7 +1592,9 @@ void main() {
         isA<TripDetailLoaded>()
             .having((s) => s.flights.length, 'flights.length', 1)
             .having(
-              (s) => s.completionResult.segments[CompletionSegmentType.flights],
+              (s) => s.completionResult
+                  .segment(CompletionSegmentType.flights)
+                  .isComplete,
               'flights segment',
               true,
             ),
@@ -1748,9 +1707,9 @@ void main() {
         isA<TripDetailLoaded>()
             .having((s) => s.accommodations.length, 'accommodations.length', 1)
             .having(
-              (s) => s
-                  .completionResult
-                  .segments[CompletionSegmentType.accommodation],
+              (s) => s.completionResult
+                  .segment(CompletionSegmentType.accommodation)
+                  .isComplete,
               'accommodation segment',
               true,
             ),
@@ -2042,6 +2001,94 @@ void main() {
           (s) => s.operationError,
           'operationError',
           isNotNull,
+        ),
+        isA<TripDetailLoaded>().having(
+          (s) => s.operationError,
+          'operationError',
+          isNull,
+        ),
+      ],
+    );
+
+    // ── UpdateTripTrackingFromDetail ────────────────────────────────
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'UpdateTripTrackingFromDetail optimistically flips flightsTracking and '
+      'recomputes completion',
+      build: () {
+        stubAllSuccess();
+        when(
+          () => mockTripRepo.updateTripTracking(
+            any(),
+            flightsTracking: any(named: 'flightsTracking'),
+            accommodationsTracking: any(named: 'accommodationsTracking'),
+          ),
+        ).thenAnswer(
+          (_) async => Success(makeTrip(flightsTracking: 'SKIPPED')),
+        );
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(UpdateTripTrackingFromDetail(flightsTracking: 'SKIPPED'));
+      },
+      wait: const Duration(milliseconds: 300),
+      skip: 2, // skip Loading + first Loaded(deferred:false)
+      expect: () => [
+        isA<TripDetailLoaded>().having(
+          (s) => s.deferredLoaded,
+          'deferredLoaded',
+          true,
+        ),
+        isA<TripDetailLoaded>()
+            .having((s) => s.trip.flightsTracking, 'flightsTracking', 'SKIPPED')
+            // Segment counts as complete → completion jumps to 25 (one of
+            // four segments satisfied).
+            .having((s) => s.completionPercentage, 'completion', 25),
+      ],
+      verify: (_) {
+        verify(
+          () => mockTripRepo.updateTripTracking(
+            'trip-1',
+            flightsTracking: 'SKIPPED',
+          ),
+        ).called(1);
+      },
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'UpdateTripTrackingFromDetail surfaces operationError on API failure',
+      build: () {
+        stubAllSuccess();
+        when(
+          () => mockTripRepo.updateTripTracking(
+            any(),
+            flightsTracking: any(named: 'flightsTracking'),
+            accommodationsTracking: any(named: 'accommodationsTracking'),
+          ),
+        ).thenAnswer((_) async => const Failure(NetworkError('offline')));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(
+          UpdateTripTrackingFromDetail(accommodationsTracking: 'SKIPPED'),
+        );
+      },
+      wait: const Duration(milliseconds: 300),
+      skip: 3, // Loading + two Loaded (deferred:false then true).
+      expect: () => [
+        isA<TripDetailLoaded>().having(
+          (s) => s.trip.accommodationsTracking,
+          'accommodationsTracking',
+          'SKIPPED',
+        ),
+        isA<TripDetailLoaded>().having(
+          (s) => s.operationError,
+          'operationError',
+          isA<NetworkError>(),
         ),
         isA<TripDetailLoaded>().having(
           (s) => s.operationError,

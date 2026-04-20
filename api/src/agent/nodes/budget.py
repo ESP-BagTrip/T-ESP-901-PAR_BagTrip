@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, time, timedelta
 
 from src.agent.budget import guard
 from src.agent.prompts import render
@@ -27,6 +28,64 @@ def _extract_amount(value) -> float:
 def _sum_estimation(estimation: dict) -> float:
     """Sum all breakdown category amounts in an estimation dict."""
     return sum(_extract_amount(estimation.get(k)) for k in _BUDGET_KEYS)
+
+
+def _synthesize_flight_offer(
+    *,
+    origin_iata: str,
+    dest_iata: str,
+    departure_date: str,
+    return_date: str | None,
+    flight_price: float,
+    currency: str = "EUR",
+) -> list[dict]:
+    """Build a deterministic flight-offer payload when Amadeus is unavailable.
+
+    The plan must still show *something* to the user — otherwise the Flutter
+    review drops the whole flight card (bug reported on SMP-316 for
+    Barcelone). Rather than asking the LLM to fabricate airline codes
+    (which causes hallucinations and makes the `source` field unreliable),
+    we fill the slot with plausible placeholder hours and mark every field
+    as ``source="estimated"``. The user validates or edits later via
+    trip_detail.
+
+    Heuristics:
+    - Outbound: 10:00 → 12:00 local of `departure_date` (2h default)
+    - Return:   18:00 → 20:00 local of `return_date`
+    - Flight number empty → client renders em-dash
+    - Airline: "Estimated" so the UI shows the estimated source badge
+    """
+    try:
+        dep_day = datetime.fromisoformat(departure_date)
+    except ValueError:
+        return []
+
+    dep_dt = datetime.combine(dep_day.date(), time(10, 0))
+    arr_dt = dep_dt + timedelta(hours=2)
+    offer: dict = {
+        "airline": "EST",
+        "airline_name": "Estimated",
+        "flight_number": "",
+        "price": flight_price,
+        "currency": currency,
+        "departure": dep_dt.isoformat(),
+        "arrival": arr_dt.isoformat(),
+        "duration": "PT2H",
+        "origin_iata": origin_iata,
+        "destination_iata": dest_iata,
+        "source": "estimated",
+    }
+    if return_date:
+        try:
+            ret_day = datetime.fromisoformat(return_date)
+        except ValueError:
+            return [offer]
+        ret_dt = datetime.combine(ret_day.date(), time(18, 0))
+        ret_arr = ret_dt + timedelta(hours=2)
+        offer["return_departure"] = ret_dt.isoformat()
+        offer["return_arrival"] = ret_arr.isoformat()
+        offer["return_duration"] = "PT2H"
+    return [offer]
 
 
 def _compute_fallback_budget(accommodations: list, activities: list, estimation: dict) -> dict:
@@ -129,6 +188,10 @@ async def budget_node(state: TripPlanState) -> dict:
         except Exception as e:
             logger.warn("Direct flight search for raw data failed", {"error": str(e)})
 
+    # Remember whether Amadeus actually produced anything — we might need to
+    # synthesize a fallback offer after the LLM returns a budget estimation.
+    _amadeus_delivered = len(flight_offers) > 0
+
     # ReAct with flight search tool
     tool_names = ["search_real_flights", "resolve_iata_code"]
     result = await react_execute(
@@ -153,6 +216,25 @@ async def budget_node(state: TripPlanState) -> dict:
             {"raw_estimation": estimation},
         )
         estimation = _compute_fallback_budget(accommodations, activities, estimation)
+
+    # Synthesize a placeholder flight offer when Amadeus returned nothing.
+    # Keeps the review + trip_detail flight cards populated instead of a
+    # silent drop (bug SMP-316 on Barcelone).
+    if not _amadeus_delivered and origin_iata and dest_iata and state.get("departure_date"):
+        flight_price = _extract_amount(estimation.get("flights"))
+        synthetic = _synthesize_flight_offer(
+            origin_iata=origin_iata,
+            dest_iata=dest_iata,
+            departure_date=state["departure_date"],
+            return_date=state.get("return_date"),
+            flight_price=flight_price,
+        )
+        if synthetic:
+            logger.info(
+                "Amadeus unavailable, emitting estimated flight offer",
+                {"origin": origin_iata, "destination": dest_iata},
+            )
+            flight_offers = synthetic
 
     logger.info("Budget estimation complete", {"estimation": estimation})
 

@@ -36,6 +36,9 @@ class ManualFlight(Base):
     currency: Mapped[str | None] = mapped_column(String, nullable=True, default="EUR")
     notes: Mapped[str | None] = mapped_column(String, nullable=True)
     flight_type: Mapped[str] = mapped_column(String, nullable=False, default="MAIN")
+    validation_status: Mapped[str] = mapped_column(
+        String, nullable=False, default="MANUAL", server_default="MANUAL"
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

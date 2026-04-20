@@ -1,3 +1,4 @@
+import 'package:bagtrip/models/validation_status.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'manual_flight.freezed.dart';
@@ -18,6 +19,9 @@ abstract class ManualFlight with _$ManualFlight {
     String? currency,
     String? notes,
     @Default('MAIN') String flightType,
+    @JsonKey(unknownEnumValue: ValidationStatus.manual)
+    @Default(ValidationStatus.manual)
+    ValidationStatus validationStatus,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _ManualFlight;

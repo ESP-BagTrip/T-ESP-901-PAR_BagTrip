@@ -3,10 +3,11 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from src.api.common.base_schema import BagtripRequestModel
 from src.enums import ActivityCategory
 
 
-class ActivityCreateRequest(BaseModel):
+class ActivityCreateRequest(BagtripRequestModel):
     title: str
     date: dt.date
     description: str | None = None
@@ -26,7 +27,7 @@ class ActivityCreateRequest(BaseModel):
         return self
 
 
-class ActivityUpdateRequest(BaseModel):
+class ActivityUpdateRequest(BagtripRequestModel):
     title: str | None = None
     date: dt.date | None = None
     description: str | None = None

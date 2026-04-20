@@ -32,7 +32,7 @@ class QuickPreviewSheet extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.body,
-    required this.primaryAction,
+    this.primaryAction,
     this.subtitle,
     this.secondaryAction,
     this.destructiveAction,
@@ -47,7 +47,10 @@ class QuickPreviewSheet extends StatelessWidget {
   final String title;
   final String? subtitle;
   final Widget body;
-  final QuickPreviewAction primaryAction;
+
+  /// Optional: when null, the sheet only shows the body + secondary/destructive
+  /// actions. Viewer-mode callers pass null to hide the primary CTA entirely.
+  final QuickPreviewAction? primaryAction;
   final QuickPreviewAction? secondaryAction;
   final QuickPreviewAction? destructiveAction;
   final String? openFullLabel;
@@ -209,7 +212,7 @@ class _Actions extends StatelessWidget {
     required this.onOpenFull,
   });
 
-  final QuickPreviewAction primary;
+  final QuickPreviewAction? primary;
   final QuickPreviewAction? secondary;
   final QuickPreviewAction? destructive;
   final String? openFullLabel;
@@ -231,14 +234,15 @@ class _Actions extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          PillCtaButton(
-            label: primary.label,
-            leadingIcon: primary.icon,
-            onTap: () {
-              AppHaptics.medium();
-              primary.onPressed();
-            },
-          ),
+          if (primary != null)
+            PillCtaButton(
+              label: primary!.label,
+              leadingIcon: primary!.icon,
+              onTap: () {
+                AppHaptics.medium();
+                primary!.onPressed();
+              },
+            ),
           if (secondary != null || destructive != null) ...[
             const SizedBox(height: AppSpacing.space8),
             Row(
@@ -337,7 +341,7 @@ Future<void> showQuickPreviewSheet({
   required IconData icon,
   required String title,
   required Widget body,
-  required QuickPreviewAction primaryAction,
+  QuickPreviewAction? primaryAction,
   String? subtitle,
   QuickPreviewAction? secondaryAction,
   QuickPreviewAction? destructiveAction,

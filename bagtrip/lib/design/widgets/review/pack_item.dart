@@ -28,72 +28,80 @@ class PackItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: AppRadius.large16,
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.space12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              checked
-                  ? Icons.check_circle_rounded
-                  : Icons.radio_button_unchecked_rounded,
-              size: 18,
-              color: checked ? ColorName.secondary : AppColors.reviewUnchecked,
-            ),
-            const SizedBox(width: AppSpacing.space8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item,
-                    style: TextStyle(
-                      fontFamily: FontFamily.dMSerifDisplay,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      decoration: checked ? TextDecoration.lineThrough : null,
-                      color: ColorName.primaryDark,
-                    ),
-                  ),
-                  if (reason.isNotEmpty) ...[
-                    const SizedBox(height: AppSpacing.space4),
+    // Wrap in Material so the InkWell has an ancestor for ripple rendering.
+    // Callers (e.g. essentials_panel) embed us inside a Container with a
+    // BoxDecoration, which does not provide Material on its own.
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: AppRadius.large16,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.space12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                checked
+                    ? Icons.check_circle_rounded
+                    : Icons.radio_button_unchecked_rounded,
+                size: 18,
+                color: checked
+                    ? ColorName.secondary
+                    : AppColors.reviewUnchecked,
+              ),
+              const SizedBox(width: AppSpacing.space8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      reason,
-                      style: const TextStyle(
-                        fontFamily: FontFamily.dMSans,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: ColorName.hint,
+                      item,
+                      style: TextStyle(
+                        fontFamily: FontFamily.dMSerifDisplay,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        decoration: checked ? TextDecoration.lineThrough : null,
+                        color: ColorName.primaryDark,
                       ),
                     ),
+                    if (reason.isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.space4),
+                      Text(
+                        reason,
+                        style: const TextStyle(
+                          fontFamily: FontFamily.dMSans,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: ColorName.hint,
+                        ),
+                      ),
+                    ],
                   ],
-                ],
-              ),
-            ),
-            if (onEdit != null)
-              IconButton(
-                onPressed: onEdit,
-                icon: const Icon(
-                  Icons.edit_outlined,
-                  size: 18,
-                  color: ColorName.hint,
                 ),
-                visualDensity: VisualDensity.compact,
               ),
-            if (onDelete != null)
-              IconButton(
-                onPressed: onDelete,
-                icon: const Icon(
-                  Icons.delete_outline_rounded,
-                  size: 18,
-                  color: ColorName.hint,
+              if (onEdit != null)
+                IconButton(
+                  onPressed: onEdit,
+                  icon: const Icon(
+                    Icons.edit_outlined,
+                    size: 18,
+                    color: ColorName.hint,
+                  ),
+                  visualDensity: VisualDensity.compact,
                 ),
-                visualDensity: VisualDensity.compact,
-              ),
-          ],
+              if (onDelete != null)
+                IconButton(
+                  onPressed: onDelete,
+                  icon: const Icon(
+                    Icons.delete_outline_rounded,
+                    size: 18,
+                    color: ColorName.hint,
+                  ),
+                  visualDensity: VisualDensity.compact,
+                ),
+            ],
+          ),
         ),
       ),
     );

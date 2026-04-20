@@ -5330,6 +5330,138 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Révoquer l’accès'**
   String get shareRevokeAccess;
+
+  /// No description provided for @panelSkippedFlightsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos vols, sans nous'**
+  String get panelSkippedFlightsTitle;
+
+  /// No description provided for @panelSkippedFlightsMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous avez demandé à BagTrip de ne pas gérer vos vols. Aucun rappel, aucun suivi, rien dans votre progression.'**
+  String get panelSkippedFlightsMessage;
+
+  /// No description provided for @panelSkippedAccommodationsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos hébergements, sans nous'**
+  String get panelSkippedAccommodationsTitle;
+
+  /// No description provided for @panelSkippedAccommodationsMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous gérez vos hébergements vous-même. BagTrip n\'enverra pas de rappels et ne les compte pas dans votre progression.'**
+  String get panelSkippedAccommodationsMessage;
+
+  /// No description provided for @panelSkipFlightsCta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ne pas suivre mes vols'**
+  String get panelSkipFlightsCta;
+
+  /// No description provided for @panelSkipAccommodationsCta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ne pas suivre mes hébergements'**
+  String get panelSkipAccommodationsCta;
+
+  /// No description provided for @panelResumeFlightsCta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reprendre le suivi de mes vols'**
+  String get panelResumeFlightsCta;
+
+  /// No description provided for @panelResumeAccommodationsCta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reprendre le suivi de mes hébergements'**
+  String get panelResumeAccommodationsCta;
+
+  /// No description provided for @validationBoardEyebrow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Validation'**
+  String get validationBoardEyebrow;
+
+  /// No description provided for @validationBoardSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce qu\'il reste à valider avant de partir.'**
+  String get validationBoardSubtitle;
+
+  /// No description provided for @validationBoardStatusSkipped.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous gérez ça vous-même'**
+  String get validationBoardStatusSkipped;
+
+  /// No description provided for @validationBoardStatusNothing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien à valider pour l\'instant'**
+  String get validationBoardStatusNothing;
+
+  /// No description provided for @validationBoardStatusAllDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout est validé'**
+  String get validationBoardStatusAllDone;
+
+  /// No description provided for @validationBoardStatusRemaining.
+  ///
+  /// In fr, this message translates to:
+  /// **'{remaining} sur {total} à valider'**
+  String validationBoardStatusRemaining(int remaining, int total);
+
+  /// No description provided for @budgetRealHeader.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réel'**
+  String get budgetRealHeader;
+
+  /// No description provided for @budgetRealSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce que vous avez déjà dépensé et validé.'**
+  String get budgetRealSubtitle;
+
+  /// No description provided for @budgetRealEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune dépense pour l\'instant. Ajoutez-en une pour démarrer le suivi.'**
+  String get budgetRealEmpty;
+
+  /// No description provided for @budgetForecastHeader.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prévisionnel'**
+  String get budgetForecastHeader;
+
+  /// No description provided for @budgetForecastSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce que le plan estime que vous dépenserez.'**
+  String get budgetForecastSubtitle;
+
+  /// No description provided for @budgetForecastEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas de prévision pour l\'instant. Ajoutez une ligne planifiée ou laissez l\'IA la remplir.'**
+  String get budgetForecastEmpty;
+
+  /// No description provided for @budgetDeltaOver.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le réel dépasse le prévisionnel de {amount}'**
+  String budgetDeltaOver(String amount);
+
+  /// No description provided for @budgetDeltaUnder.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il reste {amount} sur le prévisionnel'**
+  String budgetDeltaUnder(String amount);
 }
 
 class _AppLocalizationsDelegate

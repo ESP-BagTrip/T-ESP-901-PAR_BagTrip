@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:bagtrip/components/adaptive/adaptive_date_picker.dart';
 import 'package:bagtrip/components/adaptive/adaptive_time_picker.dart';
 import 'package:bagtrip/design/app_colors.dart';
@@ -7,12 +5,15 @@ import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/models/flight_info.dart';
 import 'package:bagtrip/models/manual_flight.dart';
-import 'package:bagtrip/transports/bloc/transport_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
+/// Inline form rendered inside the trip_detail flights panel (add / edit).
+///
+/// Caller-driven: [onSave] gets the collected payload and the caller is
+/// responsible for dispatching it to the appropriate bloc
+/// (usually `TripDetailBloc`). Keeping the form agnostic lets us drop the
+/// legacy standalone `TransportsView` that previously hosted it.
 class ManualFlightForm extends StatefulWidget {
   final String tripId;
   final ManualFlight? existing;
@@ -20,22 +21,17 @@ class ManualFlightForm extends StatefulWidget {
   final String? initialArrivalAirport;
   final DateTime? initialDepartureDate;
   final DateTime? initialArrivalDate;
-
-  /// Optional submission hook. When provided, the form invokes
-  /// `onSave(data)` with the collected payload and the caller is
-  /// responsible for dispatching (e.g. to `TripDetailBloc` from a panel).
-  /// When `null`, falls back to the legacy behaviour on `TransportBloc`.
-  final void Function(Map<String, dynamic> data)? onSave;
+  final void Function(Map<String, dynamic> data) onSave;
 
   const ManualFlightForm({
     super.key,
     required this.tripId,
+    required this.onSave,
     this.existing,
     this.initialDepartureAirport,
     this.initialArrivalAirport,
     this.initialDepartureDate,
     this.initialArrivalDate,
-    this.onSave,
   });
 
   @override
@@ -54,9 +50,6 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
   DateTime? _departureDate;
   DateTime? _arrivalDate;
   String _flightType = 'MAIN';
-  Timer? _debounce;
-  FlightInfo? _lookupInfo;
-  bool _isLookingUp = false;
   String? _airportsError;
   String? _datesError;
 
@@ -96,7 +89,6 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
 
   @override
   void dispose() {
-    _debounce?.cancel();
     _flightNumberCtrl.dispose();
     _airlineCtrl.dispose();
     _depAirportCtrl.dispose();
@@ -104,37 +96,6 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
     _priceCtrl.dispose();
     _notesCtrl.dispose();
     super.dispose();
-  }
-
-  void _onFlightNumberChanged(String value) {
-    _debounce?.cancel();
-    // Skip AirLabs lookup when the form is driven via `onSave` from a
-    // panel (no `TransportBloc` in scope). The user can still fill the
-    // airline / airports manually.
-    if (widget.onSave != null) return;
-    final code = value.toUpperCase().trim();
-    if (code.length >= 4) {
-      _debounce = Timer(const Duration(milliseconds: 800), () {
-        context.read<TransportBloc>().add(LookupFlightInfo(flightNumber: code));
-      });
-    }
-  }
-
-  void _applyLookup(FlightInfo info) {
-    setState(() {
-      _lookupInfo = info;
-      if (info.airlineName != null) _airlineCtrl.text = info.airlineName!;
-      if (info.departureIata != null) {
-        _depAirportCtrl.text = info.departureIata!;
-      }
-      if (info.arrivalIata != null) _arrAirportCtrl.text = info.arrivalIata!;
-      if (info.departureTime != null) {
-        _departureDate = DateTime.tryParse(info.departureTime!);
-      }
-      if (info.arrivalTime != null) {
-        _arrivalDate = DateTime.tryParse(info.arrivalTime!);
-      }
-    });
   }
 
   void _submit() {
@@ -179,21 +140,7 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
       if (_notesCtrl.text.isNotEmpty) 'notes': _notesCtrl.text,
     };
 
-    if (widget.onSave != null) {
-      widget.onSave!(data);
-    } else if (_isEditMode) {
-      context.read<TransportBloc>().add(
-        UpdateManualFlight(
-          tripId: widget.tripId,
-          flightId: widget.existing!.id,
-          data: data,
-        ),
-      );
-    } else {
-      context.read<TransportBloc>().add(
-        CreateManualFlight(tripId: widget.tripId, data: data),
-      );
-    }
+    widget.onSave(data);
     Navigator.of(context).pop();
   }
 
@@ -319,27 +266,14 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
               ),
               const SizedBox(height: 12),
 
-              // Flight number + lookup indicator
+              // Flight number
               TextFormField(
                 controller: _flightNumberCtrl,
                 decoration: InputDecoration(
                   labelText: l10n.flightNumberLabel,
                   hintText: 'AF1234',
-                  suffixIcon: _isLookingUp
-                      ? const Padding(
-                          padding: EdgeInsets.all(12),
-                          child: SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        )
-                      : _lookupInfo != null
-                      ? const Icon(Icons.check_circle, color: ColorName.success)
-                      : null,
                 ),
                 textCapitalization: TextCapitalization.characters,
-                onChanged: _onFlightNumberChanged,
                 validator: (v) => v == null || v.trim().isEmpty
                     ? l10n.flightNumberRequired
                     : null,
@@ -443,24 +377,7 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
       ),
     );
 
-    // In panel mode (`onSave` != null) there is no `TransportBloc` in
-    // scope — the AirLabs lookup is disabled in [_onFlightNumberChanged]
-    // and we skip the listener entirely.
-    if (widget.onSave != null) return form;
-
-    return BlocListener<TransportBloc, TransportState>(
-      listener: (context, state) {
-        if (state is FlightLookupLoading) {
-          setState(() => _isLookingUp = true);
-        } else if (state is FlightLookupLoaded) {
-          setState(() => _isLookingUp = false);
-          _applyLookup(state.info);
-        } else if (state is FlightLookupError) {
-          setState(() => _isLookingUp = false);
-        }
-      },
-      child: form,
-    );
+    return form;
   }
 }
 

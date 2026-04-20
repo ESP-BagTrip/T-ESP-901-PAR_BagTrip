@@ -105,5 +105,13 @@ class BudgetPreset(StrEnum):
 
 class FlightType(StrEnum):
     MAIN = "MAIN"
+    RETURN = "RETURN"
     INTERNAL = "INTERNAL"
     AI_SUGGESTED = "AI_SUGGESTED"
+
+
+class TrackingStatus(StrEnum):
+    """Whether BagTrip is responsible for tracking a given domain of the trip."""
+
+    TRACKED = "TRACKED"
+    SKIPPED = "SKIPPED"

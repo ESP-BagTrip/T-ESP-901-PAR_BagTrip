@@ -56,6 +56,8 @@ abstract class Trip with _$Trip {
     String? origin,
     String? role,
     @Default(0) int completionPercentage,
+    @Default('TRACKED') String flightsTracking,
+    @Default('TRACKED') String accommodationsTracking,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _Trip;

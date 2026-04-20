@@ -12,7 +12,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from src.config.database import Base
-from src.enums import DateMode, TripStatus
+from src.enums import DateMode, TrackingStatus, TripStatus
 
 if TYPE_CHECKING:
     from src.models.accommodation import Accommodation
@@ -53,6 +53,12 @@ class Trip(Base):
     nb_travelers: Mapped[int | None] = mapped_column(Integer, nullable=True, default=1)
     date_mode: Mapped[str] = mapped_column(
         String, nullable=False, server_default="EXACT", default=DateMode.EXACT
+    )
+    flights_tracking: Mapped[str] = mapped_column(
+        String, nullable=False, server_default="TRACKED", default=TrackingStatus.TRACKED
+    )
+    accommodations_tracking: Mapped[str] = mapped_column(
+        String, nullable=False, server_default="TRACKED", default=TrackingStatus.TRACKED
     )
     archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(

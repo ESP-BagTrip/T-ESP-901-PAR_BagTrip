@@ -9,8 +9,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-bagtrip}
-    ports:
-      - "5432:5432"
+    # No host port exposure in dev: the api container reaches the db via the
+    # compose network (`db:5432`) and host forwarding would collide with any
+    # other local Postgres the dev might run.
+    expose:
+      - "5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

@@ -5,8 +5,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from src.api.common.base_schema import BagtripRequestModel
 
-class ManualFlightCreateRequest(BaseModel):
+
+class ManualFlightCreateRequest(BagtripRequestModel):
     """Requête de création de vol manuel."""
 
     flightNumber: str
@@ -19,9 +21,10 @@ class ManualFlightCreateRequest(BaseModel):
     currency: str | None = None
     notes: str | None = None
     flightType: str = "MAIN"
+    validationStatus: str | None = None
 
 
-class ManualFlightUpdateRequest(BaseModel):
+class ManualFlightUpdateRequest(BagtripRequestModel):
     """Requête de mise à jour partielle d'un vol manuel."""
 
     flightNumber: str | None = None
@@ -34,6 +37,7 @@ class ManualFlightUpdateRequest(BaseModel):
     currency: str | None = None
     notes: str | None = None
     flightType: str | None = None
+    validationStatus: str | None = None
 
 
 class ManualFlightResponse(BaseModel):
@@ -51,6 +55,7 @@ class ManualFlightResponse(BaseModel):
     currency: str | None = None
     notes: str | None = None
     flightType: str = Field(..., alias="flight_type")
+    validationStatus: str = Field(default="MANUAL", alias="validation_status")
     createdAt: datetime = Field(..., alias="created_at")
     updatedAt: datetime = Field(..., alias="updated_at")
 
