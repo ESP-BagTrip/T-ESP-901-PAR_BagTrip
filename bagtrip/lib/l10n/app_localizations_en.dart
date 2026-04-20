@@ -1930,7 +1930,79 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get homeActiveTripEyebrow => 'TRIP IN PROGRESS';
+
+  @override
+  String get homeNavPillTitle => 'Trips & home';
+
+  @override
+  String get homeNavPillSubtitle => 'Manage trips, create a new one';
+
+  @override
+  String get homeResumeActiveTripCta => 'Continue trip';
+
+  @override
+  String get homeResumeActiveTripSubtitle => 'Your trip is still active';
+
+  @override
+  String get homeSectionNowBadge => 'NOW';
+
+  @override
+  String get endTripSheetTitle => 'End trip?';
+
+  @override
+  String get endTripSheetMessage =>
+      'You can finish this trip now or decide later.';
+
+  @override
+  String get endTripSheetTerminate => 'End trip';
+
+  @override
+  String get endTripSheetPostpone => 'Decide later';
+
+  @override
+  String get toastTripCompleted => 'Trip completed';
+
+  @override
+  String get qaEndTrip => 'End trip';
+
+  @override
   String get homeTodayActivities => 'Today\'s schedule';
+
+  @override
+  String get activeHomeProgrammeTitle => 'Schedule';
+
+  @override
+  String get activeHomeNoActivitiesDay => 'No activities on this day';
+
+  @override
+  String get activeHomeContextPast => 'Past';
+
+  @override
+  String get activeHomeContextToday => 'TODAY';
+
+  @override
+  String get activeHomeContextTomorrow => 'Tomorrow';
+
+  @override
+  String activeHomeContextTripDay(int day) {
+    return 'J$day';
+  }
+
+  @override
+  String get activeHomeLastTripDayBanner => 'Last day of your trip';
+
+  @override
+  String get scheduleBadgeDone => 'Done';
+
+  @override
+  String get scheduleBadgeNow => 'Now';
+
+  @override
+  String get scheduleBadgeNext => 'Next';
+
+  @override
+  String get scheduleBadgeLater => 'Later';
 
   @override
   String get homeNoActivitiesToday => 'No activities planned today';
@@ -1960,6 +2032,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activeTripsQuickActions => 'Quick actions';
+
+  @override
+  String get activeTripQuickActionNavigateSubtitle => 'Open directions in Maps';
+
+  @override
+  String get activeTripQuickActionExpenseSubtitle =>
+      'Budget tracking for this trip';
+
+  @override
+  String get activeTripQuickActionPhotoTitle => 'Trip photo';
+
+  @override
+  String get activeTripQuickActionPhotoSubtitle =>
+      'Capture and add to your journal';
+
+  @override
+  String get activeTripQuickActionTomorrowTitle => 'Go to tomorrow';
+
+  @override
+  String get activeTripQuickActionTomorrowSubtitle =>
+      'Show tomorrow\'s schedule';
+
+  @override
+  String get activeTripQuickActionNextDayTitle => 'Next day';
+
+  @override
+  String get activeTripQuickActionNextDaySubtitle =>
+      'Show the next day\'s schedule';
+
+  @override
+  String get activeTripEndTripCardTitle => 'End trip';
+
+  @override
+  String activeTripEndTripCardSubtitle(String destination) {
+    return 'Mark $destination as finished';
+  }
+
+  @override
+  String get activeTripWeatherUnavailable => 'Weather unavailable';
+
+  @override
+  String activeTripWeatherRainShort(int percent) {
+    return '$percent% rain';
+  }
 
   @override
   String get completionDates => 'Dates';

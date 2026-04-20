@@ -3,6 +3,9 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+/// Matches [NowIndicatorRow] accent (timeline "now" marker).
+const Color _nowAccent = Color(0xFF34B7A4);
+
 void main() {
   Widget buildApp() {
     return const MaterialApp(
@@ -14,7 +17,7 @@ void main() {
   }
 
   group('NowIndicatorRow', () {
-    testWidgets('renders red dot', (tester) async {
+    testWidgets('renders now accent dot', (tester) async {
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 
@@ -28,24 +31,43 @@ void main() {
       expect(find.text('Now'), findsOneWidget);
     });
 
-    testWidgets('renders horizontal red line', (tester) async {
+    testWidgets('renders horizontal now line', (tester) async {
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 
-      // Find the 1px red line container
+      // Find the 1px line container
       final lineFinder = find.byWidgetPredicate(
         (w) => w is Container && w.constraints?.maxHeight == 1,
       );
       expect(lineFinder, findsOneWidget);
     });
 
-    testWidgets('uses red.shade400 color for dot and line', (tester) async {
+    testWidgets('uses now accent color for dot, line, and label', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 
-      // Verify the "Now" text uses red.shade400
       final textWidget = tester.widget<Text>(find.text('Now'));
-      expect(textWidget.style?.color, Colors.red.shade400);
+      expect(textWidget.style?.color, _nowAccent);
+
+      final lineFinder = find.byWidgetPredicate(
+        (w) =>
+            w is Container &&
+            w.constraints?.maxHeight == 1 &&
+            w.color == _nowAccent.withValues(alpha: 0.35),
+      );
+      expect(lineFinder, findsOneWidget);
+
+      final dotFinder = find.byWidgetPredicate(
+        (w) =>
+            w is Container &&
+            w.constraints?.maxWidth == 8 &&
+            w.constraints?.maxHeight == 8 &&
+            w.decoration is BoxDecoration &&
+            (w.decoration! as BoxDecoration).color == _nowAccent,
+      );
+      expect(dotFinder, findsOneWidget);
     });
 
     testWidgets('is wrapped in IntrinsicHeight', (tester) async {

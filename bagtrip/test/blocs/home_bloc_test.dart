@@ -21,6 +21,9 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(makeTrip());
+    registerFallbackValue(PreferIdleHomeOverview());
+    registerFallbackValue(ResumeActiveTripHome());
+    registerFallbackValue(CompleteActiveTrip());
   });
 
   setUp(() {
@@ -375,6 +378,127 @@ void main() {
           () => mockTripRepo.getTripsPaginated(status: 'completed', limit: 5),
         ).called(1);
         verifyNoMoreInteractions(mockTripRepo);
+      },
+    );
+
+    blocTest<HomeBloc, HomeState>(
+      'PreferIdleHomeOverview emits HomeIdle with backgroundOngoingTrip',
+      build: () {
+        stubUserSuccess();
+        stubActivities();
+        final trip = makeTrip(
+          id: 'trip-ongoing',
+          status: TripStatus.ongoing,
+          startDate: DateTime.now().subtract(const Duration(days: 1)),
+          endDate: DateTime.now().add(const Duration(days: 5)),
+        );
+        stubTrips(
+          ongoing: makePaginatedResponse(items: [trip]),
+          planned: makePaginatedResponse<Trip>(items: [], total: 0),
+        );
+        when(
+          () => mockActivityRepo.getActivities('trip-ongoing'),
+        ).thenAnswer((_) async => const Success([]));
+        return buildBloc();
+      },
+      seed: () {
+        final trip = makeTrip(
+          id: 'trip-ongoing',
+          status: TripStatus.ongoing,
+          startDate: DateTime.now().subtract(const Duration(days: 1)),
+          endDate: DateTime.now().add(const Duration(days: 5)),
+        );
+        return HomeActiveTrip(user: makeUser(), activeTrip: trip);
+      },
+      act: (bloc) => bloc.add(PreferIdleHomeOverview()),
+      expect: () => [
+        isA<HomeIdle>().having(
+          (s) => s.backgroundOngoingTrip?.id,
+          'backgroundOngoingTrip',
+          'trip-ongoing',
+        ),
+      ],
+    );
+
+    blocTest<HomeBloc, HomeState>(
+      'ResumeActiveTripHome emits HomeActiveTrip when ongoing exists',
+      build: () {
+        stubUserSuccess();
+        stubActivities();
+        final trip = makeTrip(
+          id: 'trip-og',
+          status: TripStatus.ongoing,
+          startDate: DateTime.now().subtract(const Duration(days: 1)),
+          endDate: DateTime.now().add(const Duration(days: 3)),
+        );
+        stubTrips(ongoing: makePaginatedResponse(items: [trip]));
+        when(
+          () => mockActivityRepo.getActivities('trip-og'),
+        ).thenAnswer((_) async => const Success([]));
+        return buildBloc();
+      },
+      seed: () {
+        final trip = makeTrip(
+          id: 'trip-og',
+          status: TripStatus.ongoing,
+          startDate: DateTime.now().subtract(const Duration(days: 1)),
+          endDate: DateTime.now().add(const Duration(days: 3)),
+        );
+        return HomeIdle(user: makeUser(), backgroundOngoingTrip: trip);
+      },
+      act: (bloc) => bloc.add(ResumeActiveTripHome()),
+      expect: () => [
+        isA<HomeActiveTrip>().having(
+          (s) => s.activeTrip.id,
+          'activeTrip.id',
+          'trip-og',
+        ),
+      ],
+    );
+
+    blocTest<HomeBloc, HomeState>(
+      'CompleteActiveTrip calls updateTripStatus and cancels notifications',
+      build: () {
+        stubUserSuccess();
+        stubActivities();
+        final trip = makeTrip(
+          id: 'trip-end',
+          status: TripStatus.ongoing,
+          startDate: DateTime.now(),
+          endDate: DateTime.now().add(const Duration(days: 2)),
+        );
+        when(
+          () => mockTripRepo.updateTripStatus('trip-end', 'completed'),
+        ).thenAnswer((_) async => Success(trip));
+        stubTrips(
+          ongoing: makePaginatedResponse<Trip>(items: [], total: 0),
+          planned: makePaginatedResponse<Trip>(items: [], total: 0),
+          completed: makePaginatedResponse<Trip>(items: [], total: 0),
+        );
+        return buildBloc();
+      },
+      seed: () {
+        final trip = makeTrip(
+          id: 'trip-end',
+          status: TripStatus.ongoing,
+          startDate: DateTime.now(),
+          endDate: DateTime.now().add(const Duration(days: 2)),
+        );
+        return HomeActiveTrip(user: makeUser(), activeTrip: trip);
+      },
+      act: (bloc) => bloc.add(CompleteActiveTrip()),
+      expect: () => [
+        isA<HomeIdle>().having(
+          (s) => s.backgroundOngoingTrip,
+          'backgroundOngoingTrip',
+          isNull,
+        ),
+      ],
+      verify: (_) {
+        verify(
+          () => mockTripRepo.updateTripStatus('trip-end', 'completed'),
+        ).called(1);
+        verify(() => mockScheduler.cancelTripNotifications(any())).called(1);
       },
     );
   });
