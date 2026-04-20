@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ManualFlight {
 
- String get id; String get tripId; String get flightNumber; String? get airline; String? get departureAirport; String? get arrivalAirport; DateTime? get departureDate; DateTime? get arrivalDate; double? get price; String? get currency; String? get notes; String get flightType; DateTime? get createdAt; DateTime? get updatedAt;
+ String get id; String get tripId; String get flightNumber; String? get airline; String? get departureAirport; String? get arrivalAirport; DateTime? get departureDate; DateTime? get arrivalDate; double? get price; String? get currency; String? get notes; String get flightType;@JsonKey(unknownEnumValue: ValidationStatus.manual) ValidationStatus get validationStatus; DateTime? get createdAt; DateTime? get updatedAt;
 /// Create a copy of ManualFlight
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $ManualFlightCopyWith<ManualFlight> get copyWith => _$ManualFlightCopyWithImpl<M
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ManualFlight&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.flightNumber, flightNumber) || other.flightNumber == flightNumber)&&(identical(other.airline, airline) || other.airline == airline)&&(identical(other.departureAirport, departureAirport) || other.departureAirport == departureAirport)&&(identical(other.arrivalAirport, arrivalAirport) || other.arrivalAirport == arrivalAirport)&&(identical(other.departureDate, departureDate) || other.departureDate == departureDate)&&(identical(other.arrivalDate, arrivalDate) || other.arrivalDate == arrivalDate)&&(identical(other.price, price) || other.price == price)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.flightType, flightType) || other.flightType == flightType)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ManualFlight&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.flightNumber, flightNumber) || other.flightNumber == flightNumber)&&(identical(other.airline, airline) || other.airline == airline)&&(identical(other.departureAirport, departureAirport) || other.departureAirport == departureAirport)&&(identical(other.arrivalAirport, arrivalAirport) || other.arrivalAirport == arrivalAirport)&&(identical(other.departureDate, departureDate) || other.departureDate == departureDate)&&(identical(other.arrivalDate, arrivalDate) || other.arrivalDate == arrivalDate)&&(identical(other.price, price) || other.price == price)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.flightType, flightType) || other.flightType == flightType)&&(identical(other.validationStatus, validationStatus) || other.validationStatus == validationStatus)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,tripId,flightNumber,airline,departureAirport,arrivalAirport,departureDate,arrivalDate,price,currency,notes,flightType,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,tripId,flightNumber,airline,departureAirport,arrivalAirport,departureDate,arrivalDate,price,currency,notes,flightType,validationStatus,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'ManualFlight(id: $id, tripId: $tripId, flightNumber: $flightNumber, airline: $airline, departureAirport: $departureAirport, arrivalAirport: $arrivalAirport, departureDate: $departureDate, arrivalDate: $arrivalDate, price: $price, currency: $currency, notes: $notes, flightType: $flightType, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'ManualFlight(id: $id, tripId: $tripId, flightNumber: $flightNumber, airline: $airline, departureAirport: $departureAirport, arrivalAirport: $arrivalAirport, departureDate: $departureDate, arrivalDate: $arrivalDate, price: $price, currency: $currency, notes: $notes, flightType: $flightType, validationStatus: $validationStatus, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $ManualFlightCopyWith<$Res>  {
   factory $ManualFlightCopyWith(ManualFlight value, $Res Function(ManualFlight) _then) = _$ManualFlightCopyWithImpl;
 @useResult
 $Res call({
- String id, String tripId, String flightNumber, String? airline, String? departureAirport, String? arrivalAirport, DateTime? departureDate, DateTime? arrivalDate, double? price, String? currency, String? notes, String flightType, DateTime? createdAt, DateTime? updatedAt
+ String id, String tripId, String flightNumber, String? airline, String? departureAirport, String? arrivalAirport, DateTime? departureDate, DateTime? arrivalDate, double? price, String? currency, String? notes, String flightType,@JsonKey(unknownEnumValue: ValidationStatus.manual) ValidationStatus validationStatus, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -65,7 +65,7 @@ class _$ManualFlightCopyWithImpl<$Res>
 
 /// Create a copy of ManualFlight
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? tripId = null,Object? flightNumber = null,Object? airline = freezed,Object? departureAirport = freezed,Object? arrivalAirport = freezed,Object? departureDate = freezed,Object? arrivalDate = freezed,Object? price = freezed,Object? currency = freezed,Object? notes = freezed,Object? flightType = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? tripId = null,Object? flightNumber = null,Object? airline = freezed,Object? departureAirport = freezed,Object? arrivalAirport = freezed,Object? departureDate = freezed,Object? arrivalDate = freezed,Object? price = freezed,Object? currency = freezed,Object? notes = freezed,Object? flightType = null,Object? validationStatus = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,tripId: null == tripId ? _self.tripId : tripId // ignore: cast_nullable_to_non_nullable
@@ -79,7 +79,8 @@ as DateTime?,price: freezed == price ? _self.price : price // ignore: cast_nulla
 as double?,currency: freezed == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
 as String?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,flightType: null == flightType ? _self.flightType : flightType // ignore: cast_nullable_to_non_nullable
-as String,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String,validationStatus: null == validationStatus ? _self.validationStatus : validationStatus // ignore: cast_nullable_to_non_nullable
+as ValidationStatus,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
@@ -166,10 +167,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String tripId,  String flightNumber,  String? airline,  String? departureAirport,  String? arrivalAirport,  DateTime? departureDate,  DateTime? arrivalDate,  double? price,  String? currency,  String? notes,  String flightType,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String tripId,  String flightNumber,  String? airline,  String? departureAirport,  String? arrivalAirport,  DateTime? departureDate,  DateTime? arrivalDate,  double? price,  String? currency,  String? notes,  String flightType, @JsonKey(unknownEnumValue: ValidationStatus.manual)  ValidationStatus validationStatus,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ManualFlight() when $default != null:
-return $default(_that.id,_that.tripId,_that.flightNumber,_that.airline,_that.departureAirport,_that.arrivalAirport,_that.departureDate,_that.arrivalDate,_that.price,_that.currency,_that.notes,_that.flightType,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.tripId,_that.flightNumber,_that.airline,_that.departureAirport,_that.arrivalAirport,_that.departureDate,_that.arrivalDate,_that.price,_that.currency,_that.notes,_that.flightType,_that.validationStatus,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -187,10 +188,10 @@ return $default(_that.id,_that.tripId,_that.flightNumber,_that.airline,_that.dep
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String tripId,  String flightNumber,  String? airline,  String? departureAirport,  String? arrivalAirport,  DateTime? departureDate,  DateTime? arrivalDate,  double? price,  String? currency,  String? notes,  String flightType,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String tripId,  String flightNumber,  String? airline,  String? departureAirport,  String? arrivalAirport,  DateTime? departureDate,  DateTime? arrivalDate,  double? price,  String? currency,  String? notes,  String flightType, @JsonKey(unknownEnumValue: ValidationStatus.manual)  ValidationStatus validationStatus,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _ManualFlight():
-return $default(_that.id,_that.tripId,_that.flightNumber,_that.airline,_that.departureAirport,_that.arrivalAirport,_that.departureDate,_that.arrivalDate,_that.price,_that.currency,_that.notes,_that.flightType,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.tripId,_that.flightNumber,_that.airline,_that.departureAirport,_that.arrivalAirport,_that.departureDate,_that.arrivalDate,_that.price,_that.currency,_that.notes,_that.flightType,_that.validationStatus,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -207,10 +208,10 @@ return $default(_that.id,_that.tripId,_that.flightNumber,_that.airline,_that.dep
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String tripId,  String flightNumber,  String? airline,  String? departureAirport,  String? arrivalAirport,  DateTime? departureDate,  DateTime? arrivalDate,  double? price,  String? currency,  String? notes,  String flightType,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String tripId,  String flightNumber,  String? airline,  String? departureAirport,  String? arrivalAirport,  DateTime? departureDate,  DateTime? arrivalDate,  double? price,  String? currency,  String? notes,  String flightType, @JsonKey(unknownEnumValue: ValidationStatus.manual)  ValidationStatus validationStatus,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _ManualFlight() when $default != null:
-return $default(_that.id,_that.tripId,_that.flightNumber,_that.airline,_that.departureAirport,_that.arrivalAirport,_that.departureDate,_that.arrivalDate,_that.price,_that.currency,_that.notes,_that.flightType,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.tripId,_that.flightNumber,_that.airline,_that.departureAirport,_that.arrivalAirport,_that.departureDate,_that.arrivalDate,_that.price,_that.currency,_that.notes,_that.flightType,_that.validationStatus,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -222,7 +223,7 @@ return $default(_that.id,_that.tripId,_that.flightNumber,_that.airline,_that.dep
 @JsonSerializable()
 
 class _ManualFlight implements ManualFlight {
-  const _ManualFlight({required this.id, required this.tripId, required this.flightNumber, this.airline, this.departureAirport, this.arrivalAirport, this.departureDate, this.arrivalDate, this.price, this.currency, this.notes, this.flightType = 'MAIN', this.createdAt, this.updatedAt});
+  const _ManualFlight({required this.id, required this.tripId, required this.flightNumber, this.airline, this.departureAirport, this.arrivalAirport, this.departureDate, this.arrivalDate, this.price, this.currency, this.notes, this.flightType = 'MAIN', @JsonKey(unknownEnumValue: ValidationStatus.manual) this.validationStatus = ValidationStatus.manual, this.createdAt, this.updatedAt});
   factory _ManualFlight.fromJson(Map<String, dynamic> json) => _$ManualFlightFromJson(json);
 
 @override final  String id;
@@ -237,6 +238,7 @@ class _ManualFlight implements ManualFlight {
 @override final  String? currency;
 @override final  String? notes;
 @override@JsonKey() final  String flightType;
+@override@JsonKey(unknownEnumValue: ValidationStatus.manual) final  ValidationStatus validationStatus;
 @override final  DateTime? createdAt;
 @override final  DateTime? updatedAt;
 
@@ -253,16 +255,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ManualFlight&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.flightNumber, flightNumber) || other.flightNumber == flightNumber)&&(identical(other.airline, airline) || other.airline == airline)&&(identical(other.departureAirport, departureAirport) || other.departureAirport == departureAirport)&&(identical(other.arrivalAirport, arrivalAirport) || other.arrivalAirport == arrivalAirport)&&(identical(other.departureDate, departureDate) || other.departureDate == departureDate)&&(identical(other.arrivalDate, arrivalDate) || other.arrivalDate == arrivalDate)&&(identical(other.price, price) || other.price == price)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.flightType, flightType) || other.flightType == flightType)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ManualFlight&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.flightNumber, flightNumber) || other.flightNumber == flightNumber)&&(identical(other.airline, airline) || other.airline == airline)&&(identical(other.departureAirport, departureAirport) || other.departureAirport == departureAirport)&&(identical(other.arrivalAirport, arrivalAirport) || other.arrivalAirport == arrivalAirport)&&(identical(other.departureDate, departureDate) || other.departureDate == departureDate)&&(identical(other.arrivalDate, arrivalDate) || other.arrivalDate == arrivalDate)&&(identical(other.price, price) || other.price == price)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.flightType, flightType) || other.flightType == flightType)&&(identical(other.validationStatus, validationStatus) || other.validationStatus == validationStatus)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,tripId,flightNumber,airline,departureAirport,arrivalAirport,departureDate,arrivalDate,price,currency,notes,flightType,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,tripId,flightNumber,airline,departureAirport,arrivalAirport,departureDate,arrivalDate,price,currency,notes,flightType,validationStatus,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'ManualFlight(id: $id, tripId: $tripId, flightNumber: $flightNumber, airline: $airline, departureAirport: $departureAirport, arrivalAirport: $arrivalAirport, departureDate: $departureDate, arrivalDate: $arrivalDate, price: $price, currency: $currency, notes: $notes, flightType: $flightType, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'ManualFlight(id: $id, tripId: $tripId, flightNumber: $flightNumber, airline: $airline, departureAirport: $departureAirport, arrivalAirport: $arrivalAirport, departureDate: $departureDate, arrivalDate: $arrivalDate, price: $price, currency: $currency, notes: $notes, flightType: $flightType, validationStatus: $validationStatus, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -273,7 +275,7 @@ abstract mixin class _$ManualFlightCopyWith<$Res> implements $ManualFlightCopyWi
   factory _$ManualFlightCopyWith(_ManualFlight value, $Res Function(_ManualFlight) _then) = __$ManualFlightCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String tripId, String flightNumber, String? airline, String? departureAirport, String? arrivalAirport, DateTime? departureDate, DateTime? arrivalDate, double? price, String? currency, String? notes, String flightType, DateTime? createdAt, DateTime? updatedAt
+ String id, String tripId, String flightNumber, String? airline, String? departureAirport, String? arrivalAirport, DateTime? departureDate, DateTime? arrivalDate, double? price, String? currency, String? notes, String flightType,@JsonKey(unknownEnumValue: ValidationStatus.manual) ValidationStatus validationStatus, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -290,7 +292,7 @@ class __$ManualFlightCopyWithImpl<$Res>
 
 /// Create a copy of ManualFlight
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? tripId = null,Object? flightNumber = null,Object? airline = freezed,Object? departureAirport = freezed,Object? arrivalAirport = freezed,Object? departureDate = freezed,Object? arrivalDate = freezed,Object? price = freezed,Object? currency = freezed,Object? notes = freezed,Object? flightType = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? tripId = null,Object? flightNumber = null,Object? airline = freezed,Object? departureAirport = freezed,Object? arrivalAirport = freezed,Object? departureDate = freezed,Object? arrivalDate = freezed,Object? price = freezed,Object? currency = freezed,Object? notes = freezed,Object? flightType = null,Object? validationStatus = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_ManualFlight(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,tripId: null == tripId ? _self.tripId : tripId // ignore: cast_nullable_to_non_nullable
@@ -304,7 +306,8 @@ as DateTime?,price: freezed == price ? _self.price : price // ignore: cast_nulla
 as double?,currency: freezed == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
 as String?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,flightType: null == flightType ? _self.flightType : flightType // ignore: cast_nullable_to_non_nullable
-as String,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String,validationStatus: null == validationStatus ? _self.validationStatus : validationStatus // ignore: cast_nullable_to_non_nullable
+as ValidationStatus,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));

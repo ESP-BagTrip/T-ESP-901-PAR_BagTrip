@@ -211,36 +211,46 @@ async def app_error_handler(request: Request, exc: AppError):
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
-    """Gestionnaire d'erreurs général."""
-    # En mode debug, logger avec traceback complète
-    if logger.level == LogLevel.DEBUG:
+    """Gestionnaire d'erreurs général.
+
+    In production (non-DEBUG) the response is a generic 500 with no exception
+    text — otherwise raw SQL / psycopg2 messages end up in the Flutter dev
+    console and shared error logs. In DEBUG mode we still surface the full
+    payload (message + type + traceback) to make local debugging easy.
+    Server-side logs always receive the rich context.
+    """
+    log_context = {
+        "error": str(exc),
+        "type": type(exc).__name__,
+        "path": request.url.path,
+        "method": request.method,
+    }
+    is_debug = logger.level == LogLevel.DEBUG
+    if is_debug:
+        log_context["traceback"] = traceback.format_exc()
         logger.error(
             f"Unhandled exception: {type(exc).__name__}",
-            {
-                "error": str(exc),
-                "path": request.url.path,
-                "method": request.method,
-            },
+            log_context,
             exc_info=True,
         )
     else:
-        logger.error(
-            "Unhandled exception",
-            {"error": str(exc), "path": request.url.path, "method": request.method},
+        logger.error("Unhandled exception", log_context)
+
+    if is_debug:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "Internal server error",
+                "detail": {
+                    "error": str(exc),
+                    "type": type(exc).__name__,
+                    "traceback": traceback.format_exc(),
+                },
+            },
         )
-
-    # En mode debug, inclure plus de détails dans la réponse
-    detail = str(exc)
-    if logger.level == LogLevel.DEBUG:
-        detail = {
-            "error": str(exc),
-            "type": type(exc).__name__,
-            "traceback": traceback.format_exc(),
-        }
-
     return JSONResponse(
         status_code=500,
-        content={"error": "Internal server error", "detail": detail},
+        content={"error": "Internal server error"},
     )
 
 

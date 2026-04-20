@@ -5,8 +5,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from src.api.common.base_schema import BagtripRequestModel
 
-class FeedbackCreateRequest(BaseModel):
+
+class FeedbackCreateRequest(BagtripRequestModel):
     """Requête de création de feedback."""
 
     overallRating: int = Field(..., ge=1, le=5)

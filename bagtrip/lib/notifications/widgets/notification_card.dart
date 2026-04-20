@@ -165,10 +165,9 @@ class NotificationCard extends StatelessWidget {
         TripHomeRoute(tripId: tripId).go(context);
         break;
       case 'activities':
-        ActivitiesRoute(tripId: tripId).go(context);
-        break;
       case 'budget':
-        BudgetRoute(tripId: tripId).go(context);
+        // Activities / budget surfaces live inside trip_detail now.
+        TripHomeRoute(tripId: tripId).go(context);
         break;
       case 'feedback':
         FeedbackRoute(tripId: tripId).go(context);
@@ -183,7 +182,7 @@ class NotificationCard extends StatelessWidget {
         AccommodationsRoute(tripId: tripId).go(context);
         break;
       case 'transports':
-        TransportsRoute(tripId: tripId).go(context);
+        TripHomeRoute(tripId: tripId).go(context);
         break;
       case 'shares':
         TripHomeRoute(tripId: tripId).go(context);

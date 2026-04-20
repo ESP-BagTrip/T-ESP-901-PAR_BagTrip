@@ -134,4 +134,40 @@ extension _TripDetailTripHandlers on TripDetailBloc {
       emit(TripDetailDeleted());
     }
   }
+
+  Future<void> _onUpdateTripTracking(
+    UpdateTripTrackingFromDetail event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+
+    final updatedTrip = loaded.trip.copyWith(
+      flightsTracking: event.flightsTracking ?? loaded.trip.flightsTracking,
+      accommodationsTracking:
+          event.accommodationsTracking ?? loaded.trip.accommodationsTracking,
+    );
+    final completion = tripDetailCompletion(
+      trip: updatedTrip,
+      flights: loaded.flights,
+      accommodations: loaded.accommodations,
+      activities: loaded.activities,
+      baggageItems: loaded.baggageItems,
+    );
+    emit(loaded.copyWith(trip: updatedTrip, completionResult: completion));
+
+    final result = await _tripRepository.updateTripTracking(
+      _tripId!,
+      flightsTracking: event.flightsTracking,
+      accommodationsTracking: event.accommodationsTracking,
+    );
+
+    if (isClosed) return;
+
+    if (result case Failure(:final error)) {
+      // Rollback to the previous trip + completion on failure.
+      emit(loaded.copyWith(operationError: error));
+      emit(loaded.copyWith(clearOperationError: true));
+    }
+  }
 }

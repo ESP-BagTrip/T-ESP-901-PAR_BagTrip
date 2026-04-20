@@ -2,7 +2,6 @@ import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
-import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
 import 'package:bagtrip/trip_detail/view/trip_detail_view.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bloc_test/bloc_test.dart';
@@ -49,17 +48,7 @@ void main() {
       baggageItems: const [],
       shares: const [],
       userRole: role,
-      completionResult: const CompletionResult(
-        percentage: 0,
-        segments: {
-          CompletionSegmentType.dates: true,
-          CompletionSegmentType.flights: false,
-          CompletionSegmentType.accommodation: false,
-          CompletionSegmentType.activities: false,
-          CompletionSegmentType.baggage: false,
-          CompletionSegmentType.budget: false,
-        },
-      ),
+      completionResult: makeCompletionResult(),
     );
   }
 

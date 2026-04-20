@@ -5,10 +5,11 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from src.api.common.base_schema import BagtripRequestModel
 from src.enums import BaggageCategory
 
 
-class BaggageItemCreateRequest(BaseModel):
+class BaggageItemCreateRequest(BagtripRequestModel):
     """Requête de création d'élément de bagage."""
 
     name: str
@@ -18,7 +19,7 @@ class BaggageItemCreateRequest(BaseModel):
     notes: str | None = None
 
 
-class BaggageItemUpdateRequest(BaseModel):
+class BaggageItemUpdateRequest(BagtripRequestModel):
     """Requête de mise à jour d'élément de bagage."""
 
     name: str | None = None

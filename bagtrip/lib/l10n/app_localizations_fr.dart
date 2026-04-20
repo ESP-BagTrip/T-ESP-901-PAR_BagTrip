@@ -2983,4 +2983,83 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get shareRevokeAccess => 'Révoquer l’accès';
+
+  @override
+  String get panelSkippedFlightsTitle => 'Vos vols, sans nous';
+
+  @override
+  String get panelSkippedFlightsMessage =>
+      'Vous avez demandé à BagTrip de ne pas gérer vos vols. Aucun rappel, aucun suivi, rien dans votre progression.';
+
+  @override
+  String get panelSkippedAccommodationsTitle => 'Vos hébergements, sans nous';
+
+  @override
+  String get panelSkippedAccommodationsMessage =>
+      'Vous gérez vos hébergements vous-même. BagTrip n\'enverra pas de rappels et ne les compte pas dans votre progression.';
+
+  @override
+  String get panelSkipFlightsCta => 'Ne pas suivre mes vols';
+
+  @override
+  String get panelSkipAccommodationsCta => 'Ne pas suivre mes hébergements';
+
+  @override
+  String get panelResumeFlightsCta => 'Reprendre le suivi de mes vols';
+
+  @override
+  String get panelResumeAccommodationsCta =>
+      'Reprendre le suivi de mes hébergements';
+
+  @override
+  String get validationBoardEyebrow => 'Validation';
+
+  @override
+  String get validationBoardSubtitle =>
+      'Ce qu\'il reste à valider avant de partir.';
+
+  @override
+  String get validationBoardStatusSkipped => 'Vous gérez ça vous-même';
+
+  @override
+  String get validationBoardStatusNothing => 'Rien à valider pour l\'instant';
+
+  @override
+  String get validationBoardStatusAllDone => 'Tout est validé';
+
+  @override
+  String validationBoardStatusRemaining(int remaining, int total) {
+    return '$remaining sur $total à valider';
+  }
+
+  @override
+  String get budgetRealHeader => 'Réel';
+
+  @override
+  String get budgetRealSubtitle => 'Ce que vous avez déjà dépensé et validé.';
+
+  @override
+  String get budgetRealEmpty =>
+      'Aucune dépense pour l\'instant. Ajoutez-en une pour démarrer le suivi.';
+
+  @override
+  String get budgetForecastHeader => 'Prévisionnel';
+
+  @override
+  String get budgetForecastSubtitle =>
+      'Ce que le plan estime que vous dépenserez.';
+
+  @override
+  String get budgetForecastEmpty =>
+      'Pas de prévision pour l\'instant. Ajoutez une ligne planifiée ou laissez l\'IA la remplir.';
+
+  @override
+  String budgetDeltaOver(String amount) {
+    return 'Le réel dépasse le prévisionnel de $amount';
+  }
+
+  @override
+  String budgetDeltaUnder(String amount) {
+    return 'Il reste $amount sur le prévisionnel';
+  }
 }

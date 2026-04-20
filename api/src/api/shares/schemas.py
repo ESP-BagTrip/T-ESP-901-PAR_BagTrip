@@ -6,8 +6,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
+from src.api.common.base_schema import BagtripRequestModel
 
-class ShareCreateRequest(BaseModel):
+
+class ShareCreateRequest(BagtripRequestModel):
     """Requête d'invitation de partage par email."""
 
     email: EmailStr

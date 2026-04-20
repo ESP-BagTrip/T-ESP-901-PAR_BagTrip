@@ -1,230 +1,172 @@
-import 'package:bagtrip/models/trip.dart';
+// ignore_for_file: avoid_redundant_argument_values
+
+import 'package:bagtrip/models/validation_status.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/test_fixtures.dart';
 
 void main() {
-  group('tripDetailCompletion', () {
-    test('returns 0 when nothing is set', () {
-      const trip = Trip(id: 'empty');
+  group('tripDetailCompletion (validation-aware, 4 segments)', () {
+    test('empty trip scores 0', () {
       final result = tripDetailCompletion(
-        trip: trip,
+        trip: makeTrip(),
         flights: [],
         accommodations: [],
         activities: [],
         baggageItems: [],
       );
       expect(result.percentage, 0);
-      expect(result.segments[CompletionSegmentType.dates], false);
-      expect(result.segments[CompletionSegmentType.flights], false);
-      expect(result.segments[CompletionSegmentType.accommodation], false);
-      expect(result.segments[CompletionSegmentType.activities], false);
-      expect(result.segments[CompletionSegmentType.baggage], false);
-      expect(result.segments[CompletionSegmentType.budget], false);
+      for (final seg in CompletionSegmentType.values) {
+        expect(result.segment(seg).percentage, 0);
+        expect(result.segment(seg).isComplete, isFalse);
+      }
     });
 
-    test('returns 17 when only dates are set', () {
-      final trip = makeTrip(); // has startDate + endDate by default
+    test('freshly-accepted plan (all SUGGESTED) still scores 0', () {
       final result = tripDetailCompletion(
-        trip: trip,
+        trip: makeTrip(),
+        flights: [
+          makeManualFlight(
+            id: 'f1',
+            validationStatus: ValidationStatus.suggested,
+          ),
+          makeManualFlight(
+            id: 'f2',
+            validationStatus: ValidationStatus.suggested,
+          ),
+        ],
+        accommodations: [
+          makeAccommodation(validationStatus: ValidationStatus.suggested),
+        ],
+        activities: [
+          makeActivity(id: 'a1', validationStatus: ValidationStatus.suggested),
+          makeActivity(id: 'a2', validationStatus: ValidationStatus.suggested),
+          makeActivity(id: 'a3', validationStatus: ValidationStatus.suggested),
+        ],
+        baggageItems: [
+          makeBaggageItem(id: 'b1'),
+          makeBaggageItem(id: 'b2'),
+        ],
+      );
+      expect(result.percentage, 0);
+    });
+
+    test('one validated flight lifts the flights segment to 50%', () {
+      final result = tripDetailCompletion(
+        trip: makeTrip(),
+        flights: [
+          makeManualFlight(
+            id: 'f1',
+            validationStatus: ValidationStatus.validated,
+          ),
+          makeManualFlight(
+            id: 'f2',
+            validationStatus: ValidationStatus.suggested,
+          ),
+        ],
+        accommodations: [],
+        activities: [],
+        baggageItems: [],
+      );
+      expect(result.segment(CompletionSegmentType.flights).percentage, 50);
+      // 50 + 0 + 0 + 0 = 50 / 4 = 12.5 → 13
+      expect(result.percentage, 13);
+    });
+
+    test('skipped flights contribute a full segment', () {
+      final result = tripDetailCompletion(
+        trip: makeTrip(flightsTracking: 'SKIPPED'),
         flights: [],
         accommodations: [],
         activities: [],
         baggageItems: [],
       );
-      expect(result.percentage, 17);
-      expect(result.segments[CompletionSegmentType.dates], true);
+      expect(result.segment(CompletionSegmentType.flights).isSkipped, isTrue);
+      expect(result.segment(CompletionSegmentType.flights).percentage, 100);
+      // 100 + 0 + 0 + 0 = 100 / 4 = 25
+      expect(result.percentage, 25);
     });
 
-    test('returns 33 when dates + 1 flight', () {
-      final trip = makeTrip();
+    test('skipping both flight-style segments yields 50% alone', () {
       final result = tripDetailCompletion(
-        trip: trip,
-        flights: [makeManualFlight()],
+        trip: makeTrip(
+          flightsTracking: 'SKIPPED',
+          accommodationsTracking: 'SKIPPED',
+        ),
+        flights: [],
         accommodations: [],
-        activities: [],
-        baggageItems: [],
-      );
-      expect(result.percentage, 33);
-      expect(result.segments[CompletionSegmentType.flights], true);
-    });
-
-    test('returns 50 when dates + flight + accommodation', () {
-      final trip = makeTrip();
-      final result = tripDetailCompletion(
-        trip: trip,
-        flights: [makeManualFlight()],
-        accommodations: [makeAccommodation()],
         activities: [],
         baggageItems: [],
       );
       expect(result.percentage, 50);
-      expect(result.segments[CompletionSegmentType.accommodation], true);
     });
 
-    test('returns 67 when dates + flight + accommodation + 3 activities', () {
-      final trip = makeTrip();
+    test('activities count only when validated', () {
       final result = tripDetailCompletion(
-        trip: trip,
-        flights: [makeManualFlight()],
-        accommodations: [makeAccommodation()],
+        trip: makeTrip(),
+        flights: [],
+        accommodations: [],
         activities: [
-          makeActivity(id: 'a1'),
-          makeActivity(id: 'a2'),
-          makeActivity(id: 'a3'),
+          makeActivity(id: 'a1', validationStatus: ValidationStatus.validated),
+          makeActivity(id: 'a2', validationStatus: ValidationStatus.suggested),
         ],
         baggageItems: [],
       );
-      expect(result.percentage, 67);
-      expect(result.segments[CompletionSegmentType.activities], true);
+      expect(result.segment(CompletionSegmentType.activities).percentage, 50);
     });
 
-    test('returns 83 when all except budget', () {
-      final trip = makeTrip();
+    test('baggage counts when packed', () {
       final result = tripDetailCompletion(
-        trip: trip,
-        flights: [makeManualFlight()],
-        accommodations: [makeAccommodation()],
-        activities: [
-          makeActivity(id: 'a1'),
-          makeActivity(id: 'a2'),
-          makeActivity(id: 'a3'),
-        ],
+        trip: makeTrip(),
+        flights: [],
+        accommodations: [],
+        activities: [],
         baggageItems: [
-          makeBaggageItem(id: 'b1'),
-          makeBaggageItem(id: 'b2'),
-          makeBaggageItem(id: 'b3'),
-          makeBaggageItem(id: 'b4'),
-          makeBaggageItem(id: 'b5'),
+          makeBaggageItem(id: 'b1', isPacked: true),
+          makeBaggageItem(id: 'b2', isPacked: true),
+          makeBaggageItem(id: 'b3', isPacked: false),
+          makeBaggageItem(id: 'b4', isPacked: false),
         ],
       );
-      expect(result.percentage, 83);
-      expect(result.segments[CompletionSegmentType.baggage], true);
-      expect(result.segments[CompletionSegmentType.budget], false);
+      expect(result.segment(CompletionSegmentType.baggage).percentage, 50);
     });
 
-    test('returns 100 when all criteria met including budget', () {
-      final trip = makeTrip(budgetTotal: 1000);
+    test('everything validated scores 100', () {
       final result = tripDetailCompletion(
-        trip: trip,
-        flights: [makeManualFlight()],
-        accommodations: [makeAccommodation()],
+        trip: makeTrip(),
+        flights: [
+          makeManualFlight(
+            id: 'f1',
+            validationStatus: ValidationStatus.validated,
+          ),
+        ],
+        accommodations: [
+          makeAccommodation(validationStatus: ValidationStatus.validated),
+        ],
         activities: [
-          makeActivity(id: 'a1'),
-          makeActivity(id: 'a2'),
-          makeActivity(id: 'a3'),
+          makeActivity(id: 'a1', validationStatus: ValidationStatus.validated),
         ],
-        baggageItems: [
-          makeBaggageItem(id: 'b1'),
-          makeBaggageItem(id: 'b2'),
-          makeBaggageItem(id: 'b3'),
-          makeBaggageItem(id: 'b4'),
-          makeBaggageItem(id: 'b5'),
-        ],
+        baggageItems: [makeBaggageItem(id: 'b1', isPacked: true)],
       );
       expect(result.percentage, 100);
-      expect(result.segments[CompletionSegmentType.budget], true);
     });
 
-    test('budget segment is not filled when budgetTotal is null', () {
-      final trip = makeTrip();
-      final result = tripDetailCompletion(
-        trip: trip,
-        flights: [],
-        accommodations: [],
-        activities: [],
-        baggageItems: [],
-      );
-      expect(result.segments[CompletionSegmentType.budget], false);
-    });
+    test('CompletionSegment.isComplete reflects skip OR total==done', () {
+      const empty = CompletionSegment(done: 0, total: 0, isSkipped: false);
+      expect(empty.isComplete, isFalse);
 
-    test('budget segment is filled when budgetTotal > 0', () {
-      const trip = Trip(id: 'empty', budgetTotal: 500);
-      final result = tripDetailCompletion(
-        trip: trip,
-        flights: [],
-        accommodations: [],
-        activities: [],
-        baggageItems: [],
-      );
-      expect(result.percentage, 17);
-      expect(result.segments[CompletionSegmentType.budget], true);
-    });
+      const skipped = CompletionSegment(done: 0, total: 0, isSkipped: true);
+      expect(skipped.isComplete, isTrue);
+      expect(skipped.percentage, 100);
 
-    test('2 activities does not count', () {
-      const trip = Trip(id: 'empty');
-      final result = tripDetailCompletion(
-        trip: trip,
-        flights: [],
-        accommodations: [],
-        activities: [
-          makeActivity(id: 'a1'),
-          makeActivity(id: 'a2'),
-        ],
-        baggageItems: [],
-      );
-      expect(result.percentage, 0);
-      expect(result.segments[CompletionSegmentType.activities], false);
-    });
+      const partial = CompletionSegment(done: 1, total: 2, isSkipped: false);
+      expect(partial.isComplete, isFalse);
+      expect(partial.percentage, 50);
 
-    test('4 baggage items does not count', () {
-      const trip = Trip(id: 'empty');
-      final result = tripDetailCompletion(
-        trip: trip,
-        flights: [],
-        accommodations: [],
-        activities: [],
-        baggageItems: [
-          makeBaggageItem(id: 'b1'),
-          makeBaggageItem(id: 'b2'),
-          makeBaggageItem(id: 'b3'),
-          makeBaggageItem(id: 'b4'),
-        ],
-      );
-      expect(result.percentage, 0);
-      expect(result.segments[CompletionSegmentType.baggage], false);
-    });
-
-    test('startDate only (no endDate) does not count', () {
-      final trip = Trip(id: 't', startDate: DateTime(2024, 6));
-      final result = tripDetailCompletion(
-        trip: trip,
-        flights: [],
-        accommodations: [],
-        activities: [],
-        baggageItems: [],
-      );
-      expect(result.percentage, 0);
-      expect(result.segments[CompletionSegmentType.dates], false);
-    });
-
-    test('endDate only (no startDate) does not count', () {
-      final trip = Trip(id: 't', endDate: DateTime(2024, 6, 7));
-      final result = tripDetailCompletion(
-        trip: trip,
-        flights: [],
-        accommodations: [],
-        activities: [],
-        baggageItems: [],
-      );
-      expect(result.percentage, 0);
-      expect(result.segments[CompletionSegmentType.dates], false);
-    });
-
-    test('segments map always has all 6 keys', () {
-      const trip = Trip(id: 'empty');
-      final result = tripDetailCompletion(
-        trip: trip,
-        flights: [],
-        accommodations: [],
-        activities: [],
-        baggageItems: [],
-      );
-      expect(result.segments.length, 6);
-      for (final type in CompletionSegmentType.values) {
-        expect(result.segments.containsKey(type), true);
-      }
+      const done = CompletionSegment(done: 3, total: 3, isSkipped: false);
+      expect(done.isComplete, isTrue);
+      expect(done.percentage, 100);
     });
   });
 }

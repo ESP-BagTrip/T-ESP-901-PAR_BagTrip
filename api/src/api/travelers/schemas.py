@@ -5,8 +5,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from src.api.common.base_schema import BagtripRequestModel
 
-class TravelerCreateRequest(BaseModel):
+
+class TravelerCreateRequest(BagtripRequestModel):
     """Requête de création de traveler selon PLAN.md."""
 
     amadeusTravelerRef: str | None = None
@@ -19,7 +21,7 @@ class TravelerCreateRequest(BaseModel):
     contacts: dict | None = None
 
 
-class TravelerUpdateRequest(BaseModel):
+class TravelerUpdateRequest(BagtripRequestModel):
     """Requête de mise à jour de traveler."""
 
     amadeusTravelerRef: str | None = None

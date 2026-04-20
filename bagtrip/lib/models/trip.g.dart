@@ -30,6 +30,9 @@ _Trip _$TripFromJson(Map<String, dynamic> json) => _Trip(
   origin: json['origin'] as String?,
   role: json['role'] as String?,
   completionPercentage: (json['completion_percentage'] as num?)?.toInt() ?? 0,
+  flightsTracking: json['flights_tracking'] as String? ?? 'TRACKED',
+  accommodationsTracking:
+      json['accommodations_tracking'] as String? ?? 'TRACKED',
   createdAt: json['created_at'] == null
       ? null
       : DateTime.parse(json['created_at'] as String),
@@ -56,6 +59,8 @@ Map<String, dynamic> _$TripToJson(_Trip instance) => <String, dynamic>{
   'origin': instance.origin,
   'role': instance.role,
   'completion_percentage': instance.completionPercentage,
+  'flights_tracking': instance.flightsTracking,
+  'accommodations_tracking': instance.accommodationsTracking,
   'created_at': instance.createdAt?.toIso8601String(),
   'updated_at': instance.updatedAt?.toIso8601String(),
 };
