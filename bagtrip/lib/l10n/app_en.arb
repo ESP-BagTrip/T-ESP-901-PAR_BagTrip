@@ -704,10 +704,29 @@
   "emptyTransportsSubtitle": "Add your flights to start organizing your trip",
   "emptyAccommodationsTitle": "Where will you stay?",
   "emptyAccommodationsSubtitle": "Add your hotels and lodgings",
+  "emptyFlightsTitle": "Ready to fly?",
+  "emptyFlightsSubtitle": "Add your flights to track dates and times",
+  "noActivitiesThisDay": "Nothing planned for this day yet",
   "emptyActivitiesTitle": "What will you discover?",
   "emptyActivitiesSubtitle": "Add activities to plan your trip",
   "emptyBaggageTitle": "What do you need to pack?",
   "emptyBaggageSubtitle": "Add items to your luggage list",
+  "baggageProgressLabel": "{packed} / {total} packed",
+  "@baggageProgressLabel": {
+    "placeholders": {
+      "packed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "emptySharesTitle": "Travel together",
+  "emptySharesSubtitle": "Invite travel partners to collaborate on this trip",
+  "budgetSeeAllExpenses": "See all expenses",
+  "budgetOverBudgetBanner": "Over budget by {amount}",
+  "@budgetOverBudgetBanner": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
   "emptyBudgetTitle": "Track your expenses",
   "emptyBudgetSubtitle": "Follow your expenses and plan your trip budget",
   "mapTitle": "Map",
@@ -1262,6 +1281,10 @@
   "addTransportTooltip": "Add a transport",
   "addExpenseTooltip": "Add an expense",
   "addBaggageItemTooltip": "Add an item",
+  "addFlightTooltip": "Add a flight",
+  "sharesAddMemberTooltip": "Invite member",
+  "myTripFallback": "My trip",
+  "completionSegmentsSheetTitle": "Still missing",
   "shareTooltip": "Share",
   "backTooltip": "Back",
   "deleteFlightTooltip": "Delete flight",

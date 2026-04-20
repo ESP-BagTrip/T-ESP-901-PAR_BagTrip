@@ -13,7 +13,10 @@ import 'package:bagtrip/design/app_animations.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
+import 'package:bagtrip/design/widgets/review/hero_nav_button.dart';
+import 'package:bagtrip/design/widgets/review/sub_page_hero.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/baggage_item.dart';
 import 'package:bagtrip/utils/error_display.dart';
@@ -58,70 +61,79 @@ class BaggageView extends StatelessWidget {
         ),
       ],
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.baggageTitle),
-          actions: [
-            if (canEdit)
-              IconButton(
-                icon: const Icon(Icons.auto_awesome),
-                tooltip: l10n.baggageSuggestionsTooltip,
-                onPressed: () {
-                  context.read<BaggageBloc>().add(
-                    SuggestBaggage(tripId: tripId),
-                  );
+        backgroundColor: ColorName.surfaceVariant,
+        body: Column(
+          children: [
+            SubPageHero(
+              title: l10n.baggageTitle,
+              trailing: [
+                if (canEdit)
+                  HeroNavButton(
+                    icon: Icons.auto_awesome,
+                    tooltip: l10n.baggageSuggestionsTooltip,
+                    onPressed: () {
+                      context.read<BaggageBloc>().add(
+                        SuggestBaggage(tripId: tripId),
+                      );
+                    },
+                  ),
+                if (canEdit && AdaptivePlatform.isIOS) ...[
+                  const SizedBox(width: AppSpacing.space8),
+                  HeroNavButton(
+                    icon: CupertinoIcons.add,
+                    tooltip: l10n.addBaggageItemTooltip,
+                    onPressed: () => _showAddForm(context),
+                  ),
+                ],
+              ],
+            ),
+            Expanded(
+              child: BlocBuilder<BaggageBloc, BaggageState>(
+                builder: (context, state) {
+                  if (state is BaggageLoading) {
+                    return const LoadingView();
+                  }
+                  if (state is BaggageError) {
+                    return ErrorView(
+                      message: toUserFriendlyMessage(state.error, l10n),
+                      onRetry: () => context.read<BaggageBloc>().add(
+                        LoadBaggage(tripId: tripId),
+                      ),
+                    );
+                  }
+                  if (state is BaggageSuggestionsLoading) {
+                    return _buildContent(
+                      context,
+                      items: state.items,
+                      packedCount: state.packedCount,
+                      totalCount: state.totalCount,
+                      suggestions: const [],
+                      canEdit: canEdit,
+                      suggestionsLoading: true,
+                    );
+                  }
+                  if (state is BaggageLoaded) {
+                    if (state.items.isEmpty && state.suggestions.isEmpty) {
+                      return ElegantEmptyState(
+                        icon: Icons.luggage_outlined,
+                        title: l10n.emptyBaggageTitle,
+                        subtitle: l10n.emptyBaggageSubtitle,
+                      );
+                    }
+                    return _buildContent(
+                      context,
+                      items: state.items,
+                      packedCount: state.packedCount,
+                      totalCount: state.totalCount,
+                      suggestions: state.suggestions,
+                      canEdit: canEdit,
+                    );
+                  }
+                  return const SizedBox.shrink();
                 },
               ),
-            if (canEdit && AdaptivePlatform.isIOS)
-              IconButton(
-                icon: const Icon(CupertinoIcons.add),
-                tooltip: l10n.addBaggageItemTooltip,
-                onPressed: () => _showAddForm(context),
-              ),
+            ),
           ],
-        ),
-        body: BlocBuilder<BaggageBloc, BaggageState>(
-          builder: (context, state) {
-            if (state is BaggageLoading) {
-              return const LoadingView();
-            }
-            if (state is BaggageError) {
-              return ErrorView(
-                message: toUserFriendlyMessage(state.error, l10n),
-                onRetry: () => context.read<BaggageBloc>().add(
-                  LoadBaggage(tripId: tripId),
-                ),
-              );
-            }
-            if (state is BaggageSuggestionsLoading) {
-              return _buildContent(
-                context,
-                items: state.items,
-                packedCount: state.packedCount,
-                totalCount: state.totalCount,
-                suggestions: const [],
-                canEdit: canEdit,
-                suggestionsLoading: true,
-              );
-            }
-            if (state is BaggageLoaded) {
-              if (state.items.isEmpty && state.suggestions.isEmpty) {
-                return ElegantEmptyState(
-                  icon: Icons.luggage_outlined,
-                  title: l10n.emptyBaggageTitle,
-                  subtitle: l10n.emptyBaggageSubtitle,
-                );
-              }
-              return _buildContent(
-                context,
-                items: state.items,
-                packedCount: state.packedCount,
-                totalCount: state.totalCount,
-                suggestions: state.suggestions,
-                canEdit: canEdit,
-              );
-            }
-            return const SizedBox.shrink();
-          },
         ),
         floatingActionButton: canEdit && !AdaptivePlatform.isIOS
             ? FloatingActionButton.extended(
