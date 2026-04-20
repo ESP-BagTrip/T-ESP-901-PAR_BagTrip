@@ -67,7 +67,7 @@ void main() {
       await tester.pumpWidget(buildApp(makeActiveState()));
       await tester.pump(const Duration(seconds: 1));
 
-      expect(find.text('No activities planned today'), findsOneWidget);
+      expect(find.text('No activities on this day'), findsOneWidget);
     });
 
     testWidgets('shows current activity with in-progress badge', (
@@ -96,7 +96,7 @@ void main() {
 
       expect(find.text('Current Activity'), findsOneWidget);
       expect(find.byType(TimelineActivityRow), findsOneWidget);
-      expect(find.text('NOW'), findsWidgets);
+      expect(find.text('Now'), findsWidgets);
     });
 
     testWidgets('shows today schedule header', (tester) async {
@@ -104,7 +104,7 @@ void main() {
       await tester.pumpWidget(buildApp(makeActiveState()));
       await tester.pump(const Duration(seconds: 1));
 
-      expect(find.text("Today's schedule"), findsOneWidget);
+      expect(find.text('Schedule'), findsOneWidget);
     });
 
     testWidgets('shows quick actions section', (tester) async {

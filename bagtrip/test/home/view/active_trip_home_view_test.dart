@@ -83,6 +83,11 @@ void main() {
     });
 
     testWidgets('activities timeline renders', (tester) async {
+      tester.view.physicalSize = const Size(1080, 4000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
       final activities = [
@@ -103,6 +108,11 @@ void main() {
     });
 
     testWidgets('activities sorted by time', (tester) async {
+      tester.view.physicalSize = const Size(1080, 4000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
       final activities = [
@@ -133,7 +143,7 @@ void main() {
       await tester.pumpWidget(buildApp(allActivities: []));
       await tester.pump(const Duration(seconds: 1));
 
-      expect(find.text('No activities planned today'), findsOneWidget);
+      expect(find.text('No activities on this day'), findsOneWidget);
     });
 
     testWidgets('quick actions section visible', (tester) async {

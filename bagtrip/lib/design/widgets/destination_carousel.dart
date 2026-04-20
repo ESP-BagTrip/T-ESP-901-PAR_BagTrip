@@ -72,8 +72,6 @@ class _DestinationCarouselState extends State<DestinationCarousel> {
           height: widget.height ?? 320,
           child: PageView.builder(
             controller: _pageController,
-            padEnds: false,
-            clipBehavior: Clip.none,
             itemCount: widget.itemCount,
             onPageChanged: _onPageChanged,
             itemBuilder: (context, index) {

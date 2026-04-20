@@ -14,13 +14,8 @@ import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Scales the home carousel down in both dimensions so cards stay the same
-/// shape (width/height ratio) as before, only smaller.
-const double _idleHomeCarouselSizeScale = 0.85;
-const double _idleHomeCarouselHeightFraction =
-    0.52 * _idleHomeCarouselSizeScale;
-const double _idleHomeCarouselViewportFraction =
-    0.85 * _idleHomeCarouselSizeScale;
+const double _idleHomeCarouselHeightFraction = 0.52;
+const double _idleHomeCarouselViewportFraction = 0.84;
 
 class IdleHomeView extends StatefulWidget {
   final HomeIdle state;
@@ -80,7 +75,6 @@ class _IdleHomeViewState extends State<IdleHomeView>
       ),
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        clipBehavior: Clip.none,
         slivers: [
           SliverFillRemaining(
             hasScrollBody: false,
@@ -143,33 +137,29 @@ class _IdleHomeViewState extends State<IdleHomeView>
                         ),
                       ),
 
-                    if (widget.state.backgroundOngoingTrip != null)
+                    if (widget.state.backgroundOngoingTrip == null)
+                      const SizedBox(height: AppSpacing.space24)
+                    else
                       const SizedBox(height: AppSpacing.space16),
 
-                    // Carousel inset only — card margins stay symmetric so scroll UX stays even.
-                    Padding(
-                      padding: const EdgeInsetsDirectional.only(
-                        start: AppSpacing.space24,
-                      ),
-                      child: SizedBox(
+                    // The carousel
+                    SizedBox(
+                      height: carouselHeight,
+                      child: DestinationCarousel(
+                        showIndicators: false,
                         height: carouselHeight,
-                        child: DestinationCarousel(
-                          showIndicators: false,
-                          height: carouselHeight,
-                          viewportFraction: _idleHomeCarouselViewportFraction,
-                          applyPageScale: false,
-                          initialPage: trips.isNotEmpty ? 1 : 0,
-                          itemCount: totalItems,
-                          itemBuilder: (context, index) {
-                            if (index == 0) {
-                              return CreateTripCard(
-                                isFirstTrip: widget.state.isNewUser,
-                              );
-                            }
-                            final trip = trips[index - 1];
-                            return _HomeTripCard(trip: trip);
-                          },
-                        ),
+                        viewportFraction: _idleHomeCarouselViewportFraction,
+                        initialPage: trips.isNotEmpty ? 1 : 0,
+                        itemCount: totalItems,
+                        itemBuilder: (context, index) {
+                          if (index == 0) {
+                            return CreateTripCard(
+                              isFirstTrip: widget.state.isNewUser,
+                            );
+                          }
+                          final trip = trips[index - 1];
+                          return _HomeTripCard(trip: trip);
+                        },
                       ),
                     ),
 
