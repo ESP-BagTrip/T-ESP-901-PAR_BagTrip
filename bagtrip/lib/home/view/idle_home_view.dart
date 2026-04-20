@@ -75,7 +75,6 @@ class _IdleHomeViewState extends State<IdleHomeView>
       ),
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        clipBehavior: Clip.none,
         slivers: [
           SliverFillRemaining(
             hasScrollBody: false,
@@ -138,33 +137,29 @@ class _IdleHomeViewState extends State<IdleHomeView>
                         ),
                       ),
 
-                    if (widget.state.backgroundOngoingTrip != null)
+                    if (widget.state.backgroundOngoingTrip == null)
+                      const SizedBox(height: AppSpacing.space24)
+                    else
                       const SizedBox(height: AppSpacing.space16),
 
-                    // Carousel inset only — card margins stay symmetric so scroll UX stays even.
-                    Padding(
-                      padding: const EdgeInsetsDirectional.only(
-                        start: AppSpacing.space24,
-                      ),
-                      child: SizedBox(
+                    // The carousel
+                    SizedBox(
+                      height: carouselHeight,
+                      child: DestinationCarousel(
+                        showIndicators: false,
                         height: carouselHeight,
-                        child: DestinationCarousel(
-                          showIndicators: false,
-                          height: carouselHeight,
-                          viewportFraction: _idleHomeCarouselViewportFraction,
-                          applyPageScale: false,
-                          initialPage: trips.isNotEmpty ? 1 : 0,
-                          itemCount: totalItems,
-                          itemBuilder: (context, index) {
-                            if (index == 0) {
-                              return CreateTripCard(
-                                isFirstTrip: widget.state.isNewUser,
-                              );
-                            }
-                            final trip = trips[index - 1];
-                            return _HomeTripCard(trip: trip);
-                          },
-                        ),
+                        viewportFraction: _idleHomeCarouselViewportFraction,
+                        initialPage: trips.isNotEmpty ? 1 : 0,
+                        itemCount: totalItems,
+                        itemBuilder: (context, index) {
+                          if (index == 0) {
+                            return CreateTripCard(
+                              isFirstTrip: widget.state.isNewUser,
+                            );
+                          }
+                          final trip = trips[index - 1];
+                          return _HomeTripCard(trip: trip);
+                        },
                       ),
                     ),
 
