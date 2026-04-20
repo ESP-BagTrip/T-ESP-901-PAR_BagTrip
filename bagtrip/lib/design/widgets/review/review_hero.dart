@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/optimized_image.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/review/hero_nav_button.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -20,6 +21,7 @@ class ReviewHero extends StatelessWidget {
     required this.daysLabel,
     required this.dateRangeLabel,
     required this.budgetLabel,
+    this.coverImageUrl,
     this.onEditDates,
     this.onBack,
     this.onClose,
@@ -32,6 +34,12 @@ class ReviewHero extends StatelessWidget {
   final String daysLabel;
   final String dateRangeLabel;
   final String budgetLabel;
+
+  /// Optional cover image rendered behind the metadata, with a gradient
+  /// overlay for legibility. When null, the hero falls back to the solid
+  /// `primaryDark` background.
+  final String? coverImageUrl;
+
   final VoidCallback? onEditDates;
   final VoidCallback? onBack;
   final VoidCallback? onClose;
@@ -97,62 +105,82 @@ class ReviewHero extends StatelessWidget {
       ),
     );
 
+    final hasImage = coverImageUrl != null && coverImageUrl!.isNotEmpty;
     return DecoratedBox(
       decoration: const BoxDecoration(color: ColorName.primaryDark),
-      child: Padding(
-        padding: EdgeInsets.only(top: topPadding),
-        child: Stack(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
+        fit: StackFit.passthrough,
+        children: [
+          if (hasImage)
+            Positioned.fill(child: OptimizedImage.tripCover(coverImageUrl!)),
+          if (hasImage)
+            const Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xAA0D1F35), Color(0xDD0D1F35)],
+                  ),
+                ),
+              ),
+            ),
+          Padding(
+            padding: EdgeInsets.only(top: topPadding),
+            child: Stack(
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.space16,
-                    AppSpacing.space4,
-                    AppSpacing.space16,
-                    0,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: navButtons,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          city,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontFamily: FontFamily.dMSerifDisplay,
-                            fontSize: 24,
-                            color: ColorName.surface,
-                          ),
-                        ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.space16,
+                        AppSpacing.space4,
+                        AppSpacing.space16,
+                        0,
                       ),
-                      metadata,
-                      if (trailing != null) ...[
-                        const SizedBox(width: AppSpacing.space12),
-                        trailing!,
-                      ],
-                    ],
-                  ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: navButtons,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              city,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontFamily: FontFamily.dMSerifDisplay,
+                                fontSize: 24,
+                                color: ColorName.surface,
+                              ),
+                            ),
+                          ),
+                          metadata,
+                          if (trailing != null) ...[
+                            const SizedBox(width: AppSpacing.space12),
+                            trailing!,
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
+                if (statusBadge != null)
+                  Positioned(
+                    top: AppSpacing.space12,
+                    right: AppSpacing.space16,
+                    child: statusBadge!,
+                  ),
               ],
             ),
-            if (statusBadge != null)
-              Positioned(
-                top: AppSpacing.space12,
-                right: AppSpacing.space16,
-                child: statusBadge!,
-              ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

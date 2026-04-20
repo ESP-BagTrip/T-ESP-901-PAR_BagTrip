@@ -29,5 +29,13 @@ abstract class TripRepository {
   Future<Result<Trip>> getTripById(String tripId);
   Future<Result<Trip>> updateTripStatus(String tripId, String status);
   Future<Result<Trip>> updateTrip(String tripId, Map<String, dynamic> updates);
+
+  /// Toggle whether BagTrip tracks flights / accommodations for this trip.
+  /// Pass `null` to keep the current value for either flag.
+  Future<Result<Trip>> updateTripTracking(
+    String tripId, {
+    String? flightsTracking,
+    String? accommodationsTracking,
+  });
   Future<Result<void>> deleteTrip(String tripId);
 }

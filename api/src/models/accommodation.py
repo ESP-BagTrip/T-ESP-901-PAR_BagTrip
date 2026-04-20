@@ -34,6 +34,9 @@ class Accommodation(Base):
     currency: Mapped[str | None] = mapped_column(String(3), nullable=True, default="EUR")
     booking_reference: Mapped[str | None] = mapped_column(String, nullable=True)
     notes: Mapped[str | None] = mapped_column(String, nullable=True)
+    validation_status: Mapped[str] = mapped_column(
+        String, nullable=False, default="MANUAL", server_default="MANUAL"
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

@@ -66,19 +66,7 @@ TripDetailLoaded _loaded({
     deferredLoaded: deferredLoaded,
     sectionErrors: sectionErrors,
     operationError: operationError,
-    completionResult:
-        completion ??
-        const CompletionResult(
-          percentage: 50,
-          segments: {
-            CompletionSegmentType.dates: true,
-            CompletionSegmentType.flights: false,
-            CompletionSegmentType.accommodation: false,
-            CompletionSegmentType.activities: true,
-            CompletionSegmentType.baggage: false,
-            CompletionSegmentType.budget: true,
-          },
-        ),
+    completionResult: completion ?? makeCompletionResult(percentage: 50),
   );
 }
 
@@ -235,10 +223,10 @@ void main() {
             startDate: DateTime(2026, 9),
             endDate: DateTime(2026, 9, 5),
           ),
-          completion: const CompletionResult(percentage: 73, segments: {}),
+          completion: makeCompletionResult(percentage: 73),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump();
       expect(find.text('73%'), findsOneWidget);
     });
 

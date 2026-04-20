@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Trip {
 
- String get id; String? get userId; String? get title; String? get originIata; String? get destinationIata; DateTime? get startDate; DateTime? get endDate;@TripStatusConverter() TripStatus get status; String? get description;@JsonKey(name: 'destination_name') String? get destinationName; String? get destinationTimezone; int? get nbTravelers; String? get coverImageUrl; double? get budgetTotal; String? get origin; String? get role; int get completionPercentage; DateTime? get createdAt; DateTime? get updatedAt;
+ String get id; String? get userId; String? get title; String? get originIata; String? get destinationIata; DateTime? get startDate; DateTime? get endDate;@TripStatusConverter() TripStatus get status; String? get description;@JsonKey(name: 'destination_name') String? get destinationName; String? get destinationTimezone; int? get nbTravelers; String? get coverImageUrl; double? get budgetTotal; String? get origin; String? get role; int get completionPercentage; String get flightsTracking; String get accommodationsTracking; DateTime? get createdAt; DateTime? get updatedAt;
 /// Create a copy of Trip
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $TripCopyWith<Trip> get copyWith => _$TripCopyWithImpl<Trip>(this as Trip, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Trip&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.title, title) || other.title == title)&&(identical(other.originIata, originIata) || other.originIata == originIata)&&(identical(other.destinationIata, destinationIata) || other.destinationIata == destinationIata)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.description, description) || other.description == description)&&(identical(other.destinationName, destinationName) || other.destinationName == destinationName)&&(identical(other.destinationTimezone, destinationTimezone) || other.destinationTimezone == destinationTimezone)&&(identical(other.nbTravelers, nbTravelers) || other.nbTravelers == nbTravelers)&&(identical(other.coverImageUrl, coverImageUrl) || other.coverImageUrl == coverImageUrl)&&(identical(other.budgetTotal, budgetTotal) || other.budgetTotal == budgetTotal)&&(identical(other.origin, origin) || other.origin == origin)&&(identical(other.role, role) || other.role == role)&&(identical(other.completionPercentage, completionPercentage) || other.completionPercentage == completionPercentage)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Trip&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.title, title) || other.title == title)&&(identical(other.originIata, originIata) || other.originIata == originIata)&&(identical(other.destinationIata, destinationIata) || other.destinationIata == destinationIata)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.description, description) || other.description == description)&&(identical(other.destinationName, destinationName) || other.destinationName == destinationName)&&(identical(other.destinationTimezone, destinationTimezone) || other.destinationTimezone == destinationTimezone)&&(identical(other.nbTravelers, nbTravelers) || other.nbTravelers == nbTravelers)&&(identical(other.coverImageUrl, coverImageUrl) || other.coverImageUrl == coverImageUrl)&&(identical(other.budgetTotal, budgetTotal) || other.budgetTotal == budgetTotal)&&(identical(other.origin, origin) || other.origin == origin)&&(identical(other.role, role) || other.role == role)&&(identical(other.completionPercentage, completionPercentage) || other.completionPercentage == completionPercentage)&&(identical(other.flightsTracking, flightsTracking) || other.flightsTracking == flightsTracking)&&(identical(other.accommodationsTracking, accommodationsTracking) || other.accommodationsTracking == accommodationsTracking)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,userId,title,originIata,destinationIata,startDate,endDate,status,description,destinationName,destinationTimezone,nbTravelers,coverImageUrl,budgetTotal,origin,role,completionPercentage,createdAt,updatedAt]);
+int get hashCode => Object.hashAll([runtimeType,id,userId,title,originIata,destinationIata,startDate,endDate,status,description,destinationName,destinationTimezone,nbTravelers,coverImageUrl,budgetTotal,origin,role,completionPercentage,flightsTracking,accommodationsTracking,createdAt,updatedAt]);
 
 @override
 String toString() {
-  return 'Trip(id: $id, userId: $userId, title: $title, originIata: $originIata, destinationIata: $destinationIata, startDate: $startDate, endDate: $endDate, status: $status, description: $description, destinationName: $destinationName, destinationTimezone: $destinationTimezone, nbTravelers: $nbTravelers, coverImageUrl: $coverImageUrl, budgetTotal: $budgetTotal, origin: $origin, role: $role, completionPercentage: $completionPercentage, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Trip(id: $id, userId: $userId, title: $title, originIata: $originIata, destinationIata: $destinationIata, startDate: $startDate, endDate: $endDate, status: $status, description: $description, destinationName: $destinationName, destinationTimezone: $destinationTimezone, nbTravelers: $nbTravelers, coverImageUrl: $coverImageUrl, budgetTotal: $budgetTotal, origin: $origin, role: $role, completionPercentage: $completionPercentage, flightsTracking: $flightsTracking, accommodationsTracking: $accommodationsTracking, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $TripCopyWith<$Res>  {
   factory $TripCopyWith(Trip value, $Res Function(Trip) _then) = _$TripCopyWithImpl;
 @useResult
 $Res call({
- String id, String? userId, String? title, String? originIata, String? destinationIata, DateTime? startDate, DateTime? endDate,@TripStatusConverter() TripStatus status, String? description,@JsonKey(name: 'destination_name') String? destinationName, String? destinationTimezone, int? nbTravelers, String? coverImageUrl, double? budgetTotal, String? origin, String? role, int completionPercentage, DateTime? createdAt, DateTime? updatedAt
+ String id, String? userId, String? title, String? originIata, String? destinationIata, DateTime? startDate, DateTime? endDate,@TripStatusConverter() TripStatus status, String? description,@JsonKey(name: 'destination_name') String? destinationName, String? destinationTimezone, int? nbTravelers, String? coverImageUrl, double? budgetTotal, String? origin, String? role, int completionPercentage, String flightsTracking, String accommodationsTracking, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -65,7 +65,7 @@ class _$TripCopyWithImpl<$Res>
 
 /// Create a copy of Trip
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = freezed,Object? title = freezed,Object? originIata = freezed,Object? destinationIata = freezed,Object? startDate = freezed,Object? endDate = freezed,Object? status = null,Object? description = freezed,Object? destinationName = freezed,Object? destinationTimezone = freezed,Object? nbTravelers = freezed,Object? coverImageUrl = freezed,Object? budgetTotal = freezed,Object? origin = freezed,Object? role = freezed,Object? completionPercentage = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = freezed,Object? title = freezed,Object? originIata = freezed,Object? destinationIata = freezed,Object? startDate = freezed,Object? endDate = freezed,Object? status = null,Object? description = freezed,Object? destinationName = freezed,Object? destinationTimezone = freezed,Object? nbTravelers = freezed,Object? coverImageUrl = freezed,Object? budgetTotal = freezed,Object? origin = freezed,Object? role = freezed,Object? completionPercentage = null,Object? flightsTracking = null,Object? accommodationsTracking = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -84,7 +84,9 @@ as String?,budgetTotal: freezed == budgetTotal ? _self.budgetTotal : budgetTotal
 as double?,origin: freezed == origin ? _self.origin : origin // ignore: cast_nullable_to_non_nullable
 as String?,role: freezed == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as String?,completionPercentage: null == completionPercentage ? _self.completionPercentage : completionPercentage // ignore: cast_nullable_to_non_nullable
-as int,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as int,flightsTracking: null == flightsTracking ? _self.flightsTracking : flightsTracking // ignore: cast_nullable_to_non_nullable
+as String,accommodationsTracking: null == accommodationsTracking ? _self.accommodationsTracking : accommodationsTracking // ignore: cast_nullable_to_non_nullable
+as String,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
@@ -171,10 +173,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? userId,  String? title,  String? originIata,  String? destinationIata,  DateTime? startDate,  DateTime? endDate, @TripStatusConverter()  TripStatus status,  String? description, @JsonKey(name: 'destination_name')  String? destinationName,  String? destinationTimezone,  int? nbTravelers,  String? coverImageUrl,  double? budgetTotal,  String? origin,  String? role,  int completionPercentage,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? userId,  String? title,  String? originIata,  String? destinationIata,  DateTime? startDate,  DateTime? endDate, @TripStatusConverter()  TripStatus status,  String? description, @JsonKey(name: 'destination_name')  String? destinationName,  String? destinationTimezone,  int? nbTravelers,  String? coverImageUrl,  double? budgetTotal,  String? origin,  String? role,  int completionPercentage,  String flightsTracking,  String accommodationsTracking,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Trip() when $default != null:
-return $default(_that.id,_that.userId,_that.title,_that.originIata,_that.destinationIata,_that.startDate,_that.endDate,_that.status,_that.description,_that.destinationName,_that.destinationTimezone,_that.nbTravelers,_that.coverImageUrl,_that.budgetTotal,_that.origin,_that.role,_that.completionPercentage,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.userId,_that.title,_that.originIata,_that.destinationIata,_that.startDate,_that.endDate,_that.status,_that.description,_that.destinationName,_that.destinationTimezone,_that.nbTravelers,_that.coverImageUrl,_that.budgetTotal,_that.origin,_that.role,_that.completionPercentage,_that.flightsTracking,_that.accommodationsTracking,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -192,10 +194,10 @@ return $default(_that.id,_that.userId,_that.title,_that.originIata,_that.destina
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? userId,  String? title,  String? originIata,  String? destinationIata,  DateTime? startDate,  DateTime? endDate, @TripStatusConverter()  TripStatus status,  String? description, @JsonKey(name: 'destination_name')  String? destinationName,  String? destinationTimezone,  int? nbTravelers,  String? coverImageUrl,  double? budgetTotal,  String? origin,  String? role,  int completionPercentage,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? userId,  String? title,  String? originIata,  String? destinationIata,  DateTime? startDate,  DateTime? endDate, @TripStatusConverter()  TripStatus status,  String? description, @JsonKey(name: 'destination_name')  String? destinationName,  String? destinationTimezone,  int? nbTravelers,  String? coverImageUrl,  double? budgetTotal,  String? origin,  String? role,  int completionPercentage,  String flightsTracking,  String accommodationsTracking,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Trip():
-return $default(_that.id,_that.userId,_that.title,_that.originIata,_that.destinationIata,_that.startDate,_that.endDate,_that.status,_that.description,_that.destinationName,_that.destinationTimezone,_that.nbTravelers,_that.coverImageUrl,_that.budgetTotal,_that.origin,_that.role,_that.completionPercentage,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.userId,_that.title,_that.originIata,_that.destinationIata,_that.startDate,_that.endDate,_that.status,_that.description,_that.destinationName,_that.destinationTimezone,_that.nbTravelers,_that.coverImageUrl,_that.budgetTotal,_that.origin,_that.role,_that.completionPercentage,_that.flightsTracking,_that.accommodationsTracking,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -212,10 +214,10 @@ return $default(_that.id,_that.userId,_that.title,_that.originIata,_that.destina
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? userId,  String? title,  String? originIata,  String? destinationIata,  DateTime? startDate,  DateTime? endDate, @TripStatusConverter()  TripStatus status,  String? description, @JsonKey(name: 'destination_name')  String? destinationName,  String? destinationTimezone,  int? nbTravelers,  String? coverImageUrl,  double? budgetTotal,  String? origin,  String? role,  int completionPercentage,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? userId,  String? title,  String? originIata,  String? destinationIata,  DateTime? startDate,  DateTime? endDate, @TripStatusConverter()  TripStatus status,  String? description, @JsonKey(name: 'destination_name')  String? destinationName,  String? destinationTimezone,  int? nbTravelers,  String? coverImageUrl,  double? budgetTotal,  String? origin,  String? role,  int completionPercentage,  String flightsTracking,  String accommodationsTracking,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Trip() when $default != null:
-return $default(_that.id,_that.userId,_that.title,_that.originIata,_that.destinationIata,_that.startDate,_that.endDate,_that.status,_that.description,_that.destinationName,_that.destinationTimezone,_that.nbTravelers,_that.coverImageUrl,_that.budgetTotal,_that.origin,_that.role,_that.completionPercentage,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.userId,_that.title,_that.originIata,_that.destinationIata,_that.startDate,_that.endDate,_that.status,_that.description,_that.destinationName,_that.destinationTimezone,_that.nbTravelers,_that.coverImageUrl,_that.budgetTotal,_that.origin,_that.role,_that.completionPercentage,_that.flightsTracking,_that.accommodationsTracking,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -227,7 +229,7 @@ return $default(_that.id,_that.userId,_that.title,_that.originIata,_that.destina
 @JsonSerializable()
 
 class _Trip implements Trip {
-  const _Trip({required this.id, this.userId, this.title, this.originIata, this.destinationIata, this.startDate, this.endDate, @TripStatusConverter() this.status = TripStatus.draft, this.description, @JsonKey(name: 'destination_name') this.destinationName, this.destinationTimezone, this.nbTravelers, this.coverImageUrl, this.budgetTotal, this.origin, this.role, this.completionPercentage = 0, this.createdAt, this.updatedAt});
+  const _Trip({required this.id, this.userId, this.title, this.originIata, this.destinationIata, this.startDate, this.endDate, @TripStatusConverter() this.status = TripStatus.draft, this.description, @JsonKey(name: 'destination_name') this.destinationName, this.destinationTimezone, this.nbTravelers, this.coverImageUrl, this.budgetTotal, this.origin, this.role, this.completionPercentage = 0, this.flightsTracking = 'TRACKED', this.accommodationsTracking = 'TRACKED', this.createdAt, this.updatedAt});
   factory _Trip.fromJson(Map<String, dynamic> json) => _$TripFromJson(json);
 
 @override final  String id;
@@ -247,6 +249,8 @@ class _Trip implements Trip {
 @override final  String? origin;
 @override final  String? role;
 @override@JsonKey() final  int completionPercentage;
+@override@JsonKey() final  String flightsTracking;
+@override@JsonKey() final  String accommodationsTracking;
 @override final  DateTime? createdAt;
 @override final  DateTime? updatedAt;
 
@@ -263,16 +267,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Trip&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.title, title) || other.title == title)&&(identical(other.originIata, originIata) || other.originIata == originIata)&&(identical(other.destinationIata, destinationIata) || other.destinationIata == destinationIata)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.description, description) || other.description == description)&&(identical(other.destinationName, destinationName) || other.destinationName == destinationName)&&(identical(other.destinationTimezone, destinationTimezone) || other.destinationTimezone == destinationTimezone)&&(identical(other.nbTravelers, nbTravelers) || other.nbTravelers == nbTravelers)&&(identical(other.coverImageUrl, coverImageUrl) || other.coverImageUrl == coverImageUrl)&&(identical(other.budgetTotal, budgetTotal) || other.budgetTotal == budgetTotal)&&(identical(other.origin, origin) || other.origin == origin)&&(identical(other.role, role) || other.role == role)&&(identical(other.completionPercentage, completionPercentage) || other.completionPercentage == completionPercentage)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Trip&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.title, title) || other.title == title)&&(identical(other.originIata, originIata) || other.originIata == originIata)&&(identical(other.destinationIata, destinationIata) || other.destinationIata == destinationIata)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.description, description) || other.description == description)&&(identical(other.destinationName, destinationName) || other.destinationName == destinationName)&&(identical(other.destinationTimezone, destinationTimezone) || other.destinationTimezone == destinationTimezone)&&(identical(other.nbTravelers, nbTravelers) || other.nbTravelers == nbTravelers)&&(identical(other.coverImageUrl, coverImageUrl) || other.coverImageUrl == coverImageUrl)&&(identical(other.budgetTotal, budgetTotal) || other.budgetTotal == budgetTotal)&&(identical(other.origin, origin) || other.origin == origin)&&(identical(other.role, role) || other.role == role)&&(identical(other.completionPercentage, completionPercentage) || other.completionPercentage == completionPercentage)&&(identical(other.flightsTracking, flightsTracking) || other.flightsTracking == flightsTracking)&&(identical(other.accommodationsTracking, accommodationsTracking) || other.accommodationsTracking == accommodationsTracking)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,userId,title,originIata,destinationIata,startDate,endDate,status,description,destinationName,destinationTimezone,nbTravelers,coverImageUrl,budgetTotal,origin,role,completionPercentage,createdAt,updatedAt]);
+int get hashCode => Object.hashAll([runtimeType,id,userId,title,originIata,destinationIata,startDate,endDate,status,description,destinationName,destinationTimezone,nbTravelers,coverImageUrl,budgetTotal,origin,role,completionPercentage,flightsTracking,accommodationsTracking,createdAt,updatedAt]);
 
 @override
 String toString() {
-  return 'Trip(id: $id, userId: $userId, title: $title, originIata: $originIata, destinationIata: $destinationIata, startDate: $startDate, endDate: $endDate, status: $status, description: $description, destinationName: $destinationName, destinationTimezone: $destinationTimezone, nbTravelers: $nbTravelers, coverImageUrl: $coverImageUrl, budgetTotal: $budgetTotal, origin: $origin, role: $role, completionPercentage: $completionPercentage, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Trip(id: $id, userId: $userId, title: $title, originIata: $originIata, destinationIata: $destinationIata, startDate: $startDate, endDate: $endDate, status: $status, description: $description, destinationName: $destinationName, destinationTimezone: $destinationTimezone, nbTravelers: $nbTravelers, coverImageUrl: $coverImageUrl, budgetTotal: $budgetTotal, origin: $origin, role: $role, completionPercentage: $completionPercentage, flightsTracking: $flightsTracking, accommodationsTracking: $accommodationsTracking, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -283,7 +287,7 @@ abstract mixin class _$TripCopyWith<$Res> implements $TripCopyWith<$Res> {
   factory _$TripCopyWith(_Trip value, $Res Function(_Trip) _then) = __$TripCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? userId, String? title, String? originIata, String? destinationIata, DateTime? startDate, DateTime? endDate,@TripStatusConverter() TripStatus status, String? description,@JsonKey(name: 'destination_name') String? destinationName, String? destinationTimezone, int? nbTravelers, String? coverImageUrl, double? budgetTotal, String? origin, String? role, int completionPercentage, DateTime? createdAt, DateTime? updatedAt
+ String id, String? userId, String? title, String? originIata, String? destinationIata, DateTime? startDate, DateTime? endDate,@TripStatusConverter() TripStatus status, String? description,@JsonKey(name: 'destination_name') String? destinationName, String? destinationTimezone, int? nbTravelers, String? coverImageUrl, double? budgetTotal, String? origin, String? role, int completionPercentage, String flightsTracking, String accommodationsTracking, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -300,7 +304,7 @@ class __$TripCopyWithImpl<$Res>
 
 /// Create a copy of Trip
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = freezed,Object? title = freezed,Object? originIata = freezed,Object? destinationIata = freezed,Object? startDate = freezed,Object? endDate = freezed,Object? status = null,Object? description = freezed,Object? destinationName = freezed,Object? destinationTimezone = freezed,Object? nbTravelers = freezed,Object? coverImageUrl = freezed,Object? budgetTotal = freezed,Object? origin = freezed,Object? role = freezed,Object? completionPercentage = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = freezed,Object? title = freezed,Object? originIata = freezed,Object? destinationIata = freezed,Object? startDate = freezed,Object? endDate = freezed,Object? status = null,Object? description = freezed,Object? destinationName = freezed,Object? destinationTimezone = freezed,Object? nbTravelers = freezed,Object? coverImageUrl = freezed,Object? budgetTotal = freezed,Object? origin = freezed,Object? role = freezed,Object? completionPercentage = null,Object? flightsTracking = null,Object? accommodationsTracking = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_Trip(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -319,7 +323,9 @@ as String?,budgetTotal: freezed == budgetTotal ? _self.budgetTotal : budgetTotal
 as double?,origin: freezed == origin ? _self.origin : origin // ignore: cast_nullable_to_non_nullable
 as String?,role: freezed == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as String?,completionPercentage: null == completionPercentage ? _self.completionPercentage : completionPercentage // ignore: cast_nullable_to_non_nullable
-as int,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as int,flightsTracking: null == flightsTracking ? _self.flightsTracking : flightsTracking // ignore: cast_nullable_to_non_nullable
+as String,accommodationsTracking: null == accommodationsTracking ? _self.accommodationsTracking : accommodationsTracking // ignore: cast_nullable_to_non_nullable
+as String,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));

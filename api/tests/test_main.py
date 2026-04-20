@@ -108,23 +108,22 @@ class TestExceptionHandlers:
             logger.level = original_level
 
     def test_general_exception_handler(self, client):
-        """Test handling of generic Exception."""
+        """Non-DEBUG: response is sanitized — no raw exception leaked."""
 
         @app.get("/test-general-error")
         def raise_general_error():
-            raise ValueError("Something went wrong")
+            raise ValueError("Something went wrong — secret SQL inside")
 
-        # In non-debug mode (default for tests usually unless set otherwise)
         with patch.object(logger, "level", LogLevel.INFO):
             response = client.get("/test-general-error")
             assert response.status_code == 500
-            assert response.json() == {
-                "error": "Internal server error",
-                "detail": "Something went wrong",
-            }
+            body = response.json()
+            assert body == {"error": "Internal server error"}
+            assert "detail" not in body
+            assert "Something went wrong" not in response.text
 
     def test_general_exception_handler_debug(self, client):
-        """Test handling of generic Exception in DEBUG mode."""
+        """DEBUG: full detail + traceback surface in the response for dev UX."""
         original_level = logger.level
         logger.level = LogLevel.DEBUG
 
@@ -140,6 +139,7 @@ class TestExceptionHandlers:
             assert data["error"] == "Internal server error"
             assert isinstance(data["detail"], dict)
             assert data["detail"]["error"] == "Debug error"
+            assert data["detail"]["type"] == "ValueError"
             assert "traceback" in data["detail"]
         finally:
             logger.level = original_level

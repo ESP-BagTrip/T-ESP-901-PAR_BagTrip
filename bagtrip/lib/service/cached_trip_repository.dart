@@ -151,6 +151,23 @@ class CachedTripRepository implements TripRepository {
   }
 
   @override
+  Future<Result<Trip>> updateTripTracking(
+    String tripId, {
+    String? flightsTracking,
+    String? accommodationsTracking,
+  }) async {
+    final result = await _remote.updateTripTracking(
+      tripId,
+      flightsTracking: flightsTracking,
+      accommodationsTracking: accommodationsTracking,
+    );
+    if (result is Success) {
+      await _invalidateTripCaches(tripId);
+    }
+    return result;
+  }
+
+  @override
   Future<Result<void>> deleteTrip(String tripId) async {
     final result = await _remote.deleteTrip(tripId);
     if (result is Success) {

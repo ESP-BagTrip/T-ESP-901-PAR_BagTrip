@@ -1,10 +1,22 @@
-"""Tests for Phase 4 (API-6/7/8): IATA, baggage, destination selection."""
+"""Tests for Phase 4 (API-6/7/8): IATA, baggage, destination selection.
 
-from src.api.ai.plan_trip_routes import (
-    _DEFAULT_BAGGAGE_I18N,
-    _get_default_baggage,
-)
+Helpers moved from `api.ai.plan_trip_routes` to
+`services.plan_acceptance_service` in SMP-316. Tests import from the new
+location.
+"""
+
+from datetime import UTC, date, datetime, time
+
 from src.api.ai.plan_trip_schemas import AcceptPlanRequest
+from src.enums import FlightType, ValidationStatus
+from src.services.plan_acceptance_service import (
+    _DEFAULT_BAGGAGE_I18N,
+    _build_manual_flight,
+    combine_date_to_utc_datetime as _combine_date_to_utc_datetime,
+    compute_nights as _compute_nights,
+    get_default_baggage as _get_default_baggage,
+    parse_iso_datetime as _parse_iso_datetime,
+)
 
 # --- API-6: IATA extraction ---
 
@@ -109,6 +121,96 @@ def test_selected_destination_index_2_picks_second_alternative():
     alt_idx = idx - 1
     chosen = suggestion["alternatives"][alt_idx]
     assert chosen["city"] == "Rome"
+
+
+# --- SMP-316: validation_status + return flight on accept ---
+
+
+def test_build_manual_flight_marks_main_as_suggested():
+    flight = _build_manual_flight(
+        trip_id="trip-1",
+        flight_data={
+            "route": "CDG → LIS",
+            "price": 240,
+            "source": "amadeus",
+            "airline": "Air France",
+            "flight_number": "AF1234",
+            "departure_date": "2026-06-01T14:20:00",
+            "arrival_date": "2026-06-01T16:40:00",
+            "duration": "PT2H20M",
+        },
+        flight_type=FlightType.MAIN,
+        dep_airport="CDG",
+        arr_airport="LIS",
+    )
+    assert flight.flight_type == FlightType.MAIN
+    assert flight.validation_status == ValidationStatus.SUGGESTED
+    assert flight.airline == "Air France"
+    assert flight.flight_number == "AF1234"
+    assert flight.departure_airport == "CDG"
+    assert flight.arrival_airport == "LIS"
+    assert "duration=PT2H20M" in (flight.notes or "")
+
+
+def test_build_manual_flight_falls_back_when_llm_omits_data():
+    flight = _build_manual_flight(
+        trip_id="trip-1",
+        flight_data={"source": "estimated"},
+        flight_type=FlightType.RETURN,
+        dep_airport="LIS",
+        arr_airport="CDG",
+    )
+    assert flight.flight_type == FlightType.RETURN
+    assert flight.flight_number == "TBD"
+    assert flight.airline is None
+    assert flight.validation_status == ValidationStatus.SUGGESTED
+
+
+def test_parse_iso_datetime_handles_valid_and_invalid():
+    assert _parse_iso_datetime("2026-06-01T14:20:00") == datetime(2026, 6, 1, 14, 20)
+    assert _parse_iso_datetime("") is None
+    assert _parse_iso_datetime("not-a-date") is None
+    assert _parse_iso_datetime(None) is None
+
+
+def test_compute_nights_basic():
+    assert _compute_nights(date(2026, 4, 23), date(2026, 4, 30)) == 7
+
+
+def test_compute_nights_returns_zero_on_missing():
+    assert _compute_nights(None, date(2026, 1, 1)) == 0
+    assert _compute_nights(date(2026, 1, 1), None) == 0
+    assert _compute_nights(None, None) == 0
+
+
+def test_compute_nights_clamps_negative():
+    assert _compute_nights(date(2026, 5, 10), date(2026, 5, 1)) == 0
+
+
+def test_combine_date_to_utc_datetime_uses_midnight():
+    result = _combine_date_to_utc_datetime(date(2026, 4, 23))
+    assert result == datetime(2026, 4, 23, 0, 0, tzinfo=UTC)
+    assert result.time() == time.min
+
+
+def test_combine_date_to_utc_datetime_accepts_none():
+    assert _combine_date_to_utc_datetime(None) is None
+
+
+def test_return_flight_swaps_airports_when_route_missing():
+    """When the LLM omits the return route, airports invert the outbound."""
+    outbound_dep, outbound_arr = "CDG", "LIS"
+    return_data = {"source": "estimated"}  # no "route" key
+    route = return_data.get("route", "")
+    import re
+
+    codes = re.findall(r"\b([A-Z]{3})\b", route.upper())
+    ret_dep = codes[0] if len(codes) >= 1 else None
+    ret_arr = codes[1] if len(codes) >= 2 else None
+    if not ret_dep and not ret_arr:
+        ret_dep, ret_arr = outbound_arr, outbound_dep
+    assert ret_dep == "LIS"
+    assert ret_arr == "CDG"
 
 
 def test_out_of_range_index_keeps_primary():

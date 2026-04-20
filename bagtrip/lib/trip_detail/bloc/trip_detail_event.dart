@@ -185,3 +185,15 @@ final class RetryDeferredSection extends TripDetailEvent {
   final String section;
   RetryDeferredSection({required this.section});
 }
+
+/// User toggles whether BagTrip tracks flights / accommodations for this trip.
+/// When set to `'SKIPPED'`, the domain is treated as already validated and the
+/// companion mode won't push alerts about it.
+final class UpdateTripTrackingFromDetail extends TripDetailEvent {
+  final String? flightsTracking;
+  final String? accommodationsTracking;
+  UpdateTripTrackingFromDetail({
+    this.flightsTracking,
+    this.accommodationsTracking,
+  });
+}

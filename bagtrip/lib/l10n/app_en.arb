@@ -1482,5 +1482,39 @@
   "activityValidateAction": "Validate",
   "activitySuggestedBadge": "Suggested",
   "shareCopyLink": "Copy invite link",
-  "shareRevokeAccess": "Revoke access"
+  "shareRevokeAccess": "Revoke access",
+  "panelSkippedFlightsTitle": "Flights are on you",
+  "panelSkippedFlightsMessage": "You told BagTrip to stay out of your flights. We won't track times, nudge you on departure day, or count flights in your completion.",
+  "panelSkippedAccommodationsTitle": "Stays are on you",
+  "panelSkippedAccommodationsMessage": "You're handling accommodations yourself. BagTrip won't suggest check-in reminders or count them in your completion.",
+  "panelSkipFlightsCta": "Don't track my flights",
+  "panelSkipAccommodationsCta": "Don't track my stays",
+  "panelResumeFlightsCta": "Let BagTrip track my flights again",
+  "panelResumeAccommodationsCta": "Let BagTrip track my stays again",
+  "validationBoardEyebrow": "Validation",
+  "validationBoardSubtitle": "What's left before your trip is locked in.",
+  "validationBoardStatusSkipped": "You're handling this yourself",
+  "validationBoardStatusNothing": "Nothing to validate yet",
+  "validationBoardStatusAllDone": "All validated",
+  "validationBoardStatusRemaining": "{remaining} of {total} left",
+  "@validationBoardStatusRemaining": {
+    "placeholders": {
+      "remaining": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "budgetRealHeader": "Real",
+  "budgetRealSubtitle": "What you've actually spent and validated.",
+  "budgetRealEmpty": "No expense logged yet. Add one to start tracking.",
+  "budgetForecastHeader": "Forecast",
+  "budgetForecastSubtitle": "What the plan estimates you will spend.",
+  "budgetForecastEmpty": "No forecast yet. Add a planned item or let the AI plan fill this in.",
+  "budgetDeltaOver": "Real is {amount} above the forecast",
+  "@budgetDeltaOver": {
+    "placeholders": {"amount": {"type": "String"}}
+  },
+  "budgetDeltaUnder": "Real is {amount} under the forecast",
+  "@budgetDeltaUnder": {
+    "placeholders": {"amount": {"type": "String"}}
+  }
 }

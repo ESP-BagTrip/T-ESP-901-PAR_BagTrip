@@ -2964,4 +2964,82 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shareRevokeAccess => 'Revoke access';
+
+  @override
+  String get panelSkippedFlightsTitle => 'Flights are on you';
+
+  @override
+  String get panelSkippedFlightsMessage =>
+      'You told BagTrip to stay out of your flights. We won\'t track times, nudge you on departure day, or count flights in your completion.';
+
+  @override
+  String get panelSkippedAccommodationsTitle => 'Stays are on you';
+
+  @override
+  String get panelSkippedAccommodationsMessage =>
+      'You\'re handling accommodations yourself. BagTrip won\'t suggest check-in reminders or count them in your completion.';
+
+  @override
+  String get panelSkipFlightsCta => 'Don\'t track my flights';
+
+  @override
+  String get panelSkipAccommodationsCta => 'Don\'t track my stays';
+
+  @override
+  String get panelResumeFlightsCta => 'Let BagTrip track my flights again';
+
+  @override
+  String get panelResumeAccommodationsCta => 'Let BagTrip track my stays again';
+
+  @override
+  String get validationBoardEyebrow => 'Validation';
+
+  @override
+  String get validationBoardSubtitle =>
+      'What\'s left before your trip is locked in.';
+
+  @override
+  String get validationBoardStatusSkipped => 'You\'re handling this yourself';
+
+  @override
+  String get validationBoardStatusNothing => 'Nothing to validate yet';
+
+  @override
+  String get validationBoardStatusAllDone => 'All validated';
+
+  @override
+  String validationBoardStatusRemaining(int remaining, int total) {
+    return '$remaining of $total left';
+  }
+
+  @override
+  String get budgetRealHeader => 'Real';
+
+  @override
+  String get budgetRealSubtitle => 'What you\'ve actually spent and validated.';
+
+  @override
+  String get budgetRealEmpty =>
+      'No expense logged yet. Add one to start tracking.';
+
+  @override
+  String get budgetForecastHeader => 'Forecast';
+
+  @override
+  String get budgetForecastSubtitle =>
+      'What the plan estimates you will spend.';
+
+  @override
+  String get budgetForecastEmpty =>
+      'No forecast yet. Add a planned item or let the AI plan fill this in.';
+
+  @override
+  String budgetDeltaOver(String amount) {
+    return 'Real is $amount above the forecast';
+  }
+
+  @override
+  String budgetDeltaUnder(String amount) {
+    return 'Real is $amount under the forecast';
+  }
 }

@@ -87,6 +87,7 @@ def _make_mock_flight(flight_id, trip_id):
     flight.currency = "EUR"
     flight.notes = None
     flight.flight_type = "MAIN"
+    flight.validation_status = "MANUAL"
     flight.created_at = datetime(2027, 1, 1)
     flight.updated_at = datetime(2027, 1, 1)
     return flight

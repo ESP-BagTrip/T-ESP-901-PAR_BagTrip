@@ -1,7 +1,5 @@
 // ignore_for_file: avoid_redundant_argument_values
 
-import 'package:bagtrip/components/elegant_empty_state.dart';
-import 'package:bagtrip/design/widgets/review/budget_stripe.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/budget_item.dart';
@@ -19,7 +17,7 @@ import '../../../helpers/test_fixtures.dart';
 class _MockTripDetailBloc extends MockBloc<TripDetailEvent, TripDetailState>
     implements TripDetailBloc {}
 
-BudgetItem _expense({
+BudgetItem _item({
   String id = 'exp-1',
   String label = 'Coffee',
   double amount = 4.5,
@@ -83,7 +81,7 @@ void main() {
     );
   }
 
-  testWidgets('empty state shows CTA label when there is no summary or items', (
+  testWidgets('both sections render even when there is no item yet', (
     tester,
   ) async {
     await pump(
@@ -98,25 +96,36 @@ void main() {
         role: 'OWNER',
       ),
     );
-    expect(find.byType(ElegantEmptyState), findsOneWidget);
-    expect(find.text('Add expense'), findsOneWidget);
+    // Both section headers and their empty hints are visible on a fresh trip.
+    expect(find.text('FORECAST'), findsOneWidget);
+    expect(find.text('REAL'), findsOneWidget);
+    expect(find.textContaining('No forecast yet'), findsOneWidget);
+    expect(find.textContaining('No expense logged yet'), findsOneWidget);
   });
 
-  testWidgets('shows recent expenses inline when items exist', (tester) async {
+  testWidgets('renders both Forecast and Real section headers', (tester) async {
+    await pump(
+      tester,
+      BudgetPanel(
+        tripId: 'trip-1',
+        budgetSummary: null,
+        budgetItems: [_item(isPlanned: true)],
+        totalDays: 3,
+        canEdit: true,
+        isCompleted: false,
+        role: 'OWNER',
+      ),
+    );
+    expect(find.text('FORECAST'), findsOneWidget);
+    expect(find.text('REAL'), findsOneWidget);
+  });
+
+  testWidgets('forecast items appear under Forecast, real under Real', (
+    tester,
+  ) async {
     final items = [
-      _expense(id: 'e1', label: 'Coffee', amount: 4.5),
-      _expense(
-        id: 'e2',
-        label: 'Lunch',
-        amount: 25,
-        category: BudgetCategory.food,
-      ),
-      _expense(
-        id: 'e3',
-        label: 'Museum',
-        amount: 12,
-        category: BudgetCategory.activity,
-      ),
+      _item(id: 'f1', label: 'Forecast hotel', amount: 120, isPlanned: true),
+      _item(id: 'r1', label: 'Lunch', amount: 25, isPlanned: false),
     ];
     await pump(
       tester,
@@ -130,33 +139,24 @@ void main() {
         role: 'OWNER',
       ),
     );
-    expect(find.text('Coffee'), findsOneWidget);
+    expect(find.text('Forecast hotel'), findsOneWidget);
     expect(find.text('Lunch'), findsOneWidget);
-    expect(find.text('Museum'), findsOneWidget);
-    expect(find.text('RECENT'), findsOneWidget);
   });
 
-  testWidgets('caps recent expenses to 5 even with more items', (tester) async {
-    final items = List.generate(
-      8,
-      (i) => _expense(id: 'e$i', label: 'Item $i'),
-    );
+  testWidgets('empty forecast section surfaces its empty hint', (tester) async {
     await pump(
       tester,
       BudgetPanel(
         tripId: 'trip-1',
         budgetSummary: null,
-        budgetItems: items,
+        budgetItems: [_item(isPlanned: false)],
         totalDays: 0,
         canEdit: true,
         isCompleted: false,
         role: 'OWNER',
       ),
     );
-    for (var i = 0; i < 5; i++) {
-      expect(find.text('Item $i'), findsOneWidget);
-    }
-    expect(find.text('Item 5'), findsNothing);
+    expect(find.textContaining('No forecast yet'), findsOneWidget);
   });
 
   testWidgets('PanelFab is visible when canEdit is true', (tester) async {
@@ -165,7 +165,7 @@ void main() {
       BudgetPanel(
         tripId: 'trip-1',
         budgetSummary: null,
-        budgetItems: [_expense()],
+        budgetItems: [_item()],
         totalDays: 0,
         canEdit: true,
         isCompleted: false,
@@ -181,7 +181,7 @@ void main() {
       BudgetPanel(
         tripId: 'trip-1',
         budgetSummary: null,
-        budgetItems: [_expense()],
+        budgetItems: [_item()],
         totalDays: 0,
         canEdit: false,
         isCompleted: false,
@@ -189,27 +189,5 @@ void main() {
       ),
     );
     expect(find.byType(PanelFab), findsNothing);
-  });
-
-  testWidgets('BudgetStripe is rendered when summary has a total budget', (
-    tester,
-  ) async {
-    await pump(
-      tester,
-      BudgetPanel(
-        tripId: 'trip-1',
-        budgetSummary: const BudgetSummary(
-          totalBudget: 1500,
-          totalSpent: 600,
-          byCategory: {'FOOD': 600},
-        ),
-        budgetItems: [_expense()],
-        totalDays: 5,
-        canEdit: true,
-        isCompleted: false,
-        role: 'OWNER',
-      ),
-    );
-    expect(find.byType(BudgetStripe), findsOneWidget);
   });
 }

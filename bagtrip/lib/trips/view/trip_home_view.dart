@@ -214,11 +214,7 @@ class TripHomeView extends StatelessWidget {
                           ),
                           emptyLabel: l10n.addFirstTransport,
                           onTap: () async {
-                            await TransportsRoute(
-                              tripId: tripId,
-                              role: trip.role ?? 'OWNER',
-                              isCompleted: isCompleted,
-                            ).push(context);
+                            await TripHomeRoute(tripId: tripId).push(context);
                             if (context.mounted) {
                               context.read<TripManagementBloc>().add(
                                 LoadTripHome(tripId: tripId),
@@ -268,11 +264,7 @@ class TripHomeView extends StatelessWidget {
                           ),
                           emptyLabel: l10n.addFirstActivity,
                           onTap: () async {
-                            await ActivitiesRoute(
-                              tripId: tripId,
-                              role: trip.role ?? 'OWNER',
-                              isCompleted: isCompleted,
-                            ).push(context);
+                            await TripHomeRoute(tripId: tripId).push(context);
                             if (context.mounted) {
                               context.read<TripManagementBloc>().add(
                                 LoadTripHome(tripId: tripId),
@@ -314,11 +306,7 @@ class TripHomeView extends StatelessWidget {
                           previewItems: _sectionPreviews(tripHome, 'budget'),
                           emptyLabel: l10n.addFirstBudget,
                           onTap: () async {
-                            await BudgetRoute(
-                              tripId: tripId,
-                              role: trip.role ?? 'OWNER',
-                              isCompleted: isCompleted,
-                            ).push(context);
+                            await TripHomeRoute(tripId: tripId).push(context);
                             if (context.mounted) {
                               context.read<TripManagementBloc>().add(
                                 LoadTripHome(tripId: tripId),

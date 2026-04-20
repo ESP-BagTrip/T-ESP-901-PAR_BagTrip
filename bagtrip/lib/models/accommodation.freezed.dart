@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Accommodation {
 
- String get id; String get tripId; String get name; String? get address; DateTime? get checkIn; DateTime? get checkOut; double? get pricePerNight; String? get currency; String? get bookingReference; String? get notes; DateTime? get createdAt; DateTime? get updatedAt;
+ String get id; String get tripId; String get name; String? get address; DateTime? get checkIn; DateTime? get checkOut; double? get pricePerNight; String? get currency; String? get bookingReference; String? get notes;@JsonKey(unknownEnumValue: ValidationStatus.manual) ValidationStatus get validationStatus; DateTime? get createdAt; DateTime? get updatedAt;
 /// Create a copy of Accommodation
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $AccommodationCopyWith<Accommodation> get copyWith => _$AccommodationCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Accommodation&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.name, name) || other.name == name)&&(identical(other.address, address) || other.address == address)&&(identical(other.checkIn, checkIn) || other.checkIn == checkIn)&&(identical(other.checkOut, checkOut) || other.checkOut == checkOut)&&(identical(other.pricePerNight, pricePerNight) || other.pricePerNight == pricePerNight)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.bookingReference, bookingReference) || other.bookingReference == bookingReference)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Accommodation&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.name, name) || other.name == name)&&(identical(other.address, address) || other.address == address)&&(identical(other.checkIn, checkIn) || other.checkIn == checkIn)&&(identical(other.checkOut, checkOut) || other.checkOut == checkOut)&&(identical(other.pricePerNight, pricePerNight) || other.pricePerNight == pricePerNight)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.bookingReference, bookingReference) || other.bookingReference == bookingReference)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.validationStatus, validationStatus) || other.validationStatus == validationStatus)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,tripId,name,address,checkIn,checkOut,pricePerNight,currency,bookingReference,notes,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,tripId,name,address,checkIn,checkOut,pricePerNight,currency,bookingReference,notes,validationStatus,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'Accommodation(id: $id, tripId: $tripId, name: $name, address: $address, checkIn: $checkIn, checkOut: $checkOut, pricePerNight: $pricePerNight, currency: $currency, bookingReference: $bookingReference, notes: $notes, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Accommodation(id: $id, tripId: $tripId, name: $name, address: $address, checkIn: $checkIn, checkOut: $checkOut, pricePerNight: $pricePerNight, currency: $currency, bookingReference: $bookingReference, notes: $notes, validationStatus: $validationStatus, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $AccommodationCopyWith<$Res>  {
   factory $AccommodationCopyWith(Accommodation value, $Res Function(Accommodation) _then) = _$AccommodationCopyWithImpl;
 @useResult
 $Res call({
- String id, String tripId, String name, String? address, DateTime? checkIn, DateTime? checkOut, double? pricePerNight, String? currency, String? bookingReference, String? notes, DateTime? createdAt, DateTime? updatedAt
+ String id, String tripId, String name, String? address, DateTime? checkIn, DateTime? checkOut, double? pricePerNight, String? currency, String? bookingReference, String? notes,@JsonKey(unknownEnumValue: ValidationStatus.manual) ValidationStatus validationStatus, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -65,7 +65,7 @@ class _$AccommodationCopyWithImpl<$Res>
 
 /// Create a copy of Accommodation
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? tripId = null,Object? name = null,Object? address = freezed,Object? checkIn = freezed,Object? checkOut = freezed,Object? pricePerNight = freezed,Object? currency = freezed,Object? bookingReference = freezed,Object? notes = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? tripId = null,Object? name = null,Object? address = freezed,Object? checkIn = freezed,Object? checkOut = freezed,Object? pricePerNight = freezed,Object? currency = freezed,Object? bookingReference = freezed,Object? notes = freezed,Object? validationStatus = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,tripId: null == tripId ? _self.tripId : tripId // ignore: cast_nullable_to_non_nullable
@@ -77,7 +77,8 @@ as DateTime?,pricePerNight: freezed == pricePerNight ? _self.pricePerNight : pri
 as double?,currency: freezed == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
 as String?,bookingReference: freezed == bookingReference ? _self.bookingReference : bookingReference // ignore: cast_nullable_to_non_nullable
 as String?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
-as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,validationStatus: null == validationStatus ? _self.validationStatus : validationStatus // ignore: cast_nullable_to_non_nullable
+as ValidationStatus,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
@@ -164,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String tripId,  String name,  String? address,  DateTime? checkIn,  DateTime? checkOut,  double? pricePerNight,  String? currency,  String? bookingReference,  String? notes,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String tripId,  String name,  String? address,  DateTime? checkIn,  DateTime? checkOut,  double? pricePerNight,  String? currency,  String? bookingReference,  String? notes, @JsonKey(unknownEnumValue: ValidationStatus.manual)  ValidationStatus validationStatus,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Accommodation() when $default != null:
-return $default(_that.id,_that.tripId,_that.name,_that.address,_that.checkIn,_that.checkOut,_that.pricePerNight,_that.currency,_that.bookingReference,_that.notes,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.tripId,_that.name,_that.address,_that.checkIn,_that.checkOut,_that.pricePerNight,_that.currency,_that.bookingReference,_that.notes,_that.validationStatus,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -185,10 +186,10 @@ return $default(_that.id,_that.tripId,_that.name,_that.address,_that.checkIn,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String tripId,  String name,  String? address,  DateTime? checkIn,  DateTime? checkOut,  double? pricePerNight,  String? currency,  String? bookingReference,  String? notes,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String tripId,  String name,  String? address,  DateTime? checkIn,  DateTime? checkOut,  double? pricePerNight,  String? currency,  String? bookingReference,  String? notes, @JsonKey(unknownEnumValue: ValidationStatus.manual)  ValidationStatus validationStatus,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Accommodation():
-return $default(_that.id,_that.tripId,_that.name,_that.address,_that.checkIn,_that.checkOut,_that.pricePerNight,_that.currency,_that.bookingReference,_that.notes,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.tripId,_that.name,_that.address,_that.checkIn,_that.checkOut,_that.pricePerNight,_that.currency,_that.bookingReference,_that.notes,_that.validationStatus,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -205,10 +206,10 @@ return $default(_that.id,_that.tripId,_that.name,_that.address,_that.checkIn,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String tripId,  String name,  String? address,  DateTime? checkIn,  DateTime? checkOut,  double? pricePerNight,  String? currency,  String? bookingReference,  String? notes,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String tripId,  String name,  String? address,  DateTime? checkIn,  DateTime? checkOut,  double? pricePerNight,  String? currency,  String? bookingReference,  String? notes, @JsonKey(unknownEnumValue: ValidationStatus.manual)  ValidationStatus validationStatus,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Accommodation() when $default != null:
-return $default(_that.id,_that.tripId,_that.name,_that.address,_that.checkIn,_that.checkOut,_that.pricePerNight,_that.currency,_that.bookingReference,_that.notes,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.tripId,_that.name,_that.address,_that.checkIn,_that.checkOut,_that.pricePerNight,_that.currency,_that.bookingReference,_that.notes,_that.validationStatus,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -220,7 +221,7 @@ return $default(_that.id,_that.tripId,_that.name,_that.address,_that.checkIn,_th
 @JsonSerializable()
 
 class _Accommodation implements Accommodation {
-  const _Accommodation({required this.id, required this.tripId, required this.name, this.address, this.checkIn, this.checkOut, this.pricePerNight, this.currency, this.bookingReference, this.notes, this.createdAt, this.updatedAt});
+  const _Accommodation({required this.id, required this.tripId, required this.name, this.address, this.checkIn, this.checkOut, this.pricePerNight, this.currency, this.bookingReference, this.notes, @JsonKey(unknownEnumValue: ValidationStatus.manual) this.validationStatus = ValidationStatus.manual, this.createdAt, this.updatedAt});
   factory _Accommodation.fromJson(Map<String, dynamic> json) => _$AccommodationFromJson(json);
 
 @override final  String id;
@@ -233,6 +234,7 @@ class _Accommodation implements Accommodation {
 @override final  String? currency;
 @override final  String? bookingReference;
 @override final  String? notes;
+@override@JsonKey(unknownEnumValue: ValidationStatus.manual) final  ValidationStatus validationStatus;
 @override final  DateTime? createdAt;
 @override final  DateTime? updatedAt;
 
@@ -249,16 +251,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Accommodation&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.name, name) || other.name == name)&&(identical(other.address, address) || other.address == address)&&(identical(other.checkIn, checkIn) || other.checkIn == checkIn)&&(identical(other.checkOut, checkOut) || other.checkOut == checkOut)&&(identical(other.pricePerNight, pricePerNight) || other.pricePerNight == pricePerNight)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.bookingReference, bookingReference) || other.bookingReference == bookingReference)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Accommodation&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.name, name) || other.name == name)&&(identical(other.address, address) || other.address == address)&&(identical(other.checkIn, checkIn) || other.checkIn == checkIn)&&(identical(other.checkOut, checkOut) || other.checkOut == checkOut)&&(identical(other.pricePerNight, pricePerNight) || other.pricePerNight == pricePerNight)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.bookingReference, bookingReference) || other.bookingReference == bookingReference)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.validationStatus, validationStatus) || other.validationStatus == validationStatus)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,tripId,name,address,checkIn,checkOut,pricePerNight,currency,bookingReference,notes,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,tripId,name,address,checkIn,checkOut,pricePerNight,currency,bookingReference,notes,validationStatus,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'Accommodation(id: $id, tripId: $tripId, name: $name, address: $address, checkIn: $checkIn, checkOut: $checkOut, pricePerNight: $pricePerNight, currency: $currency, bookingReference: $bookingReference, notes: $notes, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Accommodation(id: $id, tripId: $tripId, name: $name, address: $address, checkIn: $checkIn, checkOut: $checkOut, pricePerNight: $pricePerNight, currency: $currency, bookingReference: $bookingReference, notes: $notes, validationStatus: $validationStatus, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -269,7 +271,7 @@ abstract mixin class _$AccommodationCopyWith<$Res> implements $AccommodationCopy
   factory _$AccommodationCopyWith(_Accommodation value, $Res Function(_Accommodation) _then) = __$AccommodationCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String tripId, String name, String? address, DateTime? checkIn, DateTime? checkOut, double? pricePerNight, String? currency, String? bookingReference, String? notes, DateTime? createdAt, DateTime? updatedAt
+ String id, String tripId, String name, String? address, DateTime? checkIn, DateTime? checkOut, double? pricePerNight, String? currency, String? bookingReference, String? notes,@JsonKey(unknownEnumValue: ValidationStatus.manual) ValidationStatus validationStatus, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -286,7 +288,7 @@ class __$AccommodationCopyWithImpl<$Res>
 
 /// Create a copy of Accommodation
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? tripId = null,Object? name = null,Object? address = freezed,Object? checkIn = freezed,Object? checkOut = freezed,Object? pricePerNight = freezed,Object? currency = freezed,Object? bookingReference = freezed,Object? notes = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? tripId = null,Object? name = null,Object? address = freezed,Object? checkIn = freezed,Object? checkOut = freezed,Object? pricePerNight = freezed,Object? currency = freezed,Object? bookingReference = freezed,Object? notes = freezed,Object? validationStatus = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_Accommodation(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,tripId: null == tripId ? _self.tripId : tripId // ignore: cast_nullable_to_non_nullable
@@ -298,7 +300,8 @@ as DateTime?,pricePerNight: freezed == pricePerNight ? _self.pricePerNight : pri
 as double?,currency: freezed == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
 as String?,bookingReference: freezed == bookingReference ? _self.bookingReference : bookingReference // ignore: cast_nullable_to_non_nullable
 as String?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
-as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,validationStatus: null == validationStatus ? _self.validationStatus : validationStatus // ignore: cast_nullable_to_non_nullable
+as ValidationStatus,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));

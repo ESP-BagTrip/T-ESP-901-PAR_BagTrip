@@ -155,19 +155,4 @@ void main() {
     );
     expect(find.byType(PanelFab), findsNothing);
   });
-
-  testWidgets('tapping "See full checklist" navigates out', (tester) async {
-    final item = makeBaggageItem(id: 'bag-42');
-    await pump(
-      tester,
-      EssentialsPanel(
-        tripId: 'trip-1',
-        items: [item],
-        canEdit: true,
-        isCompleted: false,
-        role: 'OWNER',
-      ),
-    );
-    expect(find.text('See full checklist'), findsOneWidget);
-  });
 }

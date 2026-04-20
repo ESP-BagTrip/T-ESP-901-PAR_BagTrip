@@ -7,7 +7,15 @@ from uuid import UUID
 from sqlalchemy import func, literal_column, update
 from sqlalchemy.orm import Session
 
-from src.enums import DateMode, FlightOrderStatus, NotificationType, TripOrigin, TripStatus
+from src.enums import (
+    DateMode,
+    FlightOrderStatus,
+    NotificationType,
+    TrackingStatus,
+    TripOrigin,
+    TripStatus,
+    ValidationStatus,
+)
 from src.models.accommodation import Accommodation
 from src.models.activity import Activity
 from src.models.baggage_item import BaggageItem
@@ -144,62 +152,163 @@ class TripsService:
     ) -> dict[UUID, int]:
         """Compute completion percentage for a batch of trips.
 
-        6 segments (~16.67% each):
-        - Dates: start_date AND end_date non-null
-        - Flights: at least 1 manual_flight
-        - Accommodations: at least 1 accommodation
-        - Activities: 3+ activities
-        - Baggage: 5+ baggage items
-        - Budget: budget_total > 0
+        Progression-based: 4 validation segments, each 0–100, final = average.
+        A segment measures how much of the user's validation work is done,
+        not whether data was pre-populated by the LLM:
+
+        - flights: 100 if ``flights_tracking=SKIPPED``, else
+          validated_count / total_count (0 if no flights to validate yet)
+        - accommodations: same, gated by ``accommodations_tracking``
+        - activities: validated_count / total_count
+        - baggage: packed_count / total_count
+
+        VALIDATED and MANUAL both count as "done" (MANUAL = user-added row,
+        SUGGESTED = pending LLM proposal).
         """
         if not trips:
             return {}
 
         trip_ids = [t.id for t in trips]
+        validated_values = (ValidationStatus.VALIDATED, ValidationStatus.MANUAL)
 
-        flights_counts = dict(
-            db.query(ManualFlight.trip_id, func.count())
-            .filter(ManualFlight.trip_id.in_(trip_ids))
-            .group_by(ManualFlight.trip_id)
-            .all()
+        def _pair_totals(
+            model,
+            *,
+            total_filter=None,
+            validated_filter,
+        ) -> tuple[dict, dict]:
+            total_q = db.query(model.trip_id, func.count()).filter(model.trip_id.in_(trip_ids))
+            if total_filter is not None:
+                total_q = total_q.filter(total_filter)
+            totals = dict(total_q.group_by(model.trip_id).all())
+
+            done_q = (
+                db.query(model.trip_id, func.count())
+                .filter(model.trip_id.in_(trip_ids))
+                .filter(validated_filter)
+            )
+            if total_filter is not None:
+                done_q = done_q.filter(total_filter)
+            done = dict(done_q.group_by(model.trip_id).all())
+            return totals, done
+
+        flight_totals, flight_done = _pair_totals(
+            ManualFlight,
+            validated_filter=ManualFlight.validation_status.in_(validated_values),
         )
-        accommodations_counts = dict(
-            db.query(Accommodation.trip_id, func.count())
-            .filter(Accommodation.trip_id.in_(trip_ids))
-            .group_by(Accommodation.trip_id)
-            .all()
+        acc_totals, acc_done = _pair_totals(
+            Accommodation,
+            validated_filter=Accommodation.validation_status.in_(validated_values),
         )
-        activities_counts = dict(
-            db.query(Activity.trip_id, func.count())
-            .filter(Activity.trip_id.in_(trip_ids))
-            .group_by(Activity.trip_id)
-            .all()
+        act_totals, act_done = _pair_totals(
+            Activity,
+            validated_filter=Activity.validation_status.in_(validated_values),
         )
-        baggage_counts = dict(
-            db.query(BaggageItem.trip_id, func.count())
-            .filter(BaggageItem.trip_id.in_(trip_ids))
-            .group_by(BaggageItem.trip_id)
-            .all()
+        bag_totals, bag_done = _pair_totals(
+            BaggageItem,
+            validated_filter=BaggageItem.is_packed.is_(True),
         )
+
+        def _segment(
+            total: int,
+            done: int,
+            *,
+            skipped: bool,
+        ) -> int:
+            if skipped:
+                return 100
+            if total == 0:
+                return 0
+            return round(done / total * 100)
 
         result: dict[UUID, int] = {}
         for trip in trips:
-            filled = 0
-            if trip.start_date is not None and trip.end_date is not None:
-                filled += 1
-            if flights_counts.get(trip.id, 0) > 0:
-                filled += 1
-            if accommodations_counts.get(trip.id, 0) > 0:
-                filled += 1
-            if activities_counts.get(trip.id, 0) >= 3:
-                filled += 1
-            if baggage_counts.get(trip.id, 0) >= 5:
-                filled += 1
-            if trip.budget_total is not None and float(trip.budget_total) > 0:
-                filled += 1
-            result[trip.id] = round(filled / 6 * 100)
+            flights_segment = _segment(
+                flight_totals.get(trip.id, 0),
+                flight_done.get(trip.id, 0),
+                skipped=trip.flights_tracking == TrackingStatus.SKIPPED,
+            )
+            acc_segment = _segment(
+                acc_totals.get(trip.id, 0),
+                acc_done.get(trip.id, 0),
+                skipped=trip.accommodations_tracking == TrackingStatus.SKIPPED,
+            )
+            act_segment = _segment(
+                act_totals.get(trip.id, 0),
+                act_done.get(trip.id, 0),
+                skipped=False,
+            )
+            bag_segment = _segment(
+                bag_totals.get(trip.id, 0),
+                bag_done.get(trip.id, 0),
+                skipped=False,
+            )
+            result[trip.id] = round((flights_segment + acc_segment + act_segment + bag_segment) / 4)
 
         return result
+
+    @staticmethod
+    def compute_completion_breakdown(db: Session, trip: Trip) -> dict[str, dict[str, object]]:
+        """Per-segment debug view of the completion formula.
+
+        Mirrors :meth:`compute_completion_batch` for a single trip and exposes
+        the intermediate counts so support / devs can tell **why** a trip shows
+        a given score. Used by `/v1/trips/{id}/completion-debug`.
+        """
+        validated_values = (ValidationStatus.VALIDATED, ValidationStatus.MANUAL)
+
+        def _pair(model, filter_done) -> tuple[int, int]:
+            total = db.query(model).filter(model.trip_id == trip.id).count()
+            done = db.query(model).filter(model.trip_id == trip.id).filter(filter_done).count()
+            return total, done
+
+        flight_total, flight_done = _pair(
+            ManualFlight, ManualFlight.validation_status.in_(validated_values)
+        )
+        acc_total, acc_done = _pair(
+            Accommodation, Accommodation.validation_status.in_(validated_values)
+        )
+        act_total, act_done = _pair(Activity, Activity.validation_status.in_(validated_values))
+        bag_total, bag_done = _pair(BaggageItem, BaggageItem.is_packed.is_(True))
+
+        def _segment(total: int, done: int, *, skipped: bool) -> int:
+            if skipped:
+                return 100
+            if total == 0:
+                return 0
+            return round(done / total * 100)
+
+        flights_skipped = trip.flights_tracking == TrackingStatus.SKIPPED
+        acc_skipped = trip.accommodations_tracking == TrackingStatus.SKIPPED
+
+        segments = {
+            "flights": {
+                "total": flight_total,
+                "done": flight_done,
+                "skipped": flights_skipped,
+                "percentage": _segment(flight_total, flight_done, skipped=flights_skipped),
+            },
+            "accommodations": {
+                "total": acc_total,
+                "done": acc_done,
+                "skipped": acc_skipped,
+                "percentage": _segment(acc_total, acc_done, skipped=acc_skipped),
+            },
+            "activities": {
+                "total": act_total,
+                "done": act_done,
+                "skipped": False,
+                "percentage": _segment(act_total, act_done, skipped=False),
+            },
+            "baggage": {
+                "total": bag_total,
+                "done": bag_done,
+                "skipped": False,
+                "percentage": _segment(bag_total, bag_done, skipped=False),
+            },
+        }
+        overall = round(sum(int(seg["percentage"]) for seg in segments.values()) / len(segments))
+        return {"overall": overall, "segments": segments}
 
     @staticmethod
     def get_trip_by_id(db: Session, trip_id: UUID, user_id: UUID) -> Trip | None:
@@ -283,6 +392,39 @@ class TripsService:
                 grouped["planned"].append((trip, role))
 
         return grouped
+
+    @staticmethod
+    def update_tracking(
+        db: Session,
+        trip: Trip,
+        *,
+        flights_tracking: str | None = None,
+        accommodations_tracking: str | None = None,
+    ) -> Trip:
+        """Update the "BagTrip should track this domain" flags on a trip.
+
+        Invalid enum values raise AppError so the route returns 400.
+        """
+        if trip.status == TripStatus.COMPLETED:
+            raise AppError("TRIP_COMPLETED", 403, "Cannot modify a completed trip.")
+
+        allowed = {TrackingStatus.TRACKED.value, TrackingStatus.SKIPPED.value}
+        if flights_tracking is not None:
+            if flights_tracking not in allowed:
+                raise AppError(
+                    "INVALID_TRACKING", 400, "flights_tracking must be TRACKED or SKIPPED"
+                )
+            trip.flights_tracking = flights_tracking
+        if accommodations_tracking is not None:
+            if accommodations_tracking not in allowed:
+                raise AppError(
+                    "INVALID_TRACKING", 400, "accommodations_tracking must be TRACKED or SKIPPED"
+                )
+            trip.accommodations_tracking = accommodations_tracking
+
+        db.commit()
+        db.refresh(trip)
+        return trip
 
     @staticmethod
     def update_trip_status(db: Session, trip: Trip, new_status: str) -> Trip:

@@ -12,7 +12,6 @@ import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/baggage_item.dart';
-import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -117,14 +116,6 @@ class _EssentialsPanelState extends State<EssentialsPanel> {
     );
   }
 
-  void _openFullPage() {
-    BaggageRoute(
-      tripId: widget.tripId,
-      role: widget.role,
-      isCompleted: widget.isCompleted,
-    ).push(context);
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -214,20 +205,6 @@ class _EssentialsPanelState extends State<EssentialsPanel> {
                       ),
                     ),
                   ],
-                ),
-              ),
-            ),
-            Center(
-              child: TextButton(
-                onPressed: _openFullPage,
-                child: Text(
-                  l10n.panelOpenFullBaggage,
-                  style: const TextStyle(
-                    fontFamily: FontFamily.dMSans,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: ColorName.hint,
-                  ),
                 ),
               ),
             ),
