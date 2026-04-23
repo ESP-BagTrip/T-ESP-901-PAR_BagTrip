@@ -37,12 +37,15 @@ jobs:
             flutter:
               - 'bagtrip/**'
               - '.github/workflows/ci.yml'
+              - 'sonar-project.properties'
             api:
               - 'api/**'
               - '.github/workflows/ci.yml'
+              - 'sonar-project.properties'
             admin:
               - 'admin-panel/**'
               - '.github/workflows/ci.yml'
+              - 'sonar-project.properties'
 
   # ========================================
   # FLUTTER — ANALYZE + FORMAT
