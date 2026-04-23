@@ -5,7 +5,6 @@ import 'package:bagtrip/flight_search_result/widgets/flight_search_result_widget
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:bagtrip/navigation/route_definitions.dart';
 
 class FlightSearchResultPage extends StatelessWidget {
   final FlightSearchArguments arguments;
@@ -24,7 +23,7 @@ class FlightSearchResultPage extends StatelessWidget {
         foregroundColor: PersonalizationColors.textPrimary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => const HomeRoute().go(context),
+          onPressed: () => Navigator.maybePop(context),
         ),
       ),
       body: BlocProvider(
