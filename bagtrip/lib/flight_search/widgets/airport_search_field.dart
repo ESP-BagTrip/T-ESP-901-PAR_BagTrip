@@ -35,6 +35,11 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
   bool _showResults = false;
+  // Cached results rendered by the live overlay. Updating this and calling
+  // `markNeedsBuild` keeps the overlay alive across bloc emissions so a tap
+  // on the current list isn't lost to a destroy/recreate race — which used
+  // to happen when results shrank from N to 1 (SMP-190).
+  List<Map<String, dynamic>> _overlayAirports = const [];
 
   @override
   void initState() {
@@ -68,7 +73,11 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
   }
 
   void _showOverlay(BuildContext context, List<Map<String, dynamic>> airports) {
-    _removeOverlay();
+    _overlayAirports = airports;
+    if (_overlayEntry != null) {
+      _overlayEntry!.markNeedsBuild();
+      return;
+    }
 
     final renderBox = context.findRenderObject() as RenderBox;
     final size = renderBox.size;
@@ -88,10 +97,10 @@ class _AirportSearchFieldState extends State<AirportSearchField> {
               child: ListView.separated(
                 padding: EdgeInsets.zero,
                 shrinkWrap: true,
-                itemCount: airports.length,
+                itemCount: _overlayAirports.length,
                 separatorBuilder: (_, _) => const Divider(height: 1),
                 itemBuilder: (context, index) {
-                  final airport = airports[index];
+                  final airport = _overlayAirports[index];
                   return ListTile(
                     dense: true,
                     title: Text(
