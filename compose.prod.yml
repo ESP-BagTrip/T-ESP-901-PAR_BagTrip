@@ -44,6 +44,7 @@ services:
       REDIS_URL: redis://redis:6379/0
       ALLOWED_ORIGINS: ${API_ALLOWED_ORIGINS:-https://bagtrip.fr}
       COOKIE_DOMAIN: ${API_COOKIE_DOMAIN:-.bagtrip.fr}
+      COOKIE_NAME_PREFIX: ${API_COOKIE_NAME_PREFIX:-}
       COOKIE_SECURE: "true"
     depends_on:
       postgres:
@@ -57,6 +58,7 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${ADMIN_NEXT_PUBLIC_API_URL:-https://api.bagtrip.fr}
+        NEXT_PUBLIC_COOKIE_NAME_PREFIX: ${ADMIN_NEXT_PUBLIC_COOKIE_NAME_PREFIX:-}
     restart: unless-stopped
     expose:
       - "8000"
