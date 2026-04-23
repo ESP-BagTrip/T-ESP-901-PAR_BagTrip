@@ -24,6 +24,11 @@ class OnboardingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    // Bottom device inset (home indicator on iPhone without home button,
+    // 20pt safe area on iPhone SE). We fold it into the scroll padding so
+    // the gradient can reach the bottom edge while the CTAs never render
+    // under the safe area (SMP-292).
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
 
     return Scaffold(
       body: Container(
@@ -37,8 +42,14 @@ class OnboardingPage extends StatelessWidget {
           ),
         ),
         child: SafeArea(
+          bottom: false,
           child: SingleChildScrollView(
-            padding: AppSpacing.allEdgeInsetSpace24,
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.space24,
+              AppSpacing.space24,
+              AppSpacing.space24,
+              AppSpacing.space24 + bottomInset,
+            ),
             child: Column(
               children: [
                 const SizedBox(height: AppSpacing.space24),
