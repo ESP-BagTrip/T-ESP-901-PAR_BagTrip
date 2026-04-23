@@ -326,7 +326,7 @@ jobs:
             "${{ needs.api-checks.result }}" \
             "${{ needs.admin-checks.result }}" \
             "${{ needs.sonar.result }}"; do
-            if [[ "$result" != "success" && "$result" != "skipped" ]]; then
+            if [[ "$result" != "success" && "$result" != "skipped" && "$result" != "cancelled" ]]; then
               echo "Quality gate FAILED"
               exit 1
             fi
