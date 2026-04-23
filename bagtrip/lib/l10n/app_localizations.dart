@@ -818,6 +818,18 @@ abstract class AppLocalizations {
   /// **'Chargement...'**
   String get splashLoading;
 
+  /// No description provided for @splashConnectionErrorTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur de connexion'**
+  String get splashConnectionErrorTitle;
+
+  /// No description provided for @splashConnectionErrorMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de joindre le serveur. Vérifiez votre connexion internet et réessayez.'**
+  String get splashConnectionErrorMessage;
+
   /// No description provided for @personalizationProfileSectionTitle.
   ///
   /// In fr, this message translates to:

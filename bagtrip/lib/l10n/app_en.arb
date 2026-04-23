@@ -185,6 +185,8 @@
   "onboardingCtaButton": "Start",
   "onboardingSkip": "Skip introduction",
   "splashLoading": "Loading...",
+  "splashConnectionErrorTitle": "Connection error",
+  "splashConnectionErrorMessage": "Unable to reach the server. Please check your internet connection and try again.",
   "personalizationProfileSectionTitle": "Experience personalization",
   "personalizationTravelTypeBeach": "Beach & Relaxation",
   "personalizationTravelTypeAdventure": "Adventure & Nature",
