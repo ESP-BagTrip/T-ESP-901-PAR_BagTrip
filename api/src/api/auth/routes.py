@@ -35,7 +35,11 @@ from src.models.user import User
 from src.services.plan_service import PlanService
 from src.services.stripe_gateway_service import StripeGatewayService
 from src.services.user_creation_service import UserCreationService
-from src.utils.cookies import clear_auth_cookies, set_auth_cookies
+from src.utils.cookies import (
+    clear_auth_cookies,
+    refresh_cookie_name,
+    set_auth_cookies,
+)
 from src.utils.errors import AppError
 from src.utils.logger import logger
 
@@ -583,7 +587,7 @@ async def logout(
     if request and request.refresh_token:
         token_value = request.refresh_token
     else:
-        token_value = http_request.cookies.get("refresh_token")
+        token_value = http_request.cookies.get(refresh_cookie_name())
 
     if token_value:
         stored = (

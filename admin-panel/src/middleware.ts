@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const PROTECTED_PREFIX = '/app'
 const PUBLIC_ROUTES = new Set(['/', '/login'])
+const ACCESS_COOKIE = `${process.env.NEXT_PUBLIC_COOKIE_NAME_PREFIX ?? ''}access_token`
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const token = request.cookies.get('access_token')?.value
+  const token = request.cookies.get(ACCESS_COOKIE)?.value
 
   // Compat: /dashboard (legacy) → /app (permanent redirect)
   if (pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {

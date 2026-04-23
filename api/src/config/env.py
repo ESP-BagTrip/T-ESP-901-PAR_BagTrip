@@ -83,6 +83,10 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: str = "http://localhost:8000"
     COOKIE_DOMAIN: str | None = None
     COOKIE_SECURE: bool = True
+    # Prefix applied to auth cookie names so environments sharing a parent
+    # domain (e.g. prod on bagtrip.fr + preprod on dev.bagtrip.fr) don't leak
+    # each other's session cookies across JWT_SECRET boundaries.
+    COOKIE_NAME_PREFIX: str = ""
 
     @field_validator("COOKIE_SECURE")
     @classmethod

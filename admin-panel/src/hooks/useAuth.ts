@@ -7,9 +7,11 @@ const QUERY_KEYS = {
   currentUser: ['auth', 'currentUser'],
 }
 
+const STATUS_COOKIE = `${process.env.NEXT_PUBLIC_COOKIE_NAME_PREFIX ?? ''}auth-status`
+
 function hasAuthCookie(): boolean {
   if (typeof document === 'undefined') return false
-  return document.cookie.includes('auth-status=authenticated')
+  return document.cookie.includes(`${STATUS_COOKIE}=authenticated`)
 }
 
 const isAdminUser = (user: User | null | undefined): boolean => user?.plan === 'ADMIN'

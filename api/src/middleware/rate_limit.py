@@ -26,6 +26,7 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 
 from src.api.auth.middleware import verify_jwt_token
+from src.utils.cookies import access_cookie_name
 from src.utils.logger import logger
 
 
@@ -192,7 +193,7 @@ async def rate_limit_middleware(request: Request, call_next):
             token = auth_header.split(" ")[1]
             user_id = verify_jwt_token(token)
         else:
-            cookie_token = request.cookies.get("access_token")
+            cookie_token = request.cookies.get(access_cookie_name())
             if cookie_token:
                 user_id = verify_jwt_token(cookie_token)
 
