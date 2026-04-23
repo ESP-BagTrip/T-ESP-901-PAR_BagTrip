@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from src.config.database import get_db
 from src.config.env import settings
 from src.models.user import User
+from src.utils.cookies import access_cookie_name
 
 security = HTTPBearer(auto_error=False)
 
@@ -35,7 +36,7 @@ async def get_current_user(
     token = None
 
     # 1. Cookie httpOnly (admin panel)
-    cookie_token = request.cookies.get("access_token")
+    cookie_token = request.cookies.get(access_cookie_name())
     if cookie_token:
         token = cookie_token
 
