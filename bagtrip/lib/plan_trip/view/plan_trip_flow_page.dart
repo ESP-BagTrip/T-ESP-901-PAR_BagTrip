@@ -113,7 +113,7 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
                 : PersonalizationColors.gradientStart,
             body: SafeArea(
               top: !isReviewStep,
-              bottom: !isReviewStep,
+              bottom: false,
               left: false,
               right: false,
               child: Column(
