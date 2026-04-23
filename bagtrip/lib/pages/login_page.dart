@@ -230,7 +230,11 @@ class _LoginPageContentState extends State<_LoginPageContent> {
           },
           child: BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
-              final isLoading = state is AuthLoading;
+              final loadingMethod = state is AuthLoading ? state.method : null;
+              final isAnyLoading = loadingMethod != null;
+              final isEmailLoading = loadingMethod == AuthMethod.email;
+              final isGoogleLoading = loadingMethod == AuthMethod.google;
+              final isAppleLoading = loadingMethod == AuthMethod.apple;
               final isLoginMode = state is AuthModeChangedState
                   ? state.isLoginMode
                   : state is AuthError
@@ -273,7 +277,7 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                       const SizedBox(height: AppSpacing.space24),
                       _LoginSignUpToggle(
                         isLogin: isLoginMode,
-                        onToggle: isLoading
+                        onToggle: isAnyLoading
                             ? null
                             : () => _toggleMode(isLoginMode),
                         l10n: l10n,
@@ -321,10 +325,10 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                                 Expanded(
                                   child: SocialLoginButton(
                                     provider: SocialProvider.google,
-                                    onPressed: isLoading
+                                    onPressed: isAnyLoading
                                         ? null
                                         : _handleGoogleSignIn,
-                                    isLoading: isLoading,
+                                    isLoading: isGoogleLoading,
                                     useDarkStyle: isDark,
                                     label: l10n.loginContinueWithGoogle,
                                   ),
@@ -333,10 +337,10 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                                 Expanded(
                                   child: SocialLoginButton(
                                     provider: SocialProvider.apple,
-                                    onPressed: isLoading
+                                    onPressed: isAnyLoading
                                         ? null
                                         : _handleAppleSignIn,
-                                    isLoading: isLoading,
+                                    isLoading: isAppleLoading,
                                     useDarkStyle: isDark,
                                     label: l10n.loginContinueWithApple,
                                   ),
@@ -425,7 +429,7 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                                 child: AdaptivePlatform.isIOS
                                     ? CupertinoButton(
                                         padding: EdgeInsets.zero,
-                                        onPressed: isLoading
+                                        onPressed: isAnyLoading
                                             ? null
                                             : () => Navigator.of(context).push(
                                                 MaterialPageRoute<void>(
@@ -444,7 +448,7 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                                         ),
                                       )
                                     : TextButton(
-                                        onPressed: isLoading
+                                        onPressed: isAnyLoading
                                             ? null
                                             : () => Navigator.of(context).push(
                                                 MaterialPageRoute<void>(
@@ -469,10 +473,10 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                               label: isLoginMode
                                   ? l10n.loginButton
                                   : l10n.loginRegisterButton,
-                              onPressed: isLoading
+                              onPressed: isAnyLoading
                                   ? null
                                   : () => _handleSubmit(isLoginMode),
-                              isLoading: isLoading,
+                              isLoading: isEmailLoading,
                             ),
                             const SizedBox(height: AppSpacing.space32),
                             _buildLegalText(l10n, subtitleColor),

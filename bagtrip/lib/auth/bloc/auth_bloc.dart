@@ -50,7 +50,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     LoginRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
+    emit(AuthLoading(method: AuthMethod.email));
     final result = await _authRepository.login(event.email, event.password);
     if (isClosed) return;
     switch (result) {
@@ -67,7 +67,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     RegisterRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
+    emit(AuthLoading(method: AuthMethod.email));
     final result = await _authRepository.register(
       event.email,
       event.password,
@@ -88,7 +88,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     GoogleSignInRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
+    emit(AuthLoading(method: AuthMethod.google));
     final result = await _authRepository.loginWithGoogle();
     if (isClosed) return;
     switch (result) {
@@ -109,7 +109,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AppleSignInRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
+    emit(AuthLoading(method: AuthMethod.apple));
     final result = await _authRepository.loginWithApple();
     if (isClosed) return;
     switch (result) {
