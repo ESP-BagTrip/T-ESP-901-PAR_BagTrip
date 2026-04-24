@@ -37,45 +37,63 @@ class OnboardingPage extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: AppSpacing.allEdgeInsetSpace24,
-            child: Column(
-              children: [
-                const SizedBox(height: AppSpacing.space24),
-                _buildIllustration(),
-                const SizedBox(height: AppSpacing.space24),
-                Text(
-                  l10n.onboardingTitle,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primaryTrueDark,
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              padding: AppSpacing.allEdgeInsetSpace24,
+              child: ConstrainedBox(
+                // Fill the viewport on regular phones so the Spacer below
+                // can push the CTAs to the bottom without introducing a
+                // scroll. On iPhone Mini / SE the intrinsic content is
+                // taller than the viewport, so the scroll view takes over
+                // (SMP-290).
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - AppSpacing.space24 * 2,
+                ),
+                child: IntrinsicHeight(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: AppSpacing.space24),
+                      _buildIllustration(),
+                      const SizedBox(height: AppSpacing.space24),
+                      Text(
+                        l10n.onboardingTitle,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryTrueDark,
+                            ),
+                      ),
+                      const SizedBox(height: AppSpacing.space8),
+                      Text(
+                        l10n.onboardingSubtitle,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: AppColors.textMutedLight,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.space24),
+                      _buildFeatureCard(context, l10n),
+                      const Spacer(),
+                      const SizedBox(height: AppSpacing.space24),
+                      PrimaryButton(
+                        label: l10n.onboardingCtaButton,
+                        onPressed: () => _completeOnboarding(context),
+                      ),
+                      const SizedBox(height: AppSpacing.space16),
+                      TextButton(
+                        onPressed: () => _completeOnboarding(context),
+                        child: Text(
+                          l10n.onboardingSkip,
+                          style: const TextStyle(
+                            color: AppColors.textMutedLight,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: AppSpacing.space8),
-                Text(
-                  l10n.onboardingSubtitle,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColors.textMutedLight,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.space24),
-                _buildFeatureCard(context, l10n),
-                const SizedBox(height: AppSpacing.space32),
-                PrimaryButton(
-                  label: l10n.onboardingCtaButton,
-                  onPressed: () => _completeOnboarding(context),
-                ),
-                const SizedBox(height: AppSpacing.space16),
-                TextButton(
-                  onPressed: () => _completeOnboarding(context),
-                  child: Text(
-                    l10n.onboardingSkip,
-                    style: const TextStyle(color: AppColors.textMutedLight),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
