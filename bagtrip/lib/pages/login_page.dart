@@ -252,7 +252,7 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: 100),
+                      const SizedBox(height: AppSpacing.space48),
                       Text(
                         l10n.loginWelcomeTitle,
                         style: TextStyle(
