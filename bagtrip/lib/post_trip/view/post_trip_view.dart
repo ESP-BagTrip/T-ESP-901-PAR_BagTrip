@@ -5,6 +5,7 @@ import 'package:bagtrip/components/staggered_fade_in.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/progression_cta_button.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
@@ -230,18 +231,14 @@ class _PostTripContent extends StatelessWidget {
                 AppSpacing.space24,
                 0,
               ),
-              child: OutlinedButton.icon(
+              child: ProgressionCtaButton(
+                text: l10n.postTripPlanNext,
+                icon: Icons.add_rounded,
+                iconPosition: ProgressionCtaIconPosition.left,
                 onPressed: () {
                   AppHaptics.light();
                   const PlanTripRoute().push(context);
                 },
-                icon: const Icon(Icons.add),
-                label: Text(l10n.postTripPlanNext),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: AppSpacing.space16,
-                  ),
-                ),
               ),
             ),
           ),

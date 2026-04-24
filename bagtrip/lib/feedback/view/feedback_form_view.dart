@@ -1,6 +1,7 @@
 import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/progression_cta_button.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
 import 'package:bagtrip/feedback/bloc/feedback_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -362,16 +363,17 @@ class _PostTripSuggestionSection extends StatelessWidget {
                 children: [
                   Text(AppLocalizations.of(context)!.feedbackDiscoverText),
                   const SizedBox(height: AppSpacing.space12),
-                  ElevatedButton.icon(
+                  ProgressionCtaButton(
+                    text: AppLocalizations.of(
+                      context,
+                    )!.feedbackDiscoverNextTrip,
+                    icon: Icons.auto_awesome_rounded,
+                    iconPosition: ProgressionCtaIconPosition.left,
                     onPressed: () {
                       context.read<FeedbackBloc>().add(
                         RequestPostTripSuggestion(),
                       );
                     },
-                    icon: const Icon(Icons.auto_awesome),
-                    label: Text(
-                      AppLocalizations.of(context)!.feedbackDiscoverNextTrip,
-                    ),
                   ),
                 ],
               ),

@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/design/app_animations.dart';
 import 'package:bagtrip/design/app_haptics.dart';
-import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/destination_carousel.dart';
+import 'package:bagtrip/design/widgets/progression_cta_button.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -206,8 +206,12 @@ class _StepAiProposalsViewState extends State<StepAiProposalsView>
                     AppSpacing.space22,
                     AppSpacing.space24,
                   ),
-                  child: _ChooseButton(
-                    onPressed: _selectedCardIndex == null ? _onChoose : null,
+                  child: ProgressionCtaButton(
+                    text: l10n.chooseThisDestination,
+                    icon: Icons.check_circle_outline_rounded,
+                    iconPosition: ProgressionCtaIconPosition.left,
+                    enabled: _selectedCardIndex == null,
+                    onPressed: _onChoose,
                   ),
                 ),
               ],
@@ -215,67 +219,6 @@ class _StepAiProposalsViewState extends State<StepAiProposalsView>
           },
         );
       },
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// "Choose this destination" button (gradient, same pattern as _InspireMeButton)
-// ---------------------------------------------------------------------------
-
-class _ChooseButton extends StatelessWidget {
-  final VoidCallback? onPressed;
-
-  const _ChooseButton({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    return Container(
-      height: 56,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: PersonalizationColors.accentGradient,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: PersonalizationColors.accentBlue.withValues(alpha: 0.3),
-            offset: const Offset(0, 6),
-            blurRadius: 16,
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(24),
-          child: Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.check_circle_outline_rounded,
-                  color: Colors.white,
-                  size: 20,
-                ),
-                const SizedBox(width: AppSpacing.space8),
-                Text(
-                  l10n.chooseThisDestination,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontFamily: FontFamily.b612,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

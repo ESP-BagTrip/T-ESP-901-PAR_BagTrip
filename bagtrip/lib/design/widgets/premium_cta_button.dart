@@ -2,7 +2,8 @@ import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:flutter/material.dart';
 
-/// Premium full-width CTA with gradient, large padding, soft shadow.
+/// Premium-specific CTA kept for paywall surfaces.
+/// For navigation/progression CTAs, prefer `ProgressionCtaButton`.
 class PremiumCtaButton extends StatefulWidget {
   const PremiumCtaButton({
     super.key,

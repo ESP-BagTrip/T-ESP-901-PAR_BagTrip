@@ -4,6 +4,7 @@ import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/progression_cta_button.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -145,17 +146,10 @@ class _SubscriptionSuccessPageState extends State<SubscriptionSuccessPage> {
                         const SizedBox(height: 32),
                         SizedBox(
                           width: double.infinity,
-                          child: ElevatedButton(
+                          child: ProgressionCtaButton(
+                            text: l10n.continueButton,
+                            icon: Icons.arrow_forward_rounded,
                             onPressed: () => const ProfileRoute().go(context),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: ColorName.secondary,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: Text(l10n.continueButton),
                           ),
                         ),
                       ],
