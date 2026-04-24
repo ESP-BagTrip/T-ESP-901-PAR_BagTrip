@@ -38,7 +38,7 @@ class _SplashPageState extends State<SplashPage> {
   Future<void> _waitBackendThenCheckAuthAndNavigate() async {
     final startedAt = DateTime.now();
 
-    await waitForBackendReady();
+    final backendReady = await waitForBackendReady();
 
     final elapsed = DateTime.now().difference(startedAt);
     if (elapsed < _kMinSplashDuration) {
@@ -46,6 +46,11 @@ class _SplashPageState extends State<SplashPage> {
     }
 
     if (!mounted) return;
+
+    if (!backendReady) {
+      await _showConnectionErrorDialog();
+      return;
+    }
 
     final authRepository = getIt<AuthRepository>();
     final userResult = await authRepository.getCurrentUser();
@@ -75,6 +80,45 @@ class _SplashPageState extends State<SplashPage> {
       } else {
         const OnboardingRoute().go(context);
       }
+    }
+  }
+
+  Future<void> _showConnectionErrorDialog() async {
+    final l10n = AppLocalizations.of(context)!;
+    final shouldRetry = await (AdaptivePlatform.isIOS
+        ? showCupertinoDialog<bool>(
+            context: context,
+            builder: (dialogContext) => CupertinoAlertDialog(
+              title: Text(l10n.splashConnectionErrorTitle),
+              content: Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.space8),
+                child: Text(l10n.splashConnectionErrorMessage),
+              ),
+              actions: [
+                CupertinoDialogAction(
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  child: Text(l10n.retryButton),
+                ),
+              ],
+            ),
+          )
+        : showDialog<bool>(
+            context: context,
+            barrierDismissible: false,
+            builder: (dialogContext) => AlertDialog(
+              title: Text(l10n.splashConnectionErrorTitle),
+              content: Text(l10n.splashConnectionErrorMessage),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  child: Text(l10n.retryButton),
+                ),
+              ],
+            ),
+          ));
+
+    if (shouldRetry == true && mounted) {
+      await _waitBackendThenCheckAuthAndNavigate();
     }
   }
 

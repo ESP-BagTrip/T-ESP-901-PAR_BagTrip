@@ -407,6 +407,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get splashLoading => 'Loading...';
 
   @override
+  String get splashConnectionErrorTitle => 'Connection error';
+
+  @override
+  String get splashConnectionErrorMessage =>
+      'Unable to reach the server. Please check your internet connection and try again.';
+
+  @override
   String get personalizationProfileSectionTitle => 'Experience personalization';
 
   @override
