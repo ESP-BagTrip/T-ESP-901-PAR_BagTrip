@@ -2,8 +2,8 @@ import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-/// A button that renders Material [ElevatedButton] on Android and
-/// [CupertinoButton.filled] on iOS.
+/// Generic adaptive primary button (non-progression use cases).
+/// For flow progression CTAs, prefer `ProgressionCtaButton`.
 class AdaptiveButton extends StatelessWidget {
   const AdaptiveButton({
     super.key,

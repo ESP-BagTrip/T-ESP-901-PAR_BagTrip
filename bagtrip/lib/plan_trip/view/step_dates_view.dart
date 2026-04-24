@@ -2,6 +2,7 @@ import 'package:bagtrip/design/app_animations.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/flexible_date_picker.dart';
+import 'package:bagtrip/design/widgets/progression_cta_button.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -119,8 +120,10 @@ class StepDatesView extends StatelessWidget {
 
               const SizedBox(height: AppSpacing.space32),
 
-              _ContinueButton(
+              ProgressionCtaButton(
+                text: l10n.continueButton,
                 enabled: state.areDatesValid,
+                icon: Icons.arrow_forward_rounded,
                 onPressed: () {
                   AppHaptics.medium();
                   context.read<PlanTripBloc>().add(
@@ -253,108 +256,6 @@ class _ScaleInBadgeState extends State<_ScaleInBadge>
     return ScaleTransition(
       scale: CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
       child: widget.child,
-    );
-  }
-}
-
-class _ContinueButton extends StatefulWidget {
-  const _ContinueButton({required this.onPressed, this.enabled = true});
-
-  final VoidCallback onPressed;
-  final bool enabled;
-
-  @override
-  State<_ContinueButton> createState() => _ContinueButtonState();
-}
-
-class _ContinueButtonState extends State<_ContinueButton> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    final child = Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      decoration: BoxDecoration(
-        gradient: widget.enabled
-            ? const LinearGradient(
-                colors: [ColorName.primary, ColorName.secondary],
-              )
-            : null,
-        color: widget.enabled
-            ? null
-            : ColorName.secondary.withValues(alpha: 0.1),
-        borderRadius: AppRadius.pill,
-        boxShadow: widget.enabled
-            ? [
-                BoxShadow(
-                  color: ColorName.primary.withValues(alpha: 0.3),
-                  offset: const Offset(0, 6),
-                  blurRadius: 16,
-                ),
-              ]
-            : null,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: widget.enabled ? widget.onPressed : null,
-          borderRadius: AppRadius.pill,
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.space22,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    l10n.continueButton,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontFamily: FontFamily.dMSerifDisplay,
-                      fontWeight: FontWeight.w600,
-                      color: widget.enabled
-                          ? ColorName.surface
-                          : ColorName.hint,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  TweenAnimationBuilder<double>(
-                    tween: Tween(
-                      begin: 0,
-                      end: _hover && widget.enabled ? 1 : 0,
-                    ),
-                    duration: AppAnimations.microInteraction,
-                    builder: (context, t, child) {
-                      return Transform.translate(
-                        offset: Offset(4 * t, 0),
-                        child: child,
-                      );
-                    },
-                    child: Icon(
-                      Icons.arrow_forward_rounded,
-                      size: 20,
-                      color: widget.enabled
-                          ? ColorName.surface
-                          : ColorName.hint,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    return MouseRegion(
-      onEnter: (_) {
-        if (widget.enabled) setState(() => _hover = true);
-      },
-      onExit: (_) => setState(() => _hover = false),
-      child: child,
     );
   }
 }
