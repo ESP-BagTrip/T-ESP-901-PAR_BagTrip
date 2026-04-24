@@ -1,5 +1,10 @@
 part of 'auth_bloc.dart';
 
+/// Identifies which auth flow is in progress so the UI can scope the spinner
+/// to the button that was actually tapped (SMP-294). `null` is used for flows
+/// that don't need per-button feedback (e.g. logout).
+enum AuthMethod { email, google, apple }
+
 @immutable
 sealed class AuthState {}
 
@@ -9,7 +14,11 @@ final class AuthInitial extends AuthState {
   AuthInitial({this.isLoginMode = true});
 }
 
-final class AuthLoading extends AuthState {}
+final class AuthLoading extends AuthState {
+  final AuthMethod? method;
+
+  AuthLoading({this.method});
+}
 
 final class AuthSuccess extends AuthState {
   final AuthResponse authResponse;
