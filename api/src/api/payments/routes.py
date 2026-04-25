@@ -3,9 +3,10 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, Path
 from sqlalchemy.orm import Session
 
+from src.api.auth.admin_guard import require_admin
 from src.api.auth.middleware import get_current_user
 from src.api.payments.schemas import (
     PaymentAuthorizeRequest,
@@ -36,7 +37,7 @@ async def authorize_payment(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    """Autoriser un paiement selon PLAN.md."""
+    """Autoriser un paiement (création PaymentIntent en manual capture)."""
     try:
         result = StripePaymentsService.create_manual_capture_payment_intent(
             db=db,
@@ -52,14 +53,14 @@ async def authorize_payment(
     "/{intentId}/payment/capture",
     response_model=PaymentCaptureResponse,
     summary="Capture payment",
-    description="Capture a Stripe PaymentIntent (requires BOOKED status)",
+    description="Capture a Stripe PaymentIntent (requires BOOKED status in production)",
 )
 async def capture_payment(
     intentId: Annotated[UUID, Path(..., description="Booking Intent ID")],
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    """Capturer un paiement selon PLAN.md."""
+    """Capturer un paiement."""
     try:
         booking_intent = StripePaymentsService.capture_payment(
             db=db,
@@ -90,7 +91,7 @@ async def cancel_payment(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    """Annuler un paiement selon PLAN.md."""
+    """Annuler un paiement."""
     try:
         booking_intent = StripePaymentsService.cancel_payment(
             db=db,
@@ -119,7 +120,7 @@ async def refund_payment(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    """Rembourser un paiement capturé."""
+    """Rembourser un paiement capturé (montant validé contre Stripe)."""
     try:
         booking_intent = StripePaymentsService.refund_payment(
             db=db,
@@ -141,22 +142,28 @@ async def refund_payment(
 @router.post(
     "/{intentId}/payment/confirm-test",
     response_model=PaymentAuthorizeResponse,
-    summary="[TEST] Confirm payment with test card",
-    description="For POC: Confirm a payment with a test card (4242 4242 4242 4242)",
+    summary="[ADMIN/TEST] Confirm payment with test card",
+    description=(
+        "Admin-only QA helper: confirm a PaymentIntent with the Stripe test "
+        "card token. Blocked entirely in production. Real clients confirm via "
+        "the PaymentSheet on mobile."
+    ),
 )
 async def confirm_payment_test(
     intentId: Annotated[UUID, Path(..., description="Booking Intent ID")],
-    current_user: Annotated[User, Depends(get_current_user)],
+    admin_user: Annotated[User, Depends(require_admin)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    """Confirmer un paiement avec une carte de test pour POC."""
+    """Confirmer un paiement avec une carte de test (admin + non-prod)."""
     if settings.NODE_ENV == "production":
-        raise HTTPException(status_code=404, detail="Not found")
+        # Final safety net even though require_admin already restricts. The
+        # 404 is intentional — we don't acknowledge the route exists in prod.
+        raise create_http_exception(AppError("NOT_FOUND", 404, "Not found"))
     try:
         result = StripePaymentsService.confirm_payment_with_test_card(
             db=db,
             intent_id=intentId,
-            user_id=current_user.id,
+            user_id=admin_user.id,
         )
         return PaymentAuthorizeResponse(**result)
     except AppError as e:

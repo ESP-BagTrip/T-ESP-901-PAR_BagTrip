@@ -101,10 +101,12 @@ class TestRegister:
         assert mock_db_session.add.called
         assert mock_db_session.commit.called
 
-        # Verify Stripe interaction
-        mock_stripe_client.create_customer.assert_called_once_with(
-            email="newuser@example.com", name="New User"
-        )
+        # Verify Stripe interaction (idempotency key forwarded so a network
+        # retry of signup doesn't create a duplicate customer).
+        kwargs = mock_stripe_client.create_customer.call_args.kwargs
+        assert kwargs["email"] == "newuser@example.com"
+        assert kwargs["name"] == "New User"
+        assert "idempotency_key" in kwargs
 
     def test_register_user_exists(self, client, override_get_db, mock_db_session):
         """Test registration when user already exists."""

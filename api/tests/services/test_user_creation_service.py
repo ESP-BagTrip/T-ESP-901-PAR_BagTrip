@@ -47,7 +47,13 @@ class TestCreateAndSetupUser:
         mock_db_session.add.assert_called_once_with(user)
         assert mock_db_session.flush.called
         assert mock_db_session.commit.called
-        mock_create_customer.assert_called_once_with(email="new@example.com", name="Alice")
+        # Idempotency key is stable per user.id so a network retry of signup
+        # that already created a Stripe customer won't duplicate it.
+        kwargs = mock_create_customer.call_args.kwargs
+        assert kwargs["email"] == "new@example.com"
+        assert kwargs["name"] == "Alice"
+        assert kwargs["idempotency_key"].startswith("user-")
+        assert kwargs["idempotency_key"].endswith("-customer-create-v1")
         mock_claim.assert_called_once()
 
     def test_stripe_failure_rolls_back_and_raises(self, mock_db_session):
@@ -110,9 +116,10 @@ class TestCreateAndSetupUser:
             )
 
         assert user.full_name is None
-        mock_create_customer.assert_called_once_with(
-            email="apple@privaterelay.appleid.com", name=None
-        )
+        kwargs = mock_create_customer.call_args.kwargs
+        assert kwargs["email"] == "apple@privaterelay.appleid.com"
+        assert kwargs["name"] is None
+        assert "idempotency_key" in kwargs
 
     def test_claim_pending_invites_helper_suppresses_errors(self, mock_db_session):
         """`_claim_pending_invites` is a private best-effort helper."""
