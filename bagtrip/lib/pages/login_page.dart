@@ -183,7 +183,7 @@ class _LoginPageContentState extends State<_LoginPageContent> {
     const errorBorderColor = ColorName.errorDark;
 
     return Scaffold(
-      backgroundColor: ColorName.primaryDark,
+      backgroundColor: ColorName.primaryTrueDark,
       body: SafeArea(
         bottom: false,
         child: BlocListener<AuthBloc, AuthState>(
@@ -269,7 +269,7 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.space16),
+                    const SizedBox(height: AppSpacing.space32),
                     Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: horizontalPadding,
