@@ -587,55 +587,96 @@ class _LoginSignUpToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: ColorName.surfaceLight,
+        color: ColorName.primaryLight,
         borderRadius: AppRadius.pill,
       ),
-      padding: const EdgeInsets.all(AppSpacing.space8 / 2),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildTabItem(
-              label: l10n.login,
-              selected: isLogin,
-              onTap: !isLogin && onToggle != null ? () => onToggle!() : null,
+      padding: const EdgeInsets.all(AppSpacing.space4),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final gap = AppSpacing.space4;
+          final segmentWidth = (constraints.maxWidth - gap) / 2;
+          final indicatorLeft = isLogin ? 0.0 : segmentWidth + gap;
+
+          return SizedBox(
+            height: 40,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                AnimatedPositioned(
+                  duration: AppAnimationDurations.quick,
+                  curve: Curves.easeOutCubic,
+                  left: indicatorLeft,
+                  top: 0,
+                  bottom: 0,
+                  width: segmentWidth,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: ColorName.surface,
+                      borderRadius: AppRadius.pill,
+                      boxShadow: [
+                        BoxShadow(
+                          color: ColorName.primaryTrueDark.withValues(
+                            alpha: 0.08,
+                          ),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildTabLabel(
+                        label: l10n.login,
+                        selected: isLogin,
+                        onTap: !isLogin && onToggle != null
+                            ? () => onToggle!()
+                            : null,
+                      ),
+                    ),
+                    SizedBox(width: gap),
+                    Expanded(
+                      child: _buildTabLabel(
+                        label: l10n.signUp,
+                        selected: !isLogin,
+                        onTap: isLogin && onToggle != null
+                            ? () => onToggle!()
+                            : null,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ),
-          const SizedBox(width: AppSpacing.space4),
-          Expanded(
-            child: _buildTabItem(
-              label: l10n.signUp,
-              selected: !isLogin,
-              onTap: isLogin && onToggle != null ? () => onToggle!() : null,
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildTabItem({
+  Widget _buildTabLabel({
     required String label,
     required bool selected,
     required VoidCallback? onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: AppAnimationDurations.quick,
-        curve: Curves.easeOut,
-        height: 44,
-        decoration: BoxDecoration(
-          color: selected ? ColorName.surface : Colors.transparent,
-          borderRadius: AppRadius.pill,
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: TextStyle(
-            fontFamily: FontFamily.b612,
-            fontWeight: FontWeight.w700,
-            fontSize: 16,
-            color: selected ? textColor : ColorName.textMutedLight,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        splashColor: ColorName.primaryTrueDark.withValues(alpha: 0.06),
+        highlightColor: ColorName.primaryTrueDark.withValues(alpha: 0.04),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontFamily: FontFamily.b612,
+              fontWeight: FontWeight.w700,
+              fontSize: 16,
+              color: selected ? textColor : ColorName.textMutedLight,
+            ),
           ),
         ),
       ),
