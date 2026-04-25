@@ -3,6 +3,7 @@ import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/budget_chip_selector.dart';
 import 'package:bagtrip/design/widgets/budget_preset_list.dart';
+import 'package:bagtrip/design/widgets/progression_cta_button.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -403,7 +404,9 @@ class _StepTravelersBudgetViewState extends State<StepTravelersBudgetView> {
 
             const SizedBox(height: AppSpacing.space16),
 
-            _ContinueButton(
+            ProgressionCtaButton(
+              text: l10n.continueButton,
+              icon: Icons.arrow_forward_rounded,
               onPressed: () {
                 AppHaptics.medium();
                 context.read<PlanTripBloc>().add(
@@ -503,53 +506,6 @@ class _BudgetEstimationBadge extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ContinueButton extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const _ContinueButton({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    return Container(
-      constraints: const BoxConstraints(minHeight: 44),
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.space15),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [ColorName.primary, ColorName.secondary],
-        ),
-        borderRadius: AppRadius.pill,
-        boxShadow: [
-          BoxShadow(
-            color: ColorName.primary.withValues(alpha: 0.3),
-            offset: const Offset(0, 6),
-            blurRadius: 16,
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: AppRadius.pill,
-          child: Center(
-            child: Text(
-              l10n.continueButton,
-              style: const TextStyle(
-                fontSize: 16,
-                fontFamily: FontFamily.dMSerifDisplay,
-                fontWeight: FontWeight.w600,
-                color: ColorName.surface,
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }
