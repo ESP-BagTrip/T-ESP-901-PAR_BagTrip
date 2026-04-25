@@ -623,13 +623,25 @@ abstract class AppLocalizations {
   /// No description provided for @loginWelcomeTitle.
   ///
   /// In fr, this message translates to:
-  /// **'Bienvenue sur Bag Trip'**
+  /// **'Bienvenue sur \nBag Trip'**
   String get loginWelcomeTitle;
+
+  /// No description provided for @loginWelcomeGreeting.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bienvenue sur'**
+  String get loginWelcomeGreeting;
+
+  /// No description provided for @loginWelcomeAppName.
+  ///
+  /// In fr, this message translates to:
+  /// **'BagTrip'**
+  String get loginWelcomeAppName;
 
   /// No description provided for @loginWelcomeSubtitle.
   ///
   /// In fr, this message translates to:
-  /// **'Connectez-vous ou créez un compte pour accéder à votre espace'**
+  /// **'Votre compagnon de voyage intelligent'**
   String get loginWelcomeSubtitle;
 
   /// No description provided for @login.

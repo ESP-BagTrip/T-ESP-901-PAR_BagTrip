@@ -1,28 +1,27 @@
 import 'package:bagtrip/auth/bloc/auth_bloc.dart';
-import 'package:bagtrip/pages/forgot_password_page.dart';
 import 'package:bagtrip/auth/widgets/auth_text_field.dart';
 import 'package:bagtrip/auth/widgets/social_login_button.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
-import 'package:bagtrip/design/app_colors.dart';
-import 'package:bagtrip/design/personalization_colors.dart';
+import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/primary_button.dart';
+import 'package:bagtrip/design/widgets/split_flap_text.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/core/result.dart';
-import 'package:bagtrip/config/service_locator.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
+import 'package:bagtrip/pages/forgot_password_page.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:bagtrip/navigation/route_definitions.dart';
 
-/// Toggle and content container corner radius.
-const double _kPanelRadius = 16.0;
+/// Main auth card top corner radius.
+const double _kAuthCardTopRadius = 34.0;
 
 class LoginPage extends StatelessWidget {
   /// Optional DI overrides for tests. In production both are resolved
@@ -172,30 +171,21 @@ class _LoginPageContentState extends State<_LoginPageContent> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    const horizontalPadding = 24.0;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final scaffoldBackground = PersonalizationColors.gradientStartOf(
-      Theme.of(context).brightness,
-    );
-    final titleColor = isDark ? AppColors.surface : AppColors.primaryTrueDark;
-    final subtitleColor = isDark ? AppColors.hint : AppColors.textMutedLight;
-    final surfaceColor = isDark ? AppColors.surfaceDark : AppColors.surface;
-    final textOnSurface = isDark
-        ? AppColors.surface
-        : AppColors.primaryTrueDark;
-    final hintOnSurface = isDark ? AppColors.hint : AppColors.textMutedLight;
-    final borderColor = isDark
-        ? AppColors.surface.withValues(alpha: 0.15)
-        : ColorName.primarySoftLight;
-    final inputBackgroundColor = isDark
-        ? AppColors.inputBackgroundDark
-        : AppColors.primaryLight;
-    final inputBorderColor = borderColor;
+    const horizontalPadding = AppSpacing.space24;
+    const titleColor = ColorName.surface;
+    const subtitleColor = ColorName.surfaceVariant;
+    const surfaceColor = ColorName.surface;
+    const textOnSurface = ColorName.primaryTrueDark;
+    const hintOnSurface = ColorName.textMutedLight;
+    const borderColor = ColorName.primarySoftLight;
+    const inputBackgroundColor = ColorName.primaryLight;
+    const inputBorderColor = borderColor;
     const errorBorderColor = ColorName.errorDark;
 
     return Scaffold(
-      backgroundColor: scaffoldBackground,
+      backgroundColor: ColorName.primaryDark,
       body: SafeArea(
+        bottom: false,
         child: BlocListener<AuthBloc, AuthState>(
           listener: (context, state) {
             if (state is AuthSuccess) {
@@ -243,251 +233,258 @@ class _LoginPageContentState extends State<_LoginPageContent> {
                   ? state.isLoginMode
                   : true;
 
-              return SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: horizontalPadding,
-                ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: AppSpacing.space48),
-                      Text(
-                        l10n.loginWelcomeTitle,
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w700,
-                          fontFamily: FontFamily.b612,
-                          color: titleColor,
-                        ),
-                        textAlign: TextAlign.center,
+              return Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: AppSpacing.space24),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: horizontalPadding,
                       ),
-                      const SizedBox(height: AppSpacing.space8),
-                      Text(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.loginWelcomeGreeting,
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w700,
+                              fontFamily: FontFamily.dMSerifDisplay,
+                              color: titleColor,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.space4),
+                          SplitFlapText(
+                            text: l10n.loginWelcomeAppName,
+                            textStyle: const TextStyle(
+                              fontSize: 44,
+                              height: 0.95,
+                              fontWeight: FontWeight.w700,
+                              fontFamily: FontFamily.dMSerifDisplay,
+                              color: titleColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.space16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: horizontalPadding,
+                      ),
+                      child: Text(
                         l10n.loginWelcomeSubtitle,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          fontFamily: FontFamily.b612,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: FontFamily.dMSans,
                           color: subtitleColor,
                         ),
-                        textAlign: TextAlign.center,
+                        textAlign: TextAlign.left,
                       ),
-                      const SizedBox(height: AppSpacing.space24),
-                      _LoginSignUpToggle(
-                        isLogin: isLoginMode,
-                        onToggle: isAnyLoading
-                            ? null
-                            : () => _toggleMode(isLoginMode),
-                        l10n: l10n,
-                        surfaceColor: surfaceColor,
-                        textColor: textOnSurface,
-                        borderColor: borderColor,
-                      ),
-                      Container(
-                        decoration: AdaptivePlatform.isIOS
-                            ? BoxDecoration(
-                                color: surfaceColor,
-                                borderRadius: BorderRadius.circular(
-                                  _kPanelRadius,
-                                ),
-                                border: Border.all(color: borderColor),
-                              )
-                            : BoxDecoration(
-                                color: surfaceColor,
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(
-                                    isLoginMode ? 0 : _kPanelRadius,
-                                  ),
-                                  topRight: Radius.circular(
-                                    isLoginMode ? _kPanelRadius : 0,
-                                  ),
-                                  bottomLeft: const Radius.circular(
-                                    _kPanelRadius,
-                                  ),
-                                  bottomRight: const Radius.circular(
-                                    _kPanelRadius,
-                                  ),
-                                ),
-                                border: Border(
-                                  right: BorderSide(color: borderColor),
-                                  bottom: BorderSide(color: borderColor),
-                                  left: BorderSide(color: borderColor),
-                                ),
+                    ),
+                    const SizedBox(height: AppSpacing.space32),
+                    Expanded(
+                      child: Container(
+                        width: double.infinity,
+                        decoration: const BoxDecoration(
+                          color: surfaceColor,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(_kAuthCardTopRadius),
+                            topRight: Radius.circular(_kAuthCardTopRadius),
+                          ),
+                        ),
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.space24,
+                            AppSpacing.space16,
+                            AppSpacing.space24,
+                            AppSpacing.space24,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _LoginSignUpToggle(
+                                isLogin: isLoginMode,
+                                onToggle: isAnyLoading
+                                    ? null
+                                    : () => _toggleMode(isLoginMode),
+                                l10n: l10n,
+                                textColor: textOnSurface,
                               ),
-                        padding: const EdgeInsets.all(AppSpacing.space24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: SocialLoginButton(
-                                    provider: SocialProvider.google,
-                                    onPressed: isAnyLoading
-                                        ? null
-                                        : _handleGoogleSignIn,
-                                    isLoading: isGoogleLoading,
-                                    useDarkStyle: isDark,
-                                    label: l10n.loginContinueWithGoogle,
+                              const SizedBox(height: AppSpacing.space24),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: SocialLoginButton(
+                                      provider: SocialProvider.google,
+                                      onPressed: isAnyLoading
+                                          ? null
+                                          : _handleGoogleSignIn,
+                                      isLoading: isGoogleLoading,
+                                      label: l10n.loginContinueWithGoogle,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: AppSpacing.space8),
-                                Expanded(
-                                  child: SocialLoginButton(
-                                    provider: SocialProvider.apple,
-                                    onPressed: isAnyLoading
-                                        ? null
-                                        : _handleAppleSignIn,
-                                    isLoading: isAppleLoading,
-                                    useDarkStyle: isDark,
-                                    label: l10n.loginContinueWithApple,
+                                  const SizedBox(width: AppSpacing.space8),
+                                  Expanded(
+                                    child: SocialLoginButton(
+                                      provider: SocialProvider.apple,
+                                      onPressed: isAnyLoading
+                                          ? null
+                                          : _handleAppleSignIn,
+                                      isLoading: isAppleLoading,
+                                      label: l10n.loginContinueWithApple,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: AppSpacing.space24),
-                            _buildSeparator(
-                              l10n.loginOrContinueWithEmail,
-                              subtitleColor,
-                            ),
-                            const SizedBox(height: AppSpacing.space24),
-                            AuthTextField(
-                              label: '',
-                              controller: _emailController,
-                              keyboardType: TextInputType.emailAddress,
-                              hintText: l10n.loginEmailPlaceholder,
-                              prefixIcon: Icon(
-                                Icons.mail_outline,
-                                size: 22,
-                                color: hintOnSurface,
+                                ],
                               ),
-                              backgroundColor: inputBackgroundColor,
-                              textColor: textOnSurface,
-                              hintColor: hintOnSurface,
-                              borderColor: inputBorderColor,
-                              hasError: _emailHasError,
-                              errorBorderColor: errorBorderColor,
-                            ),
-                            const SizedBox(height: AppSpacing.space16),
-                            if (!isLoginMode) ...[
+                              const SizedBox(height: AppSpacing.space24),
+                              _buildSeparator(
+                                l10n.loginOrContinueWithEmail,
+                                ColorName.textMutedLight,
+                              ),
+                              const SizedBox(height: AppSpacing.space24),
                               AuthTextField(
-                                label: l10n.loginFullNameLabel,
-                                controller: _fullNameController,
-                                keyboardType: TextInputType.name,
-                                hintText: l10n.loginFullNameHint,
-                                prefixIcon: Icon(
-                                  Icons.person_outline,
-                                  size: 22,
+                                label: '',
+                                controller: _emailController,
+                                keyboardType: TextInputType.emailAddress,
+                                hintText: l10n.loginEmailPlaceholder,
+                                prefixIcon: const Icon(
+                                  Icons.mail_outline,
+                                  size: 20,
                                   color: hintOnSurface,
                                 ),
                                 backgroundColor: inputBackgroundColor,
                                 textColor: textOnSurface,
                                 hintColor: hintOnSurface,
                                 borderColor: inputBorderColor,
-                                hasError: _fullNameHasError,
+                                hasError: _emailHasError,
                                 errorBorderColor: errorBorderColor,
                               ),
                               const SizedBox(height: AppSpacing.space16),
-                            ],
-                            AuthTextField(
-                              label: '',
-                              controller: _passwordController,
-                              obscureText: _obscurePassword,
-                              hintText: l10n.loginPasswordPlaceholder,
-                              prefixIcon: Icon(
-                                Icons.lock_outline,
-                                size: 22,
-                                color: hintOnSurface,
-                              ),
-                              backgroundColor: inputBackgroundColor,
-                              textColor: textOnSurface,
-                              hintColor: hintOnSurface,
-                              borderColor: inputBorderColor,
-                              hasError: _passwordHasError,
-                              errorBorderColor: errorBorderColor,
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscurePassword
-                                      ? Icons.visibility_outlined
-                                      : Icons.visibility_off_outlined,
-                                  color: hintOnSurface,
-                                  size: 22,
+                              if (!isLoginMode) ...[
+                                AuthTextField(
+                                  label: l10n.loginFullNameLabel,
+                                  controller: _fullNameController,
+                                  keyboardType: TextInputType.name,
+                                  hintText: l10n.loginFullNameHint,
+                                  prefixIcon: const Icon(
+                                    Icons.person_outline,
+                                    size: 20,
+                                    color: hintOnSurface,
+                                  ),
+                                  backgroundColor: inputBackgroundColor,
+                                  textColor: textOnSurface,
+                                  hintColor: hintOnSurface,
+                                  borderColor: inputBorderColor,
+                                  hasError: _fullNameHasError,
+                                  errorBorderColor: errorBorderColor,
                                 ),
-                                onPressed: () {
-                                  setState(() {
-                                    _obscurePassword = !_obscurePassword;
-                                  });
-                                },
+                                const SizedBox(height: AppSpacing.space16),
+                              ],
+                              AuthTextField(
+                                label: '',
+                                controller: _passwordController,
+                                obscureText: _obscurePassword,
+                                hintText: l10n.loginPasswordPlaceholder,
+                                prefixIcon: const Icon(
+                                  Icons.lock_outline,
+                                  size: 20,
+                                  color: hintOnSurface,
+                                ),
+                                backgroundColor: inputBackgroundColor,
+                                textColor: textOnSurface,
+                                hintColor: hintOnSurface,
+                                borderColor: inputBorderColor,
+                                hasError: _passwordHasError,
+                                errorBorderColor: errorBorderColor,
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword
+                                        ? Icons.visibility_outlined
+                                        : Icons.visibility_off_outlined,
+                                    color: hintOnSurface,
+                                    size: 20,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscurePassword = !_obscurePassword;
+                                    });
+                                  },
+                                ),
                               ),
-                            ),
-                            if (isLoginMode) ...[
-                              const SizedBox(height: AppSpacing.space8),
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: AdaptivePlatform.isIOS
-                                    ? CupertinoButton(
-                                        padding: EdgeInsets.zero,
-                                        onPressed: isAnyLoading
-                                            ? null
-                                            : () => Navigator.of(context).push(
-                                                MaterialPageRoute<void>(
-                                                  builder: (_) =>
-                                                      const ForgotPasswordPage(),
+                              if (isLoginMode) ...[
+                                const SizedBox(height: AppSpacing.space8),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: AdaptivePlatform.isIOS
+                                      ? CupertinoButton(
+                                          padding: EdgeInsets.zero,
+                                          onPressed: isAnyLoading
+                                              ? null
+                                              : () => Navigator.of(context).push(
+                                                  MaterialPageRoute<void>(
+                                                    builder: (_) =>
+                                                        const ForgotPasswordPage(),
+                                                  ),
                                                 ),
-                                              ),
-                                        child: Text(
-                                          l10n.loginForgotPassword,
-                                          style: const TextStyle(
-                                            fontFamily: FontFamily.b612,
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 14,
-                                            color: ColorName.secondary,
+                                          child: Text(
+                                            l10n.loginForgotPassword,
+                                            style: const TextStyle(
+                                              fontFamily: FontFamily.b612,
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 14,
+                                              color: ColorName.secondary,
+                                            ),
+                                          ),
+                                        )
+                                      : TextButton(
+                                          onPressed: isAnyLoading
+                                              ? null
+                                              : () => Navigator.of(context).push(
+                                                  MaterialPageRoute<void>(
+                                                    builder: (_) =>
+                                                        const ForgotPasswordPage(),
+                                                  ),
+                                                ),
+                                          child: Text(
+                                            l10n.loginForgotPassword,
+                                            style: const TextStyle(
+                                              fontFamily: FontFamily.b612,
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 14,
+                                              color: ColorName.secondary,
+                                            ),
                                           ),
                                         ),
-                                      )
-                                    : TextButton(
-                                        onPressed: isAnyLoading
-                                            ? null
-                                            : () => Navigator.of(context).push(
-                                                MaterialPageRoute<void>(
-                                                  builder: (_) =>
-                                                      const ForgotPasswordPage(),
-                                                ),
-                                              ),
-                                        child: Text(
-                                          l10n.loginForgotPassword,
-                                          style: const TextStyle(
-                                            fontFamily: FontFamily.b612,
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 14,
-                                            color: ColorName.secondary,
-                                          ),
-                                        ),
-                                      ),
+                                ),
+                              ],
+                              const SizedBox(height: AppSpacing.space24),
+                              ClipRRect(
+                                borderRadius: AppRadius.large16,
+                                child: SizedBox(
+                                  height: 48,
+                                  child: PrimaryButton(
+                                    label: isLoginMode
+                                        ? l10n.loginButton
+                                        : l10n.loginRegisterButton,
+                                    onPressed: isAnyLoading
+                                        ? null
+                                        : () => _handleSubmit(isLoginMode),
+                                    isLoading: isEmailLoading,
+                                  ),
+                                ),
                               ),
+                              const SizedBox(height: AppSpacing.space32),
+                              _buildLegalText(l10n, ColorName.textMutedLight),
                             ],
-                            const SizedBox(height: AppSpacing.space24),
-                            PrimaryButton(
-                              label: isLoginMode
-                                  ? l10n.loginButton
-                                  : l10n.loginRegisterButton,
-                              onPressed: isAnyLoading
-                                  ? null
-                                  : () => _handleSubmit(isLoginMode),
-                              isLoading: isEmailLoading,
-                            ),
-                            const SizedBox(height: AppSpacing.space32),
-                            _buildLegalText(l10n, subtitleColor),
-                          ],
+                          ),
                         ),
                       ),
-                      SizedBox(
-                        height: MediaQuery.of(context).padding.bottom + 24,
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               );
             },
@@ -578,119 +575,70 @@ class _LoginSignUpToggle extends StatelessWidget {
     required this.isLogin,
     required this.onToggle,
     required this.l10n,
-    required this.surfaceColor,
     required this.textColor,
-    required this.borderColor,
   });
 
   final bool isLogin;
   final VoidCallback? onToggle;
   final AppLocalizations l10n;
-  final Color surfaceColor;
   final Color textColor;
-  final Color borderColor;
-
-  static const BorderRadius _selectedTopRadius = BorderRadius.only(
-    topLeft: Radius.circular(_kPanelRadius),
-    topRight: Radius.circular(_kPanelRadius),
-  );
 
   @override
   Widget build(BuildContext context) {
-    if (AdaptivePlatform.isIOS) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: AppSpacing.space16),
-        child: SizedBox(
-          width: double.infinity,
-          child: CupertinoSlidingSegmentedControl<bool>(
-            groupValue: isLogin,
-            onValueChanged: (value) {
-              if (onToggle != null && value != null && value != isLogin) {
-                onToggle!();
-              }
-            },
-            children: {
-              true: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(l10n.login),
-              ),
-              false: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(l10n.signUp),
-              ),
-            },
-          ),
-        ),
-      );
-    }
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final unselectedTextColor = isDark
-        ? textColor.withValues(alpha: 0.5)
-        : textColor.withValues(alpha: 0.5);
-
-    return Row(
-      children: [
-        Expanded(
-          child: GestureDetector(
-            onTap: onToggle != null ? () => onToggle!() : null,
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                color: isLogin ? surfaceColor : Colors.transparent,
-                borderRadius: isLogin ? _selectedTopRadius : null,
-                border: isLogin
-                    ? Border(
-                        top: BorderSide(color: borderColor),
-                        left: BorderSide(color: borderColor),
-                        right: BorderSide(color: borderColor),
-                      )
-                    : null,
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                l10n.login,
-                style: TextStyle(
-                  fontFamily: FontFamily.b612,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                  color: isLogin ? textColor : unselectedTextColor,
-                ),
-              ),
+    return Container(
+      decoration: const BoxDecoration(
+        color: ColorName.surfaceLight,
+        borderRadius: AppRadius.pill,
+      ),
+      padding: const EdgeInsets.all(AppSpacing.space8 / 2),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildTabItem(
+              label: l10n.login,
+              selected: isLogin,
+              onTap: !isLogin && onToggle != null ? () => onToggle!() : null,
             ),
           ),
-        ),
-        const SizedBox(width: AppSpacing.space8),
-        Expanded(
-          child: GestureDetector(
-            onTap: onToggle != null ? () => onToggle!() : null,
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                color: !isLogin ? surfaceColor : Colors.transparent,
-                borderRadius: !isLogin ? _selectedTopRadius : null,
-                border: !isLogin
-                    ? Border(
-                        top: BorderSide(color: borderColor),
-                        left: BorderSide(color: borderColor),
-                        right: BorderSide(color: borderColor),
-                      )
-                    : null,
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                l10n.signUp,
-                style: TextStyle(
-                  fontFamily: FontFamily.b612,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                  color: !isLogin ? textColor : unselectedTextColor,
-                ),
-              ),
+          const SizedBox(width: AppSpacing.space4),
+          Expanded(
+            child: _buildTabItem(
+              label: l10n.signUp,
+              selected: !isLogin,
+              onTap: isLogin && onToggle != null ? () => onToggle!() : null,
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabItem({
+    required String label,
+    required bool selected,
+    required VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: AppAnimationDurations.quick,
+        curve: Curves.easeOut,
+        height: 44,
+        decoration: BoxDecoration(
+          color: selected ? ColorName.surface : Colors.transparent,
+          borderRadius: AppRadius.pill,
         ),
-      ],
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontFamily: FontFamily.b612,
+            fontWeight: FontWeight.w700,
+            fontSize: 16,
+            color: selected ? textColor : ColorName.textMutedLight,
+          ),
+        ),
+      ),
     );
   }
 }
