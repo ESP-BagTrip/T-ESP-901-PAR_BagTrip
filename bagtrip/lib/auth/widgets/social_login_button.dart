@@ -96,7 +96,7 @@ class SocialLoginButton extends StatelessWidget {
           side: _side,
           minimumSize: const Size.fromHeight(_height),
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space12),
-          shape: const RoundedRectangleBorder(borderRadius: AppRadius.pill),
+          shape: const RoundedRectangleBorder(borderRadius: AppRadius.large16),
         ),
         child: isLoading
             ? SizedBox(
