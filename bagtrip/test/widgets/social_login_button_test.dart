@@ -64,5 +64,16 @@ void main() {
       final button = tester.widget<OutlinedButton>(find.byType(OutlinedButton));
       expect(button.onPressed, isNull);
     });
+
+    testWidgets('uses 47px minimum height', (tester) async {
+      await pumpLocalized(
+        tester,
+        SocialLoginButton(provider: SocialProvider.apple, onPressed: () {}),
+      );
+      await tester.pump();
+      final button = tester.widget<OutlinedButton>(find.byType(OutlinedButton));
+      final minSize = button.style?.minimumSize?.resolve(<WidgetState>{});
+      expect(minSize?.height, 47);
+    });
   });
 }

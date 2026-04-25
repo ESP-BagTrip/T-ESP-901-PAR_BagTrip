@@ -304,11 +304,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get bookingStatusConfirmed => 'Confirmé';
 
   @override
-  String get loginWelcomeTitle => 'Bienvenue sur Bag Trip';
+  String get loginWelcomeTitle => 'Bienvenue sur \nBag Trip';
 
   @override
-  String get loginWelcomeSubtitle =>
-      'Connectez-vous ou créez un compte pour accéder à votre espace';
+  String get loginWelcomeGreeting => 'Bienvenue sur';
+
+  @override
+  String get loginWelcomeAppName => 'BagTrip';
+
+  @override
+  String get loginWelcomeSubtitle => 'Votre compagnon de voyage intelligent';
 
   @override
   String get login => 'Connexion';

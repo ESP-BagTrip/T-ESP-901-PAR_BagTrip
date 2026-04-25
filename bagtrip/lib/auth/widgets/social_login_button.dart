@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 enum SocialProvider { google, apple }
 
 class SocialLoginButton extends StatelessWidget {
+  static const double _height = 47;
+
   final SocialProvider provider;
   final VoidCallback? onPressed;
   final bool isLoading;
@@ -37,6 +39,15 @@ class SocialLoginButton extends StatelessWidget {
         return Icons.g_mobiledata;
       case SocialProvider.apple:
         return Icons.apple;
+    }
+  }
+
+  double get _iconSize {
+    switch (provider) {
+      case SocialProvider.google:
+        return 26;
+      case SocialProvider.apple:
+        return 20;
     }
   }
 
@@ -83,14 +94,14 @@ class SocialLoginButton extends StatelessWidget {
           backgroundColor: _backgroundColor,
           foregroundColor: _textColor,
           side: _side,
-          minimumSize: const Size.fromHeight(AppSize.height42),
-          padding: AppSpacing.allEdgeInsetSpace16,
-          shape: const RoundedRectangleBorder(borderRadius: AppRadius.large16),
+          minimumSize: const Size.fromHeight(_height),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space12),
+          shape: const RoundedRectangleBorder(borderRadius: AppRadius.pill),
         ),
         child: isLoading
             ? SizedBox(
-                height: 20,
-                width: 20,
+                height: 18,
+                width: 18,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
                   color: _textColor,
@@ -99,14 +110,14 @@ class SocialLoginButton extends StatelessWidget {
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(_icon, size: 20, color: _textColor),
+                  Icon(_icon, size: _iconSize, color: _textColor),
                   const SizedBox(width: AppSpacing.space8),
                   Text(
                     buttonLabel,
                     style: TextStyle(
                       fontFamily: FontFamily.b612,
                       fontWeight: FontWeight.w600,
-                      fontSize: 16,
+                      fontSize: 15,
                       color: _textColor,
                     ),
                   ),
