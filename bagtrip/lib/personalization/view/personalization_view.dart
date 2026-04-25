@@ -1,7 +1,7 @@
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/design/widgets/premium_cta_button.dart';
+import 'package:bagtrip/design/widgets/progression_cta_button.dart';
 import 'package:bagtrip/design/widgets/premium_step_indicator.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
@@ -172,19 +172,19 @@ class PersonalizationView extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  PremiumCtaButton(
-                    label: isLastStep
+                  ProgressionCtaButton(
+                    text: isLastStep
                         ? l10n.personalizationFinish
                         : l10n.personalizationContinue,
-                    onPressed: state.isSaving
-                        ? null
-                        : () {
-                            if (isLastStep) {
-                              bloc.add(SaveAndFinishPersonalization());
-                            } else {
-                              bloc.add(PersonalizationNextStep());
-                            }
-                          },
+                    icon: Icons.arrow_forward_rounded,
+                    onPressed: () {
+                      if (isLastStep) {
+                        bloc.add(SaveAndFinishPersonalization());
+                      } else {
+                        bloc.add(PersonalizationNextStep());
+                      }
+                    },
+                    enabled: !state.isSaving,
                   ),
                   if (state.step == 1) ...[
                     const SizedBox(height: AppSpacing.space16),
