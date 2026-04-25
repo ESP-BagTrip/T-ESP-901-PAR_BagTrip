@@ -52,7 +52,7 @@ class SocialLoginButton extends StatelessWidget {
   }
 
   Color get _backgroundColor {
-    if (useDarkStyle) return AppColors.surfaceDark;
+    if (useDarkStyle) return AppColors.primaryTrueDark;
     switch (provider) {
       case SocialProvider.google:
         return AppColors.surface;

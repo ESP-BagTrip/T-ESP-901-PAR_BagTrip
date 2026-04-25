@@ -20,7 +20,7 @@ class SplitFlapText extends StatefulWidget {
       letterSpacing: 1.1,
     ),
     this.backgroundColor = AppColors.primaryTrueDark,
-    this.flapColor = AppColors.primaryTrueDark,
+    this.flapColor = AppColors.secondary,
     this.mode = SplitFlapMode.clean,
   });
 
@@ -175,6 +175,7 @@ class _SplitFlapCell extends StatelessWidget {
     final current = _charAt(step);
     final next = _charAt((step + 1).clamp(0, total));
     final isSettled = progress >= 1;
+    final staticChar = (!isSettled && stepProgress >= 0.5) ? next : current;
 
     return Container(
       width: width,
@@ -195,12 +196,17 @@ class _SplitFlapCell extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
         child: Stack(
           children: [
-            _half(next, Alignment.bottomCenter, true),
-            _half(current, Alignment.topCenter, false),
-            if (!isSettled)
-              _flippingTop(current, stepProgress)
-            else
-              _half(plan.target, Alignment.topCenter, false),
+            _half(
+              isSettled ? plan.target : staticChar,
+              Alignment.bottomCenter,
+              true,
+            ),
+            _half(
+              isSettled ? plan.target : staticChar,
+              Alignment.topCenter,
+              false,
+            ),
+            if (!isSettled) _flippingTop(current, next, stepProgress),
             Positioned(
               top: height / 2 - 0.5,
               left: 0,
@@ -230,12 +236,15 @@ class _SplitFlapCell extends StatelessWidget {
     );
   }
 
-  Widget _flippingTop(String char, double t) {
-    final angle = -t * (math.pi / 2);
+  Widget _flippingTop(String fromChar, String toChar, double t) {
+    final firstHalf = t <= 0.5;
+    final localT = firstHalf ? (t * 2) : ((t - 0.5) * 2);
+    final angle = -localT * (math.pi / 2);
     final matrix = Matrix4.identity()
       ..setEntry(3, 2, 0.0025)
       ..rotateX(angle);
-    final shade = (t * 0.35).clamp(0.0, 0.35);
+    final shade = (localT * 0.35).clamp(0.0, 0.35);
+    final flapChar = firstHalf ? fromChar : toChar;
 
     return Align(
       alignment: Alignment.topCenter,
@@ -249,9 +258,9 @@ class _SplitFlapCell extends StatelessWidget {
             child: Stack(
               children: [
                 Container(
-                  color: flapColor,
+                  color: flapColor.withValues(alpha: 0.8),
                   alignment: Alignment.center,
-                  child: Text(char, style: textStyle),
+                  child: Text(flapChar, style: textStyle),
                 ),
                 Positioned.fill(
                   child: DecoratedBox(
