@@ -37,7 +37,7 @@ class SplitFlapText extends StatefulWidget {
 
 class _SplitFlapTextState extends State<SplitFlapText>
     with SingleTickerProviderStateMixin {
-  static const String _alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  static const String _alphabet = 'BAGTRIP';
 
   late final AnimationController _controller;
   late List<_CharPlan> _plans;
