@@ -70,6 +70,13 @@ scrape_configs:
             level: level
       - labels:
           level:
+      # Pull the OTEL trace id out of FastAPI's text logs (format
+      # `[trace_id=<32 hex>]`) so Grafana's Loki → Tempo deeplink
+      # (configured in grafana_datasources.yml.j2) can resolve it as a label.
+      - regex:
+          expression: 'trace_id=(?P<trace_id>[a-f0-9]{32})'
+      - labels:
+          trace_id:
 
   # ---------- Edge Caddy access logs (JSON, file-based) ----------
   - job_name: caddy_edge_access

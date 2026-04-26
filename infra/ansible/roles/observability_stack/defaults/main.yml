@@ -15,6 +15,7 @@ observability_versions:
   blackbox_exporter: v0.25.0
   loki: 3.3.2
   promtail: 3.3.2
+  tempo: 2.7.1
 
 # --- Loopback ports (host-side; never exposed publicly until Phase 1c) ---
 observability_prometheus_host_port: 9090

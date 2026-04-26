@@ -33,7 +33,8 @@ class Logger:
         handler.setLevel(logging.DEBUG)
         handler.addFilter(RequestIdLogFilter())
         formatter = logging.Formatter(
-            "[%(asctime)s] [%(levelname)s] [rid=%(request_id)s] %(message)s",
+            "[%(asctime)s] [%(levelname)s] [rid=%(request_id)s] "
+            "[trace_id=%(trace_id)s] %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S",
         )
         handler.setFormatter(formatter)

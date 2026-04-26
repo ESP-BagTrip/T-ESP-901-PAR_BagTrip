@@ -52,6 +52,15 @@ class Settings(BaseSettings):
     ENABLE_PLAN_EXPIRATION_JOB: bool = True
     ENABLE_ZOMBIE_PI_JOB: bool = True
 
+    # OpenTelemetry — distributed tracing.
+    # When OTEL_EXPORTER_OTLP_ENDPOINT is set (e.g. `http://tempo:4317` in
+    # production) the FastAPI / SQLAlchemy / Redis / HTTPX integrations export
+    # spans to the configured collector. Leaving it empty disables tracing
+    # (default for dev / test — keeps the test suite hermetic).
+    OTEL_EXPORTER_OTLP_ENDPOINT: str | None = None
+    OTEL_SERVICE_NAME: str = "bagtrip-api"
+    OTEL_TRACES_SAMPLER_ARG: float = 1.0  # 0.0–1.0 ratio
+
     @field_validator("STRIPE_WEBHOOK_SECRET")
     @classmethod
     def validate_stripe_webhook_secret_in_prod(cls, v: str | None, info) -> str | None:

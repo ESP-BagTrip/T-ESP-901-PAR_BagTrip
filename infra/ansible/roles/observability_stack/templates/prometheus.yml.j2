@@ -74,6 +74,12 @@ scrape_configs:
       - targets: ['bagtrip-preprod-admin-1:8000']
         labels: { service: admin, env: preprod, stack: bagtrip }
 
+  # --- Tempo self-metrics (Phase 3) ---
+  - job_name: tempo
+    static_configs:
+      - targets: ['tempo:3200']
+        labels: { service: tempo, instance: vps_prod }
+
   # --- Edge Caddy ---
   # TODO (Phase 1b): wire edge Caddy /metrics scrape. Edge Caddy admin is
   # currently bound to 127.0.0.1:2019 via host networking, which is not

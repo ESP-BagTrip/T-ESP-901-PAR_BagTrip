@@ -50,13 +50,32 @@ async def request_id_middleware(
 
 
 class RequestIdLogFilter(logging.Filter):
-    """Inject the current request id into every LogRecord.
+    """Inject the current request id and OTEL trace id into every LogRecord.
 
-    Formatter templates can reference `%(request_id)s`. Records produced
-    outside a request (schedulers, lifespan, boot) get a placeholder so
-    format strings never raise KeyError.
+    Formatter templates can reference `%(request_id)s` and `%(trace_id)s`.
+    Records produced outside a request (schedulers, lifespan, boot) get a
+    placeholder so format strings never raise KeyError. The trace id is
+    pulled from the active OTEL span context — when tracing is disabled or
+    no span is active, it falls back to the same `-` placeholder, so
+    Loki / Grafana queries can rely on the field being present.
     """
 
     def filter(self, record: logging.LogRecord) -> bool:
         record.request_id = _request_id_ctx.get() or "-"
+        record.trace_id = _current_trace_id()
         return True
+
+
+def _current_trace_id() -> str:
+    """Return the current OTEL trace id as 32-char hex, or '-' if absent."""
+    try:
+        from opentelemetry import trace as _otel_trace
+
+        span_ctx = _otel_trace.get_current_span().get_span_context()
+        if span_ctx.is_valid:
+            return f"{span_ctx.trace_id:032x}"
+    except Exception:
+        # OTEL API not importable (deps missing) or any unexpected failure —
+        # logging must never break the request path.
+        pass
+    return "-"
