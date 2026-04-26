@@ -47,10 +47,27 @@ The playbook is idempotent: re-running on a converged host should report `0 chan
 
 This repo is built phase-by-phase as described in the M5 observability plan. See `documentations/adr/0001-observability-stack-strategy.md` for the full plan and rationale.
 
+## Known carry-overs from Phase 1a → Phase 1b
+
+- **cAdvisor on Docker 29**: cAdvisor v0.52 cannot enumerate per-container
+  cgroups under Docker's new `overlayfs` storage backend (the legacy
+  `/var/lib/docker/image/overlayfs/layerdb/mounts/<id>/mount-id` path no
+  longer exists). Only the root cgroup is currently scraped. Phase 1b
+  pivots to Docker daemon's native `/metrics` endpoint (set in
+  `daemon.json`), which works regardless of storage driver.
+- **Edge Caddy `/metrics`**: the admin endpoint binds `127.0.0.1:2019` via
+  host networking. Prometheus in a bridge network can't reach it through
+  `host.docker.internal:host-gateway`. Phase 1b rebinds admin to the
+  docker0 IP and adds a `PREROUTING` DROP rule for `! -i lo` on dport 2019
+  (matching the pattern already in place for inner Caddy ports 808X).
+
+## Phase status
+
 | Phase | Scope | Status |
 |---|---|---|
-| 0 | Cadrage, Ansible skeleton, baseline assertion, ADR-001, threat model, SLO | in progress |
-| 1 | Prometheus + Grafana + exporters | pending |
+| 0 | Cadrage, Ansible skeleton, baseline assertion, ADR-001, threat model, SLO | shipped |
+| 1a | Prometheus + Grafana + node_exporter + cAdvisor + postgres + redis + blackbox + 4 dashboards | shipped (with two known carry-overs into 1b) |
+| 1b | App instrumentation (FastAPI / Next.js), edge Caddy /metrics rebind, cAdvisor → Docker native /metrics endpoint | pending |
 | 2 | Loki + Promtail | pending |
 | 3 | OpenTelemetry → Tempo | pending |
 | 4 | Alertmanager + runbooks | pending |

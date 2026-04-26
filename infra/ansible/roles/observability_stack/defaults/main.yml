@@ -1,0 +1,49 @@
+---
+# --- Filesystem layout ---
+observability_root: /opt/observability
+observability_owner: deploy
+observability_group: deploy
+
+# --- Image pinning (digest-pinning is Phase 5 polish) ---
+observability_versions:
+  prometheus: v2.55.1
+  grafana: 11.4.0
+  node_exporter: v1.8.2
+  cadvisor: v0.52.0
+  postgres_exporter: v0.16.0
+  redis_exporter: v1.66.0
+  blackbox_exporter: v0.25.0
+
+# --- Loopback ports (host-side; never exposed publicly until Phase 1c) ---
+observability_prometheus_host_port: 9090
+observability_grafana_host_port: 8087
+
+# --- Prometheus retention ---
+observability_prometheus_retention_time: "30d"
+observability_prometheus_retention_size: "20GB"
+observability_scrape_interval: 15s
+
+# --- BagTrip stack network names (external, must already exist) ---
+observability_bagtrip_prod_network: bagtrip_default
+observability_bagtrip_preprod_network: bagtrip-preprod_default
+
+# --- BagTrip stack container names (must match the running stacks) ---
+observability_bagtrip_prod_postgres_container: bagtrip-postgres-1
+observability_bagtrip_preprod_postgres_container: bagtrip-preprod-postgres-1
+observability_bagtrip_prod_redis_container: bagtrip-redis-1
+observability_bagtrip_preprod_redis_container: bagtrip-preprod-redis-1
+
+# --- Source-of-truth env files (read at deploy time to derive postgres creds) ---
+observability_bagtrip_prod_env_file: /opt/bagtrip/.env.production
+observability_bagtrip_preprod_env_file: /opt/bagtrip-preprod/.env.production
+
+# --- Grafana credentials (admin password generated on first deploy, persisted in .env) ---
+observability_grafana_admin_user: admin
+
+# --- Blackbox probe targets (Phase 1a baseline; expanded in Phase 7) ---
+observability_blackbox_targets:
+  - https://bagtrip.fr
+  - https://api.bagtrip.fr
+  - https://dev.bagtrip.fr
+  - https://api.dev.bagtrip.fr
+  - https://monitoring.bagtrip.fr

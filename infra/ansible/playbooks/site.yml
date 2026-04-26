@@ -1,11 +1,14 @@
 ---
 # Top-level entry point for the BagTrip VPS.
-# Phase 0: assert the existing baseline, change nothing.
-# Subsequent phases will append additional plays/roles below this one.
+# Use --tags to scope to a phase:
+#   --tags baseline       : Phase 0 only (read-only assertions)
+#   --tags observability  : Phase 1 (deploy /opt/observability)
 
-- name: Assert baseline state on BagTrip VPS
+- name: Converge BagTrip VPS
   hosts: bagtrip_vps
   gather_facts: true
   roles:
     - role: common
       tags: [common, baseline]
+    - role: observability_stack
+      tags: [observability, phase1]

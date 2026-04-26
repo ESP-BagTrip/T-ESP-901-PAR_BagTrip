@@ -1,0 +1,100 @@
+# {{ ansible_managed }}
+# BagTrip Prometheus configuration — Phase 1a.
+
+global:
+  scrape_interval: {{ observability_scrape_interval }}
+  evaluation_interval: {{ observability_scrape_interval }}
+  external_labels:
+    env: prod
+    host: vps_prod
+
+scrape_configs:
+  # --- Prometheus self-scrape ---
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+        labels: { service: prometheus }
+
+  # --- Host metrics ---
+  - job_name: node
+    static_configs:
+      - targets: ['node_exporter:9100']
+        labels:
+          service: node_exporter
+          instance: vps_prod
+
+  # --- Container metrics (cAdvisor sees every container on the host;
+  #     allowlist BagTrip-managed names so adjacent unrelated workloads
+  #     don't end up in our TSDB) ---
+  - job_name: cadvisor
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          service: cadvisor
+          instance: vps_prod
+    metric_relabel_configs:
+      - source_labels: [name]
+        regex: '^(bagtrip-.*|observability-.*|edge-caddy|netdata)$|^$'
+        action: keep
+
+  # --- Postgres ---
+  - job_name: postgres
+    static_configs:
+      - targets: ['postgres_exporter_prod:9187']
+        labels: { service: postgres, env: prod, stack: bagtrip }
+      - targets: ['postgres_exporter_preprod:9187']
+        labels: { service: postgres, env: preprod, stack: bagtrip }
+
+  # --- Redis ---
+  - job_name: redis
+    static_configs:
+      - targets: ['redis_exporter_prod:9121']
+        labels: { service: redis, env: prod, stack: bagtrip }
+      - targets: ['redis_exporter_preprod:9121']
+        labels: { service: redis, env: preprod, stack: bagtrip }
+
+  # --- Edge Caddy ---
+  # TODO (Phase 1b): wire edge Caddy /metrics scrape. Edge Caddy admin is
+  # currently bound to 127.0.0.1:2019 via host networking, which is not
+  # reachable from a bridged Prometheus container. Phase 1b will:
+  #   1. Reconfigure edge Caddyfile to bind admin on the docker0 interface,
+  #   2. Add a PREROUTING DROP rule for ! -i lo on dport 2019 to keep it
+  #      private (matching the existing pattern for ports 80XX).
+  # Until then, the upstream-health metrics surfaced by edge Caddy /metrics
+  # are not in our TSDB — Caddy logs in Loki (Phase 2) cover the gap.
+
+  # --- Synthetic probes (HTTP) ---
+  - job_name: blackbox_http
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+{% for target in observability_blackbox_targets %}
+        - {{ target }}
+{% endfor %}
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox_exporter:9115
+
+  # --- TLS expiry ---
+  - job_name: blackbox_tls
+    metrics_path: /probe
+    params:
+      module: [tcp_tls]
+    static_configs:
+      - targets:
+{% for target in observability_blackbox_targets %}
+        - {{ target | regex_replace('^https?://', '') | regex_replace('/.*$', '') }}:443
+{% endfor %}
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox_exporter:9115

@@ -1,0 +1,199 @@
+---
+- name: Ensure observability filesystem layout
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0755"
+  loop:
+    - "{{ observability_root }}"
+    - "{{ observability_root }}/prometheus"
+    - "{{ observability_root }}/grafana"
+    - "{{ observability_root }}/grafana/provisioning"
+    - "{{ observability_root }}/grafana/provisioning/datasources"
+    - "{{ observability_root }}/grafana/provisioning/dashboards"
+    - "{{ observability_root }}/grafana/dashboards"
+    - "{{ observability_root }}/blackbox"
+
+# --- Read BagTrip postgres credentials from existing .env files (source of truth) ---
+
+- name: Slurp bagtrip prod environment
+  ansible.builtin.slurp:
+    src: "{{ observability_bagtrip_prod_env_file }}"
+  register: bagtrip_prod_env_raw
+  no_log: true
+
+- name: Slurp bagtrip preprod environment
+  ansible.builtin.slurp:
+    src: "{{ observability_bagtrip_preprod_env_file }}"
+  register: bagtrip_preprod_env_raw
+  no_log: true
+
+- name: Extract bagtrip postgres credentials
+  ansible.builtin.set_fact:
+    bagtrip_prod_pg_user: "{{ (bagtrip_prod_env_raw.content | b64decode | regex_search('^POSTGRES_USER=(.+)$', '\\1', multiline=True)) | first | default('bagtrip') }}"
+    bagtrip_prod_pg_password: "{{ (bagtrip_prod_env_raw.content | b64decode | regex_search('^POSTGRES_PASSWORD=(.+)$', '\\1', multiline=True)) | first | default('') }}"
+    bagtrip_prod_pg_db: "{{ (bagtrip_prod_env_raw.content | b64decode | regex_search('^POSTGRES_DB=(.+)$', '\\1', multiline=True)) | first | default('bagtrip') }}"
+    bagtrip_preprod_pg_user: "{{ (bagtrip_preprod_env_raw.content | b64decode | regex_search('^POSTGRES_USER=(.+)$', '\\1', multiline=True)) | first | default('bagtrip') }}"
+    bagtrip_preprod_pg_password: "{{ (bagtrip_preprod_env_raw.content | b64decode | regex_search('^POSTGRES_PASSWORD=(.+)$', '\\1', multiline=True)) | first | default('') }}"
+    bagtrip_preprod_pg_db: "{{ (bagtrip_preprod_env_raw.content | b64decode | regex_search('^POSTGRES_DB=(.+)$', '\\1', multiline=True)) | first | default('bagtrip') }}"
+  no_log: true
+
+- name: Assert postgres credentials were extracted
+  ansible.builtin.assert:
+    that:
+      - bagtrip_prod_pg_password | length > 0
+      - bagtrip_preprod_pg_password | length > 0
+    fail_msg: >
+      Could not extract POSTGRES_PASSWORD from {{ observability_bagtrip_prod_env_file }} or
+      {{ observability_bagtrip_preprod_env_file }}. Verify the files are readable and follow
+      KEY=VALUE format.
+    quiet: true
+
+# --- Generate or load Grafana admin password (persisted in /opt/observability/.env) ---
+
+- name: Stat observability env file
+  ansible.builtin.stat:
+    path: "{{ observability_root }}/.env"
+  register: obs_env_stat
+
+- name: Generate Grafana admin password (first deploy only)
+  ansible.builtin.set_fact:
+    grafana_admin_password: "{{ lookup('community.general.random_string', length=24, special=false) }}"
+    grafana_password_was_generated: true
+  when: not obs_env_stat.stat.exists
+  no_log: true
+
+- name: Read existing observability env file
+  ansible.builtin.slurp:
+    src: "{{ observability_root }}/.env"
+  register: obs_env_raw
+  when: obs_env_stat.stat.exists
+  no_log: true
+
+- name: Extract existing Grafana admin password
+  ansible.builtin.set_fact:
+    grafana_admin_password: "{{ (obs_env_raw.content | b64decode | regex_search('^GF_ADMIN_PASSWORD=(.+)$', '\\1', multiline=True)) | first }}"
+    grafana_password_was_generated: false
+  when: obs_env_stat.stat.exists
+  no_log: true
+
+# --- Render templates ---
+
+- name: Render observability .env
+  ansible.builtin.template:
+    src: env.j2
+    dest: "{{ observability_root }}/.env"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0600"
+  no_log: true
+  notify: Restart observability stack
+
+- name: Render docker compose
+  ansible.builtin.template:
+    src: compose.yml.j2
+    dest: "{{ observability_root }}/compose.yml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  notify: Restart observability stack
+
+- name: Render Prometheus configuration
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: "{{ observability_root }}/prometheus/prometheus.yml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  notify: Reload Prometheus configuration
+
+- name: Render Blackbox exporter configuration
+  ansible.builtin.template:
+    src: blackbox.yml.j2
+    # blackbox-exporter looks for /etc/blackbox_exporter/config.yml by default.
+    dest: "{{ observability_root }}/blackbox/config.yml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  notify: Restart observability stack
+
+- name: Render Grafana datasource provisioning
+  ansible.builtin.template:
+    src: grafana_datasources.yml.j2
+    dest: "{{ observability_root }}/grafana/provisioning/datasources/prometheus.yml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  notify: Restart observability stack
+
+- name: Render Grafana dashboard provider
+  ansible.builtin.template:
+    src: grafana_dashboards.yml.j2
+    dest: "{{ observability_root }}/grafana/provisioning/dashboards/dashboards.yml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  notify: Restart observability stack
+
+- name: Sync committed dashboards to Grafana provisioning path
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../dashboards/"
+    dest: "{{ observability_root }}/grafana/dashboards/"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+    directory_mode: "0755"
+  notify: Restart observability stack
+
+# --- Verify external bagtrip networks exist (the stacks must be running) ---
+
+- name: Verify bagtrip networks exist
+  community.docker.docker_network_info:
+    name: "{{ item }}"
+  loop:
+    - "{{ observability_bagtrip_prod_network }}"
+    - "{{ observability_bagtrip_preprod_network }}"
+  register: bagtrip_network_info
+  failed_when:
+    - not bagtrip_network_info.failed | default(false)
+    - not (bagtrip_network_info.exists | default(false))
+
+# --- Bring the stack up ---
+
+- name: Bring observability stack up
+  community.docker.docker_compose_v2:
+    project_src: "{{ observability_root }}"
+    state: present
+    pull: missing
+  register: compose_up_result
+
+- name: Wait for Prometheus to become healthy
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ observability_prometheus_host_port }}/-/ready"
+    status_code: 200
+  register: prom_ready
+  until: prom_ready.status == 200
+  retries: 30
+  delay: 2
+
+- name: Wait for Grafana to become healthy
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ observability_grafana_host_port }}/api/health"
+    status_code: 200
+  register: grafana_ready
+  until: grafana_ready.status == 200
+  retries: 30
+  delay: 2
+
+# --- Summary ---
+
+- name: Print observability stack summary
+  ansible.builtin.debug:
+    msg:
+      - "Observability stack deployed at {{ observability_root }}"
+      - "Prometheus: http://127.0.0.1:{{ observability_prometheus_host_port }} (loopback, SSH tunnel required)"
+      - "Grafana:    http://127.0.0.1:{{ observability_grafana_host_port }} (loopback, SSH tunnel required)"
+      - "Grafana admin user: {{ observability_grafana_admin_user }}"
+      - "{{ 'Grafana admin password was generated this run — see /opt/observability/.env on the VPS.' if grafana_password_was_generated else 'Grafana admin password unchanged from previous deploy.' }}"

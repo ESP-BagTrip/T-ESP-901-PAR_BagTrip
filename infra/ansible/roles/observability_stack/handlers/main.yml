@@ -1,0 +1,11 @@
+---
+- name: Reload Prometheus configuration
+  ansible.builtin.command: docker compose -f {{ observability_root }}/compose.yml exec -T prometheus kill -HUP 1
+  changed_when: true
+  failed_when: false
+
+- name: Restart observability stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ observability_root }}"
+    state: present
+    recreate: auto
