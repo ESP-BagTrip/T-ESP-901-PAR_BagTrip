@@ -40,6 +40,13 @@ observability_bagtrip_preprod_env_file: /opt/bagtrip-preprod/.env.production
 # --- Grafana credentials (admin password generated on first deploy, persisted in .env) ---
 observability_grafana_admin_user: admin
 
+# --- Public exposure via edge Caddy (Cloudflare-fronted) ---
+# Set observability_expose_grafana_publicly: false to skip the edge vhost block.
+observability_expose_grafana_publicly: true
+observability_grafana_public_hostname: grafana.bagtrip.fr
+observability_edge_caddyfile: /opt/edge/Caddyfile
+observability_edge_container: edge-caddy
+
 # --- Blackbox probe targets (Phase 1a baseline; expanded in Phase 7) ---
 observability_blackbox_targets:
   - https://bagtrip.fr

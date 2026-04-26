@@ -9,3 +9,13 @@
     project_src: "{{ observability_root }}"
     state: present
     recreate: auto
+
+- name: Reload edge Caddy
+  # /opt/edge/Caddyfile is bind-mounted as a single file. Docker pins the
+  # inode at container creation, so an atomic file replacement on the host
+  # is invisible to the running container even after `docker restart` or
+  # `caddy reload`. Force-recreate refreshes the bind mount.
+  # Phase 1c will rebind /opt/edge as a directory so a plain reload suffices.
+  ansible.builtin.command:
+    cmd: docker compose -f /opt/edge/compose.yml up -d --force-recreate caddy
+  changed_when: true

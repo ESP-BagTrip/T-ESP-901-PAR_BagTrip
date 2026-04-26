@@ -187,13 +187,54 @@
   retries: 30
   delay: 2
 
+# --- Public exposure via edge Caddy (optional) ---
+
+- name: Compute bcrypt hash for Grafana basic_auth (via edge-caddy)
+  ansible.builtin.command:
+    cmd: "docker exec {{ observability_edge_container }} caddy hash-password --plaintext {{ grafana_admin_password | quote }}"
+  register: grafana_basic_auth_hash
+  changed_when: false
+  no_log: true
+  when: observability_expose_grafana_publicly | bool
+
+- name: Add Grafana vhost to edge Caddyfile
+  ansible.builtin.blockinfile:
+    path: "{{ observability_edge_caddyfile }}"
+    marker: "# {mark} ANSIBLE managed — observability stack Grafana public vhost"
+    block: |
+      {{ observability_grafana_public_hostname }} {
+          log access {
+              output file /var/log/caddy/access.log {
+                  roll_size 50mb
+                  roll_keep 7
+              }
+              format json
+          }
+          import security_headers
+          encode zstd gzip
+          basic_auth {
+              {{ observability_grafana_admin_user }} {{ grafana_basic_auth_hash.stdout }}
+          }
+          reverse_proxy 127.0.0.1:{{ observability_grafana_host_port }}
+      }
+    backup: true
+    mode: "0644"
+    # /opt/edge/Caddyfile is bind-mounted into edge-caddy as a single file.
+    # Atomic replaces (write to temp + rename) leave the container holding
+    # the stale inode. unsafe_writes truncates in-place so the container
+    # sees the new content without a restart.
+    unsafe_writes: true
+  notify: Reload edge Caddy
+  when: observability_expose_grafana_publicly | bool
+
 # --- Summary ---
 
 - name: Print observability stack summary
   ansible.builtin.debug:
     msg:
       - "Observability stack deployed at {{ observability_root }}"
-      - "Prometheus: http://127.0.0.1:{{ observability_prometheus_host_port }} (loopback, SSH tunnel required)"
-      - "Grafana:    http://127.0.0.1:{{ observability_grafana_host_port }} (loopback, SSH tunnel required)"
+      - "Prometheus (loopback only): http://127.0.0.1:{{ observability_prometheus_host_port }}"
+      - "Grafana (loopback):         http://127.0.0.1:{{ observability_grafana_host_port }}"
+      - "{% if observability_expose_grafana_publicly %}Grafana (public):           https://{{ observability_grafana_public_hostname }} (Caddy basic_auth + Grafana login){% else %}Grafana public exposure: disabled{% endif %}"
       - "Grafana admin user: {{ observability_grafana_admin_user }}"
       - "{{ 'Grafana admin password was generated this run — see /opt/observability/.env on the VPS.' if grafana_password_was_generated else 'Grafana admin password unchanged from previous deploy.' }}"
