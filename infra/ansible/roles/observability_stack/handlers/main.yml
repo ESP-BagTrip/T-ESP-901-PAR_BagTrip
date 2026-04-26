@@ -15,11 +15,21 @@
     daemon_reload: true
 
 - name: Reload edge Caddy
-  # /opt/edge/Caddyfile is bind-mounted as a single file. Docker pins the
-  # inode at container creation, so an atomic file replacement on the host
-  # is invisible to the running container even after `docker restart` or
-  # `caddy reload`. Force-recreate refreshes the bind mount.
-  # Phase 1c will rebind /opt/edge as a directory so a plain reload suffices.
+  # Phase 1c switched /opt/edge from a file-level bind mount to a directory
+  # mount, so Caddyfile content changes are picked up by `caddy reload`
+  # without recreating the container. If the compose definition itself
+  # changes (mount config / image bump / etc.), trigger
+  # "Recreate edge Caddy" instead.
+  ansible.builtin.command:
+    cmd: docker exec edge-caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
+  changed_when: true
+
+- name: Recreate edge Caddy
   ansible.builtin.command:
     cmd: docker compose -f /opt/edge/compose.yml up -d --force-recreate caddy
+  changed_when: true
+
+- name: Persist iptables rules
+  ansible.builtin.command:
+    cmd: netfilter-persistent save
   changed_when: true

@@ -47,17 +47,18 @@ The playbook is idempotent: re-running on a converged host should report `0 chan
 
 This repo is built phase-by-phase as described in the M5 observability plan. See `documentations/adr/0001-observability-stack-strategy.md` for the full plan and rationale.
 
-## Known carry-overs from Phase 1a → Phase 1b
+## Carry-overs resolved in Phase 1c
 
-- **Edge Caddy `/metrics`**: the admin endpoint binds `127.0.0.1:2019` via
-  host networking. Prometheus in a bridge network can't reach it through
-  `host.docker.internal:host-gateway`. Phase 1b rebinds admin to the
-  docker0 IP and adds a `PREROUTING` DROP rule for `! -i lo` on dport 2019
-  (matching the pattern already in place for inner Caddy ports 808X).
-- **`/opt/edge` directory mount**: the Caddyfile is currently bind-mounted
-  as a single file, which forces a `--force-recreate` of `edge-caddy` on
-  every change. Phase 1c rebinds `/opt/edge` as a directory so a soft
-  `caddy reload` suffices.
+- **Edge Caddy `/metrics` scrape**: a dedicated `:8089 { metrics }` vhost
+  exposes Caddy's full metric set without touching the admin endpoint
+  (Caddy's origin enforcement on a non-localhost admin bind is too
+  restrictive to fight cleanly). Public access blocked by an iptables
+  INPUT DROP rule on the default-route NIC; Prometheus reaches it via
+  `host.docker.internal:8089`. Job: `caddy_edge`.
+- **`/opt/edge` directory mount**: switched from
+  `./Caddyfile:/etc/caddy/Caddyfile:ro` to `./:/etc/caddy:ro`, so future
+  Caddyfile content changes propagate without `--force-recreate`. The
+  Reload edge Caddy handler now does a soft `caddy reload`.
 
 ## Phase status
 
@@ -65,7 +66,15 @@ This repo is built phase-by-phase as described in the M5 observability plan. See
 |---|---|---|
 | 0 | Cadrage, Ansible skeleton, baseline assertion, ADR-001, threat model, SLO | shipped |
 | 1a | Prometheus + Grafana + node_exporter + cAdvisor + postgres + redis + blackbox + 4 dashboards + public exposure (`grafana.bagtrip.fr` behind basic_auth) | shipped |
-| 1b | App instrumentation (FastAPI / Next.js → 2 RED dashboards), edge Caddy /metrics rebind | pending |
+| 1b | App instrumentation (FastAPI / Next.js → 2 RED dashboards) | shipped |
+| 1c | Edge Caddy /metrics scrape via dedicated vhost + /opt/edge dir mount | shipped |
+| 2 | Loki + Promtail (centralised logs) | shipped |
+| 3 | OpenTelemetry → Tempo (distributed tracing) | shipped |
+| 4 | Alertmanager + 19 alert rules + 12 runbooks | shipped |
+| 5a | Trivy supply-chain scan in CI | shipped |
+| 5b | Falco runtime rules (config shipped, runtime deferred — see below) | shipped (config) |
+| 6 | Restic backups + automated weekly restore drill | shipped |
+| 7 | Business KPIs + Synthetic / DR dashboards | shipped |
 | 2 | Loki + Promtail | pending |
 | 3 | OpenTelemetry → Tempo | pending |
 | 4 | Alertmanager + runbooks | pending |

@@ -312,6 +312,79 @@
 # --- node_exporter must read the textfile dir for restic metrics -----------
 # (the compose template already mounts {{ observability_textfile_dir }})
 
+# --- Phase 1c: Edge Caddy /metrics rebind + dir mount ----------------------
+
+- name: Block public access to Caddy /metrics endpoint (iptables INPUT DROP)
+  ansible.builtin.iptables:
+    chain: INPUT
+    in_interface: "{{ ansible_facts['default_ipv4']['interface'] }}"
+    protocol: tcp
+    destination_port: "{{ observability_edge_metrics_port }}"
+    jump: DROP
+    state: present
+    comment: "Phase 1c — block public Caddy /metrics vhost"
+  notify: Persist iptables rules
+
+- name: Remove the public 2019 DROP rule from earlier iterations
+  ansible.builtin.iptables:
+    chain: INPUT
+    in_interface: "{{ ansible_facts['default_ipv4']['interface'] }}"
+    protocol: tcp
+    destination_port: "2019"
+    jump: DROP
+    state: absent
+  notify: Persist iptables rules
+
+- name: Drop any prior admin block from earlier iterations
+  ansible.builtin.blockinfile:
+    path: "{{ observability_edge_caddyfile }}"
+    marker: "\t# {mark} ANSIBLE managed — admin endpoint (Phase 1c)"
+    state: absent
+    backup: true
+    unsafe_writes: true
+
+- name: Drop any prior single-line admin directive
+  ansible.builtin.lineinfile:
+    path: "{{ observability_edge_caddyfile }}"
+    regexp: '^\s*admin\s+(0\.0\.0\.0:|:|localhost:)2019\s*$'
+    state: absent
+    backup: true
+    unsafe_writes: true
+
+- name: Add dedicated Caddy /metrics vhost
+  # A bare `:PORT { metrics }` server lets Prometheus scrape Caddy's full
+  # metric set without touching the admin endpoint (which has its own
+  # origin enforcement and we don't want to fight it). Public access is
+  # blocked by iptables on the default-route NIC.
+  ansible.builtin.blockinfile:
+    path: "{{ observability_edge_caddyfile }}"
+    marker: "# {mark} ANSIBLE managed — Caddy /metrics vhost (Phase 1c)"
+    block: |
+      :{{ observability_edge_metrics_port }} {
+          metrics
+      }
+    backup: true
+    unsafe_writes: true
+  notify: Reload edge Caddy
+
+- name: Switch /opt/edge mount from single-file to directory
+  ansible.builtin.replace:
+    path: "{{ observability_edge_compose }}"
+    regexp: '^\s*-\s*\./Caddyfile:/etc/caddy/Caddyfile:ro\s*$'
+    replace: '      - ./:/etc/caddy:ro'
+    backup: true
+    unsafe_writes: true
+  notify: Recreate edge Caddy
+
+- name: Drop redundant ./certs mount (now inside the dir mount)
+  ansible.builtin.lineinfile:
+    path: "{{ observability_edge_compose }}"
+    regexp: '^\s*-\s*\./certs:/etc/caddy/certs:ro\s*$'
+    state: absent
+    backup: true
+    unsafe_writes: true
+  notify: Recreate edge Caddy
+
 # --- Verify external bagtrip networks exist (the stacks must be running) ---
 
 - name: Verify bagtrip networks exist

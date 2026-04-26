@@ -91,7 +91,13 @@ observability_grafana_admin_user: admin
 observability_expose_grafana_publicly: true
 observability_grafana_public_hostname: grafana.bagtrip.fr
 observability_edge_caddyfile: /opt/edge/Caddyfile
+observability_edge_compose: /opt/edge/compose.yml
 observability_edge_container: edge-caddy
+# Phase 1c — Caddy /metrics is exposed via a dedicated `:8089` vhost
+# (the admin endpoint is left at its default loopback bind, where
+# Caddy's origin enforcement is happy and we don't have to fight it).
+# Iptables drops public access on the default-route NIC.
+observability_edge_metrics_port: 8089
 
 # --- Blackbox probe targets (Phase 1a baseline; expanded in Phase 7) ---
 observability_blackbox_targets:
