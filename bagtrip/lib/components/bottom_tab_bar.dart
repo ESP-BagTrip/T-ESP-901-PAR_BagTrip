@@ -48,19 +48,23 @@ class BottomTabBar extends StatelessWidget {
     if (AdaptivePlatform.isIOS) {
       Widget bar = Material(
         type: MaterialType.transparency,
-        child: GlassBottomBar(
-          tabs: List.generate(
-            _tabs.length,
-            (i) => GlassBottomBarTab(
-              icon: cupertinoIcons[i],
-              selectedIcon: _selectedCupertinoIcons[i],
-              label: labels[i],
-              glowColor: ColorName.secondary,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(999),
+          child: GlassBottomBar(
+            barBorderRadius: 999,
+            tabs: List.generate(
+              _tabs.length,
+              (i) => GlassBottomBarTab(
+                icon: cupertinoIcons[i],
+                selectedIcon: _selectedCupertinoIcons[i],
+                label: labels[i],
+                glowColor: ColorName.secondary,
+              ),
             ),
+            selectedIndex: _tabs.indexOf(activeTab),
+            onTabSelected: (index) => onTabChanged(_tabs[index]),
+            unselectedIconColor: CupertinoColors.systemGrey,
           ),
-          selectedIndex: _tabs.indexOf(activeTab),
-          onTabSelected: (index) => onTabChanged(_tabs[index]),
-          unselectedIconColor: CupertinoColors.systemGrey,
         ),
       );
 
