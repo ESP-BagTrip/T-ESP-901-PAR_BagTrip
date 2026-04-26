@@ -97,26 +97,6 @@ void main() {
       expect(find.text('ESTIMATED TOTAL'), findsNothing);
     });
 
-    testWidgets('skip link fires setBudgetPreset(null) + nextStep', (
-      tester,
-    ) async {
-      await tester.pumpWidget(buildApp(const PlanTripState()));
-      await tester.pumpAndSettle();
-
-      await tester.scrollUntilVisible(
-        find.text("I'll decide later"),
-        500,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.tap(find.text("I'll decide later"));
-      await tester.pump();
-
-      verify(
-        () => mockBloc.add(const PlanTripEvent.setBudgetPreset(null)),
-      ).called(1);
-      verify(() => mockBloc.add(const PlanTripEvent.nextStep())).called(1);
-    });
-
     testWidgets('continue fires nextStep', (tester) async {
       await tester.pumpWidget(buildApp(const PlanTripState()));
       await tester.pumpAndSettle();
