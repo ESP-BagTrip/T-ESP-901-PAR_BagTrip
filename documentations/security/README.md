@@ -8,6 +8,7 @@ Documents tracking the security posture of the BagTrip infrastructure (single OV
 |---|---|
 | [`incident-2026-04-26-cryptominer.md`](./incident-2026-04-26-cryptominer.md) | Full post-mortem of the cryptominer compromise of `bagtrip-preprod-admin-1`. Timeline, IOCs, RCA, remediation, lessons learned, M5 competency mapping. |
 | [`hardening-roadmap.md`](./hardening-roadmap.md) | Live inventory of security controls already in place + prioritised backlog of remaining defence-in-depth work. |
+| [`threat-model.md`](./threat-model.md) | STRIDE walk-through of the BagTrip infrastructure. "Before" column = state on 2026-04-26; "After" column fills in as Phases 1–7 of the M5 observability plan land. |
 
 ## How these documents relate
 

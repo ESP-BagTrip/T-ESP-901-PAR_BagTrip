@@ -1,0 +1,16 @@
+# Ansible
+*.retry
+.vault_pass
+*.vault
+ansible/.cache/
+
+# Local secrets — never commit
+ansible/secrets.yml
+ansible/group_vars/*/vault.yml
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store

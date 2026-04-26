@@ -1,0 +1,166 @@
+---
+# Phase 0 baseline assertions. All tasks must be:
+#   - Read-only (no `state: present`, no `command:` with side effects).
+#   - `changed_when: false` so a converged host reports 0 changed.
+#   - Fast (the playbook should run in well under 30 s).
+#
+# Failure of any assertion is a real signal — it means the VPS drifted from
+# the documented baseline. Update either the VPS or this file, never silently
+# ignore the failure.
+
+# ----- 1. OS / kernel -----
+
+- name: Assert OS distribution is Ubuntu
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['distribution'] | lower == expected_os_id
+    fail_msg: "Expected Ubuntu, got {{ ansible_facts['distribution'] }}"
+    success_msg: "OS: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}"
+
+- name: Assert kernel is recent enough
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['kernel'] is version(expected_kernel_min, ">=")
+    fail_msg: "Kernel {{ ansible_facts['kernel'] }} is older than required {{ expected_kernel_min }}"
+
+# ----- 2. Filesystem layout -----
+
+- name: Stat BagTrip-managed top-level paths
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop:
+    - "{{ bagtrip_prod_path }}"
+    - "{{ bagtrip_preprod_path }}"
+    - "{{ edge_path }}"
+    - "{{ monitoring_path }}"
+  register: bagtrip_paths
+
+- name: Assert BagTrip-managed paths exist and are directories
+  ansible.builtin.assert:
+    that:
+      - item.stat.exists
+      - item.stat.isdir
+    fail_msg: "Missing or non-directory: {{ item.item }}"
+  loop: "{{ bagtrip_paths.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: Stat required baseline files
+  ansible.builtin.stat:
+    path: "{{ item.path }}"
+  loop: "{{ required_baseline_files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  register: baseline_files
+
+- name: Assert required baseline files exist
+  ansible.builtin.assert:
+    that:
+      - item.stat.exists
+      - item.stat.isreg
+    fail_msg: "Missing baseline file: {{ item.item.path }} ({{ item.item.description }})"
+  loop: "{{ baseline_files.results }}"
+  loop_control:
+    label: "{{ item.item.path }}"
+
+- name: Stat forensic / incident artefact directory
+  ansible.builtin.stat:
+    path: "{{ incident_log_path }}"
+  register: incident_dir
+
+- name: Assert forensic directory is preserved
+  ansible.builtin.assert:
+    that:
+      - incident_dir.stat.exists
+      - incident_dir.stat.isdir
+    fail_msg: >
+      {{ incident_log_path }} is missing.
+      It contains forensic evidence from incident-2026-04-26 and must not be deleted.
+
+# ----- 3. systemd services -----
+
+- name: Collect systemd service facts
+  ansible.builtin.service_facts:
+
+- name: Assert required services are running
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['services'][item] is defined
+      - ansible_facts['services'][item]['state'] == 'running'
+    fail_msg: "Service {{ item }} is not running (state={{ ansible_facts['services'][item]['state'] | default('absent') }})"
+  loop: "{{ required_services }}"
+  loop_control:
+    label: "{{ item }}"
+
+- name: Assert one-shot units exist (state may be exited/inactive — that's expected)
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['services'][item] is defined
+    fail_msg: "Unit {{ item }} is not registered with systemd"
+  loop: "{{ required_oneshot_units }}"
+  loop_control:
+    label: "{{ item }}"
+
+# ----- 4. Resource posture -----
+
+- name: Assert root filesystem usage is below threshold
+  ansible.builtin.assert:
+    that:
+      - (item.size_total - item.size_available) / item.size_total * 100 < common_assert_disk_threshold_percent
+    fail_msg: >
+      Root filesystem at {{ ((item.size_total - item.size_available) / item.size_total * 100) | round(1) }}% — above
+      threshold {{ common_assert_disk_threshold_percent }}%. Free space before adding more services.
+  loop: "{{ ansible_facts['mounts'] | selectattr('mount', 'equalto', '/') | list }}"
+  loop_control:
+    label: "{{ item.mount }}"
+
+- name: Assert minimum memory available
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['memfree_mb'] >= common_assert_memory_min_mb
+    fail_msg: "Only {{ ansible_facts['memfree_mb'] }} MB free — below threshold {{ common_assert_memory_min_mb }} MB"
+
+# ----- 5. Docker daemon -----
+
+- name: Read Docker daemon configuration
+  ansible.builtin.slurp:
+    src: /etc/docker/daemon.json
+  register: docker_daemon_raw
+
+- name: Parse Docker daemon configuration
+  ansible.builtin.set_fact:
+    docker_daemon_config: "{{ docker_daemon_raw.content | b64decode | from_json }}"
+
+- name: Assert Docker log rotation is configured
+  ansible.builtin.assert:
+    that:
+      - docker_daemon_config['log-driver'] == 'json-file'
+      - docker_daemon_config['log-opts']['max-size'] is defined
+      - docker_daemon_config['log-opts']['max-file'] is defined
+    fail_msg: "Docker daemon.json is missing the log rotation policy"
+
+# ----- 6. Forensic firewall control still in place -----
+
+- name: Read persisted iptables rules
+  ansible.builtin.slurp:
+    src: /etc/iptables/rules.v4
+  register: iptables_rules_raw
+
+- name: Assert incident-2026-04-26 C2 block is persisted in iptables rules
+  ansible.builtin.assert:
+    that:
+      - "'51.81.51.221' in (iptables_rules_raw.content | b64decode)"
+    fail_msg: >
+      The OUTPUT block on 51.81.51.221 (cryptominer C2 from incident-2026-04-26) is missing
+      from /etc/iptables/rules.v4. Restore it before proceeding.
+
+# ----- 7. Summary -----
+
+- name: Baseline assertion summary
+  ansible.builtin.debug:
+    msg:
+      - "Host: {{ inventory_hostname }} ({{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}, kernel {{ ansible_facts['kernel'] }})"
+      - "CPUs: {{ ansible_facts['processor_vcpus'] }}, RAM total: {{ ansible_facts['memtotal_mb'] }} MB, RAM free: {{ ansible_facts['memfree_mb'] }} MB"
+      - "Required services: all running"
+      - "Baseline files: all present"
+      - "Forensic block (incident-2026-04-26): persisted"

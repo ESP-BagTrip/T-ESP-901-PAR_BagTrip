@@ -1,0 +1,153 @@
+{
+  "annotations": {"list": []},
+  "description": "RED dashboard for the BagTrip FastAPI service: request rate, error rate, request duration. Sourced from prometheus-fastapi-instrumentator.",
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "liveNow": false,
+  "schemaVersion": 39,
+  "tags": ["bagtrip", "api", "red"],
+  "time": {"from": "now-3h", "to": "now"},
+  "timezone": "browser",
+  "title": "BagTrip — API RED",
+  "uid": "bagtrip-api-red",
+  "version": 1,
+  "templating": {
+    "list": [
+      {
+        "name": "env",
+        "label": "Environment",
+        "type": "custom",
+        "query": "prod, preprod",
+        "current": {"selected": false, "text": "prod", "value": "prod"},
+        "options": [
+          {"selected": true, "text": "prod", "value": "prod"},
+          {"selected": false, "text": "preprod", "value": "preprod"}
+        ]
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Request rate (req/s)",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "reqps", "color": {"mode": "palette-classic"}}},
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"]}, "tooltip": {"mode": "multi"}},
+      "targets": [
+        {
+          "expr": "sum by (method) (rate(http_requests_total{job=\"bagtrip-api\", env=\"$env\", handler!~\"/metrics|/health|/\"}[5m]))",
+          "legendFormat": "{{method}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Error rate (5xx %)",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "percentunit", "color": {"mode": "palette-classic"}, "min": 0, "max": 1}},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}},
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{job=\"bagtrip-api\", env=\"$env\", status=~\"5..\"}[5m])) / sum(rate(http_requests_total{job=\"bagtrip-api\", env=\"$env\"}[5m]))",
+          "legendFormat": "5xx",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(http_requests_total{job=\"bagtrip-api\", env=\"$env\", status=~\"4..\"}[5m])) / sum(rate(http_requests_total{job=\"bagtrip-api\", env=\"$env\"}[5m]))",
+          "legendFormat": "4xx",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Request duration percentiles",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "s", "color": {"mode": "palette-classic"}}},
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"]}, "tooltip": {"mode": "multi"}},
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(http_request_duration_seconds_bucket{job=\"bagtrip-api\", env=\"$env\", handler!~\"/metrics|/health|/\"}[5m])))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{job=\"bagtrip-api\", env=\"$env\", handler!~\"/metrics|/health|/\"}[5m])))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket{job=\"bagtrip-api\", env=\"$env\", handler!~\"/metrics|/health|/\"}[5m])))",
+          "legendFormat": "p99",
+          "refId": "C"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Top 10 endpoints by traffic",
+      "type": "table",
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 16},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "options": {"showHeader": true, "cellHeight": "sm"},
+      "targets": [
+        {
+          "expr": "topk(10, sum by (handler, method) (rate(http_requests_total{job=\"bagtrip-api\", env=\"$env\", handler!~\"/metrics|/health|/\"}[5m])))",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {"id": "organize", "options": {"excludeByName": {"Time": true, "__name__": true, "instance": true, "job": true, "env": true, "stack": true, "service": true}, "renameByName": {"Value": "req/s"}}}
+      ]
+    },
+    {
+      "id": 5,
+      "title": "In-flight requests",
+      "type": "stat",
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 16},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 50}, {"color": "red", "value": 200}]}}},
+      "options": {"colorMode": "value", "graphMode": "area"},
+      "targets": [
+        {"expr": "sum(http_requests_inprogress{job=\"bagtrip-api\", env=\"$env\"})", "refId": "A"}
+      ]
+    },
+    {
+      "id": 6,
+      "title": "API up",
+      "type": "stat",
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 16},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [{"options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}, "type": "value"}],
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "value", "graphMode": "none", "textMode": "value"},
+      "targets": [{"expr": "up{job=\"bagtrip-api\", env=\"$env\"}", "refId": "A"}]
+    },
+    {
+      "id": 7,
+      "title": "Uptime",
+      "type": "stat",
+      "gridPos": {"h": 5, "w": 12, "x": 12, "y": 20},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "s", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 60}]}}},
+      "options": {"colorMode": "value", "graphMode": "none", "textMode": "value"},
+      "targets": [{"expr": "max(time() - process_start_time_seconds{job=\"bagtrip-api\", env=\"$env\"})", "refId": "A"}]
+    }
+  ]
+}

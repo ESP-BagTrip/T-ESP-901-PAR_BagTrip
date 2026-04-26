@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  role_name: common
+  description: >
+    Asserts the BagTrip VPS baseline state. Phase 0: read-only checks on the
+    operating system, systemd units, file presence, and Docker daemon — does
+    not modify anything. Future phases extend this role with tasks that
+    enforce (rather than just assert) the baseline.
+  license: proprietary
+  min_ansible_version: "2.16"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+        - "25.04"
+dependencies: []
