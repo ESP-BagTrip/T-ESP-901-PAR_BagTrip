@@ -29,6 +29,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<LogoutRequested>(_onLogoutRequested);
     on<DeleteAccountRequested>(_onDeleteAccountRequested);
     on<AuthModeChanged>(_onAuthModeChanged);
+    on<UserRefreshRequested>(_onUserRefreshRequested);
   }
 
   Future<void> _registerDeviceToken() async {
@@ -158,6 +159,36 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthModeChangedState(isLoginMode: event.isLoginMode));
     } else {
       emit(AuthModeChangedState(isLoginMode: event.isLoginMode));
+    }
+  }
+
+  /// Re-fetch the user and re-emit [AuthSuccess] with the fresh copy.
+  ///
+  /// Best-effort: a failure here doesn't kick the user out (a transient
+  /// network error shouldn't undo a paid-in-full subscription locally).
+  /// Auth errors *do* propagate so a 401 still drops to [AuthInitial].
+  Future<void> _onUserRefreshRequested(
+    UserRefreshRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    final current = state;
+    if (current is! AuthSuccess) return;
+    final result = await _authRepository.getCurrentUser();
+    if (isClosed) return;
+    switch (result) {
+      case Success(:final data):
+        if (data == null) return;
+        emit(
+          AuthSuccess(authResponse: current.authResponse.copyWith(user: data)),
+        );
+      case Failure(:final error):
+        if (error is AuthenticationError) {
+          await _authRepository.logout();
+          if (isClosed) return;
+          emit(AuthInitial(isLoginMode: _isLoginMode));
+        }
+      // Other errors: silently keep the stale user — refresh will retry
+      // on the next opportunity (next paid action, next app resume).
     }
   }
 }

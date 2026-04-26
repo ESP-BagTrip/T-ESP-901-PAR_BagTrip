@@ -21,6 +21,7 @@ import 'package:bagtrip/service/local_notification_service.dart';
 import 'package:bagtrip/repositories/notification_repository.dart';
 import 'package:bagtrip/settings/bloc/settings_bloc.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
+import 'package:bagtrip/subscription/bloc/subscription_bloc.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bagtrip/core/cache/cache_service.dart';
 import 'package:bagtrip/core/cache/connectivity_service.dart';
@@ -164,12 +165,22 @@ class _MyAppState extends State<MyApp> {
       providers: [
         BlocProvider(create: (context) => SettingsBloc()),
         BlocProvider(create: (context) => UserProfileBloc()),
-        BlocProvider(create: (context) => BookingBloc()),
         BlocProvider(create: (context) => AuthBloc()),
+        // BookingBloc consumes AuthBloc so payment success can refresh the
+        // user. Order matters — AuthBloc must be available above.
+        BlocProvider(
+          create: (context) => BookingBloc(authBloc: context.read<AuthBloc>()),
+        ),
         BlocProvider(create: (context) => TripManagementBloc()),
         BlocProvider.value(value: _homeBloc),
         BlocProvider(create: (context) => NotificationBloc()),
         BlocProvider(create: (context) => ConnectivityBloc()),
+        // App-level so paywalls / gating / subscription page all read from
+        // a single source of truth instead of polling endpoints separately.
+        BlocProvider(
+          create: (context) =>
+              SubscriptionBloc(authBloc: context.read<AuthBloc>()),
+        ),
       ],
       child: BlocListener<AuthBloc, AuthState>(
         // Reset all user-scoped blocs when the authenticated user changes,
@@ -187,6 +198,7 @@ class _MyAppState extends State<MyApp> {
           context.read<UserProfileBloc>().add(ResetUserProfile());
           context.read<TripManagementBloc>().add(ResetTripManagement());
           context.read<NotificationBloc>().add(ResetNotifications());
+          context.read<SubscriptionBloc>().add(ResetSubscription());
         },
         child: AuthListener(
           router: appRouter,

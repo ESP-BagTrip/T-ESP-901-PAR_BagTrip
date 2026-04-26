@@ -168,59 +168,90 @@ class ApiClient {
     if (error.response != null) {
       final statusCode = error.response!.statusCode;
       final data = error.response!.data;
+      // Backend error envelope:
+      //   { "detail": "..." }                                    (legacy)
+      //   { "detail": { "error": "...", "code": "...", ... } }   (current)
+      // Extract a string message and the optional structured code.
       final detail = data is Map ? data['detail'] : null;
-      final detailStr = detail is String ? detail : error.message ?? '';
+      final String detailStr;
+      final String? detailCode;
+      if (detail is String) {
+        detailStr = detail;
+        detailCode = null;
+      } else if (detail is Map) {
+        detailStr = (detail['error'] as String?) ?? error.message ?? '';
+        detailCode = detail['code'] as String?;
+      } else {
+        detailStr = error.message ?? '';
+        detailCode = null;
+      }
 
       return switch (statusCode) {
         400 => ValidationError(
           detailStr,
           statusCode: statusCode,
+          code: detailCode,
           originalError: error,
         ),
         401 => AuthenticationError(
           detailStr,
           statusCode: statusCode,
+          code: detailCode,
           originalError: error,
         ),
         402 => QuotaExceededError(
           detailStr,
           statusCode: statusCode,
+          code: detailCode,
           originalError: error,
         ),
         403 => ForbiddenError(
           detailStr,
           statusCode: statusCode,
+          code: detailCode,
           originalError: error,
         ),
         404 => NotFoundError(
           detailStr,
           statusCode: statusCode,
+          code: detailCode,
           originalError: error,
         ),
         409 when data is Map && data['error'] == 'stale_context' =>
           StaleContextError(
             detailStr,
             statusCode: statusCode,
+            code: detailCode,
             originalError: error,
           ),
         409 => ValidationError(
           detailStr,
           statusCode: statusCode,
+          code: detailCode,
           originalError: error,
         ),
         429 => RateLimitError(
           detailStr,
           statusCode: statusCode,
+          code: detailCode,
           originalError: error,
         ),
         500 => ServerError(
           detailStr,
           statusCode: statusCode,
+          code: detailCode,
+          originalError: error,
+        ),
+        502 => ServerError(
+          detailStr,
+          statusCode: statusCode,
+          code: detailCode,
           originalError: error,
         ),
         _ => UnknownError(
           detailStr,
           statusCode: statusCode,
+          code: detailCode,
           originalError: error,
         ),
       };

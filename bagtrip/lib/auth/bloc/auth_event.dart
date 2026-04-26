@@ -43,3 +43,13 @@ class AuthModeChanged extends AuthEvent {
 
   AuthModeChanged({required this.isLoginMode});
 }
+
+/// Re-fetch the current user from `/auth/me` and re-emit [AuthSuccess].
+///
+/// Fired after any side effect that changes the user's plan or profile
+/// without re-authenticating — Stripe Checkout return, subscription
+/// cancel/reactivate, payment success. Without this, `user.plan` stays
+/// stale until the next login.
+class UserRefreshRequested extends AuthEvent {
+  UserRefreshRequested();
+}
