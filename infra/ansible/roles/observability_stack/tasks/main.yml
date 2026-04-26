@@ -15,6 +15,8 @@
     - "{{ observability_root }}/grafana/provisioning/dashboards"
     - "{{ observability_root }}/grafana/dashboards"
     - "{{ observability_root }}/blackbox"
+    - "{{ observability_root }}/loki"
+    - "{{ observability_root }}/promtail"
 
 # --- Read BagTrip postgres credentials from existing .env files (source of truth) ---
 
@@ -114,6 +116,24 @@
     src: blackbox.yml.j2
     # blackbox-exporter looks for /etc/blackbox_exporter/config.yml by default.
     dest: "{{ observability_root }}/blackbox/config.yml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  notify: Restart observability stack
+
+- name: Render Loki configuration
+  ansible.builtin.template:
+    src: loki.yml.j2
+    dest: "{{ observability_root }}/loki/local-config.yaml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  notify: Restart observability stack
+
+- name: Render Promtail configuration
+  ansible.builtin.template:
+    src: promtail.yml.j2
+    dest: "{{ observability_root }}/promtail/config.yml"
     owner: "{{ observability_owner }}"
     group: "{{ observability_group }}"
     mode: "0644"

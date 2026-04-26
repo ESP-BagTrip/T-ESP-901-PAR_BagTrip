@@ -13,6 +13,8 @@ observability_versions:
   postgres_exporter: v0.16.0
   redis_exporter: v1.66.0
   blackbox_exporter: v0.25.0
+  loki: 3.3.2
+  promtail: 3.3.2
 
 # --- Loopback ports (host-side; never exposed publicly until Phase 1c) ---
 observability_prometheus_host_port: 9090
@@ -22,6 +24,10 @@ observability_grafana_host_port: 8087
 observability_prometheus_retention_time: "30d"
 observability_prometheus_retention_size: "20GB"
 observability_scrape_interval: 15s
+
+# --- Loki retention ---
+observability_loki_retention_period: "336h"  # 14 days
+observability_loki_max_query_lookback: "336h"
 
 # --- BagTrip stack network names (external, must already exist) ---
 observability_bagtrip_prod_network: bagtrip_default
