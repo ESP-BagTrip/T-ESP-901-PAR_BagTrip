@@ -9,7 +9,7 @@ observability_versions:
   prometheus: v2.55.1
   grafana: 11.4.0
   node_exporter: v1.8.2
-  cadvisor: v0.52.0
+  cadvisor: v0.55.1
   postgres_exporter: v0.16.0
   redis_exporter: v1.66.0
   blackbox_exporter: v0.25.0

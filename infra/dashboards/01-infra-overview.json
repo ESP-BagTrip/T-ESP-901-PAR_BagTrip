@@ -109,8 +109,8 @@
       "fieldConfig": {"defaults": {"unit": "Bps", "color": {"mode": "palette-classic"}}},
       "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"]}, "tooltip": {"mode": "multi"}},
       "targets": [
-        {"expr": "rate(node_disk_read_bytes_total{device=\"sda1\"}[5m])", "legendFormat": "read", "refId": "A"},
-        {"expr": "rate(node_disk_written_bytes_total{device=\"sda1\"}[5m])", "legendFormat": "write", "refId": "B"}
+        {"expr": "rate(node_disk_read_bytes_total{device=\"sda\"}[5m])", "legendFormat": "read", "refId": "A"},
+        {"expr": "rate(node_disk_written_bytes_total{device=\"sda\"}[5m])", "legendFormat": "write", "refId": "B"}
       ]
     },
     {
