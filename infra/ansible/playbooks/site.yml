@@ -1,0 +1,11 @@
+---
+# Top-level entry point for the BagTrip VPS.
+# Phase 0: assert the existing baseline, change nothing.
+# Subsequent phases will append additional plays/roles below this one.
+
+- name: Assert baseline state on BagTrip VPS
+  hosts: bagtrip_vps
+  gather_facts: true
+  roles:
+    - role: common
+      tags: [common, baseline]
