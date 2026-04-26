@@ -164,7 +164,9 @@ Instrumentator(
     should_group_status_codes=True,
     should_ignore_untemplated=False,
     should_instrument_requests_inprogress=True,
-    excluded_handlers=["/metrics", "/health", "/"],
+    # Patterns are matched with re.search, so anchor them to exact routes;
+    # otherwise "/" matches every path and all handlers are silently excluded.
+    excluded_handlers=[r"^/metrics$", r"^/health$", r"^/$"],
     inprogress_name="http_requests_inprogress",
     inprogress_labels=True,
 ).instrument(app).expose(app, endpoint="/metrics", include_in_schema=False, tags=["monitoring"])
