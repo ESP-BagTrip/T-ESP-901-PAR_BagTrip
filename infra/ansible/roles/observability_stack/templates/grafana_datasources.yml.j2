@@ -1,0 +1,26 @@
+# {{ ansible_managed }}
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    # Stable UID — referenced by dashboards JSON in infra/dashboards/.
+    # Without it Grafana generates a random UID at first import and panels
+    # show "No data" because the datasource reference doesn't resolve.
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
+    jsonData:
+      timeInterval: {{ observability_scrape_interval }}
+
+  - name: Loki
+    uid: loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    isDefault: false
+    editable: false
+    jsonData:
+      maxLines: 5000

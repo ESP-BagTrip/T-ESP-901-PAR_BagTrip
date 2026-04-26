@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from src.api.accommodations.routes import router as accommodations_router
 from src.api.activities.routes import router as activities_router
@@ -154,6 +155,19 @@ app.middleware("http")(security_headers_middleware)
 # middleware to see the request and the last to see the response. That way
 # every other middleware and handler logs with the request id already set.
 app.middleware("http")(request_id_middleware)
+
+# Prometheus instrumentation — RED metrics (request rate, error rate,
+# latency histogram) on /metrics. Public access is blocked at the inner
+# Caddyfile so api.bagtrip.fr/metrics returns 404; Prometheus scrapes the
+# container directly through the internal docker network.
+Instrumentator(
+    should_group_status_codes=True,
+    should_ignore_untemplated=False,
+    should_instrument_requests_inprogress=True,
+    excluded_handlers=["/metrics", "/health", "/"],
+    inprogress_name="http_requests_inprogress",
+    inprogress_labels=True,
+).instrument(app).expose(app, endpoint="/metrics", include_in_schema=False, tags=["monitoring"])
 
 # Inclusion des routes - toutes sous /v1
 # Routes principales selon PLAN.md

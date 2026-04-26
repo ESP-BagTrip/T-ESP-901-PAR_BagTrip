@@ -1,0 +1,4 @@
+---
+- name: Include baseline assertions
+  ansible.builtin.import_tasks: assert_baseline.yml
+  tags: [baseline, assert]

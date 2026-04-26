@@ -1,0 +1,95 @@
+# {{ ansible_managed }}
+# Promtail — ships container stdout + edge Caddy access logs to Loki.
+
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+  log_level: info
+
+positions:
+  filename: /var/lib/promtail/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # ---------- Docker container stdout ----------
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 10s
+        filters:
+          - name: status
+            values: [running]
+
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: 'container'
+
+      # Allowlist: drop adjacent unrelated workloads on the host before they
+      # ever hit Loki. Keeps the index small and the data clean.
+      - source_labels: [container]
+        regex: '^(bagtrip-.*|observability-.*|edge-caddy|netdata)$'
+        action: keep
+
+      # Default env=prod, then override to preprod for the preprod stack.
+      - source_labels: [container]
+        regex: '^bagtrip-.*'
+        target_label: 'env'
+        replacement: 'prod'
+      - source_labels: [container]
+        regex: '^bagtrip-preprod-.*'
+        target_label: 'env'
+        replacement: 'preprod'
+
+      # Service derived from container name (api / admin / caddy / postgres
+      # / redis / observability subservice).
+      - source_labels: [container]
+        regex: '^bagtrip(?:-preprod)?-(api|admin|caddy|postgres|redis)-\d+$'
+        target_label: 'service'
+        replacement: '$1'
+      - source_labels: [container]
+        regex: '^edge-caddy$'
+        target_label: 'service'
+        replacement: 'caddy-edge'
+      - source_labels: [container]
+        regex: '^observability-(prometheus|grafana|loki|promtail|cadvisor|node-exporter|blackbox-exporter|postgres-exporter-prod|postgres-exporter-preprod|redis-exporter-prod|redis-exporter-preprod)$'
+        target_label: 'service'
+        replacement: '$1'
+
+      - source_labels: ['__meta_docker_container_log_stream']
+        target_label: 'stream'
+
+    pipeline_stages:
+      # FastAPI / structlog emits JSON lines — extract `level` for fast
+      # filtering. Falls through silently for non-JSON lines (Caddy / Next.js
+      # default formats).
+      - json:
+          expressions:
+            level: level
+      - labels:
+          level:
+
+  # ---------- Edge Caddy access logs (JSON, file-based) ----------
+  - job_name: caddy_edge_access
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: caddy_edge_access
+          service: caddy-edge
+          stream: access
+          __path__: /edge_logs/access.log
+
+    pipeline_stages:
+      - json:
+          expressions:
+            host: request.host
+            uri: request.uri
+            method: request.method
+            status: status
+            client_ip: client_ip
+            duration: duration
+      - labels:
+          host:
+          status:
