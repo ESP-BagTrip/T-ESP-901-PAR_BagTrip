@@ -1,0 +1,12 @@
+# {{ ansible_managed }}
+[Unit]
+Description=BagTrip weekly Restic restore drill
+
+[Timer]
+OnCalendar={{ observability_restic_restore_test_schedule }}
+Persistent=true
+RandomizedDelaySec=30min
+Unit=restic-restore-test.service
+
+[Install]
+WantedBy=timers.target

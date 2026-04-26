@@ -1,0 +1,14 @@
+# {{ ansible_managed }}
+[Unit]
+Description=BagTrip weekly Restic restore drill
+Wants=network-online.target docker.service
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/observability/scripts/restic-restore-test.sh
+Nice=15
+IOSchedulingClass=best-effort
+IOSchedulingPriority=6
+StandardOutput=journal
+StandardError=journal

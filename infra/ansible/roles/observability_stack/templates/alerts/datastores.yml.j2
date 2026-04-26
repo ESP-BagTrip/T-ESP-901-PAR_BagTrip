@@ -28,6 +28,40 @@ groups:
           summary: "Postgres {{ '{{ $labels.env }}' }} > 80% of max_connections used"
           runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/postgres-down.md"
 
+  # ---- Restic backup freshness (Phase 6) ----
+  - name: bagtrip_backups
+    interval: 1m
+    rules:
+      - alert: ResticBackupStale
+        expr: |
+          time() - max by (target) (restic_last_successful_backup_timestamp) > 26 * 3600
+        for: 30m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Restic backup for {{ '{{ $labels.target }}' }} is older than 26 hours"
+          description: "The nightly backup hasn't reported success in over a day. Investigate the restic-backup.service journal."
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/backup-stale.md"
+
+      - alert: ResticBackupFailed
+        expr: restic_last_backup_status == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Last restic backup for {{ '{{ $labels.target }}' }} reported a failure"
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/backup-stale.md"
+
+      - alert: ResticRestoreDrillFailed
+        expr: restic_last_restore_test_status == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Weekly restic restore drill FAILED for {{ '{{ $labels.target }}' }}"
+          description: "Backups are written but the restore path is broken. Treat as a real outage of confidence."
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/backup-stale.md"
+
   - name: bagtrip_redis
     interval: 30s
     rules:

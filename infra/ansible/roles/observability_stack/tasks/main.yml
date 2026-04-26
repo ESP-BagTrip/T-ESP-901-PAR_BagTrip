@@ -71,6 +71,12 @@
   when: not obs_env_stat.stat.exists
   no_log: true
 
+- name: Generate Restic repository password (first deploy only)
+  ansible.builtin.set_fact:
+    restic_password: "{{ lookup('community.general.random_string', length=48, special=false) }}"
+  when: not obs_env_stat.stat.exists
+  no_log: true
+
 - name: Read existing observability env file
   ansible.builtin.slurp:
     src: "{{ observability_root }}/.env"
@@ -82,6 +88,14 @@
   ansible.builtin.set_fact:
     grafana_admin_password: "{{ (obs_env_raw.content | b64decode | regex_search('^GF_ADMIN_PASSWORD=(.+)$', '\\1', multiline=True)) | first }}"
     grafana_password_was_generated: false
+  when: obs_env_stat.stat.exists
+  no_log: true
+
+- name: Extract existing Restic password (or generate if missing)
+  ansible.builtin.set_fact:
+    restic_password: "{{ matched if matched else lookup('community.general.random_string', length=48, special=false) }}"
+  vars:
+    matched: "{{ obs_env_raw.content | b64decode | regex_search('^RESTIC_PASSWORD=(.+)$', '\\1', multiline=True) }}"
   when: obs_env_stat.stat.exists
   no_log: true
 
@@ -221,6 +235,82 @@
     mode: "0644"
     directory_mode: "0755"
   notify: Restart observability stack
+
+# --- Phase 6: Restic backups + restore drill -------------------------------
+
+- name: Install restic
+  ansible.builtin.apt:
+    name: restic
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Ensure restic local repository directory exists
+  ansible.builtin.file:
+    path: "{{ observability_restic_local_repo_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Ensure node_exporter textfile collector directory exists
+  ansible.builtin.file:
+    path: "{{ observability_textfile_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Ensure /opt/observability/scripts/ exists
+  ansible.builtin.file:
+    path: "{{ observability_root }}/scripts"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Render restic backup script
+  ansible.builtin.template:
+    src: restic_backup.sh.j2
+    dest: "{{ observability_root }}/scripts/restic-backup.sh"
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Render restic restore-test script
+  ansible.builtin.template:
+    src: restic_restore_test.sh.j2
+    dest: "{{ observability_root }}/scripts/restic-restore-test.sh"
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Render restic-backup systemd unit
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "/etc/systemd/system/{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - { src: restic-backup.service.j2,        dest: restic-backup.service }
+    - { src: restic-backup.timer.j2,          dest: restic-backup.timer }
+    - { src: restic-restore-test.service.j2,  dest: restic-restore-test.service }
+    - { src: restic-restore-test.timer.j2,    dest: restic-restore-test.timer }
+  notify: Reload systemd
+
+- name: Enable restic timers
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+    daemon_reload: true
+  loop:
+    - restic-backup.timer
+    - restic-restore-test.timer
+
+# --- node_exporter must read the textfile dir for restic metrics -----------
+# (the compose template already mounts {{ observability_textfile_dir }})
 
 # --- Verify external bagtrip networks exist (the stacks must be running) ---
 

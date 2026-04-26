@@ -39,6 +39,36 @@ observability_loki_max_query_lookback: "336h"
 observability_alertmanager_discord_webhook: ""
 observability_alertmanager_resolve_timeout: "5m"
 
+# --- Restic backups (Phase 6) ---
+# Local repository by default. To switch to Backblaze B2, set:
+#   observability_restic_repository: "b2:<bucket>:bagtrip"
+#   observability_restic_b2_account_id / observability_restic_b2_account_key
+# (and they'll land in /opt/observability/.env via the env.j2 template).
+observability_restic_repository: "/var/backups/bagtrip-restic"
+observability_restic_local_repo_path: "/var/backups/bagtrip-restic"
+observability_restic_b2_account_id: ""
+observability_restic_b2_account_key: ""
+
+observability_restic_retention:
+  daily: 7
+  weekly: 4
+  monthly: 6
+
+observability_restic_backup_schedule: "*-*-* 02:00:00"          # daily 02:00 UTC
+observability_restic_restore_test_schedule: "Sun *-*-* 03:00:00"  # weekly Sunday 03:00 UTC
+
+observability_restic_targets:
+  - name: bagtrip-prod
+    container: bagtrip-postgres-1
+    env_file: /opt/bagtrip/.env.production
+  - name: bagtrip-preprod
+    container: bagtrip-preprod-postgres-1
+    env_file: /opt/bagtrip-preprod/.env.production
+
+# node_exporter textfile collector — Restic writes Prometheus metrics here
+# from each backup / restore-test run.
+observability_textfile_dir: /var/lib/node_exporter/textfile
+
 # --- BagTrip stack network names (external, must already exist) ---
 observability_bagtrip_prod_network: bagtrip_default
 observability_bagtrip_preprod_network: bagtrip-preprod_default
