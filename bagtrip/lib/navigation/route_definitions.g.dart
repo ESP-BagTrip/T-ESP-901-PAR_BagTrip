@@ -536,6 +536,16 @@ RouteBase get $profileRoute => GoRouteData.$route(
       factory: $PersonalInfoRoute._fromState,
     ),
     GoRouteData.$route(path: 'settings', factory: $SettingsRoute._fromState),
+    GoRouteData.$route(
+      path: 'subscription',
+      factory: $SubscriptionSettingsRoute._fromState,
+      routes: [
+        GoRouteData.$route(
+          path: 'invoices',
+          factory: $SubscriptionInvoicesRoute._fromState,
+        ),
+      ],
+    ),
   ],
 );
 
@@ -585,6 +595,49 @@ mixin $SettingsRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/profile/settings');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $SubscriptionSettingsRoute on GoRouteData {
+  static SubscriptionSettingsRoute _fromState(GoRouterState state) =>
+      const SubscriptionSettingsRoute();
+
+  @override
+  String get location => GoRouteData.$location('/profile/subscription');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $SubscriptionInvoicesRoute on GoRouteData {
+  static SubscriptionInvoicesRoute _fromState(GoRouterState state) =>
+      const SubscriptionInvoicesRoute();
+
+  @override
+  String get location =>
+      GoRouteData.$location('/profile/subscription/invoices');
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -809,10 +862,15 @@ RouteBase get $paymentResultRoute => GoRouteData.$route(
 
 mixin $PaymentResultRoute on GoRouteData {
   static PaymentResultRoute _fromState(GoRouterState state) =>
-      const PaymentResultRoute();
+      PaymentResultRoute(intentId: state.uri.queryParameters['intent-id']);
+
+  PaymentResultRoute get _self => this as PaymentResultRoute;
 
   @override
-  String get location => GoRouteData.$location('/payment/result');
+  String get location => GoRouteData.$location(
+    '/payment/result',
+    queryParams: {if (_self.intentId != null) 'intent-id': _self.intentId},
+  );
 
   @override
   void go(BuildContext context) => context.go(location);

@@ -83,6 +83,15 @@ class ProfileView extends StatelessWidget {
                 _buildNavigationRow(
                   context,
                   icon: AdaptivePlatform.isIOS
+                      ? CupertinoIcons.creditcard
+                      : Icons.workspace_premium_outlined,
+                  title: l10n.subscriptionPageTitle,
+                  onTap: () => const SubscriptionSettingsRoute().go(context),
+                ),
+                const SizedBox(height: AppSpacing.space8),
+                _buildNavigationRow(
+                  context,
+                  icon: AdaptivePlatform.isIOS
                       ? CupertinoIcons.gear
                       : Icons.settings_outlined,
                   title: l10n.settingsTitle,

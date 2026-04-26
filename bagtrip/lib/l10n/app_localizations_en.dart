@@ -3171,4 +3171,259 @@ class AppLocalizationsEn extends AppLocalizations {
   String budgetDeltaUnder(String amount) {
     return 'Real is $amount under the forecast';
   }
+
+  @override
+  String get premiumFeaturePageAiTitle => 'Plan without limits';
+
+  @override
+  String get premiumFeaturePageAiBody =>
+      'Generate as many AI itineraries as you want — no monthly cap.';
+
+  @override
+  String get premiumFeaturePageViewersTitle => 'Travel together';
+
+  @override
+  String get premiumFeaturePageViewersBody =>
+      'Invite up to 10 viewers per trip so everyone stays in sync.';
+
+  @override
+  String get premiumFeaturePageOfflineTitle => 'Stay informed offline';
+
+  @override
+  String get premiumFeaturePageOfflineBody =>
+      'Get notified about your activities even without a connection.';
+
+  @override
+  String get premiumFeaturePagePostTripTitle => 'Memories that last';
+
+  @override
+  String get premiumFeaturePagePostTripBody =>
+      'AI-curated highlights and suggestions after every trip.';
+
+  @override
+  String premiumPriceLabel(String price) {
+    return '$price / month';
+  }
+
+  @override
+  String get premiumCtaTry => 'Try Premium';
+
+  @override
+  String get premiumDisclaimerCancelAnytime => 'Cancel anytime';
+
+  @override
+  String get subscriptionFinalizing => 'Finalizing…';
+
+  @override
+  String get subscriptionAlmostThere => 'Almost there…';
+
+  @override
+  String get subscriptionTakingLonger =>
+      'Stripe is taking a moment longer. We\'ll notify you as soon as it\'s confirmed.';
+
+  @override
+  String get subscriptionContinue => 'Continue';
+
+  @override
+  String get subscriptionPageTitle => 'My subscription';
+
+  @override
+  String get subscriptionStatusActive => 'Active';
+
+  @override
+  String get subscriptionStatusFree => 'Free plan';
+
+  @override
+  String subscriptionStatusCancelsOn(String date) {
+    return 'Cancels on $date';
+  }
+
+  @override
+  String subscriptionRenewsOn(String date) {
+    return 'Renews on $date';
+  }
+
+  @override
+  String subscriptionExpiresOn(String date) {
+    return 'Premium until $date';
+  }
+
+  @override
+  String subscriptionCardLast4(String last4) {
+    return '···· $last4';
+  }
+
+  @override
+  String subscriptionCardExpires(String expiry) {
+    return 'Expires $expiry';
+  }
+
+  @override
+  String get subscriptionUpdatePaymentMethod => 'Update payment method';
+
+  @override
+  String get subscriptionViewInvoices => 'View invoices';
+
+  @override
+  String get subscriptionCancelAction => 'Cancel subscription';
+
+  @override
+  String get subscriptionReactivateAction => 'Reactivate subscription';
+
+  @override
+  String get subscriptionFreeMessage =>
+      'You\'re on the free plan. Upgrade to unlock unlimited AI generations and more.';
+
+  @override
+  String get subscriptionDiscoverPremium => 'Discover Premium';
+
+  @override
+  String get subscriptionEmptyHelp => 'No active subscription yet.';
+
+  @override
+  String get cancelSheetTitle => 'Cancel Premium?';
+
+  @override
+  String cancelSheetBodyDated(String date) {
+    return 'You\'ll keep Premium until $date. We\'ll save your trips and preferences.';
+  }
+
+  @override
+  String get cancelSheetBodyUndated =>
+      'We\'ll save your trips and preferences. You can come back anytime.';
+
+  @override
+  String get cancelSheetConfirm => 'Confirm cancellation';
+
+  @override
+  String get cancelSheetKeep => 'Keep my subscription';
+
+  @override
+  String cancelSheetSuccessDated(String date) {
+    return 'Cancellation scheduled. Premium until $date.';
+  }
+
+  @override
+  String get cancelSheetSuccessUndated => 'Subscription cancelled.';
+
+  @override
+  String get reactivateSheetTitle => 'Reactivate Premium?';
+
+  @override
+  String get reactivateSheetBody =>
+      'Your subscription will continue without interruption.';
+
+  @override
+  String get reactivateSheetConfirm => 'Reactivate';
+
+  @override
+  String get reactivateSheetSuccess => 'Subscription reactivated.';
+
+  @override
+  String get invoicesPageTitle => 'Invoices';
+
+  @override
+  String get invoicesEmpty => 'No invoices yet';
+
+  @override
+  String get invoicesEmptySubtitle => 'Your billing history will appear here.';
+
+  @override
+  String get invoicesDownloadPdf => 'Download PDF';
+
+  @override
+  String get invoicesViewOnStripe => 'View on Stripe';
+
+  @override
+  String get invoiceStatusPaid => 'Paid';
+
+  @override
+  String get invoiceStatusOpen => 'Open';
+
+  @override
+  String get invoiceStatusVoid => 'Void';
+
+  @override
+  String get invoiceStatusDraft => 'Draft';
+
+  @override
+  String get invoiceStatusUncollectible => 'Uncollectible';
+
+  @override
+  String get refundSheetTitle => 'Request a refund';
+
+  @override
+  String refundSheetCapturedLabel(String amount) {
+    return '$amount captured';
+  }
+
+  @override
+  String get refundModeFull => 'Full';
+
+  @override
+  String get refundModePartial => 'Partial';
+
+  @override
+  String get refundAmountLabel => 'Amount';
+
+  @override
+  String refundAmountHint(String max) {
+    return 'Up to $max';
+  }
+
+  @override
+  String get refundReasonLabel => 'Reason';
+
+  @override
+  String get refundReasonRequestedByCustomer => 'Requested by customer';
+
+  @override
+  String get refundReasonDuplicate => 'Duplicate charge';
+
+  @override
+  String get refundReasonFraudulent => 'Suspected fraud';
+
+  @override
+  String get refundConfirm => 'Request refund';
+
+  @override
+  String get refundSuccessMessage =>
+      'Refund processed. Funds will arrive in 5–10 days.';
+
+  @override
+  String get paymentSuccessConfirmed => 'Payment confirmed';
+
+  @override
+  String get paymentSuccessSubtitle => 'Your booking is on its way.';
+
+  @override
+  String get paymentRefundedTitle => 'Refunded';
+
+  @override
+  String get paymentSheetCanceled => 'Payment cancelled';
+
+  @override
+  String get paymentNetworkRequired =>
+      'A connection is required to complete this payment.';
+
+  @override
+  String get errorAlreadyPremium => 'You\'re already on Premium.';
+
+  @override
+  String get errorNoActiveSubscription => 'No active subscription.';
+
+  @override
+  String get errorMissingStripeCustomer =>
+      'Payment profile not set up. Contact support.';
+
+  @override
+  String get errorRefundExceedsRemaining =>
+      'This refund exceeds the available amount.';
+
+  @override
+  String get errorAlreadyFullyRefunded =>
+      'This payment has already been fully refunded.';
+
+  @override
+  String get errorInvalidRefundReason => 'Invalid refund reason.';
 }
