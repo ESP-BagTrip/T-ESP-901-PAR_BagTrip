@@ -46,6 +46,11 @@ class Settings(BaseSettings):
     STRIPE_WEBHOOK_SECRET: str | None = Field(None, description="Stripe Webhook Secret")
     STRIPE_SUCCESS_URL: str = "bagtrip://subscription/success?session-id={CHECKOUT_SESSION_ID}"
     STRIPE_CANCEL_URL: str = "bagtrip://subscription/cancel"
+    STRIPE_PORTAL_RETURN_URL: str = "bagtrip://profile"
+
+    # Background jobs — disable per-job in test/dev when not needed.
+    ENABLE_PLAN_EXPIRATION_JOB: bool = True
+    ENABLE_ZOMBIE_PI_JOB: bool = True
 
     @field_validator("STRIPE_WEBHOOK_SECRET")
     @classmethod

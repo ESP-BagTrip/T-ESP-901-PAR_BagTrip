@@ -1,35 +1,73 @@
-"""Client Stripe wrapper."""
+"""Client Stripe wrapper.
+
+Every mutating call accepts an optional `idempotency_key`. Stripe deduplicates
+requests with the same key for 24h, so a network retry on the same business
+operation can never create a duplicate PaymentIntent / refund / customer.
+Callers are responsible for generating stable keys per operation
+(e.g. `f"bi-{booking_intent_id}-authorize-v1"`).
+"""
+
+from __future__ import annotations
+
+from typing import Any
 
 import stripe
 from src.config.env import settings
 
-# Initialiser Stripe avec la clé secrète
+# Pin Stripe API version explicitly so a rolling Stripe update can't silently
+# change webhook payload schemas under us. Bump deliberately, after re-running
+# the integration tests against the new version.
+STRIPE_API_VERSION = "2024-10-28.acacia"
+
 if settings.STRIPE_SECRET_KEY:
     stripe.api_key = settings.STRIPE_SECRET_KEY
+    stripe.api_version = STRIPE_API_VERSION
+
+
+def _idem_kwargs(idempotency_key: str | None) -> dict[str, Any]:
+    return {"idempotency_key": idempotency_key} if idempotency_key else {}
 
 
 class StripeClient:
-    """Client wrapper pour Stripe."""
+    """Wrapper Stripe — every mutating call supports idempotency keys."""
+
+    # ------------------------------------------------------------------
+    # Customer
+    # ------------------------------------------------------------------
 
     @staticmethod
-    def create_customer(email: str, name: str | None = None) -> stripe.Customer:
+    def create_customer(
+        email: str,
+        name: str | None = None,
+        idempotency_key: str | None = None,
+    ) -> stripe.Customer:
         """Créer un client Stripe."""
-        customer_data = {"email": email}
+        customer_data: dict[str, Any] = {"email": email}
         if name:
             customer_data["name"] = name
-        return stripe.Customer.create(**customer_data)
+        return stripe.Customer.create(**customer_data, **_idem_kwargs(idempotency_key))
+
+    @staticmethod
+    def delete_customer(customer_id: str) -> None:
+        """Delete a Stripe customer."""
+        stripe.Customer.delete(customer_id)
+
+    # ------------------------------------------------------------------
+    # PaymentIntent
+    # ------------------------------------------------------------------
 
     @staticmethod
     def create_payment_intent(
-        amount: int,  # En cents (minor units)
+        amount: int,
         currency: str,
         metadata: dict | None = None,
         capture_method: str = "manual",
         customer: str | None = None,
         description: str | None = None,
+        idempotency_key: str | None = None,
     ) -> stripe.PaymentIntent:
         """Créer un PaymentIntent avec capture manuelle."""
-        payment_intent_data = {
+        payment_intent_data: dict[str, Any] = {
             "amount": amount,
             "currency": currency.lower(),
             "capture_method": capture_method,
@@ -39,38 +77,104 @@ class StripeClient:
             payment_intent_data["customer"] = customer
         if description:
             payment_intent_data["description"] = description
-        return stripe.PaymentIntent.create(**payment_intent_data)
+        return stripe.PaymentIntent.create(**payment_intent_data, **_idem_kwargs(idempotency_key))
 
     @staticmethod
-    def capture_payment_intent(payment_intent_id: str) -> stripe.PaymentIntent:
+    def capture_payment_intent(
+        payment_intent_id: str,
+        idempotency_key: str | None = None,
+    ) -> stripe.PaymentIntent:
         """Capturer un PaymentIntent."""
-        return stripe.PaymentIntent.capture(payment_intent_id)
+        return stripe.PaymentIntent.capture(payment_intent_id, **_idem_kwargs(idempotency_key))
 
     @staticmethod
-    def cancel_payment_intent(payment_intent_id: str) -> stripe.PaymentIntent:
+    def cancel_payment_intent(
+        payment_intent_id: str,
+        idempotency_key: str | None = None,
+    ) -> stripe.PaymentIntent:
         """Annuler un PaymentIntent."""
-        return stripe.PaymentIntent.cancel(payment_intent_id)
+        return stripe.PaymentIntent.cancel(payment_intent_id, **_idem_kwargs(idempotency_key))
 
     @staticmethod
     def retrieve_payment_intent(payment_intent_id: str) -> stripe.PaymentIntent:
         """Récupérer un PaymentIntent."""
         return stripe.PaymentIntent.retrieve(payment_intent_id)
 
+    # ------------------------------------------------------------------
+    # Charge / Refund
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def retrieve_charge(charge_id: str) -> stripe.Charge:
+        """Récupérer un Charge — utile pour valider les montants refundables."""
+        return stripe.Charge.retrieve(charge_id)
+
     @staticmethod
     def create_refund(
         charge_id: str,
         amount: int | None = None,
         reason: str | None = None,
+        idempotency_key: str | None = None,
     ) -> stripe.Refund:
         """Créer un remboursement Stripe."""
-        params: dict = {"charge": charge_id}
+        params: dict[str, Any] = {"charge": charge_id}
         if amount is not None:
             params["amount"] = amount
         if reason is not None:
             params["reason"] = reason
-        return stripe.Refund.create(**params)
+        return stripe.Refund.create(**params, **_idem_kwargs(idempotency_key))
+
+    # ------------------------------------------------------------------
+    # Subscription
+    # ------------------------------------------------------------------
 
     @staticmethod
-    def delete_customer(customer_id: str) -> None:
-        """Delete a Stripe customer."""
-        stripe.Customer.delete(customer_id)
+    def retrieve_subscription(subscription_id: str) -> stripe.Subscription:
+        """Récupérer une subscription."""
+        return stripe.Subscription.retrieve(subscription_id)
+
+    @staticmethod
+    def update_subscription(
+        subscription_id: str,
+        idempotency_key: str | None = None,
+        **fields: Any,
+    ) -> stripe.Subscription:
+        """Modifier une subscription (cancel_at_period_end, items, etc.)."""
+        return stripe.Subscription.modify(
+            subscription_id, **fields, **_idem_kwargs(idempotency_key)
+        )
+
+    # ------------------------------------------------------------------
+    # Invoice
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def list_invoices(customer_id: str, limit: int = 12) -> stripe.ListObject:
+        """Lister les invoices d'un customer (les plus récentes en premier)."""
+        return stripe.Invoice.list(customer=customer_id, limit=limit)
+
+    # ------------------------------------------------------------------
+    # PaymentMethod
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def retrieve_payment_method(payment_method_id: str) -> stripe.PaymentMethod:
+        """Récupérer un PaymentMethod (last4, brand, exp_year, etc.)."""
+        return stripe.PaymentMethod.retrieve(payment_method_id)
+
+    # ------------------------------------------------------------------
+    # Billing Portal
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def create_billing_portal_session(
+        customer_id: str,
+        return_url: str,
+        idempotency_key: str | None = None,
+    ) -> stripe.billing_portal.Session:
+        """Crée une session du Customer Portal Stripe."""
+        return stripe.billing_portal.Session.create(
+            customer=customer_id,
+            return_url=return_url,
+            **_idem_kwargs(idempotency_key),
+        )

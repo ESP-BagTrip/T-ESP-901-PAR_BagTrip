@@ -96,15 +96,31 @@ async def lifespan(app: FastAPI):
 
     notif_scheduler_task = asyncio.create_task(notification_scheduler())
 
+    # Lancer le job d'expiration des plans Premium (downgrade auto si pas de sub active)
+    from src.jobs.plan_expiration_job import plan_expiration_scheduler
+
+    plan_expiration_task = asyncio.create_task(plan_expiration_scheduler())
+
+    # Lancer le job de cleanup des PaymentIntents AUTHORIZED stuck (> 6 jours)
+    from src.jobs.zombie_payment_intents_job import zombie_payment_intents_scheduler
+
+    zombie_pi_task = asyncio.create_task(zombie_payment_intents_scheduler())
+
     yield
 
     # Arrêter les schedulers
     scheduler_task.cancel()
     notif_scheduler_task.cancel()
+    plan_expiration_task.cancel()
+    zombie_pi_task.cancel()
     with contextlib.suppress(asyncio.CancelledError):
         await scheduler_task
     with contextlib.suppress(asyncio.CancelledError):
         await notif_scheduler_task
+    with contextlib.suppress(asyncio.CancelledError):
+        await plan_expiration_task
+    with contextlib.suppress(asyncio.CancelledError):
+        await zombie_pi_task
 
     await close_http_client()
     logger.info("Application shutting down")

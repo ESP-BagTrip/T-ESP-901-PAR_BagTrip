@@ -69,7 +69,14 @@ class UserCreationService:
         db.flush()  # need user.id for logging/stripe metadata
 
         try:
-            stripe_customer = StripeClient.create_customer(email=email, name=full_name)
+            # Idempotency key is stable per user.id so a network retry of the
+            # signup that already created a Stripe customer just returns the
+            # existing one instead of creating a duplicate.
+            stripe_customer = StripeClient.create_customer(
+                email=email,
+                name=full_name,
+                idempotency_key=f"user-{user.id}-customer-create-v1",
+            )
         except Exception as exc:
             logger.error(
                 f"Failed to create Stripe customer for user {user.id}: {exc}",
