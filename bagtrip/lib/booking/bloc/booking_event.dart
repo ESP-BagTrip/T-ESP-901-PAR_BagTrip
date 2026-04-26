@@ -25,3 +25,23 @@ class CapturePayment extends BookingEvent {
   final String intentId;
   CapturePayment({required this.intentId});
 }
+
+/// Refund a captured booking payment.
+///
+/// [amount] is in cents — `null` means full refund.
+class RefundPayment extends BookingEvent {
+  final String intentId;
+  final int? amount;
+  final RefundReason? reason;
+  RefundPayment({required this.intentId, this.amount, this.reason});
+}
+
+/// Confirm payment from a 3DS deep-link return.
+///
+/// Validates that [intentId] matches the in-flight payment so a stale
+/// `bagtrip://payment/result?intentId=…` URL can't drive an unrelated
+/// booking through capture.
+class ConfirmPaymentFromDeepLink extends BookingEvent {
+  final String intentId;
+  ConfirmPaymentFromDeepLink({required this.intentId});
+}

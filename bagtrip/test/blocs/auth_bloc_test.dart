@@ -274,5 +274,73 @@ void main() {
       act: (bloc) => bloc.add(DeleteAccountRequested()),
       expect: () => [isA<AuthError>()],
     );
+
+    // ── UserRefreshRequested ────────────────────────────────────────────
+
+    group('UserRefreshRequested', () {
+      blocTest<AuthBloc, AuthState>(
+        'while authenticated: re-emits AuthSuccess with the fresh user',
+        build: () {
+          when(
+            () => mockAuthRepo.getCurrentUser(),
+          ).thenAnswer((_) async => Success(makeUser(plan: 'PREMIUM')));
+          return AuthBloc(authRepository: mockAuthRepo);
+        },
+        seed: () =>
+            AuthSuccess(authResponse: makeAuthResponse(user: makeUser())),
+        act: (bloc) => bloc.add(UserRefreshRequested()),
+        expect: () => [
+          predicate<AuthState>(
+            (s) => s is AuthSuccess && s.authResponse.user.plan == 'PREMIUM',
+            'AuthSuccess with refreshed plan',
+          ),
+        ],
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'when not authenticated: no-op',
+        build: () => AuthBloc(authRepository: mockAuthRepo),
+        seed: () => AuthInitial(),
+        act: (bloc) => bloc.add(UserRefreshRequested()),
+        expect: () => <AuthState>[],
+        verify: (_) {
+          verifyNever(() => mockAuthRepo.getCurrentUser());
+        },
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'on AuthenticationError: logs out (drops to AuthInitial)',
+        build: () {
+          when(() => mockAuthRepo.getCurrentUser()).thenAnswer(
+            (_) async => const Failure(AuthenticationError('expired')),
+          );
+          when(
+            () => mockAuthRepo.logout(),
+          ).thenAnswer((_) async => const Success(null));
+          return AuthBloc(authRepository: mockAuthRepo);
+        },
+        seed: () =>
+            AuthSuccess(authResponse: makeAuthResponse(user: makeUser())),
+        act: (bloc) => bloc.add(UserRefreshRequested()),
+        expect: () => [isA<AuthInitial>()],
+        verify: (_) {
+          verify(() => mockAuthRepo.logout()).called(1);
+        },
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'on transient network error: keeps the stale user (silent)',
+        build: () {
+          when(
+            () => mockAuthRepo.getCurrentUser(),
+          ).thenAnswer((_) async => const Failure(NetworkError('offline')));
+          return AuthBloc(authRepository: mockAuthRepo);
+        },
+        seed: () =>
+            AuthSuccess(authResponse: makeAuthResponse(user: makeUser())),
+        act: (bloc) => bloc.add(UserRefreshRequested()),
+        expect: () => <AuthState>[],
+      );
+    });
   });
 }
