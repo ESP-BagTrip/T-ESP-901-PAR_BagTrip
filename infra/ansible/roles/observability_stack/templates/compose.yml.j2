@@ -69,10 +69,15 @@ services:
     pid: host
     volumes:
       - /:/host:ro,rslave
+      # Phase 6: textfile collector reads restic backup / restore-drill
+      # metrics dropped by the systemd timers. Mounted at a sibling path
+      # (not nested under /host, which is the readonly root mount).
+      - {{ observability_textfile_dir }}:/var/lib/node_exporter/textfile:ro
     command:
       - --path.rootfs=/host
       - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc|var/lib/docker)($$|/)
       - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$$
+      - --collector.textfile.directory=/var/lib/node_exporter/textfile
       - --web.listen-address=0.0.0.0:9100
     networks: [default]
 

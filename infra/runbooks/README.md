@@ -19,6 +19,7 @@ into the right page.
 | `TlsCertificateExpiringSoon`, `TlsCertificateExpiringCritical` | [tls-cert-expiry.md](./tls-cert-expiry.md) |
 | `PostgresDown`, `PostgresHighConnectionUtilisation` | [postgres-down.md](./postgres-down.md) |
 | `RedisDown`, `RedisMemoryPressure` | [redis-down.md](./redis-down.md) |
+| `ResticBackupStale`, `ResticBackupFailed`, `ResticRestoreDrillFailed` | [backup-stale.md](./backup-stale.md) |
 
 ## Adding a new runbook
 

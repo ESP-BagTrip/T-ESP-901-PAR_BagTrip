@@ -10,6 +10,10 @@
     state: present
     recreate: auto
 
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
 - name: Reload edge Caddy
   # /opt/edge/Caddyfile is bind-mounted as a single file. Docker pins the
   # inode at container creation, so an atomic file replacement on the host

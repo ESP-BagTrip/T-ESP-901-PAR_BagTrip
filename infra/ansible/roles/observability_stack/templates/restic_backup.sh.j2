@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+# {{ ansible_managed }}
+# BagTrip nightly backup — Phase 6.
+#
+# For each `observability_restic_targets` entry:
+#   1. `docker exec <container> pg_dump …` produces a SQL dump on stdout.
+#   2. The dump is piped to `restic backup --stdin --stdin-filename …`.
+#   3. Old snapshots are pruned according to the retention policy.
+#   4. Restic stats are emitted to a textfile node_exporter scrapes
+#      (`/var/lib/node_exporter/textfile/restic-backup.prom`).
+#
+# The script is idempotent: a missing repo is initialised automatically.
+# It exits non-zero on the FIRST failing target so systemd marks the unit
+# `failed` and the SLO alert fires.
+
+set -euo pipefail
+
+LOG_TAG="restic-backup"
+TEXTFILE="{{ observability_textfile_dir }}/restic-backup.prom"
+TEXTFILE_TMP="${TEXTFILE}.$$"
+
+log() { logger -t "$LOG_TAG" -- "$1"; echo "[$(date -Is)] $1"; }
+
+source /opt/observability/.env
+export RESTIC_REPOSITORY="{{ observability_restic_repository }}"
+export RESTIC_PASSWORD="${RESTIC_PASSWORD:?RESTIC_PASSWORD must be set in /opt/observability/.env}"
+{% if observability_restic_b2_account_id and observability_restic_b2_account_key %}
+export B2_ACCOUNT_ID="{{ observability_restic_b2_account_id }}"
+export B2_ACCOUNT_KEY="{{ observability_restic_b2_account_key }}"
+{% endif %}
+
+# --- Initialise repo on first run -------------------------------------------
+if ! restic snapshots --json >/dev/null 2>&1; then
+  log "Repository not initialised — running restic init"
+  restic init
+fi
+
+# --- Backup loop ------------------------------------------------------------
+overall_status=0
+declare -A target_status target_duration target_size
+
+{% for target in observability_restic_targets %}
+log "Backing up {{ target.name }} ({{ target.container }})"
+target_start=$(date +%s)
+
+PG_USER=$(grep '^POSTGRES_USER=' "{{ target.env_file }}"     | cut -d= -f2-)
+PG_PASS=$(grep '^POSTGRES_PASSWORD=' "{{ target.env_file }}" | cut -d= -f2-)
+PG_DB=$(grep   '^POSTGRES_DB='        "{{ target.env_file }}" | cut -d= -f2-)
+PG_DB="${PG_DB:-bagtrip}"
+
+if docker exec -e PGPASSWORD="$PG_PASS" "{{ target.container }}" \
+     pg_dump -U "$PG_USER" -d "$PG_DB" --no-owner --no-acl --clean --if-exists \
+   | restic backup \
+       --stdin \
+       --stdin-filename "{{ target.name }}.sql" \
+       --tag "{{ target.name }}" \
+       --tag postgres \
+       --host bagtrip; then
+  target_status[{{ target.name }}]=1
+  log "{{ target.name }} backup OK"
+else
+  target_status[{{ target.name }}]=0
+  overall_status=1
+  log "{{ target.name }} backup FAILED"
+fi
+target_duration[{{ target.name }}]=$(( $(date +%s) - target_start ))
+
+{% endfor %}
+
+# --- Retention --------------------------------------------------------------
+restic forget \
+  --keep-daily {{ observability_restic_retention.daily }} \
+  --keep-weekly {{ observability_restic_retention.weekly }} \
+  --keep-monthly {{ observability_restic_retention.monthly }} \
+  --prune || log "WARN: forget/prune failed; continuing"
+
+# --- Per-target stats for node_exporter -------------------------------------
+{
+  echo "# HELP restic_last_successful_backup_timestamp Unix timestamp of the last successful backup (per repository / target)."
+  echo "# TYPE restic_last_successful_backup_timestamp gauge"
+  echo "# HELP restic_last_backup_duration_seconds Duration of the last backup invocation."
+  echo "# TYPE restic_last_backup_duration_seconds gauge"
+  echo "# HELP restic_last_backup_status 1 = success, 0 = failure."
+  echo "# TYPE restic_last_backup_status gauge"
+  echo "# HELP restic_last_backup_size_bytes Logical size of the last successful snapshot for this target."
+  echo "# TYPE restic_last_backup_size_bytes gauge"
+  now=$(date +%s)
+{% for target in observability_restic_targets %}
+  status=${target_status[{{ target.name }}]:-0}
+  dur=${target_duration[{{ target.name }}]:-0}
+  echo "restic_last_backup_status{target=\"{{ target.name }}\"} ${status}"
+  echo "restic_last_backup_duration_seconds{target=\"{{ target.name }}\"} ${dur}"
+  if [ "$status" = "1" ]; then
+    echo "restic_last_successful_backup_timestamp{target=\"{{ target.name }}\"} ${now}"
+    snap_size=$(restic snapshots --tag "{{ target.name }}" --json --latest 1 \
+                  | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d[0].get("size", 0) if d else 0)' 2>/dev/null || echo 0)
+    echo "restic_last_backup_size_bytes{target=\"{{ target.name }}\"} ${snap_size}"
+  fi
+{% endfor %}
+} >"$TEXTFILE_TMP"
+mv "$TEXTFILE_TMP" "$TEXTFILE"
+chmod 0644 "$TEXTFILE"
+
+exit "$overall_status"

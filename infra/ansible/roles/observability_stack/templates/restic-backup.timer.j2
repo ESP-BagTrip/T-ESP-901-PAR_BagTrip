@@ -1,0 +1,12 @@
+# {{ ansible_managed }}
+[Unit]
+Description=BagTrip nightly Restic backup — daily
+
+[Timer]
+OnCalendar={{ observability_restic_backup_schedule }}
+Persistent=true
+RandomizedDelaySec=15min
+Unit=restic-backup.service
+
+[Install]
+WantedBy=timers.target

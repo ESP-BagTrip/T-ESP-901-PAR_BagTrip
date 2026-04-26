@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+# {{ ansible_managed }}
+# BagTrip weekly restore drill — Phase 6.
+#
+# For each backup target:
+#   1. Spin a throwaway postgres:15-alpine container.
+#   2. `restic dump` the latest snapshot for that tag → psql in the
+#      throwaway container.
+#   3. Run a row-count sanity SELECT on a few critical tables.
+#   4. Tear down the throwaway container.
+#   5. Emit a textfile node_exporter scrapes
+#      (/var/lib/node_exporter/textfile/restic-restore-test.prom).
+#
+# A failure here is a strong signal: backups exist on paper but a real
+# restore would not work. Page on this.
+
+set -euo pipefail
+
+LOG_TAG="restic-restore-test"
+TEXTFILE="{{ observability_textfile_dir }}/restic-restore-test.prom"
+TEXTFILE_TMP="${TEXTFILE}.$$"
+
+log() { logger -t "$LOG_TAG" -- "$1"; echo "[$(date -Is)] $1"; }
+
+source /opt/observability/.env
+export RESTIC_REPOSITORY="{{ observability_restic_repository }}"
+export RESTIC_PASSWORD="${RESTIC_PASSWORD:?RESTIC_PASSWORD must be set in /opt/observability/.env}"
+{% if observability_restic_b2_account_id and observability_restic_b2_account_key %}
+export B2_ACCOUNT_ID="{{ observability_restic_b2_account_id }}"
+export B2_ACCOUNT_KEY="{{ observability_restic_b2_account_key }}"
+{% endif %}
+
+THROWAWAY="bagtrip-restore-test-$$"
+PG_PWD="restore-test-pwd-$(openssl rand -hex 8)"
+declare -A target_status target_duration
+
+cleanup() {
+  log "tearing down ${THROWAWAY}"
+  docker rm -f "$THROWAWAY" >/dev/null 2>&1 || true
+}
+trap cleanup EXIT
+
+log "starting throwaway postgres ${THROWAWAY}"
+docker run -d --rm \
+  --name "$THROWAWAY" \
+  -e POSTGRES_USER=bagtrip \
+  -e POSTGRES_PASSWORD="$PG_PWD" \
+  -e POSTGRES_DB=bagtrip \
+  postgres:15-alpine >/dev/null
+
+# Wait for it to be ready.
+for _ in $(seq 1 30); do
+  docker exec "$THROWAWAY" pg_isready -U bagtrip -d bagtrip >/dev/null 2>&1 && break
+  sleep 1
+done
+
+overall_status=0
+
+{% for target in observability_restic_targets %}
+log "restore-test {{ target.name }}"
+target_start=$(date +%s)
+
+snap_id=$(restic snapshots --tag "{{ target.name }}" --json --latest 1 \
+          | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d[0]["id"] if d else "")') || snap_id=""
+if [ -z "$snap_id" ]; then
+  log "{{ target.name }}: no snapshot found"
+  target_status[{{ target.name }}]=0
+  overall_status=1
+else
+  if restic dump "$snap_id" "{{ target.name }}.sql" \
+     | docker exec -i -e PGPASSWORD="$PG_PWD" "$THROWAWAY" \
+         psql -U bagtrip -d bagtrip -v ON_ERROR_STOP=1 -q >/dev/null \
+     && docker exec -e PGPASSWORD="$PG_PWD" "$THROWAWAY" \
+         psql -U bagtrip -d bagtrip -tAc 'SELECT count(*) FROM users;' >/dev/null; then
+    target_status[{{ target.name }}]=1
+    log "{{ target.name }}: restore OK"
+  else
+    target_status[{{ target.name }}]=0
+    overall_status=1
+    log "{{ target.name }}: restore FAILED"
+  fi
+
+  # Reset the throwaway DB between targets.
+  docker exec -e PGPASSWORD="$PG_PWD" "$THROWAWAY" \
+    psql -U bagtrip -d postgres -c 'DROP DATABASE IF EXISTS bagtrip;' >/dev/null
+  docker exec -e PGPASSWORD="$PG_PWD" "$THROWAWAY" \
+    psql -U bagtrip -d postgres -c 'CREATE DATABASE bagtrip;' >/dev/null
+fi
+
+target_duration[{{ target.name }}]=$(( $(date +%s) - target_start ))
+
+{% endfor %}
+
+{
+  echo "# HELP restic_last_restore_test_status 1 = restore drill OK, 0 = failed."
+  echo "# TYPE restic_last_restore_test_status gauge"
+  echo "# HELP restic_last_restore_test_duration_seconds Last restore drill duration per target."
+  echo "# TYPE restic_last_restore_test_duration_seconds gauge"
+  echo "# HELP restic_last_restore_test_timestamp Unix timestamp of the last drill run (regardless of result)."
+  echo "# TYPE restic_last_restore_test_timestamp gauge"
+  now=$(date +%s)
+{% for target in observability_restic_targets %}
+  s=${target_status[{{ target.name }}]:-0}
+  d=${target_duration[{{ target.name }}]:-0}
+  echo "restic_last_restore_test_status{target=\"{{ target.name }}\"} ${s}"
+  echo "restic_last_restore_test_duration_seconds{target=\"{{ target.name }}\"} ${d}"
+  echo "restic_last_restore_test_timestamp{target=\"{{ target.name }}\"} ${now}"
+{% endfor %}
+} >"$TEXTFILE_TMP"
+mv "$TEXTFILE_TMP" "$TEXTFILE"
+chmod 0644 "$TEXTFILE"
+
+exit "$overall_status"
