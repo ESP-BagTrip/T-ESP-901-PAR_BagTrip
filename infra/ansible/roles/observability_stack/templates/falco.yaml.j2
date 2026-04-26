@@ -1,0 +1,26 @@
+# {{ ansible_managed }}
+# Falco engine — minimal overrides; everything else inherits from the
+# image defaults. Custom rules live in falco_rules.local.yaml.
+
+rules_files:
+  - /etc/falco/falco_rules.yaml
+  - /etc/falco/falco_rules.local.yaml
+
+# Send events to stdout in JSON. Promtail (Phase 2) ships container stdout
+# into Loki, where the Phase 4 alert rules can react.
+json_output: true
+json_include_output_property: true
+json_include_tags_property: true
+
+stdout_output:
+  enabled: true
+
+log_stderr: true
+log_syslog: false
+log_level: info
+
+priority: notice
+
+# Modern eBPF probe — Linux 5.8+ (we run 6.14).
+engine:
+  kind: modern_ebpf

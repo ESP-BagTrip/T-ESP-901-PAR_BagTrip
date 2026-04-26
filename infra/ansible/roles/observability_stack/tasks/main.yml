@@ -20,6 +20,7 @@
     - "{{ observability_root }}/tempo"
     - "{{ observability_root }}/alertmanager"
     - "{{ observability_root }}/prometheus/alerts"
+    - "{{ observability_root }}/falco"
 
 # --- Read BagTrip postgres credentials from existing .env files (source of truth) ---
 
@@ -174,6 +175,24 @@
     - blackbox
     - datastores
   notify: Reload Prometheus configuration
+
+- name: Render Falco engine configuration
+  ansible.builtin.template:
+    src: falco.yaml.j2
+    dest: "{{ observability_root }}/falco/falco.yaml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  notify: Restart observability stack
+
+- name: Render BagTrip-specific Falco rules
+  ansible.builtin.template:
+    src: falco_rules.local.yaml.j2
+    dest: "{{ observability_root }}/falco/falco_rules.local.yaml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  notify: Restart observability stack
 
 - name: Render Grafana datasource provisioning
   ansible.builtin.template:

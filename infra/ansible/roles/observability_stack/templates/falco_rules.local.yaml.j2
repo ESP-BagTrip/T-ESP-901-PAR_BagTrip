@@ -1,0 +1,79 @@
+# {{ ansible_managed }}
+# BagTrip-specific Falco rules. Names start with "BagTrip:" so they are
+# easy to filter in Loki / Grafana (`{service="falco"} |= "BagTrip:"`).
+
+# ----- 1. The 2026-04-26 cryptominer signature ------------------------------
+# The attacker pipeline was: next-server → sh → base64 → sh → /tmp/<bin>.
+# Each link in the chain is a Falco rule below; firing any one of them on a
+# real handler is reason enough to wake someone up.
+
+- rule: BagTrip — Exec from temp directory
+  desc: A process inside a container is executed from /tmp, /var/tmp or /dev/shm.
+  condition: >
+    spawned_process
+    and (proc.exepath startswith "/tmp/"
+      or proc.exepath startswith "/var/tmp/"
+      or proc.exepath startswith "/dev/shm/")
+    and not proc.name in (sh, bash, dash, busybox)
+  output: >
+    BagTrip: process exec'd from temp dir
+    (proc=%proc.cmdline path=%proc.exepath
+     parent=%proc.pname container=%container.name image=%container.image.repository)
+  priority: CRITICAL
+  tags: [process, filesystem, mitre_execution, incident_2026_04_26]
+
+- rule: BagTrip — Suspicious dropper from web server
+  desc: A web-server / app-server process spawns a base64-decode-then-shell pipeline.
+  condition: >
+    spawned_process
+    and proc.pname in (next-server, node, uvicorn, gunicorn, python, python3)
+    and (
+      (proc.cmdline contains "base64 -d" or proc.cmdline contains "base64 --decode")
+      or (proc.cmdline contains "curl " and proc.cmdline contains "| sh")
+      or (proc.cmdline contains "wget " and proc.cmdline contains "| sh")
+    )
+  output: >
+    BagTrip: app server spawned suspicious dropper
+    (parent=%proc.pname cmd=%proc.cmdline container=%container.name)
+  priority: CRITICAL
+  tags: [process, mitre_execution, incident_2026_04_26]
+
+- rule: BagTrip — Shell from container web server
+  desc: An interactive shell is spawned from one of the BagTrip app servers — never legitimate in prod.
+  condition: >
+    spawned_process
+    and shell_procs
+    and proc.pname in (next-server, node, uvicorn, gunicorn)
+    and container.name startswith "bagtrip-"
+  output: >
+    BagTrip: shell spawned by app server
+    (shell=%proc.cmdline parent=%proc.pname container=%container.name)
+  priority: CRITICAL
+  tags: [process, mitre_execution]
+
+# ----- 2. Tampering with persistence paths ---------------------------------
+
+- rule: BagTrip — Write to sensitive system path
+  desc: A container writes to /etc/, /usr/bin/, /usr/local/bin/, /etc/cron.* or /etc/systemd/.
+  condition: >
+    open_write
+    and (fd.name startswith "/etc/cron"
+      or fd.name startswith "/etc/systemd/"
+      or fd.name startswith "/usr/bin/"
+      or fd.name startswith "/usr/local/bin/"
+      or fd.name = "/etc/passwd"
+      or fd.name = "/etc/shadow"
+      or fd.name = "/etc/sudoers")
+    and container.id != host
+  output: >
+    BagTrip: container wrote to sensitive system path
+    (file=%fd.name proc=%proc.cmdline container=%container.name)
+  priority: WARNING
+  tags: [filesystem, mitre_persistence]
+
+# ----- 3. Outbound surprise --------------------------------------------------
+# Outbound-allowlist rules are deferred to Phase 5c: Falco's IP filter syntax
+# (fd.sip is an ipaddr type, not a string) requires either CIDR macros from
+# the bundled rule set or a custom list, both of which need the egress
+# allowlist (Stripe / Amadeus / OVH LLM / Sentry / Cloudflare) to be
+# enumerated first. The hardening roadmap tracks this as F6.
