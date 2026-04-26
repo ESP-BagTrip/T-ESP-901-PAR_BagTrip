@@ -16,6 +16,7 @@ observability_versions:
   loki: 3.3.2
   promtail: 3.3.2
   tempo: 2.7.1
+  alertmanager: v0.27.0
 
 # --- Loopback ports (host-side; never exposed publicly until Phase 1c) ---
 observability_prometheus_host_port: 9090
@@ -29,6 +30,13 @@ observability_scrape_interval: 15s
 # --- Loki retention ---
 observability_loki_retention_period: "336h"  # 14 days
 observability_loki_max_query_lookback: "336h"
+
+# --- Alertmanager configuration ---
+# Discord webhook (or compatible; set in group_vars/host_vars or vault).
+# When unset, Alertmanager runs but routes go to a no-op `null` receiver —
+# alerts still surface in /api/v1/alerts and Grafana, just don't forward.
+observability_alertmanager_discord_webhook: ""
+observability_alertmanager_resolve_timeout: "5m"
 
 # --- BagTrip stack network names (external, must already exist) ---
 observability_bagtrip_prod_network: bagtrip_default

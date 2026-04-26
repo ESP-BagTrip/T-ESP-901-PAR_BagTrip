@@ -192,12 +192,29 @@ services:
       - bagtrip_prod
       - bagtrip_preprod
 
+  alertmanager:
+    image: prom/alertmanager:{{ observability_versions.alertmanager }}
+    container_name: observability-alertmanager
+    restart: unless-stopped
+    user: "65534:65534"
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+      - --web.external-url=http://127.0.0.1:9093
+    volumes:
+      - ./alertmanager:/etc/alertmanager:ro
+      - alertmanager_data:/alertmanager
+    ports:
+      - "127.0.0.1:9093:9093"
+    networks: [default]
+
 volumes:
   prometheus_data:
   grafana_data:
   loki_data:
   promtail_data:
   tempo_data:
+  alertmanager_data:
 
 networks:
   default:

@@ -1,0 +1,54 @@
+# {{ ansible_managed }}
+# Container-level alerts — cAdvisor metrics + the incident-2026-04-26 signature.
+
+groups:
+  - name: bagtrip_containers
+    interval: 30s
+    rules:
+      - alert: ContainerRestartLoop
+        expr: |
+          increase(container_start_time_seconds{name=~"bagtrip-.*|edge-caddy|netdata"}[15m]) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container {{ '{{ $labels.name }}' }} restarted more than twice in 15 minutes"
+          description: "Possible crashloop. Check the container logs in Loki for the error pattern."
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/container-restart-loop.md"
+
+      # Cryptominer signature — directly inspired by the 2026-04-26 incident.
+      # The miner pegged a single container's CPU at ~99% for hours before
+      # Netdata's default 10-minute average alert fired (7h45 to detection).
+      # This rule trims the detection window to 5 minutes.
+      - alert: ContainerCPUSustained
+        expr: |
+          sum by (name) (rate(container_cpu_usage_seconds_total{name=~"bagtrip-.*|edge-caddy"}[3m])) > 0.85
+        for: 5m
+        labels:
+          severity: critical
+          incident_pattern: "cryptominer-2026-04-26"
+        annotations:
+          summary: "Container {{ '{{ $labels.name }}' }} pegged > 85% of one CPU for 5 minutes"
+          description: |
+            This pattern is what the 2026-04-26 cryptominer incident looked like before any
+            other signal triggered. Cross-check Loki for an exec-from-/tmp Falco rule
+            (Phase 5) and Tempo for outbound HTTP spans to unfamiliar destinations before
+            assuming legitimate traffic.
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/cryptominer-suspect.md"
+
+      - alert: ContainerMemoryPressure
+        # Filter to containers that actually declare a memory limit; without
+        # the `> 0` guard, division by zero yields +Inf and the alert pages
+        # for every limit-less container.
+        expr: |
+          (
+            container_memory_rss{name=~"bagtrip-.*"}
+            /
+            (container_spec_memory_limit_bytes{name=~"bagtrip-.*"} > 0)
+          ) > 0.9
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container {{ '{{ $labels.name }}' }} using > 90% of its memory limit"
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/container-restart-loop.md"

@@ -1,0 +1,58 @@
+# {{ ansible_managed }}
+# Postgres + Redis alerts — exporters' data.
+
+groups:
+  - name: bagtrip_postgres
+    interval: 30s
+    rules:
+      - alert: PostgresDown
+        expr: up{job="postgres"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Postgres {{ '{{ $labels.env }}' }} is DOWN"
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/postgres-down.md"
+
+      - alert: PostgresHighConnectionUtilisation
+        expr: |
+          (
+            sum by (env) (pg_stat_database_numbackends)
+            /
+            sum by (env) (pg_settings_max_connections)
+          ) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Postgres {{ '{{ $labels.env }}' }} > 80% of max_connections used"
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/postgres-down.md"
+
+  - name: bagtrip_redis
+    interval: 30s
+    rules:
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis {{ '{{ $labels.env }}' }} is DOWN"
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/redis-down.md"
+
+      - alert: RedisMemoryPressure
+        # Same `> 0` guard as ContainerMemoryPressure: redis_memory_max_bytes
+        # is 0 when no maxmemory is configured, which would otherwise yield
+        # +Inf and page on every Redis instance.
+        expr: |
+          (
+            redis_memory_used_bytes
+            /
+            (redis_memory_max_bytes > 0)
+          ) > 0.85
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis {{ '{{ $labels.env }}' }} memory > 85% of maxmemory"
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/redis-down.md"
