@@ -588,7 +588,7 @@ class _LoginSignUpToggle extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: ColorName.primaryLight,
-        borderRadius: AppRadius.pill,
+        borderRadius: AppRadius.large16,
       ),
       padding: const EdgeInsets.all(AppSpacing.space4),
       child: LayoutBuilder(
@@ -612,7 +612,7 @@ class _LoginSignUpToggle extends StatelessWidget {
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       color: ColorName.surface,
-                      borderRadius: AppRadius.pill,
+                      borderRadius: AppRadius.large16,
                       boxShadow: [
                         BoxShadow(
                           color: ColorName.primaryTrueDark.withValues(
@@ -665,7 +665,7 @@ class _LoginSignUpToggle extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: AppRadius.large16,
         splashColor: ColorName.primaryTrueDark.withValues(alpha: 0.06),
         highlightColor: ColorName.primaryTrueDark.withValues(alpha: 0.04),
         child: Center(
