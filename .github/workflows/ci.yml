@@ -9,6 +9,9 @@ on:
 permissions:
   contents: read
   pull-requests: read
+  # security-events:write is required to upload Trivy SARIF results to the
+  # GitHub code-scanning Security tab (Phase 5a).
+  security-events: write
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -263,6 +266,55 @@ jobs:
         run: npm run build
 
   # ========================================
+  # TRIVY — SUPPLY CHAIN VULN SCAN  (Phase 5a)
+  # ========================================
+  # `trivy fs` walks the repo's package manifests + lock files and the
+  # Dockerfiles, flags any HIGH / CRITICAL CVE, uploads a SARIF report
+  # to GitHub code-scanning, and fails the gate on findings unless they
+  # are listed in .trivyignore with an expiry-dated comment.
+  trivy-scan:
+    name: Trivy supply-chain scan
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: |
+      needs.detect-changes.outputs.api == 'true' ||
+      needs.detect-changes.outputs.admin == 'true' ||
+      needs.detect-changes.outputs.flutter == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Trivy filesystem scan (table — failing gate)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+          format: table
+          trivyignores: ./.trivyignore
+
+      - name: Trivy filesystem scan (SARIF — for code-scanning)
+        if: always()
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          format: sarif
+          output: trivy-results.sarif
+          trivyignores: ./.trivyignore
+
+      - name: Upload SARIF to GitHub code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy
+
+  # ========================================
   # SONAR — QUALITY ANALYSIS
   # ========================================
   sonar:
@@ -310,7 +362,7 @@ jobs:
   quality-gate:
     name: Quality Gate
     runs-on: ubuntu-latest
-    needs: [flutter-analyze, flutter-test, api-checks, admin-checks, sonar]
+    needs: [flutter-analyze, flutter-test, api-checks, admin-checks, trivy-scan, sonar]
     if: always()
     steps:
       - name: Check all jobs
@@ -319,12 +371,14 @@ jobs:
           echo "flutter-test:    ${{ needs.flutter-test.result }}"
           echo "api-checks:      ${{ needs.api-checks.result }}"
           echo "admin-checks:    ${{ needs.admin-checks.result }}"
+          echo "trivy-scan:      ${{ needs.trivy-scan.result }}"
 
           for result in \
             "${{ needs.flutter-analyze.result }}" \
             "${{ needs.flutter-test.result }}" \
             "${{ needs.api-checks.result }}" \
             "${{ needs.admin-checks.result }}" \
+            "${{ needs.trivy-scan.result }}" \
             "${{ needs.sonar.result }}"; do
             if [[ "$result" != "success" && "$result" != "skipped" && "$result" != "cancelled" ]]; then
               echo "Quality gate FAILED"

@@ -1,0 +1,10 @@
+# Trivy waiver list — add CVE IDs to silence them, with a justification
+# and an expiry date in YYYY-MM-DD form.
+#
+# Format:
+#   CVE-XXXX-YYYY  # rationale, expiry: YYYY-MM-DD
+#
+# Anything in this file MUST have an expiry date so we revisit. CVEs with
+# an expired waiver should pop back into the failing gate at the next CI
+# run — we treat the failure as a forcing function to either patch or
+# document the new rationale.
