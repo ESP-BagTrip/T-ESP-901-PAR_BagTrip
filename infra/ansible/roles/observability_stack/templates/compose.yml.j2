@@ -175,11 +175,29 @@ services:
     depends_on: [loki]
     networks: [default]
 
+  tempo:
+    image: grafana/tempo:{{ observability_versions.tempo }}
+    container_name: observability-tempo
+    restart: unless-stopped
+    user: "10001:10001"
+    command:
+      - -config.file=/etc/tempo/tempo.yaml
+    volumes:
+      - ./tempo:/etc/tempo:ro
+      - tempo_data:/var/tempo
+    # Multi-homed on the BagTrip stack networks so api containers reach the
+    # OTLP receivers as `tempo:4317`. Same pattern as prometheus.
+    networks:
+      - default
+      - bagtrip_prod
+      - bagtrip_preprod
+
 volumes:
   prometheus_data:
   grafana_data:
   loki_data:
   promtail_data:
+  tempo_data:
 
 networks:
   default:

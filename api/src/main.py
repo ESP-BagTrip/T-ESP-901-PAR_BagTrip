@@ -171,6 +171,45 @@ Instrumentator(
     inprogress_labels=True,
 ).instrument(app).expose(app, endpoint="/metrics", include_in_schema=False, tags=["monitoring"])
 
+# OpenTelemetry distributed tracing — enabled when OTEL_EXPORTER_OTLP_ENDPOINT
+# is set (e.g. `http://tempo:4317` in production). FastAPI / SQLAlchemy / Redis
+# / HTTPX are auto-instrumented; spans flow to Grafana Tempo via OTLP gRPC.
+# Tracing is silent in dev/test where the env var is unset.
+if settings.OTEL_EXPORTER_OTLP_ENDPOINT:
+    from opentelemetry import trace as _otel_trace
+    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+    from opentelemetry.instrumentation.redis import RedisInstrumentor
+    from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+    from opentelemetry.sdk.resources import Resource
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+    from opentelemetry.sdk.trace.sampling import TraceIdRatioBased
+
+    _otel_resource = Resource.create(
+        {
+            "service.name": settings.OTEL_SERVICE_NAME,
+            "service.version": "1.0.0",
+            "deployment.environment": settings.NODE_ENV,
+        }
+    )
+    _otel_provider = TracerProvider(
+        resource=_otel_resource,
+        sampler=TraceIdRatioBased(settings.OTEL_TRACES_SAMPLER_ARG),
+    )
+    _otel_provider.add_span_processor(
+        BatchSpanProcessor(
+            OTLPSpanExporter(endpoint=settings.OTEL_EXPORTER_OTLP_ENDPOINT, insecure=True)
+        )
+    )
+    _otel_trace.set_tracer_provider(_otel_provider)
+    FastAPIInstrumentor.instrument_app(app, excluded_urls="/metrics,/health,/")
+    SQLAlchemyInstrumentor().instrument(engine=engine, enable_commenter=False)
+    RedisInstrumentor().instrument()
+    HTTPXClientInstrumentor().instrument()
+    logger.info(f"OpenTelemetry tracing enabled (endpoint={settings.OTEL_EXPORTER_OTLP_ENDPOINT})")
+
 # Inclusion des routes - toutes sous /v1
 # Routes principales selon PLAN.md
 app.include_router(auth_router)  # Déjà préfixé avec /v1/auth

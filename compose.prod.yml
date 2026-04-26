@@ -46,6 +46,12 @@ services:
       COOKIE_DOMAIN: ${API_COOKIE_DOMAIN:-.bagtrip.fr}
       COOKIE_NAME_PREFIX: ${API_COOKIE_NAME_PREFIX:-}
       COOKIE_SECURE: "true"
+      # OpenTelemetry — Tempo runs in /opt/observability and is multi-homed
+      # on the bagtrip stack networks, so `tempo:4317` resolves via Docker
+      # DNS. Override via .env.production to disable (empty) or repoint.
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${API_OTEL_EXPORTER_OTLP_ENDPOINT:-http://tempo:4317}
+      OTEL_SERVICE_NAME: ${API_OTEL_SERVICE_NAME:-bagtrip-api}
+      OTEL_TRACES_SAMPLER_ARG: ${API_OTEL_TRACES_SAMPLER_ARG:-1.0}
     depends_on:
       postgres:
         condition: service_healthy
