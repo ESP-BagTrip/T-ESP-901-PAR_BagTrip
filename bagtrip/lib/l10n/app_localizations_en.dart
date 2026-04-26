@@ -302,10 +302,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookingStatusConfirmed => 'Confirmed';
 
   @override
-  String get loginWelcomeTitle => 'Welcome to Bag Trip';
+  String get loginWelcomeTitle => 'Welcome to \nBag Trip';
 
   @override
-  String get loginWelcomeSubtitle => 'Login or Sign up to access your account';
+  String get loginWelcomeGreeting => 'Welcome to';
+
+  @override
+  String get loginWelcomeAppName => 'BagTrip';
+
+  @override
+  String get loginWelcomeSubtitle => 'Your smart travel companion';
 
   @override
   String get login => 'Login';

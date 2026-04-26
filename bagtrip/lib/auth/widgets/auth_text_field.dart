@@ -21,6 +21,8 @@ class AuthTextField extends StatelessWidget {
   final bool hasError;
   final Color? errorBorderColor;
   final Key? formFieldKey;
+  final double fieldHeight;
+  final BorderRadius borderRadius;
 
   const AuthTextField({
     super.key,
@@ -40,6 +42,8 @@ class AuthTextField extends StatelessWidget {
     this.hasError = false,
     this.errorBorderColor,
     this.formFieldKey,
+    this.fieldHeight = 48,
+    this.borderRadius = AppRadius.large16,
   });
 
   @override
@@ -60,7 +64,7 @@ class AuthTextField extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             color: backgroundColor ?? ColorName.primaryLight,
-            borderRadius: AppRadius.large16,
+            borderRadius: borderRadius,
             border: hasError
                 ? Border.all(
                     color: errorBorderColor ?? ColorName.error,
@@ -70,35 +74,50 @@ class AuthTextField extends StatelessWidget {
                       ? Border.all(color: borderColor!, width: borderWidth)
                       : null),
           ),
-          child: TextFormField(
-            key: formFieldKey,
-            controller: controller,
-            obscureText: obscureText,
-            keyboardType: keyboardType,
-            validator: validator,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              fontFamily: FontFamily.b612,
-              color: textColor ?? ColorName.primaryTrueDark,
-            ),
-            decoration: InputDecoration(
-              hintText: hintText,
-              hintStyle: TextStyle(
+          child: SizedBox(
+            height: fieldHeight,
+            child: TextFormField(
+              key: formFieldKey,
+              controller: controller,
+              obscureText: obscureText,
+              keyboardType: keyboardType,
+              validator: validator,
+              style: TextStyle(
                 fontSize: 14,
-                fontWeight: FontWeight.w400,
-                fontFamily: FontFamily.b612,
-                color: hintColor ?? AppColors.hint,
+                fontWeight: FontWeight.w600,
+                fontFamily: FontFamily.dMSans,
+                color: textColor ?? ColorName.primaryTrueDark,
               ),
-              border: InputBorder.none,
-              contentPadding: AppSpacing.allEdgeInsetSpace16,
-              prefixIcon: prefixIcon != null
-                  ? IconTheme.merge(
-                      data: IconThemeData(color: hintColor ?? AppColors.hint),
-                      child: prefixIcon!,
-                    )
-                  : null,
-              suffixIcon: suffixIcon,
+              textAlignVertical: TextAlignVertical.center,
+              decoration: InputDecoration(
+                hintText: hintText,
+                hintStyle: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: FontFamily.dMSans,
+                  color: hintColor ?? AppColors.hint,
+                ),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.space16,
+                ),
+                prefixIcon: prefixIcon != null
+                    ? IconTheme.merge(
+                        data: IconThemeData(color: hintColor ?? AppColors.hint),
+                        child: prefixIcon!,
+                      )
+                    : null,
+                suffixIcon: suffixIcon,
+                prefixIconConstraints: BoxConstraints(
+                  minWidth: 48,
+                  minHeight: fieldHeight,
+                ),
+                suffixIconConstraints: BoxConstraints(
+                  minWidth: 48,
+                  minHeight: fieldHeight,
+                ),
+              ),
             ),
           ),
         ),
