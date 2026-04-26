@@ -1,0 +1,34 @@
+# {{ ansible_managed }}
+# Synthetic probes + TLS certificate expiry alerts.
+
+groups:
+  - name: bagtrip_blackbox
+    interval: 30s
+    rules:
+      - alert: BlackboxProbeDown
+        expr: probe_success == 0
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Public probe failing on {{ '{{ $labels.instance }}' }}"
+          description: "{{ '{{ $labels.job }}' }} can't reach the target. Check Cloudflare, edge Caddy and the inner stack."
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/blackbox-probe-failure.md"
+
+      - alert: TlsCertificateExpiringSoon
+        expr: probe_ssl_earliest_cert_expiry - time() < 14 * 24 * 3600
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "TLS cert for {{ '{{ $labels.instance }}' }} expires in less than 14 days"
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/tls-cert-expiry.md"
+
+      - alert: TlsCertificateExpiringCritical
+        expr: probe_ssl_earliest_cert_expiry - time() < 3 * 24 * 3600
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "TLS cert for {{ '{{ $labels.instance }}' }} expires in less than 3 days"
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/tls-cert-expiry.md"

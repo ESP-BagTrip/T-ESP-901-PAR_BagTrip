@@ -8,6 +8,15 @@ global:
     env: prod
     host: vps_prod
 
+# --- Alertmanager wiring (Phase 4) ---
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
+
+rule_files:
+  - /etc/prometheus/alerts/*.yml
+
 scrape_configs:
   # --- Prometheus self-scrape ---
   - job_name: prometheus
@@ -79,6 +88,12 @@ scrape_configs:
     static_configs:
       - targets: ['tempo:3200']
         labels: { service: tempo, instance: vps_prod }
+
+  # --- Alertmanager self-scrape (Phase 4) ---
+  - job_name: alertmanager
+    static_configs:
+      - targets: ['alertmanager:9093']
+        labels: { service: alertmanager, instance: vps_prod }
 
   # --- Edge Caddy ---
   # TODO (Phase 1b): wire edge Caddy /metrics scrape. Edge Caddy admin is

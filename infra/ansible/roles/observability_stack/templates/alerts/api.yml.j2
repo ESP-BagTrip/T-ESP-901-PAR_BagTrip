@@ -1,0 +1,100 @@
+# {{ ansible_managed }}
+# BagTrip API alerts — RED metrics from prometheus-fastapi-instrumentator
+# + multi-window SLO burn-rate alerts derived from documentations/observability/slo.md.
+
+groups:
+  - name: bagtrip_api
+    interval: 30s
+    rules:
+      - alert: ApiDown
+        expr: up{job="bagtrip-api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API {{ '{{ $labels.env }}' }} is DOWN ({{ '{{ $labels.instance }}' }})"
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/api-down.md"
+
+      - alert: ApiHighErrorRate
+        expr: |
+          (
+            sum by (env) (rate(http_requests_total{job="bagtrip-api", status=~"5.."}[5m]))
+            /
+            sum by (env) (rate(http_requests_total{job="bagtrip-api"}[5m]))
+          ) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API {{ '{{ $labels.env }}' }} 5xx rate > 5% for 10 minutes"
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/api-error-rate.md"
+
+      - alert: ApiLatencyDegraded
+        expr: |
+          histogram_quantile(0.95,
+            sum by (env, le) (
+              rate(http_request_duration_seconds_bucket{job="bagtrip-api"}[5m])
+            )
+          ) > 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API {{ '{{ $labels.env }}' }} p95 latency > 1s for 10 minutes"
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/api-latency-degradation.md"
+
+  # ---- Multi-window SLO burn-rate alerts (Google SRE methodology) ----
+  # SLO target = 99.5% availability over 30 days (see slo.md §1.1).
+  # Error budget burn rate = (error_rate / (1 - SLO)) = error_rate / 0.005.
+  - name: bagtrip_api_slo
+    interval: 30s
+    rules:
+      - alert: ApiAvailabilityFastBurn
+        # 14× burn over 1h AND 5m → page (would consume 5% of monthly budget in 2h).
+        expr: |
+          (
+            (
+              sum(rate(http_requests_total{job="bagtrip-api", status=~"5..", env="prod"}[1h]))
+              /
+              sum(rate(http_requests_total{job="bagtrip-api", env="prod"}[1h]))
+            ) > (14 * 0.005)
+          )
+          and
+          (
+            (
+              sum(rate(http_requests_total{job="bagtrip-api", status=~"5..", env="prod"}[5m]))
+              /
+              sum(rate(http_requests_total{job="bagtrip-api", env="prod"}[5m]))
+            ) > (14 * 0.005)
+          )
+        labels:
+          severity: critical
+          slo: api_availability
+        annotations:
+          summary: "API prod is burning the 30-day error budget 14× faster than allowed"
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/slo-burn-rate.md"
+
+      - alert: ApiAvailabilitySlowBurn
+        # 3× burn over 6h AND 30m → ticket (slow leak).
+        expr: |
+          (
+            (
+              sum(rate(http_requests_total{job="bagtrip-api", status=~"5..", env="prod"}[6h]))
+              /
+              sum(rate(http_requests_total{job="bagtrip-api", env="prod"}[6h]))
+            ) > (3 * 0.005)
+          )
+          and
+          (
+            (
+              sum(rate(http_requests_total{job="bagtrip-api", status=~"5..", env="prod"}[30m]))
+              /
+              sum(rate(http_requests_total{job="bagtrip-api", env="prod"}[30m]))
+            ) > (3 * 0.005)
+          )
+        labels:
+          severity: warning
+          slo: api_availability
+        annotations:
+          summary: "API prod is burning the error budget at 3× the allowed rate (6h window)"
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/slo-burn-rate.md"

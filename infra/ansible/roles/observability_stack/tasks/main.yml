@@ -18,6 +18,8 @@
     - "{{ observability_root }}/loki"
     - "{{ observability_root }}/promtail"
     - "{{ observability_root }}/tempo"
+    - "{{ observability_root }}/alertmanager"
+    - "{{ observability_root }}/prometheus/alerts"
 
 # --- Read BagTrip postgres credentials from existing .env files (source of truth) ---
 
@@ -148,6 +150,30 @@
     group: "{{ observability_group }}"
     mode: "0644"
   notify: Restart observability stack
+
+- name: Render Alertmanager configuration
+  ansible.builtin.template:
+    src: alertmanager.yml.j2
+    dest: "{{ observability_root }}/alertmanager/alertmanager.yml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  notify: Restart observability stack
+
+- name: Render Prometheus alert rules
+  ansible.builtin.template:
+    src: "alerts/{{ item }}.yml.j2"
+    dest: "{{ observability_root }}/prometheus/alerts/{{ item }}.yml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  loop:
+    - host
+    - containers
+    - api
+    - blackbox
+    - datastores
+  notify: Reload Prometheus configuration
 
 - name: Render Grafana datasource provisioning
   ansible.builtin.template:
