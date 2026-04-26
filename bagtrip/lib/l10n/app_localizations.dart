@@ -6063,6 +6063,12 @@ abstract class AppLocalizations {
   /// **'Remboursement traité. Les fonds arriveront sous 5 à 10 jours.'**
   String get refundSuccessMessage;
 
+  /// No description provided for @refundUnavailableMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Seules les réservations capturées peuvent être remboursées.'**
+  String get refundUnavailableMessage;
+
   /// No description provided for @paymentSuccessConfirmed.
   ///
   /// In fr, this message translates to:

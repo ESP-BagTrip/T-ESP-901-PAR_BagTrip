@@ -1675,6 +1675,7 @@
   "refundReasonFraudulent": "Suspected fraud",
   "refundConfirm": "Request refund",
   "refundSuccessMessage": "Refund processed. Funds will arrive in 5–10 days.",
+  "refundUnavailableMessage": "Only captured bookings can be refunded.",
 
   "paymentSuccessConfirmed": "Payment confirmed",
   "paymentSuccessSubtitle": "Your booking is on its way.",

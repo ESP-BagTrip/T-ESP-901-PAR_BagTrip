@@ -1,6 +1,7 @@
 import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/premium_paywall.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/trips/bloc/trip_share_bloc.dart';
@@ -215,7 +216,13 @@ class _ShareInviteSheetState extends State<ShareInviteSheet> {
           AppSnackBar.showError(context, message: msg);
         }
         if (state is TripShareQuotaExceeded) {
-          AppSnackBar.showError(context, message: l10n.errorQuota);
+          // Free plan caps the number of viewers per trip — surface the
+          // paywall (consistent with accommodations/baggage AI quotas)
+          // instead of a toast that the user has no actionable response to.
+          // Close the share sheet first so the paywall doesn't stack on
+          // top of it.
+          Navigator.of(context).pop();
+          PremiumPaywall.show(context);
         }
       },
       child: form,
