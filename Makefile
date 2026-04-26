@@ -79,7 +79,8 @@ err   = @printf "$(RED)[err]$(RESET)  %s\n" $(1)
         test-e2e \
         coverage \
         db-reset db-revision db-shell \
-        shell-api shell-admin
+        shell-api shell-admin \
+        stripe-listen
 
 # ══════════════════════════════════════════════════════════════
 #  HELP
@@ -117,6 +118,7 @@ help: ## Show this help
 	@printf "$(BOLD) Utilities$(RESET)\n"
 	@printf "  $(CYAN)make shell-api$(RESET)       Bash shell in api container\n"
 	@printf "  $(CYAN)make shell-admin$(RESET)     Shell in admin-panel container\n"
+	@printf "  $(CYAN)make stripe-listen$(RESET)   Forward Stripe webhooks to local API\n"
 	@printf "\n"
 
 # ══════════════════════════════════════════════════════════════
@@ -352,3 +354,16 @@ shell-api: ## Bash shell in api container
 
 shell-admin: ## Shell in admin-panel container
 	@$(COMPOSE) exec admin-panel /bin/sh
+
+# ══════════════════════════════════════════════════════════════
+#  STRIPE
+# ══════════════════════════════════════════════════════════════
+
+stripe-listen: ## Forward Stripe webhooks to local API (requires `stripe` CLI logged in)
+	@if ! command -v stripe &>/dev/null; then \
+		printf "$(RED)[err]$(RESET)  Stripe CLI not installed — https://stripe.com/docs/stripe-cli\n"; \
+		exit 1; \
+	fi
+	@printf "$(CYAN)[info]$(RESET) Forwarding Stripe webhooks to http://localhost:$(API_PORT)/v1/stripe/webhooks\n"
+	@printf "$(YELLOW)[note]$(RESET) Copy the printed whsec_… into STRIPE_WEBHOOK_SECRET in your .env, then restart the API.\n\n"
+	@stripe listen --forward-to localhost:$(API_PORT)/v1/stripe/webhooks

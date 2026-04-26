@@ -146,3 +146,8 @@ class TestHandleStripeWebhook:
 
         assert response.status_code == 500
         assert response.json() == {"error": "Internal Error"}
+
+    def test_missing_signature_header_rejected(self, client, override_get_db):
+        """Stripe sends `stripe-signature` on every request; absence → 422."""
+        response = client.post("/v1/stripe/webhooks", content="{}")
+        assert response.status_code == 422  # FastAPI Header(...) validation
