@@ -204,7 +204,10 @@ if settings.OTEL_EXPORTER_OTLP_ENDPOINT:
         )
     )
     _otel_trace.set_tracer_provider(_otel_provider)
-    FastAPIInstrumentor.instrument_app(app, excluded_urls="/metrics,/health,/")
+    # excluded_urls is a comma-separated list of regex patterns matched with
+    # re.search against the request URL. Anchor each one or "/" matches every
+    # path and OTEL silently drops every span.
+    FastAPIInstrumentor.instrument_app(app, excluded_urls=r"^/metrics$,^/health$,^/$")
     SQLAlchemyInstrumentor().instrument(engine=engine, enable_commenter=False)
     RedisInstrumentor().instrument()
     HTTPXClientInstrumentor().instrument()
