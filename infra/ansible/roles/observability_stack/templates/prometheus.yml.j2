@@ -95,15 +95,25 @@ scrape_configs:
       - targets: ['alertmanager:9093']
         labels: { service: alertmanager, instance: vps_prod }
 
-  # --- Edge Caddy ---
-  # TODO (Phase 1b): wire edge Caddy /metrics scrape. Edge Caddy admin is
-  # currently bound to 127.0.0.1:2019 via host networking, which is not
-  # reachable from a bridged Prometheus container. Phase 1b will:
-  #   1. Reconfigure edge Caddyfile to bind admin on the docker0 interface,
-  #   2. Add a PREROUTING DROP rule for ! -i lo on dport 2019 to keep it
-  #      private (matching the existing pattern for ports 80XX).
-  # Until then, the upstream-health metrics surfaced by edge Caddy /metrics
-  # are not in our TSDB — Caddy logs in Loki (Phase 2) cover the gap.
+  # --- Edge Caddy /metrics (Phase 1c) ---
+  # Caddy exposes its full metrics set via a dedicated `:8089 { metrics }`
+  # vhost (separate from the admin endpoint). Public access blocked by an
+  # iptables INPUT DROP rule on the default-route NIC; Prometheus on the
+  # observability bridge reaches it through host.docker.internal.
+  - job_name: caddy_edge
+    static_configs:
+      - targets: ['host.docker.internal:8089']
+        labels:
+          service: caddy
+          instance: edge
+    metric_relabel_configs:
+      # Drop reverse_proxy_upstreams metrics for adjacent unrelated stacks
+      # so /opt/edge's `pokemon-ocr-caddy` / `claw.zatoun.fr` upstreams
+      # never leak in. Keep ours: 8081 (bagtrip prod), 8082 (preprod),
+      # 8085 (netdata), 8086 (crowdsec lapi), and metrics with no upstream.
+      - source_labels: [upstream]
+        regex: '127\.0\.0\.1:(8081|8082|8085|8086)|^$'
+        action: keep
 
   # --- Synthetic probes (HTTP) ---
   - job_name: blackbox_http
