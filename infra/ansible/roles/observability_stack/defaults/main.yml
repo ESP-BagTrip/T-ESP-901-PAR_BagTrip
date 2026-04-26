@@ -17,6 +17,7 @@ observability_versions:
   promtail: 3.3.2
   tempo: 2.7.1
   alertmanager: v0.27.0
+  falco: 0.39.0
 
 # --- Loopback ports (host-side; never exposed publicly until Phase 1c) ---
 observability_prometheus_host_port: 9090

@@ -208,6 +208,43 @@ services:
       - "127.0.0.1:9093:9093"
     networks: [default]
 
+  falco:
+    image: falcosecurity/falco:{{ observability_versions.falco }}
+    container_name: observability-falco
+    # Tagged opt-in via the `security` compose profile — Falco's modern eBPF
+    # probe still fails to initialise on this VPS's Linux 6.14 kernel
+    # (known intermittent compat issue); the rules ship anyway so a future
+    # iteration just flips the profile on with `--profile security`.
+    profiles: [security]
+    restart: unless-stopped
+    privileged: true
+    pid: host
+    # Mount our custom config + local rules as individual files inside the
+    # bundled /etc/falco directory so the default falco_rules.yaml (which
+    # defines the standard macros: `spawned_process`, `shell_procs`, etc.)
+    # stays available from the image.
+    volumes:
+      - ./falco/falco.yaml:/etc/falco/falco.yaml:ro
+      - ./falco/falco_rules.local.yaml:/etc/falco/falco_rules.local.yaml:ro
+      - /var/run/docker.sock:/host/var/run/docker.sock:ro
+      - /proc:/host/proc:ro
+      - /etc:/host/etc:ro
+      - /usr:/host/usr:ro
+      - /dev:/host/dev
+      - /var/run:/host/var/run:ro
+      # Required by the modern eBPF probe on Linux 5.8+ (we run 6.14):
+      # falco needs to attach BPF programs and BTF info from /sys.
+      - /sys/kernel/debug:/sys/kernel/debug
+      - /sys/fs/bpf:/sys/fs/bpf
+    environment:
+      HOST_ROOT: /host
+      FALCO_BPF_PROBE: ""
+    command:
+      - /usr/bin/falco
+      - -c
+      - /etc/falco/falco.yaml
+    networks: [default]
+
 volumes:
   prometheus_data:
   grafana_data:
