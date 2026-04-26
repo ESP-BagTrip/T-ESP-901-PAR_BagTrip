@@ -1,6 +1,7 @@
 import 'package:bagtrip/auth/bloc/auth_bloc.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/cache/connectivity_service.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/booking_response.dart';
 import 'package:bagtrip/models/recent_booking.dart';
@@ -12,10 +13,15 @@ part 'booking_event.dart';
 part 'booking_state.dart';
 
 class BookingBloc extends Bloc<BookingEvent, BookingState> {
-  BookingBloc({BookingRepository? bookingRepository, AuthBloc? authBloc})
-    : _bookingRepository = bookingRepository ?? getIt<BookingRepository>(),
-      _authBloc = authBloc,
-      super(BookingInitial()) {
+  BookingBloc({
+    BookingRepository? bookingRepository,
+    AuthBloc? authBloc,
+    ConnectivityService? connectivityService,
+  }) : _bookingRepository = bookingRepository ?? getIt<BookingRepository>(),
+       _authBloc = authBloc,
+       _connectivityService =
+           connectivityService ?? getIt<ConnectivityService>(),
+       super(BookingInitial()) {
     on<LoadBookings>(_onLoadBookings);
     on<CreateBookingIntent>(_onCreateBookingIntent);
     on<AuthorizePayment>(_onAuthorizePayment);
@@ -30,6 +36,15 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
   // server-side plan change (e.g. unlocked feature) lands in `User.plan`
   // without waiting for the next login.
   final AuthBloc? _authBloc;
+  // Synchronous online/offline check — used to short-circuit payment
+  // events before they hit Dio with a confusing connection_error.
+  final ConnectivityService _connectivityService;
+
+  /// Build a [PaymentFailed] state when offline. We keep the sentinel as a
+  /// [NetworkError] (rather than a new error class) so existing UI that
+  /// already maps NetworkError → "no connection" copy keeps working.
+  PaymentFailed _offlineFailure() =>
+      PaymentFailed(error: const NetworkError('connection_required'));
 
   Future<void> _onLoadBookings(
     LoadBookings event,
@@ -54,6 +69,10 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
     CreateBookingIntent event,
     Emitter<BookingState> emit,
   ) async {
+    if (!_connectivityService.isOnline) {
+      emit(_offlineFailure());
+      return;
+    }
     emit(PaymentAuthorizing());
     final result = await _bookingRepository.createBookingIntent(
       tripId: event.tripId,
@@ -72,6 +91,10 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
     AuthorizePayment event,
     Emitter<BookingState> emit,
   ) async {
+    if (!_connectivityService.isOnline) {
+      emit(_offlineFailure());
+      return;
+    }
     emit(PaymentAuthorizing());
     final result = await _bookingRepository.authorizePayment(event.intentId);
     if (isClosed) return;
@@ -126,6 +149,10 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
     CapturePayment event,
     Emitter<BookingState> emit,
   ) async {
+    if (!_connectivityService.isOnline) {
+      emit(_offlineFailure());
+      return;
+    }
     final result = await _bookingRepository.capturePayment(event.intentId);
     if (isClosed) return;
     switch (result) {
@@ -164,6 +191,10 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
     RefundPayment event,
     Emitter<BookingState> emit,
   ) async {
+    if (!_connectivityService.isOnline) {
+      emit(_offlineFailure());
+      return;
+    }
     emit(RefundInProgress(intentId: event.intentId));
     final result = await _bookingRepository.refundPayment(
       event.intentId,

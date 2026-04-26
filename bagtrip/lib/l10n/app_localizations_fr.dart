@@ -3412,6 +3412,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Remboursement traité. Les fonds arriveront sous 5 à 10 jours.';
 
   @override
+  String get refundUnavailableMessage =>
+      'Seules les réservations capturées peuvent être remboursées.';
+
+  @override
   String get paymentSuccessConfirmed => 'Paiement confirmé';
 
   @override

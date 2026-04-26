@@ -3391,6 +3391,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Refund processed. Funds will arrive in 5–10 days.';
 
   @override
+  String get refundUnavailableMessage =>
+      'Only captured bookings can be refunded.';
+
+  @override
   String get paymentSuccessConfirmed => 'Payment confirmed';
 
   @override

@@ -10,7 +10,16 @@ import 'package:intl/intl.dart';
 class RecentBookingsSection extends StatelessWidget {
   final List<RecentBooking> recentBookings;
 
-  const RecentBookingsSection({super.key, required this.recentBookings});
+  /// Long-press callback per row. Used by the profile page to surface the
+  /// refund sheet on captured bookings — kept as a callback (rather than
+  /// owned here) so the section stays presentational.
+  final void Function(RecentBooking booking)? onLongPressBooking;
+
+  const RecentBookingsSection({
+    super.key,
+    required this.recentBookings,
+    this.onLongPressBooking,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +60,13 @@ class RecentBookingsSection extends StatelessWidget {
             ...recentBookings.map(
               (booking) => Padding(
                 padding: const EdgeInsets.only(top: AppSpacing.space16),
-                child: _buildBookingRow(booking, context),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onLongPress: onLongPressBooking == null
+                      ? null
+                      : () => onLongPressBooking!(booking),
+                  child: _buildBookingRow(booking, context),
+                ),
               ),
             ),
         ],

@@ -1677,6 +1677,7 @@
   "refundReasonFraudulent": "Suspicion de fraude",
   "refundConfirm": "Demander le remboursement",
   "refundSuccessMessage": "Remboursement traité. Les fonds arriveront sous 5 à 10 jours.",
+  "refundUnavailableMessage": "Seules les réservations capturées peuvent être remboursées.",
 
   "paymentSuccessConfirmed": "Paiement confirmé",
   "paymentSuccessSubtitle": "Ta réservation est en cours de traitement.",
