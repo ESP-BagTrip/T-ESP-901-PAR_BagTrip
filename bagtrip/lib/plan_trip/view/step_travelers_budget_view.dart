@@ -9,7 +9,6 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
 import 'package:bagtrip/plan_trip/helpers/budget_estimation.dart';
-import 'package:bagtrip/plan_trip/helpers/traveler_breakdown_format.dart';
 import 'package:bagtrip/plan_trip/models/budget_preset.dart';
 import 'package:bagtrip/plan_trip/widgets/traveler_breakdown_card.dart';
 import 'package:flutter/material.dart';
@@ -76,13 +75,6 @@ class _StepTravelersBudgetViewState extends State<StepTravelersBudgetView> {
         final selectedBudgetIndex = state.budgetPreset != null
             ? BudgetPreset.values.indexOf(state.budgetPreset!)
             : null;
-
-        final detailChip = formatTravelerBreakdownDetail(
-          l10n,
-          nbAdults: state.nbAdults,
-          nbChildren: state.nbChildren,
-          nbBabies: state.nbBabies,
-        );
 
         final focused = _originFocus.hasFocus;
 
@@ -334,34 +326,7 @@ class _StepTravelersBudgetViewState extends State<StepTravelersBudgetView> {
               ),
             ),
 
-            if (detailChip.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.space4),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.space12,
-                    vertical: AppSpacing.space8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: ColorName.secondary.withValues(alpha: 0.05),
-                    borderRadius: AppRadius.pill,
-                    border: Border.all(color: ColorName.secondary),
-                  ),
-                  child: Text(
-                    detailChip,
-                    style: const TextStyle(
-                      fontFamily: FontFamily.b612,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: ColorName.primaryTrueDark,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-
-            const SizedBox(height: AppSpacing.space16),
+            const SizedBox(height: AppSpacing.space32),
 
             Text(
               l10n.budgetLabel,
@@ -402,7 +367,7 @@ class _StepTravelersBudgetViewState extends State<StepTravelersBudgetView> {
               ),
             ],
 
-            const SizedBox(height: AppSpacing.space16),
+            const SizedBox(height: AppSpacing.space32),
 
             ProgressionCtaButton(
               text: l10n.continueButton,
@@ -415,28 +380,7 @@ class _StepTravelersBudgetViewState extends State<StepTravelersBudgetView> {
               },
             ),
 
-            const SizedBox(height: AppSpacing.space16),
-
-            Center(
-              child: TextButton(
-                onPressed: () {
-                  context.read<PlanTripBloc>().add(
-                    const PlanTripEvent.setBudgetPreset(null),
-                  );
-                  context.read<PlanTripBloc>().add(
-                    const PlanTripEvent.nextStep(),
-                  );
-                },
-                child: Text(
-                  l10n.budgetSkipLabel,
-                  style: const TextStyle(
-                    fontFamily: FontFamily.dMSans,
-                    fontSize: 14,
-                    color: ColorName.primaryDark,
-                  ),
-                ),
-              ),
-            ),
+            const SizedBox(height: AppSpacing.space32),
           ],
         );
       },
