@@ -255,34 +255,6 @@ class _StepDestinationViewState extends State<StepDestinationView> {
                     },
             ),
 
-            if (state.isLoadingAiSuggestions) ...[
-              const SizedBox(height: AppSpacing.space24),
-              Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: ColorName.secondary,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.space8),
-                    Text(
-                      l10n.destinationAiLoading,
-                      style: const TextStyle(
-                        fontFamily: FontFamily.b612,
-                        fontSize: 13,
-                        color: PersonalizationColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
             const SizedBox(height: AppSpacing.space24),
             Text(
               l10n.destinationPopularSectionLabel,
