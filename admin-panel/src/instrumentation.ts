@@ -1,19 +1,26 @@
 /**
- * Next.js instrumentation hook — registered automatically on server startup
- * (App Router 15+). We use it to wire up Prometheus default process metrics
- * (CPU, memory, GC, event loop lag, file descriptors) so they are available
- * on /api/metrics for Prometheus to scrape.
+ * Next.js instrumentation hook — fires once at server startup. We register
+ * Prometheus default process metrics (CPU, memory, GC, event loop lag, FDs)
+ * so they are available on /api/metrics for Prometheus to scrape.
  *
- * Per-route RED metrics will land in Phase 3 via OpenTelemetry, which Next.js
- * supports natively through this same hook.
+ * Per-route RED metrics land in Phase 3 via OpenTelemetry, through this same
+ * hook.
  */
 export async function register(): Promise<void> {
-  if (process.env.NEXT_RUNTIME === 'nodejs') {
-    const { collectDefaultMetrics, register } = await import('prom-client')
-    // Idempotent: re-registering the same metric throws, so we guard against
-    // module reloads (HMR in dev).
-    if (register.getSingleMetric('process_cpu_user_seconds_total') === undefined) {
-      collectDefaultMetrics({ register })
-    }
+  // The hook fires both for the Node.js runtime and the Edge runtime; the
+  // prom-client library only works in Node.js. We accept anything that's not
+  // explicitly 'edge' so that builds where NEXT_RUNTIME isn't surfaced still
+  // wire up the metrics.
+  if (process.env.NEXT_RUNTIME === 'edge') {
+    return
+  }
+
+  const promClient = await import('prom-client')
+  const registry = promClient.register
+
+  // Idempotent: re-registering the same metric throws, so we guard against
+  // module reloads (HMR in dev, double-invocation in standalone bundles).
+  if (registry.getSingleMetric('process_cpu_user_seconds_total') === undefined) {
+    promClient.collectDefaultMetrics({ register: registry })
   }
 }
