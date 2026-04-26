@@ -25,6 +25,7 @@ dependencies = [
   "tenacity>=8.2.0",
   "uvicorn[standard]>=0.38.0",
   "redis[hiredis]>=5.0.0",
+  "prometheus-fastapi-instrumentator>=7.0.0",
 ]
 
 [dependency-groups]

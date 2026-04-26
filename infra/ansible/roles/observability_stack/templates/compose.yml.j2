@@ -27,7 +27,13 @@ services:
       - prometheus_data:/prometheus
     ports:
       - "127.0.0.1:{{ observability_prometheus_host_port }}:9090"
-    networks: [default]
+    # Multi-homed: scrapes app /metrics directly via Docker DNS on the
+    # bagtrip stack networks (Phase 1b). Adjacent unrelated stacks are
+    # NOT joined.
+    networks:
+      - default
+      - bagtrip_prod
+      - bagtrip_preprod
 
   grafana:
     image: grafana/grafana:{{ observability_versions.grafana }}

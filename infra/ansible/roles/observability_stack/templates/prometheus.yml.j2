@@ -53,6 +53,27 @@ scrape_configs:
       - targets: ['redis_exporter_preprod:9121']
         labels: { service: redis, env: preprod, stack: bagtrip }
 
+  # --- BagTrip FastAPI (RED metrics from prometheus-fastapi-instrumentator) ---
+  # Reachable via the bagtrip_prod / bagtrip_preprod docker networks the
+  # Prometheus container is multi-homed on. Public access to /metrics is
+  # blocked at the inner Caddyfile.
+  - job_name: bagtrip-api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['bagtrip-api-1:3000']
+        labels: { service: api, env: prod, stack: bagtrip }
+      - targets: ['bagtrip-preprod-api-1:3000']
+        labels: { service: api, env: preprod, stack: bagtrip }
+
+  # --- BagTrip Next.js admin (RED metrics from prom-client) ---
+  - job_name: bagtrip-admin
+    metrics_path: /api/metrics
+    static_configs:
+      - targets: ['bagtrip-admin-1:8000']
+        labels: { service: admin, env: prod, stack: bagtrip }
+      - targets: ['bagtrip-preprod-admin-1:8000']
+        labels: { service: admin, env: preprod, stack: bagtrip }
+
   # --- Edge Caddy ---
   # TODO (Phase 1b): wire edge Caddy /metrics scrape. Edge Caddy admin is
   # currently bound to 127.0.0.1:2019 via host networking, which is not

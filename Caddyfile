@@ -8,9 +8,17 @@
 # header, so we route by hostname to admin/api regardless of env.
 
 http://bagtrip.fr, http://dev.bagtrip.fr {
+	# Block public access to instrumentation endpoints. Prometheus
+	# scrapes the container directly via the internal Docker network.
+	@metrics path /metrics /metrics/* /api/metrics /api/metrics/*
+	respond @metrics 404
+
 	reverse_proxy admin:8000
 }
 
 http://api.bagtrip.fr, http://api.dev.bagtrip.fr {
+	@metrics path /metrics /metrics/*
+	respond @metrics 404
+
 	reverse_proxy api:3000
 }
