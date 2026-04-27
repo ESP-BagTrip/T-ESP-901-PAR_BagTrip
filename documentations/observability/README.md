@@ -6,6 +6,7 @@ Source-of-truth documents for what BagTrip measures, alerts on, and commits to.
 
 | Document | Purpose |
 |---|---|
+| [`individual-contribution.md`](./individual-contribution.md) | One-page fiche covering the observability + security layer — origin, what got built, where to dig deeper. |
 | [`slo.md`](./slo.md) | Service-level objectives, indicators, and error budgets. Drives alert thresholds in `infra/alerts/` and the panels in `infra/dashboards/`. |
 
 ## How this folder fits in
