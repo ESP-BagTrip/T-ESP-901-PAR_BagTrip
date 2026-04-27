@@ -43,7 +43,7 @@ fashionable, and we do not migrate to Kubernetes.
 - The "destroy & redeploy" demo (`make -C infra redeploy-demo`) is a
   6-line bash script: `docker compose down -v` then
   `ansible-playbook`. 50 seconds end to end.
-- Idempotence is verified by re-running the playbook (Phase 8 lands
+- Idempotence is verified by re-running the playbook (the role lands
   `ok=68 changed=0` on a converged host) — same pattern jurys have
   seen in any Ansible course.
 

@@ -28,7 +28,7 @@ groups:
           summary: "Postgres {{ '{{ $labels.env }}' }} > 80% of max_connections used"
           runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/postgres-down.md"
 
-  # ---- Restic backup freshness (Phase 6) ----
+  # ---- Restic backup freshness ----
   - name: bagtrip_backups
     interval: 1m
     rules:

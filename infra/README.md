@@ -43,11 +43,7 @@ ansible-playbook -i inventory/hosts.yml playbooks/site.yml           # apply
 
 The playbook is idempotent: re-running on a converged host should report `0 changed`.
 
-## Phase status
-
-This repo is built phase-by-phase as described in the M5 observability plan. See `documentations/adr/0001-observability-stack-strategy.md` for the full plan and rationale.
-
-## Carry-overs resolved in Phase 1c
+## Edge Caddy notes
 
 - **Edge Caddy `/metrics` scrape**: a dedicated `:8089 { metrics }` vhost
   exposes Caddy's full metric set without touching the admin endpoint
@@ -60,26 +56,20 @@ This repo is built phase-by-phase as described in the M5 observability plan. See
   Caddyfile content changes propagate without `--force-recreate`. The
   Reload edge Caddy handler now does a soft `caddy reload`.
 
-## Phase status
+## Deliverable status
 
-| Phase | Scope | Status |
+| Layer | Scope | Status |
 |---|---|---|
-| 0 | Cadrage, Ansible skeleton, baseline assertion, ADR-001, threat model, SLO | shipped |
-| 1a | Prometheus + Grafana + node_exporter + cAdvisor + postgres + redis + blackbox + 4 dashboards + public exposure (`grafana.bagtrip.fr` behind basic_auth) | shipped |
-| 1b | App instrumentation (FastAPI / Next.js → 2 RED dashboards) | shipped |
-| 1c | Edge Caddy /metrics scrape via dedicated vhost + /opt/edge dir mount | shipped |
-| 2 | Loki + Promtail (centralised logs) | shipped |
-| 3 | OpenTelemetry → Tempo (distributed tracing) | shipped |
-| 4 | Alertmanager + 19 alert rules + 12 runbooks | shipped |
-| 5a | Trivy supply-chain scan in CI | shipped |
-| 5b | Falco runtime rules (config shipped, runtime deferred — see below) | shipped (config) |
-| 6 | Restic backups + automated weekly restore drill | shipped |
-| 7 | Business KPIs + Synthetic / DR dashboards | shipped |
-| 2 | Loki + Promtail | pending |
-| 3 | OpenTelemetry → Tempo | pending |
-| 4 | Alertmanager + runbooks | pending |
-| 5 | Falco + CrowdSec rules + Trivy CI | pending |
-| 6 | Restic backups + restore drill | pending |
-| 7 | Blackbox + business metrics | pending |
-| 8 | IaC polish + reproducibility demo | pending |
-| 9 | Documentation finalisée + soutenance | pending |
+| Foundations | Ansible skeleton, baseline assertion, umbrella ADR, threat model, SLO | shipped |
+| Metrics | Prometheus + Grafana + node_exporter + cAdvisor + postgres + redis + blackbox + 4 dashboards + public Grafana on `grafana.bagtrip.fr` behind basic_auth | shipped |
+| App instrumentation | FastAPI / Next.js → 2 RED dashboards | shipped |
+| Edge metrics | Edge Caddy /metrics scrape via dedicated vhost + /opt/edge dir mount | shipped |
+| Logs | Loki + Promtail (centralised logs) | shipped |
+| Traces | OpenTelemetry → Tempo (distributed tracing) | shipped |
+| Alerting | Alertmanager + 19 alert rules + 12 runbooks | shipped |
+| Supply chain | Trivy scan in CI | shipped |
+| Runtime detection | Falco rules (config shipped, runtime deferred — see below) | shipped (config) |
+| DR | Restic backups + automated weekly restore drill | shipped |
+| Business KPIs | KPI + Synthetic / DR dashboards | shipped |
+| IaC polish | Idempotence, Makefile, destroy & redeploy demo | shipped |
+| Docs | ADRs, threat model after-state, C4 diagrams, RGPD data flow | shipped |

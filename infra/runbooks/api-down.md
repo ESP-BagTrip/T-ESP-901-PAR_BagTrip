@@ -19,8 +19,9 @@ curl -s http://127.0.0.1:9090/api/v1/query?query=up{job=\"bagtrip-api\"}
    though the api is up. Check that the obs stack is multi-homed on
    `bagtrip_default` / `bagtrip-preprod_default` (cf. compose.yml.j2).
 4. **/metrics endpoint regression** — see `documentations/observability/`
-   gotchas (Phase 1b had two of these). Verify `bagtrip-api-1:3000/metrics`
-   returns Prometheus text from inside the docker network.
+   gotchas (the app instrumentation work hit two of these). Verify
+   `bagtrip-api-1:3000/metrics` returns Prometheus text from inside the
+   docker network.
 
 ## Recovery
 

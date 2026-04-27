@@ -1,5 +1,5 @@
 # {{ ansible_managed }}
-# BagTrip Prometheus configuration — Phase 1a.
+# BagTrip Prometheus configuration.
 
 global:
   scrape_interval: {{ observability_scrape_interval }}
@@ -8,7 +8,7 @@ global:
     env: prod
     host: vps_prod
 
-# --- Alertmanager wiring (Phase 4) ---
+# --- Alertmanager wiring ---
 alerting:
   alertmanagers:
     - static_configs:
@@ -83,19 +83,19 @@ scrape_configs:
       - targets: ['bagtrip-preprod-admin-1:8000']
         labels: { service: admin, env: preprod, stack: bagtrip }
 
-  # --- Tempo self-metrics (Phase 3) ---
+  # --- Tempo self-metrics ---
   - job_name: tempo
     static_configs:
       - targets: ['tempo:3200']
         labels: { service: tempo, instance: vps_prod }
 
-  # --- Alertmanager self-scrape (Phase 4) ---
+  # --- Alertmanager self-scrape ---
   - job_name: alertmanager
     static_configs:
       - targets: ['alertmanager:9093']
         labels: { service: alertmanager, instance: vps_prod }
 
-  # --- Edge Caddy /metrics (Phase 1c) ---
+  # --- Edge Caddy /metrics ---
   # Caddy exposes its full metrics set via a dedicated `:8089 { metrics }`
   # vhost (separate from the admin endpoint). Public access blocked by an
   # iptables INPUT DROP rule on the default-route NIC; Prometheus on the

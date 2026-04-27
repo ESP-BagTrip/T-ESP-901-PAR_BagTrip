@@ -25,23 +25,23 @@ That incident is what motivated the rest of this folder. The infra
 work below was sequenced explicitly to close each of the seven gaps
 the post-mortem identified.
 
-## What got built (one-line per phase)
+## What got built
 
-| # | Phase | Reference |
+| Layer | Deliverable | Reference |
 |---|---|---|
-| 0 | Cadrage, Ansible scaffold, baseline assertions, ADR-001, STRIDE before, SLO baseline | [`adr/0001`](../adr/0001-observability-stack-strategy.md) · [`security/threat-model.md`](../security/threat-model.md) · [`observability/slo.md`](./slo.md) |
-| 1a | Prometheus + Grafana + 5 exporters + 4 baseline dashboards + public Grafana on `grafana.bagtrip.fr` | [`adr/0002`](../adr/0002-three-pillars-grafana.md) |
-| 1b | FastAPI + Next.js instrumentation (`prometheus-fastapi-instrumentator`, `prom-client`) + 2 RED dashboards | `api/src/main.py`, `admin-panel/src/instrumentation.ts` |
-| 1c | Edge Caddy `/metrics` scrape via dedicated vhost, `/opt/edge` directory mount | `infra/ansible/roles/observability_stack/` |
-| 2 | Loki + Promtail (allowlist-filtered to BagTrip-managed containers) + Logs dashboard | — |
-| 3 | OpenTelemetry → Tempo distributed tracing, with `trace_id` correlation back to Loki | — |
-| 4 | Alertmanager + 19 alert rules + 12 runbooks + Discord webhook + multi-window SLO burn-rate alerts | [`infra/runbooks/`](../../infra/runbooks/) |
-| 5a | Trivy supply-chain scan in CI (already paid off — 5 HIGH CVEs patched) | [`adr/0003`](../adr/0003-defense-in-depth-incident-driven.md) |
-| 5b | Falco runtime rules (config shipped, runtime deferred — Linux 6.14 kernel-probe issue) | — |
-| 6 | Restic encrypted backups + **automated weekly restore drill** + 3 alerts on backup health | [`adr/0005`](../adr/0005-restic-local-with-b2-path.md) |
-| 7 | Business KPI dashboard + Synthetic / DR dashboard | — |
-| 8 | IaC polish (idempotence, Makefile, destroy & redeploy demo) | [`adr/0004`](../adr/0004-iac-with-ansible.md) |
-| 9 | Documentation pass: 5 ADRs, threat model after-state, C4 diagrams, RGPD data flow | [`adr/`](../adr/) · [`architecture/`](../architecture/) |
+| Foundations | Ansible scaffold, baseline assertions, umbrella ADR, STRIDE before, SLO baseline | [`adr/0001`](../adr/0001-observability-stack-strategy.md) · [`security/threat-model.md`](../security/threat-model.md) · [`observability/slo.md`](./slo.md) |
+| Metrics | Prometheus + Grafana + 5 exporters + 4 baseline dashboards + public Grafana on `grafana.bagtrip.fr` | [`adr/0002`](../adr/0002-three-pillars-grafana.md) |
+| App instrumentation | FastAPI + Next.js (`prometheus-fastapi-instrumentator`, `prom-client`) + 2 RED dashboards | `api/src/main.py`, `admin-panel/src/instrumentation.ts` |
+| Edge metrics | Caddy `/metrics` scrape via dedicated vhost, `/opt/edge` directory mount | `infra/ansible/roles/observability_stack/` |
+| Logs | Loki + Promtail (allowlist-filtered to BagTrip-managed containers) + Logs dashboard | — |
+| Traces | OpenTelemetry → Tempo distributed tracing, with `trace_id` correlation back to Loki | — |
+| Alerting | Alertmanager + 19 alert rules + 12 runbooks + Discord webhook + multi-window SLO burn-rate alerts | [`infra/runbooks/`](../../infra/runbooks/) |
+| Supply chain | Trivy scan in CI (already paid off — 5 HIGH CVEs patched) | [`adr/0003`](../adr/0003-defense-in-depth-incident-driven.md) |
+| Runtime detection | Falco rules (config shipped, runtime deferred — Linux 6.14 kernel-probe issue) | — |
+| DR | Restic encrypted backups + **automated weekly restore drill** + 3 alerts on backup health | [`adr/0005`](../adr/0005-restic-local-with-b2-path.md) |
+| Business KPIs | KPI dashboard + Synthetic / DR dashboard | — |
+| IaC polish | Idempotence, Makefile, destroy & redeploy demo | [`adr/0004`](../adr/0004-iac-with-ansible.md) |
+| Docs | 5 ADRs, threat model after-state, C4 diagrams, RGPD data flow | [`adr/`](../adr/) · [`architecture/`](../architecture/) |
 
 10 dashboards in Grafana, 19 alert rules, 12 runbooks, 5 ADRs, one
 post-mortem, one threat model with before / after columns, one cost

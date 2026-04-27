@@ -1,6 +1,6 @@
 # BagTrip VPS — inventory snapshot
 
-> Snapshot taken 2026-04-26, before Phase 1 of the M5 observability plan.
+> Snapshot taken 2026-04-26, before the observability stack landed.
 > This document captures the **as-is state** of the BagTrip-managed surface on the production VPS, so subsequent Ansible roles encode reality rather than guesses.
 
 ## 1. Host
@@ -137,17 +137,17 @@ Unit files BagTrip operations depends on:
 
 ## 7. Known constraints
 
-- **Disk**: root at ~40 % on a 193 GiB volume — comfortable headroom for Phase 1 (Loki / Tempo retention).
-- **No swap**: memory is hard-capped at 31 GiB. Phase 1+ stack additions must respect this budget, but the headroom is now substantial.
-- **Docker socket**: not exposed to any container. Future phases must keep this property (asserted in the `common` Ansible role).
+- **Disk**: root at ~40 % on a 193 GiB volume — comfortable headroom for the observability stack (Loki / Tempo retention).
+- **No swap**: memory is hard-capped at 31 GiB. Stack additions must respect this budget, but the headroom is now substantial.
+- **Docker socket**: not exposed to any container. Future work must keep this property (asserted in the `common` Ansible role).
 - **`ubuntu` not in `docker` group**: every Docker call goes through sudo. Ansible playbooks `become: true` to handle this transparently.
 
-## 8. What will change in Phase 1+
+## 8. What was added on top of this baseline
 
-The following will be added on top of this baseline:
+The following landed on top of this baseline:
 
 - A new `monitoring/` compose stack containing Prometheus, Grafana, Alertmanager, Loki, Promtail, Tempo, and the dedicated exporters. Deployed by Ansible.
 - Additional public hostname `grafana.bagtrip.fr` (or `obs.bagtrip.fr`) routed by edge Caddy with basic auth.
 - New `infra/dashboards/` and `infra/alerts/` shipped to Grafana / Prometheus by Ansible.
 
-This document will be re-snapshotted at the end of Phase 8, to capture the post-rollout reality.
+This document will be re-snapshotted later to capture the post-rollout reality.

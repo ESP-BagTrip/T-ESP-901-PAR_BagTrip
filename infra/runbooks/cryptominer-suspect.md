@@ -81,5 +81,6 @@ sudo docker stop <container>
 Without it, the loudest possible signal a real attacker can produce takes
 hours to surface: Netdata's default sustained-CPU alert is a 10-minute
 average, and the 26/04 attacker ran 7h45min before being caught. Falco
-(Phase 5) will add behavioural detection on top of this so quieter
-exploits (e.g. data exfil at low CPU) can also be caught.
+will add behavioural detection on top of this once its runtime is
+unblocked, so quieter exploits (e.g. data exfil at low CPU) can also be
+caught.

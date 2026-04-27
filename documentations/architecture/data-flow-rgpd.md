@@ -1,6 +1,6 @@
 # Data flow + RGPD posture
 
-> Author: Yanis Lounadi · 2026-04-27 · part of the Phase 9 docs.
+> Author: Yanis Lounadi · 2026-04-27 · part of the architecture docs.
 
 ## What personal data BagTrip handles
 
@@ -42,7 +42,7 @@ graph LR
     api -->|OTLP gRPC| tempo[Tempo 14 d<br/>same VPS]
 
     pg -->|pg_dump piped| restic[Restic encrypted<br/>/var/backups/bagtrip-restic<br/>local on VPS]
-    restic -.->|"optional B2 toggle<br/>(off in M5 phase)"| b2[(Backblaze B2<br/>EU bucket)]:::dim
+    restic -.->|"optional B2 toggle<br/>(off today)"| b2[(Backblaze B2<br/>EU bucket)]:::dim
 
     classDef dim fill:#fff,stroke:#999,color:#666,stroke-dasharray: 4 4;
 ```
@@ -103,8 +103,8 @@ in the M5 scope.
   |= "/auth/login" or "/auth/refresh"`).
 - **Edge requests**: visible in Loki (`{job=caddy_edge_access}` with
   `client_ip`, `host`, `uri`, `status` labels).
-- **Container syscalls**: not yet captured (Falco runtime deferred,
-  Phase 5b).
+- **Container syscalls**: not yet captured (Falco runtime deferred —
+  Linux 6.14 eBPF probe issue).
 - **Sudo invocations on host**: visible in `/var/log/auth.log` →
   journald → Promtail → Loki (when SD picks up the host journal —
   currently scrapes Docker only; auditd rule + journal scrape are

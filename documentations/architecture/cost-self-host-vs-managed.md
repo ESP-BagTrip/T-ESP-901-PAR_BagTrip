@@ -1,6 +1,6 @@
 # Cost comparison — OVH self-hosted vs. AWS / GCP managed equivalent
 
-> Author: Yanis Lounadi · 2026-04-27 · Phase 9 (M5 deliverable)
+> Author: Yanis Lounadi · 2026-04-27 · architecture documentation
 
 ## Why this document
 
@@ -56,7 +56,7 @@ Annualised:
 The gap shrinks when you include "operator hours" — AWS / GCP take far
 less time per month to maintain. At my consulting rate (~ 60 €/h), AWS
 breaks even at ~4 h/month of saved operations time. We spend much less
-than that on the OVH stack post-Phase 8 (idempotent role, automated DR
+than that on the OVH stack today (idempotent role, automated DR
 drill, alerting wired). Self-host wins.
 
 ## Where the savings come from
@@ -64,7 +64,7 @@ drill, alerting wired). Self-host wins.
 1. **No managed-DB premium** — RDS / Cloud SQL each charge ~ 70 €/mo for
    a single small Postgres. We run two (prod + preprod) on the same
    host for free. The trade-off is no managed multi-AZ failover, which
-   we don't need at the M5 phase.
+   we don't need at this stage.
 
 2. **No log-ingest tax** — CloudWatch / Cloud Logging charge per GiB
    ingested AND stored, with 30-day defaults. Our Loki retention is
@@ -84,7 +84,7 @@ drill, alerting wired). Self-host wins.
 | Trade-off | OVH cost | Mitigation |
 |---|---|---|
 | Single host = single point of failure | One VPS reboot = full outage | Cloudflare cache softens during planned downtime; off-site backups in B2 are the recovery path. The `make -C infra redeploy-demo` run takes 50 s once a clean host is provisioned. |
-| Manual VPS provisioning | First deploy on a fresh OVH host requires `apt install` + Docker + restic + Ansible bootstrap | Phase 8 IaC handles everything past that bootstrap; bootstrap itself is < 10 minutes manual work |
+| Manual VPS provisioning | First deploy on a fresh OVH host requires `apt install` + Docker + restic + Ansible bootstrap | The Ansible role handles everything past that bootstrap; bootstrap itself is < 10 minutes manual work |
 | No multi-AZ DB | A disk failure on the VPS loses the live DB | Daily restic backup + weekly drill verify recovery — but the RPO is 24 h. Multi-AZ would cost +65 € / mo on AWS for a 5-min RPO. |
 | Compliance posture | No SOC2 / ISO certifications come with OVH SaaS-style | OVH Bare Metal/VPS is GDPR-compliant by default (EU host). For a regulated industry we'd revisit. |
 | Self-managed security patching | We own kernel updates (auto via `unattended-upgrades`) | The 26/04 incident hit because of an *application*-layer CVE that managed services would not have patched either; the cost / value trade-off here is more even than it looks. |
@@ -92,9 +92,9 @@ drill, alerting wired). Self-host wins.
 ## Conclusion
 
 For BagTrip's pre-launch scale, self-hosting on OVH and re-investing the
-~ 250 €/mo delta into product / dev hours is the right call. Phase 8's
-IaC reproducibility (50 s rebuild from clean host) and Phase 6's tested
-DR keep the operational risk inside an acceptable envelope.
+~ 250 €/mo delta into product / dev hours is the right call. The IaC
+reproducibility (50 s rebuild from clean host) and the tested DR drill
+keep the operational risk inside an acceptable envelope.
 
 The **break-even point** for moving to AWS / GCP is roughly:
 - Multi-region failover becomes a hard requirement (regulatory,

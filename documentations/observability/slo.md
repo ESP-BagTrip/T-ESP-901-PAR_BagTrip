@@ -1,7 +1,7 @@
 # Service-Level Objectives — BagTrip
 
-> Status: **draft baseline**, established 2026-04-26 as part of the M5 observability plan (Phase 0).
-> Targets will be re-tuned once we have 30 days of Prometheus history (Phase 4 review).
+> Status: **draft baseline**, established 2026-04-26 as part of the observability work.
+> Targets will be re-tuned once we have 30 days of Prometheus history.
 
 ## Purpose
 
@@ -13,7 +13,7 @@ Each SLO below states:
 - **SLI** — what we measure (a ratio over time, computed from Prometheus / Loki / blackbox probes)
 - **SLO** — the target (e.g. 99.5 % over 30 days)
 - **Error budget** — the inverse: how much "bad" we tolerate before paging
-- **Burn-rate alerts** — the multi-window alerting we'll wire in Phase 4
+- **Burn-rate alerts** — the multi-window alerting we wire to those budgets
 
 ## 1. BagTrip API (`api.bagtrip.fr`)
 
@@ -27,7 +27,7 @@ Each SLO below states:
 - **SLI**: `1 - (sum(rate(http_requests_total{job="bagtrip-api", code=~"5..", path!="/health"}[5m])) / sum(rate(http_requests_total{job="bagtrip-api", path!="/health"}[5m])))`
 - **SLO**: ≥ 99.5 % over a rolling 30-day window
 - **Error budget**: 0.5 % → ~3.6 hours of "all 5xx, all the time" per 30 days, more realistically a few short outages
-- **Burn-rate alerts** (Phase 4):
+- **Burn-rate alerts**:
   - Page if budget burns at 14× rate over 1 h *and* over 5 m (fast burn)
   - Ticket if budget burns at 3× rate over 6 h *and* over 30 m (slow burn)
 
@@ -89,7 +89,7 @@ Each SLO below states:
 - **SLO**: p95 < 300 ms (excluding `/agent/plan-trip-stream`) over rolling 30 days
 - **Alert**: ticket if p95 > 700 ms for 15 min
 
-## 4. Reliability — backups (Phase 6)
+## 4. Reliability — backups
 
 | Field | Value |
 |---|---|

@@ -6,7 +6,7 @@ It is the live source of truth for the M5 security deliverable. Items that are a
 
 > Convention: ✅ = done and verified, 🚧 = in flight, ⏳ = planned, 🔁 = recurring, 🟡 = config shipped but runtime / hookup deferred.
 
-> **Update 2026-04-27 — Phase 0 → 8 of the M5 observability plan have shipped.** All P0 items below are closed; see the inline status flags. The M5 deliverable's narrative is captured in `../adr/0001-observability-stack-strategy.md` (umbrella) and the rest of the ADR set.
+> **Update 2026-04-27 — the observability deliverables have shipped.** All P0 items below are closed; see the inline status flags. The narrative is captured in `../adr/0001-observability-stack-strategy.md` (umbrella) and the rest of the ADR set.
 
 ---
 
@@ -56,7 +56,7 @@ It is the live source of truth for the M5 security deliverable. Items that are a
 
 ## 1. Top of backlog (priority P0 — by 2026-05-03)
 
-### 1.1 Trivy scan in CI ✅ shipped (Phase 5a, 2026-04-27)
+### 1.1 Trivy scan in CI ✅ shipped (2026-04-27)
 
 **Goal**: never deploy an image with a known `HIGH` or `CRITICAL` CVE again.
 
@@ -87,7 +87,7 @@ It is the live source of truth for the M5 security deliverable. Items that are a
 
 ## 2. Mid-term (P1 — by 2026-05-10)
 
-### 2.1 Container HIDS — Falco 🟡 config shipped, runtime deferred (Phase 5b)
+### 2.1 Container HIDS — Falco 🟡 config shipped, runtime deferred
 
 **Why**: a 99 %-CPU miner is the loudest possible signal. Real attackers won't be that obvious. We need behavioural detection.
 
@@ -157,21 +157,21 @@ It is the live source of truth for the M5 security deliverable. Items that are a
 
 ## 3. Long-term (P2 — by 2026-05-17)
 
-### 3.1 Centralised log aggregation ✅ shipped (Phase 2)
+### 3.1 Centralised log aggregation ✅ shipped
 
 Loki + Promtail. 23 BagTrip-managed containers ship logs with extracted `service` / `env` / `level` / `trace_id` labels. Pokemon-OCR / openclaw containers explicitly excluded by allowlist. Caddy edge access logs are scraped from `/opt/edge/logs/access.log` and have `host`, `status`, `client_ip` labels.
 
-### 3.2 Backup + restore drill ✅ shipped (Phase 6)
+### 3.2 Backup + restore drill ✅ shipped
 
-`restic` daily snapshot of `bagtrip-postgres-1` and `bagtrip-preprod-postgres-1`, encrypted with AES-256, retention 7d / 4w / 6m. **Weekly automated restore drill** that spins a throwaway postgres + sanity SELECT. Three Prom alerts: `ResticBackupStale`, `ResticBackupFailed`, `ResticRestoreDrillFailed`. Repo at `/var/backups/bagtrip-restic`; B2 toggle wired but not enabled (no funded account at the M5 phase). RTO measured by drill (<5s per target), RPO is 24h. See ADR-0005.
+`restic` daily snapshot of `bagtrip-postgres-1` and `bagtrip-preprod-postgres-1`, encrypted with AES-256, retention 7d / 4w / 6m. **Weekly automated restore drill** that spins a throwaway postgres + sanity SELECT. Three Prom alerts: `ResticBackupStale`, `ResticBackupFailed`, `ResticRestoreDrillFailed`. Repo at `/var/backups/bagtrip-restic`; B2 toggle wired but not enabled (no funded account yet). RTO measured by drill (<5s per target), RPO is 24h. See ADR-0005.
 
-### 3.3 Status page & uptime monitoring ✅ shipped (Phase 1 + Phase 7)
+### 3.3 Status page & uptime monitoring ✅ shipped
 
 Blackbox exporter probes 5 public hostnames every 15s. `BagTrip — Synthetic + DR` dashboard surfaces uptime / probe latency / TLS expiry. External independent monitoring is *not* enabled yet (UptimeRobot would be 5min of setup if needed), but the internal probes already catch most failure classes.
 
-### 3.4 SLO / SLI baseline ✅ shipped (Phase 0 + Phase 4)
+### 3.4 SLO / SLI baseline ✅ shipped
 
-`documentations/observability/slo.md` defines targets (API 99.5% over 30d, p95 < 500ms, etc.) with explicit error budget and burn-rate alerting methodology. Phase 4's `ApiAvailabilityFastBurn` (14× over 5m+1h) and `ApiAvailabilitySlowBurn` (3× over 30m+6h) implement the multi-window pattern.
+`documentations/observability/slo.md` defines targets (API 99.5% over 30d, p95 < 500ms, etc.) with explicit error budget and burn-rate alerting methodology. The shipped `ApiAvailabilityFastBurn` (14× over 5m+1h) and `ApiAvailabilitySlowBurn` (3× over 30m+6h) implement the multi-window pattern.
 
 ---
 

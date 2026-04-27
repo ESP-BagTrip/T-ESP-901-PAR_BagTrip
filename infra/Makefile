@@ -24,7 +24,7 @@ check:  ## dry-run the playbook (--check) — never modifies the host
 deploy:  ## apply the playbook (default tag: observability)
 	cd $(ANSIBLE_DIR) && ansible-playbook -i inventory/hosts.yml playbooks/site.yml --tags observability $(EXTRA)
 
-deploy-baseline:  ## apply only the baseline assertions (Phase 0)
+deploy-baseline:  ## apply only the baseline assertions
 	cd $(ANSIBLE_DIR) && ansible-playbook -i inventory/hosts.yml playbooks/site.yml --tags baseline $(EXTRA)
 
 lint:  ## ansible-lint over the role
