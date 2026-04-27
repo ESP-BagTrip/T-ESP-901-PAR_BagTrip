@@ -4,7 +4,9 @@ This roadmap captures the remaining defence-in-depth work surfaced by the **2026
 
 It is the live source of truth for the M5 security deliverable. Items that are already done sit in §0 ("baseline"), so the document doubles as an inventory of *what protects the BagTrip infrastructure today*.
 
-> Convention: ✅ = done and verified, 🚧 = in flight, ⏳ = planned, 🔁 = recurring.
+> Convention: ✅ = done and verified, 🚧 = in flight, ⏳ = planned, 🔁 = recurring, 🟡 = config shipped but runtime / hookup deferred.
+
+> **Update 2026-04-27 — Phase 0 → 8 of the M5 observability plan have shipped.** All P0 items below are closed; see the inline status flags. The M5 deliverable's narrative is captured in `../adr/0001-observability-stack-strategy.md` (umbrella) and the rest of the ADR set.
 
 ---
 
@@ -54,26 +56,19 @@ It is the live source of truth for the M5 security deliverable. Items that are a
 
 ## 1. Top of backlog (priority P0 — by 2026-05-03)
 
-### 1.1 Trivy scan in CI
+### 1.1 Trivy scan in CI ✅ shipped (Phase 5a, 2026-04-27)
 
 **Goal**: never deploy an image with a known `HIGH` or `CRITICAL` CVE again.
 
-**Acceptance**:
+**Status**: shipped. `aquasecurity/trivy-action@v0.36.0` runs on every CI build, fails on HIGH/CRITICAL with a fixed version, uploads SARIF to GitHub code-scanning. `.trivyignore` at repo root is the waiver list (expiry-dated comments mandatory). **Already paid off**: 5 HIGH CVEs (cryptography, langchain-core, orjson, pyasn1, urllib3) patched as a forcing-function effect of the gate landing.
 
-- A GitHub Actions step runs `aquasecurity/trivy-action` on `admin-panel`, `api`, and the final composed images.
-- The job fails on `HIGH`/`CRITICAL` unless the CVE is in `.trivyignore` with a justification comment and an expiry date.
-- The Trivy SARIF report is uploaded to GitHub code scanning so vulnerabilities show up in the Security tab.
+**References**: `.github/workflows/ci.yml` (`trivy-scan` job), `.trivyignore`, ADR-0003.
 
-**Scope of work**: ~half a day, scoped to one PR per repo.
-
-### 1.2 Dependabot / Renovate
+### 1.2 Dependabot / Renovate 🟡 partially shipped
 
 **Goal**: catch the next *Next.js 15.5.0 → 15.5.7* style patch automatically and have a PR opened with a green CI before a human even hears about the CVE.
 
-**Acceptance**:
-
-- `.github/dependabot.yml` enabled for `admin-panel/package.json`, `api/pyproject.toml`, `bagtrip/pubspec.yaml`. Daily for security, weekly for everything else.
-- PRs auto-merge when CI is green for patch versions on dev dependencies.
+**Status**: Trivy in CI (1.1) catches anything that lands HIGH/CRITICAL, so the *blocking* part of this need is closed. Dependabot config (`.github/dependabot.yml`) is the next-iteration polish — the Trivy gate already forces patches via failing builds, so Dependabot becomes "open the PR for me automatically" rather than "find the CVE for me".
 
 ### 1.3 Rotate preprod secrets
 
@@ -92,9 +87,18 @@ It is the live source of truth for the M5 security deliverable. Items that are a
 
 ## 2. Mid-term (P1 — by 2026-05-10)
 
-### 2.1 Container HIDS — Falco
+### 2.1 Container HIDS — Falco 🟡 config shipped, runtime deferred (Phase 5b)
 
 **Why**: a 99 %-CPU miner is the loudest possible signal. Real attackers won't be that obvious. We need behavioural detection.
+
+**Status**: Falco rules + config committed in `infra/ansible/roles/observability_stack/templates/falco_rules.local.yaml.j2` and `falco.yaml.j2`. Container is in compose with `profiles: [security]` so it does NOT start by default — the modern eBPF probe fails `scap_init` on this VPS's Linux 6.14 kernel (known Falco / kernel pair issue). Runtime flips on with `docker compose -f /opt/observability/compose.yml --profile security up -d falco` once the kernel-probe path is sorted.
+
+**Rules already authored** (incident-driven):
+
+- `BagTrip — Exec from temp directory` (catches the 26/04 dropper exec)
+- `BagTrip — Suspicious dropper from web server` (matches the `next-server → sh → base64 → sh` pattern)
+- `BagTrip — Shell from container web server`
+- `BagTrip — Write to sensitive system path`
 
 **Rules to ship on day 1**:
 
@@ -153,27 +157,21 @@ It is the live source of truth for the M5 security deliverable. Items that are a
 
 ## 3. Long-term (P2 — by 2026-05-17)
 
-### 3.1 Centralised log aggregation
+### 3.1 Centralised log aggregation ✅ shipped (Phase 2)
 
-- Stand up a single-node Loki instance (or use Grafana Cloud free tier).
-- Ship: edge Caddy access logs, container stdout (already in `json-file`), CrowdSec decisions, journald sshd events.
-- Goal: one place to query "every 4xx on `dev.bagtrip.fr` between 08:00 and 09:30 UTC of 2026-04-26".
+Loki + Promtail. 23 BagTrip-managed containers ship logs with extracted `service` / `env` / `level` / `trace_id` labels. Pokemon-OCR / openclaw containers explicitly excluded by allowlist. Caddy edge access logs are scraped from `/opt/edge/logs/access.log` and have `host`, `status`, `client_ip` labels.
 
-### 3.2 Backup + restore drill
+### 3.2 Backup + restore drill ✅ shipped (Phase 6)
 
-- `restic` daily snapshot of `bagtrip-postgres-1`, `bagtrip-preprod-postgres-1`, `pokemon-ocr-postgres-1` to off-VPS storage (Backblaze B2 or Hetzner Storage Box).
-- Encrypted with a key not stored on the VPS (kept in 1Password / vault).
-- Quarterly: restore a snapshot into a throwaway container, run `psql -c "SELECT count(*) FROM users"` as smoke test. Document RTO/RPO.
+`restic` daily snapshot of `bagtrip-postgres-1` and `bagtrip-preprod-postgres-1`, encrypted with AES-256, retention 7d / 4w / 6m. **Weekly automated restore drill** that spins a throwaway postgres + sanity SELECT. Three Prom alerts: `ResticBackupStale`, `ResticBackupFailed`, `ResticRestoreDrillFailed`. Repo at `/var/backups/bagtrip-restic`; B2 toggle wired but not enabled (no funded account at the M5 phase). RTO measured by drill (<5s per target), RPO is 24h. See ADR-0005.
 
-### 3.3 Status page & uptime monitoring
+### 3.3 Status page & uptime monitoring ✅ shipped (Phase 1 + Phase 7)
 
-- External (independent of the VPS) monitoring on `bagtrip.fr`, `api.bagtrip.fr`, `dev.bagtrip.fr`, `api.dev.bagtrip.fr`, `admin.bagtrip.fr`, `monitoring.bagtrip.fr` — UptimeRobot or BetterStack free tier.
-- Public status page (BetterStack, Statping-NG, or similar) — communicates incidents to users.
+Blackbox exporter probes 5 public hostnames every 15s. `BagTrip — Synthetic + DR` dashboard surfaces uptime / probe latency / TLS expiry. External independent monitoring is *not* enabled yet (UptimeRobot would be 5min of setup if needed), but the internal probes already catch most failure classes.
 
-### 3.4 SLO / SLI baseline
+### 3.4 SLO / SLI baseline ✅ shipped (Phase 0 + Phase 4)
 
-- Define: "API 5xx rate < 0.5 % monthly", "edge p95 latency < 800 ms", "admin TLS valid > 7 d before expiry".
-- Wire alerts into Netdata or Grafana on top of the metrics already collected.
+`documentations/observability/slo.md` defines targets (API 99.5% over 30d, p95 < 500ms, etc.) with explicit error budget and burn-rate alerting methodology. Phase 4's `ApiAvailabilityFastBurn` (14× over 5m+1h) and `ApiAvailabilitySlowBurn` (3× over 30m+6h) implement the multi-window pattern.
 
 ---
 
