@@ -71,11 +71,18 @@
   when: not obs_env_stat.stat.exists
   no_log: true
 
-- name: Generate Restic repository password (first deploy only)
+- name: Generate Restic repository password (no existing env file)
   ansible.builtin.set_fact:
     restic_password: "{{ lookup('community.general.random_string', length=48, special=false) }}"
   when: not obs_env_stat.stat.exists
   no_log: true
+
+- name: Generate Grafana basic_auth bcrypt placeholder (no existing env file)
+  # Real bcrypt is computed below via `caddy hash-password` once edge-caddy
+  # is reachable; keep the var defined here so env.j2 always renders.
+  ansible.builtin.set_fact:
+    grafana_basic_auth_hash_persisted: ""
+  when: not obs_env_stat.stat.exists
 
 - name: Read existing observability env file
   ansible.builtin.slurp:
@@ -91,12 +98,61 @@
   when: obs_env_stat.stat.exists
   no_log: true
 
-- name: Extract existing Restic password (or generate if missing)
-  ansible.builtin.set_fact:
-    restic_password: "{{ matched if matched else lookup('community.general.random_string', length=48, special=false) }}"
-  vars:
-    matched: "{{ obs_env_raw.content | b64decode | regex_search('^RESTIC_PASSWORD=(.+)$', '\\1', multiline=True) }}"
+- name: Read RESTIC_PASSWORD from existing env (via grep, robust)
+  ansible.builtin.shell: |
+    set -o pipefail
+    grep '^RESTIC_PASSWORD=' {{ observability_root }}/.env | head -1 | cut -d= -f2-
+  args:
+    executable: /bin/bash
+  register: restic_pwd_grep
+  changed_when: false
+  failed_when: false
   when: obs_env_stat.stat.exists
+  no_log: true
+
+- name: Set Restic password (existing or freshly generated)
+  ansible.builtin.set_fact:
+    restic_password: "{{ restic_pwd_grep.stdout if (restic_pwd_grep.stdout | default('') | length > 0) else lookup('community.general.random_string', length=48, special=false) }}"
+  when: obs_env_stat.stat.exists
+  no_log: true
+
+- name: Read GRAFANA_BASIC_AUTH_HASH from existing env (idempotence anchor)
+  # The bcrypt hash uses a random salt, so `caddy hash-password` produces
+  # a different output on every invocation. Persisting the hash in .env
+  # lets us re-use it across runs and keeps the Grafana vhost blockinfile
+  # task idempotent.
+  ansible.builtin.shell: |
+    set -o pipefail
+    grep '^GRAFANA_BASIC_AUTH_HASH=' {{ observability_root }}/.env | head -1 | cut -d= -f2-
+  args:
+    executable: /bin/bash
+  register: grafana_hash_grep
+  changed_when: false
+  failed_when: false
+  when: obs_env_stat.stat.exists
+  no_log: true
+
+- name: Set persisted Grafana basic_auth hash (or empty if first deploy)
+  ansible.builtin.set_fact:
+    grafana_basic_auth_hash_persisted: "{{ grafana_hash_grep.stdout | default('') }}"
+  when: obs_env_stat.stat.exists
+  no_log: true
+
+# --- Compute bcrypt EARLY so env.j2 can persist it on first render -----------
+- name: Compute bcrypt hash for Grafana basic_auth (only when not yet persisted)
+  ansible.builtin.command:
+    cmd: "docker exec {{ observability_edge_container }} caddy hash-password --plaintext {{ grafana_admin_password | quote }}"
+  register: grafana_basic_auth_hash_new
+  changed_when: false
+  no_log: true
+  when:
+    - observability_expose_grafana_publicly | bool
+    - (grafana_basic_auth_hash_persisted | default('') | length) == 0
+
+- name: Resolve final Grafana basic_auth hash (existing or newly computed)
+  ansible.builtin.set_fact:
+    grafana_basic_auth_hash_value: "{{ grafana_basic_auth_hash_persisted if (grafana_basic_auth_hash_persisted | default('') | length > 0) else grafana_basic_auth_hash_new.stdout }}"
+  when: observability_expose_grafana_publicly | bool
   no_log: true
 
 # --- Render templates ---
@@ -427,14 +483,6 @@
 
 # --- Public exposure via edge Caddy (optional) ---
 
-- name: Compute bcrypt hash for Grafana basic_auth (via edge-caddy)
-  ansible.builtin.command:
-    cmd: "docker exec {{ observability_edge_container }} caddy hash-password --plaintext {{ grafana_admin_password | quote }}"
-  register: grafana_basic_auth_hash
-  changed_when: false
-  no_log: true
-  when: observability_expose_grafana_publicly | bool
-
 - name: Add Grafana vhost to edge Caddyfile
   ansible.builtin.blockinfile:
     path: "{{ observability_edge_caddyfile }}"
@@ -451,7 +499,7 @@
           import security_headers
           encode zstd gzip
           basic_auth {
-              {{ observability_grafana_admin_user }} {{ grafana_basic_auth_hash.stdout }}
+              {{ observability_grafana_admin_user }} {{ grafana_basic_auth_hash_value }}
           }
           reverse_proxy 127.0.0.1:{{ observability_grafana_host_port }}
       }
