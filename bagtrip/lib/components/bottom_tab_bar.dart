@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
+import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/bloc/navigation_bloc.dart';
@@ -17,6 +18,32 @@ class BottomTabBar extends StatelessWidget {
     required this.onTabChanged,
     this.activityBadgeCount = 0,
   });
+
+  /// Approximate tab bar height (glass bar on iOS, [NavigationBar] on Material).
+  /// Used to size/position a FAB flush above the bar.
+  static double visualHeight(BuildContext context) {
+    if (AdaptivePlatform.isIOS) {
+      return 76;
+    }
+    final fromTheme = NavigationBarTheme.of(context).height;
+    if (fromTheme != null) {
+      return fromTheme;
+    }
+    return 80;
+  }
+
+  /// Bottom inset from the shell body for a circular FAB above the tab bar.
+  /// On iOS the bar overlays the navigator; on Material the body already sits
+  /// above [NavigationBar], so only a small margin is needed.
+  static double homeFabBottomOffset(BuildContext context) {
+    if (AdaptivePlatform.isIOS) {
+      return visualHeight(context) + MediaQuery.paddingOf(context).bottom;
+    }
+    return AppSpacing.space16;
+  }
+
+  /// Fixed diameter for the home “add trip” FAB (design spec).
+  static const double homeFabSize = 48;
 
   static const _tabs = [
     NavigationTab.home,
