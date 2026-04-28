@@ -1228,6 +1228,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get homeCreateFirstTrip => 'Créer mon premier voyage';
 
   @override
+  String get homeCreateFirstTripSubtitle =>
+      'Laissez l\'IA composer un voyage sur-mesure en quelques secondes.';
+
+  @override
+  String get homeNewTripEyebrow => 'Nouveau voyage';
+
+  @override
   String get planTripCta => 'Planifier un voyage';
 
   @override
@@ -1235,6 +1242,25 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get homeCtaStartPlanning => 'Commencer';
+
+  @override
+  String get homeUpcomingTripsHeaderSingle => 'Prochain voyage';
+
+  @override
+  String get homeUpcomingTripsHeaderPlural => 'Prochains voyages';
+
+  @override
+  String get homeTripProgressTitle => 'Progression du voyage';
+
+  @override
+  String homeTripProgressPercent(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String homeTripValidatedProgress(int percent) {
+    return '$percent% validé';
+  }
 
   @override
   String get inspireMe => 'Inspire-moi';

@@ -604,9 +604,30 @@
     }
   },
   "homeCreateFirstTrip": "Créer mon premier voyage",
+  "homeCreateFirstTripSubtitle": "Laissez l'IA composer un voyage sur-mesure en quelques secondes.",
+  "homeNewTripEyebrow": "Nouveau voyage",
   "planTripCta": "Planifier un voyage",
   "homeCtaAiOrManual": "IA ou manuel",
   "homeCtaStartPlanning": "Commencer",
+  "homeUpcomingTripsHeaderSingle": "Prochain voyage",
+  "homeUpcomingTripsHeaderPlural": "Prochains voyages",
+  "homeTripProgressTitle": "Progression du voyage",
+  "homeTripProgressPercent": "{percent}%",
+  "@homeTripProgressPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "homeTripValidatedProgress": "{percent}% validé",
+  "@homeTripValidatedProgress": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "inspireMe": "Inspire-moi",
   "datesLabel": "DATES",
   "datesChooseDatePlaceholder": "Choisir une date",

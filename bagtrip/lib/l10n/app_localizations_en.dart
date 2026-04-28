@@ -1218,6 +1218,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeCreateFirstTrip => 'Create my first trip';
 
   @override
+  String get homeCreateFirstTripSubtitle =>
+      'Let AI craft a tailor-made trip for you in seconds.';
+
+  @override
+  String get homeNewTripEyebrow => 'New trip';
+
+  @override
   String get planTripCta => 'Plan a trip';
 
   @override
@@ -1225,6 +1232,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeCtaStartPlanning => 'Start planning';
+
+  @override
+  String get homeUpcomingTripsHeaderSingle => 'Upcoming trip';
+
+  @override
+  String get homeUpcomingTripsHeaderPlural => 'Upcoming trips';
+
+  @override
+  String get homeTripProgressTitle => 'Trip progress';
+
+  @override
+  String homeTripProgressPercent(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String homeTripValidatedProgress(int percent) {
+    return '$percent% validated';
+  }
 
   @override
   String get inspireMe => 'Inspire me';

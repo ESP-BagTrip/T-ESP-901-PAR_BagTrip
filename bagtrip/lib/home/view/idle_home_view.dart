@@ -1,69 +1,24 @@
-import 'package:bagtrip/components/optimized_image.dart';
-import 'package:bagtrip/core/platform/adaptive_platform.dart';
-import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/design/widgets/destination_carousel.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/widgets/create_trip_card.dart';
+import 'package:bagtrip/home/widgets/home_trip_list_card.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/models/trip.dart';
-import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-const double _idleHomeCarouselHeightFraction = 0.52;
-const double _idleHomeCarouselViewportFraction = 0.84;
-
-class IdleHomeView extends StatefulWidget {
+class IdleHomeView extends StatelessWidget {
   final HomeIdle state;
 
   const IdleHomeView({super.key, required this.state});
 
   @override
-  State<IdleHomeView> createState() => _IdleHomeViewState();
-}
-
-class _IdleHomeViewState extends State<IdleHomeView>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _revealController;
-  late final Animation<double> _opacityAnimation;
-  late final Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _revealController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _opacityAnimation = CurvedAnimation(
-      parent: _revealController,
-      curve: Curves.easeOut,
-    );
-    _scaleAnimation = Tween<double>(begin: 0.94, end: 1.0).animate(
-      CurvedAnimation(parent: _revealController, curve: Curves.easeOutCubic),
-    );
-    _revealController.forward();
-  }
-
-  @override
-  void dispose() {
-    _revealController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final brightness = Theme.of(context).brightness;
-    final name = widget.state.displayName;
-    final trips = widget.state.upcomingTrips;
-    final totalItems = 1 + trips.length;
-    final screenHeight = MediaQuery.sizeOf(context).height;
-    final carouselHeight = screenHeight * _idleHomeCarouselHeightFraction;
+    final trips = state.upcomingTrips;
+    final hasTrips = trips.isNotEmpty;
 
     return Container(
       decoration: BoxDecoration(
@@ -73,107 +28,58 @@ class _IdleHomeViewState extends State<IdleHomeView>
           colors: PersonalizationColors.backgroundGradientOf(brightness),
         ),
       ),
-      child: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: FadeTransition(
-              opacity: _opacityAnimation,
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: screenHeight * 0.07),
-
-                    // Greeting — time-aware, bold, left-aligned
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.space32,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _timeAwareGreeting(name, l10n),
-                            style: TextStyle(
-                              fontFamily: FontFamily.dMSerifDisplay,
-                              fontSize: 34,
-                              fontWeight: FontWeight.w400,
-                              color: PersonalizationColors.textPrimaryOf(
-                                brightness,
-                              ),
-                              height: 1.15,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.space8),
-                          Text(
-                            _subtitleText(l10n, trips.length),
-                            style: TextStyle(
-                              fontFamily: FontFamily.dMSans,
-                              fontSize: 16,
-                              color: PersonalizationColors.textTertiaryOf(
-                                brightness,
-                              ),
-                              height: 1.4,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    if (widget.state.backgroundOngoingTrip != null)
-                      const SizedBox(height: AppSpacing.space16),
-
-                    if (widget.state.backgroundOngoingTrip != null)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.space24,
-                        ),
-                        child: _OngoingTripResumeBanner(
-                          trip: widget.state.backgroundOngoingTrip!,
-                        ),
-                      ),
-
-                    if (widget.state.backgroundOngoingTrip == null)
-                      const SizedBox(height: AppSpacing.space24)
-                    else
-                      const SizedBox(height: AppSpacing.space16),
-
-                    // The carousel
-                    SizedBox(
-                      height: carouselHeight,
-                      child: DestinationCarousel(
-                        showIndicators: false,
-                        height: carouselHeight,
-                        viewportFraction: _idleHomeCarouselViewportFraction,
-                        initialPage: trips.isNotEmpty ? 1 : 0,
-                        itemCount: totalItems,
-                        itemBuilder: (context, index) {
-                          if (index == 0) {
-                            return CreateTripCard(
-                              isFirstTrip: widget.state.isNewUser,
-                            );
-                          }
-                          final trip = trips[index - 1];
-                          return _HomeTripCard(trip: trip);
-                        },
-                      ),
-                    ),
-
-                    const Spacer(),
-
-                    // Bottom padding
-                    SizedBox(
-                      height: AdaptivePlatform.isIOS ? 100 : AppSpacing.space32,
-                    ),
-                  ],
-                ),
-              ),
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.space16,
+          AppSpacing.space24,
+          AppSpacing.space16,
+          AppSpacing.space24,
+        ),
+        children: [
+          Text(
+            _timeAwareGreeting(state.displayName, l10n),
+            style: TextStyle(
+              fontFamily: FontFamily.dMSerifDisplay,
+              fontSize: 34,
+              fontWeight: FontWeight.w400,
+              color: PersonalizationColors.textPrimaryOf(brightness),
+              height: 1.15,
+              letterSpacing: -0.5,
             ),
           ),
+          const SizedBox(height: AppSpacing.space8),
+          Text(
+            _subtitleText(l10n, trips.length),
+            style: TextStyle(
+              fontFamily: FontFamily.dMSans,
+              fontSize: 16,
+              color: PersonalizationColors.textTertiaryOf(brightness),
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.space24),
+          if (state.backgroundOngoingTrip != null) ...[
+            _OngoingTripResumeBanner(),
+            const SizedBox(height: AppSpacing.space16),
+          ],
+          if (!hasTrips) ...[
+            SizedBox(
+              height: MediaQuery.sizeOf(context).height * 0.6,
+              child: CreateTripCard(
+                isFirstTrip: state.isNewUser,
+                subtitle: l10n.homeCreateFirstTripSubtitle,
+              ),
+            ),
+          ] else ...[
+            HomeTripListSection(
+              title: trips.length == 1
+                  ? l10n.homeUpcomingTripsHeaderSingle
+                  : l10n.homeUpcomingTripsHeaderPlural,
+              trips: trips,
+            ),
+            const SizedBox(height: AppSpacing.space8),
+            CreateTripCard(isFirstTrip: state.isNewUser),
+          ],
         ],
       ),
     );
@@ -195,28 +101,27 @@ class _IdleHomeViewState extends State<IdleHomeView>
 }
 
 class _OngoingTripResumeBanner extends StatelessWidget {
-  final Trip trip;
-
-  const _OngoingTripResumeBanner({required this.trip});
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final brightness = Theme.of(context).brightness;
-    final name = trip.destinationName ?? trip.title ?? '';
-
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          AppHaptics.light();
           context.read<HomeBloc>().add(ResumeActiveTripHome());
         },
         borderRadius: AppRadius.large16,
         child: Ink(
-          decoration: const BoxDecoration(
-            color: ColorName.surface,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: AppRadius.large16,
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x140E1A2B),
+                blurRadius: 16,
+                offset: Offset(0, 8),
+              ),
+            ],
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(
@@ -225,298 +130,23 @@ class _OngoingTripResumeBanner extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Icon(
-                  Icons.flight_takeoff_rounded,
-                  color: ColorName.primary,
-                  size: 24,
-                ),
-                const SizedBox(width: AppSpacing.space16),
+                const Icon(Icons.flight_takeoff_rounded),
+                const SizedBox(width: AppSpacing.space12),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name.isNotEmpty ? name : l10n.tripCardNoDestination,
-                        style: TextStyle(
-                          fontFamily: FontFamily.dMSans,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: PersonalizationColors.textPrimaryOf(
-                            brightness,
-                          ),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        l10n.homeResumeActiveTripSubtitle,
-                        style: TextStyle(
-                          fontFamily: FontFamily.dMSans,
-                          fontSize: 12,
-                          color: PersonalizationColors.textTertiaryOf(
-                            brightness,
-                          ),
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    l10n.homeResumeActiveTripSubtitle,
+                    style: const TextStyle(
+                      fontFamily: FontFamily.dMSans,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-                const SizedBox(width: AppSpacing.space8),
-                const Icon(
-                  Icons.chevron_right,
-                  color: ColorName.textMutedLight,
-                  size: 22,
-                ),
+                const Icon(Icons.chevron_right),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// Premium trip card for the home carousel with press-down animation,
-/// cover image, countdown pill, and themed shadows.
-class _HomeTripCard extends StatefulWidget {
-  final Trip trip;
-
-  const _HomeTripCard({required this.trip});
-
-  @override
-  State<_HomeTripCard> createState() => _HomeTripCardState();
-}
-
-class _HomeTripCardState extends State<_HomeTripCard>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _pressController;
-  late final Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _pressController = AnimationController(
-      duration: const Duration(milliseconds: 120),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
-      CurvedAnimation(parent: _pressController, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _pressController.dispose();
-    super.dispose();
-  }
-
-  String _formatDateShort(DateTime? date) {
-    if (date == null) return '';
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${date.day} ${months[date.month - 1]}';
-  }
-
-  String? _countdown(AppLocalizations l10n) {
-    final start = widget.trip.startDate;
-    if (start == null) return null;
-    final now = DateTime.now();
-    final days = DateTime(
-      start.year,
-      start.month,
-      start.day,
-    ).difference(DateTime(now.year, now.month, now.day)).inDays;
-    if (days <= 0) return null;
-    return l10n.nextTripCountdown(days);
-  }
-
-  /// True when trip starts within 1 calendar day (orange pill).
-  bool get _countdownImminent {
-    final start = widget.trip.startDate;
-    if (start == null) return false;
-    final now = DateTime.now();
-    final days = DateTime(
-      start.year,
-      start.month,
-      start.day,
-    ).difference(DateTime(now.year, now.month, now.day)).inDays;
-    return days > 0 && days <= 1;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final destination = widget.trip.destinationName ?? widget.trip.title ?? '';
-    final dateRange = [
-      _formatDateShort(widget.trip.startDate),
-      _formatDateShort(widget.trip.endDate),
-    ].where((s) => s.isNotEmpty).join(' — ');
-    final countdown = _countdown(l10n);
-    final countdownUrgent = _countdownImminent;
-
-    return GestureDetector(
-      onTapDown: (_) => _pressController.forward(),
-      onTapUp: (_) {
-        _pressController.reverse();
-        AppHaptics.light();
-        TripHomeRoute(tripId: widget.trip.id).go(context);
-      },
-      onTapCancel: () => _pressController.reverse(),
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: Hero(
-          tag: 'trip-${widget.trip.id}',
-          child: Container(
-            margin: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.space8,
-              vertical: AppSpacing.space4,
-            ),
-            child: ClipRRect(
-              borderRadius: AppRadius.large28,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Cover image or gradient placeholder
-                  if (widget.trip.coverImageUrl != null &&
-                      widget.trip.coverImageUrl!.isNotEmpty)
-                    OptimizedImage.tripCover(
-                      widget.trip.coverImageUrl!,
-                      errorWidget: const _CardGradientPlaceholder(),
-                    )
-                  else
-                    const _CardGradientPlaceholder(),
-
-                  // Gradient scrim
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          ColorName.primaryTrueDark.withValues(alpha: 0.15),
-                          ColorName.primaryTrueDark.withValues(alpha: 0.7),
-                        ],
-                        stops: const [0.3, 0.6, 1.0],
-                      ),
-                    ),
-                  ),
-
-                  // Countdown pill
-                  if (countdown != null)
-                    Positioned(
-                      top: AppSpacing.space16,
-                      right: AppSpacing.space16,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: countdownUrgent
-                              ? ColorName.warning.withValues(alpha: 0.92)
-                              : ColorName.primaryTrueDark.withValues(
-                                  alpha: 0.35,
-                                ),
-                          borderRadius: AppRadius.pill,
-                          border: Border.all(
-                            color: countdownUrgent
-                                ? ColorName.warning.withValues(alpha: 0.4)
-                                : PersonalizationColors.surfaceGlassBorder,
-                          ),
-                        ),
-                        child: Text(
-                          countdown,
-                          style: TextStyle(
-                            fontFamily: FontFamily.dMSans,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: countdownUrgent
-                                ? Colors.white
-                                : ColorName.surface.withValues(alpha: 0.9),
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                  // Destination + dates
-                  Positioned(
-                    left: AppSpacing.space24,
-                    right: AppSpacing.space24,
-                    bottom: AppSpacing.space24,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          destination.isNotEmpty
-                              ? destination
-                              : l10n.tripCardNoDestination,
-                          style: const TextStyle(
-                            fontFamily: FontFamily.dMSerifDisplay,
-                            fontSize: 26,
-                            fontWeight: FontWeight.w400,
-                            color: ColorName.surface,
-                            height: 1.15,
-                            letterSpacing: -0.3,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (dateRange.isNotEmpty) ...[
-                          const SizedBox(height: AppSpacing.space4),
-                          Text(
-                            dateRange,
-                            style: TextStyle(
-                              fontFamily: FontFamily.dMSans,
-                              fontSize: 14,
-                              color: ColorName.surface.withValues(alpha: 0.75),
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CardGradientPlaceholder extends StatelessWidget {
-  const _CardGradientPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [ColorName.primary, ColorName.secondary],
-        ),
-      ),
-      child: const Center(
-        child: Icon(Icons.flight_rounded, color: ColorName.surface, size: 56),
       ),
     );
   }

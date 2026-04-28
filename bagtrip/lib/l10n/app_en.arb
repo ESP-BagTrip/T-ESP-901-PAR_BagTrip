@@ -604,9 +604,30 @@
     }
   },
   "homeCreateFirstTrip": "Create my first trip",
+  "homeCreateFirstTripSubtitle": "Let AI craft a tailor-made trip for you in seconds.",
+  "homeNewTripEyebrow": "New trip",
   "planTripCta": "Plan a trip",
   "homeCtaAiOrManual": "AI or manual",
   "homeCtaStartPlanning": "Start planning",
+  "homeUpcomingTripsHeaderSingle": "Upcoming trip",
+  "homeUpcomingTripsHeaderPlural": "Upcoming trips",
+  "homeTripProgressTitle": "Trip progress",
+  "homeTripProgressPercent": "{percent}%",
+  "@homeTripProgressPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "homeTripValidatedProgress": "{percent}% validated",
+  "@homeTripValidatedProgress": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "inspireMe": "Inspire me",
   "datesLabel": "DATES",
   "datesChooseDatePlaceholder": "Choose a date",

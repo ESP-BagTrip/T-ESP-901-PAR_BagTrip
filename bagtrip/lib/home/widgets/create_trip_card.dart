@@ -12,8 +12,9 @@ import 'package:flutter/material.dart';
 
 class CreateTripCard extends StatefulWidget {
   final bool isFirstTrip;
+  final String? subtitle;
 
-  const CreateTripCard({super.key, this.isFirstTrip = false});
+  const CreateTripCard({super.key, this.isFirstTrip = false, this.subtitle});
 
   @override
   State<CreateTripCard> createState() => _CreateTripCardState();
@@ -63,183 +64,230 @@ class _CreateTripCardState extends State<CreateTripCard>
             horizontal: AppSpacing.space8,
             vertical: AppSpacing.space4,
           ),
-          child: ClipRRect(
+          decoration: const BoxDecoration(
             borderRadius: AppRadius.large28,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                // Base gradient — uses design system dark colors
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: isDark
-                          ? [
-                              ColorName.surfaceDark,
-                              ColorName.primaryTrueDark,
-                              ColorName.primaryDark,
-                            ]
-                          : [
-                              ColorName.primaryTrueDark,
-                              ColorName.primaryDark,
-                              ColorName.primary,
-                            ],
-                    ),
-                  ),
-                ),
-
-                // Mesh gradient — accent radial glows
-                Positioned(
-                  top: -60,
-                  right: -40,
-                  child: Container(
-                    width: 260,
-                    height: 260,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          PersonalizationColors.accentBlue.withValues(
-                            alpha: 0.35,
-                          ),
-                          PersonalizationColors.accentBlue.withValues(
-                            alpha: 0.08,
-                          ),
-                          Colors.transparent,
-                        ],
-                        stops: const [0.0, 0.5, 1.0],
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: -80,
-                  left: -60,
-                  child: Container(
-                    width: 300,
-                    height: 300,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          PersonalizationColors.accentViolet.withValues(
-                            alpha: 0.25,
-                          ),
-                          PersonalizationColors.accentViolet.withValues(
-                            alpha: 0.05,
-                          ),
-                          Colors.transparent,
-                        ],
-                        stops: const [0.0, 0.4, 1.0],
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 100,
-                  left: 50,
-                  child: Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          ColorName.secondary.withValues(alpha: 0.2),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Noise texture
-                Opacity(
-                  opacity: 0.03,
-                  child: CustomPaint(
-                    size: Size.infinite,
-                    painter: _NoisePainter(),
-                  ),
-                ),
-
-                // Content
-                Padding(
-                  padding: const EdgeInsets.all(AppSpacing.space32),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Globe icon in frosted container
-                      Container(
-                        width: 56,
-                        height: 56,
-                        decoration: const BoxDecoration(
-                          color: PersonalizationColors.surfaceGlass,
-                          borderRadius: AppRadius.large16,
-                        ),
-                        child: const Icon(
-                          CupertinoIcons.globe,
-                          color: ColorName.surface,
-                          size: 26,
-                        ),
-                      ),
-                      const Spacer(),
-                      // Title
-                      Text(
-                        widget.isFirstTrip
-                            ? l10n.homeCreateFirstTrip
-                            : l10n.planTripCta,
-                        style: const TextStyle(
-                          fontFamily: FontFamily.dMSerifDisplay,
-                          fontSize: 28,
-                          fontWeight: FontWeight.w400,
-                          color: ColorName.surface,
-                          height: 1.15,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.space12),
-                      // Pill CTA
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 8,
-                        ),
+            boxShadow: [
+              BoxShadow(
+                color: Color(0x1A0E1A2B),
+                blurRadius: 20,
+                offset: Offset(0, 10),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: AppRadius.large24,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final boundedHeight =
+                    constraints.hasBoundedHeight &&
+                    constraints.maxHeight < double.infinity;
+                return Stack(
+                  fit: boundedHeight ? StackFit.expand : StackFit.loose,
+                  children: [
+                    // Base gradient — uses design system dark colors
+                    Positioned.fill(
+                      child: Container(
                         decoration: BoxDecoration(
-                          color: PersonalizationColors.surfaceGlass,
-                          borderRadius: AppRadius.pill,
-                          border: Border.all(
-                            color: PersonalizationColors.surfaceGlassBorder,
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: isDark
+                                ? [
+                                    ColorName.surfaceDark,
+                                    ColorName.primaryTrueDark,
+                                    ColorName.primaryDark,
+                                  ]
+                                : [
+                                    ColorName.primaryTrueDark,
+                                    ColorName.primaryDark,
+                                    ColorName.primary,
+                                  ],
                           ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
+                      ),
+                    ),
+
+                    // Mesh gradient — accent radial glows
+                    Positioned(
+                      top: -60,
+                      right: -40,
+                      child: Container(
+                        width: 260,
+                        height: 260,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              PersonalizationColors.accentBlue.withValues(
+                                alpha: 0.35,
+                              ),
+                              PersonalizationColors.accentBlue.withValues(
+                                alpha: 0.08,
+                              ),
+                              Colors.transparent,
+                            ],
+                            stops: const [0.0, 0.5, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: -80,
+                      left: -60,
+                      child: Container(
+                        width: 300,
+                        height: 300,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              PersonalizationColors.accentViolet.withValues(
+                                alpha: 0.25,
+                              ),
+                              PersonalizationColors.accentViolet.withValues(
+                                alpha: 0.05,
+                              ),
+                              Colors.transparent,
+                            ],
+                            stops: const [0.0, 0.4, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 100,
+                      left: 50,
+                      child: Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              ColorName.secondary.withValues(alpha: 0.2),
+                              Colors.transparent,
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Noise texture
+                    Positioned.fill(
+                      child: Opacity(
+                        opacity: 0.03,
+                        child: CustomPaint(painter: _NoisePainter()),
+                      ),
+                    ),
+
+                    // Content
+                    Padding(
+                      padding: const EdgeInsets.all(AppSpacing.space24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: boundedHeight
+                            ? MainAxisSize.max
+                            : MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 42,
+                            height: 42,
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              borderRadius: AppRadius.large16,
+                              border: Border.all(color: ColorName.secondary),
+                            ),
+                            child: const Icon(
+                              CupertinoIcons.airplane,
+                              color: ColorName.secondary,
+                              size: 20,
+                            ),
+                          ),
+                          if (boundedHeight)
+                            const Spacer()
+                          else
+                            const SizedBox(height: AppSpacing.space24),
+                          if (widget.isFirstTrip) ...[
                             Text(
-                              widget.isFirstTrip
-                                  ? l10n.homeCtaAiOrManual
-                                  : l10n.homeCtaStartPlanning,
-                              style: TextStyle(
+                              l10n.homeNewTripEyebrow.toUpperCase(),
+                              style: const TextStyle(
                                 fontFamily: FontFamily.dMSans,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: ColorName.surface.withValues(alpha: 0.8),
-                                letterSpacing: 0.3,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w900,
+                                color: ColorName.secondary,
+                                letterSpacing: 1.2,
                               ),
                             ),
-                            const SizedBox(width: 6),
-                            Icon(
-                              CupertinoIcons.arrow_right,
-                              size: 12,
-                              color: ColorName.surface.withValues(alpha: 0.6),
+                            const SizedBox(height: AppSpacing.space8),
+                          ],
+                          Text(
+                            widget.isFirstTrip
+                                ? l10n.homeCreateFirstTrip
+                                : l10n.planTripCta,
+                            style: const TextStyle(
+                              fontFamily: FontFamily.dMSerifDisplay,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w400,
+                              color: ColorName.surface,
+                              height: 1.15,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          if (widget.subtitle != null) ...[
+                            const SizedBox(height: AppSpacing.space12),
+                            Text(
+                              widget.subtitle!,
+                              style: TextStyle(
+                                fontFamily: FontFamily.dMSans,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w400,
+                                color: ColorName.surface.withValues(
+                                  alpha: 0.84,
+                                ),
+                                height: 1.35,
+                              ),
                             ),
                           ],
-                        ),
+                          const SizedBox(height: AppSpacing.space32),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 10,
+                            ),
+                            decoration: const BoxDecoration(
+                              color: ColorName.secondary,
+                              borderRadius: AppRadius.large16,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  widget.isFirstTrip
+                                      ? l10n.homeCtaAiOrManual
+                                      : l10n.homeCtaStartPlanning,
+                                  style: const TextStyle(
+                                    fontFamily: FontFamily.dMSans,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: ColorName.surface,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                const Icon(
+                                  CupertinoIcons.arrow_right,
+                                  size: 12,
+                                  color: ColorName.surface,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-              ],
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ),

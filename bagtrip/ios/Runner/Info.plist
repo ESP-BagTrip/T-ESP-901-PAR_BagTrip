@@ -47,6 +47,12 @@
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>BagTrip uses your location to suggest your departure city.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>BagTrip uses local network access to connect the Flutter debugger during development.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_dartVmService._tcp</string>
+	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>

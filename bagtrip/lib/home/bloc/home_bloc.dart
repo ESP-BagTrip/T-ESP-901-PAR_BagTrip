@@ -298,6 +298,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         HomeActiveTrip(
           user: user,
           activeTrip: activeTrip,
+          upcomingTrips: mutablePlanned,
           todayActivities: todayActivities,
           weatherSummary: weatherSummary,
           weatherData: weatherData,
@@ -374,6 +375,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         HomeActiveTrip(
           user: s.user,
           activeTrip: s.activeTrip,
+          upcomingTrips: s.upcomingTrips,
           todayActivities: s.todayActivities,
           weatherSummary: s.weatherSummary,
           weatherData: s.weatherData,

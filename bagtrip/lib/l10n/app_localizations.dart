@@ -2300,6 +2300,18 @@ abstract class AppLocalizations {
   /// **'Créer mon premier voyage'**
   String get homeCreateFirstTrip;
 
+  /// No description provided for @homeCreateFirstTripSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Laissez l\'IA composer un voyage sur-mesure en quelques secondes.'**
+  String get homeCreateFirstTripSubtitle;
+
+  /// No description provided for @homeNewTripEyebrow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau voyage'**
+  String get homeNewTripEyebrow;
+
   /// No description provided for @planTripCta.
   ///
   /// In fr, this message translates to:
@@ -2317,6 +2329,36 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Commencer'**
   String get homeCtaStartPlanning;
+
+  /// No description provided for @homeUpcomingTripsHeaderSingle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prochain voyage'**
+  String get homeUpcomingTripsHeaderSingle;
+
+  /// No description provided for @homeUpcomingTripsHeaderPlural.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prochains voyages'**
+  String get homeUpcomingTripsHeaderPlural;
+
+  /// No description provided for @homeTripProgressTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Progression du voyage'**
+  String get homeTripProgressTitle;
+
+  /// No description provided for @homeTripProgressPercent.
+  ///
+  /// In fr, this message translates to:
+  /// **'{percent}%'**
+  String homeTripProgressPercent(int percent);
+
+  /// No description provided for @homeTripValidatedProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'{percent}% validé'**
+  String homeTripValidatedProgress(int percent);
 
   /// No description provided for @inspireMe.
   ///
