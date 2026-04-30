@@ -1,7 +1,9 @@
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
 import 'package:bagtrip/plan_trip/models/ai_destination.dart';
 import 'package:bagtrip/plan_trip/view/step_ai_proposals_view.dart';
+import 'package:bagtrip/plan_trip/widgets/ai_destination_card.dart';
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -60,6 +62,11 @@ void main() {
     country: 'Japan',
     topActivities: ['Shibuya', 'Asakusa'],
   );
+  const oslo = AiDestination(
+    city: 'Oslo',
+    country: 'Norway',
+    matchReason: 'Secure city, great transport and rich culture.',
+  );
 
   group('StepAiProposalsView', () {
     testWidgets('renders elegant empty state when aiSuggestions is empty', (
@@ -69,19 +76,50 @@ void main() {
       expect(find.byType(StepAiProposalsView), findsOneWidget);
     });
 
-    testWidgets('renders carousel with single AI suggestion', (tester) async {
+    testWidgets('renders list with single AI suggestion', (tester) async {
       await pump(tester, const PlanTripState(aiSuggestions: [lisbon]));
       expect(find.byType(StepAiProposalsView), findsOneWidget);
+      expect(find.byType(ListView), findsOneWidget);
+      expect(find.byType(AiDestinationCard), findsOneWidget);
     });
 
-    testWidgets('renders carousel with multiple AI suggestions', (
+    testWidgets('renders list with multiple AI suggestions', (tester) async {
+      await pump(
+        tester,
+        const PlanTripState(aiSuggestions: [lisbon, barcelona, tokyo]),
+      );
+      expect(find.byType(StepAiProposalsView), findsOneWidget);
+      expect(find.byType(AiDestinationCard), findsWidgets);
+      expect(find.text('Sunny 22C'), findsOneWidget);
+    });
+
+    testWidgets('tapping a card dispatches swipeProposal with card index', (
       tester,
     ) async {
       await pump(
         tester,
         const PlanTripState(aiSuggestions: [lisbon, barcelona, tokyo]),
       );
-      expect(find.byType(StepAiProposalsView), findsOneWidget);
+
+      await tester.tap(find.byType(AiDestinationCard).first);
+      await tester.pumpAndSettle();
+
+      verify(
+        () => mockBloc.add(const PlanTripEvent.swipeProposal(0)),
+      ).called(1);
+    });
+
+    testWidgets('keeps description and shows mock chips when data is missing', (
+      tester,
+    ) async {
+      await pump(tester, const PlanTripState(aiSuggestions: [oslo]));
+
+      expect(
+        find.text('Secure city, great transport and rich culture.'),
+        findsOneWidget,
+      );
+      expect(find.text('18–22°C au printemps'), findsOneWidget);
+      expect(find.text('Alfama & Sao Jorge'), findsOneWidget);
     });
   });
 }
