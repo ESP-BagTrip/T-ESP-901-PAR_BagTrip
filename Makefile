@@ -19,6 +19,14 @@ API_PORT     := 3000
 # FLUTTER_DEVICE can be overridden:  make dev FLUTTER_DEVICE=<device-id>
 FLUTTER_DEVICE ?=
 
+# ── .env passthrough ────────────────────────────────────────
+# Pull STRIPE_PUBLISHABLE_KEY out of `.env` so Flutter's
+# `--dart-define=STRIPE_PUBLISHABLE_KEY=...` lines up with the backend's
+# Stripe account. Falls back to empty (the SDK then errors loudly at the
+# first PaymentSheet call) — never paper over a missing key with a
+# placeholder that pretends to work.
+STRIPE_PK := $(shell [ -f .env ] && grep -E '^STRIPE_PUBLISHABLE_KEY=' .env | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'")
+
 # Resolve the host dynamically (called in recipes via $(shell …) or inline)
 # Tries multiple interfaces: en0 (Wi-Fi), en1-en6, bridge*, then any non-loopback.
 define resolve_api_host
@@ -200,8 +208,12 @@ _flutter-run-remote:
 	@printf "$(YELLOW)[$(ENV_LABEL)]$(RESET) API URL:       $(API_URL)\n"
 	@printf "$(YELLOW)[$(ENV_LABEL)]$(RESET) Admin panel:   $(ADMIN_URL)\n\n"
 	@printf "$(CYAN)[info]$(RESET) Starting Flutter (hot reload: r/R, quit: q)\u2026\n\n"
+	@if [ -z "$(STRIPE_PK)" ]; then \
+		printf "$(YELLOW)[warn]$(RESET) STRIPE_PUBLISHABLE_KEY missing from .env — Stripe PaymentSheet will fail.\n"; \
+	fi
 	@cd $(FLUTTER_DIR) && flutter run $(DEVICE_FLAG) \
-		--dart-define=API_BASE_URL=$(API_URL)
+		--dart-define=API_BASE_URL=$(API_URL) \
+		--dart-define=STRIPE_PUBLISHABLE_KEY=$(STRIPE_PK)
 
 # Internal: detect device, resolve API host, inject --dart-define, run Flutter
 _flutter-run:
@@ -216,8 +228,12 @@ _flutter-run:
 		printf "       Make sure your Mac firewall allows port $(API_PORT)\n\n"; \
 	fi
 	@printf "$(CYAN)[info]$(RESET) Starting Flutter app (hot reload: r/R, quit: q)…\n\n"
+	@if [ -z "$(STRIPE_PK)" ]; then \
+		printf "$(YELLOW)[warn]$(RESET) STRIPE_PUBLISHABLE_KEY missing from .env — Stripe PaymentSheet will fail.\n"; \
+	fi
 	@cd $(FLUTTER_DIR) && flutter run $(DEVICE_FLAG) \
-		--dart-define=API_BASE_URL=$(API_URL)
+		--dart-define=API_BASE_URL=$(API_URL) \
+		--dart-define=STRIPE_PUBLISHABLE_KEY=$(STRIPE_PK)
 
 stop: ## Stop Docker services
 	@printf "$(CYAN)[info]$(RESET) Stopping services…\n"

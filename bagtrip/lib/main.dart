@@ -46,8 +46,21 @@ void main() async {
   setupServiceLocator();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Stripe
-  Stripe.publishableKey = AppConfig.stripePublishableKey;
+  // Stripe — fail loudly if the publishable key wasn't injected via
+  // `--dart-define=STRIPE_PUBLISHABLE_KEY=...`. Stripe's SDK accepts the
+  // placeholder silently, then any PaymentSheet call dies with a cryptic
+  // "Could not initialize" error 30 s later. Better to surface the missing
+  // dart-define at boot than to debug it in QA.
+  final stripeKey = AppConfig.stripePublishableKey;
+  if (stripeKey.isEmpty || stripeKey == 'pk_test_placeholder') {
+    dev.log(
+      '[Stripe] STRIPE_PUBLISHABLE_KEY is missing — pass it via '
+      '`--dart-define=STRIPE_PUBLISHABLE_KEY=pk_test_...`. Until then the '
+      'PaymentSheet flow (subscribe, update card) will refuse to open.',
+      level: 1000, // SEVERE
+    );
+  }
+  Stripe.publishableKey = stripeKey;
   Stripe.urlScheme = 'bagtrip';
   await Stripe.instance.applySettings();
 
