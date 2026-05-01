@@ -304,11 +304,13 @@ class TestStartSubscription:
     def test_returns_client_secret_ephemeral_key_and_customer(
         self, mock_settings, mock_plan_service, mock_client, mock_db_session, free_user
     ):
-        """Happy path: Subscription + EphemeralKey created, all 3 secrets returned."""
+        """Happy path with no incomplete sub: create new + return trio."""
         mock_settings.STRIPE_SECRET_KEY = "sk_test"
         mock_plan_service.get_plan.return_value = MagicMock(value="FREE")
 
-        # Subscription expanded with latest_invoice.payment_intent.client_secret
+        # No incomplete subscription found.
+        mock_client.list_subscriptions.return_value = MagicMock(data=[])
+
         sub = MagicMock(id="sub_999")
         sub.latest_invoice.payment_intent.client_secret = "pi_secret_xyz"
         mock_client.create_subscription.return_value = sub
@@ -320,12 +322,78 @@ class TestStartSubscription:
         assert result["payment_intent_client_secret"] == "pi_secret_xyz"
         assert result["ephemeral_key"] == "ek_secret_abc"
         assert result["customer"] == "cus_123"
-        # Idempotency key is stable per user so a network retry of the same
-        # signup doesn't create two subscriptions.
+        # No idempotency key on create — list-and-reuse handles dedup.
         kwargs = mock_client.create_subscription.call_args.kwargs
         assert kwargs["customer"] == "cus_123"
         assert kwargs["price"] == "price_123"
-        assert "idempotency_key" in kwargs
+        assert "idempotency_key" not in kwargs
+
+    @patch("src.services.subscription_service.StripeClient")
+    @patch(
+        "src.services.stripe_products_service.STRIPE_PRODUCT_IDS",
+        {"premium_subscription": "price_123"},
+    )
+    @patch("src.services.subscription_service.PlanService")
+    @patch("src.services.subscription_service.settings")
+    def test_reuses_incomplete_subscription_when_pi_recoverable(
+        self, mock_settings, mock_plan_service, mock_client, mock_db_session, free_user
+    ):
+        """Existing incomplete sub with confirmable PI is reused as-is.
+
+        Without this, the user who closed the app mid-payment gets a stale
+        cached PaymentIntent on retry and the PaymentSheet refuses to open.
+        """
+        mock_settings.STRIPE_SECRET_KEY = "sk_test"
+        mock_plan_service.get_plan.return_value = MagicMock(value="FREE")
+
+        existing = MagicMock(id="sub_existing")
+        mock_client.list_subscriptions.return_value = MagicMock(data=[existing])
+
+        retrieved = MagicMock(id="sub_existing")
+        retrieved.latest_invoice.payment_intent.client_secret = "pi_existing_secret"
+        retrieved.latest_invoice.payment_intent.status = "requires_payment_method"
+        mock_client.retrieve_subscription.return_value = retrieved
+        mock_client.create_ephemeral_key.return_value = MagicMock(secret="ek_fresh")
+
+        result = SubscriptionService.start_subscription(mock_db_session, free_user)
+
+        assert result["subscription_id"] == "sub_existing"
+        assert result["payment_intent_client_secret"] == "pi_existing_secret"
+        # Critically: we did NOT create a new subscription.
+        mock_client.create_subscription.assert_not_called()
+        mock_client.cancel_subscription.assert_not_called()
+
+    @patch("src.services.subscription_service.StripeClient")
+    @patch(
+        "src.services.stripe_products_service.STRIPE_PRODUCT_IDS",
+        {"premium_subscription": "price_123"},
+    )
+    @patch("src.services.subscription_service.PlanService")
+    @patch("src.services.subscription_service.settings")
+    def test_cancels_and_recreates_when_existing_pi_is_stale(
+        self, mock_settings, mock_plan_service, mock_client, mock_db_session, free_user
+    ):
+        """An existing sub with a canceled PI is cancelled + replaced."""
+        mock_settings.STRIPE_SECRET_KEY = "sk_test"
+        mock_plan_service.get_plan.return_value = MagicMock(value="FREE")
+
+        existing = MagicMock(id="sub_stale")
+        mock_client.list_subscriptions.return_value = MagicMock(data=[existing])
+
+        retrieved = MagicMock(id="sub_stale")
+        retrieved.latest_invoice.payment_intent.status = "canceled"
+        mock_client.retrieve_subscription.return_value = retrieved
+
+        new_sub = MagicMock(id="sub_fresh")
+        new_sub.latest_invoice.payment_intent.client_secret = "pi_fresh_secret"
+        mock_client.create_subscription.return_value = new_sub
+        mock_client.create_ephemeral_key.return_value = MagicMock(secret="ek_fresh")
+
+        result = SubscriptionService.start_subscription(mock_db_session, free_user)
+
+        assert result["subscription_id"] == "sub_fresh"
+        mock_client.cancel_subscription.assert_called_once_with("sub_stale")
+        mock_client.create_subscription.assert_called_once()
 
     @patch("src.services.subscription_service.PlanService")
     @patch("src.services.subscription_service.settings")
@@ -366,6 +434,7 @@ class TestStartSubscription:
         """Defensive: malformed Stripe response → 500, not silent success."""
         mock_settings.STRIPE_SECRET_KEY = "sk_test"
         mock_plan_service.get_plan.return_value = MagicMock(value="FREE")
+        mock_client.list_subscriptions.return_value = MagicMock(data=[])
         sub = MagicMock(id="sub_999")
         sub.latest_invoice.payment_intent.client_secret = None
         mock_client.create_subscription.return_value = sub

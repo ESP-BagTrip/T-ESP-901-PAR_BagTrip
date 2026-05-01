@@ -16,6 +16,7 @@ should not be the sole source of truth.
 
 from __future__ import annotations
 
+import contextlib
 from datetime import UTC, datetime
 from typing import Any
 
@@ -102,15 +103,32 @@ class SubscriptionService:
     # Native PaymentSheet flow (mobile — no browser)
     # ------------------------------------------------------------------
 
+    # PaymentIntent statuses where the client_secret can still drive the
+    # mobile PaymentSheet. Anything else (canceled, succeeded with sub
+    # still incomplete, processing, …) means the existing subscription
+    # is unusable and must be replaced.
+    _RECOVERABLE_PI_STATUSES = frozenset(
+        {
+            "requires_payment_method",
+            "requires_confirmation",
+            "requires_action",
+        }
+    )
+
     @staticmethod
     def start_subscription(db: Session, user: User) -> dict:
         """Start a Premium subscription for the native Flutter PaymentSheet.
 
-        Creates a Stripe Subscription in `default_incomplete` mode — the
-        latest invoice carries an unconfirmed PaymentIntent whose
-        `client_secret` is what the mobile SDK uses to drive the
-        PaymentSheet. Apple Pay / Google Pay / cards / 3DS are handled
-        in-sheet, with the user never leaving the app.
+        First tries to *reuse* any existing `incomplete` subscription whose
+        PaymentIntent is still in a confirmable state — without this, a
+        user who closes the app mid-payment hits Stripe's idempotency
+        cache on the next try and gets back the *same* trio while the
+        PaymentIntent has since been canceled, which makes the sheet
+        open and close immediately.
+
+        If the existing subscription's PaymentIntent is stuck (canceled
+        / processing / etc.), we cancel it and create a fresh one rather
+        than fight the cached state.
 
         Returns the trio the SDK needs (`paymentIntentClientSecret`,
         `ephemeralKey`, `customer`) plus the subscription id so the app
@@ -129,11 +147,10 @@ class SubscriptionService:
         price_id = SubscriptionService._get_premium_price_id()
 
         try:
-            subscription = StripeClient.create_subscription(
-                customer=customer_id,
-                price=price_id,
-                idempotency_key=f"sub-{user.id}-start-v1",
-                metadata={"user_id": str(user.id)},
+            subscription = SubscriptionService._reuse_or_create_subscription(
+                customer_id=customer_id,
+                price_id=price_id,
+                user_id=str(user.id),
             )
             ephemeral_key = StripeClient.create_ephemeral_key(customer_id)
         except stripe.StripeError as exc:
@@ -147,7 +164,8 @@ class SubscriptionService:
         client_secret = getattr(payment_intent, "client_secret", None) if payment_intent else None
         if not client_secret:
             logger.error(
-                f"Subscription {subscription.id} has no client_secret on latest_invoice.payment_intent"
+                f"Subscription {subscription.id} has no client_secret on "
+                "latest_invoice.payment_intent"
             )
             raise AppError("STRIPE_ERROR", 500, "Subscription missing PaymentIntent")
 
@@ -157,6 +175,53 @@ class SubscriptionService:
             "ephemeral_key": ephemeral_key.secret,
             "customer": customer_id,
         }
+
+    @staticmethod
+    def _reuse_or_create_subscription(
+        *, customer_id: str, price_id: str, user_id: str
+    ) -> stripe.Subscription:
+        """Reuse an in-progress subscription, or create a fresh one.
+
+        Looks for an existing `incomplete` subscription on the customer.
+        If its PaymentIntent is still confirmable, it's returned as-is
+        (with the invoice + PI re-expanded so callers can read
+        `client_secret`). Otherwise the stale subscription is cancelled
+        and a new one is created.
+
+        No idempotency key on the create call — the list-and-reuse step
+        already dedupes within-session retries, and an idempotency key
+        was the cause of the stale-cache bug we're fixing here.
+        """
+        existing = StripeClient.list_subscriptions(
+            customer=customer_id, status="incomplete", limit=1
+        )
+        if existing.data:
+            sub_id = existing.data[0].id
+            sub = StripeClient.retrieve_subscription(
+                sub_id, expand=["latest_invoice.payment_intent"]
+            )
+            invoice = getattr(sub, "latest_invoice", None)
+            pi = getattr(invoice, "payment_intent", None) if invoice else None
+            pi_status = getattr(pi, "status", None) if pi else None
+            if pi_status in SubscriptionService._RECOVERABLE_PI_STATUSES:
+                logger.info(
+                    f"Reusing incomplete subscription {sub_id} (PaymentIntent in {pi_status})"
+                )
+                return sub
+            # Stale subscription — cancel before creating a fresh one so
+            # we don't accumulate orphans on the customer.
+            logger.info(
+                f"Cancelling stale incomplete subscription {sub_id} "
+                f"(PaymentIntent in {pi_status!r})"
+            )
+            with contextlib.suppress(stripe.StripeError):
+                StripeClient.cancel_subscription(sub_id)
+
+        return StripeClient.create_subscription(
+            customer=customer_id,
+            price=price_id,
+            metadata={"user_id": user_id},
+        )
 
     @staticmethod
     def start_payment_method_update(db: Session, user: User) -> dict:

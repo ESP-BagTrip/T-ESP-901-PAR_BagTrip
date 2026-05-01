@@ -153,9 +153,31 @@ class StripeClient:
         )
 
     @staticmethod
-    def retrieve_subscription(subscription_id: str) -> stripe.Subscription:
+    def retrieve_subscription(
+        subscription_id: str,
+        expand: list[str] | None = None,
+    ) -> stripe.Subscription:
         """Récupérer une subscription."""
+        if expand:
+            return stripe.Subscription.retrieve(subscription_id, expand=expand)
         return stripe.Subscription.retrieve(subscription_id)
+
+    @staticmethod
+    def list_subscriptions(
+        customer: str,
+        status: str | None = None,
+        limit: int = 10,
+    ) -> stripe.ListObject:
+        """Lister les subscriptions d'un customer (filtrable par statut)."""
+        params: dict[str, Any] = {"customer": customer, "limit": limit}
+        if status:
+            params["status"] = status
+        return stripe.Subscription.list(**params)
+
+    @staticmethod
+    def cancel_subscription(subscription_id: str) -> stripe.Subscription:
+        """Annule immédiatement une subscription (pas en fin de période)."""
+        return stripe.Subscription.cancel(subscription_id)
 
     @staticmethod
     def update_subscription(

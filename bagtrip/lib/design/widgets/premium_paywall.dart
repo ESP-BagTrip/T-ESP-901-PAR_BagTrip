@@ -11,6 +11,7 @@ import 'package:bagtrip/repositories/subscription_repository.dart';
 import 'package:bagtrip/subscription/bloc/subscription_bloc.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -70,39 +71,48 @@ class _PremiumPaywallState extends State<PremiumPaywall> {
 
     try {
       // 1. Server creates Subscription(default_incomplete) + EphemeralKey.
+      debugPrint('[paywall] starting subscription bootstrap');
       final startResult = await _subscriptionRepository.start();
       if (!mounted) return;
       switch (startResult) {
         case Failure(:final error):
-          AppSnackBar.showError(
-            context,
-            message: toUserFriendlyMessage(error, l10n),
-          );
+          debugPrint('[paywall] /start failed: $error');
+          _showError(toUserFriendlyMessage(error, l10n));
           return;
         case Success(:final data):
+          debugPrint(
+            '[paywall] /start ok — sub=${data.subscriptionId}, '
+            'pi=${data.paymentIntentClientSecret.substring(0, 12)}…',
+          );
           // 2. Initialise the native PaymentSheet with the trio Stripe needs.
           //    Apple Pay + Google Pay are surfaced automatically when
           //    available on the device — no extra wiring on this side.
+          debugPrint('[paywall] initPaymentSheet…');
           await stripe.Stripe.instance.initPaymentSheet(
             paymentSheetParameters: stripe.SetupPaymentSheetParameters(
               merchantDisplayName: 'BagTrip',
               paymentIntentClientSecret: data.paymentIntentClientSecret,
               customerId: data.customer,
               customerEphemeralKeySecret: data.ephemeralKey,
-              applePay: const stripe.PaymentSheetApplePay(
-                merchantCountryCode: 'FR',
-              ),
+              // Apple Pay only renders when an iOS merchant identifier is
+              // configured in Info.plist + Apple Pay capability is enabled
+              // in Xcode. Until then keep it off so it doesn't blow up
+              // initPaymentSheet on iOS dev builds.
               googlePay: const stripe.PaymentSheetGooglePay(
                 merchantCountryCode: 'FR',
                 currencyCode: 'EUR',
+                testEnv: kDebugMode,
               ),
               style: ThemeMode.system,
             ),
           );
+          debugPrint('[paywall] initPaymentSheet ok');
           if (!mounted) return;
           // 3. User pays in-sheet. Throws StripeException on cancel/error;
           //    success means the PaymentIntent is confirmed (3DS included).
+          debugPrint('[paywall] presentPaymentSheet…');
           await stripe.Stripe.instance.presentPaymentSheet();
+          debugPrint('[paywall] presentPaymentSheet ok');
           if (!mounted) return;
           // 4. Refresh user (webhook flips plan→PREMIUM) and route to the
           //    welcome page. The page itself polls until the webhook lands.
@@ -113,20 +123,48 @@ class _PremiumPaywallState extends State<PremiumPaywall> {
           const SubscriptionSuccessRoute().go(context);
           return;
       }
-    } on stripe.StripeException catch (e) {
+    } on stripe.StripeException catch (e, st) {
       // Cancel is a non-event — no toast, just close the loading state.
-      if (e.error.code == stripe.FailureCode.Canceled) return;
-      if (!mounted) return;
-      AppSnackBar.showError(
-        context,
-        message: e.error.localizedMessage ?? l10n.errorUnknown,
+      if (e.error.code == stripe.FailureCode.Canceled) {
+        debugPrint('[paywall] user cancelled the sheet');
+        return;
+      }
+      debugPrint(
+        '[paywall] StripeException: code=${e.error.code} '
+        'message=${e.error.message} declineCode=${e.error.declineCode}\n$st',
       );
-    } catch (e) {
       if (!mounted) return;
-      AppSnackBar.showError(context, message: l10n.errorUnknown);
+      _showError(
+        e.error.localizedMessage ?? e.error.message ?? l10n.errorUnknown,
+      );
+    } catch (e, st) {
+      debugPrint('[paywall] unexpected error: $e\n$st');
+      if (!mounted) return;
+      _showError('${l10n.errorUnknown}: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  /// Show an error toast that survives the paywall context. The bottom-sheet
+  /// has its own ScaffoldMessenger, so we hop to the root one — otherwise
+  /// the snackbar appears *behind* the sheet and the user never sees it.
+  void _showError(String message) {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (messenger != null) {
+      messenger
+        ..clearSnackBars()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      return;
+    }
+    // Fallback to the project's snackbar if the root messenger is unreachable.
+    AppSnackBar.showError(context, message: message);
   }
 
   @override
