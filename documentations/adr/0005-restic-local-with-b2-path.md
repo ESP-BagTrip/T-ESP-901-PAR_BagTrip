@@ -70,7 +70,7 @@ Three operational components ship together:
 ### Harder
 - The local repo is on the same physical host as the data it backs
   up. If that host's filesystem is destroyed, both go together. We
-  accept this for the M5 phase explicitly, and will fail an audit
+  accept this trade-off explicitly, and will fail an audit
   question on it; the answer is "B2 toggle one config away".
 - Restic password lives in `/opt/observability/.env` (mode 0600
   deploy:deploy). If we lose that file *and* the off-site copy, the

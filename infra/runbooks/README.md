@@ -1,9 +1,9 @@
 # Runbooks
 
-One markdown file per actionable Prometheus alert (Phase 4). Each runbook
-follows the same shape: trigger, triage, recovery, escalation. Linked
-from the alert rule via `runbook_url` so a Discord notification deep-links
-into the right page.
+One markdown file per actionable Prometheus alert. Each runbook follows
+the same shape: trigger, triage, recovery, escalation. Linked from the
+alert rule via `runbook_url` so a Discord notification deep-links into
+the right page.
 
 | Alert(s) | Runbook |
 |---|---|

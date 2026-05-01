@@ -17,31 +17,31 @@ to sequence the work.
 ## Decision
 
 We sequence security work by **post-mortem follow-up ID**, not by
-"what looks coolest". Each phase of the M5 plan is anchored to one or
+"what looks coolest". Each control delivered is anchored to one or
 more `F<n>` items in the incident document:
 
-| Gap (from §2.2 of the post-mortem) | Control | Phase | Status |
-|---|---|---|---|
-| F1 — No CVE scanner in CI | Trivy `fs` scan, fail-build on HIGH/CRITICAL | 5a | shipped |
-| F2 — Manual upgrades, no Dependabot | Trivy waivers + tracked in `.trivyignore` | 5a | shipped (forcing function) |
-| F3 — Container without `read_only`, `noexec`, cap drop | Already applied 26/04, asserted by Phase 0 baseline role | 0 | shipped |
-| F4 — No HIDS catching `*.js → sh → base64 → /tmp/*` | Falco runtime rules + alerts | 5b | rules shipped, runtime deferred |
-| F5 — No edge access logs | Caddy JSON access logs → Loki + dashboards | 1+2 | shipped |
-| F6 — No egress filtering | Outbound allowlist via Falco + per-stack `internal: true` networks | 5c | deferred |
-| F7 — No app-layer rate limit | Rate-limit middleware in api + Caddy `rate_limit` | n/a (out of M5 scope) | application work |
+| Gap (from §2.2 of the post-mortem) | Control | Status |
+|---|---|---|
+| F1 — No CVE scanner in CI | Trivy `fs` scan, fail-build on HIGH/CRITICAL | shipped |
+| F2 — Manual upgrades, no Dependabot | Trivy waivers + tracked in `.trivyignore` | shipped (forcing function) |
+| F3 — Container without `read_only`, `noexec`, cap drop | Applied 26/04, asserted by the baseline Ansible role on every deploy | shipped |
+| F4 — No HIDS catching `*.js → sh → base64 → /tmp/*` | Falco runtime rules + alerts | rules shipped, runtime deferred |
+| F5 — No edge access logs | Caddy JSON access logs → Loki + dashboards | shipped |
+| F6 — No egress filtering | Outbound allowlist via Falco + per-stack `internal: true` networks | deferred |
+| F7 — No app-layer rate limit | Rate-limit middleware in api + Caddy `rate_limit` | partial (middleware exists, Caddy plugin TBD) |
 
 Beyond closing those specific gaps, two architectural decisions follow
 from the same incident-driven framing:
 
 - **Monitor what would have caught the attack.** The
-  `ContainerCPUSustained` alert (Phase 4) fires in 5 minutes on the
+  `ContainerCPUSustained` alert fires in 5 minutes on the
   exact pattern that took Netdata 7h45 to surface. Not a generic CPU
   alert — explicitly named after the incident's `incident_pattern`
   label.
 - **Test the recovery path you claim.** Backups existed elsewhere; the
-  M5 rubric asks for *tested* recovery. Phase 6 ships a weekly restore
-  drill that runs end-to-end in Postgres throwaway containers and
-  alerts on its own failure (`ResticRestoreDrillFailed` paging).
+  goal is *tested* recovery. The DR layer ships a weekly restore drill
+  that runs end-to-end in Postgres throwaway containers and alerts on
+  its own failure (`ResticRestoreDrillFailed` paging).
 
 ## Consequences
 
@@ -53,7 +53,7 @@ from the same incident-driven framing:
 
 ### Harder
 - Some F items are application work (F7 rate limiting) and don't fit
-  cleanly into "infra phases" — they need separate PRs against
+  cleanly into the infra layer — they need separate PRs against
   `api/` / `admin-panel/`. Tracked in the hardening-roadmap.
 - F6 (egress allowlist) requires enumerating *every* legitimate
   outbound — Stripe, Amadeus, OVH LLM, Sentry, Cloudflare. That's
@@ -71,7 +71,7 @@ from the same incident-driven framing:
 |---|---|
 | **Wazuh as a one-stop SIEM** | Overkill for one host; would require maintaining a parallel agent / manager / dashboards stack on top of Grafana. |
 | **CrowdSec WAF replacing Falco entirely** | Different layer — CrowdSec watches edge logs (we use it for SSH brute-force already); Falco watches syscalls inside containers. Complementary, not substitutes. |
-| **Trivy image scan against built images instead of `fs` scan** | Slower (requires building images in CI), and `fs` already catches OS package CVEs in Dockerfiles. We can add image scan as a Phase 9+ depth pass. |
+| **Trivy image scan against built images instead of `fs` scan** | Slower (requires building images in CI), and `fs` already catches OS package CVEs in Dockerfiles. Image scan can be added as a future depth pass. |
 
 ## References
 

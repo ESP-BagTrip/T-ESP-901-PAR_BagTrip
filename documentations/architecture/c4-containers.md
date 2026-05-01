@@ -116,7 +116,7 @@ graph TB
   the implicit container; outside everything.
 - **Falco** is dashed because it ships as config but its container is
   tagged with the `security` compose profile and is not running on the
-  current kernel (Phase 5b carry-over).
+  current kernel (runtime deferred — Linux 6.14 eBPF probe issue).
 - **Out of scope**: any non-BagTrip workload on the same VPS. The host
   has other tenants; they share `node_exporter` host-level metrics
   visibility but never enter our Loki index, our cAdvisor scrape

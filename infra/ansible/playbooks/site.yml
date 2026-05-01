@@ -1,14 +1,19 @@
 ---
 # Top-level entry point for the BagTrip VPS.
-# Use --tags to scope to a phase:
-#   --tags baseline       : Phase 0 only (read-only assertions)
-#   --tags observability  : Phase 1 (deploy /opt/observability)
+# Use --tags to scope:
+#   --tags baseline       : read-only baseline assertions only
+#   --tags observability  : deploy /opt/observability
 
 - name: Converge BagTrip VPS
   hosts: bagtrip_vps
   gather_facts: true
+  vars_files:
+    # Optional local secrets (gitignored). Defines values like
+    # observability_alertmanager_discord_webhook that we don't want in git.
+    # If the file doesn't exist, defaults from the role apply.
+    - "{{ playbook_dir }}/../secrets.yml"
   roles:
     - role: common
       tags: [common, baseline]
     - role: observability_stack
-      tags: [observability, phase1]
+      tags: [observability]

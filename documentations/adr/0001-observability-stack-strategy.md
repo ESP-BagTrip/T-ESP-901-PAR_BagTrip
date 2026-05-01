@@ -15,7 +15,7 @@ The BagTrip production VPS runs three application stacks behind a single Caddy e
 
 The Master M5 deliverable also requires demonstrable competence across observability, security, IaC, and incident response. Choices made here therefore have to satisfy two audiences: the operational reality of running BagTrip, and the M5 jury reading the rubric.
 
-A 20-day plan covering metrics + logs + traces + alerting + security runtime + DR + IaC + business KPIs has been agreed (see `infra/README.md` for the phase status table).
+A plan covering metrics + logs + traces + alerting + security runtime + DR + IaC + business KPIs has been agreed (see `infra/README.md` for the deliverable status table).
 
 ## Decision
 
@@ -38,12 +38,12 @@ The whole stack is deployed by Ansible roles under `infra/ansible/roles/`. No to
 - One UI to learn, one auth to maintain (Grafana basic auth via Caddy in early phases, SSO later if time permits).
 - Adding a new exporter or dashboard is a one-PR change with a clear review surface.
 - The "redeploy from scratch" demo for the jury is `ansible-playbook site.yml` against a clean snapshot.
-- The 26/04 incident becomes a concrete acceptance test: each phase ships a control that would have detected/prevented one specific gap.
+- The 26/04 incident becomes a concrete acceptance test: each deliverable ships a control that would have detected/prevented one specific gap.
 
 ### Harder
 - Total RAM budget for the obs stack will sit around 2–3 GB. The VPS has 31 GB total (after the 2026-04-26 upgrade) — comfortable headroom. Disk is also comfortable (~40 % used on a 193 GiB volume after the 2026-04-26 expansion), unlocking Loki / Tempo retention without juggling.
 - Loki + Tempo each add their own retention/storage knobs to maintain. We accept that overhead in exchange for the single-pane-of-glass benefit.
-- Ansible-first means every Phase 1+ change goes through a playbook, which has a small overhead per task vs. SSH-and-edit. The trade-off is reproducibility — non-negotiable for the jury demo.
+- Ansible-first means every infrastructure change goes through a playbook, which has a small overhead per task vs. SSH-and-edit. The trade-off is reproducibility — non-negotiable for the jury demo.
 
 ### Now off-limits
 - Ad-hoc Docker run / SSH-and-edit operations on managed paths. If it isn't in Ansible, it isn't on the VPS.
@@ -61,12 +61,12 @@ The whole stack is deployed by Ansible roles under `infra/ansible/roles/`. No to
 | **Kubernetes / k3s** | Adds etcd, an API server, and a learning curve, all to solve scheduling problems we don't have on a single VPS. Pure operational overhead. |
 | **GitOps via ArgoCD/Flux** | Same reason — it's a Kubernetes pattern. Nothing prevents us from running the Ansible playbook in CI on merge to `main`, which gives us most of the GitOps benefit at zero infra cost. |
 | **Wazuh or Falco *and* auditd as overlapping HIDS** | Coverage overlap, three places to maintain rules. We pick **Falco** (containers-first, Prometheus-native, modern rule syntax) and lean on journald + auditd-light for host events. Wazuh is a fine alternative SIEM but is overkill for one host. |
-| **Authentik / Authelia SSO from day 1** | High setup cost for four internal dashboards. We start with Caddy basic auth (already in place for Netdata) and revisit SSO if Phase 8 has slack. |
+| **Authentik / Authelia SSO from day 1** | High setup cost for four internal dashboards. We start with Caddy basic auth (already in place for Netdata) and revisit SSO if there is slack later. |
 
 ## References
 
 - `documentations/security/incident-2026-04-26-cryptominer.md` — the trigger incident
 - `documentations/security/hardening-roadmap.md` — companion backlog this plan resolves
-- `infra/README.md` — phase status board
+- `infra/README.md` — deliverable status board
 - `documentations/observability/slo.md` — SLO/SLI targets that drive alert rule thresholds
 - `documentations/security/threat-model.md` — STRIDE model whose "after" column this plan fills in

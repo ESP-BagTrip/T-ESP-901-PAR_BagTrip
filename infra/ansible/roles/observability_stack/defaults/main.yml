@@ -4,7 +4,7 @@ observability_root: /opt/observability
 observability_owner: deploy
 observability_group: deploy
 
-# --- Image pinning (digest-pinning is Phase 5 polish) ---
+# --- Image pinning (digest-pinning is a future polish pass) ---
 observability_versions:
   prometheus: v2.55.1
   grafana: 11.4.0
@@ -19,7 +19,7 @@ observability_versions:
   alertmanager: v0.27.0
   falco: 0.39.0
 
-# --- Loopback ports (host-side; never exposed publicly until Phase 1c) ---
+# --- Loopback ports (host-side; only Grafana is publicly exposed via Caddy) ---
 observability_prometheus_host_port: 9090
 observability_grafana_host_port: 8087
 
@@ -39,7 +39,7 @@ observability_loki_max_query_lookback: "336h"
 observability_alertmanager_discord_webhook: ""
 observability_alertmanager_resolve_timeout: "5m"
 
-# --- Restic backups (Phase 6) ---
+# --- Restic backups ---
 # Local repository by default. To switch to Backblaze B2, set:
 #   observability_restic_repository: "b2:<bucket>:bagtrip"
 #   observability_restic_b2_account_id / observability_restic_b2_account_key
@@ -93,13 +93,13 @@ observability_grafana_public_hostname: grafana.bagtrip.fr
 observability_edge_caddyfile: /opt/edge/Caddyfile
 observability_edge_compose: /opt/edge/compose.yml
 observability_edge_container: edge-caddy
-# Phase 1c — Caddy /metrics is exposed via a dedicated `:8089` vhost
-# (the admin endpoint is left at its default loopback bind, where
-# Caddy's origin enforcement is happy and we don't have to fight it).
-# Iptables drops public access on the default-route NIC.
+# Caddy /metrics is exposed via a dedicated `:8089` vhost (the admin
+# endpoint is left at its default loopback bind, where Caddy's origin
+# enforcement is happy and we don't have to fight it). Iptables drops
+# public access on the default-route NIC.
 observability_edge_metrics_port: 8089
 
-# --- Blackbox probe targets (Phase 1a baseline; expanded in Phase 7) ---
+# --- Blackbox probe targets ---
 observability_blackbox_targets:
   - https://bagtrip.fr
   - https://api.bagtrip.fr

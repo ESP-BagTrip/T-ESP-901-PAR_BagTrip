@@ -36,6 +36,6 @@ If a recent edit to `/opt/edge/Caddyfile` introduced a syntax error,
 ## Don't
 
 - Don't restart `edge-caddy` blindly: it currently bind-mounts the
-  Caddyfile as a single file (Phase 1c carry-over), so a `--force-recreate`
-  is the only way to pick up new config — but that briefly takes every
-  public hostname offline.
+  Caddyfile as a single file, so a `--force-recreate` is the only way
+  to pick up new config — but that briefly takes every public hostname
+  offline.

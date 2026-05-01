@@ -1,8 +1,9 @@
 # C4 — Level 1: System context
 
-> Author: Yanis Lounadi · 2026-04-27 · part of the Phase 9 documentation
-> set. The diagram below is GitHub-rendered Mermaid; PNG / SVG can be
-> exported via Excalidraw or Structurizr if needed for the slide deck.
+> Author: Yanis Lounadi · 2026-04-27 · part of the architecture
+> documentation set. The diagram below is GitHub-rendered Mermaid;
+> PNG / SVG can be exported via Excalidraw or Structurizr if needed
+> for the slide deck.
 
 ```mermaid
 graph LR
@@ -48,7 +49,7 @@ graph LR
 - **OVH GPT-OSS** is the LLM endpoint behind the trip planner.
 - **Firebase FCM** delivers push notifications to the Flutter app.
 - **Backblaze B2** is the documented off-site escape hatch for
-  Restic. Off by default — local repo is the M5-phase deployment
+  Restic. Off by default — local repo is the current deployment
   (see ADR-0005).
 
 ## Roles
@@ -56,7 +57,7 @@ graph LR
 - **Mobile traveller** uses the Flutter app to plan + manage trips.
 - **Internal ops** uses the Next.js admin to triage user / trip /
   payment issues; it is the single highest-value compromise target.
-- **SRE / on-call** is one person at the M5 phase (the author).
+- **SRE / on-call** is one person today (the author).
   Reaches the VPS via SSH and Grafana via HTTPS.
 - **M5 jury** has read-only access to Grafana (`grafana.bagtrip.fr`,
   Caddy basic_auth + Grafana login) and the GitHub repository.

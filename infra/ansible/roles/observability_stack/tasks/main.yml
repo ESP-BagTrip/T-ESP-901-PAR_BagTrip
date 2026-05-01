@@ -292,7 +292,7 @@
     directory_mode: "0755"
   notify: Restart observability stack
 
-# --- Phase 6: Restic backups + restore drill -------------------------------
+# --- Restic backups + restore drill ----------------------------------------
 
 - name: Install restic
   ansible.builtin.apt:
@@ -368,7 +368,7 @@
 # --- node_exporter must read the textfile dir for restic metrics -----------
 # (the compose template already mounts {{ observability_textfile_dir }})
 
-# --- Phase 1c: Edge Caddy /metrics rebind + dir mount ----------------------
+# --- Edge Caddy /metrics rebind + dir mount --------------------------------
 
 - name: Block public access to Caddy /metrics endpoint (iptables INPUT DROP)
   ansible.builtin.iptables:

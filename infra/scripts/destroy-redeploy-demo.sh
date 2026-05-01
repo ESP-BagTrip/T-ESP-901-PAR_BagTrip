@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# BagTrip observability stack — destroy & redeploy demo (Phase 8).
+# BagTrip observability stack — destroy & redeploy demo.
 #
 # This is the live demo for the M5 jury: prove that the observability stack
 # is fully reproducible from the Ansible role + the persisted /etc state on
@@ -18,7 +18,7 @@
 #   - /var/backups/bagtrip-restic (the restic repository)
 #   - /etc/iptables/rules.v4 (the persisted firewall rules)
 #   - /etc/systemd/system/restic-*.{service,timer}
-#   - /opt/edge/Caddyfile (with the Phase 1c Grafana vhost block)
+#   - /opt/edge/Caddyfile (with the Grafana vhost block)
 #
 # Safe to run from a project-root shell:
 #   make -C infra redeploy-demo

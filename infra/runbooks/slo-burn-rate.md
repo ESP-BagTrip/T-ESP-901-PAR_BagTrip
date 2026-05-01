@@ -31,5 +31,5 @@ follow-on signals fire (`ApiHighErrorRate`, `ApiDown`).
 ## What to write in the post-mortem
 
 For every burn-rate alert that fires longer than 30 minutes, append a
-row to the SLO review log (Phase 9 deliverable). Even if the cause was
-"a single buggy migration", we want the trail.
+row to the SLO review log. Even if the cause was "a single buggy
+migration", we want the trail.

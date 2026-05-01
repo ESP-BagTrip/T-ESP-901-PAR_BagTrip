@@ -31,9 +31,9 @@ groups:
           summary: "Container {{ '{{ $labels.name }}' }} pegged > 85% of one CPU for 5 minutes"
           description: |
             This pattern is what the 2026-04-26 cryptominer incident looked like before any
-            other signal triggered. Cross-check Loki for an exec-from-/tmp Falco rule
-            (Phase 5) and Tempo for outbound HTTP spans to unfamiliar destinations before
-            assuming legitimate traffic.
+            other signal triggered. Cross-check Loki for an exec-from-/tmp Falco rule and
+            Tempo for outbound HTTP spans to unfamiliar destinations before assuming
+            legitimate traffic.
           runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/cryptominer-suspect.md"
 
       - alert: ContainerMemoryPressure

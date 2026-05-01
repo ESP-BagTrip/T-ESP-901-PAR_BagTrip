@@ -1,5 +1,5 @@
 ---
-# Phase 0 baseline assertions. All tasks must be:
+# Baseline assertions. All tasks must be:
 #   - Read-only (no `state: present`, no `command:` with side effects).
 #   - `changed_when: false` so a converged host reports 0 changed.
 #   - Fast (the playbook should run in well under 30 s).
