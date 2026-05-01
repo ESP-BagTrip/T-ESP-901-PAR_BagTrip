@@ -6,6 +6,6 @@ class AppConfig {
 
   static const String stripePublishableKey = String.fromEnvironment(
     'STRIPE_PUBLISHABLE_KEY',
-    defaultValue: 'pk_test_placeholder',
+    defaultValue: 'STRIPE_KEY_NOT_SET',
   );
 }

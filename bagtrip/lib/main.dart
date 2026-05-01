@@ -49,15 +49,22 @@ void main() async {
   // Stripe — fail loudly if the publishable key wasn't injected via
   // `--dart-define=STRIPE_PUBLISHABLE_KEY=...`. Stripe's SDK accepts the
   // placeholder silently, then any PaymentSheet call dies with a cryptic
-  // "Could not initialize" error 30 s later. Better to surface the missing
-  // dart-define at boot than to debug it in QA.
+  // error. `debugPrint` (not `dev.log`) so the warning lands in the
+  // standard `flutter run` output regardless of log level filtering.
   final stripeKey = AppConfig.stripePublishableKey;
-  if (stripeKey.isEmpty || stripeKey == 'pk_test_placeholder') {
-    dev.log(
-      '[Stripe] STRIPE_PUBLISHABLE_KEY is missing — pass it via '
-      '`--dart-define=STRIPE_PUBLISHABLE_KEY=pk_test_...`. Until then the '
-      'PaymentSheet flow (subscribe, update card) will refuse to open.',
-      level: 1000, // SEVERE
+  if (stripeKey.isEmpty ||
+      stripeKey == 'STRIPE_KEY_NOT_SET' ||
+      !stripeKey.startsWith('pk_')) {
+    debugPrint(
+      '🛑 [Stripe] STRIPE_PUBLISHABLE_KEY missing or invalid '
+      '("${stripeKey.isEmpty ? "<empty>" : stripeKey}"). '
+      'Pass it via `--dart-define=STRIPE_PUBLISHABLE_KEY=pk_test_…` '
+      '(the Makefile does this from .env). PaymentSheet flows will fail.',
+    );
+  } else {
+    debugPrint(
+      '✅ [Stripe] using publishable key '
+      '${stripeKey.substring(0, 8)}…${stripeKey.substring(stripeKey.length - 4)}',
     );
   }
   Stripe.publishableKey = stripeKey;
