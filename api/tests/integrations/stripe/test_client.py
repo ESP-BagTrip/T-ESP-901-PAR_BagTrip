@@ -201,3 +201,50 @@ class TestSubscriptionAndInvoiceHelpers:
         assert kwargs["customer"] == "cus_1"
         assert kwargs["return_url"] == "bagtrip://profile"
         assert result.url == "https://portal.stripe.com/x"
+
+
+class TestNativeMobileHelpers:
+    """Helpers added for the in-app PaymentSheet flow."""
+
+    @patch("stripe.Subscription.create")
+    def test_create_subscription_in_default_incomplete(self, mock_create):
+        """Subscription is created with default_incomplete + expanded latest invoice.
+
+        That's what makes the PaymentSheet flow work — Stripe returns the
+        invoice's PaymentIntent client_secret in the same call so the SDK
+        can drive the sheet without a second round-trip.
+        """
+        StripeClient.create_subscription(
+            customer="cus_1",
+            price="price_1",
+            idempotency_key="sub-abc-v1",
+        )
+        kwargs = mock_create.call_args.kwargs
+        assert kwargs["customer"] == "cus_1"
+        assert kwargs["payment_behavior"] == "default_incomplete"
+        assert kwargs["expand"] == ["latest_invoice.payment_intent"]
+        assert kwargs["items"] == [{"price": "price_1"}]
+        assert kwargs["idempotency_key"] == "sub-abc-v1"
+
+    @patch("stripe.SetupIntent.create")
+    def test_create_setup_intent(self, mock_create):
+        """SetupIntent for off-session usage — that's what the mobile SDK expects."""
+        StripeClient.create_setup_intent(
+            customer="cus_1", idempotency_key="setup-xyz"
+        )
+        kwargs = mock_create.call_args.kwargs
+        assert kwargs["customer"] == "cus_1"
+        assert kwargs["usage"] == "off_session"
+        assert kwargs["idempotency_key"] == "setup-xyz"
+
+    @patch("stripe.EphemeralKey.create")
+    def test_create_ephemeral_key_uses_pinned_api_version(self, mock_create):
+        """Ephemeral key is bound to our pinned API version.
+
+        If the version drifts the mobile SDK's PaymentSheet may not know
+        about a payment method type and the sheet renders empty.
+        """
+        StripeClient.create_ephemeral_key("cus_1")
+        kwargs = mock_create.call_args.kwargs
+        assert kwargs["customer"] == "cus_1"
+        assert kwargs["stripe_version"] == STRIPE_API_VERSION

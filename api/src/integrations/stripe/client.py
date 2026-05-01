@@ -129,6 +129,30 @@ class StripeClient:
     # ------------------------------------------------------------------
 
     @staticmethod
+    def create_subscription(
+        customer: str,
+        price: str,
+        idempotency_key: str | None = None,
+        **fields: Any,
+    ) -> stripe.Subscription:
+        """Crée une subscription en `default_incomplete` pour PaymentSheet natif.
+
+        Le mode `default_incomplete` retourne immédiatement une `Invoice`
+        avec un `PaymentIntent` non-confirmé, dont le `client_secret` est
+        passé au Flutter `PaymentSheet`. L'utilisateur paie dans l'app —
+        pas de Checkout URL, pas de browser externe.
+        """
+        return stripe.Subscription.create(
+            customer=customer,
+            items=[{"price": price}],
+            payment_behavior="default_incomplete",
+            payment_settings={"save_default_payment_method": "on_subscription"},
+            expand=["latest_invoice.payment_intent"],
+            **fields,
+            **_idem_kwargs(idempotency_key),
+        )
+
+    @staticmethod
     def retrieve_subscription(subscription_id: str) -> stripe.Subscription:
         """Récupérer une subscription."""
         return stripe.Subscription.retrieve(subscription_id)
@@ -154,13 +178,45 @@ class StripeClient:
         return stripe.Invoice.list(customer=customer_id, limit=limit)
 
     # ------------------------------------------------------------------
-    # PaymentMethod
+    # PaymentMethod / SetupIntent / EphemeralKey (mobile-native flows)
     # ------------------------------------------------------------------
 
     @staticmethod
     def retrieve_payment_method(payment_method_id: str) -> stripe.PaymentMethod:
         """Récupérer un PaymentMethod (last4, brand, exp_year, etc.)."""
         return stripe.PaymentMethod.retrieve(payment_method_id)
+
+    @staticmethod
+    def create_setup_intent(
+        customer: str,
+        usage: str = "off_session",
+        idempotency_key: str | None = None,
+    ) -> stripe.SetupIntent:
+        """Crée un `SetupIntent` pour ajouter / changer la CB en in-app.
+
+        Utilisé par le PaymentSheet Flutter en mode setup — l'utilisateur
+        attache une nouvelle carte sans quitter l'app, puis on l'attache
+        comme `default_payment_method` du subscription.
+        """
+        return stripe.SetupIntent.create(
+            customer=customer,
+            usage=usage,
+            **_idem_kwargs(idempotency_key),
+        )
+
+    @staticmethod
+    def create_ephemeral_key(customer_id: str) -> stripe.EphemeralKey:
+        """Clé éphémère restreinte pour le SDK mobile.
+
+        Sans ça, le PaymentSheet Flutter ne peut pas lister les
+        PaymentMethods sauvegardés du customer. La clé expire au bout
+        d'une heure et n'est valide que pour ce customer — c'est l'API
+        officielle Stripe pour les SDK iOS/Android/Flutter.
+        """
+        return stripe.EphemeralKey.create(
+            customer=customer_id,
+            stripe_version=STRIPE_API_VERSION,
+        )
 
     # ------------------------------------------------------------------
     # Billing Portal

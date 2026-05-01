@@ -191,7 +191,10 @@ class _InvoiceRow extends StatelessWidget {
 
   Future<void> _open(String url) async {
     HapticFeedback.lightImpact();
-    await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    // In-app browser (SFSafariViewController on iOS, Custom Tabs on Android)
+    // — the invoice slides up in the same chrome the user lives in, no
+    // jarring jump to Safari.
+    await launchUrl(Uri.parse(url), mode: LaunchMode.inAppBrowserView);
   }
 
   Future<void> _openContextActions(

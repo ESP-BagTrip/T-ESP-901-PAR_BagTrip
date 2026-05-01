@@ -1,7 +1,4 @@
 import 'package:bagtrip/components/adaptive/adaptive_app_bar.dart';
-import 'package:bagtrip/components/app_snackbar.dart';
-import 'package:bagtrip/config/service_locator.dart';
-import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
@@ -10,17 +7,15 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/payment_method_preview.dart';
 import 'package:bagtrip/models/subscription_details.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
-import 'package:bagtrip/repositories/subscription_repository.dart';
 import 'package:bagtrip/subscription/bloc/subscription_bloc.dart';
 import 'package:bagtrip/subscription/view/cancel_subscription_sheet.dart';
 import 'package:bagtrip/subscription/view/reactivate_subscription_sheet.dart';
+import 'package:bagtrip/subscription/view/update_payment_method_sheet.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 /// "Manage subscription" — the showcase page.
 ///
@@ -138,10 +133,13 @@ class _PremiumBody extends StatelessWidget {
         const _Divider(),
 
         // Self-service actions.
+        // Update payment method opens the *native* PaymentSheet in setup
+        // mode — no browser, no portal. Apple Pay / Google Pay / cards
+        // attach in the same chrome the user paid in.
         _ActionTile(
           icon: AdaptiveIcons.creditCard,
           label: l10n.subscriptionUpdatePaymentMethod,
-          onTap: () => _openPortal(context),
+          onTap: () => UpdatePaymentMethodFlow.run(context),
         ),
         const _Divider(),
         _ActionTile(
@@ -173,23 +171,6 @@ class _PremiumBody extends StatelessWidget {
           ),
       ],
     );
-  }
-
-  Future<void> _openPortal(BuildContext context) async {
-    HapticFeedback.lightImpact();
-    final l10n = AppLocalizations.of(context)!;
-    final repo = getIt<SubscriptionRepository>();
-    final result = await repo.getPortalUrl();
-    if (!context.mounted) return;
-    switch (result) {
-      case Success(:final data):
-        await launchUrl(Uri.parse(data), mode: LaunchMode.externalApplication);
-      case Failure(:final error):
-        AppSnackBar.showError(
-          context,
-          message: toUserFriendlyMessage(error, l10n),
-        );
-    }
   }
 }
 

@@ -5841,6 +5841,12 @@ abstract class AppLocalizations {
   /// **'Modifier le moyen de paiement'**
   String get subscriptionUpdatePaymentMethod;
 
+  /// No description provided for @updatePaymentMethodSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle carte enregistrée'**
+  String get updatePaymentMethodSuccess;
+
   /// No description provided for @subscriptionViewInvoices.
   ///
   /// In fr, this message translates to:

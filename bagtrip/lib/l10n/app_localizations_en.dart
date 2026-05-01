@@ -3262,6 +3262,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get subscriptionUpdatePaymentMethod => 'Update payment method';
 
   @override
+  String get updatePaymentMethodSuccess => 'New card saved';
+
+  @override
   String get subscriptionViewInvoices => 'View invoices';
 
   @override

@@ -1622,6 +1622,7 @@
     "placeholders": {"expiry": {"type": "String"}}
   },
   "subscriptionUpdatePaymentMethod": "Update payment method",
+  "updatePaymentMethodSuccess": "New card saved",
   "subscriptionViewInvoices": "View invoices",
   "subscriptionCancelAction": "Cancel subscription",
   "subscriptionReactivateAction": "Reactivate subscription",

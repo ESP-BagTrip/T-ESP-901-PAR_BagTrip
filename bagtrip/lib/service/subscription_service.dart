@@ -2,7 +2,9 @@ import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/logged_failure.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/invoice.dart';
+import 'package:bagtrip/models/payment_method_setup_params.dart';
 import 'package:bagtrip/models/subscription_details.dart';
+import 'package:bagtrip/models/subscription_start_params.dart';
 import 'package:bagtrip/repositories/subscription_repository.dart';
 import 'package:bagtrip/service/api_client.dart';
 import 'package:dio/dio.dart';
@@ -12,6 +14,64 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
 
   SubscriptionRepositoryImpl({required ApiClient apiClient})
     : _apiClient = apiClient;
+
+  @override
+  Future<Result<SubscriptionStartParams>> start() async {
+    try {
+      final response = await _apiClient.post('/subscription/start');
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        return Success(SubscriptionStartParams.fromJson(data));
+      }
+      return loggedFailure(
+        const ServerError('Invalid /subscription/start response shape'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<PaymentMethodSetupParams>> startPaymentMethodUpdate() async {
+    try {
+      final response = await _apiClient.post(
+        '/subscription/payment-method/setup',
+      );
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        return Success(PaymentMethodSetupParams.fromJson(data));
+      }
+      return loggedFailure(
+        const ServerError('Invalid /payment-method/setup response shape'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<void>> attachPaymentMethod(String paymentMethodId) async {
+    try {
+      final response = await _apiClient.post(
+        '/subscription/payment-method/attach',
+        data: {'paymentMethodId': paymentMethodId},
+      );
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return const Success(null);
+      }
+      return loggedFailure(
+        ServerError('attach failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
 
   @override
   Future<Result<String>> getCheckoutUrl() async {

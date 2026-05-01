@@ -1622,6 +1622,7 @@
     "placeholders": {"expiry": {"type": "String"}}
   },
   "subscriptionUpdatePaymentMethod": "Modifier le moyen de paiement",
+  "updatePaymentMethodSuccess": "Nouvelle carte enregistrée",
   "subscriptionViewInvoices": "Voir les factures",
   "subscriptionCancelAction": "Annuler l'abonnement",
   "subscriptionReactivateAction": "Réactiver l'abonnement",

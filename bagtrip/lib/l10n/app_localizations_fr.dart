@@ -3282,6 +3282,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get subscriptionUpdatePaymentMethod => 'Modifier le moyen de paiement';
 
   @override
+  String get updatePaymentMethodSuccess => 'Nouvelle carte enregistrée';
+
+  @override
   String get subscriptionViewInvoices => 'Voir les factures';
 
   @override

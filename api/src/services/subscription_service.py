@@ -99,6 +99,132 @@ class SubscriptionService:
             raise AppError("STRIPE_ERROR", 500, "Could not open billing portal") from exc
 
     # ------------------------------------------------------------------
+    # Native PaymentSheet flow (mobile — no browser)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def start_subscription(db: Session, user: User) -> dict:
+        """Start a Premium subscription for the native Flutter PaymentSheet.
+
+        Creates a Stripe Subscription in `default_incomplete` mode — the
+        latest invoice carries an unconfirmed PaymentIntent whose
+        `client_secret` is what the mobile SDK uses to drive the
+        PaymentSheet. Apple Pay / Google Pay / cards / 3DS are handled
+        in-sheet, with the user never leaving the app.
+
+        Returns the trio the SDK needs (`paymentIntentClientSecret`,
+        `ephemeralKey`, `customer`) plus the subscription id so the app
+        can correlate the result. The subscription itself is *not*
+        marked active until the PaymentIntent confirms — the
+        `customer.subscription.created` / `invoice.payment_succeeded`
+        webhooks flip `User.plan` server-side, the app just refreshes
+        the user once the PaymentSheet returns success.
+        """
+        _ensure_stripe_configured()
+
+        if PlanService.get_plan(user).value != "FREE":
+            raise AppError("ALREADY_PREMIUM", 400, "You are already on a paid plan")
+
+        customer_id = _ensure_customer(user)
+        price_id = SubscriptionService._get_premium_price_id()
+
+        try:
+            subscription = StripeClient.create_subscription(
+                customer=customer_id,
+                price=price_id,
+                idempotency_key=f"sub-{user.id}-start-v1",
+                metadata={"user_id": str(user.id)},
+            )
+            ephemeral_key = StripeClient.create_ephemeral_key(customer_id)
+        except stripe.StripeError as exc:
+            logger.error(f"Stripe start subscription failed: {exc}", exc_info=True)
+            raise AppError("STRIPE_ERROR", 500, "Could not start subscription") from exc
+
+        # `latest_invoice` was expanded with `payment_intent` so we can
+        # pluck the client_secret without a second round-trip.
+        invoice = getattr(subscription, "latest_invoice", None)
+        payment_intent = getattr(invoice, "payment_intent", None) if invoice else None
+        client_secret = getattr(payment_intent, "client_secret", None) if payment_intent else None
+        if not client_secret:
+            logger.error(
+                f"Subscription {subscription.id} has no client_secret on latest_invoice.payment_intent"
+            )
+            raise AppError("STRIPE_ERROR", 500, "Subscription missing PaymentIntent")
+
+        return {
+            "subscription_id": subscription.id,
+            "payment_intent_client_secret": client_secret,
+            "ephemeral_key": ephemeral_key.secret,
+            "customer": customer_id,
+        }
+
+    @staticmethod
+    def start_payment_method_update(db: Session, user: User) -> dict:
+        """Start an in-app payment method update via SetupIntent.
+
+        Replaces the Stripe Billing Portal "Change card" flow. The mobile
+        SDK opens its PaymentSheet in setup mode, the user attaches a
+        new card without leaving the app, and we wire it as the
+        subscription's default once the SetupIntent confirms.
+        """
+        _ensure_stripe_configured()
+        customer_id = _ensure_customer(user)
+
+        try:
+            setup_intent = StripeClient.create_setup_intent(customer=customer_id)
+            ephemeral_key = StripeClient.create_ephemeral_key(customer_id)
+        except stripe.StripeError as exc:
+            logger.error(
+                f"Stripe SetupIntent creation failed for {customer_id}: {exc}",
+                exc_info=True,
+            )
+            raise AppError("STRIPE_ERROR", 500, "Could not start payment method update") from exc
+
+        return {
+            "setup_intent_client_secret": setup_intent.client_secret,
+            "ephemeral_key": ephemeral_key.secret,
+            "customer": customer_id,
+        }
+
+    @staticmethod
+    def attach_default_payment_method(db: Session, user: User, payment_method_id: str) -> dict:
+        """Set `payment_method_id` as the default for the active subscription.
+
+        Called after the in-app SetupIntent succeeds. The subscription's
+        `default_payment_method` is updated so future renewals charge the
+        new card, and the customer's `invoice_settings.default_payment_method`
+        is updated so any one-off charges follow suit.
+        """
+        _ensure_stripe_configured()
+        customer_id = _ensure_customer(user)
+        if not user.stripe_subscription_id:
+            raise AppError("NO_ACTIVE_SUBSCRIPTION", 400, "No active subscription")
+
+        try:
+            # Customer-level default — used for one-off charges and any
+            # future subscription created without an explicit
+            # `default_payment_method`.
+            stripe.Customer.modify(
+                customer_id,
+                invoice_settings={"default_payment_method": payment_method_id},
+            )
+            # Subscription-level default — what actually gets charged on
+            # the next renewal.
+            StripeClient.update_subscription(
+                user.stripe_subscription_id,
+                idempotency_key=f"sub-{user.id}-pm-{payment_method_id}-v1",
+                default_payment_method=payment_method_id,
+            )
+        except stripe.StripeError as exc:
+            logger.error(
+                f"Stripe attach default payment method failed: {exc}",
+                exc_info=True,
+            )
+            raise AppError("STRIPE_ERROR", 500, "Could not attach payment method") from exc
+
+        return {"status": "attached"}
+
+    # ------------------------------------------------------------------
     # Status & details
     # ------------------------------------------------------------------
 

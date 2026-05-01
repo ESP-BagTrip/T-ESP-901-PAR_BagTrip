@@ -159,3 +159,82 @@ class TestListInvoices:
         """Schema validation: limit must be 1..50."""
         response = client.get("/v1/subscription/invoices?limit=999")
         assert response.status_code == 422
+
+
+class TestStartSubscription:
+    """POST /v1/subscription/start — native PaymentSheet bootstrap."""
+
+    @patch("src.api.subscription.routes.SubscriptionService")
+    def test_success(self, mock_service, client, override_get_current_user, override_get_db):
+        mock_service.start_subscription.return_value = {
+            "subscription_id": "sub_999",
+            "payment_intent_client_secret": "pi_secret",
+            "ephemeral_key": "ek_secret",
+            "customer": "cus_123",
+        }
+        response = client.post("/v1/subscription/start")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["subscription_id"] == "sub_999"
+        assert body["payment_intent_client_secret"] == "pi_secret"
+        assert body["ephemeral_key"] == "ek_secret"
+
+    @patch("src.api.subscription.routes.SubscriptionService")
+    def test_already_premium(
+        self, mock_service, client, override_get_current_user, override_get_db
+    ):
+        mock_service.start_subscription.side_effect = AppError(
+            "ALREADY_PREMIUM", 400, "You are already on a paid plan"
+        )
+        response = client.post("/v1/subscription/start")
+        assert response.status_code == 400
+
+
+class TestPaymentMethodSetup:
+    """POST /v1/subscription/payment-method/setup — SetupIntent for in-app card update."""
+
+    @patch("src.api.subscription.routes.SubscriptionService")
+    def test_success(self, mock_service, client, override_get_current_user, override_get_db):
+        mock_service.start_payment_method_update.return_value = {
+            "setup_intent_client_secret": "seti_secret",
+            "ephemeral_key": "ek_secret",
+            "customer": "cus_123",
+        }
+        response = client.post("/v1/subscription/payment-method/setup")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["setup_intent_client_secret"] == "seti_secret"
+
+
+class TestPaymentMethodAttach:
+    """POST /v1/subscription/payment-method/attach — wire the new PM as default."""
+
+    @patch("src.api.subscription.routes.SubscriptionService")
+    def test_success(self, mock_service, client, override_get_current_user, override_get_db):
+        mock_service.attach_default_payment_method.return_value = {"status": "attached"}
+        response = client.post(
+            "/v1/subscription/payment-method/attach",
+            json={"paymentMethodId": "pm_xyz"},
+        )
+        assert response.status_code == 200
+        assert response.json()["status"] == "attached"
+
+    def test_missing_payment_method_id_rejected(
+        self, client, override_get_current_user, override_get_db
+    ):
+        """The body must carry `paymentMethodId` — schema-level validation."""
+        response = client.post("/v1/subscription/payment-method/attach", json={})
+        assert response.status_code == 422
+
+    @patch("src.api.subscription.routes.SubscriptionService")
+    def test_no_active_subscription(
+        self, mock_service, client, override_get_current_user, override_get_db
+    ):
+        mock_service.attach_default_payment_method.side_effect = AppError(
+            "NO_ACTIVE_SUBSCRIPTION", 400, "No active subscription"
+        )
+        response = client.post(
+            "/v1/subscription/payment-method/attach",
+            json={"paymentMethodId": "pm_xyz"},
+        )
+        assert response.status_code == 400
