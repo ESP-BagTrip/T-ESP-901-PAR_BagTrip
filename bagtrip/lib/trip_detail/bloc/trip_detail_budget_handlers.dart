@@ -51,7 +51,9 @@ extension _TripDetailBudgetHandlers on TripDetailBloc {
       case Success():
         add(RefreshBudgetSummaryFromDetail());
       case Failure(:final error):
-        // Rollback to the pre-optimistic summary, then surface the error.
+        // Rollback to the pre-optimistic summary, then surface the error
+        // and clear it on the next tick so the UI can render a snackbar
+        // without keeping the bloc in an "errored" steady state.
         if (state is TripDetailLoaded) {
           final reverted = (state as TripDetailLoaded).copyWith(
             budgetSummary: preOptimisticSummary,
@@ -59,6 +61,7 @@ extension _TripDetailBudgetHandlers on TripDetailBloc {
             operationError: error,
           );
           emit(reverted);
+          emit(reverted.copyWith(clearOperationError: true));
         }
     }
   }

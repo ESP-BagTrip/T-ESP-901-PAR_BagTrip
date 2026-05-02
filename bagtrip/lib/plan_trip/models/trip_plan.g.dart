@@ -60,8 +60,11 @@ _TripPlan _$TripPlanFromJson(Map<String, dynamic> json) => _TripPlan(
           .toList() ??
       const [],
   hotelRating: (json['hotel_rating'] as num?)?.toInt() ?? 0,
-  budgetBreakdown:
-      json['budget_breakdown'] as Map<String, dynamic>? ?? const {},
+  budgetBreakdown: json['budget_breakdown'] == null
+      ? const BudgetBreakdown()
+      : BudgetBreakdown.fromJson(
+          json['budget_breakdown'] as Map<String, dynamic>,
+        ),
   weatherData: json['weather_data'] as Map<String, dynamic>? ?? const {},
 );
 
@@ -95,6 +98,6 @@ Map<String, dynamic> _$TripPlanToJson(_TripPlan instance) => <String, dynamic>{
   'essential_items': instance.essentialItems,
   'essential_reasons': instance.essentialReasons,
   'hotel_rating': instance.hotelRating,
-  'budget_breakdown': instance.budgetBreakdown,
+  'budget_breakdown': instance.budgetBreakdown.toJson(),
   'weather_data': instance.weatherData,
 };

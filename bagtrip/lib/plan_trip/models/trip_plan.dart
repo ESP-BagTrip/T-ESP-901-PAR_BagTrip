@@ -1,3 +1,4 @@
+import 'package:bagtrip/plan_trip/models/budget_breakdown.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'trip_plan.freezed.dart';
@@ -47,8 +48,9 @@ abstract class TripPlan with _$TripPlan {
     @Default([]) List<String> essentialReasons,
     // Hotel rating
     @Default(0) int hotelRating,
-    // Budget breakdown
-    @Default({}) Map<String, dynamic> budgetBreakdown,
+    // Budget breakdown — typed Freezed view (B13). Replaces the old
+    // `Map<String, dynamic>` that produced silent zeros on SSE shape drift.
+    @Default(BudgetBreakdown()) BudgetBreakdown budgetBreakdown,
     // Weather
     @Default({}) Map<String, dynamic> weatherData,
   }) = _TripPlan;

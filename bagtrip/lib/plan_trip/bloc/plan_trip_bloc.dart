@@ -6,6 +6,7 @@ import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/plan_trip/models/ai_destination.dart';
 import 'package:bagtrip/plan_trip/helpers/budget_estimation.dart';
+import 'package:bagtrip/plan_trip/models/budget_breakdown.dart';
 import 'package:bagtrip/plan_trip/models/budget_preset.dart';
 import 'package:bagtrip/plan_trip/models/date_mode.dart';
 import 'package:bagtrip/plan_trip/models/duration_preset.dart';
@@ -1070,7 +1071,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       dayCategories: dayCategories,
       essentialItems: essentialItems,
       essentialReasons: essentialReasons,
-      budgetBreakdown: budget,
+      budgetBreakdown: BudgetBreakdown.fromSseMap(budget),
       weatherData: weather,
     );
   }
