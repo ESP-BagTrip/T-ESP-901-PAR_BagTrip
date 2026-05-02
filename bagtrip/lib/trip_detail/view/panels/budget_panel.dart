@@ -115,6 +115,15 @@ class BudgetPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final summary = budgetSummary;
+
+    // Topic 06 (B9) — viewer rendering. Server has already redacted every
+    // monetary field (`totalSpent=0`, `confirmedTotal=0`, etc.) and shipped
+    // a coarse-grained `budgetStatus` bucket. The panel renders the bucket
+    // + the target only, never the items list.
+    if (role == 'VIEWER') {
+      return _ViewerBudgetPanel(summary: summary, l10n: l10n);
+    }
+
     final hasSummaryTotals =
         summary != null &&
         (summary.confirmedTotal > 0 || summary.forecastedTotal > 0);
@@ -616,5 +625,107 @@ class _BudgetPreviewBody extends StatelessWidget {
         ],
       ],
     );
+  }
+}
+
+/// VIEWER-only rendering (topic 06, B9). Shows the trip's budget target
+/// and the coarse-grained `budgetStatus` bucket emitted by the server.
+/// Renders no spent / remaining / per-category figure : the server has
+/// already redacted them, so even a tampered build can't display what
+/// it doesn't have.
+class _ViewerBudgetPanel extends StatelessWidget {
+  const _ViewerBudgetPanel({required this.summary, required this.l10n});
+
+  final BudgetSummary? summary;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    final status = summary?.budgetStatus;
+    final target = summary?.totalBudget ?? 0;
+    final (statusLabel, statusColor) = _statusPresentation(status);
+
+    return ListView(
+      padding: const EdgeInsets.all(AppSpacing.space16),
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: const Color(0xFFFBFAF7),
+            borderRadius: AppRadius.large24,
+            border: Border.all(
+              color: const Color(0xFF0D1F35).withValues(alpha: 0.06),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.space24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.budgetTotal,
+                  style: const TextStyle(
+                    fontFamily: FontFamily.dMSans,
+                    fontSize: 12,
+                    letterSpacing: 1.2,
+                    fontWeight: FontWeight.w600,
+                    color: ColorName.hint,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.space8),
+                Text(
+                  target > 0 ? target.formatPrice() : '—',
+                  style: const TextStyle(
+                    fontFamily: FontFamily.dMSerifDisplay,
+                    fontSize: 28,
+                    color: AppColors.reviewInk,
+                  ),
+                ),
+                if (statusLabel != null) ...[
+                  const SizedBox(height: AppSpacing.space16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.space12,
+                      vertical: AppSpacing.space8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: 0.12),
+                      borderRadius: AppRadius.pill,
+                    ),
+                    child: Text(
+                      statusLabel,
+                      style: TextStyle(
+                        fontFamily: FontFamily.dMSans,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: statusColor,
+                      ),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: AppSpacing.space16),
+                Text(
+                  l10n.budgetViewerNoFiguresHint,
+                  style: TextStyle(
+                    fontFamily: FontFamily.dMSans,
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                    color: AppColors.reviewInk.withValues(alpha: 0.55),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  (String?, Color) _statusPresentation(String? status) {
+    return switch (status) {
+      'onTrack' => (l10n.budgetViewerStatusOnTrack, ColorName.secondary),
+      'tight' => (l10n.budgetViewerStatusTight, ColorName.warning),
+      'overBudget' => (l10n.budgetViewerStatusOverBudget, AppColors.dangerIcon),
+      _ => (null, ColorName.hint),
+    };
   }
 }

@@ -190,4 +190,89 @@ void main() {
     );
     expect(find.byType(PanelFab), findsNothing);
   });
+
+  // ── Topic 06 (B9) — VIEWER renders only the semantic bucket ──────
+
+  testWidgets('viewer mode renders the budgetStatus bucket, not the items', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      BudgetPanel(
+        tripId: 'trip-1',
+        budgetSummary: const BudgetSummary(
+          totalBudget: 1000,
+          budgetStatus: 'tight',
+        ),
+        // Items list is a server-side leak guard but even if a client
+        // mock passes one, the viewer panel must NOT render it.
+        budgetItems: [_item(label: 'Should not appear')],
+        totalDays: 5,
+        canEdit: false,
+        isCompleted: false,
+        role: 'VIEWER',
+      ),
+    );
+
+    // Bucket label visible
+    expect(find.text('Tight'), findsOneWidget);
+    // Hint visible
+    expect(find.textContaining('owner only'), findsOneWidget);
+    // Forecast / Real sections must NOT render
+    expect(find.text('FORECAST'), findsNothing);
+    expect(find.text('REAL'), findsNothing);
+    // Item label must NOT leak
+    expect(find.text('Should not appear'), findsNothing);
+  });
+
+  testWidgets('viewer with no budget target renders dash + no bucket', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      const BudgetPanel(
+        tripId: 'trip-1',
+        budgetSummary: BudgetSummary(totalBudget: 0, budgetStatus: null),
+        budgetItems: [],
+        totalDays: 0,
+        canEdit: false,
+        isCompleted: false,
+        role: 'VIEWER',
+      ),
+    );
+    // Dash placeholder for missing target
+    expect(find.text('—'), findsOneWidget);
+    // No status pill
+    expect(find.text('On track'), findsNothing);
+    expect(find.text('Tight'), findsNothing);
+    expect(find.text('Over budget'), findsNothing);
+  });
+
+  testWidgets('viewer mode maps each status to its localised label', (
+    tester,
+  ) async {
+    for (final (status, expected) in [
+      ('onTrack', 'On track'),
+      ('tight', 'Tight'),
+      ('overBudget', 'Over budget'),
+    ]) {
+      await pump(
+        tester,
+        BudgetPanel(
+          tripId: 'trip-1',
+          budgetSummary: BudgetSummary(totalBudget: 1000, budgetStatus: status),
+          budgetItems: const [],
+          totalDays: 5,
+          canEdit: false,
+          isCompleted: false,
+          role: 'VIEWER',
+        ),
+      );
+      expect(
+        find.text(expected),
+        findsOneWidget,
+        reason: 'status $status should render as "$expected"',
+      );
+    }
+  });
 }

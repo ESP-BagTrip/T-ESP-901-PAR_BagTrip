@@ -2756,6 +2756,19 @@ class AppLocalizationsFr extends AppLocalizations {
       'Le budget est suivi séparément et n\'entre pas dans ce score.';
 
   @override
+  String get budgetViewerStatusOnTrack => 'Dans les clous';
+
+  @override
+  String get budgetViewerStatusTight => 'Tendu';
+
+  @override
+  String get budgetViewerStatusOverBudget => 'Dépassé';
+
+  @override
+  String get budgetViewerNoFiguresHint =>
+      'Les montants détaillés ne sont visibles que par le propriétaire du voyage.';
+
+  @override
   String get shareTooltip => 'Partager';
 
   @override

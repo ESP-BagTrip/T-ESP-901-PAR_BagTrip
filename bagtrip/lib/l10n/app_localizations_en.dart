@@ -2737,6 +2737,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'The budget is tracked separately and isn\'t part of this score.';
 
   @override
+  String get budgetViewerStatusOnTrack => 'On track';
+
+  @override
+  String get budgetViewerStatusTight => 'Tight';
+
+  @override
+  String get budgetViewerStatusOverBudget => 'Over budget';
+
+  @override
+  String get budgetViewerNoFiguresHint =>
+      'Specific amounts are visible to the trip owner only.';
+
+  @override
   String get shareTooltip => 'Share';
 
   @override
