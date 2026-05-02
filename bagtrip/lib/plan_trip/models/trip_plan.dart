@@ -13,7 +13,10 @@ abstract class TripPlan with _$TripPlan {
     String? destinationIata,
     // Trip info
     @Default(7) int durationDays,
-    @Default(0) int budgetEur,
+    // Topic 03 (B5) — kept as `double` so the SSE breakdown stays
+    // precise. The wizard used to cast each category `.toInt()` before
+    // summing, losing up to ~2.50 € on a 5-category plan.
+    @Default(0.0) double budgetEur,
     @Default([]) List<String> highlights,
     // Accommodation
     @Default('') String accommodationName,

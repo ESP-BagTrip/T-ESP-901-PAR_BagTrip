@@ -11,11 +11,15 @@ extension _TripDetailBudgetHandlers on TripDetailBloc {
   ) async {
     if (state is! TripDetailLoaded || _tripId == null) return;
     final loaded = state as TripDetailLoaded;
+    // Topic 03 (B15) — keep an explicit snapshot of the *exact* summary the
+    // user was seeing before the optimistic update so we restore it on
+    // failure instead of falling back to a possibly-stale `loaded` copy.
+    final preOptimisticSummary = loaded.budgetSummary;
 
     // Optimistic update — approximate new budget summary
     final amount = (event.data['amount'] as num?)?.toDouble() ?? 0;
-    if (loaded.budgetSummary != null) {
-      final current = loaded.budgetSummary!;
+    if (preOptimisticSummary != null) {
+      final current = preOptimisticSummary;
       final newSpent = current.totalSpent + amount;
       final newRemaining = current.totalBudget - newSpent;
       final newPercent = current.totalBudget > 0
@@ -47,8 +51,15 @@ extension _TripDetailBudgetHandlers on TripDetailBloc {
       case Success():
         add(RefreshBudgetSummaryFromDetail());
       case Failure(:final error):
-        emit(loaded.copyWith(operationError: error));
-        emit(loaded.copyWith(clearOperationError: true));
+        // Rollback to the pre-optimistic summary, then surface the error.
+        if (state is TripDetailLoaded) {
+          final reverted = (state as TripDetailLoaded).copyWith(
+            budgetSummary: preOptimisticSummary,
+            clearBudgetSummary: preOptimisticSummary == null,
+            operationError: error,
+          );
+          emit(reverted);
+        }
     }
   }
 

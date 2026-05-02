@@ -489,9 +489,18 @@ class TripsService:
         if trip.start_date and trip.end_date:
             trip_duration = (trip.end_date - trip.start_date).days
 
+        # Topic 03 (B1) — `totalExpenses` is the authoritative spent total,
+        # not 0. Compute it from the same service used by the trip detail
+        # so the home and the budget panel always agree. Eager loading on
+        # `trip.budget_items` (declared on the model relationship) keeps
+        # this from triggering an N+1 when the home iterates over active
+        # trips.
+        from src.services.budget_item_service import BudgetItemService
+
+        summary = BudgetItemService.get_budget_summary(db, trip)
         stats = {
             "baggageCount": 0,
-            "totalExpenses": 0.0,
+            "totalExpenses": float(summary.get("total_spent", 0.0)),
             "nbTravelers": trip.nb_travelers or 1,
             "daysUntilTrip": days_until_trip,
             "tripDuration": trip_duration,

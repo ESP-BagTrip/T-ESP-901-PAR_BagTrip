@@ -1010,6 +1010,40 @@ void main() {
     );
 
     test(
+      'B5 — budget breakdown with decimals does not lose precision',
+      () async {
+        // Pre-03, the wizard cast each category `.toInt()` before summing,
+        // dropping decimals. With five 0.5-€ categories the sum collapsed
+        // to 0 instead of 2.5.
+        final controller = StreamController<Map<String, dynamic>>();
+        final bloc = await bootGeneratingBloc(controller);
+
+        controller.add({
+          'event': 'complete',
+          'data': {
+            'tripPlan': {
+              'destination': {'city': 'Lyon', 'country': 'France'},
+              'duration_days': 3,
+              'budget': {
+                'flights': {'amount': 0.5},
+                'accommodation': {'amount': 0.5},
+                'meals': {'amount': 0.5},
+                'transport': {'amount': 0.5},
+                'activities': {'amount': 0.5},
+              },
+            },
+          },
+        });
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        expect(bloc.state.generatedPlan!.budgetEur, closeTo(2.5, 0.001));
+
+        await controller.close();
+        await bloc.close();
+      },
+    );
+
+    test(
       'B23 — accommodation with price_total + nights derives per-night price',
       () async {
         // Pre-04a, the bloc read `price_total` into `accommodationPrice`

@@ -11,7 +11,7 @@ _TripPlan _$TripPlanFromJson(Map<String, dynamic> json) => _TripPlan(
   destinationCountry: json['destination_country'] as String? ?? '',
   destinationIata: json['destination_iata'] as String?,
   durationDays: (json['duration_days'] as num?)?.toInt() ?? 7,
-  budgetEur: (json['budget_eur'] as num?)?.toInt() ?? 0,
+  budgetEur: (json['budget_eur'] as num?)?.toDouble() ?? 0.0,
   highlights:
       (json['highlights'] as List<dynamic>?)
           ?.map((e) => e as String)

@@ -1003,8 +1003,11 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         .map((b) => (b['reason'] ?? '') as String)
         .toList();
 
-    // Budget total — sum breakdown categories for consistency with chart
-    int budgetEur = 0;
+    // Budget total — sum breakdown categories for consistency with chart.
+    // Topic 03 (B5) — accumulate as `double` so we don't drop the decimals
+    // (we used to lose up to ~2.50 € on a 5-category plan via
+    // `raw.toInt()`). Cast happens at render time only.
+    double budgetEur = 0;
     for (final key in [
       'flights',
       'accommodation',
@@ -1015,15 +1018,15 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       final value = budget[key];
       if (value is Map) {
         final raw = value['amount'];
-        if (raw is num) budgetEur += raw.toInt();
+        if (raw is num) budgetEur += raw.toDouble();
       } else if (value is num) {
-        budgetEur += value.toInt();
+        budgetEur += value.toDouble();
       }
     }
     if (budgetEur == 0) {
       // Fallback to LLM totals if no breakdown entries
-      final totalMax = (budget['total_max'] as num?)?.toInt() ?? 0;
-      final totalMin = (budget['total_min'] as num?)?.toInt() ?? 0;
+      final totalMax = (budget['total_max'] as num?)?.toDouble() ?? 0;
+      final totalMin = (budget['total_min'] as num?)?.toDouble() ?? 0;
       budgetEur = totalMax > 0 ? totalMax : totalMin;
     }
     if (budgetEur == 0) {
@@ -1033,7 +1036,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         final cost = a['estimated_cost'];
         if (cost is num) fallbackTotal += cost;
       }
-      budgetEur = fallbackTotal.toInt();
+      budgetEur = fallbackTotal;
     }
 
     return TripPlan(

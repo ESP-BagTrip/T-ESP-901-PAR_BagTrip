@@ -17,7 +17,10 @@ mixin _$TripPlan {
 
 // Destination
  String get destinationCity; String get destinationCountry; String? get destinationIata;// Trip info
- int get durationDays; int get budgetEur; List<String> get highlights;// Accommodation
+ int get durationDays;// Topic 03 (B5) — kept as `double` so the SSE breakdown stays
+// precise. The wizard used to cast each category `.toInt()` before
+// summing, losing up to ~2.50 € on a 5-category plan.
+ double get budgetEur; List<String> get highlights;// Accommodation
  String get accommodationName; String get accommodationSubtitle; double get accommodationPrice; String get accommodationSource;// Flight
  String get flightRoute; String get flightDetails; double get flightPrice; String get flightSource;// Flight offer details (from Amadeus)
  String get originIata; String get flightAirline; String get flightNumber; String get flightDeparture; String get flightArrival; String get flightDuration; String get returnDeparture; String get returnArrival; String get returnDuration;// Day-by-day
@@ -58,7 +61,7 @@ abstract mixin class $TripPlanCopyWith<$Res>  {
   factory $TripPlanCopyWith(TripPlan value, $Res Function(TripPlan) _then) = _$TripPlanCopyWithImpl;
 @useResult
 $Res call({
- String destinationCity, String destinationCountry, String? destinationIata, int durationDays, int budgetEur, List<String> highlights, String accommodationName, String accommodationSubtitle, double accommodationPrice, String accommodationSource, String flightRoute, String flightDetails, double flightPrice, String flightSource, String originIata, String flightAirline, String flightNumber, String flightDeparture, String flightArrival, String flightDuration, String returnDeparture, String returnArrival, String returnDuration, List<String> dayProgram, List<String> dayDescriptions, List<String> dayCategories, List<String> essentialItems, List<String> essentialReasons, int hotelRating, Map<String, dynamic> budgetBreakdown, Map<String, dynamic> weatherData
+ String destinationCity, String destinationCountry, String? destinationIata, int durationDays, double budgetEur, List<String> highlights, String accommodationName, String accommodationSubtitle, double accommodationPrice, String accommodationSource, String flightRoute, String flightDetails, double flightPrice, String flightSource, String originIata, String flightAirline, String flightNumber, String flightDeparture, String flightArrival, String flightDuration, String returnDeparture, String returnArrival, String returnDuration, List<String> dayProgram, List<String> dayDescriptions, List<String> dayCategories, List<String> essentialItems, List<String> essentialReasons, int hotelRating, Map<String, dynamic> budgetBreakdown, Map<String, dynamic> weatherData
 });
 
 
@@ -82,7 +85,7 @@ as String,destinationCountry: null == destinationCountry ? _self.destinationCoun
 as String,destinationIata: freezed == destinationIata ? _self.destinationIata : destinationIata // ignore: cast_nullable_to_non_nullable
 as String?,durationDays: null == durationDays ? _self.durationDays : durationDays // ignore: cast_nullable_to_non_nullable
 as int,budgetEur: null == budgetEur ? _self.budgetEur : budgetEur // ignore: cast_nullable_to_non_nullable
-as int,highlights: null == highlights ? _self.highlights : highlights // ignore: cast_nullable_to_non_nullable
+as double,highlights: null == highlights ? _self.highlights : highlights // ignore: cast_nullable_to_non_nullable
 as List<String>,accommodationName: null == accommodationName ? _self.accommodationName : accommodationName // ignore: cast_nullable_to_non_nullable
 as String,accommodationSubtitle: null == accommodationSubtitle ? _self.accommodationSubtitle : accommodationSubtitle // ignore: cast_nullable_to_non_nullable
 as String,accommodationPrice: null == accommodationPrice ? _self.accommodationPrice : accommodationPrice // ignore: cast_nullable_to_non_nullable
@@ -193,7 +196,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String destinationCity,  String destinationCountry,  String? destinationIata,  int durationDays,  int budgetEur,  List<String> highlights,  String accommodationName,  String accommodationSubtitle,  double accommodationPrice,  String accommodationSource,  String flightRoute,  String flightDetails,  double flightPrice,  String flightSource,  String originIata,  String flightAirline,  String flightNumber,  String flightDeparture,  String flightArrival,  String flightDuration,  String returnDeparture,  String returnArrival,  String returnDuration,  List<String> dayProgram,  List<String> dayDescriptions,  List<String> dayCategories,  List<String> essentialItems,  List<String> essentialReasons,  int hotelRating,  Map<String, dynamic> budgetBreakdown,  Map<String, dynamic> weatherData)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String destinationCity,  String destinationCountry,  String? destinationIata,  int durationDays,  double budgetEur,  List<String> highlights,  String accommodationName,  String accommodationSubtitle,  double accommodationPrice,  String accommodationSource,  String flightRoute,  String flightDetails,  double flightPrice,  String flightSource,  String originIata,  String flightAirline,  String flightNumber,  String flightDeparture,  String flightArrival,  String flightDuration,  String returnDeparture,  String returnArrival,  String returnDuration,  List<String> dayProgram,  List<String> dayDescriptions,  List<String> dayCategories,  List<String> essentialItems,  List<String> essentialReasons,  int hotelRating,  Map<String, dynamic> budgetBreakdown,  Map<String, dynamic> weatherData)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TripPlan() when $default != null:
 return $default(_that.destinationCity,_that.destinationCountry,_that.destinationIata,_that.durationDays,_that.budgetEur,_that.highlights,_that.accommodationName,_that.accommodationSubtitle,_that.accommodationPrice,_that.accommodationSource,_that.flightRoute,_that.flightDetails,_that.flightPrice,_that.flightSource,_that.originIata,_that.flightAirline,_that.flightNumber,_that.flightDeparture,_that.flightArrival,_that.flightDuration,_that.returnDeparture,_that.returnArrival,_that.returnDuration,_that.dayProgram,_that.dayDescriptions,_that.dayCategories,_that.essentialItems,_that.essentialReasons,_that.hotelRating,_that.budgetBreakdown,_that.weatherData);case _:
@@ -214,7 +217,7 @@ return $default(_that.destinationCity,_that.destinationCountry,_that.destination
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String destinationCity,  String destinationCountry,  String? destinationIata,  int durationDays,  int budgetEur,  List<String> highlights,  String accommodationName,  String accommodationSubtitle,  double accommodationPrice,  String accommodationSource,  String flightRoute,  String flightDetails,  double flightPrice,  String flightSource,  String originIata,  String flightAirline,  String flightNumber,  String flightDeparture,  String flightArrival,  String flightDuration,  String returnDeparture,  String returnArrival,  String returnDuration,  List<String> dayProgram,  List<String> dayDescriptions,  List<String> dayCategories,  List<String> essentialItems,  List<String> essentialReasons,  int hotelRating,  Map<String, dynamic> budgetBreakdown,  Map<String, dynamic> weatherData)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String destinationCity,  String destinationCountry,  String? destinationIata,  int durationDays,  double budgetEur,  List<String> highlights,  String accommodationName,  String accommodationSubtitle,  double accommodationPrice,  String accommodationSource,  String flightRoute,  String flightDetails,  double flightPrice,  String flightSource,  String originIata,  String flightAirline,  String flightNumber,  String flightDeparture,  String flightArrival,  String flightDuration,  String returnDeparture,  String returnArrival,  String returnDuration,  List<String> dayProgram,  List<String> dayDescriptions,  List<String> dayCategories,  List<String> essentialItems,  List<String> essentialReasons,  int hotelRating,  Map<String, dynamic> budgetBreakdown,  Map<String, dynamic> weatherData)  $default,) {final _that = this;
 switch (_that) {
 case _TripPlan():
 return $default(_that.destinationCity,_that.destinationCountry,_that.destinationIata,_that.durationDays,_that.budgetEur,_that.highlights,_that.accommodationName,_that.accommodationSubtitle,_that.accommodationPrice,_that.accommodationSource,_that.flightRoute,_that.flightDetails,_that.flightPrice,_that.flightSource,_that.originIata,_that.flightAirline,_that.flightNumber,_that.flightDeparture,_that.flightArrival,_that.flightDuration,_that.returnDeparture,_that.returnArrival,_that.returnDuration,_that.dayProgram,_that.dayDescriptions,_that.dayCategories,_that.essentialItems,_that.essentialReasons,_that.hotelRating,_that.budgetBreakdown,_that.weatherData);case _:
@@ -234,7 +237,7 @@ return $default(_that.destinationCity,_that.destinationCountry,_that.destination
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String destinationCity,  String destinationCountry,  String? destinationIata,  int durationDays,  int budgetEur,  List<String> highlights,  String accommodationName,  String accommodationSubtitle,  double accommodationPrice,  String accommodationSource,  String flightRoute,  String flightDetails,  double flightPrice,  String flightSource,  String originIata,  String flightAirline,  String flightNumber,  String flightDeparture,  String flightArrival,  String flightDuration,  String returnDeparture,  String returnArrival,  String returnDuration,  List<String> dayProgram,  List<String> dayDescriptions,  List<String> dayCategories,  List<String> essentialItems,  List<String> essentialReasons,  int hotelRating,  Map<String, dynamic> budgetBreakdown,  Map<String, dynamic> weatherData)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String destinationCity,  String destinationCountry,  String? destinationIata,  int durationDays,  double budgetEur,  List<String> highlights,  String accommodationName,  String accommodationSubtitle,  double accommodationPrice,  String accommodationSource,  String flightRoute,  String flightDetails,  double flightPrice,  String flightSource,  String originIata,  String flightAirline,  String flightNumber,  String flightDeparture,  String flightArrival,  String flightDuration,  String returnDeparture,  String returnArrival,  String returnDuration,  List<String> dayProgram,  List<String> dayDescriptions,  List<String> dayCategories,  List<String> essentialItems,  List<String> essentialReasons,  int hotelRating,  Map<String, dynamic> budgetBreakdown,  Map<String, dynamic> weatherData)?  $default,) {final _that = this;
 switch (_that) {
 case _TripPlan() when $default != null:
 return $default(_that.destinationCity,_that.destinationCountry,_that.destinationIata,_that.durationDays,_that.budgetEur,_that.highlights,_that.accommodationName,_that.accommodationSubtitle,_that.accommodationPrice,_that.accommodationSource,_that.flightRoute,_that.flightDetails,_that.flightPrice,_that.flightSource,_that.originIata,_that.flightAirline,_that.flightNumber,_that.flightDeparture,_that.flightArrival,_that.flightDuration,_that.returnDeparture,_that.returnArrival,_that.returnDuration,_that.dayProgram,_that.dayDescriptions,_that.dayCategories,_that.essentialItems,_that.essentialReasons,_that.hotelRating,_that.budgetBreakdown,_that.weatherData);case _:
@@ -249,7 +252,7 @@ return $default(_that.destinationCity,_that.destinationCountry,_that.destination
 @JsonSerializable()
 
 class _TripPlan implements TripPlan {
-  const _TripPlan({this.destinationCity = '', this.destinationCountry = '', this.destinationIata, this.durationDays = 7, this.budgetEur = 0, final  List<String> highlights = const [], this.accommodationName = '', this.accommodationSubtitle = '', this.accommodationPrice = 0.0, this.accommodationSource = 'estimated', this.flightRoute = '', this.flightDetails = '', this.flightPrice = 0.0, this.flightSource = 'estimated', this.originIata = '', this.flightAirline = '', this.flightNumber = '', this.flightDeparture = '', this.flightArrival = '', this.flightDuration = '', this.returnDeparture = '', this.returnArrival = '', this.returnDuration = '', final  List<String> dayProgram = const [], final  List<String> dayDescriptions = const [], final  List<String> dayCategories = const [], final  List<String> essentialItems = const [], final  List<String> essentialReasons = const [], this.hotelRating = 0, final  Map<String, dynamic> budgetBreakdown = const {}, final  Map<String, dynamic> weatherData = const {}}): _highlights = highlights,_dayProgram = dayProgram,_dayDescriptions = dayDescriptions,_dayCategories = dayCategories,_essentialItems = essentialItems,_essentialReasons = essentialReasons,_budgetBreakdown = budgetBreakdown,_weatherData = weatherData;
+  const _TripPlan({this.destinationCity = '', this.destinationCountry = '', this.destinationIata, this.durationDays = 7, this.budgetEur = 0.0, final  List<String> highlights = const [], this.accommodationName = '', this.accommodationSubtitle = '', this.accommodationPrice = 0.0, this.accommodationSource = 'estimated', this.flightRoute = '', this.flightDetails = '', this.flightPrice = 0.0, this.flightSource = 'estimated', this.originIata = '', this.flightAirline = '', this.flightNumber = '', this.flightDeparture = '', this.flightArrival = '', this.flightDuration = '', this.returnDeparture = '', this.returnArrival = '', this.returnDuration = '', final  List<String> dayProgram = const [], final  List<String> dayDescriptions = const [], final  List<String> dayCategories = const [], final  List<String> essentialItems = const [], final  List<String> essentialReasons = const [], this.hotelRating = 0, final  Map<String, dynamic> budgetBreakdown = const {}, final  Map<String, dynamic> weatherData = const {}}): _highlights = highlights,_dayProgram = dayProgram,_dayDescriptions = dayDescriptions,_dayCategories = dayCategories,_essentialItems = essentialItems,_essentialReasons = essentialReasons,_budgetBreakdown = budgetBreakdown,_weatherData = weatherData;
   factory _TripPlan.fromJson(Map<String, dynamic> json) => _$TripPlanFromJson(json);
 
 // Destination
@@ -258,7 +261,10 @@ class _TripPlan implements TripPlan {
 @override final  String? destinationIata;
 // Trip info
 @override@JsonKey() final  int durationDays;
-@override@JsonKey() final  int budgetEur;
+// Topic 03 (B5) — kept as `double` so the SSE breakdown stays
+// precise. The wizard used to cast each category `.toInt()` before
+// summing, losing up to ~2.50 € on a 5-category plan.
+@override@JsonKey() final  double budgetEur;
  final  List<String> _highlights;
 @override@JsonKey() List<String> get highlights {
   if (_highlights is EqualUnmodifiableListView) return _highlights;
@@ -379,7 +385,7 @@ abstract mixin class _$TripPlanCopyWith<$Res> implements $TripPlanCopyWith<$Res>
   factory _$TripPlanCopyWith(_TripPlan value, $Res Function(_TripPlan) _then) = __$TripPlanCopyWithImpl;
 @override @useResult
 $Res call({
- String destinationCity, String destinationCountry, String? destinationIata, int durationDays, int budgetEur, List<String> highlights, String accommodationName, String accommodationSubtitle, double accommodationPrice, String accommodationSource, String flightRoute, String flightDetails, double flightPrice, String flightSource, String originIata, String flightAirline, String flightNumber, String flightDeparture, String flightArrival, String flightDuration, String returnDeparture, String returnArrival, String returnDuration, List<String> dayProgram, List<String> dayDescriptions, List<String> dayCategories, List<String> essentialItems, List<String> essentialReasons, int hotelRating, Map<String, dynamic> budgetBreakdown, Map<String, dynamic> weatherData
+ String destinationCity, String destinationCountry, String? destinationIata, int durationDays, double budgetEur, List<String> highlights, String accommodationName, String accommodationSubtitle, double accommodationPrice, String accommodationSource, String flightRoute, String flightDetails, double flightPrice, String flightSource, String originIata, String flightAirline, String flightNumber, String flightDeparture, String flightArrival, String flightDuration, String returnDeparture, String returnArrival, String returnDuration, List<String> dayProgram, List<String> dayDescriptions, List<String> dayCategories, List<String> essentialItems, List<String> essentialReasons, int hotelRating, Map<String, dynamic> budgetBreakdown, Map<String, dynamic> weatherData
 });
 
 
@@ -403,7 +409,7 @@ as String,destinationCountry: null == destinationCountry ? _self.destinationCoun
 as String,destinationIata: freezed == destinationIata ? _self.destinationIata : destinationIata // ignore: cast_nullable_to_non_nullable
 as String?,durationDays: null == durationDays ? _self.durationDays : durationDays // ignore: cast_nullable_to_non_nullable
 as int,budgetEur: null == budgetEur ? _self.budgetEur : budgetEur // ignore: cast_nullable_to_non_nullable
-as int,highlights: null == highlights ? _self._highlights : highlights // ignore: cast_nullable_to_non_nullable
+as double,highlights: null == highlights ? _self._highlights : highlights // ignore: cast_nullable_to_non_nullable
 as List<String>,accommodationName: null == accommodationName ? _self.accommodationName : accommodationName // ignore: cast_nullable_to_non_nullable
 as String,accommodationSubtitle: null == accommodationSubtitle ? _self.accommodationSubtitle : accommodationSubtitle // ignore: cast_nullable_to_non_nullable
 as String,accommodationPrice: null == accommodationPrice ? _self.accommodationPrice : accommodationPrice // ignore: cast_nullable_to_non_nullable

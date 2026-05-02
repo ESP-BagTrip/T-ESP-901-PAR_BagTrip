@@ -84,7 +84,7 @@ class StepReviewView extends StatelessWidget {
                     state.nbTravelers,
                     l10n,
                   ),
-                  total: plan.budgetEur.toDouble(),
+                  total: plan.budgetEur,
                   entries: extractBudgetEntries(l10n, plan.budgetBreakdown),
                   subtitle:
                       '${l10n.reviewBudgetEstimationPrefix} · '
@@ -313,7 +313,7 @@ class StepReviewView extends StatelessWidget {
   }
 
   String _perPersonLabel(
-    int budgetTotal,
+    double budgetTotal,
     int travelers,
     AppLocalizations l10n,
   ) {
