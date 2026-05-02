@@ -61,7 +61,7 @@ void main() {
             destinationName: any(named: 'destinationName'),
             nbTravelers: any(named: 'nbTravelers'),
             coverImageUrl: any(named: 'coverImageUrl'),
-            budgetTotal: any(named: 'budgetTotal'),
+            budgetTarget: any(named: 'budgetTarget'),
             origin: any(named: 'origin'),
           ),
         ).thenAnswer((_) async => Success(newTrip));
@@ -112,7 +112,7 @@ void main() {
             destinationName: any(named: 'destinationName'),
             nbTravelers: any(named: 'nbTravelers'),
             coverImageUrl: any(named: 'coverImageUrl'),
-            budgetTotal: any(named: 'budgetTotal'),
+            budgetTarget: any(named: 'budgetTarget'),
             origin: any(named: 'origin'),
           ),
         ).called(1);

@@ -733,14 +733,14 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     final dest = state.selectedManualDestination;
     final title = dest?.name ?? 'Mon voyage';
 
-    double? budgetTotal;
+    double? budgetTarget;
     if (state.budgetPreset != null && state.tripDurationDays != null) {
       final range = estimateBudget(
         preset: state.budgetPreset!,
         nbTravelers: state.nbTravelers,
         days: state.tripDurationDays!,
       );
-      budgetTotal = range.max;
+      budgetTarget = range.max;
     }
 
     final result = await _tripRepository.createTrip(
@@ -750,7 +750,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       startDate: state.startDate,
       endDate: state.endDate,
       nbTravelers: state.nbTravelers,
-      budgetTotal: budgetTotal,
+      budgetTarget: budgetTarget,
     );
     if (isClosed) return;
 

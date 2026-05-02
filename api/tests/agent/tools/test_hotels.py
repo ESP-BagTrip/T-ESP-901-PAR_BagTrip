@@ -55,9 +55,10 @@ async def test_search_real_hotels_exposes_per_night_and_stay_total():
         data=[_make_hotel_item(name="Hotel Catalonia", hotel_id="HTLBCN001", total="2000")]
     )
 
-    with patch("src.agent.tools.hotels.amadeus_client") as client, patch(
-        "src.agent.tools.hotels.idempotency_cache"
-    ) as cache:
+    with (
+        patch("src.agent.tools.hotels.amadeus_client") as client,
+        patch("src.agent.tools.hotels.idempotency_cache") as cache,
+    ):
         cache.get.return_value = None
         client.search_hotel_list = AsyncMock(return_value=hotel_list_response)
         client.search_hotel_offers = AsyncMock(return_value=offers_response)
@@ -92,9 +93,10 @@ async def test_search_real_hotels_per_night_none_when_nights_zero():
         data=[_make_hotel_item(name="Hotel Paris", hotel_id="HTLPAR001", total="100")]
     )
 
-    with patch("src.agent.tools.hotels.amadeus_client") as client, patch(
-        "src.agent.tools.hotels.idempotency_cache"
-    ) as cache:
+    with (
+        patch("src.agent.tools.hotels.amadeus_client") as client,
+        patch("src.agent.tools.hotels.idempotency_cache") as cache,
+    ):
         cache.get.return_value = None
         client.search_hotel_list = AsyncMock(return_value=hotel_list_response)
         client.search_hotel_offers = AsyncMock(return_value=offers_response)
@@ -116,9 +118,10 @@ async def test_search_real_hotels_per_night_none_when_nights_zero():
 async def test_search_real_hotels_returns_empty_when_no_hotels_found():
     hotel_list_response = MagicMock(data=[])
 
-    with patch("src.agent.tools.hotels.amadeus_client") as client, patch(
-        "src.agent.tools.hotels.idempotency_cache"
-    ) as cache:
+    with (
+        patch("src.agent.tools.hotels.amadeus_client") as client,
+        patch("src.agent.tools.hotels.idempotency_cache") as cache,
+    ):
         cache.get.return_value = None
         client.search_hotel_list = AsyncMock(return_value=hotel_list_response)
 
@@ -136,9 +139,10 @@ async def test_search_real_hotels_returns_empty_when_no_hotels_found():
 async def test_search_real_hotels_serves_from_cache():
     cached_payload = {"hotels": [{"name": "Cached"}], "source": "amadeus"}
 
-    with patch("src.agent.tools.hotels.amadeus_client") as client, patch(
-        "src.agent.tools.hotels.idempotency_cache"
-    ) as cache:
+    with (
+        patch("src.agent.tools.hotels.amadeus_client") as client,
+        patch("src.agent.tools.hotels.idempotency_cache") as cache,
+    ):
         cache.get.return_value = cached_payload
 
         result = await search_real_hotels(
@@ -155,9 +159,10 @@ async def test_search_real_hotels_serves_from_cache():
 
 @pytest.mark.asyncio
 async def test_search_real_hotels_returns_error_payload_on_exception():
-    with patch("src.agent.tools.hotels.amadeus_client") as client, patch(
-        "src.agent.tools.hotels.idempotency_cache"
-    ) as cache:
+    with (
+        patch("src.agent.tools.hotels.amadeus_client") as client,
+        patch("src.agent.tools.hotels.idempotency_cache") as cache,
+    ):
         cache.get.return_value = None
         client.search_hotel_list = AsyncMock(side_effect=RuntimeError("amadeus down"))
 

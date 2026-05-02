@@ -77,7 +77,7 @@ async def create_trip(
             destination_name=request.destinationName,
             nb_travelers=request.nbTravelers,
             cover_image_url=cover_url,
-            budget_total=request.budgetTotal,
+            budget_target=request.budgetTarget,
             origin=request.origin,
             date_mode=request.dateMode,
         )
@@ -254,7 +254,7 @@ async def update_trip(
             destination_name=request.destinationName,
             nb_travelers=request.nbTravelers,
             cover_image_url=request.coverImageUrl,
-            budget_total=request.budgetTotal,
+            budget_target=request.budgetTarget,
             date_mode=request.dateMode,
         )
         resp = TripResponse.model_validate(trip)

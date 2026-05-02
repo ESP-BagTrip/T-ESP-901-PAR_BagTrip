@@ -220,7 +220,7 @@ class TestSuggestAccommodations:
             start_date=date(2026, 5, 1),
             end_date=date(2026, 5, 5),
             nb_travelers=2,
-            budget_total=1000,
+            budget_target=1000,
         )
         mock_db_session.query.return_value.filter.return_value.all.return_value = []
 

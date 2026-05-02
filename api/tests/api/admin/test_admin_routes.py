@@ -716,9 +716,7 @@ class TestAdminRoutes:
     # unreachable via TestClient routing.
 
     def test_send_notification_success(self, client):
-        with patch(
-            "src.api.admin.routes.NotificationService.create_and_send_bulk"
-        ) as mock_notif:
+        with patch("src.api.admin.routes.NotificationService.create_and_send_bulk") as mock_notif:
             mock_notif.return_value = [MagicMock()]
             response = client.post(
                 "/admin/notifications/send",
@@ -732,9 +730,7 @@ class TestAdminRoutes:
         assert response.json()["count"] == 1
 
     def test_send_notification_error(self, client):
-        with patch(
-            "src.api.admin.routes.NotificationService.create_and_send_bulk"
-        ) as mock_notif:
+        with patch("src.api.admin.routes.NotificationService.create_and_send_bulk") as mock_notif:
             mock_notif.side_effect = Exception("Fail")
             response = client.post(
                 "/admin/notifications/send",

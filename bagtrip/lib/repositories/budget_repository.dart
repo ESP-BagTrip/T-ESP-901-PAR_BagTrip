@@ -16,5 +16,8 @@ abstract class BudgetRepository {
   );
   Future<Result<void>> deleteBudgetItem(String tripId, String itemId);
   Future<Result<BudgetEstimation>> estimateBudget(String tripId);
-  Future<Result<void>> acceptBudgetEstimate(String tripId, double budgetTotal);
+  Future<Result<void>> acceptBudgetEstimate(
+    String tripId,
+    double budgetEstimated,
+  );
 }

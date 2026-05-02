@@ -119,7 +119,12 @@ class BudgetItemService:
             cat = item.category or BudgetCategory.OTHER
             by_category[cat] = by_category.get(cat, 0.0) + float(item.amount)
 
-        budget_total = float(trip.budget_total) if trip.budget_total else 0.0
+        # Topic 02 — alerts trigger against the user's *target* (intent),
+        # not the AI estimation. Going over the target is what the user
+        # cares about; going over the estimation is by definition
+        # expected when the IA underestimated.
+        budget_target = float(trip.budget_target) if trip.budget_target else 0.0
+        budget_estimated = float(trip.budget_estimated) if trip.budget_estimated else None
 
         # Confirmed vs forecasted — budget items
         confirmed_total = 0.0
@@ -143,11 +148,11 @@ class BudgetItemService:
 
         alert_level = None
         alert_message = None
-        if budget_total > 0:
-            ratio = total_spent / budget_total
+        if budget_target > 0:
+            ratio = total_spent / budget_target
             if ratio >= 1.0:
                 alert_level = "DANGER"
-                over = total_spent - budget_total
+                over = total_spent - budget_target
                 alert_message = f"Budget exceeded by {over:.2f} €"
             elif ratio >= 0.8:
                 alert_level = "WARNING"
@@ -155,9 +160,15 @@ class BudgetItemService:
                 alert_message = f"{pct:.0f}% of your budget has been used"
 
         return {
-            "total_budget": budget_total,
+            # `total_budget` = the intent target. Kept as the public key for
+            # backwards-readable JSON ("what is my budget?") — the actual
+            # field on Trip is now `budget_target`.
+            "total_budget": budget_target,
+            "budget_target": budget_target,
+            "budget_estimated": budget_estimated,
+            "budget_actual": confirmed_total,
             "total_spent": total_spent,
-            "remaining": budget_total - total_spent,
+            "remaining": budget_target - total_spent,
             "by_category": by_category,
             "alert_level": alert_level,
             "alert_message": alert_message,

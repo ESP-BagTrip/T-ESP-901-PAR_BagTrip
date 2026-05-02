@@ -106,9 +106,9 @@ class CachedBudgetRepository implements BudgetRepository {
   @override
   Future<Result<void>> acceptBudgetEstimate(
     String tripId,
-    double budgetTotal,
+    double budgetEstimated,
   ) async {
-    final result = await _remote.acceptBudgetEstimate(tripId, budgetTotal);
+    final result = await _remote.acceptBudgetEstimate(tripId, budgetEstimated);
     if (result is Success) {
       await _cache.delete(_box, 'budget_summary:$tripId');
     }

@@ -18,19 +18,17 @@ from src.api.ai.plan_trip_schemas import AcceptPlanRequest
 from src.enums import BudgetCategory, FlightType, ValidationStatus
 from src.models.accommodation import Accommodation
 from src.models.activity import Activity
-from src.models.baggage_item import BaggageItem
 from src.models.budget_item import BudgetItem
 from src.models.manual_flight import ManualFlight
 from src.services.plan_acceptance_service import (
-    PlanAcceptanceService,
     _DEFAULT_BAGGAGE_I18N,
+    PlanAcceptanceService,
     combine_date_to_utc_datetime,
     compute_nights,
     get_default_baggage,
     parse_flight_route,
     parse_iso_datetime,
 )
-
 
 # ── Pure helpers ──────────────────────────────────────────────────────
 
@@ -309,7 +307,7 @@ class TestSerialize:
         t.status = "DRAFT"
         t.destination_name = "Barcelone"
         t.description = None
-        t.budget_total = 1200
+        t.budget_target = 1200
         t.origin = "AI"
         t.start_date = date(2026, 4, 23)
         t.end_date = date(2026, 4, 30)

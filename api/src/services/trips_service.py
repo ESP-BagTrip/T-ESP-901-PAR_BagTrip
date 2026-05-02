@@ -55,7 +55,7 @@ class TripsService:
         destination_name: str | None = None,
         nb_travelers: int | None = None,
         cover_image_url: str | None = None,
-        budget_total: float | None = None,
+        budget_target: float | None = None,
         origin: str | None = None,
         date_mode: str | None = None,
     ) -> Trip:
@@ -73,7 +73,7 @@ class TripsService:
             destination_timezone=resolve_timezone_from_iata(destination_iata),
             nb_travelers=nb_travelers or 1,
             cover_image_url=cover_image_url,
-            budget_total=budget_total,
+            budget_target=budget_target,
             origin=origin or TripOrigin.MANUAL,
             date_mode=date_mode or DateMode.EXACT,
         )
@@ -328,10 +328,17 @@ class TripsService:
         destination_name: str | None = None,
         nb_travelers: int | None = None,
         cover_image_url: str | None = None,
-        budget_total: float | None = None,
+        budget_target: float | None = None,
         date_mode: str | None = None,
     ) -> Trip:
-        """Mettre à jour un trip (ownership déjà vérifiée par la dependency)."""
+        """Mettre à jour un trip (ownership déjà vérifiée par la dependency).
+
+        ``budget_target`` is the only writable budget here. ``budget_estimated``
+        is mutated through ``BudgetItemService.accept_estimation`` (POST
+        /budget/estimate/accept) and ``budget_actual`` is computed at runtime
+        from confirmed BudgetItems — neither belongs in PATCH /trips
+        (topic 02 §3, B16).
+        """
         if trip.status == TripStatus.COMPLETED:
             raise AppError("TRIP_COMPLETED", 403, "Cannot modify a completed trip.")
 
@@ -354,8 +361,8 @@ class TripsService:
             trip.nb_travelers = nb_travelers
         if cover_image_url is not None:
             trip.cover_image_url = cover_image_url
-        if budget_total is not None:
-            trip.budget_total = budget_total
+        if budget_target is not None:
+            trip.budget_target = budget_target
         if date_mode is not None:
             trip.date_mode = date_mode
 

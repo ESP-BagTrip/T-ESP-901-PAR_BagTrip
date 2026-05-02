@@ -48,11 +48,20 @@ class BudgetEstimateResponse(BaseModel):
 
 
 class AcceptEstimateRequest(BagtripRequestModel):
-    budget_total: float = Field(..., alias="budget_total", gt=0)
+    """Payload of POST /trips/{id}/budget/estimate/accept.
+
+    The amount lands on ``Trip.budget_estimated``; the user's
+    ``Trip.budget_target`` is preserved (B3, topic 02).
+    """
+
+    budget_estimated: float = Field(..., alias="budget_estimated", gt=0)
 
 
 class BudgetSummaryResponse(BaseModel):
     totalBudget: float = Field(alias="total_budget")
+    budgetTarget: float = Field(alias="budget_target")
+    budgetEstimated: float | None = Field(None, alias="budget_estimated")
+    budgetActual: float = Field(0, alias="budget_actual")
     totalSpent: float = Field(alias="total_spent")
     remaining: float
     byCategory: dict[str, float] = Field(alias="by_category")

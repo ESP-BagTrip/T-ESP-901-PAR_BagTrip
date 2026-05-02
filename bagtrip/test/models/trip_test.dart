@@ -88,7 +88,8 @@ void main() {
           'destination_name': 'Paris',
           'nb_travelers': 2,
           'cover_image_url': 'https://example.com/img.jpg',
-          'budget_total': 3000.50,
+          'budget_target': 3000.50,
+          'budget_estimated': 2800.0,
           'origin': 'New York',
           'role': 'OWNER',
           'created_at': '2024-01-15T10:30:00.000',
@@ -109,7 +110,8 @@ void main() {
         expect(trip.destinationName, 'Paris');
         expect(trip.nbTravelers, 2);
         expect(trip.coverImageUrl, 'https://example.com/img.jpg');
-        expect(trip.budgetTotal, 3000.50);
+        expect(trip.budgetTarget, 3000.50);
+        expect(trip.budgetEstimated, 2800.0);
         expect(trip.origin, 'New York');
         expect(trip.role, 'OWNER');
         expect(trip.createdAt, DateTime.parse('2024-01-15T10:30:00.000'));
@@ -133,7 +135,9 @@ void main() {
         expect(trip.destinationName, isNull);
         expect(trip.nbTravelers, isNull);
         expect(trip.coverImageUrl, isNull);
-        expect(trip.budgetTotal, isNull);
+        expect(trip.budgetTarget, isNull);
+        expect(trip.budgetEstimated, isNull);
+        expect(trip.budgetActual, isNull);
         expect(trip.origin, isNull);
         expect(trip.role, isNull);
         expect(trip.createdAt, isNull);
@@ -190,7 +194,7 @@ void main() {
           destinationName: 'Tokyo',
           nbTravelers: 4,
           coverImageUrl: 'https://example.com/cover.png',
-          budgetTotal: 5000.0,
+          budgetTarget: 5000.0,
           origin: 'Los Angeles',
           role: 'OWNER',
           createdAt: DateTime.parse('2024-01-01T00:00:00.000'),

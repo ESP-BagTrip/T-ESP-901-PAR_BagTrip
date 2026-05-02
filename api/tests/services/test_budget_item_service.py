@@ -135,7 +135,7 @@ class TestGetBudgetSummary:
         return db
 
     def test_danger_alert_when_over_budget(self, make_trip, make_activity):
-        trip = make_trip(budget_total=100.0)
+        trip = make_trip(budget_target=100.0)
         items = [
             BudgetItem(
                 trip_id=trip.id,
@@ -156,7 +156,7 @@ class TestGetBudgetSummary:
         assert summary["remaining"] == -50.0
 
     def test_warning_alert_at_80_percent(self, make_trip):
-        trip = make_trip(budget_total=100.0)
+        trip = make_trip(budget_target=100.0)
         items = [
             BudgetItem(
                 trip_id=trip.id,
@@ -173,7 +173,7 @@ class TestGetBudgetSummary:
         assert summary["alert_level"] == "WARNING"
 
     def test_no_alert_under_threshold(self, make_trip):
-        trip = make_trip(budget_total=100.0)
+        trip = make_trip(budget_target=100.0)
         items = [
             BudgetItem(
                 trip_id=trip.id,
@@ -190,14 +190,14 @@ class TestGetBudgetSummary:
         assert summary["alert_level"] is None
 
     def test_no_budget_total_gives_no_alert(self, make_trip):
-        trip = make_trip(budget_total=None)
+        trip = make_trip(budget_target=None)
         db = self._build_db([], [])
         summary = BudgetItemService.get_budget_summary(db, trip)
         assert summary["alert_level"] is None
         assert summary["total_budget"] == 0.0
 
     def test_confirmed_vs_forecasted_split(self, make_trip, make_activity):
-        trip = make_trip(budget_total=500.0)
+        trip = make_trip(budget_target=500.0)
         items = [
             # confirmed (source_type set)
             BudgetItem(

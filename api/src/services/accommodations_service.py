@@ -205,8 +205,8 @@ class AccommodationsService:
         if trip.nb_travelers:
             parts.append(f"Number of travelers: {trip.nb_travelers}")
 
-        if trip.budget_total:
-            parts.append(f"Total budget: {trip.budget_total} EUR")
+        if trip.budget_target:
+            parts.append(f"Total budget: {trip.budget_target} EUR")
 
         # Dedup: list existing accommodations
         existing = AccommodationsService.get_accommodations_by_trip(db, trip.id)

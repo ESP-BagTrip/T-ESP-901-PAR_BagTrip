@@ -85,7 +85,7 @@ def mock_trip():
     trip.destination_timezone = None
     trip.nb_travelers = 1
     trip.cover_image_url = None
-    trip.budget_total = None
+    trip.budget_target = None
     trip.origin = None
     trip.date_mode = "EXACT"
     trip.flights_tracking = "TRACKED"

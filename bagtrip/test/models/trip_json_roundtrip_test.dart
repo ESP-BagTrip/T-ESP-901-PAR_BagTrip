@@ -17,7 +17,9 @@ void main() {
         'destination_name': 'Tokyo',
         'nb_travelers': 3,
         'cover_image_url': 'https://cdn.example.com/trips/tokyo-cover.jpg',
-        'budget_total': 4500.75,
+        'budget_target': 4500.75,
+        'budget_estimated': 4200.0,
+        'budget_actual': 3900.0,
         'origin': 'Paris',
         'role': 'OWNER',
         'created_at': '2024-03-10T08:30:00.000',
@@ -47,7 +49,9 @@ void main() {
         second.coverImageUrl,
         'https://cdn.example.com/trips/tokyo-cover.jpg',
       );
-      expect(second.budgetTotal, 4500.75);
+      expect(second.budgetTarget, 4500.75);
+      expect(second.budgetEstimated, 4200.0);
+      expect(second.budgetActual, 3900.0);
       expect(second.origin, 'Paris');
       expect(second.role, 'OWNER');
       expect(second.createdAt, DateTime.parse('2024-03-10T08:30:00.000'));
@@ -67,7 +71,9 @@ void main() {
       expect(second.title, isNull);
       expect(second.startDate, isNull);
       expect(second.endDate, isNull);
-      expect(second.budgetTotal, isNull);
+      expect(second.budgetTarget, isNull);
+      expect(second.budgetEstimated, isNull);
+      expect(second.budgetActual, isNull);
       expect(second.nbTravelers, isNull);
     });
 

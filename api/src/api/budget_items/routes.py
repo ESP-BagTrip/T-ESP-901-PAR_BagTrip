@@ -19,7 +19,6 @@ from src.config.database import get_db
 from src.models.user import User
 from src.services.budget_item_service import BudgetItemService
 from src.services.notification_service import NotificationService
-from src.services.trips_service import TripsService
 from src.utils.errors import AppError, create_http_exception
 
 router = APIRouter(prefix="/v1/trips", tags=["BudgetItems"])
@@ -76,8 +75,14 @@ async def get_budget_summary(
             total_budget = summary["total_budget"]
             total_spent = summary["total_spent"]
             percent_consumed = (total_spent / total_budget * 100) if total_budget > 0 else 0
+            # Topic 06 (preview) — viewer sees the budget target shape but
+            # never the spent / remaining figures. Estimated / actual stay
+            # masked too so the viewer cannot reverse-derive them.
             return BudgetSummaryResponse(
                 total_budget=total_budget,
+                budget_target=total_budget,
+                budget_estimated=None,
+                budget_actual=0,
                 total_spent=0,
                 remaining=0,
                 by_category={},
@@ -212,13 +217,18 @@ async def accept_budget_estimate(
     access: Annotated[TripAccess, Depends(get_trip_editor_access)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    """Accept AI budget estimation and update trip budget_total."""
+    """Accept the AI budget estimation.
+
+    Topic 02 (B3): writes ``Trip.budget_estimated`` only — the user's
+    ``budget_target`` is preserved so the alert thresholds keep
+    referencing the user's intent, not the AI guess. Bypasses
+    ``TripsService.update_trip`` because that surface forbids writes
+    to ``budget_estimated``.
+    """
     try:
-        TripsService.update_trip(
-            db=db,
-            trip=access.trip,
-            budget_total=request.budget_total,
-        )
+        access.trip.budget_estimated = request.budget_estimated
+        db.commit()
+        db.refresh(access.trip)
         NotificationService.check_and_send_budget_alert(db, access.trip)
         return {"success": True}
     except AppError as e:

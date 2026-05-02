@@ -156,12 +156,12 @@ class BudgetRepositoryImpl implements BudgetRepository {
   @override
   Future<Result<void>> acceptBudgetEstimate(
     String tripId,
-    double budgetTotal,
+    double budgetEstimated,
   ) async {
     try {
       final response = await _apiClient.post(
         '/trips/$tripId/budget/estimate/accept',
-        data: {'budget_total': budgetTotal},
+        data: {'budget_estimated': budgetEstimated},
       );
       if (response.statusCode == 200) {
         return const Success(null);

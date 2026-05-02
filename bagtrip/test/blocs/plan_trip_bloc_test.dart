@@ -1554,7 +1554,7 @@ void main() {
             startDate: any(named: 'startDate'),
             endDate: any(named: 'endDate'),
             nbTravelers: any(named: 'nbTravelers'),
-            budgetTotal: any(named: 'budgetTotal'),
+            budgetTarget: any(named: 'budgetTarget'),
           ),
         ).thenAnswer((_) async => const Failure(NetworkError('offline')));
         return buildBloc();

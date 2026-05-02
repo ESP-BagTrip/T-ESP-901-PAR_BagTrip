@@ -102,7 +102,9 @@ Trip makeTrip({
   int? nbTravelers = 2,
   DateTime? startDate,
   DateTime? endDate,
-  double? budgetTotal,
+  double? budgetTarget,
+  double? budgetEstimated,
+  double? budgetActual,
   String flightsTracking = 'TRACKED',
   String accommodationsTracking = 'TRACKED',
 }) {
@@ -117,7 +119,9 @@ Trip makeTrip({
     nbTravelers: nbTravelers,
     startDate: startDate ?? DateTime(2024, 6),
     endDate: endDate ?? DateTime(2024, 6, 7),
-    budgetTotal: budgetTotal,
+    budgetTarget: budgetTarget,
+    budgetEstimated: budgetEstimated,
+    budgetActual: budgetActual,
     flightsTracking: flightsTracking,
     accommodationsTracking: accommodationsTracking,
   );

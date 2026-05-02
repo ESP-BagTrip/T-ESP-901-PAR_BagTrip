@@ -39,7 +39,9 @@ export interface AdminTripDetail {
   start_date: string | null
   end_date: string | null
   status: string | null
-  budget_total: number | null
+  budget_target: number | null
+  budget_estimated: number | null
+  budget_actual: number | null
   nb_travelers: number | null
   origin: string | null
   archived_at: string | null
@@ -61,7 +63,9 @@ export interface AdminTrip {
   start_date: string | null
   end_date: string | null
   status: string | null
-  budget_total: number | null
+  budget_target: number | null
+  budget_estimated: number | null
+  budget_actual: number | null
   nb_travelers: number | null
   origin: string | null
   created_at: string
