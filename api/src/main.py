@@ -56,6 +56,17 @@ async def lifespan(app: FastAPI):
     # pool instead of opening its own per-request AsyncClient.
     await init_http_client()
 
+    # Topic 04b — warm the currency rate cache on boot so the first
+    # `BudgetItemService.get_budget_summary` call already has live ECB
+    # rates. Failure here is non-fatal: `convert` falls back to identity
+    # on cold cache and a scheduler can retry on the next tick.
+    try:
+        from src.services.currency_service import refresh_rates_async
+
+        await refresh_rates_async()
+    except Exception as e:  # noqa: BLE001 — boot must never block on FX
+        logger.warn(f"Currency rate warm-up failed: {e}")
+
     # Vérifier la connexion à la base de données avant de créer les tables
     logger.info("Checking database connection...")
     check_database_connection()

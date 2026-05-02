@@ -163,29 +163,29 @@ class TestViewerRedactionFlow:
 
 
 class TestMultiCurrencyFlow:
-    def test_b8_b11_amounts_aggregate_in_trip_currency(self, monkeypatch):
-        """Topic 04b — once the fetcher ships a real rate, aggregation
-        picks up the conversion automatically (no call-site change)."""
+    def test_b8_b11_amounts_aggregate_in_trip_currency(self):
+        """Topic 04b — once the cache is warmed by ``refresh_rates_async``,
+        aggregation picks up the conversion automatically (no call-site
+        change)."""
+        import time as _time
 
-        def fake_rate(from_: str, to: str) -> float:
-            # Stub a USD→EUR rate to validate the conversion path.
-            if from_ == "USD" and to == "EUR":
-                return 0.9
-            return 1.0
-
-        monkeypatch.setattr(currency_service, "_fetch_rate", fake_rate)
+        # Manually warm the cache as ``refresh_rates_async`` would after
+        # an ECB pull (pair `EUR → USD = 1.10` ⇔ `USD → EUR ≈ 0.909`).
+        with currency_service._lock:
+            currency_service._rate_cache[("EUR", "USD")] = (1.10, _time.monotonic())
 
         trip = _make_trip(budget_target=1000, currency="EUR")
         items = [
             _make_item(amount=100, currency="EUR", source_type="manual"),
-            _make_item(amount=100, currency="USD", source_type="manual"),
+            _make_item(amount=110, currency="USD", source_type="manual"),
         ]
         db = _make_db(items)
 
         summary = BudgetItemService.get_budget_summary(db, trip)
 
-        # 100 EUR + (100 USD × 0.9) = 190 EUR
-        assert summary["total_spent"] == pytest.approx(190.0)
+        # 100 EUR + (110 USD ÷ 1.10) = 200 EUR (USD→EUR derived from
+        # the inverse of the EUR→USD cached pair).
+        assert summary["total_spent"] == pytest.approx(200.0)
 
     def test_phase1_stub_keeps_eur_only_trips_unchanged(self):
         trip = _make_trip(budget_target=500, currency="EUR")
