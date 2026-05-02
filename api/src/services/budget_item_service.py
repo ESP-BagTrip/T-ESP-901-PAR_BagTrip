@@ -112,12 +112,27 @@ class BudgetItemService:
 
     @staticmethod
     def get_budget_summary(db: Session, trip: Trip) -> dict:
+        from src.services import currency_service
+
         items = BudgetItemService.get_by_trip(db, trip.id)
-        total_spent = sum(float(i.amount) for i in items)
+        # Topic 04b (B8/B11) — every BudgetItem amount is converted to the
+        # trip's canonical currency before aggregation. Phase 1 ships with
+        # a stub fetcher that returns rate=1.0; once ECB is wired in,
+        # multi-currency trips start summing correctly with no call-site
+        # change. Same-currency rows pay no conversion cost (early-out).
+        trip_currency = trip.currency or "EUR"
+
+        def _amount_in_trip_currency(item) -> float:
+            return currency_service.convert(
+                float(item.amount), from_=item.currency, to=trip_currency
+            )
+
+        total_spent = sum(_amount_in_trip_currency(i) for i in items)
         by_category: dict[str, float] = {}
         for item in items:
             cat = item.category or BudgetCategory.OTHER
-            by_category[cat] = by_category.get(cat, 0.0) + float(item.amount)
+            converted = _amount_in_trip_currency(item)
+            by_category[cat] = by_category.get(cat, 0.0) + converted
 
         # Topic 02 — alerts trigger against the user's *target* (intent),
         # not the AI estimation. Going over the target is what the user
@@ -126,14 +141,15 @@ class BudgetItemService:
         budget_target = float(trip.budget_target) if trip.budget_target else 0.0
         budget_estimated = float(trip.budget_estimated) if trip.budget_estimated else None
 
-        # Confirmed vs forecasted — budget items
+        # Confirmed vs forecasted — budget items (already converted)
         confirmed_total = 0.0
         forecasted_total = 0.0
         for item in items:
+            converted = _amount_in_trip_currency(item)
             if item.source_type is not None or not item.is_planned:
-                confirmed_total += float(item.amount)
+                confirmed_total += converted
             elif item.is_planned and item.source_type is None:
-                forecasted_total += float(item.amount)
+                forecasted_total += converted
 
         # Confirmed vs forecasted — activities
         activities = db.query(Activity).filter(Activity.trip_id == trip.id).all()

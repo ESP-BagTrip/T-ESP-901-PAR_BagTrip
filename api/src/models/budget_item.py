@@ -24,6 +24,13 @@ class BudgetItem(Base):
     )
     label: Mapped[str] = mapped_column(String, nullable=False)
     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    # Topic 04b — currency the amount was *entered* in. Converted by
+    # `CurrencyService.convert(amount, from_=item.currency, to=trip.currency)`
+    # at aggregation time. Defaults to EUR for backward compat with legacy
+    # rows.
+    currency: Mapped[str] = mapped_column(
+        String(3), nullable=False, server_default="EUR", default="EUR"
+    )
     category: Mapped[str] = mapped_column(String, nullable=False, default="OTHER")
     date: Mapped[date | None] = mapped_column(Date, nullable=True)
     is_planned: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
