@@ -15,6 +15,7 @@ from src.api.budget_items.schemas import (
     BudgetItemUpdateRequest,
     BudgetSummaryResponse,
 )
+from src.api.common.redaction import redact_budget_summary_for_role
 from src.config.database import get_db
 from src.models.user import User
 from src.services.budget_item_service import BudgetItemService
@@ -71,24 +72,10 @@ async def get_budget_summary(
 ):
     try:
         summary = BudgetItemService.get_budget_summary(db, access.trip)
-        if access.role == TripRole.VIEWER:
-            total_budget = summary["total_budget"]
-            total_spent = summary["total_spent"]
-            percent_consumed = (total_spent / total_budget * 100) if total_budget > 0 else 0
-            # Topic 06 (preview) — viewer sees the budget target shape but
-            # never the spent / remaining figures. Estimated / actual stay
-            # masked too so the viewer cannot reverse-derive them.
-            return BudgetSummaryResponse(
-                total_budget=total_budget,
-                budget_target=total_budget,
-                budget_estimated=None,
-                budget_actual=0,
-                total_spent=0,
-                remaining=0,
-                by_category={},
-                percent_consumed=percent_consumed,
-            )
-        return BudgetSummaryResponse(**summary)
+        # Topic 06 (B9) — single source of truth for VIEWER masking.
+        # Owners / editors get the dict untouched.
+        redacted = redact_budget_summary_for_role(summary, access.role)
+        return BudgetSummaryResponse(**redacted)
     except AppError as e:
         raise create_http_exception(e) from e
 

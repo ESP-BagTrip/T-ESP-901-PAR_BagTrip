@@ -70,5 +70,8 @@ class BudgetSummaryResponse(BaseModel):
     alertMessage: str | None = Field(None, alias="alert_message")
     confirmedTotal: float = Field(0, alias="confirmed_total")
     forecastedTotal: float = Field(0, alias="forecasted_total")
+    # Topic 06 (B9) — VIEWER-facing semantic bucket. Always populated for
+    # viewers, always None for owners / editors (they have the raw numbers).
+    budgetStatus: str | None = Field(None, alias="budget_status")
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
