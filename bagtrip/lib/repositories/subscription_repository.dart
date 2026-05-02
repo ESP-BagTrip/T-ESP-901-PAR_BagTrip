@@ -19,12 +19,21 @@ abstract class SubscriptionRepository {
   /// Includes payment method preview, renewal date and cancel scheduling.
   Future<Result<SubscriptionDetails>> getDetails();
 
-  /// Bootstrap a Premium subscription for the native PaymentSheet flow.
+  /// Bootstrap the native PaymentSheet (deferred-IntentConfiguration mode).
   ///
-  /// Returns the trio the Stripe SDK needs to drive the in-app sheet —
-  /// no Checkout URL, no browser. Use this on mobile; [getCheckoutUrl]
-  /// stays for the web fallback.
+  /// Returns just what the SDK needs to *render* the sheet — `customer`,
+  /// `ephemeralKey`, `amount`, `currency`. **No `Subscription` is
+  /// created at this stage**; that happens in [confirmSubscription]
+  /// once the user has chosen a payment method and tapped Pay.
   Future<Result<SubscriptionStartParams>> start();
+
+  /// Confirm the subscription with the chosen payment method.
+  ///
+  /// Called from the PaymentSheet's `confirmHandler` (server-driven
+  /// `IntentConfiguration` flow). Returns the `client_secret` of the
+  /// freshly-created subscription's invoice PaymentIntent — the SDK
+  /// uses it to finalise the payment in-sheet (3DS / SCA in line).
+  Future<Result<String>> confirmSubscription(String paymentMethodId);
 
   /// Bootstrap an in-app payment method update via SetupIntent.
   Future<Result<PaymentMethodSetupParams>> startPaymentMethodUpdate();

@@ -103,6 +103,11 @@ class AppSpacing {
 class AppRadius {
   const AppRadius._();
 
+  /// Tiny — page-indicator dots, swatches.
+  static const double cornerRadius2 = 2.0;
+
+  /// Sub-tiny — bottom-sheet drag handle bars.
+  static const double cornerRadius3 = 3.0;
   static const double cornerRaidus4 = 4.0;
   static const double cornerRaidus8 = 8.0;
   static const double cornerRaidus16 = 16.0;
@@ -113,6 +118,18 @@ class AppRadius {
   static const double cornerRadius24 = 24.0;
   static const double cornerRadius28 = 28.0;
   static const double cornerRadius32 = 32.0;
+
+  /// Bottom-sheet drag handle bar (40×4 surface). Was duplicated in
+  /// every sheet as `BorderRadius.circular(2)`.
+  static const BorderRadius handleBar = BorderRadius.all(
+    Radius.circular(cornerRadius2),
+  );
+
+  /// Page indicator dots (paywall, onboarding carousels). Was
+  /// `BorderRadius.circular(3)` repeated across each page-dot widget.
+  static const BorderRadius dot = BorderRadius.all(
+    Radius.circular(cornerRadius3),
+  );
 
   static const BorderRadius small4 = BorderRadius.all(
     Radius.circular(cornerRaidus4),

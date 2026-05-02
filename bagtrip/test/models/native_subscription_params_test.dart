@@ -4,17 +4,20 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('SubscriptionStartParams.fromJson', () {
-    test('parses snake_case fields from /subscription/start', () {
+    test('parses bootstrap fields from /subscription/start', () {
+      // The `start` endpoint returns just what the deferred-Intent
+      // PaymentSheet needs to render — no subscription_id /
+      // payment_intent_client_secret yet (those come from /confirm).
       final params = SubscriptionStartParams.fromJson({
-        'subscription_id': 'sub_999',
-        'payment_intent_client_secret': 'pi_secret_xyz',
-        'ephemeral_key': 'ek_secret_abc',
         'customer': 'cus_123',
+        'ephemeral_key': 'ek_secret_abc',
+        'amount': 999,
+        'currency': 'eur',
       });
-      expect(params.subscriptionId, 'sub_999');
-      expect(params.paymentIntentClientSecret, 'pi_secret_xyz');
-      expect(params.ephemeralKey, 'ek_secret_abc');
       expect(params.customer, 'cus_123');
+      expect(params.ephemeralKey, 'ek_secret_abc');
+      expect(params.amount, 999);
+      expect(params.currency, 'eur');
     });
   });
 

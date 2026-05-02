@@ -3,20 +3,20 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'subscription_start_params.freezed.dart';
 part 'subscription_start_params.g.dart';
 
-/// Bootstrap payload for the native PaymentSheet subscription flow.
+/// Bootstrap payload for the deferred-IntentConfiguration PaymentSheet.
 ///
-/// Mirrors `POST /v1/subscription/start`. The trio
-/// `paymentIntentClientSecret` + `ephemeralKey` + `customer` is exactly
-/// what `Stripe.instance.initPaymentSheet(...)` consumes — we never
-/// pass a Checkout URL and never leave the app.
+/// Mirrors `POST /v1/subscription/start`. Just enough to render the
+/// PaymentSheet — `customer` + `ephemeralKey` for saved-card lookup,
+/// `amount` + `currency` for the price line. The actual `Subscription`
+/// is created in `POST /v1/subscription/confirm` once the user has
+/// chosen a payment method and tapped Pay (deferred flow).
 @freezed
 abstract class SubscriptionStartParams with _$SubscriptionStartParams {
   const factory SubscriptionStartParams({
-    @JsonKey(name: 'subscription_id') required String subscriptionId,
-    @JsonKey(name: 'payment_intent_client_secret')
-    required String paymentIntentClientSecret,
-    @JsonKey(name: 'ephemeral_key') required String ephemeralKey,
     required String customer,
+    @JsonKey(name: 'ephemeral_key') required String ephemeralKey,
+    required int amount,
+    required String currency,
   }) = _SubscriptionStartParams;
 
   factory SubscriptionStartParams.fromJson(Map<String, dynamic> json) =>

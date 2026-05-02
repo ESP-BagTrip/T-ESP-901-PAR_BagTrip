@@ -35,13 +35,14 @@ async def create_checkout(
 
 @router.post(
     "/start",
-    summary="Start Premium subscription for native PaymentSheet (mobile)",
+    summary="Bootstrap the native PaymentSheet (no Stripe write yet)",
     description=(
-        "Creates a subscription in `default_incomplete` mode and returns "
-        "everything the Stripe mobile SDK needs: PaymentIntent client "
-        "secret, ephemeral key, customer id, subscription id. The user "
-        "completes payment in the native PaymentSheet — no browser, no "
-        "Checkout URL."
+        "Returns just what the deferred-`IntentConfiguration` flow needs "
+        "to render the PaymentSheet: `{customer, ephemeral_key, amount, "
+        "currency}`. The actual `Subscription` is created in "
+        "`POST /subscription/confirm` once the user picks a payment "
+        "method and taps Pay — no orphan `incomplete` subscriptions, "
+        "and the sheet opens with no Stripe round-trip on the way in."
     ),
 )
 async def start_subscription(
@@ -50,6 +51,29 @@ async def start_subscription(
 ):
     try:
         return SubscriptionService.start_subscription(db, current_user)
+    except AppError as e:
+        raise create_http_exception(e) from e
+
+
+@router.post(
+    "/confirm",
+    summary="Create the subscription with the chosen payment method",
+    description=(
+        "Called from the Flutter PaymentSheet's `confirmHandler` once "
+        "the user has chosen a payment method and tapped Pay. Creates "
+        "the `Subscription(default_incomplete)` with that payment "
+        "method as default, and returns the `client_secret` of its "
+        "latest invoice's PaymentIntent so the SDK can finalise the "
+        "payment (3DS / SCA in-line)."
+    ),
+)
+async def confirm_subscription(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+    payment_method_id: Annotated[str, Body(..., embed=True, alias="paymentMethodId")],
+):
+    try:
+        return SubscriptionService.confirm_subscription(db, current_user, payment_method_id)
     except AppError as e:
         raise create_http_exception(e) from e
 

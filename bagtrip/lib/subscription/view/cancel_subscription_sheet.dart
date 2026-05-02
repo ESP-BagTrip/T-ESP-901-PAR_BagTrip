@@ -91,7 +91,7 @@ class CancelSubscriptionSheet extends StatelessWidget {
                       height: 4,
                       decoration: BoxDecoration(
                         color: AppColors.textDisabled.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius: AppRadius.handleBar,
                       ),
                     ),
                   ),

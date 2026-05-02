@@ -9,17 +9,17 @@ part of 'subscription_start_params.dart';
 _SubscriptionStartParams _$SubscriptionStartParamsFromJson(
   Map<String, dynamic> json,
 ) => _SubscriptionStartParams(
-  subscriptionId: json['subscription_id'] as String,
-  paymentIntentClientSecret: json['payment_intent_client_secret'] as String,
-  ephemeralKey: json['ephemeral_key'] as String,
   customer: json['customer'] as String,
+  ephemeralKey: json['ephemeral_key'] as String,
+  amount: (json['amount'] as num).toInt(),
+  currency: json['currency'] as String,
 );
 
 Map<String, dynamic> _$SubscriptionStartParamsToJson(
   _SubscriptionStartParams instance,
 ) => <String, dynamic>{
-  'subscription_id': instance.subscriptionId,
-  'payment_intent_client_secret': instance.paymentIntentClientSecret,
-  'ephemeral_key': instance.ephemeralKey,
   'customer': instance.customer,
+  'ephemeral_key': instance.ephemeralKey,
+  'amount': instance.amount,
+  'currency': instance.currency,
 };

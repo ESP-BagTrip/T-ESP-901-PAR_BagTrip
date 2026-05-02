@@ -3251,7 +3251,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get subscriptionStatusActive => 'Actif';
 
   @override
+  String get subscriptionStatusPremiumActive => 'Premium · Actif';
+
+  @override
   String get subscriptionStatusFree => 'Plan gratuit';
+
+  @override
+  String get subscriptionLater => 'Plus tard';
+
+  @override
+  String get subscriptionPaywallClose => 'Fermer';
+
+  @override
+  String get premiumActivated => 'Premium activé';
 
   @override
   String subscriptionStatusCancelsOn(String date) {

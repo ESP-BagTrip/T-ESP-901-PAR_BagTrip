@@ -210,17 +210,17 @@ void main() {
 
     // ── Native PaymentSheet flow ─────────────────────────────────────
 
-    group('start (native subscription)', () {
-      test('parses the trio Stripe needs to drive the PaymentSheet', () async {
+    group('start (deferred bootstrap)', () {
+      test('parses {customer, ephemeralKey, amount, currency}', () async {
         when(() => mockApiClient.post('/subscription/start')).thenAnswer(
           (_) async => Response(
             requestOptions: RequestOptions(path: '/subscription/start'),
             statusCode: 200,
             data: <String, dynamic>{
-              'subscription_id': 'sub_999',
-              'payment_intent_client_secret': 'pi_secret_xyz',
-              'ephemeral_key': 'ek_secret_abc',
               'customer': 'cus_123',
+              'ephemeral_key': 'ek_secret_abc',
+              'amount': 999,
+              'currency': 'eur',
             },
           ),
         );
@@ -228,10 +228,10 @@ void main() {
         final result = await repository.start();
         expect(result, isA<Success<dynamic>>());
         final params = (result as Success).data;
-        expect(params.subscriptionId, 'sub_999');
-        expect(params.paymentIntentClientSecret, 'pi_secret_xyz');
-        expect(params.ephemeralKey, 'ek_secret_abc');
         expect(params.customer, 'cus_123');
+        expect(params.ephemeralKey, 'ek_secret_abc');
+        expect(params.amount, 999);
+        expect(params.currency, 'eur');
       });
 
       test('returns ServerError on malformed response', () async {
@@ -245,6 +245,54 @@ void main() {
         final result = await repository.start();
         expect(result, isA<Failure<dynamic>>());
         expect((result as Failure).error, isA<ServerError>());
+      });
+    });
+
+    group('confirmSubscription', () {
+      test('POSTs paymentMethodId and returns the client_secret', () async {
+        when(
+          () => mockApiClient.post(
+            '/subscription/confirm',
+            data: any(named: 'data'),
+          ),
+        ).thenAnswer(
+          (_) async => Response(
+            requestOptions: RequestOptions(path: '/subscription/confirm'),
+            statusCode: 200,
+            data: <String, dynamic>{
+              'subscription_id': 'sub_999',
+              'client_secret': 'pi_secret_xyz',
+            },
+          ),
+        );
+
+        final result = await repository.confirmSubscription('pm_card_visa');
+        expect(result, isA<Success<String>>());
+        expect((result as Success<String>).data, 'pi_secret_xyz');
+        verify(
+          () => mockApiClient.post(
+            '/subscription/confirm',
+            data: {'paymentMethodId': 'pm_card_visa'},
+          ),
+        ).called(1);
+      });
+
+      test('returns ServerError when client_secret is missing', () async {
+        when(
+          () => mockApiClient.post(
+            '/subscription/confirm',
+            data: any(named: 'data'),
+          ),
+        ).thenAnswer(
+          (_) async => Response(
+            requestOptions: RequestOptions(path: '/subscription/confirm'),
+            statusCode: 200,
+            data: <String, dynamic>{'subscription_id': 'sub_x'},
+          ),
+        );
+        final result = await repository.confirmSubscription('pm_x');
+        expect(result, isA<Failure<String>>());
+        expect((result as Failure<String>).error, isA<ServerError>());
       });
     });
 

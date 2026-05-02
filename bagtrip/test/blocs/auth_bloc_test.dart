@@ -342,5 +342,85 @@ void main() {
         expect: () => <AuthState>[],
       );
     });
+
+    // ── OptimisticPremiumActivated / ConfirmPremiumActivation ───────────
+
+    group('OptimisticPremiumActivated', () {
+      blocTest<AuthBloc, AuthState>(
+        'flips plan to PREMIUM locally without hitting the network',
+        build: () => AuthBloc(authRepository: mockAuthRepo),
+        seed: () =>
+            AuthSuccess(authResponse: makeAuthResponse(user: makeUser())),
+        act: (bloc) => bloc.add(OptimisticPremiumActivated()),
+        expect: () => [
+          predicate<AuthState>(
+            (s) => s is AuthSuccess && s.authResponse.user.plan == 'PREMIUM',
+            'AuthSuccess with optimistic PREMIUM',
+          ),
+        ],
+        verify: (_) {
+          // No server call — the whole point of optimistic.
+          verifyNever(() => mockAuthRepo.getCurrentUser());
+        },
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'no-op when user is already PREMIUM',
+        build: () => AuthBloc(authRepository: mockAuthRepo),
+        seed: () => AuthSuccess(
+          authResponse: makeAuthResponse(user: makeUser(plan: 'PREMIUM')),
+        ),
+        act: (bloc) => bloc.add(OptimisticPremiumActivated()),
+        expect: () => <AuthState>[],
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'no-op when not authenticated',
+        build: () => AuthBloc(authRepository: mockAuthRepo),
+        seed: () => AuthInitial(),
+        act: (bloc) => bloc.add(OptimisticPremiumActivated()),
+        expect: () => <AuthState>[],
+      );
+    });
+
+    group('ConfirmPremiumActivation', () {
+      blocTest<AuthBloc, AuthState>(
+        'first /auth/me already returns PREMIUM → emits once and stops',
+        build: () {
+          when(
+            () => mockAuthRepo.getCurrentUser(),
+          ).thenAnswer((_) async => Success(makeUser(plan: 'PREMIUM')));
+          return AuthBloc(authRepository: mockAuthRepo);
+        },
+        seed: () => AuthSuccess(
+          authResponse: makeAuthResponse(user: makeUser(plan: 'PREMIUM')),
+        ),
+        act: (bloc) => bloc.add(ConfirmPremiumActivation()),
+        // Backoff: 500ms before first call. Wait long enough for one
+        // attempt but short of the second (2s) so we observe a single
+        // emission.
+        wait: const Duration(milliseconds: 800),
+        expect: () => [
+          predicate<AuthState>(
+            (s) => s is AuthSuccess && s.authResponse.user.plan == 'PREMIUM',
+          ),
+        ],
+        verify: (_) {
+          verify(() => mockAuthRepo.getCurrentUser()).called(1);
+        },
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'no-op when user logged out mid-confirmation',
+        build: () => AuthBloc(authRepository: mockAuthRepo),
+        seed: () => AuthInitial(),
+        act: (bloc) => bloc.add(ConfirmPremiumActivation()),
+        wait: const Duration(milliseconds: 800),
+        expect: () => <AuthState>[],
+        verify: (_) {
+          verifyNever(() => mockAuthRepo.getCurrentUser());
+        },
+      );
+    });
   });
 }

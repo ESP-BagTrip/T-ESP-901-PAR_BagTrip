@@ -1600,7 +1600,11 @@
 
   "subscriptionPageTitle": "My subscription",
   "subscriptionStatusActive": "Active",
+  "subscriptionStatusPremiumActive": "Premium · Active",
   "subscriptionStatusFree": "Free plan",
+  "subscriptionLater": "Later",
+  "subscriptionPaywallClose": "Close",
+  "premiumActivated": "Premium activated",
   "subscriptionStatusCancelsOn": "Cancels on {date}",
   "@subscriptionStatusCancelsOn": {
     "placeholders": {"date": {"type": "String"}}
@@ -1623,6 +1627,7 @@
   },
   "subscriptionUpdatePaymentMethod": "Update payment method",
   "updatePaymentMethodSuccess": "New card saved",
+  "premiumActivated": "Premium activated",
   "subscriptionViewInvoices": "View invoices",
   "subscriptionCancelAction": "Cancel subscription",
   "subscriptionReactivateAction": "Reactivate subscription",

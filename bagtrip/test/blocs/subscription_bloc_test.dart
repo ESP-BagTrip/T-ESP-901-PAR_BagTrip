@@ -231,5 +231,90 @@ void main() {
         ],
       );
     });
+
+    group('Optimistic premium activation', () {
+      blocTest<SubscriptionBloc, SubscriptionState>(
+        'no prior details: emits stubbed PREMIUM so the manage screen '
+        'doesn\'t flicker back to FREE',
+        build: () => SubscriptionBloc(repository: mockRepo),
+        act: (bloc) => bloc.add(OptimisticSubscriptionActivated()),
+        expect: () => [
+          predicate<SubscriptionState>(
+            (s) => s.details?.isPremium ?? false,
+            'details flipped to PREMIUM',
+          ),
+        ],
+      );
+
+      blocTest<SubscriptionBloc, SubscriptionState>(
+        'FREE prior details: keeps every other field, flips plan only',
+        build: () => SubscriptionBloc(repository: mockRepo),
+        seed: () => SubscriptionState(details: _free()),
+        act: (bloc) => bloc.add(OptimisticSubscriptionActivated()),
+        expect: () => [
+          predicate<SubscriptionState>(
+            (s) => s.details!.isPremium,
+            'plan flipped to PREMIUM',
+          ),
+        ],
+      );
+
+      blocTest<SubscriptionBloc, SubscriptionState>(
+        'already PREMIUM: no-op',
+        build: () => SubscriptionBloc(repository: mockRepo),
+        seed: () => SubscriptionState(details: _premium()),
+        act: (bloc) => bloc.add(OptimisticSubscriptionActivated()),
+        expect: () => <SubscriptionState>[],
+      );
+
+      blocTest<SubscriptionBloc, SubscriptionState>(
+        'LoadSubscription after optimistic flip: keeps PREMIUM even if '
+        'server still returns FREE (webhook race)',
+        build: () {
+          when(
+            () => mockRepo.getDetails(),
+          ).thenAnswer((_) async => Success(_free()));
+          return SubscriptionBloc(repository: mockRepo);
+        },
+        seed: () => SubscriptionState(details: _premium()),
+        act: (bloc) => bloc.add(LoadSubscription()),
+        expect: () => [
+          predicate<SubscriptionState>((s) => s.isRefreshing),
+          predicate<SubscriptionState>(
+            (s) => !s.isRefreshing && (s.details?.isPremium ?? false),
+            'optimistic PREMIUM kept despite server FREE',
+          ),
+        ],
+      );
+    });
+
+    group('ConfirmSubscriptionActivation', () {
+      blocTest<SubscriptionBloc, SubscriptionState>(
+        'first poll already PREMIUM: replaces stub with real details, stops',
+        build: () {
+          when(
+            () => mockRepo.getDetails(),
+          ).thenAnswer((_) async => Success(_premium()));
+          return SubscriptionBloc(repository: mockRepo);
+        },
+        seed: () => const SubscriptionState(
+          details: SubscriptionDetails(plan: 'PREMIUM'),
+        ),
+        act: (bloc) => bloc.add(ConfirmSubscriptionActivation()),
+        // First poll fires after 500ms; allow 2s for the emit to land.
+        wait: const Duration(seconds: 2),
+        expect: () => [
+          predicate<SubscriptionState>(
+            (s) =>
+                s.details?.isPremium == true &&
+                s.details?.currentPeriodEnd != null,
+            'real PREMIUM payload (with renewal date) replaced the stub',
+          ),
+        ],
+        verify: (_) {
+          verify(() => mockRepo.getDetails()).called(1);
+        },
+      );
+    });
   });
 }

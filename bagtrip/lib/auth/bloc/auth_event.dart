@@ -53,3 +53,27 @@ class AuthModeChanged extends AuthEvent {
 class UserRefreshRequested extends AuthEvent {
   UserRefreshRequested();
 }
+
+/// Locally flip `user.plan` to PREMIUM the moment the PaymentSheet
+/// returns success — *before* the webhook lands.
+///
+/// Stripe has already confirmed the payment by the time
+/// `presentPaymentSheet()` returns without throwing; the only thing
+/// still pending is the `customer.subscription.created` webhook that
+/// flips the server-side state. Waiting on it would leave the UI
+/// showing FREE for 200-1500 ms after a successful Apple Pay
+/// confirmation — Jony Ive would rather die. The optimistic emit
+/// followed by [ConfirmPremiumActivation] handles that gap invisibly.
+class OptimisticPremiumActivated extends AuthEvent {
+  OptimisticPremiumActivated();
+}
+
+/// Confirm an optimistic Premium activation against the server.
+///
+/// Fires `getCurrentUser()` with retry/backoff (500 ms → 2 s → 5 s) so
+/// the local state catches up with the webhook within ~7.5 s of the
+/// PaymentSheet success. If it never does (rare — webhook outage), we
+/// keep the optimistic state and log; the user paid, after all.
+class ConfirmPremiumActivation extends AuthEvent {
+  ConfirmPremiumActivation();
+}

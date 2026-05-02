@@ -5799,11 +5799,35 @@ abstract class AppLocalizations {
   /// **'Actif'**
   String get subscriptionStatusActive;
 
+  /// No description provided for @subscriptionStatusPremiumActive.
+  ///
+  /// In fr, this message translates to:
+  /// **'Premium · Actif'**
+  String get subscriptionStatusPremiumActive;
+
   /// No description provided for @subscriptionStatusFree.
   ///
   /// In fr, this message translates to:
   /// **'Plan gratuit'**
   String get subscriptionStatusFree;
+
+  /// No description provided for @subscriptionLater.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus tard'**
+  String get subscriptionLater;
+
+  /// No description provided for @subscriptionPaywallClose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer'**
+  String get subscriptionPaywallClose;
+
+  /// No description provided for @premiumActivated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Premium activé'**
+  String get premiumActivated;
 
   /// No description provided for @subscriptionStatusCancelsOn.
   ///

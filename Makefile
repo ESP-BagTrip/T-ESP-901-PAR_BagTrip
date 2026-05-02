@@ -168,22 +168,25 @@ init: ## Setup project (env, deps, hooks)
 #  DEVELOPMENT
 # ══════════════════════════════════════════════════════════════
 
-dev: ## Start Docker services + Flutter app
+dev: ## Start Docker services + Stripe webhook forwarder + Flutter app
 	@printf "$(CYAN)[info]$(RESET) Starting Docker services…\n"
 	@$(COMPOSE) up -d --build
 	@printf "\n$(GREEN)[ok]$(RESET)   Services ready:\n"
 	@printf "       API          http://localhost:$(API_PORT)\n"
 	@printf "       API Docs     http://localhost:$(API_PORT)/docs\n"
 	@printf "       Admin Panel  http://localhost:8000\n\n"
+	@$(MAKE) --no-print-directory _stripe-listen-bg
 	@$(MAKE) --no-print-directory _flutter-run
+	@$(MAKE) --no-print-directory _stripe-listen-stop
 
-dev-docker: ## Start Docker services only (db, api, admin)
+dev-docker: ## Start Docker services + Stripe webhook forwarder (no Flutter)
 	@printf "$(CYAN)[info]$(RESET) Starting Docker services…\n"
 	@$(COMPOSE) up -d --build
 	@printf "\n$(GREEN)[ok]$(RESET)   Services ready:\n"
 	@printf "       API          http://localhost:$(API_PORT)\n"
 	@printf "       API Docs     http://localhost:$(API_PORT)/docs\n"
 	@printf "       Admin Panel  http://localhost:8000\n\n"
+	@$(MAKE) --no-print-directory _stripe-listen-bg
 
 dev-mobile: ## Start Flutter app only
 	@$(MAKE) --no-print-directory _flutter-run
@@ -235,8 +238,9 @@ _flutter-run:
 		--dart-define=API_BASE_URL=$(API_URL) \
 		--dart-define=STRIPE_PUBLISHABLE_KEY=$(STRIPE_PK)
 
-stop: ## Stop Docker services
-	@printf "$(CYAN)[info]$(RESET) Stopping services…\n"
+stop: ## Stop Docker services + Stripe webhook forwarder
+	@$(MAKE) --no-print-directory _stripe-listen-stop
+	@printf "$(CYAN)[info]$(RESET) Stopping Docker services…\n"
 	@$(COMPOSE) down
 	$(call ok,"Services stopped")
 
@@ -375,7 +379,7 @@ shell-admin: ## Shell in admin-panel container
 #  STRIPE
 # ══════════════════════════════════════════════════════════════
 
-stripe-listen: ## Forward Stripe webhooks to local API (requires `stripe` CLI logged in)
+stripe-listen: ## Forward Stripe webhooks to local API (foreground; requires `stripe` CLI logged in)
 	@if ! command -v stripe &>/dev/null; then \
 		printf "$(RED)[err]$(RESET)  Stripe CLI not installed — https://stripe.com/docs/stripe-cli\n"; \
 		exit 1; \
@@ -383,3 +387,37 @@ stripe-listen: ## Forward Stripe webhooks to local API (requires `stripe` CLI lo
 	@printf "$(CYAN)[info]$(RESET) Forwarding Stripe webhooks to http://localhost:$(API_PORT)/v1/stripe/webhooks\n"
 	@printf "$(YELLOW)[note]$(RESET) Copy the printed whsec_… into STRIPE_WEBHOOK_SECRET in your .env, then restart the API.\n\n"
 	@stripe listen --forward-to localhost:$(API_PORT)/v1/stripe/webhooks
+
+# Internal: launch `stripe listen` in the background so `make dev` can also
+# run Flutter in the foreground without the user juggling two terminals.
+# PID is tracked in /tmp so `_stripe-listen-stop` (and `make stop`) can kill
+# it without leaking orphans across runs.
+STRIPE_LISTEN_PID := /tmp/bagtrip-stripe-listen.pid
+STRIPE_LISTEN_LOG := /tmp/bagtrip-stripe-listen.log
+
+_stripe-listen-bg:
+	@if ! command -v stripe >/dev/null 2>&1; then \
+		printf "$(YELLOW)[warn]$(RESET) Stripe CLI not installed — webhooks won't be forwarded locally.\n"; \
+		printf "       Install: brew install stripe/stripe-cli/stripe (then 'stripe login')\n\n"; \
+		exit 0; \
+	fi
+	@if [ -f $(STRIPE_LISTEN_PID) ] && kill -0 $$(cat $(STRIPE_LISTEN_PID)) 2>/dev/null; then \
+		printf "$(CYAN)[info]$(RESET) Stripe webhook forwarder already running (pid=$$(cat $(STRIPE_LISTEN_PID)))\n\n"; \
+	else \
+		printf "$(CYAN)[info]$(RESET) Forwarding Stripe webhooks to http://localhost:$(API_PORT)/v1/stripe/webhooks (background)\n"; \
+		stripe listen --forward-to localhost:$(API_PORT)/v1/stripe/webhooks > $(STRIPE_LISTEN_LOG) 2>&1 & \
+		echo $$! > $(STRIPE_LISTEN_PID); \
+		printf "$(GREEN)[ok]$(RESET)   pid=$$(cat $(STRIPE_LISTEN_PID))  log=$(STRIPE_LISTEN_LOG)\n"; \
+		printf "$(YELLOW)[note]$(RESET) Signing secret read from STRIPE_WEBHOOK_SECRET in .env\n"; \
+		printf "       (run 'stripe listen --print-secret' to refresh it if needed)\n\n"; \
+	fi
+
+_stripe-listen-stop:
+	@if [ -f $(STRIPE_LISTEN_PID) ]; then \
+		PID=$$(cat $(STRIPE_LISTEN_PID)); \
+		if kill -0 $$PID 2>/dev/null; then \
+			printf "$(CYAN)[info]$(RESET) Stopping Stripe webhook forwarder (pid=$$PID)…\n"; \
+			kill $$PID 2>/dev/null || true; \
+		fi; \
+		rm -f $(STRIPE_LISTEN_PID); \
+	fi

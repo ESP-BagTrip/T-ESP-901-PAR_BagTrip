@@ -48,6 +48,16 @@ class StripeClient:
         return stripe.Customer.create(**customer_data, **_idem_kwargs(idempotency_key))
 
     @staticmethod
+    def retrieve_customer(customer_id: str) -> stripe.Customer:
+        """Récupérer un customer — utile pour vérifier qu'il existe encore.
+
+        Raises `stripe.InvalidRequestError` with `code == 'resource_missing'`
+        when the customer was deleted (manually in the dashboard, or because
+        the secret key was switched to a different account).
+        """
+        return stripe.Customer.retrieve(customer_id)
+
+    @staticmethod
     def delete_customer(customer_id: str) -> None:
         """Delete a Stripe customer."""
         stripe.Customer.delete(customer_id)
@@ -207,6 +217,29 @@ class StripeClient:
     def retrieve_payment_method(payment_method_id: str) -> stripe.PaymentMethod:
         """Récupérer un PaymentMethod (last4, brand, exp_year, etc.)."""
         return stripe.PaymentMethod.retrieve(payment_method_id)
+
+    @staticmethod
+    def attach_payment_method(
+        payment_method_id: str,
+        customer_id: str,
+        idempotency_key: str | None = None,
+    ) -> stripe.PaymentMethod:
+        """Attache un PaymentMethod à un Customer.
+
+        En deferred IntentConfiguration, le PaymentMethod retourné par
+        le `confirmHandler` côté SDK n'est *pas* encore attaché au
+        customer — Stripe ne le fait qu'au moment où le client_secret
+        confirme. Si on passe ce PM comme `default_payment_method` sur
+        une Subscription avant l'attach, Stripe rejette avec
+        `The payment method must be attached to the customer.`.
+        On l'attache donc explicitement dans `/subscription/confirm`
+        juste avant de créer la subscription.
+        """
+        return stripe.PaymentMethod.attach(
+            payment_method_id,
+            customer=customer_id,
+            **_idem_kwargs(idempotency_key),
+        )
 
     @staticmethod
     def create_setup_intent(

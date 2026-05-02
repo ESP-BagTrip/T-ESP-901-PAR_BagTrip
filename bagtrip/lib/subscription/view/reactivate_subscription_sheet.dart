@@ -74,7 +74,7 @@ class ReactivateSubscriptionSheet extends StatelessWidget {
                       height: 4,
                       decoration: BoxDecoration(
                         color: AppColors.textDisabled.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius: AppRadius.handleBar,
                       ),
                     ),
                   ),
@@ -116,6 +116,21 @@ class ReactivateSubscriptionSheet extends StatelessWidget {
                               color: CupertinoColors.white,
                             )
                           : Text(l10n.reactivateSheetConfirm),
+                    ),
+                  ),
+                  // Symmetric to CancelSubscriptionSheet's "Garder" button —
+                  // a sheet without an explicit dismiss feels coercive
+                  // (only escape route = swipe-down, undiscoverable).
+                  CupertinoButton(
+                    onPressed: loading
+                        ? null
+                        : () => Navigator.of(context).pop(),
+                    child: Text(
+                      l10n.subscriptionLater,
+                      style: TextStyle(
+                        fontFamily: FontFamily.b612,
+                        color: AppColors.textSecondaryOf(theme.brightness),
+                      ),
                     ),
                   ),
                 ],

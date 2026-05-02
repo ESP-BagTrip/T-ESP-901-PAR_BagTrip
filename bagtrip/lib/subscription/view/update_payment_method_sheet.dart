@@ -1,4 +1,5 @@
 import 'package:bagtrip/components/app_snackbar.dart';
+import 'package:bagtrip/config/app_config.dart';
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -50,9 +51,15 @@ class UpdatePaymentMethodFlow {
               setupIntentClientSecret: data.setupIntentClientSecret,
               customerId: data.customer,
               customerEphemeralKeySecret: data.ephemeralKey,
-              applePay: const stripe.PaymentSheetApplePay(
-                merchantCountryCode: 'FR',
-              ),
+              // Apple Pay is gated on the global merchant identifier
+              // being configured (see PremiumCheckout for the same
+              // logic). Passing the params with a null merchant id
+              // throws an assertion in the SDK.
+              applePay: AppConfig.appleMerchantIdentifier.isEmpty
+                  ? null
+                  : const stripe.PaymentSheetApplePay(
+                      merchantCountryCode: 'FR',
+                    ),
               googlePay: const stripe.PaymentSheetGooglePay(
                 merchantCountryCode: 'FR',
                 currencyCode: 'EUR',

@@ -31,6 +31,8 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     on<CancelSubscription>(_onCancel);
     on<ReactivateSubscription>(_onReactivate);
     on<ResetSubscription>(_onReset);
+    on<OptimisticSubscriptionActivated>(_onOptimisticActivated);
+    on<ConfirmSubscriptionActivation>(_onConfirmActivation);
   }
 
   final SubscriptionRepository _repository;
@@ -53,9 +55,16 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     if (isClosed) return;
     switch (result) {
       case Success(:final data):
+        // Don't let a stale `/subscription/me` (webhook hasn't landed yet)
+        // downgrade an optimistic Premium back to FREE — the user just
+        // paid; flipping the page back to the paywall body would feel
+        // like the payment failed. ConfirmSubscriptionActivation keeps
+        // retrying until the server agrees.
+        final keptOptimistic =
+            (state.details?.isPremium ?? false) && data.plan == 'FREE';
         emit(
           state.copyWith(
-            details: data,
+            details: keptOptimistic ? state.details : data,
             isLoading: false,
             isRefreshing: false,
             error: null,
@@ -137,5 +146,57 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
 
   void _onReset(ResetSubscription event, Emitter<SubscriptionState> emit) {
     emit(const SubscriptionState.initial());
+  }
+
+  /// Locally flip the cached details to PREMIUM so the manage screen
+  /// stops rendering the FREE paywall body the instant the
+  /// PaymentSheet returns success.
+  ///
+  /// We can't get the renewal date or paymentMethod without the server
+  /// (Stripe is the source of truth there), but we *can* fake a stub
+  /// that keeps `isPremium` true for the gate. The reconciliation
+  /// retry below replaces it with the real data within seconds.
+  void _onOptimisticActivated(
+    OptimisticSubscriptionActivated event,
+    Emitter<SubscriptionState> emit,
+  ) {
+    final current = state.details;
+    if (current?.isPremium ?? false) return;
+    final stub =
+        current?.copyWith(plan: 'PREMIUM') ??
+        const SubscriptionDetails(plan: 'PREMIUM');
+    emit(state.copyWith(details: stub, isLoading: false, error: null));
+  }
+
+  /// Reconcile the optimistic PREMIUM stub with `/subscription/me`.
+  ///
+  /// Mirrors [AuthBloc._onConfirmPremiumActivation] but at the
+  /// subscription-detail level — replaces the stub with the real
+  /// payload (renewal date, payment method, quotas) once the
+  /// `customer.subscription.created` webhook lands. Stops as soon as
+  /// the server confirms PREMIUM. If it never does (very rare), we
+  /// keep the stub — same justification as auth: the user paid;
+  /// rolling back to FREE would be more wrong than a brief drift.
+  Future<void> _onConfirmActivation(
+    ConfirmSubscriptionActivation event,
+    Emitter<SubscriptionState> emit,
+  ) async {
+    const delays = [
+      Duration(milliseconds: 500),
+      Duration(seconds: 2),
+      Duration(seconds: 5),
+    ];
+    for (final delay in delays) {
+      await Future<void>.delayed(delay);
+      if (isClosed) return;
+      final result = await _repository.getDetails();
+      if (isClosed) return;
+      if (result case Success(:final data) when data.isPremium) {
+        emit(state.copyWith(details: data, isRefreshing: false, error: null));
+        return;
+      }
+      // Else: webhook hasn't landed — keep the optimistic stub and try
+      // again on the next tick.
+    }
   }
 }

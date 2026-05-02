@@ -71,5 +71,13 @@ void main() {
         expect(find.textContaining('9,99'), findsOneWidget);
       },
     );
+
+    testWidgets(
+      'renders an explicit close button so the user can dismiss without swipe',
+      (tester) async {
+        await pumpLocalized(tester, const _PaywallHost());
+        expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+      },
+    );
   });
 }

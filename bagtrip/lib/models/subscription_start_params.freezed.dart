@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SubscriptionStartParams {
 
-@JsonKey(name: 'subscription_id') String get subscriptionId;@JsonKey(name: 'payment_intent_client_secret') String get paymentIntentClientSecret;@JsonKey(name: 'ephemeral_key') String get ephemeralKey; String get customer;
+ String get customer;@JsonKey(name: 'ephemeral_key') String get ephemeralKey; int get amount; String get currency;
 /// Create a copy of SubscriptionStartParams
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SubscriptionStartParamsCopyWith<SubscriptionStartParams> get copyWith => _$Subs
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SubscriptionStartParams&&(identical(other.subscriptionId, subscriptionId) || other.subscriptionId == subscriptionId)&&(identical(other.paymentIntentClientSecret, paymentIntentClientSecret) || other.paymentIntentClientSecret == paymentIntentClientSecret)&&(identical(other.ephemeralKey, ephemeralKey) || other.ephemeralKey == ephemeralKey)&&(identical(other.customer, customer) || other.customer == customer));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SubscriptionStartParams&&(identical(other.customer, customer) || other.customer == customer)&&(identical(other.ephemeralKey, ephemeralKey) || other.ephemeralKey == ephemeralKey)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.currency, currency) || other.currency == currency));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,subscriptionId,paymentIntentClientSecret,ephemeralKey,customer);
+int get hashCode => Object.hash(runtimeType,customer,ephemeralKey,amount,currency);
 
 @override
 String toString() {
-  return 'SubscriptionStartParams(subscriptionId: $subscriptionId, paymentIntentClientSecret: $paymentIntentClientSecret, ephemeralKey: $ephemeralKey, customer: $customer)';
+  return 'SubscriptionStartParams(customer: $customer, ephemeralKey: $ephemeralKey, amount: $amount, currency: $currency)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SubscriptionStartParamsCopyWith<$Res>  {
   factory $SubscriptionStartParamsCopyWith(SubscriptionStartParams value, $Res Function(SubscriptionStartParams) _then) = _$SubscriptionStartParamsCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'subscription_id') String subscriptionId,@JsonKey(name: 'payment_intent_client_secret') String paymentIntentClientSecret,@JsonKey(name: 'ephemeral_key') String ephemeralKey, String customer
+ String customer,@JsonKey(name: 'ephemeral_key') String ephemeralKey, int amount, String currency
 });
 
 
@@ -65,12 +65,12 @@ class _$SubscriptionStartParamsCopyWithImpl<$Res>
 
 /// Create a copy of SubscriptionStartParams
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? subscriptionId = null,Object? paymentIntentClientSecret = null,Object? ephemeralKey = null,Object? customer = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? customer = null,Object? ephemeralKey = null,Object? amount = null,Object? currency = null,}) {
   return _then(_self.copyWith(
-subscriptionId: null == subscriptionId ? _self.subscriptionId : subscriptionId // ignore: cast_nullable_to_non_nullable
-as String,paymentIntentClientSecret: null == paymentIntentClientSecret ? _self.paymentIntentClientSecret : paymentIntentClientSecret // ignore: cast_nullable_to_non_nullable
+customer: null == customer ? _self.customer : customer // ignore: cast_nullable_to_non_nullable
 as String,ephemeralKey: null == ephemeralKey ? _self.ephemeralKey : ephemeralKey // ignore: cast_nullable_to_non_nullable
-as String,customer: null == customer ? _self.customer : customer // ignore: cast_nullable_to_non_nullable
+as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
+as int,currency: null == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -156,10 +156,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'subscription_id')  String subscriptionId, @JsonKey(name: 'payment_intent_client_secret')  String paymentIntentClientSecret, @JsonKey(name: 'ephemeral_key')  String ephemeralKey,  String customer)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String customer, @JsonKey(name: 'ephemeral_key')  String ephemeralKey,  int amount,  String currency)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SubscriptionStartParams() when $default != null:
-return $default(_that.subscriptionId,_that.paymentIntentClientSecret,_that.ephemeralKey,_that.customer);case _:
+return $default(_that.customer,_that.ephemeralKey,_that.amount,_that.currency);case _:
   return orElse();
 
 }
@@ -177,10 +177,10 @@ return $default(_that.subscriptionId,_that.paymentIntentClientSecret,_that.ephem
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'subscription_id')  String subscriptionId, @JsonKey(name: 'payment_intent_client_secret')  String paymentIntentClientSecret, @JsonKey(name: 'ephemeral_key')  String ephemeralKey,  String customer)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String customer, @JsonKey(name: 'ephemeral_key')  String ephemeralKey,  int amount,  String currency)  $default,) {final _that = this;
 switch (_that) {
 case _SubscriptionStartParams():
-return $default(_that.subscriptionId,_that.paymentIntentClientSecret,_that.ephemeralKey,_that.customer);case _:
+return $default(_that.customer,_that.ephemeralKey,_that.amount,_that.currency);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -197,10 +197,10 @@ return $default(_that.subscriptionId,_that.paymentIntentClientSecret,_that.ephem
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'subscription_id')  String subscriptionId, @JsonKey(name: 'payment_intent_client_secret')  String paymentIntentClientSecret, @JsonKey(name: 'ephemeral_key')  String ephemeralKey,  String customer)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String customer, @JsonKey(name: 'ephemeral_key')  String ephemeralKey,  int amount,  String currency)?  $default,) {final _that = this;
 switch (_that) {
 case _SubscriptionStartParams() when $default != null:
-return $default(_that.subscriptionId,_that.paymentIntentClientSecret,_that.ephemeralKey,_that.customer);case _:
+return $default(_that.customer,_that.ephemeralKey,_that.amount,_that.currency);case _:
   return null;
 
 }
@@ -212,13 +212,13 @@ return $default(_that.subscriptionId,_that.paymentIntentClientSecret,_that.ephem
 @JsonSerializable()
 
 class _SubscriptionStartParams implements SubscriptionStartParams {
-  const _SubscriptionStartParams({@JsonKey(name: 'subscription_id') required this.subscriptionId, @JsonKey(name: 'payment_intent_client_secret') required this.paymentIntentClientSecret, @JsonKey(name: 'ephemeral_key') required this.ephemeralKey, required this.customer});
+  const _SubscriptionStartParams({required this.customer, @JsonKey(name: 'ephemeral_key') required this.ephemeralKey, required this.amount, required this.currency});
   factory _SubscriptionStartParams.fromJson(Map<String, dynamic> json) => _$SubscriptionStartParamsFromJson(json);
 
-@override@JsonKey(name: 'subscription_id') final  String subscriptionId;
-@override@JsonKey(name: 'payment_intent_client_secret') final  String paymentIntentClientSecret;
-@override@JsonKey(name: 'ephemeral_key') final  String ephemeralKey;
 @override final  String customer;
+@override@JsonKey(name: 'ephemeral_key') final  String ephemeralKey;
+@override final  int amount;
+@override final  String currency;
 
 /// Create a copy of SubscriptionStartParams
 /// with the given fields replaced by the non-null parameter values.
@@ -233,16 +233,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SubscriptionStartParams&&(identical(other.subscriptionId, subscriptionId) || other.subscriptionId == subscriptionId)&&(identical(other.paymentIntentClientSecret, paymentIntentClientSecret) || other.paymentIntentClientSecret == paymentIntentClientSecret)&&(identical(other.ephemeralKey, ephemeralKey) || other.ephemeralKey == ephemeralKey)&&(identical(other.customer, customer) || other.customer == customer));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SubscriptionStartParams&&(identical(other.customer, customer) || other.customer == customer)&&(identical(other.ephemeralKey, ephemeralKey) || other.ephemeralKey == ephemeralKey)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.currency, currency) || other.currency == currency));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,subscriptionId,paymentIntentClientSecret,ephemeralKey,customer);
+int get hashCode => Object.hash(runtimeType,customer,ephemeralKey,amount,currency);
 
 @override
 String toString() {
-  return 'SubscriptionStartParams(subscriptionId: $subscriptionId, paymentIntentClientSecret: $paymentIntentClientSecret, ephemeralKey: $ephemeralKey, customer: $customer)';
+  return 'SubscriptionStartParams(customer: $customer, ephemeralKey: $ephemeralKey, amount: $amount, currency: $currency)';
 }
 
 
@@ -253,7 +253,7 @@ abstract mixin class _$SubscriptionStartParamsCopyWith<$Res> implements $Subscri
   factory _$SubscriptionStartParamsCopyWith(_SubscriptionStartParams value, $Res Function(_SubscriptionStartParams) _then) = __$SubscriptionStartParamsCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'subscription_id') String subscriptionId,@JsonKey(name: 'payment_intent_client_secret') String paymentIntentClientSecret,@JsonKey(name: 'ephemeral_key') String ephemeralKey, String customer
+ String customer,@JsonKey(name: 'ephemeral_key') String ephemeralKey, int amount, String currency
 });
 
 
@@ -270,12 +270,12 @@ class __$SubscriptionStartParamsCopyWithImpl<$Res>
 
 /// Create a copy of SubscriptionStartParams
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? subscriptionId = null,Object? paymentIntentClientSecret = null,Object? ephemeralKey = null,Object? customer = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? customer = null,Object? ephemeralKey = null,Object? amount = null,Object? currency = null,}) {
   return _then(_SubscriptionStartParams(
-subscriptionId: null == subscriptionId ? _self.subscriptionId : subscriptionId // ignore: cast_nullable_to_non_nullable
-as String,paymentIntentClientSecret: null == paymentIntentClientSecret ? _self.paymentIntentClientSecret : paymentIntentClientSecret // ignore: cast_nullable_to_non_nullable
+customer: null == customer ? _self.customer : customer // ignore: cast_nullable_to_non_nullable
 as String,ephemeralKey: null == ephemeralKey ? _self.ephemeralKey : ephemeralKey // ignore: cast_nullable_to_non_nullable
-as String,customer: null == customer ? _self.customer : customer // ignore: cast_nullable_to_non_nullable
+as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
+as int,currency: null == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

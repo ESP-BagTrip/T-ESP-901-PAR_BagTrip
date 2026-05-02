@@ -69,6 +69,14 @@ void main() async {
   }
   Stripe.publishableKey = stripeKey;
   Stripe.urlScheme = 'bagtrip';
+  // Apple Pay merchant identifier — must match the one configured in
+  // Apple Developer + the Stripe dashboard + the Xcode "Apple Pay"
+  // capability (Runner.entitlements). Empty default is harmless: the
+  // PaymentSheet just won't render the Apple Pay row on iOS until the
+  // merchant id ships.
+  if (AppConfig.appleMerchantIdentifier.isNotEmpty) {
+    Stripe.merchantIdentifier = AppConfig.appleMerchantIdentifier;
+  }
   await Stripe.instance.applySettings();
 
   // Crashlytics

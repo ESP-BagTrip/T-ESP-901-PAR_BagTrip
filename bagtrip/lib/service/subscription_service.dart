@@ -74,6 +74,27 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
   }
 
   @override
+  Future<Result<String>> confirmSubscription(String paymentMethodId) async {
+    try {
+      final response = await _apiClient.post(
+        '/subscription/confirm',
+        data: {'paymentMethodId': paymentMethodId},
+      );
+      final data = response.data;
+      if (data is Map<String, dynamic> && data['client_secret'] is String) {
+        return Success(data['client_secret'] as String);
+      }
+      return loggedFailure(
+        const ServerError('Invalid /subscription/confirm response shape'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
   Future<Result<String>> getCheckoutUrl() async {
     try {
       final response = await _apiClient.post('/subscription/checkout');

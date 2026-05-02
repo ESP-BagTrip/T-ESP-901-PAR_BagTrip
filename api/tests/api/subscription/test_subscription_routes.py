@@ -162,22 +162,23 @@ class TestListInvoices:
 
 
 class TestStartSubscription:
-    """POST /v1/subscription/start — native PaymentSheet bootstrap."""
+    """POST /v1/subscription/start — bootstrap-only, no Stripe write."""
 
     @patch("src.api.subscription.routes.SubscriptionService")
     def test_success(self, mock_service, client, override_get_current_user, override_get_db):
         mock_service.start_subscription.return_value = {
-            "subscription_id": "sub_999",
-            "payment_intent_client_secret": "pi_secret",
-            "ephemeral_key": "ek_secret",
             "customer": "cus_123",
+            "ephemeral_key": "ek_secret",
+            "amount": 999,
+            "currency": "eur",
         }
         response = client.post("/v1/subscription/start")
         assert response.status_code == 200
         body = response.json()
-        assert body["subscription_id"] == "sub_999"
-        assert body["payment_intent_client_secret"] == "pi_secret"
+        assert body["customer"] == "cus_123"
         assert body["ephemeral_key"] == "ek_secret"
+        assert body["amount"] == 999
+        assert body["currency"] == "eur"
 
     @patch("src.api.subscription.routes.SubscriptionService")
     def test_already_premium(
@@ -187,6 +188,45 @@ class TestStartSubscription:
             "ALREADY_PREMIUM", 400, "You are already on a paid plan"
         )
         response = client.post("/v1/subscription/start")
+        assert response.status_code == 400
+
+
+class TestConfirmSubscription:
+    """POST /v1/subscription/confirm — invoked by PaymentSheet's confirmHandler."""
+
+    @patch("src.api.subscription.routes.SubscriptionService")
+    def test_success(self, mock_service, client, override_get_current_user, override_get_db):
+        mock_service.confirm_subscription.return_value = {
+            "subscription_id": "sub_999",
+            "client_secret": "pi_secret_xyz",
+        }
+        response = client.post(
+            "/v1/subscription/confirm",
+            json={"paymentMethodId": "pm_card_visa"},
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["subscription_id"] == "sub_999"
+        assert body["client_secret"] == "pi_secret_xyz"
+
+    def test_missing_payment_method_id_rejected(
+        self, client, override_get_current_user, override_get_db
+    ):
+        """Body must carry `paymentMethodId` — schema-level validation."""
+        response = client.post("/v1/subscription/confirm", json={})
+        assert response.status_code == 422
+
+    @patch("src.api.subscription.routes.SubscriptionService")
+    def test_already_premium(
+        self, mock_service, client, override_get_current_user, override_get_db
+    ):
+        mock_service.confirm_subscription.side_effect = AppError(
+            "ALREADY_PREMIUM", 400, "You are already on a paid plan"
+        )
+        response = client.post(
+            "/v1/subscription/confirm",
+            json={"paymentMethodId": "pm_x"},
+        )
         assert response.status_code == 400
 
 

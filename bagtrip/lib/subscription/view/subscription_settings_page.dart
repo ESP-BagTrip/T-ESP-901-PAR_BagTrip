@@ -1,19 +1,21 @@
 import 'package:bagtrip/components/adaptive/adaptive_app_bar.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/design/widgets/premium_paywall.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/payment_method_preview.dart';
 import 'package:bagtrip/models/subscription_details.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/subscription/bloc/subscription_bloc.dart';
+import 'package:bagtrip/subscription/premium_checkout.dart';
+import 'package:bagtrip/subscription/premium_pricing.dart';
 import 'package:bagtrip/subscription/view/cancel_subscription_sheet.dart';
 import 'package:bagtrip/subscription/view/reactivate_subscription_sheet.dart';
 import 'package:bagtrip/subscription/view/update_payment_method_sheet.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
@@ -192,7 +194,7 @@ class _StatusBadge extends StatelessWidget {
       label = l10n.subscriptionStatusCancelsOn(dateFormat.format(renewal));
       color = AppColors.warning;
     } else {
-      label = 'Premium · ${l10n.subscriptionStatusActive}';
+      label = l10n.subscriptionStatusPremiumActive;
       color = AppColors.primary;
     }
 
@@ -310,7 +312,7 @@ class _RenewalSummary extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.space4),
         Text(
-          l10n.premiumPriceLabel('9,99 €'),
+          l10n.premiumPriceLabel(PremiumPricing.displayPrice),
           style: TextStyle(
             fontFamily: FontFamily.b612,
             fontSize: 14,
@@ -326,51 +328,228 @@ class _RenewalSummary extends StatelessWidget {
 // Free body
 // ---------------------------------------------------------------------------
 
-class _FreeBody extends StatelessWidget {
+class _FreeBody extends StatefulWidget {
   const _FreeBody();
+
+  @override
+  State<_FreeBody> createState() => _FreeBodyState();
+}
+
+/// FREE-state of the manage-subscription page.
+///
+/// Used to show "Plan gratuit" + a paragraph + a button that opened
+/// *another* sheet with the same info and another button — three
+/// stacked surfaces for what's a single intent. Now the page itself is
+/// the showcase: swipeable feature cards, price, single CTA → Stripe
+/// PaymentSheet directly. One layer.
+class _FreeBodyState extends State<_FreeBody> {
+  final _pageController = PageController();
+  bool _isLoading = false;
+  int _pageIndex = 0;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleUpgrade() async {
+    HapticFeedback.mediumImpact();
+    setState(() => _isLoading = true);
+    await PremiumCheckout.run(context);
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+    // Nothing else to do on success — the bloc state flip will rebuild
+    // the parent into _PremiumBody automatically (via
+    // SubscriptionBloc.LoadSubscription dispatched inside PremiumCheckout).
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.space24,
-        AppSpacing.space24,
-        AppSpacing.space24,
-        AppSpacing.space48,
+    final mediaQuery = MediaQuery.of(context);
+
+    final features = <_FreeFeature>[
+      _FreeFeature(
+        icon: Icons.auto_awesome_outlined,
+        title: l10n.premiumFeaturePageAiTitle,
+        body: l10n.premiumFeaturePageAiBody,
       ),
+      _FreeFeature(
+        icon: Icons.group_outlined,
+        title: l10n.premiumFeaturePageViewersTitle,
+        body: l10n.premiumFeaturePageViewersBody,
+      ),
+      _FreeFeature(
+        icon: Icons.notifications_none_rounded,
+        title: l10n.premiumFeaturePageOfflineTitle,
+        body: l10n.premiumFeaturePageOfflineBody,
+      ),
+      _FreeFeature(
+        icon: Icons.bookmark_border_rounded,
+        title: l10n.premiumFeaturePagePostTripTitle,
+        body: l10n.premiumFeaturePagePostTripBody,
+      ),
+    ];
+
+    return Column(
       children: [
-        Text(
-          l10n.subscriptionStatusFree,
-          style: TextStyle(
-            fontFamily: FontFamily.b612,
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textSecondaryOf(theme.brightness),
-            letterSpacing: 0.2,
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.space24,
+            AppSpacing.space24,
+            AppSpacing.space24,
+            0,
+          ),
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(
+              l10n.subscriptionStatusFree,
+              style: TextStyle(
+                fontFamily: FontFamily.b612,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondaryOf(theme.brightness),
+                letterSpacing: 0.2,
+              ),
+            ),
           ),
         ),
+        Expanded(
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: features.length,
+            onPageChanged: (i) {
+              HapticFeedback.selectionClick();
+              setState(() => _pageIndex = i);
+            },
+            itemBuilder: (context, index) =>
+                _FreeFeaturePage(feature: features[index]),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.space16),
+        _FreePageDots(count: features.length, currentIndex: _pageIndex),
         const SizedBox(height: AppSpacing.space24),
-        Text(
-          l10n.subscriptionFreeMessage,
-          style: TextStyle(
-            fontFamily: FontFamily.b612,
-            fontSize: 16,
-            height: 1.5,
-            color: theme.colorScheme.onSurface,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.space32),
-        SizedBox(
-          width: double.infinity,
-          child: CupertinoButton.filled(
-            onPressed: () => PremiumPaywall.show(context),
-            child: Text(l10n.subscriptionDiscoverPremium),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              CupertinoButton.filled(
+                onPressed: _isLoading ? null : _handleUpgrade,
+                child: _isLoading
+                    ? const CupertinoActivityIndicator(
+                        color: CupertinoColors.white,
+                      )
+                    : Text(l10n.premiumCtaTry),
+              ),
+              const SizedBox(height: AppSpacing.space12),
+              Text(
+                l10n.premiumPriceLabel(PremiumPricing.displayPrice),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: FontFamily.b612,
+                  fontSize: 13,
+                  color: AppColors.textSecondaryOf(theme.brightness),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.space4),
+              Text(
+                l10n.premiumDisclaimerCancelAnytime,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontFamily: FontFamily.b612,
+                  fontSize: 12,
+                  color: AppColors.textDisabled,
+                ),
+              ),
+              SizedBox(height: mediaQuery.padding.bottom + AppSpacing.space24),
+            ],
           ),
         ),
       ],
+    );
+  }
+}
+
+class _FreeFeature {
+  final IconData icon;
+  final String title;
+  final String body;
+  const _FreeFeature({
+    required this.icon,
+    required this.title,
+    required this.body,
+  });
+}
+
+class _FreeFeaturePage extends StatelessWidget {
+  const _FreeFeaturePage({required this.feature});
+  final _FreeFeature feature;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space32),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(feature.icon, size: 56, color: AppColors.primary),
+          const SizedBox(height: AppSpacing.space32),
+          Text(
+            feature.title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: FontFamily.b612,
+              fontSize: 26,
+              fontWeight: FontWeight.w700,
+              height: 1.2,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.space16),
+          Text(
+            feature.body,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: FontFamily.b612,
+              fontSize: 15,
+              height: 1.5,
+              color: AppColors.textSecondaryOf(theme.brightness),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FreePageDots extends StatelessWidget {
+  const _FreePageDots({required this.count, required this.currentIndex});
+  final int count;
+  final int currentIndex;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(count, (i) {
+        final active = i == currentIndex;
+        return AnimatedContainer(
+          duration: AppAnimationDurations.quick,
+          margin: const EdgeInsets.symmetric(horizontal: AppSpacing.space4),
+          height: 6,
+          width: active ? 18 : 6,
+          decoration: BoxDecoration(
+            color: active
+                ? AppColors.primary
+                : AppColors.textDisabled.withValues(alpha: 0.3),
+            borderRadius: AppRadius.dot,
+          ),
+        );
+      }),
     );
   }
 }
