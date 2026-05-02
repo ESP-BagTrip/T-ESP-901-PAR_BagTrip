@@ -26,6 +26,10 @@ class TripPlanState(TypedDict, total=False):
     season: str
     nb_travelers: int
     budget_preset: str
+    # Topic 01 (B2/B6/B7) — numeric budget the user committed to in the wizard.
+    # The estimator and the fallback computation use it as a sanity ceiling
+    # instead of recomputing the total from the breakdown.
+    target_budget: float | None
     date_mode: str
     destination_city: str  # Pre-selected destination (manual flow)
     destination_iata: str  # Pre-selected destination IATA code

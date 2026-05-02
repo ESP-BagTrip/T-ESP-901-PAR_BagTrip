@@ -45,6 +45,15 @@ class PlanTripRequest(BaseModel):
     nbTravelers: int | None = 1
     dateMode: str | None = None
     budgetPreset: str | None = None
+    targetBudget: float | None = Field(
+        None,
+        description=(
+            "Numeric budget target the user explicitly committed to in the wizard "
+            "(topic 01, B2/B6/B7). Lands in the LangGraph state as "
+            "`target_budget` so the agent can treat it as a constraint instead "
+            "of recomputing it from the breakdown."
+        ),
+    )
     preferredMonth: int | None = Field(None, description="1-12, for dateMode=month")
     preferredYear: int | None = Field(None, description="e.g. 2027, for dateMode=month")
     mode: str | None = Field(None, description="'full' (default) or 'destinations_only'")

@@ -397,7 +397,31 @@ void main() {
       seed: () => const PlanTripState(budgetPreset: BudgetPreset.comfortable),
       act: (bloc) => bloc.add(const PlanTripEvent.setBudgetPreset(null)),
       expect: () => [
-        isA<PlanTripState>().having((s) => s.budgetPreset, 'preset', isNull),
+        isA<PlanTripState>()
+            .having((s) => s.budgetPreset, 'preset', isNull)
+            .having((s) => s.targetBudget, 'targetBudget cleared too', isNull),
+      ],
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'SetBudgetPreset (B2/B6/B7) computes targetBudget when duration known',
+      build: buildBloc,
+      seed: () => PlanTripState(
+        nbAdults: 2,
+        startDate: DateTime(2026, 6, 1),
+        endDate: DateTime(2026, 6, 8),
+      ),
+      act: (bloc) => bloc.add(
+        const PlanTripEvent.setBudgetPreset(BudgetPreset.comfortable),
+      ),
+      expect: () => [
+        isA<PlanTripState>()
+            .having((s) => s.budgetPreset, 'preset', BudgetPreset.comfortable)
+            .having(
+              (s) => s.targetBudget,
+              'targetBudget derived from preset',
+              isA<double>().having((v) => v > 0, 'is positive', isTrue),
+            ),
       ],
     );
   });

@@ -269,7 +269,21 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     PlanTripSetBudgetPreset event,
     Emitter<PlanTripState> emit,
   ) {
-    emit(state.copyWith(budgetPreset: event.preset));
+    // Topic 01 — derive the numeric target as soon as the user picks a
+    // preset (and trip days are known). Recomputed each time so the
+    // value stays in sync with travelers / duration changes.
+    double? targetBudget;
+    if (event.preset != null && state.tripDurationDays != null) {
+      final range = estimateBudget(
+        preset: event.preset!,
+        nbTravelers: state.nbTravelers,
+        days: state.tripDurationDays!,
+      );
+      targetBudget = range.max;
+    }
+    emit(
+      state.copyWith(budgetPreset: event.preset, targetBudget: targetBudget),
+    );
   }
 
   void _onSetOriginCity(
@@ -733,16 +747,9 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     final dest = state.selectedManualDestination;
     final title = dest?.name ?? 'Mon voyage';
 
-    double? budgetTarget;
-    if (state.budgetPreset != null && state.tripDurationDays != null) {
-      final range = estimateBudget(
-        preset: state.budgetPreset!,
-        nbTravelers: state.nbTravelers,
-        days: state.tripDurationDays!,
-      );
-      budgetTarget = range.max;
-    }
-
+    // Topic 01 (B7) — manual flow now reuses the same `targetBudget` the
+    // wizard committed to in step 2, instead of recomputing it differently
+    // from the IA flow (which used to produce a different total user-side).
     final result = await _tripRepository.createTrip(
       title: title,
       destinationName: dest?.name,
@@ -750,7 +757,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       startDate: state.startDate,
       endDate: state.endDate,
       nbTravelers: state.nbTravelers,
-      budgetTarget: budgetTarget,
+      budgetTarget: state.targetBudget,
     );
     if (isClosed) return;
 
@@ -862,6 +869,9 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       'originCity': state.originCity,
       'dateMode': state.dateMode.name,
       'budgetPreset': state.budgetPreset?.name,
+      // Topic 01 — surface the numeric target so the agent treats it as a
+      // constraint instead of recomputing it from the breakdown.
+      if (state.targetBudget != null) 'targetBudget': state.targetBudget,
       if (state.preferredMonth != null) 'preferredMonth': state.preferredMonth,
       if (state.preferredYear != null) 'preferredYear': state.preferredYear,
       if (destName != null) 'destinationCity': destName,

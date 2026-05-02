@@ -121,6 +121,10 @@ def _build_initial_state(request: PlanTripRequest) -> dict:
         "season": request.season or "",
         "nb_travelers": request.nbTravelers or 1,
         "budget_preset": request.budgetPreset or "",
+        # Topic 01 — numeric target the user committed to in the wizard.
+        # Threaded into the agent state so nodes can render it in prompts
+        # and `_compute_fallback_budget` can use it as a sanity ceiling.
+        "target_budget": request.targetBudget,
         "date_mode": request.dateMode or "",
         "events": [],
         "errors": [],

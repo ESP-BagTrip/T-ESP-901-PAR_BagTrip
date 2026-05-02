@@ -178,6 +178,14 @@ async def budget_node(state: TripPlanState) -> dict:
             "label", state["budget_preset"]
         )
         parts.append(f"Budget level: {label}")
+    # Topic 01 — feed the user's explicit numeric ceiling to the LLM so the
+    # estimation stays anchored to it rather than emerging from the breakdown.
+    target_budget = state.get("target_budget")
+    if target_budget is not None and target_budget > 0:
+        parts.append(
+            f"User's target budget: {target_budget} EUR — keep the breakdown "
+            "consistent with this ceiling."
+        )
     if state.get("nb_travelers"):
         parts.append(f"Number of travelers: {state['nb_travelers']}")
 
