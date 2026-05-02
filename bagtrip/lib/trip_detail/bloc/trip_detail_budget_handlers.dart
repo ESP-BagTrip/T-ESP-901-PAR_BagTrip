@@ -129,13 +129,24 @@ extension _TripDetailBudgetHandlers on TripDetailBloc {
     final summaryResult = results[0] as Result<BudgetSummary>;
     final itemsResult = results[1] as Result<List<BudgetItem>>;
 
-    if (summaryResult case Success(:final data)) {
-      emit(
-        current.copyWith(
-          budgetSummary: data,
-          budgetItems: itemsResult.dataOrNull ?? current.budgetItems,
-        ),
-      );
+    // B19 — surface refresh failures via sectionErrors so the budget
+    // panel can render a retry CTA instead of staying silent.
+    final updatedSectionErrors = Map<String, AppError>.from(
+      current.sectionErrors,
+    );
+    switch (summaryResult) {
+      case Success(:final data):
+        updatedSectionErrors.remove('budget');
+        emit(
+          current.copyWith(
+            budgetSummary: data,
+            budgetItems: itemsResult.dataOrNull ?? current.budgetItems,
+            sectionErrors: updatedSectionErrors,
+          ),
+        );
+      case Failure(:final error):
+        updatedSectionErrors['budget'] = error;
+        emit(current.copyWith(sectionErrors: updatedSectionErrors));
     }
   }
 }

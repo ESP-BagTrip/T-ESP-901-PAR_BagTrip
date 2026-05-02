@@ -1,4 +1,4 @@
-"""Unit tests for `src.agent.budget`.
+"""Unit tests for `src.agent.runtime_budget`.
 
 Covers:
 - `remaining()` returns infinity when no deadline is set
@@ -16,7 +16,7 @@ import time
 
 import pytest
 
-from src.agent.budget import BudgetExceeded, consumed, guard, remaining, track
+from src.agent.runtime_budget import BudgetExceeded, consumed, guard, remaining, track
 
 
 class TestRemaining:

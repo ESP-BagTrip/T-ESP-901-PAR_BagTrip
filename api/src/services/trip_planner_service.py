@@ -26,7 +26,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from src.agent.budget import BudgetExceeded
+from src.agent.runtime_budget import BudgetExceeded
 from src.api.ai.plan_trip_schemas import PlanTripRequest
 from src.config.env import settings
 from src.integrations.unsplash import unsplash_client
@@ -126,7 +126,7 @@ def _build_initial_state(request: PlanTripRequest) -> dict:
         "errors": [],
         # Budget tracking — `time.monotonic()` is strictly increasing so we
         # don't need tz-aware math. Consumed seconds accrues as each node
-        # finishes via `src.agent.budget.track`.
+        # finishes via `src.agent.runtime_budget.track`.
         "budget_deadline_monotonic": time.monotonic() + settings.GRAPH_TIMEOUT_SECONDS,
         "budget_consumed_seconds": 0.0,
         # Locale picked up by every node's `prompts.render(name, locale=...)` call.

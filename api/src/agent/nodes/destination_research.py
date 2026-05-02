@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from src.agent.budget import guard
 from src.agent.prompts import render
 from src.agent.react_executor import react_execute
+from src.agent.runtime_budget import guard
 from src.agent.state import TripPlanState
 from src.agent.tools import TOOL_REGISTRY
 from src.utils.logger import logger

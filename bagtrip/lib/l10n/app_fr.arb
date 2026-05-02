@@ -1391,6 +1391,7 @@
   "sharesAddMemberTooltip": "Inviter un membre",
   "myTripFallback": "Mon voyage",
   "completionSegmentsSheetTitle": "Encore à compléter",
+  "completionScoreBudgetNote": "Le budget est suivi séparément et n'entre pas dans ce score.",
   "shareTooltip": "Partager",
   "backTooltip": "Retour",
   "deleteFlightTooltip": "Supprimer le vol",
@@ -1573,7 +1574,7 @@
   "@budgetDeltaOver": {
     "placeholders": {"amount": {"type": "String"}}
   },
-  "budgetDeltaUnder": "Il reste {amount} sur le prévisionnel",
+  "budgetDeltaUnder": "{amount} encore à confirmer",
   "@budgetDeltaUnder": {
     "placeholders": {"amount": {"type": "String"}}
   },
