@@ -16,6 +16,7 @@ should not be the sole source of truth.
 
 from __future__ import annotations
 
+import uuid
 from datetime import UTC, datetime
 from typing import Any
 
@@ -39,6 +40,47 @@ def _ensure_customer(user: User) -> str:
     if not user.stripe_customer_id:
         raise AppError("STRIPE_CUSTOMER_MISSING", 500, "Stripe customer not found")
     return user.stripe_customer_id
+
+
+def _resolve_customer_id(db: Session, user: User) -> str:
+    """Return a Stripe customer_id known to exist on the current account.
+
+    `User.stripe_customer_id` can go stale in two situations we hit in the
+    wild:
+      - someone deletes the customer in the Stripe dashboard;
+      - the secret key was switched to a different Stripe workspace
+        (common in dev when juggling test accounts).
+
+    Both surface as `resource_missing` on the next mutating call. Without
+    recovery, every subscribe / payment-method-update for that user is
+    permanently broken until an operator hand-edits the DB. So we
+    eagerly verify the customer exists and, if it doesn't, recreate it
+    and persist the new id. Costs one extra `Customer.retrieve` round-trip
+    per `/start` — cheap insurance.
+    """
+    customer_id = _ensure_customer(user)
+    try:
+        StripeClient.retrieve_customer(customer_id)
+        return customer_id
+    except stripe.InvalidRequestError as exc:
+        if getattr(exc, "code", None) != "resource_missing":
+            raise
+
+    logger.warn(
+        f"User {user.id} stripe_customer_id '{customer_id}' is missing on "
+        "the current Stripe account — recreating."
+    )
+    # Idempotency key includes a uuid so a retry isn't short-circuited by
+    # the now-deleted customer's cached response.
+    new_customer = StripeClient.create_customer(
+        email=user.email,
+        name=user.full_name,
+        idempotency_key=f"user-{user.id}-customer-recreate-{uuid.uuid4().hex[:8]}",
+    )
+    user.stripe_customer_id = new_customer.id
+    db.commit()
+    db.refresh(user)
+    return new_customer.id
 
 
 class SubscriptionService:
@@ -99,6 +141,209 @@ class SubscriptionService:
             raise AppError("STRIPE_ERROR", 500, "Could not open billing portal") from exc
 
     # ------------------------------------------------------------------
+    # Native PaymentSheet flow (mobile — no browser)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def start_subscription(db: Session, user: User) -> dict:
+        """Bootstrap the native PaymentSheet — no Stripe write yet.
+
+        With the deferred `IntentConfiguration` flow, the mobile SDK
+        only needs the customer's ephemeral key and the price (amount +
+        currency) to render the PaymentSheet. The actual `Subscription`
+        is created in `confirm_subscription` once the user has actually
+        chosen a payment method and tapped Pay — that's how we avoid
+        the "incomplete subscription orphans" the upfront-creation
+        pattern leaves behind when users dismiss without paying, and
+        how the sheet opens instantly (no Stripe round-trip on the way
+        in).
+        """
+        _ensure_stripe_configured()
+
+        if PlanService.get_plan(user).value != "FREE":
+            raise AppError("ALREADY_PREMIUM", 400, "You are already on a paid plan")
+
+        try:
+            customer_id = _resolve_customer_id(db, user)
+        except stripe.StripeError as exc:
+            logger.error(f"Customer resolution failed: {exc}", exc_info=True)
+            raise AppError("STRIPE_ERROR", 500, "Could not resolve customer") from exc
+
+        price_id = SubscriptionService._get_premium_price_id()
+
+        try:
+            # Resolve the live price so a backend-side change to
+            # `unit_amount` / `currency` flows automatically into the
+            # mobile sheet without an app update.
+            price = stripe.Price.retrieve(price_id)
+            ephemeral_key = StripeClient.create_ephemeral_key(customer_id)
+        except stripe.StripeError as exc:
+            logger.error(f"Stripe start bootstrap failed: {exc}", exc_info=True)
+            raise AppError("STRIPE_ERROR", 500, "Could not start subscription") from exc
+
+        return {
+            "customer": customer_id,
+            "ephemeral_key": ephemeral_key.secret,
+            "amount": price.unit_amount,
+            "currency": price.currency,
+        }
+
+    @staticmethod
+    def confirm_subscription(db: Session, user: User, payment_method_id: str) -> dict:
+        """Create the `Subscription` with the just-chosen payment method.
+
+        Called by the Flutter `PaymentSheet`'s `confirmHandler` after
+        the user has tapped Pay. The Subscription is created in
+        `default_incomplete` so Stripe returns a confirmable
+        `PaymentIntent` whose `client_secret` we hand back to the SDK
+        — the SDK finalises the payment in-sheet (3DS / SCA in line).
+
+        Idempotency keys on `(user_id, payment_method_id)` so a
+        network retry of the confirm POST returns the same Subscription
+        instead of creating a duplicate.
+        """
+        _ensure_stripe_configured()
+
+        if PlanService.get_plan(user).value != "FREE":
+            raise AppError("ALREADY_PREMIUM", 400, "You are already on a paid plan")
+
+        try:
+            customer_id = _resolve_customer_id(db, user)
+        except stripe.StripeError as exc:
+            logger.error(f"Customer resolution failed: {exc}", exc_info=True)
+            raise AppError("STRIPE_ERROR", 500, "Could not resolve customer") from exc
+
+        price_id = SubscriptionService._get_premium_price_id()
+
+        try:
+            # Attach the just-collected PaymentMethod to the customer
+            # *before* using it as the subscription default. In deferred
+            # IntentConfiguration the SDK hands us a PM that isn't yet
+            # bound to the customer; Stripe rejects
+            # `default_payment_method` until the attach lands.
+            # Idempotency keys on (user, pm) so a network retry of the
+            # confirm POST short-circuits the second attach call.
+            StripeClient.attach_payment_method(
+                payment_method_id,
+                customer_id,
+                idempotency_key=f"pm-attach-{user.id}-{payment_method_id}-v1",
+            )
+            subscription = StripeClient.create_subscription(
+                customer=customer_id,
+                price=price_id,
+                idempotency_key=f"sub-{user.id}-confirm-{payment_method_id}-v1",
+                default_payment_method=payment_method_id,
+                metadata={"user_id": str(user.id)},
+            )
+        except stripe.StripeError as exc:
+            logger.error(f"Stripe confirm subscription failed: {exc}", exc_info=True)
+            raise AppError("STRIPE_ERROR", 500, "Could not confirm subscription") from exc
+
+        # `latest_invoice` is expanded with `payment_intent` (see
+        # `StripeClient.create_subscription`) so we can read the
+        # client_secret in a single round-trip.
+        invoice = getattr(subscription, "latest_invoice", None)
+        payment_intent = getattr(invoice, "payment_intent", None) if invoice else None
+        client_secret = getattr(payment_intent, "client_secret", None) if payment_intent else None
+        if not client_secret:
+            logger.error(
+                f"Subscription {subscription.id} has no client_secret on "
+                "latest_invoice.payment_intent"
+            )
+            raise AppError("STRIPE_ERROR", 500, "Subscription missing PaymentIntent")
+
+        # Persist the subscription id on the user *now* — the
+        # `customer.subscription.created` webhook is the canonical source
+        # of truth for `plan`, but it can lag (or never arrive in local
+        # dev without `stripe listen`). Storing the id here means
+        # `get_subscription_details` can self-heal on read by querying
+        # Stripe directly when the webhook is delayed. Idempotent: the
+        # webhook will write the same value when it lands.
+        if user.stripe_subscription_id != subscription.id:
+            user.stripe_subscription_id = subscription.id
+            db.commit()
+            db.refresh(user)
+
+        return {
+            "subscription_id": subscription.id,
+            "client_secret": client_secret,
+        }
+
+    @staticmethod
+    def start_payment_method_update(db: Session, user: User) -> dict:
+        """Start an in-app payment method update via SetupIntent.
+
+        Replaces the Stripe Billing Portal "Change card" flow. The mobile
+        SDK opens its PaymentSheet in setup mode, the user attaches a
+        new card without leaving the app, and we wire it as the
+        subscription's default once the SetupIntent confirms.
+        """
+        _ensure_stripe_configured()
+        try:
+            customer_id = _resolve_customer_id(db, user)
+        except stripe.StripeError as exc:
+            logger.error(f"Customer resolution failed: {exc}", exc_info=True)
+            raise AppError("STRIPE_ERROR", 500, "Could not resolve customer") from exc
+
+        try:
+            setup_intent = StripeClient.create_setup_intent(customer=customer_id)
+            ephemeral_key = StripeClient.create_ephemeral_key(customer_id)
+        except stripe.StripeError as exc:
+            logger.error(
+                f"Stripe SetupIntent creation failed for {customer_id}: {exc}",
+                exc_info=True,
+            )
+            raise AppError("STRIPE_ERROR", 500, "Could not start payment method update") from exc
+
+        return {
+            "setup_intent_client_secret": setup_intent.client_secret,
+            "ephemeral_key": ephemeral_key.secret,
+            "customer": customer_id,
+        }
+
+    @staticmethod
+    def attach_default_payment_method(db: Session, user: User, payment_method_id: str) -> dict:
+        """Set `payment_method_id` as the default for the active subscription.
+
+        Called after the in-app SetupIntent succeeds. The subscription's
+        `default_payment_method` is updated so future renewals charge the
+        new card, and the customer's `invoice_settings.default_payment_method`
+        is updated so any one-off charges follow suit.
+        """
+        _ensure_stripe_configured()
+        if not user.stripe_subscription_id:
+            raise AppError("NO_ACTIVE_SUBSCRIPTION", 400, "No active subscription")
+        try:
+            customer_id = _resolve_customer_id(db, user)
+        except stripe.StripeError as exc:
+            logger.error(f"Customer resolution failed: {exc}", exc_info=True)
+            raise AppError("STRIPE_ERROR", 500, "Could not resolve customer") from exc
+
+        try:
+            # Customer-level default — used for one-off charges and any
+            # future subscription created without an explicit
+            # `default_payment_method`.
+            stripe.Customer.modify(
+                customer_id,
+                invoice_settings={"default_payment_method": payment_method_id},
+            )
+            # Subscription-level default — what actually gets charged on
+            # the next renewal.
+            StripeClient.update_subscription(
+                user.stripe_subscription_id,
+                idempotency_key=f"sub-{user.id}-pm-{payment_method_id}-v1",
+                default_payment_method=payment_method_id,
+            )
+        except stripe.StripeError as exc:
+            logger.error(
+                f"Stripe attach default payment method failed: {exc}",
+                exc_info=True,
+            )
+            raise AppError("STRIPE_ERROR", 500, "Could not attach payment method") from exc
+
+        return {"status": "attached"}
+
+    # ------------------------------------------------------------------
     # Status & details
     # ------------------------------------------------------------------
 
@@ -119,6 +364,15 @@ class SubscriptionService:
         Combines local plan info with live Stripe state (renewal date, card
         last4, cancel_at_period_end). Falls back gracefully when Stripe is
         unreachable so the UI can still show *something*.
+
+        **Self-heal on read**: when the user has a `stripe_subscription_id`
+        and Stripe says the subscription is `active` / `trialing`, we treat
+        them as PREMIUM regardless of what the local `User.plan` column
+        says. Source of truth stays the
+        `customer.subscription.{created,updated,deleted}` webhook — but
+        in local dev (no `stripe listen`) and during the brief window
+        between confirm and webhook delivery, this avoids a paid user
+        being shown the FREE paywall.
         """
         base = SubscriptionService.get_status(db, user)
         details: dict[str, Any] = {
@@ -136,6 +390,18 @@ class SubscriptionService:
         except stripe.StripeError as exc:
             logger.warn(f"Could not retrieve subscription {user.stripe_subscription_id}: {exc}")
             return details
+
+        # Statuses that grant Premium access. `incomplete` is excluded on
+        # purpose — the PaymentIntent hasn't been confirmed yet, so paying
+        # for nothing would be wrong; we wait for the SDK to finalise.
+        # `past_due` keeps Premium per Stripe's grace-period policy.
+        sub_status = getattr(sub, "status", None)
+        if sub_status in ("active", "trialing", "past_due") and details.get("plan") == "FREE":
+            logger.info(
+                f"Self-heal: user {user.id} has stripe sub {user.stripe_subscription_id} "
+                f"in status={sub_status} — overriding local plan FREE → PREMIUM until webhook."
+            )
+            details["plan"] = "PREMIUM"
 
         details["cancel_at_period_end"] = bool(getattr(sub, "cancel_at_period_end", False))
         period_end = getattr(sub, "current_period_end", None)

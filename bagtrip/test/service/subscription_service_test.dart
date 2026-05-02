@@ -207,5 +207,151 @@ void main() {
         expect(failure.error, isA<UnknownError>());
       });
     });
+
+    // ── Native PaymentSheet flow ─────────────────────────────────────
+
+    group('start (deferred bootstrap)', () {
+      test('parses {customer, ephemeralKey, amount, currency}', () async {
+        when(() => mockApiClient.post('/subscription/start')).thenAnswer(
+          (_) async => Response(
+            requestOptions: RequestOptions(path: '/subscription/start'),
+            statusCode: 200,
+            data: <String, dynamic>{
+              'customer': 'cus_123',
+              'ephemeral_key': 'ek_secret_abc',
+              'amount': 999,
+              'currency': 'eur',
+            },
+          ),
+        );
+
+        final result = await repository.start();
+        expect(result, isA<Success<dynamic>>());
+        final params = (result as Success).data;
+        expect(params.customer, 'cus_123');
+        expect(params.ephemeralKey, 'ek_secret_abc');
+        expect(params.amount, 999);
+        expect(params.currency, 'eur');
+      });
+
+      test('returns ServerError on malformed response', () async {
+        when(() => mockApiClient.post('/subscription/start')).thenAnswer(
+          (_) async => Response(
+            requestOptions: RequestOptions(path: '/subscription/start'),
+            statusCode: 200,
+            data: 'not-a-map',
+          ),
+        );
+        final result = await repository.start();
+        expect(result, isA<Failure<dynamic>>());
+        expect((result as Failure).error, isA<ServerError>());
+      });
+    });
+
+    group('confirmSubscription', () {
+      test('POSTs paymentMethodId and returns the client_secret', () async {
+        when(
+          () => mockApiClient.post(
+            '/subscription/confirm',
+            data: any(named: 'data'),
+          ),
+        ).thenAnswer(
+          (_) async => Response(
+            requestOptions: RequestOptions(path: '/subscription/confirm'),
+            statusCode: 200,
+            data: <String, dynamic>{
+              'subscription_id': 'sub_999',
+              'client_secret': 'pi_secret_xyz',
+            },
+          ),
+        );
+
+        final result = await repository.confirmSubscription('pm_card_visa');
+        expect(result, isA<Success<String>>());
+        expect((result as Success<String>).data, 'pi_secret_xyz');
+        verify(
+          () => mockApiClient.post(
+            '/subscription/confirm',
+            data: {'paymentMethodId': 'pm_card_visa'},
+          ),
+        ).called(1);
+      });
+
+      test('returns ServerError when client_secret is missing', () async {
+        when(
+          () => mockApiClient.post(
+            '/subscription/confirm',
+            data: any(named: 'data'),
+          ),
+        ).thenAnswer(
+          (_) async => Response(
+            requestOptions: RequestOptions(path: '/subscription/confirm'),
+            statusCode: 200,
+            data: <String, dynamic>{'subscription_id': 'sub_x'},
+          ),
+        );
+        final result = await repository.confirmSubscription('pm_x');
+        expect(result, isA<Failure<String>>());
+        expect((result as Failure<String>).error, isA<ServerError>());
+      });
+    });
+
+    group('startPaymentMethodUpdate', () {
+      test('parses SetupIntent + ephemeral key trio', () async {
+        when(
+          () => mockApiClient.post('/subscription/payment-method/setup'),
+        ).thenAnswer(
+          (_) async => Response(
+            requestOptions: RequestOptions(
+              path: '/subscription/payment-method/setup',
+            ),
+            statusCode: 200,
+            data: <String, dynamic>{
+              'setup_intent_client_secret': 'seti_secret',
+              'ephemeral_key': 'ek_secret',
+              'customer': 'cus_123',
+            },
+          ),
+        );
+
+        final result = await repository.startPaymentMethodUpdate();
+        expect(result, isA<Success<dynamic>>());
+        final params = (result as Success).data;
+        expect(params.setupIntentClientSecret, 'seti_secret');
+        expect(params.ephemeralKey, 'ek_secret');
+      });
+    });
+
+    group('attachPaymentMethod', () {
+      test(
+        'POSTs paymentMethodId in camelCase as the backend expects',
+        () async {
+          when(
+            () => mockApiClient.post(
+              '/subscription/payment-method/attach',
+              data: any(named: 'data'),
+            ),
+          ).thenAnswer(
+            (_) async => Response(
+              requestOptions: RequestOptions(
+                path: '/subscription/payment-method/attach',
+              ),
+              statusCode: 200,
+              data: <String, dynamic>{'status': 'attached'},
+            ),
+          );
+
+          final result = await repository.attachPaymentMethod('pm_xyz');
+          expect(result, isA<Success<void>>());
+          // Body matches the backend's `Body(..., alias='paymentMethodId')`.
+          verify(
+            () => mockApiClient.post(
+              '/subscription/payment-method/attach',
+              data: {'paymentMethodId': 'pm_xyz'},
+            ),
+          ).called(1);
+        },
+      );
+    });
   });
 }

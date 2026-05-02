@@ -21,6 +21,7 @@ import 'package:bagtrip/service/local_notification_service.dart';
 import 'package:bagtrip/repositories/notification_repository.dart';
 import 'package:bagtrip/settings/bloc/settings_bloc.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
+import 'package:bagtrip/subscription/bloc/subscription_bloc.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bagtrip/core/cache/cache_service.dart';
 import 'package:bagtrip/core/cache/connectivity_service.dart';
@@ -45,9 +46,37 @@ void main() async {
   setupServiceLocator();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Stripe
-  Stripe.publishableKey = AppConfig.stripePublishableKey;
+  // Stripe — fail loudly if the publishable key wasn't injected via
+  // `--dart-define=STRIPE_PUBLISHABLE_KEY=...`. Stripe's SDK accepts the
+  // placeholder silently, then any PaymentSheet call dies with a cryptic
+  // error. `debugPrint` (not `dev.log`) so the warning lands in the
+  // standard `flutter run` output regardless of log level filtering.
+  final stripeKey = AppConfig.stripePublishableKey;
+  if (stripeKey.isEmpty ||
+      stripeKey == 'STRIPE_KEY_NOT_SET' ||
+      !stripeKey.startsWith('pk_')) {
+    debugPrint(
+      '🛑 [Stripe] STRIPE_PUBLISHABLE_KEY missing or invalid '
+      '("${stripeKey.isEmpty ? "<empty>" : stripeKey}"). '
+      'Pass it via `--dart-define=STRIPE_PUBLISHABLE_KEY=pk_test_…` '
+      '(the Makefile does this from .env). PaymentSheet flows will fail.',
+    );
+  } else {
+    debugPrint(
+      '✅ [Stripe] using publishable key '
+      '${stripeKey.substring(0, 8)}…${stripeKey.substring(stripeKey.length - 4)}',
+    );
+  }
+  Stripe.publishableKey = stripeKey;
   Stripe.urlScheme = 'bagtrip';
+  // Apple Pay merchant identifier — must match the one configured in
+  // Apple Developer + the Stripe dashboard + the Xcode "Apple Pay"
+  // capability (Runner.entitlements). Empty default is harmless: the
+  // PaymentSheet just won't render the Apple Pay row on iOS until the
+  // merchant id ships.
+  if (AppConfig.appleMerchantIdentifier.isNotEmpty) {
+    Stripe.merchantIdentifier = AppConfig.appleMerchantIdentifier;
+  }
   await Stripe.instance.applySettings();
 
   // Crashlytics
@@ -164,12 +193,22 @@ class _MyAppState extends State<MyApp> {
       providers: [
         BlocProvider(create: (context) => SettingsBloc()),
         BlocProvider(create: (context) => UserProfileBloc()),
-        BlocProvider(create: (context) => BookingBloc()),
         BlocProvider(create: (context) => AuthBloc()),
+        // BookingBloc consumes AuthBloc so payment success can refresh the
+        // user. Order matters — AuthBloc must be available above.
+        BlocProvider(
+          create: (context) => BookingBloc(authBloc: context.read<AuthBloc>()),
+        ),
         BlocProvider(create: (context) => TripManagementBloc()),
         BlocProvider.value(value: _homeBloc),
         BlocProvider(create: (context) => NotificationBloc()),
         BlocProvider(create: (context) => ConnectivityBloc()),
+        // App-level so paywalls / gating / subscription page all read from
+        // a single source of truth instead of polling endpoints separately.
+        BlocProvider(
+          create: (context) =>
+              SubscriptionBloc(authBloc: context.read<AuthBloc>()),
+        ),
       ],
       child: BlocListener<AuthBloc, AuthState>(
         // Reset all user-scoped blocs when the authenticated user changes,
@@ -187,6 +226,7 @@ class _MyAppState extends State<MyApp> {
           context.read<UserProfileBloc>().add(ResetUserProfile());
           context.read<TripManagementBloc>().add(ResetTripManagement());
           context.read<NotificationBloc>().add(ResetNotifications());
+          context.read<SubscriptionBloc>().add(ResetSubscription());
         },
         child: AuthListener(
           router: appRouter,

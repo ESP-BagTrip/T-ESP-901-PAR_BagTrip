@@ -3191,4 +3191,280 @@ class AppLocalizationsFr extends AppLocalizations {
   String budgetDeltaUnder(String amount) {
     return 'Il reste $amount sur le prévisionnel';
   }
+
+  @override
+  String get premiumFeaturePageAiTitle => 'Planifier sans limite';
+
+  @override
+  String get premiumFeaturePageAiBody =>
+      'Générez autant d\'itinéraires IA que vous voulez, sans plafond mensuel.';
+
+  @override
+  String get premiumFeaturePageViewersTitle => 'Voyager ensemble';
+
+  @override
+  String get premiumFeaturePageViewersBody =>
+      'Invitez jusqu\'à 10 voyageurs par voyage pour rester synchronisés.';
+
+  @override
+  String get premiumFeaturePageOfflineTitle => 'Informé hors ligne';
+
+  @override
+  String get premiumFeaturePageOfflineBody =>
+      'Recevez vos rappels d\'activités même sans connexion.';
+
+  @override
+  String get premiumFeaturePagePostTripTitle => 'Des souvenirs qui durent';
+
+  @override
+  String get premiumFeaturePagePostTripBody =>
+      'Suggestions et résumés IA après chaque voyage.';
+
+  @override
+  String premiumPriceLabel(String price) {
+    return '$price / mois';
+  }
+
+  @override
+  String get premiumCtaTry => 'Essayer Premium';
+
+  @override
+  String get premiumDisclaimerCancelAnytime => 'Annulable à tout moment';
+
+  @override
+  String get subscriptionFinalizing => 'On finalise…';
+
+  @override
+  String get subscriptionAlmostThere => 'Encore un instant…';
+
+  @override
+  String get subscriptionTakingLonger =>
+      'Stripe prend un peu plus de temps. On t\'envoie une notification dès que c\'est validé.';
+
+  @override
+  String get subscriptionContinue => 'Continuer';
+
+  @override
+  String get subscriptionPageTitle => 'Mon abonnement';
+
+  @override
+  String get subscriptionStatusActive => 'Actif';
+
+  @override
+  String get subscriptionStatusPremiumActive => 'Premium · Actif';
+
+  @override
+  String get subscriptionStatusFree => 'Plan gratuit';
+
+  @override
+  String get subscriptionLater => 'Plus tard';
+
+  @override
+  String get subscriptionPaywallClose => 'Fermer';
+
+  @override
+  String get premiumActivated => 'Premium activé';
+
+  @override
+  String subscriptionStatusCancelsOn(String date) {
+    return 'Annulé le $date';
+  }
+
+  @override
+  String subscriptionRenewsOn(String date) {
+    return 'Renouvellement le $date';
+  }
+
+  @override
+  String subscriptionExpiresOn(String date) {
+    return 'Premium jusqu\'au $date';
+  }
+
+  @override
+  String subscriptionCardLast4(String last4) {
+    return '···· $last4';
+  }
+
+  @override
+  String subscriptionCardExpires(String expiry) {
+    return 'Expire $expiry';
+  }
+
+  @override
+  String get subscriptionUpdatePaymentMethod => 'Modifier le moyen de paiement';
+
+  @override
+  String get updatePaymentMethodSuccess => 'Nouvelle carte enregistrée';
+
+  @override
+  String get subscriptionViewInvoices => 'Voir les factures';
+
+  @override
+  String get subscriptionCancelAction => 'Annuler l\'abonnement';
+
+  @override
+  String get subscriptionReactivateAction => 'Réactiver l\'abonnement';
+
+  @override
+  String get subscriptionFreeMessage =>
+      'Vous êtes sur le plan gratuit. Passez à Premium pour des générations IA illimitées et plus encore.';
+
+  @override
+  String get subscriptionDiscoverPremium => 'Découvrir Premium';
+
+  @override
+  String get subscriptionEmptyHelp => 'Aucun abonnement actif.';
+
+  @override
+  String get cancelSheetTitle => 'Annuler Premium ?';
+
+  @override
+  String cancelSheetBodyDated(String date) {
+    return 'Tu garderas Premium jusqu\'au $date. On conserve tes voyages et préférences.';
+  }
+
+  @override
+  String get cancelSheetBodyUndated =>
+      'On conserve tes voyages et préférences. Tu peux revenir quand tu veux.';
+
+  @override
+  String get cancelSheetConfirm => 'Confirmer l\'annulation';
+
+  @override
+  String get cancelSheetKeep => 'Garder mon abonnement';
+
+  @override
+  String cancelSheetSuccessDated(String date) {
+    return 'Annulation programmée. Premium jusqu\'au $date.';
+  }
+
+  @override
+  String get cancelSheetSuccessUndated => 'Abonnement annulé.';
+
+  @override
+  String get reactivateSheetTitle => 'Réactiver Premium ?';
+
+  @override
+  String get reactivateSheetBody =>
+      'Ton abonnement continue sans interruption.';
+
+  @override
+  String get reactivateSheetConfirm => 'Réactiver';
+
+  @override
+  String get reactivateSheetSuccess => 'Abonnement réactivé.';
+
+  @override
+  String get invoicesPageTitle => 'Factures';
+
+  @override
+  String get invoicesEmpty => 'Pas encore de factures';
+
+  @override
+  String get invoicesEmptySubtitle =>
+      'Ton historique de facturation apparaîtra ici.';
+
+  @override
+  String get invoicesDownloadPdf => 'Télécharger le PDF';
+
+  @override
+  String get invoicesViewOnStripe => 'Voir sur Stripe';
+
+  @override
+  String get invoiceStatusPaid => 'Payée';
+
+  @override
+  String get invoiceStatusOpen => 'Ouverte';
+
+  @override
+  String get invoiceStatusVoid => 'Annulée';
+
+  @override
+  String get invoiceStatusDraft => 'Brouillon';
+
+  @override
+  String get invoiceStatusUncollectible => 'Irrécouvrable';
+
+  @override
+  String get refundSheetTitle => 'Demander un remboursement';
+
+  @override
+  String refundSheetCapturedLabel(String amount) {
+    return '$amount capturés';
+  }
+
+  @override
+  String get refundModeFull => 'Total';
+
+  @override
+  String get refundModePartial => 'Partiel';
+
+  @override
+  String get refundAmountLabel => 'Montant';
+
+  @override
+  String refundAmountHint(String max) {
+    return 'Maximum $max';
+  }
+
+  @override
+  String get refundReasonLabel => 'Motif';
+
+  @override
+  String get refundReasonRequestedByCustomer => 'Demande client';
+
+  @override
+  String get refundReasonDuplicate => 'Doublon';
+
+  @override
+  String get refundReasonFraudulent => 'Suspicion de fraude';
+
+  @override
+  String get refundConfirm => 'Demander le remboursement';
+
+  @override
+  String get refundSuccessMessage =>
+      'Remboursement traité. Les fonds arriveront sous 5 à 10 jours.';
+
+  @override
+  String get refundUnavailableMessage =>
+      'Seules les réservations capturées peuvent être remboursées.';
+
+  @override
+  String get paymentSuccessConfirmed => 'Paiement confirmé';
+
+  @override
+  String get paymentSuccessSubtitle =>
+      'Ta réservation est en cours de traitement.';
+
+  @override
+  String get paymentRefundedTitle => 'Remboursé';
+
+  @override
+  String get paymentSheetCanceled => 'Paiement annulé';
+
+  @override
+  String get paymentNetworkRequired =>
+      'Une connexion est nécessaire pour finaliser ce paiement.';
+
+  @override
+  String get errorAlreadyPremium => 'Tu es déjà sur Premium.';
+
+  @override
+  String get errorNoActiveSubscription => 'Aucun abonnement actif.';
+
+  @override
+  String get errorMissingStripeCustomer =>
+      'Profil de paiement non configuré. Contacte le support.';
+
+  @override
+  String get errorRefundExceedsRemaining =>
+      'Ce remboursement dépasse le montant disponible.';
+
+  @override
+  String get errorAlreadyFullyRefunded =>
+      'Ce paiement a déjà été entièrement remboursé.';
+
+  @override
+  String get errorInvalidRefundReason => 'Motif de remboursement invalide.';
 }

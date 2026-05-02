@@ -1,93 +1,100 @@
-import 'package:bagtrip/design/personalization_colors.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-class PaymentSuccessPage extends StatelessWidget {
+/// Calm payment success — no oversized checkmark, just typography +
+/// a single subtle accent dot. Haptic notification fires once on entry
+/// for the celebratory beat.
+class PaymentSuccessPage extends StatefulWidget {
   final String? intentId;
   const PaymentSuccessPage({super.key, this.intentId});
 
   @override
+  State<PaymentSuccessPage> createState() => _PaymentSuccessPageState();
+}
+
+class _PaymentSuccessPageState extends State<PaymentSuccessPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Use mediumImpact rather than success notification — the latter is
+      // too loud, and we already have visual feedback.
+      HapticFeedback.mediumImpact();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
 
-    final brightness = Theme.of(context).brightness;
     return Scaffold(
-      backgroundColor: PersonalizationColors.gradientStartOf(brightness),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: PersonalizationColors.backgroundGradientOf(brightness),
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: AppSpacing.allEdgeInsetSpace24,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.check_circle_outline,
-                    size: 80,
-                    color: ColorName.secondary,
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    l10n.paymentSuccessTitle,
-                    style: const TextStyle(
-                      fontFamily: FontFamily.b612,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 22,
-                      color: ColorName.primary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    l10n.paymentSuccessMessage,
-                    style: const TextStyle(
-                      fontFamily: FontFamily.b612,
-                      fontSize: 14,
-                      color: ColorName.hint,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  if (intentId != null) ...[
-                    const SizedBox(height: 16),
-                    Text(
-                      'Ref: ${intentId!.substring(0, intentId!.length.clamp(0, 8))}',
-                      style: const TextStyle(
-                        fontFamily: FontFamily.b612,
-                        fontSize: 12,
-                        color: ColorName.hint,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => const HomeRoute().go(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: ColorName.secondary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(l10n.paymentBackToTrips),
-                    ),
-                  ),
-                ],
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space32),
+          child: Column(
+            children: [
+              const Spacer(),
+              Container(
+                width: 12,
+                height: 12,
+                decoration: const BoxDecoration(
+                  color: AppColors.success,
+                  shape: BoxShape.circle,
+                ),
               ),
-            ),
+              const SizedBox(height: AppSpacing.space32),
+              Text(
+                l10n.paymentSuccessConfirmed,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: FontFamily.b612,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  height: 1.2,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.space16),
+              Text(
+                l10n.paymentSuccessSubtitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: FontFamily.b612,
+                  fontSize: 15,
+                  height: 1.5,
+                  color: AppColors.textSecondaryOf(theme.brightness),
+                ),
+              ),
+              if (widget.intentId != null) ...[
+                const SizedBox(height: AppSpacing.space24),
+                Text(
+                  'Ref · ${widget.intentId!.substring(0, widget.intentId!.length.clamp(0, 8))}',
+                  style: const TextStyle(
+                    fontFamily: FontFamily.b612,
+                    fontSize: 12,
+                    color: AppColors.textDisabled,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+              const Spacer(flex: 2),
+              SizedBox(
+                width: double.infinity,
+                child: CupertinoButton.filled(
+                  onPressed: () => const HomeRoute().go(context),
+                  child: Text(l10n.paymentBackToTrips),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.space24),
+            ],
           ),
         ),
       ),

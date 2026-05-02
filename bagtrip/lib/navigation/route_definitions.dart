@@ -27,6 +27,8 @@ import 'package:bagtrip/plan_trip/view/plan_trip_flow_page.dart';
 import 'package:bagtrip/post_trip/view/post_trip_page.dart';
 import 'package:bagtrip/profile/view/personal_info_page.dart';
 import 'package:bagtrip/profile/view/settings_page.dart';
+import 'package:bagtrip/subscription/view/invoices_page.dart';
+import 'package:bagtrip/subscription/view/subscription_settings_page.dart';
 import 'package:bagtrip/trips/view/trip_locations_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -328,6 +330,10 @@ class ActivityRoute extends GoRouteData with $ActivityRoute {
   routes: [
     TypedGoRoute<PersonalInfoRoute>(path: 'personal-info'),
     TypedGoRoute<SettingsRoute>(path: 'settings'),
+    TypedGoRoute<SubscriptionSettingsRoute>(
+      path: 'subscription',
+      routes: [TypedGoRoute<SubscriptionInvoicesRoute>(path: 'invoices')],
+    ),
   ],
 )
 class ProfileRoute extends GoRouteData with $ProfileRoute {
@@ -355,6 +361,27 @@ class SettingsRoute extends GoRouteData with $SettingsRoute {
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       buildSlideTransitionPage<void>(state: state, child: const SettingsPage());
+}
+
+class SubscriptionSettingsRoute extends GoRouteData
+    with $SubscriptionSettingsRoute {
+  const SubscriptionSettingsRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      buildSlideTransitionPage<void>(
+        state: state,
+        child: const SubscriptionSettingsPage(),
+      );
+}
+
+class SubscriptionInvoicesRoute extends GoRouteData
+    with $SubscriptionInvoicesRoute {
+  const SubscriptionInvoicesRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      buildSlideTransitionPage<void>(state: state, child: const InvoicesPage());
 }
 
 // ---------------------------------------------------------------------------
@@ -474,13 +501,17 @@ class PaymentCancelRoute extends GoRouteData with $PaymentCancelRoute {
 
 @TypedGoRoute<PaymentResultRoute>(path: '/payment/result')
 class PaymentResultRoute extends GoRouteData with $PaymentResultRoute {
-  const PaymentResultRoute();
+  const PaymentResultRoute({this.intentId});
+
+  /// Optional `?intentId=…` query — present when Stripe redirects from
+  /// 3DS authentication so the booking bloc can match the in-flight payment.
+  final String? intentId;
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       buildSlideTransitionPage<void>(
         state: state,
-        child: const PaymentResultPage(),
+        child: PaymentResultPage(intentId: intentId),
       );
 }
 

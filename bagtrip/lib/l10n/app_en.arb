@@ -1576,5 +1576,125 @@
   "budgetDeltaUnder": "Real is {amount} under the forecast",
   "@budgetDeltaUnder": {
     "placeholders": {"amount": {"type": "String"}}
-  }
+  },
+
+  "premiumFeaturePageAiTitle": "Plan without limits",
+  "premiumFeaturePageAiBody": "Generate as many AI itineraries as you want — no monthly cap.",
+  "premiumFeaturePageViewersTitle": "Travel together",
+  "premiumFeaturePageViewersBody": "Invite up to 10 viewers per trip so everyone stays in sync.",
+  "premiumFeaturePageOfflineTitle": "Stay informed offline",
+  "premiumFeaturePageOfflineBody": "Get notified about your activities even without a connection.",
+  "premiumFeaturePagePostTripTitle": "Memories that last",
+  "premiumFeaturePagePostTripBody": "AI-curated highlights and suggestions after every trip.",
+  "premiumPriceLabel": "{price} / month",
+  "@premiumPriceLabel": {
+    "placeholders": {"price": {"type": "String"}}
+  },
+  "premiumCtaTry": "Try Premium",
+  "premiumDisclaimerCancelAnytime": "Cancel anytime",
+
+  "subscriptionFinalizing": "Finalizing…",
+  "subscriptionAlmostThere": "Almost there…",
+  "subscriptionTakingLonger": "Stripe is taking a moment longer. We'll notify you as soon as it's confirmed.",
+  "subscriptionContinue": "Continue",
+
+  "subscriptionPageTitle": "My subscription",
+  "subscriptionStatusActive": "Active",
+  "subscriptionStatusPremiumActive": "Premium · Active",
+  "subscriptionStatusFree": "Free plan",
+  "subscriptionLater": "Later",
+  "subscriptionPaywallClose": "Close",
+  "premiumActivated": "Premium activated",
+  "subscriptionStatusCancelsOn": "Cancels on {date}",
+  "@subscriptionStatusCancelsOn": {
+    "placeholders": {"date": {"type": "String"}}
+  },
+  "subscriptionRenewsOn": "Renews on {date}",
+  "@subscriptionRenewsOn": {
+    "placeholders": {"date": {"type": "String"}}
+  },
+  "subscriptionExpiresOn": "Premium until {date}",
+  "@subscriptionExpiresOn": {
+    "placeholders": {"date": {"type": "String"}}
+  },
+  "subscriptionCardLast4": "···· {last4}",
+  "@subscriptionCardLast4": {
+    "placeholders": {"last4": {"type": "String"}}
+  },
+  "subscriptionCardExpires": "Expires {expiry}",
+  "@subscriptionCardExpires": {
+    "placeholders": {"expiry": {"type": "String"}}
+  },
+  "subscriptionUpdatePaymentMethod": "Update payment method",
+  "updatePaymentMethodSuccess": "New card saved",
+  "premiumActivated": "Premium activated",
+  "subscriptionViewInvoices": "View invoices",
+  "subscriptionCancelAction": "Cancel subscription",
+  "subscriptionReactivateAction": "Reactivate subscription",
+  "subscriptionFreeMessage": "You're on the free plan. Upgrade to unlock unlimited AI generations and more.",
+  "subscriptionDiscoverPremium": "Discover Premium",
+  "subscriptionEmptyHelp": "No active subscription yet.",
+
+  "cancelSheetTitle": "Cancel Premium?",
+  "cancelSheetBodyDated": "You'll keep Premium until {date}. We'll save your trips and preferences.",
+  "@cancelSheetBodyDated": {
+    "placeholders": {"date": {"type": "String"}}
+  },
+  "cancelSheetBodyUndated": "We'll save your trips and preferences. You can come back anytime.",
+  "cancelSheetConfirm": "Confirm cancellation",
+  "cancelSheetKeep": "Keep my subscription",
+  "cancelSheetSuccessDated": "Cancellation scheduled. Premium until {date}.",
+  "@cancelSheetSuccessDated": {
+    "placeholders": {"date": {"type": "String"}}
+  },
+  "cancelSheetSuccessUndated": "Subscription cancelled.",
+
+  "reactivateSheetTitle": "Reactivate Premium?",
+  "reactivateSheetBody": "Your subscription will continue without interruption.",
+  "reactivateSheetConfirm": "Reactivate",
+  "reactivateSheetSuccess": "Subscription reactivated.",
+
+  "invoicesPageTitle": "Invoices",
+  "invoicesEmpty": "No invoices yet",
+  "invoicesEmptySubtitle": "Your billing history will appear here.",
+  "invoicesDownloadPdf": "Download PDF",
+  "invoicesViewOnStripe": "View on Stripe",
+  "invoiceStatusPaid": "Paid",
+  "invoiceStatusOpen": "Open",
+  "invoiceStatusVoid": "Void",
+  "invoiceStatusDraft": "Draft",
+  "invoiceStatusUncollectible": "Uncollectible",
+
+  "refundSheetTitle": "Request a refund",
+  "refundSheetCapturedLabel": "{amount} captured",
+  "@refundSheetCapturedLabel": {
+    "placeholders": {"amount": {"type": "String"}}
+  },
+  "refundModeFull": "Full",
+  "refundModePartial": "Partial",
+  "refundAmountLabel": "Amount",
+  "refundAmountHint": "Up to {max}",
+  "@refundAmountHint": {
+    "placeholders": {"max": {"type": "String"}}
+  },
+  "refundReasonLabel": "Reason",
+  "refundReasonRequestedByCustomer": "Requested by customer",
+  "refundReasonDuplicate": "Duplicate charge",
+  "refundReasonFraudulent": "Suspected fraud",
+  "refundConfirm": "Request refund",
+  "refundSuccessMessage": "Refund processed. Funds will arrive in 5–10 days.",
+  "refundUnavailableMessage": "Only captured bookings can be refunded.",
+
+  "paymentSuccessConfirmed": "Payment confirmed",
+  "paymentSuccessSubtitle": "Your booking is on its way.",
+  "paymentRefundedTitle": "Refunded",
+  "paymentSheetCanceled": "Payment cancelled",
+  "paymentNetworkRequired": "A connection is required to complete this payment.",
+
+  "errorAlreadyPremium": "You're already on Premium.",
+  "errorNoActiveSubscription": "No active subscription.",
+  "errorMissingStripeCustomer": "Payment profile not set up. Contact support.",
+  "errorRefundExceedsRemaining": "This refund exceeds the available amount.",
+  "errorAlreadyFullyRefunded": "This payment has already been fully refunded.",
+  "errorInvalidRefundReason": "Invalid refund reason."
 }

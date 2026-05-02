@@ -23,7 +23,10 @@ class SubscriptionCancelPage extends StatelessWidget {
     switch (result) {
       case Success(:final data):
         final uri = Uri.parse(data);
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+        // In-app browser keeps the user inside BagTrip — the legacy
+        // checkout URL flow used to bounce them out to Safari, which
+        // didn't pass the Jony Ive smell test.
+        await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
       case Failure():
         AppSnackBar.showError(
           context,

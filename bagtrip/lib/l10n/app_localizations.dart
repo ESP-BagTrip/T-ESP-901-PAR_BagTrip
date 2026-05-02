@@ -5696,6 +5696,486 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Il reste {amount} sur le prévisionnel'**
   String budgetDeltaUnder(String amount);
+
+  /// No description provided for @premiumFeaturePageAiTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planifier sans limite'**
+  String get premiumFeaturePageAiTitle;
+
+  /// No description provided for @premiumFeaturePageAiBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Générez autant d\'itinéraires IA que vous voulez, sans plafond mensuel.'**
+  String get premiumFeaturePageAiBody;
+
+  /// No description provided for @premiumFeaturePageViewersTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voyager ensemble'**
+  String get premiumFeaturePageViewersTitle;
+
+  /// No description provided for @premiumFeaturePageViewersBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Invitez jusqu\'à 10 voyageurs par voyage pour rester synchronisés.'**
+  String get premiumFeaturePageViewersBody;
+
+  /// No description provided for @premiumFeaturePageOfflineTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Informé hors ligne'**
+  String get premiumFeaturePageOfflineTitle;
+
+  /// No description provided for @premiumFeaturePageOfflineBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recevez vos rappels d\'activités même sans connexion.'**
+  String get premiumFeaturePageOfflineBody;
+
+  /// No description provided for @premiumFeaturePagePostTripTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Des souvenirs qui durent'**
+  String get premiumFeaturePagePostTripTitle;
+
+  /// No description provided for @premiumFeaturePagePostTripBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suggestions et résumés IA après chaque voyage.'**
+  String get premiumFeaturePagePostTripBody;
+
+  /// No description provided for @premiumPriceLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'{price} / mois'**
+  String premiumPriceLabel(String price);
+
+  /// No description provided for @premiumCtaTry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Essayer Premium'**
+  String get premiumCtaTry;
+
+  /// No description provided for @premiumDisclaimerCancelAnytime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annulable à tout moment'**
+  String get premiumDisclaimerCancelAnytime;
+
+  /// No description provided for @subscriptionFinalizing.
+  ///
+  /// In fr, this message translates to:
+  /// **'On finalise…'**
+  String get subscriptionFinalizing;
+
+  /// No description provided for @subscriptionAlmostThere.
+  ///
+  /// In fr, this message translates to:
+  /// **'Encore un instant…'**
+  String get subscriptionAlmostThere;
+
+  /// No description provided for @subscriptionTakingLonger.
+  ///
+  /// In fr, this message translates to:
+  /// **'Stripe prend un peu plus de temps. On t\'envoie une notification dès que c\'est validé.'**
+  String get subscriptionTakingLonger;
+
+  /// No description provided for @subscriptionContinue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Continuer'**
+  String get subscriptionContinue;
+
+  /// No description provided for @subscriptionPageTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon abonnement'**
+  String get subscriptionPageTitle;
+
+  /// No description provided for @subscriptionStatusActive.
+  ///
+  /// In fr, this message translates to:
+  /// **'Actif'**
+  String get subscriptionStatusActive;
+
+  /// No description provided for @subscriptionStatusPremiumActive.
+  ///
+  /// In fr, this message translates to:
+  /// **'Premium · Actif'**
+  String get subscriptionStatusPremiumActive;
+
+  /// No description provided for @subscriptionStatusFree.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plan gratuit'**
+  String get subscriptionStatusFree;
+
+  /// No description provided for @subscriptionLater.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus tard'**
+  String get subscriptionLater;
+
+  /// No description provided for @subscriptionPaywallClose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer'**
+  String get subscriptionPaywallClose;
+
+  /// No description provided for @premiumActivated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Premium activé'**
+  String get premiumActivated;
+
+  /// No description provided for @subscriptionStatusCancelsOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annulé le {date}'**
+  String subscriptionStatusCancelsOn(String date);
+
+  /// No description provided for @subscriptionRenewsOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Renouvellement le {date}'**
+  String subscriptionRenewsOn(String date);
+
+  /// No description provided for @subscriptionExpiresOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Premium jusqu\'au {date}'**
+  String subscriptionExpiresOn(String date);
+
+  /// No description provided for @subscriptionCardLast4.
+  ///
+  /// In fr, this message translates to:
+  /// **'···· {last4}'**
+  String subscriptionCardLast4(String last4);
+
+  /// No description provided for @subscriptionCardExpires.
+  ///
+  /// In fr, this message translates to:
+  /// **'Expire {expiry}'**
+  String subscriptionCardExpires(String expiry);
+
+  /// No description provided for @subscriptionUpdatePaymentMethod.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le moyen de paiement'**
+  String get subscriptionUpdatePaymentMethod;
+
+  /// No description provided for @updatePaymentMethodSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle carte enregistrée'**
+  String get updatePaymentMethodSuccess;
+
+  /// No description provided for @subscriptionViewInvoices.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir les factures'**
+  String get subscriptionViewInvoices;
+
+  /// No description provided for @subscriptionCancelAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler l\'abonnement'**
+  String get subscriptionCancelAction;
+
+  /// No description provided for @subscriptionReactivateAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réactiver l\'abonnement'**
+  String get subscriptionReactivateAction;
+
+  /// No description provided for @subscriptionFreeMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous êtes sur le plan gratuit. Passez à Premium pour des générations IA illimitées et plus encore.'**
+  String get subscriptionFreeMessage;
+
+  /// No description provided for @subscriptionDiscoverPremium.
+  ///
+  /// In fr, this message translates to:
+  /// **'Découvrir Premium'**
+  String get subscriptionDiscoverPremium;
+
+  /// No description provided for @subscriptionEmptyHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun abonnement actif.'**
+  String get subscriptionEmptyHelp;
+
+  /// No description provided for @cancelSheetTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler Premium ?'**
+  String get cancelSheetTitle;
+
+  /// No description provided for @cancelSheetBodyDated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu garderas Premium jusqu\'au {date}. On conserve tes voyages et préférences.'**
+  String cancelSheetBodyDated(String date);
+
+  /// No description provided for @cancelSheetBodyUndated.
+  ///
+  /// In fr, this message translates to:
+  /// **'On conserve tes voyages et préférences. Tu peux revenir quand tu veux.'**
+  String get cancelSheetBodyUndated;
+
+  /// No description provided for @cancelSheetConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer l\'annulation'**
+  String get cancelSheetConfirm;
+
+  /// No description provided for @cancelSheetKeep.
+  ///
+  /// In fr, this message translates to:
+  /// **'Garder mon abonnement'**
+  String get cancelSheetKeep;
+
+  /// No description provided for @cancelSheetSuccessDated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annulation programmée. Premium jusqu\'au {date}.'**
+  String cancelSheetSuccessDated(String date);
+
+  /// No description provided for @cancelSheetSuccessUndated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Abonnement annulé.'**
+  String get cancelSheetSuccessUndated;
+
+  /// No description provided for @reactivateSheetTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réactiver Premium ?'**
+  String get reactivateSheetTitle;
+
+  /// No description provided for @reactivateSheetBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ton abonnement continue sans interruption.'**
+  String get reactivateSheetBody;
+
+  /// No description provided for @reactivateSheetConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réactiver'**
+  String get reactivateSheetConfirm;
+
+  /// No description provided for @reactivateSheetSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Abonnement réactivé.'**
+  String get reactivateSheetSuccess;
+
+  /// No description provided for @invoicesPageTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Factures'**
+  String get invoicesPageTitle;
+
+  /// No description provided for @invoicesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas encore de factures'**
+  String get invoicesEmpty;
+
+  /// No description provided for @invoicesEmptySubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ton historique de facturation apparaîtra ici.'**
+  String get invoicesEmptySubtitle;
+
+  /// No description provided for @invoicesDownloadPdf.
+  ///
+  /// In fr, this message translates to:
+  /// **'Télécharger le PDF'**
+  String get invoicesDownloadPdf;
+
+  /// No description provided for @invoicesViewOnStripe.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir sur Stripe'**
+  String get invoicesViewOnStripe;
+
+  /// No description provided for @invoiceStatusPaid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Payée'**
+  String get invoiceStatusPaid;
+
+  /// No description provided for @invoiceStatusOpen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouverte'**
+  String get invoiceStatusOpen;
+
+  /// No description provided for @invoiceStatusVoid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annulée'**
+  String get invoiceStatusVoid;
+
+  /// No description provided for @invoiceStatusDraft.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brouillon'**
+  String get invoiceStatusDraft;
+
+  /// No description provided for @invoiceStatusUncollectible.
+  ///
+  /// In fr, this message translates to:
+  /// **'Irrécouvrable'**
+  String get invoiceStatusUncollectible;
+
+  /// No description provided for @refundSheetTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demander un remboursement'**
+  String get refundSheetTitle;
+
+  /// No description provided for @refundSheetCapturedLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'{amount} capturés'**
+  String refundSheetCapturedLabel(String amount);
+
+  /// No description provided for @refundModeFull.
+  ///
+  /// In fr, this message translates to:
+  /// **'Total'**
+  String get refundModeFull;
+
+  /// No description provided for @refundModePartial.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partiel'**
+  String get refundModePartial;
+
+  /// No description provided for @refundAmountLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant'**
+  String get refundAmountLabel;
+
+  /// No description provided for @refundAmountHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Maximum {max}'**
+  String refundAmountHint(String max);
+
+  /// No description provided for @refundReasonLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif'**
+  String get refundReasonLabel;
+
+  /// No description provided for @refundReasonRequestedByCustomer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demande client'**
+  String get refundReasonRequestedByCustomer;
+
+  /// No description provided for @refundReasonDuplicate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Doublon'**
+  String get refundReasonDuplicate;
+
+  /// No description provided for @refundReasonFraudulent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suspicion de fraude'**
+  String get refundReasonFraudulent;
+
+  /// No description provided for @refundConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demander le remboursement'**
+  String get refundConfirm;
+
+  /// No description provided for @refundSuccessMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remboursement traité. Les fonds arriveront sous 5 à 10 jours.'**
+  String get refundSuccessMessage;
+
+  /// No description provided for @refundUnavailableMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Seules les réservations capturées peuvent être remboursées.'**
+  String get refundUnavailableMessage;
+
+  /// No description provided for @paymentSuccessConfirmed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement confirmé'**
+  String get paymentSuccessConfirmed;
+
+  /// No description provided for @paymentSuccessSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ta réservation est en cours de traitement.'**
+  String get paymentSuccessSubtitle;
+
+  /// No description provided for @paymentRefundedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remboursé'**
+  String get paymentRefundedTitle;
+
+  /// No description provided for @paymentSheetCanceled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement annulé'**
+  String get paymentSheetCanceled;
+
+  /// No description provided for @paymentNetworkRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une connexion est nécessaire pour finaliser ce paiement.'**
+  String get paymentNetworkRequired;
+
+  /// No description provided for @errorAlreadyPremium.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu es déjà sur Premium.'**
+  String get errorAlreadyPremium;
+
+  /// No description provided for @errorNoActiveSubscription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun abonnement actif.'**
+  String get errorNoActiveSubscription;
+
+  /// No description provided for @errorMissingStripeCustomer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil de paiement non configuré. Contacte le support.'**
+  String get errorMissingStripeCustomer;
+
+  /// No description provided for @errorRefundExceedsRemaining.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce remboursement dépasse le montant disponible.'**
+  String get errorRefundExceedsRemaining;
+
+  /// No description provided for @errorAlreadyFullyRefunded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce paiement a déjà été entièrement remboursé.'**
+  String get errorAlreadyFullyRefunded;
+
+  /// No description provided for @errorInvalidRefundReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif de remboursement invalide.'**
+  String get errorInvalidRefundReason;
 }
 
 class _AppLocalizationsDelegate

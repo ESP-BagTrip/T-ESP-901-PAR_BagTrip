@@ -40,3 +40,14 @@ class PaymentFailed extends BookingState {
 
   PaymentFailed({required this.error});
 }
+
+/// Refund in flight — replaces the previous PaymentSuccess until completed.
+class RefundInProgress extends BookingState {
+  final String intentId;
+  RefundInProgress({required this.intentId});
+}
+
+class RefundSucceeded extends BookingState {
+  final String intentId;
+  RefundSucceeded({required this.intentId});
+}

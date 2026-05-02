@@ -29,6 +29,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<LogoutRequested>(_onLogoutRequested);
     on<DeleteAccountRequested>(_onDeleteAccountRequested);
     on<AuthModeChanged>(_onAuthModeChanged);
+    on<UserRefreshRequested>(_onUserRefreshRequested);
+    on<OptimisticPremiumActivated>(_onOptimisticPremiumActivated);
+    on<ConfirmPremiumActivation>(_onConfirmPremiumActivation);
   }
 
   Future<void> _registerDeviceToken() async {
@@ -158,6 +161,97 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthModeChangedState(isLoginMode: event.isLoginMode));
     } else {
       emit(AuthModeChangedState(isLoginMode: event.isLoginMode));
+    }
+  }
+
+  /// Re-fetch the user and re-emit [AuthSuccess] with the fresh copy.
+  ///
+  /// Best-effort: a failure here doesn't kick the user out (a transient
+  /// network error shouldn't undo a paid-in-full subscription locally).
+  /// Auth errors *do* propagate so a 401 still drops to [AuthInitial].
+  Future<void> _onUserRefreshRequested(
+    UserRefreshRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    final current = state;
+    if (current is! AuthSuccess) return;
+    final result = await _authRepository.getCurrentUser();
+    if (isClosed) return;
+    switch (result) {
+      case Success(:final data):
+        if (data == null) return;
+        emit(
+          AuthSuccess(authResponse: current.authResponse.copyWith(user: data)),
+        );
+      case Failure(:final error):
+        if (error is AuthenticationError) {
+          await _authRepository.logout();
+          if (isClosed) return;
+          emit(AuthInitial(isLoginMode: _isLoginMode));
+        }
+      // Other errors: silently keep the stale user — refresh will retry
+      // on the next opportunity (next paid action, next app resume).
+    }
+  }
+
+  /// Optimistically flip `user.plan` to PREMIUM without touching the server.
+  ///
+  /// Called from the paywall the moment the PaymentSheet returns
+  /// success — the gate is lifted instantly so the user can keep doing
+  /// what they were doing. [ConfirmPremiumActivation] reconciles with
+  /// the server in the background.
+  Future<void> _onOptimisticPremiumActivated(
+    OptimisticPremiumActivated event,
+    Emitter<AuthState> emit,
+  ) async {
+    final current = state;
+    if (current is! AuthSuccess) return;
+    if (current.authResponse.user.isPremium) return;
+    emit(
+      AuthSuccess(
+        authResponse: current.authResponse.copyWith(
+          user: current.authResponse.user.copyWith(plan: 'PREMIUM'),
+        ),
+      ),
+    );
+  }
+
+  /// Reconcile the optimistic Premium state with the server.
+  ///
+  /// Retries `/auth/me` at 500 ms → 2 s → 5 s after the optimistic
+  /// flip so the local state catches up with the
+  /// `customer.subscription.created` webhook. Stops as soon as the
+  /// server confirms PREMIUM. If it never does (very rare), we keep
+  /// the optimistic state — the user paid; rolling back to FREE would
+  /// be more wrong than living with a brief mismatch until the next
+  /// natural refresh.
+  Future<void> _onConfirmPremiumActivation(
+    ConfirmPremiumActivation event,
+    Emitter<AuthState> emit,
+  ) async {
+    const delays = [
+      Duration(milliseconds: 500),
+      Duration(seconds: 2),
+      Duration(seconds: 5),
+    ];
+    for (final delay in delays) {
+      await Future<void>.delayed(delay);
+      if (isClosed) return;
+      final current = state;
+      if (current is! AuthSuccess) return;
+      final result = await _authRepository.getCurrentUser();
+      if (isClosed) return;
+      if (result case Success(:final data) when data != null) {
+        // Replace optimistic state with the server's truth — preserves
+        // every other field (memberSince, profileCompleted, etc.) that
+        // may have been touched by webhook side-effects.
+        emit(
+          AuthSuccess(authResponse: current.authResponse.copyWith(user: data)),
+        );
+        if (data.isPremium) return; // server confirmed — done.
+      }
+      // Auth errors handled by the regular UserRefreshRequested handler;
+      // here we just keep retrying until we hit the timeout or confirm.
     }
   }
 }

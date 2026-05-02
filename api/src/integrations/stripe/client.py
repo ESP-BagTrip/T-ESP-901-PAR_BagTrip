@@ -48,6 +48,16 @@ class StripeClient:
         return stripe.Customer.create(**customer_data, **_idem_kwargs(idempotency_key))
 
     @staticmethod
+    def retrieve_customer(customer_id: str) -> stripe.Customer:
+        """Récupérer un customer — utile pour vérifier qu'il existe encore.
+
+        Raises `stripe.InvalidRequestError` with `code == 'resource_missing'`
+        when the customer was deleted (manually in the dashboard, or because
+        the secret key was switched to a different account).
+        """
+        return stripe.Customer.retrieve(customer_id)
+
+    @staticmethod
     def delete_customer(customer_id: str) -> None:
         """Delete a Stripe customer."""
         stripe.Customer.delete(customer_id)
@@ -129,9 +139,55 @@ class StripeClient:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def retrieve_subscription(subscription_id: str) -> stripe.Subscription:
+    def create_subscription(
+        customer: str,
+        price: str,
+        idempotency_key: str | None = None,
+        **fields: Any,
+    ) -> stripe.Subscription:
+        """Crée une subscription en `default_incomplete` pour PaymentSheet natif.
+
+        Le mode `default_incomplete` retourne immédiatement une `Invoice`
+        avec un `PaymentIntent` non-confirmé, dont le `client_secret` est
+        passé au Flutter `PaymentSheet`. L'utilisateur paie dans l'app —
+        pas de Checkout URL, pas de browser externe.
+        """
+        return stripe.Subscription.create(
+            customer=customer,
+            items=[{"price": price}],
+            payment_behavior="default_incomplete",
+            payment_settings={"save_default_payment_method": "on_subscription"},
+            expand=["latest_invoice.payment_intent"],
+            **fields,
+            **_idem_kwargs(idempotency_key),
+        )
+
+    @staticmethod
+    def retrieve_subscription(
+        subscription_id: str,
+        expand: list[str] | None = None,
+    ) -> stripe.Subscription:
         """Récupérer une subscription."""
+        if expand:
+            return stripe.Subscription.retrieve(subscription_id, expand=expand)
         return stripe.Subscription.retrieve(subscription_id)
+
+    @staticmethod
+    def list_subscriptions(
+        customer: str,
+        status: str | None = None,
+        limit: int = 10,
+    ) -> stripe.ListObject:
+        """Lister les subscriptions d'un customer (filtrable par statut)."""
+        params: dict[str, Any] = {"customer": customer, "limit": limit}
+        if status:
+            params["status"] = status
+        return stripe.Subscription.list(**params)
+
+    @staticmethod
+    def cancel_subscription(subscription_id: str) -> stripe.Subscription:
+        """Annule immédiatement une subscription (pas en fin de période)."""
+        return stripe.Subscription.cancel(subscription_id)
 
     @staticmethod
     def update_subscription(
@@ -154,13 +210,68 @@ class StripeClient:
         return stripe.Invoice.list(customer=customer_id, limit=limit)
 
     # ------------------------------------------------------------------
-    # PaymentMethod
+    # PaymentMethod / SetupIntent / EphemeralKey (mobile-native flows)
     # ------------------------------------------------------------------
 
     @staticmethod
     def retrieve_payment_method(payment_method_id: str) -> stripe.PaymentMethod:
         """Récupérer un PaymentMethod (last4, brand, exp_year, etc.)."""
         return stripe.PaymentMethod.retrieve(payment_method_id)
+
+    @staticmethod
+    def attach_payment_method(
+        payment_method_id: str,
+        customer_id: str,
+        idempotency_key: str | None = None,
+    ) -> stripe.PaymentMethod:
+        """Attache un PaymentMethod à un Customer.
+
+        En deferred IntentConfiguration, le PaymentMethod retourné par
+        le `confirmHandler` côté SDK n'est *pas* encore attaché au
+        customer — Stripe ne le fait qu'au moment où le client_secret
+        confirme. Si on passe ce PM comme `default_payment_method` sur
+        une Subscription avant l'attach, Stripe rejette avec
+        `The payment method must be attached to the customer.`.
+        On l'attache donc explicitement dans `/subscription/confirm`
+        juste avant de créer la subscription.
+        """
+        return stripe.PaymentMethod.attach(
+            payment_method_id,
+            customer=customer_id,
+            **_idem_kwargs(idempotency_key),
+        )
+
+    @staticmethod
+    def create_setup_intent(
+        customer: str,
+        usage: str = "off_session",
+        idempotency_key: str | None = None,
+    ) -> stripe.SetupIntent:
+        """Crée un `SetupIntent` pour ajouter / changer la CB en in-app.
+
+        Utilisé par le PaymentSheet Flutter en mode setup — l'utilisateur
+        attache une nouvelle carte sans quitter l'app, puis on l'attache
+        comme `default_payment_method` du subscription.
+        """
+        return stripe.SetupIntent.create(
+            customer=customer,
+            usage=usage,
+            **_idem_kwargs(idempotency_key),
+        )
+
+    @staticmethod
+    def create_ephemeral_key(customer_id: str) -> stripe.EphemeralKey:
+        """Clé éphémère restreinte pour le SDK mobile.
+
+        Sans ça, le PaymentSheet Flutter ne peut pas lister les
+        PaymentMethods sauvegardés du customer. La clé expire au bout
+        d'une heure et n'est valide que pour ce customer — c'est l'API
+        officielle Stripe pour les SDK iOS/Android/Flutter.
+        """
+        return stripe.EphemeralKey.create(
+            customer=customer_id,
+            stripe_version=STRIPE_API_VERSION,
+        )
 
     # ------------------------------------------------------------------
     # Billing Portal
