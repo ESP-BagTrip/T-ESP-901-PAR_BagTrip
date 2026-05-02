@@ -88,13 +88,34 @@ def _synthesize_flight_offer(
     return [offer]
 
 
+def _accommodation_stay_total(best: dict) -> float:
+    """Return the whole-stay accommodation cost from a hotel dict.
+
+    Prefers the explicit ``price_total`` (Amadeus stay total). Falls back
+    to ``price_per_night × nights`` when only the per-night unit is known
+    (LLM-only path, missing tool data). Returns 0 if neither is exploitable.
+    Resolves B23: callers used to read ``price_total or price_per_night``
+    and the per-night branch silently fed an under-counted budget.
+    """
+    price_total = best.get("price_total")
+    if isinstance(price_total, (int, float)) and price_total > 0:
+        return float(price_total)
+    per_night = best.get("price_per_night")
+    nights = best.get("nights")
+    if (
+        isinstance(per_night, (int, float))
+        and per_night > 0
+        and isinstance(nights, (int, float))
+        and nights > 0
+    ):
+        return float(per_night) * float(nights)
+    return 0.0
+
+
 def _compute_fallback_budget(accommodations: list, activities: list, estimation: dict) -> dict:
     """Compute budget from real gathered data when LLM estimation is incomplete."""
-    # Best accommodation price
-    accom_total = 0.0
-    if accommodations:
-        best = accommodations[0]
-        accom_total = float(best.get("price_total") or best.get("price_per_night", 0) or 0)
+    # Best accommodation total — see _accommodation_stay_total for unit rules.
+    accom_total = _accommodation_stay_total(accommodations[0]) if accommodations else 0.0
 
     # Sum activity costs
     activity_total = sum(float(a.get("estimated_cost", 0) or 0) for a in activities)

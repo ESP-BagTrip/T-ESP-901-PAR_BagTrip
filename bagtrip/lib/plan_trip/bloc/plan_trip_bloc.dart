@@ -898,7 +898,12 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         .map((a) => (a['title'] ?? '') as String)
         .toList();
 
-    // Best accommodation
+    // Best accommodation — store the *per-night* price. Reading
+    // `price_total` here used to feed a stay total to a field labeled
+    // per-night, which the backend then re-multiplied by trip nights
+    // (B23 / topic 04a). Prefer the explicit per-night unit; fall back
+    // to dividing the stay total by `nights` when the tool only emitted
+    // a total.
     String accommodationName = 'À déterminer';
     String accommodationSubtitle = '';
     double accommodationPrice = 0;
@@ -906,10 +911,16 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     if (accommodations.isNotEmpty) {
       final best = accommodations.first;
       accommodationName = best['name'] as String? ?? 'Hôtel';
-      accommodationPrice =
-          (best['price_total'] as num?)?.toDouble() ??
-          (best['price_per_night'] as num?)?.toDouble() ??
-          0;
+      final perNight = (best['price_per_night'] as num?)?.toDouble();
+      final priceTotal = (best['price_total'] as num?)?.toDouble();
+      final nightsRaw = (best['nights'] as num?)?.toInt() ?? 0;
+      if (perNight != null && perNight > 0) {
+        accommodationPrice = perNight;
+      } else if (priceTotal != null && priceTotal > 0 && nightsRaw > 0) {
+        accommodationPrice = priceTotal / nightsRaw;
+      } else {
+        accommodationPrice = 0;
+      }
       accommodationSource = best['source'] as String? ?? 'estimated';
       final currency = best['currency'] as String? ?? 'EUR';
       accommodationSubtitle =

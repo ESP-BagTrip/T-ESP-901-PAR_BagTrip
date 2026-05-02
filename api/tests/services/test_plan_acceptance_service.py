@@ -172,6 +172,32 @@ class TestPersistAccommodations:
         assert len(added) == 1
         assert isinstance(added[0], Accommodation)
 
+    def test_b23_budget_amount_is_per_night_times_nights_not_squared(self, mock_db, trip):
+        """Pinning fix: persistance must treat `price_per_night` as per-night.
+
+        Pre-04a, Flutter shipped the Amadeus stay total in this field and
+        the service re-multiplied by trip nights, producing
+        ``price_total × nights`` (× 7 inflation on a 7-night stay).
+        Post-04a, callers must always send the per-night unit and the
+        service stays the trustworthy multiplier.
+        """
+        # 7-night trip (fixture), 100 €/night → 700 € stay (not 4900 €).
+        suggestion = {
+            "accommodations": [
+                {"name": "Hotel Test", "price_per_night": 100, "currency": "EUR"},
+            ]
+        }
+
+        PlanAcceptanceService._persist_accommodations(mock_db, trip, suggestion)
+
+        budget_lines = [
+            call.args[0]
+            for call in mock_db.add.call_args_list
+            if isinstance(call.args[0], BudgetItem)
+        ]
+        assert len(budget_lines) == 1
+        assert float(budget_lines[0].amount) == 700.0
+
 
 class TestPersistFlights:
     def test_creates_main_and_return_flights_with_fallback_airports(self, mock_db, trip):

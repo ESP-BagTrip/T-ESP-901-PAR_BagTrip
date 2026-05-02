@@ -977,7 +977,85 @@ void main() {
         expect(plan.budgetEur, 1200);
         expect(plan.highlights, ['Tram ride', 'Belém']);
         expect(plan.accommodationName, 'Hotel X');
+        expect(plan.accommodationPrice, 120);
         expect(plan.essentialItems, ['Passport']);
+
+        await controller.close();
+        await bloc.close();
+      },
+    );
+
+    test(
+      'B23 — accommodation with price_total + nights derives per-night price',
+      () async {
+        // Pre-04a, the bloc read `price_total` into `accommodationPrice`
+        // (a per-night-labelled field), then POSTed it back as
+        // `price_per_night` and the backend re-multiplied by trip nights.
+        // Now: when the SSE payload only carries `price_total` + `nights`,
+        // the bloc must derive the true per-night unit (total / nights).
+        final controller = StreamController<Map<String, dynamic>>();
+        final bloc = await bootGeneratingBloc(controller);
+
+        controller.add({
+          'event': 'complete',
+          'data': {
+            'tripPlan': {
+              'destination': {'city': 'Barcelona', 'country': 'Spain'},
+              'duration_days': 5,
+              'accommodations': [
+                {
+                  'name': 'Hotel BCN',
+                  'price_total': 500,
+                  'nights': 5,
+                  'currency': 'EUR',
+                  'source': 'amadeus',
+                },
+              ],
+              'budget': <String, dynamic>{},
+            },
+          },
+        });
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        final plan = bloc.state.generatedPlan!;
+        expect(plan.accommodationName, 'Hotel BCN');
+        expect(plan.accommodationPrice, 100); // 500 / 5 nights
+
+        await controller.close();
+        await bloc.close();
+      },
+    );
+
+    test(
+      'B23 — explicit price_per_night wins over price_total when both present',
+      () async {
+        final controller = StreamController<Map<String, dynamic>>();
+        final bloc = await bootGeneratingBloc(controller);
+
+        controller.add({
+          'event': 'complete',
+          'data': {
+            'tripPlan': {
+              'destination': {'city': 'Rome', 'country': 'Italy'},
+              'duration_days': 4,
+              'accommodations': [
+                {
+                  'name': 'Hotel Roma',
+                  'price_total': 800,
+                  'price_per_night': 200,
+                  'nights': 4,
+                  'currency': 'EUR',
+                  'source': 'amadeus',
+                },
+              ],
+              'budget': <String, dynamic>{},
+            },
+          },
+        });
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        final plan = bloc.state.generatedPlan!;
+        expect(plan.accommodationPrice, 200);
 
         await controller.close();
         await bloc.close();
