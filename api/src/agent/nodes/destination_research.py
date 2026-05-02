@@ -106,8 +106,8 @@ async def destination_research_node(state: TripPlanState) -> dict:
         parts.append(f"Origin city: {state['origin_city']}")
     if state.get("travel_types"):
         parts.append(f"Travel preferences: {state['travel_types']}")
-    if state.get("budget_range"):
-        parts.append(f"Budget: {state['budget_range']}")
+    if state.get("budget_preset"):
+        parts.append(f"Budget: {state['budget_preset']}")
     if state.get("duration_days"):
         parts.append(f"Duration: {state['duration_days']} days")
     if state.get("companions"):

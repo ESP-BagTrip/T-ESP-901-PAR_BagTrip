@@ -14,8 +14,8 @@ void main() {
   group('extractBudgetEntries', () {
     test('extracts entries preserving canonical order', () {
       final entries = extractBudgetEntries(l10n, {
-        'activities': 150,
-        'flights': 300,
+        'activity': 150,
+        'flight': 300,
         'accommodation': 500,
       });
       expect(entries.length, 3);
@@ -28,7 +28,7 @@ void main() {
 
     test('accepts {amount: X} shape', () {
       final entries = extractBudgetEntries(l10n, {
-        'flights': {'amount': 200},
+        'flight': {'amount': 200},
       });
       expect(entries.length, 1);
       expect(entries[0].amount, 200);
@@ -36,9 +36,9 @@ void main() {
 
     test('skips non-positive amounts', () {
       final entries = extractBudgetEntries(l10n, {
-        'flights': 0,
+        'flight': 0,
         'accommodation': -10,
-        'meals': 40,
+        'food': 40,
       });
       expect(entries.length, 1);
       expect(entries[0].amount, 40);
@@ -47,7 +47,7 @@ void main() {
     test('ignores unknown keys', () {
       final entries = extractBudgetEntries(l10n, {
         'souvenirs': 25,
-        'flights': 100,
+        'flight': 100,
       });
       expect(entries.length, 1);
       expect(entries[0].amount, 100);
@@ -60,7 +60,7 @@ void main() {
 
   group('budgetLabelForKey', () {
     test('returns localized label for known keys', () {
-      expect(budgetLabelForKey('flights', l10n), l10n.reviewBudgetFlights);
+      expect(budgetLabelForKey('flight', l10n), l10n.reviewBudgetFlights);
       expect(
         budgetLabelForKey('accommodation', l10n),
         l10n.reviewBudgetAccommodation,

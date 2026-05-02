@@ -8,7 +8,6 @@ def _build_initial_state(request: PlanTripRequest) -> TripPlanState:
     """Mirror the initial_state construction from plan_trip_routes._trip_plan_generator."""
     return {
         "travel_types": request.travelTypes or "",
-        "budget_range": request.budgetRange or "",
         "duration_days": request.durationDays or 7,
         "companions": request.companions or "solo",
         "constraints": request.constraints or "",

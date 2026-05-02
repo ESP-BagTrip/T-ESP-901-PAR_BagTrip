@@ -67,8 +67,8 @@ Consider the user's preferences and return ONLY a valid JSON object (no explanat
     parts = []
     if state.get("travel_types"):
         parts.append(f"Preferences: {state['travel_types']}")
-    if state.get("budget_range") or state.get("budget_preset"):
-        parts.append(f"Budget: {state.get('budget_preset') or state.get('budget_range')}")
+    if state.get("budget_preset"):
+        parts.append(f"Budget: {state['budget_preset']}")
     if state.get("duration_days"):
         parts.append(f"Duration: {state['duration_days']} days")
     if state.get("companions"):
@@ -108,7 +108,6 @@ def _build_initial_state(request: PlanTripRequest) -> dict:
 
     return {
         "travel_types": request.travelTypes or "",
-        "budget_range": request.budgetRange or "",
         "duration_days": duration,
         "companions": request.companions or "solo",
         "constraints": request.constraints or "",

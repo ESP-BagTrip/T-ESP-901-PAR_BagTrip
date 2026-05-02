@@ -55,7 +55,7 @@ void main() {
           generationMessage: 'Finding destinations...',
           generationSteps: {
             'destinations': StepStatus.inProgress,
-            'activities': StepStatus.pending,
+            'activity': StepStatus.pending,
             'accommodations': StepStatus.pending,
             'baggage': StepStatus.pending,
             'budget': StepStatus.pending,
@@ -73,7 +73,7 @@ void main() {
           generationMessage: 'Planning activities...',
           generationSteps: {
             'destinations': StepStatus.completed,
-            'activities': StepStatus.completed,
+            'activity': StepStatus.completed,
             'accommodations': StepStatus.inProgress,
             'baggage': StepStatus.pending,
             'budget': StepStatus.pending,
@@ -95,7 +95,7 @@ void main() {
           ),
           generationSteps: {
             'destinations': StepStatus.completed,
-            'activities': StepStatus.completed,
+            'activity': StepStatus.completed,
             'accommodations': StepStatus.completed,
             'baggage': StepStatus.completed,
             'budget': StepStatus.completed,
@@ -122,7 +122,7 @@ void main() {
           generationProgress: 0.4,
           generationSteps: {
             'destinations': StepStatus.completed,
-            'activities': StepStatus.error,
+            'activity': StepStatus.error,
             'accommodations': StepStatus.pending,
             'baggage': StepStatus.pending,
             'budget': StepStatus.pending,

@@ -80,7 +80,7 @@ void main() {
     dayCategories: ['CULTURE', 'CULTURE'],
     essentialItems: ['Passport', 'Adapter'],
     essentialReasons: ['ID', 'Power plugs'],
-    budgetBreakdown: {'flights': 200, 'accommodation': 500, 'meals': 300},
+    budgetBreakdown: {'flight': 200, 'accommodation': 500, 'food': 300},
   );
 
   final reviewDates = {

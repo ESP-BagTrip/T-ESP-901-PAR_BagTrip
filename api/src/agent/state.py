@@ -15,7 +15,6 @@ class TripPlanState(TypedDict, total=False):
 
     # === Input (set once at graph invocation) ===
     travel_types: str
-    budget_range: str
     duration_days: int
     companions: str
     constraints: str

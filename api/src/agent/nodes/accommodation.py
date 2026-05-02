@@ -29,8 +29,6 @@ async def accommodation_node(state: TripPlanState) -> dict:
         parts.append(f"Check-out: {state['return_date']}")
     if state.get("companions"):
         parts.append(f"Travelers: {state['companions']}")
-    if state.get("budget_range"):
-        parts.append(f"Budget: {state['budget_range']}")
     if state.get("budget_preset"):
         from src.api.ai.plan_trip_schemas import BUDGET_PRESET_RANGES
 

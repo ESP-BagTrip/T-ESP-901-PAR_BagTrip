@@ -8,10 +8,10 @@ def test_trip_plan_state_structure():
 
     state: TripPlanState = {
         "travel_types": "leisure",
-        "budget_range": "medium",
+        "budget_preset": "comfortable",
         "duration_days": 7,
     }
 
     assert state["travel_types"] == "leisure"
-    assert state["budget_range"] == "medium"
+    assert state["budget_preset"] == "comfortable"
     assert state["duration_days"] == 7

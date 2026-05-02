@@ -864,7 +864,8 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       'durationDays': state.effectiveDurationDays,
       'departureDate': departureDate,
       'returnDate': returnDate,
-      'budgetRange': state.budgetPreset?.name,
+      // Topic 05 (B4) — `budgetRange` was a duplicate of `budgetPreset`
+      // (same enum value, two keys). Dropped.
       'nbTravelers': state.nbTravelers,
       'originCity': state.originCity,
       'dateMode': state.dateMode.name,
@@ -942,7 +943,8 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     String flightDetails = '';
     double flightPrice = 0;
     String flightSource = 'estimated';
-    final flightBudget = budget['flights'] as Map<String, dynamic>?;
+    // Topic 05 (B12) — singular keys aligned with Flutter BudgetCategory.
+    final flightBudget = budget['flight'] as Map<String, dynamic>?;
     if (flightBudget != null) {
       flightPrice = (flightBudget['amount'] as num?)?.toDouble() ?? 0;
       flightSource = flightBudget['source'] as String? ?? 'estimated';
@@ -1004,16 +1006,15 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         .toList();
 
     // Budget total — sum breakdown categories for consistency with chart.
-    // Topic 03 (B5) — accumulate as `double` so we don't drop the decimals
-    // (we used to lose up to ~2.50 € on a 5-category plan via
-    // `raw.toInt()`). Cast happens at render time only.
+    // Topic 03 (B5) — accumulate as `double` so we don't drop the decimals.
+    // Topic 05 (B12) — singular keys aligned with Flutter BudgetCategory.
     double budgetEur = 0;
     for (final key in [
-      'flights',
+      'flight',
       'accommodation',
-      'meals',
+      'food',
       'transport',
-      'activities',
+      'activity',
     ]) {
       final value = budget[key];
       if (value is Map) {

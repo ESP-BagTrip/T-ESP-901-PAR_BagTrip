@@ -977,15 +977,15 @@ void main() {
                 {'name': 'Passport', 'reason': 'ID'},
               ],
               'budget': {
-                'flights': {
+                'flight': {
                   'amount': 200,
                   'source': 'amadeus',
                   'details': 'CDG→LIS',
                 },
                 'accommodation': {'amount': 720},
-                'meals': {'amount': 180},
+                'food': {'amount': 180},
                 'transport': {'amount': 60},
-                'activities': {'amount': 40},
+                'activity': {'amount': 40},
               },
               'weather': {'avg_temp_c': 21},
             },
@@ -1025,11 +1025,11 @@ void main() {
               'destination': {'city': 'Lyon', 'country': 'France'},
               'duration_days': 3,
               'budget': {
-                'flights': {'amount': 0.5},
+                'flight': {'amount': 0.5},
                 'accommodation': {'amount': 0.5},
-                'meals': {'amount': 0.5},
+                'food': {'amount': 0.5},
                 'transport': {'amount': 0.5},
-                'activities': {'amount': 0.5},
+                'activity': {'amount': 0.5},
               },
             },
           },

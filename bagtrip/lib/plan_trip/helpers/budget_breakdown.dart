@@ -6,12 +6,16 @@ import 'package:flutter/material.dart';
 
 /// Category keys recognized by [extractBudgetEntries]. Order drives the
 /// display order in the legend + stripe segments.
+///
+/// Topic 05 (B12) — singular keys aligned with the `BudgetCategory` enum
+/// (FLIGHT/ACCOMMODATION/FOOD/ACTIVITY/TRANSPORT). One source of truth
+/// instead of a mapping table.
 const budgetCategoryKeys = <String>[
-  'flights',
+  'flight',
   'accommodation',
-  'meals',
+  'food',
   'transport',
-  'activities',
+  'activity',
 ];
 
 /// Extract a list of legend entries from a raw budget breakdown map coming
@@ -46,19 +50,19 @@ List<BudgetStripeEntry> extractBudgetEntries(
 }
 
 String budgetLabelForKey(String key, AppLocalizations l10n) => switch (key) {
-  'flights' => l10n.reviewBudgetFlights,
+  'flight' => l10n.reviewBudgetFlights,
   'accommodation' => l10n.reviewBudgetAccommodation,
-  'meals' => l10n.reviewBudgetMeals,
+  'food' => l10n.reviewBudgetMeals,
   'transport' => l10n.reviewBudgetTransport,
-  'activities' => l10n.reviewBudgetActivities,
+  'activity' => l10n.reviewBudgetActivities,
   _ => l10n.reviewBudgetOther,
 };
 
 Color budgetColorForKey(String key) => switch (key) {
-  'flights' => ColorName.primary,
+  'flight' => ColorName.primary,
   'accommodation' => ColorName.primaryDark,
-  'meals' => ColorName.warning,
+  'food' => ColorName.warning,
   'transport' => AppColors.budgetTransport,
-  'activities' => ColorName.secondary,
+  'activity' => ColorName.secondary,
   _ => AppColors.budgetDefault,
 };

@@ -31,7 +31,6 @@ class PlanTripRequest(BaseModel):
     """
 
     travelTypes: str | None = None
-    budgetRange: str | None = None
     durationDays: int | None = None
     companions: str | None = None
     season: str | None = None
