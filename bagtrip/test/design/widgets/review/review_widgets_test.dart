@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/review/activity_tile.dart';
 import 'package:bagtrip/design/widgets/review/boarding_pass_card.dart';
 import 'package:bagtrip/design/widgets/review/budget_stripe.dart';
@@ -8,6 +9,7 @@ import 'package:bagtrip/design/widgets/review/panel_chips_bar.dart';
 import 'package:bagtrip/design/widgets/review/pill_cta_button.dart';
 import 'package:bagtrip/design/widgets/review/review_hero.dart';
 import 'package:bagtrip/design/widgets/review/timeline_card.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -137,6 +139,52 @@ void main() {
         ),
         throwsAssertionError,
       );
+    });
+
+    test('indicator decoration top corners follow first / middle / last', () {
+      final r = const Radius.circular(AppRadius.cornerRaidus8);
+      BorderRadius br(int index, int count) {
+        final deco = PanelChipsBar.indicatorDecorationForIndex(index, count);
+        return deco.borderRadius!.resolve(TextDirection.ltr);
+      }
+
+      expect(br(0, 3).topLeft, Radius.zero);
+      expect(br(0, 3).topRight, r);
+
+      expect(br(1, 3).topLeft, r);
+      expect(br(1, 3).topRight, r);
+
+      expect(br(2, 3).topLeft, r);
+      expect(br(2, 3).topRight, Radius.zero);
+
+      expect(br(0, 1).topLeft, r);
+      expect(br(0, 1).topRight, r);
+    });
+
+    testWidgets('uses surfaceVariant indicator and label colors', (
+      tester,
+    ) async {
+      late TabController controller;
+      await pumpLocalized(
+        tester,
+        DefaultTabController(
+          length: 2,
+          child: Builder(
+            builder: (context) {
+              controller = DefaultTabController.of(context);
+              return PanelChipsBar(
+                labels: const ['A', 'B'],
+                controller: controller,
+              );
+            },
+          ),
+        ),
+      );
+      final tabBar = tester.widget<TabBar>(find.byType(TabBar));
+      final deco = tabBar.indicator as BoxDecoration;
+      expect(deco.color, ColorName.surfaceVariant);
+      expect(tabBar.labelColor, ColorName.primaryTrueDark);
+      expect(tabBar.unselectedLabelColor, ColorName.surface);
     });
   });
 
@@ -321,7 +369,7 @@ void main() {
   });
 
   group('ReviewHero', () {
-    testWidgets('renders city, days, budget and fires back/close', (
+    testWidgets('renders city, subtitle, budget and fires back/close', (
       tester,
     ) async {
       var back = false;
@@ -330,8 +378,7 @@ void main() {
         tester,
         ReviewHero(
           city: 'Lisbon',
-          daysLabel: '5 DAYS',
-          dateRangeLabel: '5 – 10 Jun',
+          subtitle: '5 – 10 Jun • 5 days',
           budgetLabel: '1 000 €',
           onBack: () => back = true,
           onClose: () => close = true,
@@ -339,7 +386,7 @@ void main() {
       );
       expect(find.text('Lisbon'), findsOneWidget);
       expect(find.text('1 000 €'), findsOneWidget);
-      expect(find.text('5 – 10 Jun'), findsOneWidget);
+      expect(find.text('5 – 10 Jun • 5 days'), findsOneWidget);
 
       await tester.tap(find.byIcon(Icons.arrow_back_rounded));
       expect(back, isTrue);
@@ -353,8 +400,7 @@ void main() {
         tester,
         ReviewHero(
           city: 'Lisbon',
-          daysLabel: '5 DAYS',
-          dateRangeLabel: '5 – 10 Jun',
+          subtitle: '5 – 10 Jun • 5 days',
           budgetLabel: '1 000 €',
           onOverflow: () => overflow = true,
           trailing: const Icon(Icons.circle, key: Key('trailing-slot')),
@@ -375,8 +421,7 @@ void main() {
         tester,
         ReviewHero(
           city: 'Lisbon',
-          daysLabel: '5 DAYS',
-          dateRangeLabel: '5 – 10 Jun',
+          subtitle: '5 – 10 Jun • 5 days',
           budgetLabel: '1 000 €',
           onEditDates: () => edited = true,
         ),

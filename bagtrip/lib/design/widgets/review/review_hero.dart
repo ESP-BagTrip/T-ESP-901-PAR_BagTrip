@@ -8,18 +8,20 @@ import 'package:flutter/material.dart';
 /// Dark hero used by the wizard review step and by the trip-detail editor.
 ///
 /// All edit affordances are opt-in via nullable callbacks:
-/// * [onEditDates] — tap on the date/budget column opens the range picker
+/// * [onEditDates] — tap on the city/subtitle block or the budget opens the
+///   range picker
 /// * [onBack] / [onClose] — circular nav buttons at the top
 /// * [onOverflow] — additional "…" button for the editor's menu
 ///
-/// [trailing] is an optional slot below the nav row (e.g. completion ring),
-/// [statusBadge] surfaces in the upper-right corner (e.g. "READ-ONLY").
+/// [subtitle] is shown under [city] (e.g. dates and duration: "16 mai 2026 -
+/// 17 mai 2026 • 1 jour"). [trailing] is an optional slot on the hero row
+/// (e.g. completion ring). [statusBadge] surfaces in the upper-right corner
+/// (e.g. "READ-ONLY").
 class ReviewHero extends StatelessWidget {
   const ReviewHero({
     super.key,
     required this.city,
-    required this.daysLabel,
-    required this.dateRangeLabel,
+    this.subtitle = '',
     required this.budgetLabel,
     this.coverImageUrl,
     this.onEditDates,
@@ -31,8 +33,7 @@ class ReviewHero extends StatelessWidget {
   });
 
   final String city;
-  final String daysLabel;
-  final String dateRangeLabel;
+  final String subtitle;
   final String budgetLabel;
 
   /// Optional cover image rendered behind the metadata, with a gradient
@@ -69,30 +70,39 @@ class ReviewHero extends StatelessWidget {
         HeroNavButton(icon: Icons.more_horiz_rounded, onPressed: onOverflow!),
     ];
 
-    final metadata = InkWell(
-      onTap: onEditDates,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            daysLabel.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: FontFamily.dMSerifDisplay,
-              fontWeight: FontWeight.w700,
-              color: ColorName.hint,
-            ),
+    final titleBlock = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          city,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontFamily: FontFamily.dMSerifDisplay,
+            fontSize: 24,
+            color: ColorName.surface,
           ),
+        ),
+        if (subtitle.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.space8),
           Text(
-            dateRangeLabel,
+            subtitle,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontFamily: FontFamily.dMSerifDisplay,
               fontSize: 16,
               color: ColorName.surface,
             ),
           ),
-          const SizedBox(height: 2),
-          if (budgetLabel.isNotEmpty)
-            Text(
+        ],
+      ],
+    );
+
+    final budgetColumn = budgetLabel.isNotEmpty
+        ? InkWell(
+            onTap: onEditDates,
+            child: Text(
               budgetLabel,
               style: const TextStyle(
                 fontFamily: FontFamily.dMSerifDisplay,
@@ -101,9 +111,8 @@ class ReviewHero extends StatelessWidget {
                 color: ColorName.surface,
               ),
             ),
-        ],
-      ),
-    );
+          )
+        : null;
 
     final hasImage = coverImageUrl != null && coverImageUrl!.isNotEmpty;
     return DecoratedBox(
@@ -135,9 +144,9 @@ class ReviewHero extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(
                         AppSpacing.space16,
-                        AppSpacing.space4,
+                        AppSpacing.space8,
                         AppSpacing.space16,
-                        0,
+                        AppSpacing.space8,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -145,23 +154,24 @@ class ReviewHero extends StatelessWidget {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.space24,
+                        AppSpacing.space24,
+                        AppSpacing.space24,
+                        AppSpacing.space32,
+                      ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Expanded(
-                            child: Text(
-                              city,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontFamily: FontFamily.dMSerifDisplay,
-                                fontSize: 24,
-                                color: ColorName.surface,
-                              ),
-                            ),
+                            child: onEditDates != null
+                                ? InkWell(onTap: onEditDates, child: titleBlock)
+                                : titleBlock,
                           ),
-                          metadata,
+                          if (budgetColumn != null) ...[
+                            const SizedBox(width: AppSpacing.space12),
+                            budgetColumn,
+                          ],
                           if (trailing != null) ...[
                             const SizedBox(width: AppSpacing.space12),
                             trailing!,

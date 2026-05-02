@@ -23,8 +23,8 @@ import 'package:bagtrip/trip_detail/view/panels/essentials_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/flights_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/hotel_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/itinerary_panel.dart';
-import 'package:bagtrip/trip_detail/view/panels/validation_board_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/shares_panel.dart';
+import 'package:bagtrip/trip_detail/view/panels/validation_board_panel.dart';
 import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
 import 'package:bagtrip/trip_detail/widgets/date_range_picker_sheet.dart';
 import 'package:bagtrip/trip_detail/widgets/hero_overflow_menu.dart';
@@ -170,8 +170,7 @@ class _LoadedTripViewState extends State<_LoadedTripView>
       children: [
         ReviewHero(
           city: _heroCity(trip, l10n),
-          daysLabel: _heroDaysLabel(l10n),
-          dateRangeLabel: _heroDateRangeLabel(context, trip),
+          subtitle: _heroDateSubtitle(context, trip, l10n),
           budgetLabel: _heroBudgetLabel(),
           coverImageUrl: _resolveCoverImage(trip),
           onEditDates: _canEdit ? () => _showDateRangePicker(context) : null,
@@ -185,16 +184,10 @@ class _LoadedTripViewState extends State<_LoadedTripView>
           ),
           statusBadge: _buildStatusBadge(l10n),
         ),
-        ColoredBox(
-          color: ColorName.primaryDark,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.space8),
-            child: PanelChipsBar(
-              labels: labels,
-              controller: _tabController,
-              incompleteFlags: _incompleteFlags(),
-            ),
-          ),
+        PanelChipsBar(
+          labels: labels,
+          controller: _tabController,
+          incompleteFlags: _incompleteFlags(),
         ),
         Expanded(
           child: Column(
@@ -284,16 +277,19 @@ class _LoadedTripViewState extends State<_LoadedTripView>
     return l10n.myTripFallback;
   }
 
-  String _heroDaysLabel(AppLocalizations l10n) {
-    if (state.totalDays <= 0) return '';
-    return l10n.summaryDaysCount(state.totalDays).toUpperCase();
-  }
-
-  String _heroDateRangeLabel(BuildContext context, Trip trip) {
+  /// "16 mai 2026 - 17 mai 2026 • 1 jour" (locale-aware dates + [tripDurationDays]).
+  String _heroDateSubtitle(
+    BuildContext context,
+    Trip trip,
+    AppLocalizations l10n,
+  ) {
     if (trip.startDate == null || trip.endDate == null) return '';
+    if (state.totalDays <= 0) return '';
     final locale = Localizations.localeOf(context).languageCode;
     final fmt = DateFormat('d MMM yyyy', locale);
-    return '${fmt.format(trip.startDate!)} – ${fmt.format(trip.endDate!)}';
+    final range =
+        '${fmt.format(trip.startDate!)} - ${fmt.format(trip.endDate!)}';
+    return '$range • ${l10n.tripDurationDays(state.totalDays)}';
   }
 
   String _heroBudgetLabel() {
