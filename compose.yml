@@ -21,8 +21,12 @@ services:
     image: redis:7-alpine
     container_name: BagTrip-redis
     restart: always
-    ports:
-      - "6379:6379"
+    # No host port exposure in dev: only the api container consumes redis
+    # (cache / rate-limit / distributed lock) via the compose network
+    # (`redis:6379`). Keeps the attack surface minimal — use
+    # `docker compose exec redis redis-cli` if you need a shell.
+    expose:
+      - "6379"
     volumes:
       - redis_data:/data
 
@@ -90,33 +94,33 @@ services:
   #   environment:
   #     - API_URL=http://localhost:3000
 
-  sonarqube:
-    image: sonarqube:community
-    container_name: BagTrip-sonarqube
-    ports:
-      - "9000:9000"
-    volumes:
-      - sonarqube_data:/opt/sonarqube/data
-      - sonarqube_extensions:/opt/sonarqube/extensions
-      - sonarqube_logs:/opt/sonarqube/logs
-      - ./sonar-flutter-plugin-0.5.2.jar:/opt/sonarqube/extensions/plugins/sonar-flutter-plugin-0.5.2.jar
-    
+  # sonarqube:
+  #   image: sonarqube:community
+  #   container_name: BagTrip-sonarqube
+  #   ports:
+  #     - "9000:9000"
+  #   volumes:
+  #     - sonarqube_data:/opt/sonarqube/data
+  #     - sonarqube_extensions:/opt/sonarqube/extensions
+  #     - sonarqube_logs:/opt/sonarqube/logs
+  #     - ./sonar-flutter-plugin-0.5.2.jar:/opt/sonarqube/extensions/plugins/sonar-flutter-plugin-0.5.2.jar
 
-  sonar-scanner:
-    build:
-      context: .
-      dockerfile: Dockerfile.sonar-scanner
-    container_name: BagTrip-sonar-scanner
-    volumes:
-      - .:/usr/src
-    environment:
-      - SONAR_HOST_URL=http://sonarqube:9000
-      - SONAR_TOKEN=${SONAR_TOKEN}
-    
+
+  # sonar-scanner:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.sonar-scanner
+  #   container_name: BagTrip-sonar-scanner
+  #   volumes:
+  #     - .:/usr/src
+  #   environment:
+  #     - SONAR_HOST_URL=http://sonarqube:9000
+  #     - SONAR_TOKEN=${SONAR_TOKEN}
+
 volumes:
   postgres_data:
   redis_data:
   admin_node_modules:
-  sonarqube_data:
-  sonarqube_extensions:
-  sonarqube_logs:
+  # sonarqube_data:
+  # sonarqube_extensions:
+  # sonarqube_logs:
