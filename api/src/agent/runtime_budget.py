@@ -21,7 +21,7 @@ node wrapper.
 ## Usage
 
 ```python
-from src.agent.budget import BudgetExceeded, guard, remaining, track
+from src.agent.runtime_budget import BudgetExceeded, guard, remaining, track
 
 async def my_node(state: TripPlanState) -> dict:
     guard(state, min_required=5.0)  # raise if < 5s left

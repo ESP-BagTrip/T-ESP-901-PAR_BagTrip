@@ -27,7 +27,9 @@ def _serialize_trip_row(row) -> dict:
         "start_date": trip.start_date,
         "end_date": trip.end_date,
         "status": trip.status,
-        "budget_total": trip.budget_total,
+        "budget_target": trip.budget_target,
+        "budget_estimated": trip.budget_estimated,
+        "budget_actual": trip.budget_actual,
         "nb_travelers": getattr(trip, "nb_travelers", None),
         "origin": trip.origin,
         "created_at": trip.created_at,
@@ -196,7 +198,9 @@ class AdminTripsService:
             "start_date": trip.start_date,
             "end_date": trip.end_date,
             "status": trip.status,
-            "budget_total": trip.budget_total,
+            "budget_target": trip.budget_target,
+            "budget_estimated": trip.budget_estimated,
+            "budget_actual": trip.budget_actual,
             "nb_travelers": getattr(trip, "nb_travelers", None),
             "origin": trip.origin,
             "archived_at": getattr(trip, "archived_at", None),
@@ -212,13 +216,16 @@ class AdminTripsService:
         trip = db.query(Trip).filter(Trip.id == trip_id).first()
         if not trip:
             raise AppError("NOT_FOUND", 404, "Trip not found")
+        # Topic 02 — admin can move the user's target but not the AI
+        # estimation (which is mutated through the dedicated accept
+        # endpoint) and not the actual (computed at runtime).
         allowed = {
             "title",
             "status",
             "start_date",
             "end_date",
             "destination_name",
-            "budget_total",
+            "budget_target",
             "nb_travelers",
         }
         for key, value in updates.items():

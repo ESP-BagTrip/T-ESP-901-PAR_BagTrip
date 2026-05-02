@@ -96,6 +96,13 @@ class TestBuildInitialState:
         assert state["nb_travelers"] == 1
         assert state["events"] == []
         assert state["errors"] == []
+        assert state["target_budget"] is None
+
+    def test_target_budget_threaded_into_state(self):
+        """Topic 01 (B2): the numeric target reaches the agent state."""
+        req = PlanTripRequest(targetBudget=2500.0)
+        state = _build_initial_state(req)
+        assert state["target_budget"] == 2500.0
 
 
 # ---------------------------------------------------------------------------

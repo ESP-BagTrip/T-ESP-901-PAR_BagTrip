@@ -26,7 +26,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from src.agent.budget import BudgetExceeded
+from src.agent.runtime_budget import BudgetExceeded
 from src.api.ai.plan_trip_schemas import PlanTripRequest
 from src.config.env import settings
 from src.integrations.unsplash import unsplash_client
@@ -67,8 +67,8 @@ Consider the user's preferences and return ONLY a valid JSON object (no explanat
     parts = []
     if state.get("travel_types"):
         parts.append(f"Preferences: {state['travel_types']}")
-    if state.get("budget_range") or state.get("budget_preset"):
-        parts.append(f"Budget: {state.get('budget_preset') or state.get('budget_range')}")
+    if state.get("budget_preset"):
+        parts.append(f"Budget: {state['budget_preset']}")
     if state.get("duration_days"):
         parts.append(f"Duration: {state['duration_days']} days")
     if state.get("companions"):
@@ -108,7 +108,6 @@ def _build_initial_state(request: PlanTripRequest) -> dict:
 
     return {
         "travel_types": request.travelTypes or "",
-        "budget_range": request.budgetRange or "",
         "duration_days": duration,
         "companions": request.companions or "solo",
         "constraints": request.constraints or "",
@@ -121,12 +120,16 @@ def _build_initial_state(request: PlanTripRequest) -> dict:
         "season": request.season or "",
         "nb_travelers": request.nbTravelers or 1,
         "budget_preset": request.budgetPreset or "",
+        # Topic 01 — numeric target the user committed to in the wizard.
+        # Threaded into the agent state so nodes can render it in prompts
+        # and `_compute_fallback_budget` can use it as a sanity ceiling.
+        "target_budget": request.targetBudget,
         "date_mode": request.dateMode or "",
         "events": [],
         "errors": [],
         # Budget tracking — `time.monotonic()` is strictly increasing so we
         # don't need tz-aware math. Consumed seconds accrues as each node
-        # finishes via `src.agent.budget.track`.
+        # finishes via `src.agent.runtime_budget.track`.
         "budget_deadline_monotonic": time.monotonic() + settings.GRAPH_TIMEOUT_SECONDS,
         "budget_consumed_seconds": 0.0,
         # Locale picked up by every node's `prompts.render(name, locale=...)` call.

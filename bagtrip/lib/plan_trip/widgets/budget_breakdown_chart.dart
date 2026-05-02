@@ -4,6 +4,7 @@ import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/plan_trip/models/budget_breakdown.dart';
 import 'package:flutter/material.dart';
 
 class BudgetBreakdownChart extends StatelessWidget {
@@ -13,16 +14,8 @@ class BudgetBreakdownChart extends StatelessWidget {
     required this.animationIndex,
   });
 
-  final Map<String, dynamic> budgetBreakdown;
+  final BudgetBreakdown budgetBreakdown;
   final int animationIndex;
-
-  static const _categoryKeys = [
-    'flights',
-    'accommodation',
-    'meals',
-    'transport',
-    'activities',
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -131,77 +124,37 @@ class BudgetBreakdownChart extends StatelessWidget {
   }
 
   List<_BudgetEntry> _extractEntries(AppLocalizations l10n) {
-    final entries = <_BudgetEntry>[];
+    final pairs = <(double, String, Color)>[
+      (
+        budgetBreakdown.flight,
+        l10n.reviewBudgetFlights,
+        AppColors.categoryFlight,
+      ),
+      (
+        budgetBreakdown.accommodation,
+        l10n.reviewBudgetAccommodation,
+        AppColors.categoryAccommodation,
+      ),
+      (budgetBreakdown.food, l10n.reviewBudgetMeals, AppColors.categoryFood),
+      (
+        budgetBreakdown.transport,
+        l10n.reviewBudgetTransport,
+        AppColors.categoryTransport,
+      ),
+      (
+        budgetBreakdown.activity,
+        l10n.reviewBudgetActivities,
+        AppColors.categoryActivity,
+      ),
+      (budgetBreakdown.other, l10n.reviewBudgetOther, AppColors.categoryOther),
+    ];
 
-    for (final key in _categoryKeys) {
-      final value = budgetBreakdown[key];
-      double? amount;
-      if (value is Map) {
-        final raw = value['amount'];
-        if (raw is num) amount = raw.toDouble();
-      } else if (value is num) {
-        amount = value.toDouble();
-      }
-      if (amount == null || amount <= 0) {
-        continue;
-      }
-
-      entries.add(
-        _BudgetEntry(
-          label: _labelForKey(key, l10n),
-          amount: amount,
-          color: _colorForKey(key),
-        ),
-      );
-    }
-
-    // Check for any remaining keys (other)
-    for (final key in budgetBreakdown.keys) {
-      if (_categoryKeys.contains(key) ||
-          key == 'total_min' ||
-          key == 'total_max' ||
-          key == 'currency') {
-        continue;
-      }
-      final value = budgetBreakdown[key];
-      double? amount;
-      if (value is Map) {
-        final raw = value['amount'];
-        if (raw is num) amount = raw.toDouble();
-      } else if (value is num) {
-        amount = value.toDouble();
-      }
-      if (amount == null || amount <= 0) continue;
-      entries.add(
-        _BudgetEntry(
-          label: l10n.reviewBudgetOther,
-          amount: amount,
-          color: AppColors.categoryOther,
-        ),
-      );
-    }
-
-    return entries;
+    return [
+      for (final (amount, label, color) in pairs)
+        if (amount > 0)
+          _BudgetEntry(label: label, amount: amount, color: color),
+    ];
   }
-
-  static String _labelForKey(String key, AppLocalizations l10n) =>
-      switch (key) {
-        'flights' => l10n.reviewBudgetFlights,
-        'accommodation' => l10n.reviewBudgetAccommodation,
-        'meals' => l10n.reviewBudgetMeals,
-        'transport' => l10n.reviewBudgetTransport,
-        'activities' => l10n.reviewBudgetActivities,
-        _ => l10n.reviewBudgetOther,
-      };
-
-  static Color _colorForKey(String key) => switch (key) {
-    'flights' => AppColors.categoryFlight,
-    'accommodation' => AppColors.categoryAccommodation,
-    'meals' => AppColors.categoryFood,
-    'transport' => AppColors.categoryTransport,
-    'activities' => AppColors.categoryActivity,
-    _ => AppColors.categoryOther,
-  };
 }
 
 class _BudgetEntry {

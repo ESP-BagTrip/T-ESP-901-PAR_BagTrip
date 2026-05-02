@@ -97,7 +97,9 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                 {trip.user_email}
               </Link>
             </Field>
-            <Field label="Budget" value={formatCurrency(trip.budget_total)} />
+            <Field label="Budget cible" value={formatCurrency(trip.budget_target)} />
+            <Field label="Estimation IA" value={formatCurrency(trip.budget_estimated)} />
+            <Field label="Réel" value={formatCurrency(trip.budget_actual)} />
             <Field label="Voyageurs" value={formatNumber(trip.nb_travelers)} />
             <Field label="Origine" value={trip.origin ?? '—'} />
             <Field label="Activités" value={String(trip.activities_count)} />

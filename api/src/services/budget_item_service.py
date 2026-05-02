@@ -112,23 +112,44 @@ class BudgetItemService:
 
     @staticmethod
     def get_budget_summary(db: Session, trip: Trip) -> dict:
+        from src.services import currency_service
+
         items = BudgetItemService.get_by_trip(db, trip.id)
-        total_spent = sum(float(i.amount) for i in items)
+        # Topic 04b (B8/B11) — every BudgetItem amount is converted to the
+        # trip's canonical currency before aggregation. Phase 1 ships with
+        # a stub fetcher that returns rate=1.0; once ECB is wired in,
+        # multi-currency trips start summing correctly with no call-site
+        # change. Same-currency rows pay no conversion cost (early-out).
+        trip_currency = trip.currency or "EUR"
+
+        def _amount_in_trip_currency(item) -> float:
+            return currency_service.convert(
+                float(item.amount), from_=item.currency, to=trip_currency
+            )
+
+        total_spent = sum(_amount_in_trip_currency(i) for i in items)
         by_category: dict[str, float] = {}
         for item in items:
             cat = item.category or BudgetCategory.OTHER
-            by_category[cat] = by_category.get(cat, 0.0) + float(item.amount)
+            converted = _amount_in_trip_currency(item)
+            by_category[cat] = by_category.get(cat, 0.0) + converted
 
-        budget_total = float(trip.budget_total) if trip.budget_total else 0.0
+        # Topic 02 — alerts trigger against the user's *target* (intent),
+        # not the AI estimation. Going over the target is what the user
+        # cares about; going over the estimation is by definition
+        # expected when the IA underestimated.
+        budget_target = float(trip.budget_target) if trip.budget_target else 0.0
+        budget_estimated = float(trip.budget_estimated) if trip.budget_estimated else None
 
-        # Confirmed vs forecasted — budget items
+        # Confirmed vs forecasted — budget items (already converted)
         confirmed_total = 0.0
         forecasted_total = 0.0
         for item in items:
+            converted = _amount_in_trip_currency(item)
             if item.source_type is not None or not item.is_planned:
-                confirmed_total += float(item.amount)
+                confirmed_total += converted
             elif item.is_planned and item.source_type is None:
-                forecasted_total += float(item.amount)
+                forecasted_total += converted
 
         # Confirmed vs forecasted — activities
         activities = db.query(Activity).filter(Activity.trip_id == trip.id).all()
@@ -143,11 +164,11 @@ class BudgetItemService:
 
         alert_level = None
         alert_message = None
-        if budget_total > 0:
-            ratio = total_spent / budget_total
+        if budget_target > 0:
+            ratio = total_spent / budget_target
             if ratio >= 1.0:
                 alert_level = "DANGER"
-                over = total_spent - budget_total
+                over = total_spent - budget_target
                 alert_message = f"Budget exceeded by {over:.2f} €"
             elif ratio >= 0.8:
                 alert_level = "WARNING"
@@ -155,9 +176,15 @@ class BudgetItemService:
                 alert_message = f"{pct:.0f}% of your budget has been used"
 
         return {
-            "total_budget": budget_total,
+            # `total_budget` = the intent target. Kept as the public key for
+            # backwards-readable JSON ("what is my budget?") — the actual
+            # field on Trip is now `budget_target`.
+            "total_budget": budget_target,
+            "budget_target": budget_target,
+            "budget_estimated": budget_estimated,
+            "budget_actual": confirmed_total,
             "total_spent": total_spent,
-            "remaining": budget_total - total_spent,
+            "remaining": budget_target - total_spent,
             "by_category": by_category,
             "alert_level": alert_level,
             "alert_message": alert_message,

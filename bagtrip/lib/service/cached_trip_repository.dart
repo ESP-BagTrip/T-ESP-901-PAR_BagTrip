@@ -107,7 +107,7 @@ class CachedTripRepository implements TripRepository {
     String? destinationName,
     int? nbTravelers,
     String? coverImageUrl,
-    double? budgetTotal,
+    double? budgetTarget,
     String? origin,
   }) async {
     final result = await _remote.createTrip(
@@ -120,7 +120,7 @@ class CachedTripRepository implements TripRepository {
       destinationName: destinationName,
       nbTravelers: nbTravelers,
       coverImageUrl: coverImageUrl,
-      budgetTotal: budgetTotal,
+      budgetTarget: budgetTarget,
       origin: origin,
     );
     if (result is Success) {

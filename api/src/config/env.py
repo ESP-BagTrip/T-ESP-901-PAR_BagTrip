@@ -139,7 +139,7 @@ class Settings(BaseSettings):
     # ReAct JSON repair — when the LLM returns malformed JSON for a Final
     # Answer, the executor can fire one corrective re-prompt instead of
     # silently degrading to `{"raw_answer": ...}`. The budget guard
-    # (`src.agent.budget`) still caps the cumulative wall time so a stuck LLM
+    # (`src.agent.runtime_budget`) still caps the cumulative wall time so a stuck LLM
     # can never double the total cost.
     REACT_JSON_REPAIR_ENABLED: bool = True
     REACT_JSON_REPAIR_MAX_ATTEMPTS: int = 1

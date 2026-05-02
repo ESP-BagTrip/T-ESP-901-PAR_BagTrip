@@ -229,9 +229,7 @@ class TestNativeMobileHelpers:
     @patch("stripe.SetupIntent.create")
     def test_create_setup_intent(self, mock_create):
         """SetupIntent for off-session usage — that's what the mobile SDK expects."""
-        StripeClient.create_setup_intent(
-            customer="cus_1", idempotency_key="setup-xyz"
-        )
+        StripeClient.create_setup_intent(customer="cus_1", idempotency_key="setup-xyz")
         kwargs = mock_create.call_args.kwargs
         assert kwargs["customer"] == "cus_1"
         assert kwargs["usage"] == "off_session"

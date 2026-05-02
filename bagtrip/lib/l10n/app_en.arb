@@ -1391,6 +1391,11 @@
   "sharesAddMemberTooltip": "Invite member",
   "myTripFallback": "My trip",
   "completionSegmentsSheetTitle": "Still missing",
+  "completionScoreBudgetNote": "The budget is tracked separately and isn't part of this score.",
+  "budgetViewerStatusOnTrack": "On track",
+  "budgetViewerStatusTight": "Tight",
+  "budgetViewerStatusOverBudget": "Over budget",
+  "budgetViewerNoFiguresHint": "Specific amounts are visible to the trip owner only.",
   "shareTooltip": "Share",
   "backTooltip": "Back",
   "deleteFlightTooltip": "Delete flight",
@@ -1569,11 +1574,11 @@
   "budgetForecastHeader": "Forecast",
   "budgetForecastSubtitle": "What the plan estimates you will spend.",
   "budgetForecastEmpty": "No forecast yet. Add a planned item or let the AI plan fill this in.",
-  "budgetDeltaOver": "Real is {amount} above the forecast",
+  "budgetDeltaOver": "Real exceeds forecast by {amount}",
   "@budgetDeltaOver": {
     "placeholders": {"amount": {"type": "String"}}
   },
-  "budgetDeltaUnder": "Real is {amount} under the forecast",
+  "budgetDeltaUnder": "{amount} still awaiting confirmation",
   "@budgetDeltaUnder": {
     "placeholders": {"amount": {"type": "String"}}
   },

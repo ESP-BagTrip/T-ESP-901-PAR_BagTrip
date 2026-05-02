@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import json
 
-from src.agent.budget import guard
 from src.agent.prompts import render
+from src.agent.runtime_budget import guard
 from src.agent.state import TripPlanState
 from src.services.llm_service import LLMService
 from src.utils.logger import logger

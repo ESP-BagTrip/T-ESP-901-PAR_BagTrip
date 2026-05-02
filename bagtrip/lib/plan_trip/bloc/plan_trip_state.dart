@@ -21,6 +21,10 @@ abstract class PlanTripState with _$PlanTripState {
     @Default(0) int nbChildren,
     @Default(0) int nbBabies,
     BudgetPreset? budgetPreset,
+    // Topic 01 (B2/B6/B7) — numeric target derived from the preset at
+    // step-2 entry. Stored in state so the wizard, the SSE payload and
+    // the trip detail render the *same* number end-to-end.
+    double? targetBudget,
     String? originCity,
     @Default([]) List<LocationResult> originSearchResults,
 

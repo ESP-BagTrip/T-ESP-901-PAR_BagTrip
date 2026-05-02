@@ -397,7 +397,31 @@ void main() {
       seed: () => const PlanTripState(budgetPreset: BudgetPreset.comfortable),
       act: (bloc) => bloc.add(const PlanTripEvent.setBudgetPreset(null)),
       expect: () => [
-        isA<PlanTripState>().having((s) => s.budgetPreset, 'preset', isNull),
+        isA<PlanTripState>()
+            .having((s) => s.budgetPreset, 'preset', isNull)
+            .having((s) => s.targetBudget, 'targetBudget cleared too', isNull),
+      ],
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'SetBudgetPreset (B2/B6/B7) computes targetBudget when duration known',
+      build: buildBloc,
+      seed: () => PlanTripState(
+        nbAdults: 2,
+        startDate: DateTime(2026, 6, 1),
+        endDate: DateTime(2026, 6, 8),
+      ),
+      act: (bloc) => bloc.add(
+        const PlanTripEvent.setBudgetPreset(BudgetPreset.comfortable),
+      ),
+      expect: () => [
+        isA<PlanTripState>()
+            .having((s) => s.budgetPreset, 'preset', BudgetPreset.comfortable)
+            .having(
+              (s) => s.targetBudget,
+              'targetBudget derived from preset',
+              isA<double>().having((v) => v > 0, 'is positive', isTrue),
+            ),
       ],
     );
   });
@@ -953,15 +977,15 @@ void main() {
                 {'name': 'Passport', 'reason': 'ID'},
               ],
               'budget': {
-                'flights': {
+                'flight': {
                   'amount': 200,
                   'source': 'amadeus',
                   'details': 'CDG→LIS',
                 },
                 'accommodation': {'amount': 720},
-                'meals': {'amount': 180},
+                'food': {'amount': 180},
                 'transport': {'amount': 60},
-                'activities': {'amount': 40},
+                'activity': {'amount': 40},
               },
               'weather': {'avg_temp_c': 21},
             },
@@ -977,7 +1001,119 @@ void main() {
         expect(plan.budgetEur, 1200);
         expect(plan.highlights, ['Tram ride', 'Belém']);
         expect(plan.accommodationName, 'Hotel X');
+        expect(plan.accommodationPrice, 120);
         expect(plan.essentialItems, ['Passport']);
+
+        await controller.close();
+        await bloc.close();
+      },
+    );
+
+    test(
+      'B5 — budget breakdown with decimals does not lose precision',
+      () async {
+        // Pre-03, the wizard cast each category `.toInt()` before summing,
+        // dropping decimals. With five 0.5-€ categories the sum collapsed
+        // to 0 instead of 2.5.
+        final controller = StreamController<Map<String, dynamic>>();
+        final bloc = await bootGeneratingBloc(controller);
+
+        controller.add({
+          'event': 'complete',
+          'data': {
+            'tripPlan': {
+              'destination': {'city': 'Lyon', 'country': 'France'},
+              'duration_days': 3,
+              'budget': {
+                'flight': {'amount': 0.5},
+                'accommodation': {'amount': 0.5},
+                'food': {'amount': 0.5},
+                'transport': {'amount': 0.5},
+                'activity': {'amount': 0.5},
+              },
+            },
+          },
+        });
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        expect(bloc.state.generatedPlan!.budgetEur, closeTo(2.5, 0.001));
+
+        await controller.close();
+        await bloc.close();
+      },
+    );
+
+    test(
+      'B23 — accommodation with price_total + nights derives per-night price',
+      () async {
+        // Pre-04a, the bloc read `price_total` into `accommodationPrice`
+        // (a per-night-labelled field), then POSTed it back as
+        // `price_per_night` and the backend re-multiplied by trip nights.
+        // Now: when the SSE payload only carries `price_total` + `nights`,
+        // the bloc must derive the true per-night unit (total / nights).
+        final controller = StreamController<Map<String, dynamic>>();
+        final bloc = await bootGeneratingBloc(controller);
+
+        controller.add({
+          'event': 'complete',
+          'data': {
+            'tripPlan': {
+              'destination': {'city': 'Barcelona', 'country': 'Spain'},
+              'duration_days': 5,
+              'accommodations': [
+                {
+                  'name': 'Hotel BCN',
+                  'price_total': 500,
+                  'nights': 5,
+                  'currency': 'EUR',
+                  'source': 'amadeus',
+                },
+              ],
+              'budget': <String, dynamic>{},
+            },
+          },
+        });
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        final plan = bloc.state.generatedPlan!;
+        expect(plan.accommodationName, 'Hotel BCN');
+        expect(plan.accommodationPrice, 100); // 500 / 5 nights
+
+        await controller.close();
+        await bloc.close();
+      },
+    );
+
+    test(
+      'B23 — explicit price_per_night wins over price_total when both present',
+      () async {
+        final controller = StreamController<Map<String, dynamic>>();
+        final bloc = await bootGeneratingBloc(controller);
+
+        controller.add({
+          'event': 'complete',
+          'data': {
+            'tripPlan': {
+              'destination': {'city': 'Rome', 'country': 'Italy'},
+              'duration_days': 4,
+              'accommodations': [
+                {
+                  'name': 'Hotel Roma',
+                  'price_total': 800,
+                  'price_per_night': 200,
+                  'nights': 4,
+                  'currency': 'EUR',
+                  'source': 'amadeus',
+                },
+              ],
+              'budget': <String, dynamic>{},
+            },
+          },
+        });
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        final plan = bloc.state.generatedPlan!;
+        expect(plan.accommodationPrice, 200);
 
         await controller.close();
         await bloc.close();
@@ -1476,7 +1612,7 @@ void main() {
             startDate: any(named: 'startDate'),
             endDate: any(named: 'endDate'),
             nbTravelers: any(named: 'nbTravelers'),
-            budgetTotal: any(named: 'budgetTotal'),
+            budgetTarget: any(named: 'budgetTarget'),
           ),
         ).thenAnswer((_) async => const Failure(NetworkError('offline')));
         return buildBloc();

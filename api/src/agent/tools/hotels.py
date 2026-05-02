@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import date
+
 from src.agent.tools._shared import _amadeus_semaphore
 from src.integrations.amadeus.client import amadeus_client
 from src.integrations.amadeus.types import (
@@ -12,6 +14,16 @@ from src.utils.idempotency import idempotency_cache
 from src.utils.logger import logger
 
 
+def _compute_nights(check_in: str, check_out: str) -> int:
+    """Number of nights between two ISO dates. 0 on parse failure or inversion."""
+    try:
+        ci = date.fromisoformat(check_in)
+        co = date.fromisoformat(check_out)
+    except (TypeError, ValueError):
+        return 0
+    return max((co - ci).days, 0)
+
+
 async def search_real_hotels(
     city_code: str,
     check_in: str,
@@ -20,7 +32,14 @@ async def search_real_hotels(
 ) -> dict:
     """Search real hotel prices via Amadeus.
 
-    Returns: {"hotels": [...], "source": "amadeus"}
+    Returns: {"hotels": [...], "source": "amadeus"}.
+
+    Each hotel exposes both ``price_total`` (whole-stay, what Amadeus
+    returns) and ``price_per_night`` (derived). Downstream consumers
+    (LLM prompt, budget node fallback, Flutter parse) must pick the
+    unit they need explicitly — the ``× nights`` inflation bug
+    documented in B23 came from a single ambiguous field labeled
+    ``price`` that callers re-multiplied by nights.
     """
     cache_key_params = {
         "city_code": city_code,
@@ -57,18 +76,30 @@ async def search_real_hotels(
                 )
             )
 
+        nights = _compute_nights(check_in, check_out)
+
         hotels = []
         for item in offers_response.data:
             hotel_info = item.hotel
             if item.offers:
                 offer = item.offers[0]
-                price = float(offer.price.total) if offer.price and offer.price.total else None
+                price_total = (
+                    float(offer.price.total) if offer.price and offer.price.total else None
+                )
+                price_per_night = (
+                    round(price_total / nights, 2)
+                    if price_total is not None and nights > 0
+                    else None
+                )
                 hotels.append(
                     {
                         "name": hotel_info.get("name", "Unknown Hotel"),
                         "hotel_id": hotel_info.get("hotelId", ""),
                         "rating": hotel_info.get("rating"),
-                        "price_total": price,
+                        "price_total": price_total,
+                        "price_per_night": price_per_night,
+                        "nights": nights,
+                        "adults": adults,
                         "currency": offer.price.currency if offer.price else "EUR",
                         "check_in": offer.checkInDate,
                         "check_out": offer.checkOutDate,

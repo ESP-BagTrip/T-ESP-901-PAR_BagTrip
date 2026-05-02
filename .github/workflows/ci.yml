@@ -21,16 +21,32 @@ jobs:
   # ========================================
   # CHANGE DETECTION
   # ========================================
+  # Sur `main` et `develop` (push ou PR ciblant ces branches), on force
+  # l'exécution de tous les jobs — pas de skip basé sur les chemins.
+  # Sur les autres branches, on filtre par chemin pour accélérer la CI.
   detect-changes:
     name: Detect Changes
     runs-on: ubuntu-latest
     outputs:
-      flutter: ${{ steps.filter.outputs.flutter }}
-      api: ${{ steps.filter.outputs.api }}
-      admin: ${{ steps.filter.outputs.admin }}
+      flutter: ${{ steps.force.outputs.force == 'true' && 'true' || steps.filter.outputs.flutter }}
+      api: ${{ steps.force.outputs.force == 'true' && 'true' || steps.filter.outputs.api }}
+      admin: ${{ steps.force.outputs.force == 'true' && 'true' || steps.filter.outputs.admin }}
+      protected: ${{ steps.force.outputs.force }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Detect protected branch (main/develop)
+        id: force
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" \
+             || "${{ github.ref }}" == "refs/heads/develop" \
+             || "${{ github.base_ref }}" == "main" \
+             || "${{ github.base_ref }}" == "develop" ]]; then
+            echo "force=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "force=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Filter paths
         uses: dorny/paths-filter@v3
@@ -317,11 +333,17 @@ jobs:
   # ========================================
   # SONAR — QUALITY ANALYSIS
   # ========================================
+  # Le rapport SonarQube n'est uploadé que pour les branches protégées
+  # (main / develop), ou les PR qui les ciblent. Sur les feature branches,
+  # le scan est skippé pour économiser le quota Sonar.
   sonar:
     name: SonarQube Scan
     runs-on: ubuntu-latest
-    needs: [flutter-test, api-checks, admin-checks]
-    if: always() && (needs.flutter-test.result == 'success' || needs.api-checks.result == 'success' || needs.admin-checks.result == 'success')
+    needs: [detect-changes, flutter-test, api-checks, admin-checks]
+    if: |
+      always() &&
+      needs.detect-changes.outputs.protected == 'true' &&
+      (needs.flutter-test.result == 'success' || needs.api-checks.result == 'success' || needs.admin-checks.result == 'success')
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -56,6 +56,12 @@ async def lifespan(app: FastAPI):
     # pool instead of opening its own per-request AsyncClient.
     await init_http_client()
 
+    # Topic 04b — currency refresh scheduler. The first tick warms the
+    # cache, then the loop re-runs every 12h (TTL-aligned). The job is
+    # Redis-locked so multi-worker deployments only hit ECB once per
+    # interval. Failure paths are handled inside the scheduler;
+    # `convert` falls back to identity rates while the cache is cold.
+
     # Vérifier la connexion à la base de données avant de créer les tables
     logger.info("Checking database connection...")
     check_database_connection()
@@ -107,6 +113,11 @@ async def lifespan(app: FastAPI):
 
     zombie_pi_task = asyncio.create_task(zombie_payment_intents_scheduler())
 
+    # Lancer le scheduler de refresh des taux de change ECB (topic 04b)
+    from src.jobs.currency_refresh_job import currency_refresh_scheduler
+
+    currency_task = asyncio.create_task(currency_refresh_scheduler())
+
     yield
 
     # Arrêter les schedulers
@@ -114,6 +125,7 @@ async def lifespan(app: FastAPI):
     notif_scheduler_task.cancel()
     plan_expiration_task.cancel()
     zombie_pi_task.cancel()
+    currency_task.cancel()
     with contextlib.suppress(asyncio.CancelledError):
         await scheduler_task
     with contextlib.suppress(asyncio.CancelledError):
@@ -122,6 +134,8 @@ async def lifespan(app: FastAPI):
         await plan_expiration_task
     with contextlib.suppress(asyncio.CancelledError):
         await zombie_pi_task
+    with contextlib.suppress(asyncio.CancelledError):
+        await currency_task
 
     await close_http_client()
     logger.info("Application shutting down")

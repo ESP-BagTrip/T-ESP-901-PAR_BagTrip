@@ -266,7 +266,7 @@ void main() {
         startDate: DateTime(2025, 10, 1, 13, 30),
         endDate: DateTime(2025, 10, 8, 22, 15),
         nbTravelers: 2,
-        budgetTotal: 1500,
+        budgetTarget: 1500,
         origin: 'manual',
       );
 
@@ -284,7 +284,7 @@ void main() {
       expect(payload['startDate'], contains('2025-10-01T00:00:00'));
       expect(payload['endDate'], contains('2025-10-08T00:00:00'));
       expect(payload['nbTravelers'], 2);
-      expect(payload['budgetTotal'], 1500);
+      expect(payload['budgetTarget'], 1500);
       expect(payload['origin'], 'manual');
       expect(payload.containsKey('description'), isFalse);
       expect(payload.containsKey('coverImageUrl'), isFalse);

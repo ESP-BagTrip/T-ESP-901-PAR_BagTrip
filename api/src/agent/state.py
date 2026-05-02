@@ -15,7 +15,6 @@ class TripPlanState(TypedDict, total=False):
 
     # === Input (set once at graph invocation) ===
     travel_types: str
-    budget_range: str
     duration_days: int
     companions: str
     constraints: str
@@ -26,6 +25,10 @@ class TripPlanState(TypedDict, total=False):
     season: str
     nb_travelers: int
     budget_preset: str
+    # Topic 01 (B2/B6/B7) — numeric budget the user committed to in the wizard.
+    # The estimator and the fallback computation use it as a sanity ceiling
+    # instead of recomputing the total from the breakdown.
+    target_budget: float | None
     date_mode: str
     destination_city: str  # Pre-selected destination (manual flow)
     destination_iata: str  # Pre-selected destination IATA code
@@ -55,7 +58,7 @@ class TripPlanState(TypedDict, total=False):
     # === Graph budget tracking (Sprint 3) ===
     # Monotonic deadline past which the graph must abort — set once by
     # `TripPlannerService._build_initial_state`. Nodes consult it via
-    # `src.agent.budget.remaining` / `guard`.
+    # `src.agent.runtime_budget.remaining` / `guard`.
     budget_deadline_monotonic: float
     budget_consumed_seconds: float
 

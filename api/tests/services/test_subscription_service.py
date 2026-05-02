@@ -463,9 +463,7 @@ class TestConfirmSubscription:
         mock_plan_service.get_plan.return_value = MagicMock(value="PREMIUM")
 
         with pytest.raises(AppError) as exc:
-            SubscriptionService.confirm_subscription(
-                mock_db_session, premium_user, "pm_x"
-            )
+            SubscriptionService.confirm_subscription(mock_db_session, premium_user, "pm_x")
         assert exc.value.code == "ALREADY_PREMIUM"
 
     @patch("src.services.subscription_service.StripeClient")
@@ -491,9 +489,7 @@ class TestConfirmSubscription:
         mock_client.create_subscription.return_value = sub
 
         with pytest.raises(AppError) as exc:
-            SubscriptionService.confirm_subscription(
-                mock_db_session, free_user, "pm_x"
-            )
+            SubscriptionService.confirm_subscription(mock_db_session, free_user, "pm_x")
         assert exc.value.code == "STRIPE_ERROR"
 
     @patch("src.services.subscription_service.StripeClient")
@@ -522,9 +518,7 @@ class TestConfirmSubscription:
         mock_client.create_subscription.return_value = sub
         assert free_user.stripe_subscription_id is None
 
-        SubscriptionService.confirm_subscription(
-            mock_db_session, free_user, "pm_card_visa"
-        )
+        SubscriptionService.confirm_subscription(mock_db_session, free_user, "pm_card_visa")
 
         assert free_user.stripe_subscription_id == "sub_brandnew"
         mock_db_session.commit.assert_called()
@@ -539,23 +533,17 @@ class TestStartPaymentMethodUpdate:
         self, mock_settings, mock_client, mock_db_session, premium_user
     ):
         mock_settings.STRIPE_SECRET_KEY = "sk_test"
-        mock_client.create_setup_intent.return_value = MagicMock(
-            client_secret="seti_secret_xyz"
-        )
+        mock_client.create_setup_intent.return_value = MagicMock(client_secret="seti_secret_xyz")
         mock_client.create_ephemeral_key.return_value = MagicMock(secret="ek_abc")
 
-        result = SubscriptionService.start_payment_method_update(
-            mock_db_session, premium_user
-        )
+        result = SubscriptionService.start_payment_method_update(mock_db_session, premium_user)
 
         assert result["setup_intent_client_secret"] == "seti_secret_xyz"
         assert result["ephemeral_key"] == "ek_abc"
         assert result["customer"] == "cus_123"
 
     @patch("src.services.subscription_service.settings")
-    def test_missing_customer_rejected(
-        self, mock_settings, mock_db_session, free_user
-    ):
+    def test_missing_customer_rejected(self, mock_settings, mock_db_session, free_user):
         mock_settings.STRIPE_SECRET_KEY = "sk_test"
         free_user.stripe_customer_id = None
 
@@ -596,15 +584,11 @@ class TestAttachDefaultPaymentMethod:
         assert kwargs["default_payment_method"] == "pm_xyz"
 
     @patch("src.services.subscription_service.settings")
-    def test_no_active_subscription_rejected(
-        self, mock_settings, mock_db_session, free_user
-    ):
+    def test_no_active_subscription_rejected(self, mock_settings, mock_db_session, free_user):
         mock_settings.STRIPE_SECRET_KEY = "sk_test"
 
         with pytest.raises(AppError) as exc:
-            SubscriptionService.attach_default_payment_method(
-                mock_db_session, free_user, "pm_xyz"
-            )
+            SubscriptionService.attach_default_payment_method(mock_db_session, free_user, "pm_xyz")
         assert exc.value.code == "NO_ACTIVE_SUBSCRIPTION"
 
 

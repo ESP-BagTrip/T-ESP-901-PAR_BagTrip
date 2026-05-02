@@ -15,11 +15,11 @@ from src.api.budget_items.schemas import (
     BudgetItemUpdateRequest,
     BudgetSummaryResponse,
 )
+from src.api.common.redaction import redact_budget_summary_for_role
 from src.config.database import get_db
 from src.models.user import User
 from src.services.budget_item_service import BudgetItemService
 from src.services.notification_service import NotificationService
-from src.services.trips_service import TripsService
 from src.utils.errors import AppError, create_http_exception
 
 router = APIRouter(prefix="/v1/trips", tags=["BudgetItems"])
@@ -72,18 +72,10 @@ async def get_budget_summary(
 ):
     try:
         summary = BudgetItemService.get_budget_summary(db, access.trip)
-        if access.role == TripRole.VIEWER:
-            total_budget = summary["total_budget"]
-            total_spent = summary["total_spent"]
-            percent_consumed = (total_spent / total_budget * 100) if total_budget > 0 else 0
-            return BudgetSummaryResponse(
-                total_budget=total_budget,
-                total_spent=0,
-                remaining=0,
-                by_category={},
-                percent_consumed=percent_consumed,
-            )
-        return BudgetSummaryResponse(**summary)
+        # Topic 06 (B9) — single source of truth for VIEWER masking.
+        # Owners / editors get the dict untouched.
+        redacted = redact_budget_summary_for_role(summary, access.role)
+        return BudgetSummaryResponse(**redacted)
     except AppError as e:
         raise create_http_exception(e) from e
 
@@ -212,13 +204,18 @@ async def accept_budget_estimate(
     access: Annotated[TripAccess, Depends(get_trip_editor_access)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    """Accept AI budget estimation and update trip budget_total."""
+    """Accept the AI budget estimation.
+
+    Topic 02 (B3): writes ``Trip.budget_estimated`` only — the user's
+    ``budget_target`` is preserved so the alert thresholds keep
+    referencing the user's intent, not the AI guess. Bypasses
+    ``TripsService.update_trip`` because that surface forbids writes
+    to ``budget_estimated``.
+    """
     try:
-        TripsService.update_trip(
-            db=db,
-            trip=access.trip,
-            budget_total=request.budget_total,
-        )
+        access.trip.budget_estimated = request.budget_estimated
+        db.commit()
+        db.refresh(access.trip)
         NotificationService.check_and_send_budget_alert(db, access.trip)
         return {"success": True}
     except AppError as e:

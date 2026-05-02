@@ -6,6 +6,7 @@ import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/plan_trip/models/ai_destination.dart';
 import 'package:bagtrip/plan_trip/helpers/budget_estimation.dart';
+import 'package:bagtrip/plan_trip/models/budget_breakdown.dart';
 import 'package:bagtrip/plan_trip/models/budget_preset.dart';
 import 'package:bagtrip/plan_trip/models/date_mode.dart';
 import 'package:bagtrip/plan_trip/models/duration_preset.dart';
@@ -269,7 +270,21 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     PlanTripSetBudgetPreset event,
     Emitter<PlanTripState> emit,
   ) {
-    emit(state.copyWith(budgetPreset: event.preset));
+    // Topic 01 — derive the numeric target as soon as the user picks a
+    // preset (and trip days are known). Recomputed each time so the
+    // value stays in sync with travelers / duration changes.
+    double? targetBudget;
+    if (event.preset != null && state.tripDurationDays != null) {
+      final range = estimateBudget(
+        preset: event.preset!,
+        nbTravelers: state.nbTravelers,
+        days: state.tripDurationDays!,
+      );
+      targetBudget = range.max;
+    }
+    emit(
+      state.copyWith(budgetPreset: event.preset, targetBudget: targetBudget),
+    );
   }
 
   void _onSetOriginCity(
@@ -733,16 +748,9 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     final dest = state.selectedManualDestination;
     final title = dest?.name ?? 'Mon voyage';
 
-    double? budgetTotal;
-    if (state.budgetPreset != null && state.tripDurationDays != null) {
-      final range = estimateBudget(
-        preset: state.budgetPreset!,
-        nbTravelers: state.nbTravelers,
-        days: state.tripDurationDays!,
-      );
-      budgetTotal = range.max;
-    }
-
+    // Topic 01 (B7) — manual flow now reuses the same `targetBudget` the
+    // wizard committed to in step 2, instead of recomputing it differently
+    // from the IA flow (which used to produce a different total user-side).
     final result = await _tripRepository.createTrip(
       title: title,
       destinationName: dest?.name,
@@ -750,7 +758,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       startDate: state.startDate,
       endDate: state.endDate,
       nbTravelers: state.nbTravelers,
-      budgetTotal: budgetTotal,
+      budgetTarget: state.targetBudget,
     );
     if (isClosed) return;
 
@@ -857,11 +865,15 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       'durationDays': state.effectiveDurationDays,
       'departureDate': departureDate,
       'returnDate': returnDate,
-      'budgetRange': state.budgetPreset?.name,
+      // Topic 05 (B4) — `budgetRange` was a duplicate of `budgetPreset`
+      // (same enum value, two keys). Dropped.
       'nbTravelers': state.nbTravelers,
       'originCity': state.originCity,
       'dateMode': state.dateMode.name,
       'budgetPreset': state.budgetPreset?.name,
+      // Topic 01 — surface the numeric target so the agent treats it as a
+      // constraint instead of recomputing it from the breakdown.
+      if (state.targetBudget != null) 'targetBudget': state.targetBudget,
       if (state.preferredMonth != null) 'preferredMonth': state.preferredMonth,
       if (state.preferredYear != null) 'preferredYear': state.preferredYear,
       if (destName != null) 'destinationCity': destName,
@@ -898,7 +910,12 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         .map((a) => (a['title'] ?? '') as String)
         .toList();
 
-    // Best accommodation
+    // Best accommodation — store the *per-night* price. Reading
+    // `price_total` here used to feed a stay total to a field labeled
+    // per-night, which the backend then re-multiplied by trip nights
+    // (B23 / topic 04a). Prefer the explicit per-night unit; fall back
+    // to dividing the stay total by `nights` when the tool only emitted
+    // a total.
     String accommodationName = 'À déterminer';
     String accommodationSubtitle = '';
     double accommodationPrice = 0;
@@ -906,10 +923,16 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     if (accommodations.isNotEmpty) {
       final best = accommodations.first;
       accommodationName = best['name'] as String? ?? 'Hôtel';
-      accommodationPrice =
-          (best['price_total'] as num?)?.toDouble() ??
-          (best['price_per_night'] as num?)?.toDouble() ??
-          0;
+      final perNight = (best['price_per_night'] as num?)?.toDouble();
+      final priceTotal = (best['price_total'] as num?)?.toDouble();
+      final nightsRaw = (best['nights'] as num?)?.toInt() ?? 0;
+      if (perNight != null && perNight > 0) {
+        accommodationPrice = perNight;
+      } else if (priceTotal != null && priceTotal > 0 && nightsRaw > 0) {
+        accommodationPrice = priceTotal / nightsRaw;
+      } else {
+        accommodationPrice = 0;
+      }
       accommodationSource = best['source'] as String? ?? 'estimated';
       final currency = best['currency'] as String? ?? 'EUR';
       accommodationSubtitle =
@@ -921,7 +944,8 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     String flightDetails = '';
     double flightPrice = 0;
     String flightSource = 'estimated';
-    final flightBudget = budget['flights'] as Map<String, dynamic>?;
+    // Topic 05 (B12) — singular keys aligned with Flutter BudgetCategory.
+    final flightBudget = budget['flight'] as Map<String, dynamic>?;
     if (flightBudget != null) {
       flightPrice = (flightBudget['amount'] as num?)?.toDouble() ?? 0;
       flightSource = flightBudget['source'] as String? ?? 'estimated';
@@ -982,27 +1006,29 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         .map((b) => (b['reason'] ?? '') as String)
         .toList();
 
-    // Budget total — sum breakdown categories for consistency with chart
-    int budgetEur = 0;
+    // Budget total — sum breakdown categories for consistency with chart.
+    // Topic 03 (B5) — accumulate as `double` so we don't drop the decimals.
+    // Topic 05 (B12) — singular keys aligned with Flutter BudgetCategory.
+    double budgetEur = 0;
     for (final key in [
-      'flights',
+      'flight',
       'accommodation',
-      'meals',
+      'food',
       'transport',
-      'activities',
+      'activity',
     ]) {
       final value = budget[key];
       if (value is Map) {
         final raw = value['amount'];
-        if (raw is num) budgetEur += raw.toInt();
+        if (raw is num) budgetEur += raw.toDouble();
       } else if (value is num) {
-        budgetEur += value.toInt();
+        budgetEur += value.toDouble();
       }
     }
     if (budgetEur == 0) {
       // Fallback to LLM totals if no breakdown entries
-      final totalMax = (budget['total_max'] as num?)?.toInt() ?? 0;
-      final totalMin = (budget['total_min'] as num?)?.toInt() ?? 0;
+      final totalMax = (budget['total_max'] as num?)?.toDouble() ?? 0;
+      final totalMin = (budget['total_min'] as num?)?.toDouble() ?? 0;
       budgetEur = totalMax > 0 ? totalMax : totalMin;
     }
     if (budgetEur == 0) {
@@ -1012,7 +1038,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         final cost = a['estimated_cost'];
         if (cost is num) fallbackTotal += cost;
       }
-      budgetEur = fallbackTotal.toInt();
+      budgetEur = fallbackTotal;
     }
 
     return TripPlan(
@@ -1045,7 +1071,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       dayCategories: dayCategories,
       essentialItems: essentialItems,
       essentialReasons: essentialReasons,
-      budgetBreakdown: budget,
+      budgetBreakdown: BudgetBreakdown.fromSseMap(budget),
       weatherData: weather,
     );
   }

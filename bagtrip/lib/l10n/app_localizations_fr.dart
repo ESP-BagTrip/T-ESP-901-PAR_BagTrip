@@ -2752,6 +2752,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get completionSegmentsSheetTitle => 'Encore à compléter';
 
   @override
+  String get completionScoreBudgetNote =>
+      'Le budget est suivi séparément et n\'entre pas dans ce score.';
+
+  @override
+  String get budgetViewerStatusOnTrack => 'Dans les clous';
+
+  @override
+  String get budgetViewerStatusTight => 'Tendu';
+
+  @override
+  String get budgetViewerStatusOverBudget => 'Dépassé';
+
+  @override
+  String get budgetViewerNoFiguresHint =>
+      'Les montants détaillés ne sont visibles que par le propriétaire du voyage.';
+
+  @override
   String get shareTooltip => 'Partager';
 
   @override
@@ -3189,7 +3206,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String budgetDeltaUnder(String amount) {
-    return 'Il reste $amount sur le prévisionnel';
+    return '$amount encore à confirmer';
   }
 
   @override

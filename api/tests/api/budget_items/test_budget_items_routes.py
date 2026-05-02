@@ -159,6 +159,9 @@ class TestBudgetSummary:
     def test_owner_success(self, client: TestClient) -> None:
         summary = {
             "total_budget": 1000.0,
+            "budget_target": 1000.0,
+            "budget_estimated": 950.0,
+            "budget_actual": 200.0,
             "total_spent": 200.0,
             "remaining": 800.0,
             "by_category": {"FOOD": 200.0},
@@ -181,6 +184,9 @@ class TestBudgetSummary:
         _override_viewer(app)
         summary = {
             "total_budget": 1000.0,
+            "budget_target": 1000.0,
+            "budget_estimated": 950.0,
+            "budget_actual": 500.0,
             "total_spent": 500.0,
             "remaining": 500.0,
             "by_category": {"FOOD": 500.0},
@@ -318,30 +324,27 @@ class TestEstimateBudget:
 
 class TestAcceptBudgetEstimate:
     def test_success(self, client: TestClient) -> None:
-        with (
-            patch(
-                "src.api.budget_items.routes.TripsService.update_trip",
-                return_value=None,
-            ),
-            patch(
-                "src.api.budget_items.routes.NotificationService.check_and_send_budget_alert",
-                return_value=None,
-            ),
+        with patch(
+            "src.api.budget_items.routes.NotificationService.check_and_send_budget_alert",
+            return_value=None,
         ):
             response = client.post(
                 f"/v1/trips/{TRIP_ID}/budget/estimate/accept",
-                json={"budget_total": 1500.0},
+                json={"budget_estimated": 1500.0},
             )
         assert response.status_code == 200
         assert response.json()["success"] is True
 
-    def test_app_error(self, client: TestClient) -> None:
+    def test_app_error_propagates(self, client: TestClient) -> None:
+        # Topic 02 — accept_estimation now writes ``Trip.budget_estimated``
+        # directly. Simulate a downstream AppError via the notification
+        # dispatcher to validate the error handler still kicks in.
         with patch(
-            "src.api.budget_items.routes.TripsService.update_trip",
-            side_effect=AppError("VALIDATION", 400, "Bad budget"),
+            "src.api.budget_items.routes.NotificationService.check_and_send_budget_alert",
+            side_effect=AppError("INTERNAL", 500, "Notif boom"),
         ):
             response = client.post(
                 f"/v1/trips/{TRIP_ID}/budget/estimate/accept",
-                json={"budget_total": 1500.0},
+                json={"budget_estimated": 1500.0},
             )
-        assert response.status_code == 400
+        assert response.status_code == 500

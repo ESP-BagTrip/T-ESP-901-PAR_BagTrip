@@ -308,7 +308,10 @@ as DateTime?,
 /// @nodoc
 mixin _$BudgetSummary {
 
-@JsonKey(name: 'totalBudget') double get totalBudget;@JsonKey(name: 'totalSpent') double get totalSpent; double get remaining;@JsonKey(name: 'byCategory') Map<String, double> get byCategory;@JsonKey(name: 'confirmedTotal') double get confirmedTotal;@JsonKey(name: 'forecastedTotal') double get forecastedTotal;@JsonKey(name: 'percentConsumed') double? get percentConsumed;@JsonKey(name: 'alertLevel') String? get alertLevel;@JsonKey(name: 'alertMessage') String? get alertMessage;
+@JsonKey(name: 'totalBudget') double get totalBudget;@JsonKey(name: 'totalSpent') double get totalSpent; double get remaining;@JsonKey(name: 'byCategory') Map<String, double> get byCategory;@JsonKey(name: 'confirmedTotal') double get confirmedTotal;@JsonKey(name: 'forecastedTotal') double get forecastedTotal;@JsonKey(name: 'percentConsumed') double? get percentConsumed;@JsonKey(name: 'alertLevel') String? get alertLevel;@JsonKey(name: 'alertMessage') String? get alertMessage;// Topic 06 (B9) — coarse-grained bucket the server emits for VIEWERs.
+// Owners / editors get `null` here (they have the raw figures);
+// viewers get one of `onTrack` / `tight` / `overBudget`.
+@JsonKey(name: 'budgetStatus') String? get budgetStatus;
 /// Create a copy of BudgetSummary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -321,16 +324,16 @@ $BudgetSummaryCopyWith<BudgetSummary> get copyWith => _$BudgetSummaryCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BudgetSummary&&(identical(other.totalBudget, totalBudget) || other.totalBudget == totalBudget)&&(identical(other.totalSpent, totalSpent) || other.totalSpent == totalSpent)&&(identical(other.remaining, remaining) || other.remaining == remaining)&&const DeepCollectionEquality().equals(other.byCategory, byCategory)&&(identical(other.confirmedTotal, confirmedTotal) || other.confirmedTotal == confirmedTotal)&&(identical(other.forecastedTotal, forecastedTotal) || other.forecastedTotal == forecastedTotal)&&(identical(other.percentConsumed, percentConsumed) || other.percentConsumed == percentConsumed)&&(identical(other.alertLevel, alertLevel) || other.alertLevel == alertLevel)&&(identical(other.alertMessage, alertMessage) || other.alertMessage == alertMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BudgetSummary&&(identical(other.totalBudget, totalBudget) || other.totalBudget == totalBudget)&&(identical(other.totalSpent, totalSpent) || other.totalSpent == totalSpent)&&(identical(other.remaining, remaining) || other.remaining == remaining)&&const DeepCollectionEquality().equals(other.byCategory, byCategory)&&(identical(other.confirmedTotal, confirmedTotal) || other.confirmedTotal == confirmedTotal)&&(identical(other.forecastedTotal, forecastedTotal) || other.forecastedTotal == forecastedTotal)&&(identical(other.percentConsumed, percentConsumed) || other.percentConsumed == percentConsumed)&&(identical(other.alertLevel, alertLevel) || other.alertLevel == alertLevel)&&(identical(other.alertMessage, alertMessage) || other.alertMessage == alertMessage)&&(identical(other.budgetStatus, budgetStatus) || other.budgetStatus == budgetStatus));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,totalBudget,totalSpent,remaining,const DeepCollectionEquality().hash(byCategory),confirmedTotal,forecastedTotal,percentConsumed,alertLevel,alertMessage);
+int get hashCode => Object.hash(runtimeType,totalBudget,totalSpent,remaining,const DeepCollectionEquality().hash(byCategory),confirmedTotal,forecastedTotal,percentConsumed,alertLevel,alertMessage,budgetStatus);
 
 @override
 String toString() {
-  return 'BudgetSummary(totalBudget: $totalBudget, totalSpent: $totalSpent, remaining: $remaining, byCategory: $byCategory, confirmedTotal: $confirmedTotal, forecastedTotal: $forecastedTotal, percentConsumed: $percentConsumed, alertLevel: $alertLevel, alertMessage: $alertMessage)';
+  return 'BudgetSummary(totalBudget: $totalBudget, totalSpent: $totalSpent, remaining: $remaining, byCategory: $byCategory, confirmedTotal: $confirmedTotal, forecastedTotal: $forecastedTotal, percentConsumed: $percentConsumed, alertLevel: $alertLevel, alertMessage: $alertMessage, budgetStatus: $budgetStatus)';
 }
 
 
@@ -341,7 +344,7 @@ abstract mixin class $BudgetSummaryCopyWith<$Res>  {
   factory $BudgetSummaryCopyWith(BudgetSummary value, $Res Function(BudgetSummary) _then) = _$BudgetSummaryCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'totalBudget') double totalBudget,@JsonKey(name: 'totalSpent') double totalSpent, double remaining,@JsonKey(name: 'byCategory') Map<String, double> byCategory,@JsonKey(name: 'confirmedTotal') double confirmedTotal,@JsonKey(name: 'forecastedTotal') double forecastedTotal,@JsonKey(name: 'percentConsumed') double? percentConsumed,@JsonKey(name: 'alertLevel') String? alertLevel,@JsonKey(name: 'alertMessage') String? alertMessage
+@JsonKey(name: 'totalBudget') double totalBudget,@JsonKey(name: 'totalSpent') double totalSpent, double remaining,@JsonKey(name: 'byCategory') Map<String, double> byCategory,@JsonKey(name: 'confirmedTotal') double confirmedTotal,@JsonKey(name: 'forecastedTotal') double forecastedTotal,@JsonKey(name: 'percentConsumed') double? percentConsumed,@JsonKey(name: 'alertLevel') String? alertLevel,@JsonKey(name: 'alertMessage') String? alertMessage,@JsonKey(name: 'budgetStatus') String? budgetStatus
 });
 
 
@@ -358,7 +361,7 @@ class _$BudgetSummaryCopyWithImpl<$Res>
 
 /// Create a copy of BudgetSummary
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? totalBudget = null,Object? totalSpent = null,Object? remaining = null,Object? byCategory = null,Object? confirmedTotal = null,Object? forecastedTotal = null,Object? percentConsumed = freezed,Object? alertLevel = freezed,Object? alertMessage = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? totalBudget = null,Object? totalSpent = null,Object? remaining = null,Object? byCategory = null,Object? confirmedTotal = null,Object? forecastedTotal = null,Object? percentConsumed = freezed,Object? alertLevel = freezed,Object? alertMessage = freezed,Object? budgetStatus = freezed,}) {
   return _then(_self.copyWith(
 totalBudget: null == totalBudget ? _self.totalBudget : totalBudget // ignore: cast_nullable_to_non_nullable
 as double,totalSpent: null == totalSpent ? _self.totalSpent : totalSpent // ignore: cast_nullable_to_non_nullable
@@ -369,6 +372,7 @@ as double,forecastedTotal: null == forecastedTotal ? _self.forecastedTotal : for
 as double,percentConsumed: freezed == percentConsumed ? _self.percentConsumed : percentConsumed // ignore: cast_nullable_to_non_nullable
 as double?,alertLevel: freezed == alertLevel ? _self.alertLevel : alertLevel // ignore: cast_nullable_to_non_nullable
 as String?,alertMessage: freezed == alertMessage ? _self.alertMessage : alertMessage // ignore: cast_nullable_to_non_nullable
+as String?,budgetStatus: freezed == budgetStatus ? _self.budgetStatus : budgetStatus // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -454,10 +458,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'totalBudget')  double totalBudget, @JsonKey(name: 'totalSpent')  double totalSpent,  double remaining, @JsonKey(name: 'byCategory')  Map<String, double> byCategory, @JsonKey(name: 'confirmedTotal')  double confirmedTotal, @JsonKey(name: 'forecastedTotal')  double forecastedTotal, @JsonKey(name: 'percentConsumed')  double? percentConsumed, @JsonKey(name: 'alertLevel')  String? alertLevel, @JsonKey(name: 'alertMessage')  String? alertMessage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'totalBudget')  double totalBudget, @JsonKey(name: 'totalSpent')  double totalSpent,  double remaining, @JsonKey(name: 'byCategory')  Map<String, double> byCategory, @JsonKey(name: 'confirmedTotal')  double confirmedTotal, @JsonKey(name: 'forecastedTotal')  double forecastedTotal, @JsonKey(name: 'percentConsumed')  double? percentConsumed, @JsonKey(name: 'alertLevel')  String? alertLevel, @JsonKey(name: 'alertMessage')  String? alertMessage, @JsonKey(name: 'budgetStatus')  String? budgetStatus)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BudgetSummary() when $default != null:
-return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCategory,_that.confirmedTotal,_that.forecastedTotal,_that.percentConsumed,_that.alertLevel,_that.alertMessage);case _:
+return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCategory,_that.confirmedTotal,_that.forecastedTotal,_that.percentConsumed,_that.alertLevel,_that.alertMessage,_that.budgetStatus);case _:
   return orElse();
 
 }
@@ -475,10 +479,10 @@ return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCateg
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'totalBudget')  double totalBudget, @JsonKey(name: 'totalSpent')  double totalSpent,  double remaining, @JsonKey(name: 'byCategory')  Map<String, double> byCategory, @JsonKey(name: 'confirmedTotal')  double confirmedTotal, @JsonKey(name: 'forecastedTotal')  double forecastedTotal, @JsonKey(name: 'percentConsumed')  double? percentConsumed, @JsonKey(name: 'alertLevel')  String? alertLevel, @JsonKey(name: 'alertMessage')  String? alertMessage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'totalBudget')  double totalBudget, @JsonKey(name: 'totalSpent')  double totalSpent,  double remaining, @JsonKey(name: 'byCategory')  Map<String, double> byCategory, @JsonKey(name: 'confirmedTotal')  double confirmedTotal, @JsonKey(name: 'forecastedTotal')  double forecastedTotal, @JsonKey(name: 'percentConsumed')  double? percentConsumed, @JsonKey(name: 'alertLevel')  String? alertLevel, @JsonKey(name: 'alertMessage')  String? alertMessage, @JsonKey(name: 'budgetStatus')  String? budgetStatus)  $default,) {final _that = this;
 switch (_that) {
 case _BudgetSummary():
-return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCategory,_that.confirmedTotal,_that.forecastedTotal,_that.percentConsumed,_that.alertLevel,_that.alertMessage);case _:
+return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCategory,_that.confirmedTotal,_that.forecastedTotal,_that.percentConsumed,_that.alertLevel,_that.alertMessage,_that.budgetStatus);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -495,10 +499,10 @@ return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCateg
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'totalBudget')  double totalBudget, @JsonKey(name: 'totalSpent')  double totalSpent,  double remaining, @JsonKey(name: 'byCategory')  Map<String, double> byCategory, @JsonKey(name: 'confirmedTotal')  double confirmedTotal, @JsonKey(name: 'forecastedTotal')  double forecastedTotal, @JsonKey(name: 'percentConsumed')  double? percentConsumed, @JsonKey(name: 'alertLevel')  String? alertLevel, @JsonKey(name: 'alertMessage')  String? alertMessage)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'totalBudget')  double totalBudget, @JsonKey(name: 'totalSpent')  double totalSpent,  double remaining, @JsonKey(name: 'byCategory')  Map<String, double> byCategory, @JsonKey(name: 'confirmedTotal')  double confirmedTotal, @JsonKey(name: 'forecastedTotal')  double forecastedTotal, @JsonKey(name: 'percentConsumed')  double? percentConsumed, @JsonKey(name: 'alertLevel')  String? alertLevel, @JsonKey(name: 'alertMessage')  String? alertMessage, @JsonKey(name: 'budgetStatus')  String? budgetStatus)?  $default,) {final _that = this;
 switch (_that) {
 case _BudgetSummary() when $default != null:
-return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCategory,_that.confirmedTotal,_that.forecastedTotal,_that.percentConsumed,_that.alertLevel,_that.alertMessage);case _:
+return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCategory,_that.confirmedTotal,_that.forecastedTotal,_that.percentConsumed,_that.alertLevel,_that.alertMessage,_that.budgetStatus);case _:
   return null;
 
 }
@@ -510,7 +514,7 @@ return $default(_that.totalBudget,_that.totalSpent,_that.remaining,_that.byCateg
 @JsonSerializable()
 
 class _BudgetSummary implements BudgetSummary {
-  const _BudgetSummary({@JsonKey(name: 'totalBudget') this.totalBudget = 0, @JsonKey(name: 'totalSpent') this.totalSpent = 0, this.remaining = 0, @JsonKey(name: 'byCategory') final  Map<String, double> byCategory = const {}, @JsonKey(name: 'confirmedTotal') this.confirmedTotal = 0, @JsonKey(name: 'forecastedTotal') this.forecastedTotal = 0, @JsonKey(name: 'percentConsumed') this.percentConsumed, @JsonKey(name: 'alertLevel') this.alertLevel, @JsonKey(name: 'alertMessage') this.alertMessage}): _byCategory = byCategory;
+  const _BudgetSummary({@JsonKey(name: 'totalBudget') this.totalBudget = 0, @JsonKey(name: 'totalSpent') this.totalSpent = 0, this.remaining = 0, @JsonKey(name: 'byCategory') final  Map<String, double> byCategory = const {}, @JsonKey(name: 'confirmedTotal') this.confirmedTotal = 0, @JsonKey(name: 'forecastedTotal') this.forecastedTotal = 0, @JsonKey(name: 'percentConsumed') this.percentConsumed, @JsonKey(name: 'alertLevel') this.alertLevel, @JsonKey(name: 'alertMessage') this.alertMessage, @JsonKey(name: 'budgetStatus') this.budgetStatus}): _byCategory = byCategory;
   factory _BudgetSummary.fromJson(Map<String, dynamic> json) => _$BudgetSummaryFromJson(json);
 
 @override@JsonKey(name: 'totalBudget') final  double totalBudget;
@@ -528,6 +532,10 @@ class _BudgetSummary implements BudgetSummary {
 @override@JsonKey(name: 'percentConsumed') final  double? percentConsumed;
 @override@JsonKey(name: 'alertLevel') final  String? alertLevel;
 @override@JsonKey(name: 'alertMessage') final  String? alertMessage;
+// Topic 06 (B9) — coarse-grained bucket the server emits for VIEWERs.
+// Owners / editors get `null` here (they have the raw figures);
+// viewers get one of `onTrack` / `tight` / `overBudget`.
+@override@JsonKey(name: 'budgetStatus') final  String? budgetStatus;
 
 /// Create a copy of BudgetSummary
 /// with the given fields replaced by the non-null parameter values.
@@ -542,16 +550,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BudgetSummary&&(identical(other.totalBudget, totalBudget) || other.totalBudget == totalBudget)&&(identical(other.totalSpent, totalSpent) || other.totalSpent == totalSpent)&&(identical(other.remaining, remaining) || other.remaining == remaining)&&const DeepCollectionEquality().equals(other._byCategory, _byCategory)&&(identical(other.confirmedTotal, confirmedTotal) || other.confirmedTotal == confirmedTotal)&&(identical(other.forecastedTotal, forecastedTotal) || other.forecastedTotal == forecastedTotal)&&(identical(other.percentConsumed, percentConsumed) || other.percentConsumed == percentConsumed)&&(identical(other.alertLevel, alertLevel) || other.alertLevel == alertLevel)&&(identical(other.alertMessage, alertMessage) || other.alertMessage == alertMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BudgetSummary&&(identical(other.totalBudget, totalBudget) || other.totalBudget == totalBudget)&&(identical(other.totalSpent, totalSpent) || other.totalSpent == totalSpent)&&(identical(other.remaining, remaining) || other.remaining == remaining)&&const DeepCollectionEquality().equals(other._byCategory, _byCategory)&&(identical(other.confirmedTotal, confirmedTotal) || other.confirmedTotal == confirmedTotal)&&(identical(other.forecastedTotal, forecastedTotal) || other.forecastedTotal == forecastedTotal)&&(identical(other.percentConsumed, percentConsumed) || other.percentConsumed == percentConsumed)&&(identical(other.alertLevel, alertLevel) || other.alertLevel == alertLevel)&&(identical(other.alertMessage, alertMessage) || other.alertMessage == alertMessage)&&(identical(other.budgetStatus, budgetStatus) || other.budgetStatus == budgetStatus));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,totalBudget,totalSpent,remaining,const DeepCollectionEquality().hash(_byCategory),confirmedTotal,forecastedTotal,percentConsumed,alertLevel,alertMessage);
+int get hashCode => Object.hash(runtimeType,totalBudget,totalSpent,remaining,const DeepCollectionEquality().hash(_byCategory),confirmedTotal,forecastedTotal,percentConsumed,alertLevel,alertMessage,budgetStatus);
 
 @override
 String toString() {
-  return 'BudgetSummary(totalBudget: $totalBudget, totalSpent: $totalSpent, remaining: $remaining, byCategory: $byCategory, confirmedTotal: $confirmedTotal, forecastedTotal: $forecastedTotal, percentConsumed: $percentConsumed, alertLevel: $alertLevel, alertMessage: $alertMessage)';
+  return 'BudgetSummary(totalBudget: $totalBudget, totalSpent: $totalSpent, remaining: $remaining, byCategory: $byCategory, confirmedTotal: $confirmedTotal, forecastedTotal: $forecastedTotal, percentConsumed: $percentConsumed, alertLevel: $alertLevel, alertMessage: $alertMessage, budgetStatus: $budgetStatus)';
 }
 
 
@@ -562,7 +570,7 @@ abstract mixin class _$BudgetSummaryCopyWith<$Res> implements $BudgetSummaryCopy
   factory _$BudgetSummaryCopyWith(_BudgetSummary value, $Res Function(_BudgetSummary) _then) = __$BudgetSummaryCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'totalBudget') double totalBudget,@JsonKey(name: 'totalSpent') double totalSpent, double remaining,@JsonKey(name: 'byCategory') Map<String, double> byCategory,@JsonKey(name: 'confirmedTotal') double confirmedTotal,@JsonKey(name: 'forecastedTotal') double forecastedTotal,@JsonKey(name: 'percentConsumed') double? percentConsumed,@JsonKey(name: 'alertLevel') String? alertLevel,@JsonKey(name: 'alertMessage') String? alertMessage
+@JsonKey(name: 'totalBudget') double totalBudget,@JsonKey(name: 'totalSpent') double totalSpent, double remaining,@JsonKey(name: 'byCategory') Map<String, double> byCategory,@JsonKey(name: 'confirmedTotal') double confirmedTotal,@JsonKey(name: 'forecastedTotal') double forecastedTotal,@JsonKey(name: 'percentConsumed') double? percentConsumed,@JsonKey(name: 'alertLevel') String? alertLevel,@JsonKey(name: 'alertMessage') String? alertMessage,@JsonKey(name: 'budgetStatus') String? budgetStatus
 });
 
 
@@ -579,7 +587,7 @@ class __$BudgetSummaryCopyWithImpl<$Res>
 
 /// Create a copy of BudgetSummary
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? totalBudget = null,Object? totalSpent = null,Object? remaining = null,Object? byCategory = null,Object? confirmedTotal = null,Object? forecastedTotal = null,Object? percentConsumed = freezed,Object? alertLevel = freezed,Object? alertMessage = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? totalBudget = null,Object? totalSpent = null,Object? remaining = null,Object? byCategory = null,Object? confirmedTotal = null,Object? forecastedTotal = null,Object? percentConsumed = freezed,Object? alertLevel = freezed,Object? alertMessage = freezed,Object? budgetStatus = freezed,}) {
   return _then(_BudgetSummary(
 totalBudget: null == totalBudget ? _self.totalBudget : totalBudget // ignore: cast_nullable_to_non_nullable
 as double,totalSpent: null == totalSpent ? _self.totalSpent : totalSpent // ignore: cast_nullable_to_non_nullable
@@ -590,6 +598,7 @@ as double,forecastedTotal: null == forecastedTotal ? _self.forecastedTotal : for
 as double,percentConsumed: freezed == percentConsumed ? _self.percentConsumed : percentConsumed // ignore: cast_nullable_to_non_nullable
 as double?,alertLevel: freezed == alertLevel ? _self.alertLevel : alertLevel // ignore: cast_nullable_to_non_nullable
 as String?,alertMessage: freezed == alertMessage ? _self.alertMessage : alertMessage // ignore: cast_nullable_to_non_nullable
+as String?,budgetStatus: freezed == budgetStatus ? _self.budgetStatus : budgetStatus // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

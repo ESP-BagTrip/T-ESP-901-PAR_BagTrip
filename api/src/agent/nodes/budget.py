@@ -5,14 +5,17 @@ from __future__ import annotations
 import json
 from datetime import datetime, time, timedelta
 
-from src.agent.budget import guard
 from src.agent.prompts import render
 from src.agent.react_executor import react_execute
+from src.agent.runtime_budget import guard
 from src.agent.state import TripPlanState
 from src.agent.tools import TOOL_REGISTRY
 from src.utils.logger import logger
 
-_BUDGET_KEYS = ["flights", "accommodation", "meals", "transport", "activities"]
+# Topic 05 (B12) — singular keys aligned with the Flutter `BudgetCategory`
+# enum (FLIGHT/ACCOMMODATION/FOOD/ACTIVITY/TRANSPORT). The legacy plural
+# variants (flights/meals/activities) are gone — no implicit mapping.
+_BUDGET_KEYS = ["flight", "accommodation", "food", "transport", "activity"]
 
 
 def _extract_amount(value) -> float:
@@ -88,13 +91,34 @@ def _synthesize_flight_offer(
     return [offer]
 
 
+def _accommodation_stay_total(best: dict) -> float:
+    """Return the whole-stay accommodation cost from a hotel dict.
+
+    Prefers the explicit ``price_total`` (Amadeus stay total). Falls back
+    to ``price_per_night × nights`` when only the per-night unit is known
+    (LLM-only path, missing tool data). Returns 0 if neither is exploitable.
+    Resolves B23: callers used to read ``price_total or price_per_night``
+    and the per-night branch silently fed an under-counted budget.
+    """
+    price_total = best.get("price_total")
+    if isinstance(price_total, (int, float)) and price_total > 0:
+        return float(price_total)
+    per_night = best.get("price_per_night")
+    nights = best.get("nights")
+    if (
+        isinstance(per_night, (int, float))
+        and per_night > 0
+        and isinstance(nights, (int, float))
+        and nights > 0
+    ):
+        return float(per_night) * float(nights)
+    return 0.0
+
+
 def _compute_fallback_budget(accommodations: list, activities: list, estimation: dict) -> dict:
     """Compute budget from real gathered data when LLM estimation is incomplete."""
-    # Best accommodation price
-    accom_total = 0.0
-    if accommodations:
-        best = accommodations[0]
-        accom_total = float(best.get("price_total") or best.get("price_per_night", 0) or 0)
+    # Best accommodation total — see _accommodation_stay_total for unit rules.
+    accom_total = _accommodation_stay_total(accommodations[0]) if accommodations else 0.0
 
     # Sum activity costs
     activity_total = sum(float(a.get("estimated_cost", 0) or 0) for a in activities)
@@ -107,18 +131,18 @@ def _compute_fallback_budget(accommodations: list, activities: list, estimation:
             return raw, amt
         return {"amount": amt, "currency": "EUR", "source": "estimated"}, amt
 
-    flights_data, flight_amt = _keep_or_default("flights")
-    meals_data, meals_amt = _keep_or_default("meals")
+    flight_data, flight_amt = _keep_or_default("flight")
+    food_data, food_amt = _keep_or_default("food")
     transport_data, transport_amt = _keep_or_default("transport")
 
-    total = flight_amt + accom_total + activity_total + meals_amt + transport_amt
+    total = flight_amt + accom_total + activity_total + food_amt + transport_amt
 
     return {
-        "flights": flights_data,
+        "flight": flight_data,
         "accommodation": {"amount": accom_total, "currency": "EUR", "source": "gathered_data"},
-        "meals": meals_data,
+        "food": food_data,
         "transport": transport_data,
-        "activities": {"amount": activity_total, "currency": "EUR", "source": "gathered_data"},
+        "activity": {"amount": activity_total, "currency": "EUR", "source": "gathered_data"},
         "total_min": int(total * 0.85),
         "total_max": int(total * 1.15),
         "currency": "EUR",
@@ -157,6 +181,14 @@ async def budget_node(state: TripPlanState) -> dict:
             "label", state["budget_preset"]
         )
         parts.append(f"Budget level: {label}")
+    # Topic 01 — feed the user's explicit numeric ceiling to the LLM so the
+    # estimation stays anchored to it rather than emerging from the breakdown.
+    target_budget = state.get("target_budget")
+    if target_budget is not None and target_budget > 0:
+        parts.append(
+            f"User's target budget: {target_budget} EUR — keep the breakdown "
+            "consistent with this ceiling."
+        )
     if state.get("nb_travelers"):
         parts.append(f"Number of travelers: {state['nb_travelers']}")
 
@@ -221,7 +253,7 @@ async def budget_node(state: TripPlanState) -> dict:
     # Keeps the review + trip_detail flight cards populated instead of a
     # silent drop (bug SMP-316 on Barcelone).
     if not _amadeus_delivered and origin_iata and dest_iata and state.get("departure_date"):
-        flight_price = _extract_amount(estimation.get("flights"))
+        flight_price = _extract_amount(estimation.get("flight"))
         synthetic = _synthesize_flight_offer(
             origin_iata=origin_iata,
             dest_iata=dest_iata,

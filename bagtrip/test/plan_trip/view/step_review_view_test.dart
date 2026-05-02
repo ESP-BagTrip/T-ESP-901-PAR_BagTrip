@@ -6,6 +6,7 @@ import 'package:bagtrip/design/widgets/review/review_decision_inline.dart';
 import 'package:bagtrip/design/widgets/review/review_inline_flight.dart';
 import 'package:bagtrip/design/widgets/review/review_inline_hotel.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
+import 'package:bagtrip/plan_trip/models/budget_breakdown.dart';
 import 'package:bagtrip/plan_trip/models/location_result.dart';
 import 'package:bagtrip/plan_trip/models/trip_plan.dart';
 import 'package:bagtrip/plan_trip/view/step_review_view.dart';
@@ -80,7 +81,11 @@ void main() {
     dayCategories: ['CULTURE', 'CULTURE'],
     essentialItems: ['Passport', 'Adapter'],
     essentialReasons: ['ID', 'Power plugs'],
-    budgetBreakdown: {'flights': 200, 'accommodation': 500, 'meals': 300},
+    budgetBreakdown: BudgetBreakdown(
+      flight: 200.0,
+      accommodation: 500.0,
+      food: 300.0,
+    ),
   );
 
   final reviewDates = {

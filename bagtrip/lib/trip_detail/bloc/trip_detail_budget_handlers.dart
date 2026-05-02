@@ -11,11 +11,15 @@ extension _TripDetailBudgetHandlers on TripDetailBloc {
   ) async {
     if (state is! TripDetailLoaded || _tripId == null) return;
     final loaded = state as TripDetailLoaded;
+    // Topic 03 (B15) — keep an explicit snapshot of the *exact* summary the
+    // user was seeing before the optimistic update so we restore it on
+    // failure instead of falling back to a possibly-stale `loaded` copy.
+    final preOptimisticSummary = loaded.budgetSummary;
 
     // Optimistic update — approximate new budget summary
     final amount = (event.data['amount'] as num?)?.toDouble() ?? 0;
-    if (loaded.budgetSummary != null) {
-      final current = loaded.budgetSummary!;
+    if (preOptimisticSummary != null) {
+      final current = preOptimisticSummary;
       final newSpent = current.totalSpent + amount;
       final newRemaining = current.totalBudget - newSpent;
       final newPercent = current.totalBudget > 0
@@ -47,8 +51,18 @@ extension _TripDetailBudgetHandlers on TripDetailBloc {
       case Success():
         add(RefreshBudgetSummaryFromDetail());
       case Failure(:final error):
-        emit(loaded.copyWith(operationError: error));
-        emit(loaded.copyWith(clearOperationError: true));
+        // Rollback to the pre-optimistic summary, then surface the error
+        // and clear it on the next tick so the UI can render a snackbar
+        // without keeping the bloc in an "errored" steady state.
+        if (state is TripDetailLoaded) {
+          final reverted = (state as TripDetailLoaded).copyWith(
+            budgetSummary: preOptimisticSummary,
+            clearBudgetSummary: preOptimisticSummary == null,
+            operationError: error,
+          );
+          emit(reverted);
+          emit(reverted.copyWith(clearOperationError: true));
+        }
     }
   }
 
@@ -129,13 +143,24 @@ extension _TripDetailBudgetHandlers on TripDetailBloc {
     final summaryResult = results[0] as Result<BudgetSummary>;
     final itemsResult = results[1] as Result<List<BudgetItem>>;
 
-    if (summaryResult case Success(:final data)) {
-      emit(
-        current.copyWith(
-          budgetSummary: data,
-          budgetItems: itemsResult.dataOrNull ?? current.budgetItems,
-        ),
-      );
+    // B19 — surface refresh failures via sectionErrors so the budget
+    // panel can render a retry CTA instead of staying silent.
+    final updatedSectionErrors = Map<String, AppError>.from(
+      current.sectionErrors,
+    );
+    switch (summaryResult) {
+      case Success(:final data):
+        updatedSectionErrors.remove('budget');
+        emit(
+          current.copyWith(
+            budgetSummary: data,
+            budgetItems: itemsResult.dataOrNull ?? current.budgetItems,
+            sectionErrors: updatedSectionErrors,
+          ),
+        );
+      case Failure(:final error):
+        updatedSectionErrors['budget'] = error;
+        emit(current.copyWith(sectionErrors: updatedSectionErrors));
     }
   }
 }

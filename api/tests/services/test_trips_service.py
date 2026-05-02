@@ -108,9 +108,7 @@ class TestTripsService:
         trip = Trip(id=uuid.uuid4(), flights_tracking="TRACKED", accommodations_tracking="TRACKED")
         trip.status = TripStatus.DRAFT
 
-        result = TripsService.update_tracking(
-            mock_db_session, trip, flights_tracking="SKIPPED"
-        )
+        result = TripsService.update_tracking(mock_db_session, trip, flights_tracking="SKIPPED")
         assert result.flights_tracking == "SKIPPED"
         assert result.accommodations_tracking == "TRACKED"
         mock_db_session.commit.assert_called_once()

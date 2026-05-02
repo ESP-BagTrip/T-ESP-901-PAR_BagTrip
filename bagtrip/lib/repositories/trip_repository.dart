@@ -15,7 +15,7 @@ abstract class TripRepository {
     String? destinationName,
     int? nbTravelers,
     String? coverImageUrl,
-    double? budgetTotal,
+    double? budgetTarget,
     String? origin,
   });
   Future<Result<List<Trip>>> getTrips();

@@ -53,6 +53,10 @@ abstract class BudgetSummary with _$BudgetSummary {
     @JsonKey(name: 'percentConsumed') double? percentConsumed,
     @JsonKey(name: 'alertLevel') String? alertLevel,
     @JsonKey(name: 'alertMessage') String? alertMessage,
+    // Topic 06 (B9) — coarse-grained bucket the server emits for VIEWERs.
+    // Owners / editors get `null` here (they have the raw figures);
+    // viewers get one of `onTrack` / `tight` / `overBudget`.
+    @JsonKey(name: 'budgetStatus') String? budgetStatus,
   }) = _BudgetSummary;
 
   factory BudgetSummary.fromJson(Map<String, dynamic> json) =>

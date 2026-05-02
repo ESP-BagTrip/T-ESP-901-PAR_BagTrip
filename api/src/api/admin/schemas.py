@@ -155,7 +155,9 @@ class AdminTripResponse(BaseModel):
     startDate: dt.date | None = Field(default=None, alias="start_date")
     endDate: dt.date | None = Field(default=None, alias="end_date")
     status: str | None = None
-    budgetTotal: float | None = Field(default=None, alias="budget_total")
+    budgetTarget: float | None = Field(default=None, alias="budget_target")
+    budgetEstimated: float | None = Field(default=None, alias="budget_estimated")
+    budgetActual: float | None = Field(default=None, alias="budget_actual")
     nbTravelers: int | None = Field(default=None, alias="nb_travelers")
     origin: str | None = None
     createdAt: dt.datetime = Field(alias="created_at")
@@ -379,7 +381,9 @@ class AdminTripDetailResponse(BaseModel):
     startDate: dt.date | None = Field(default=None, alias="start_date")
     endDate: dt.date | None = Field(default=None, alias="end_date")
     status: str | None = None
-    budgetTotal: float | None = Field(default=None, alias="budget_total")
+    budgetTarget: float | None = Field(default=None, alias="budget_target")
+    budgetEstimated: float | None = Field(default=None, alias="budget_estimated")
+    budgetActual: float | None = Field(default=None, alias="budget_actual")
     nbTravelers: int | None = Field(default=None, alias="nb_travelers")
     origin: str | None = None
     archivedAt: dt.datetime | None = Field(default=None, alias="archived_at")
@@ -393,14 +397,14 @@ class AdminTripDetailResponse(BaseModel):
 
 
 class AdminTripUpdateRequest(BaseModel):
-    """Request to update a trip from admin."""
+    """Request to update a trip from admin (topic 02 — only target writable)."""
 
     title: str | None = None
     status: str | None = Field(None, pattern="^(DRAFT|PLANNED|ONGOING|COMPLETED)$")
     start_date: dt.date | None = None
     end_date: dt.date | None = None
     destination_name: str | None = None
-    budget_total: float | None = None
+    budget_target: float | None = None
     nb_travelers: int | None = None
 
 

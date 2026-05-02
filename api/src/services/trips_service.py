@@ -55,7 +55,7 @@ class TripsService:
         destination_name: str | None = None,
         nb_travelers: int | None = None,
         cover_image_url: str | None = None,
-        budget_total: float | None = None,
+        budget_target: float | None = None,
         origin: str | None = None,
         date_mode: str | None = None,
     ) -> Trip:
@@ -73,7 +73,7 @@ class TripsService:
             destination_timezone=resolve_timezone_from_iata(destination_iata),
             nb_travelers=nb_travelers or 1,
             cover_image_url=cover_image_url,
-            budget_total=budget_total,
+            budget_target=budget_target,
             origin=origin or TripOrigin.MANUAL,
             date_mode=date_mode or DateMode.EXACT,
         )
@@ -328,10 +328,17 @@ class TripsService:
         destination_name: str | None = None,
         nb_travelers: int | None = None,
         cover_image_url: str | None = None,
-        budget_total: float | None = None,
+        budget_target: float | None = None,
         date_mode: str | None = None,
     ) -> Trip:
-        """Mettre à jour un trip (ownership déjà vérifiée par la dependency)."""
+        """Mettre à jour un trip (ownership déjà vérifiée par la dependency).
+
+        ``budget_target`` is the only writable budget here. ``budget_estimated``
+        is mutated through ``BudgetItemService.accept_estimation`` (POST
+        /budget/estimate/accept) and ``budget_actual`` is computed at runtime
+        from confirmed BudgetItems — neither belongs in PATCH /trips
+        (topic 02 §3, B16).
+        """
         if trip.status == TripStatus.COMPLETED:
             raise AppError("TRIP_COMPLETED", 403, "Cannot modify a completed trip.")
 
@@ -354,8 +361,8 @@ class TripsService:
             trip.nb_travelers = nb_travelers
         if cover_image_url is not None:
             trip.cover_image_url = cover_image_url
-        if budget_total is not None:
-            trip.budget_total = budget_total
+        if budget_target is not None:
+            trip.budget_target = budget_target
         if date_mode is not None:
             trip.date_mode = date_mode
 
@@ -482,9 +489,18 @@ class TripsService:
         if trip.start_date and trip.end_date:
             trip_duration = (trip.end_date - trip.start_date).days
 
+        # Topic 03 (B1) — `totalExpenses` is the authoritative spent total,
+        # not 0. Compute it from the same service used by the trip detail
+        # so the home and the budget panel always agree. Eager loading on
+        # `trip.budget_items` (declared on the model relationship) keeps
+        # this from triggering an N+1 when the home iterates over active
+        # trips.
+        from src.services.budget_item_service import BudgetItemService
+
+        summary = BudgetItemService.get_budget_summary(db, trip)
         stats = {
             "baggageCount": 0,
-            "totalExpenses": 0.0,
+            "totalExpenses": float(summary.get("total_spent", 0.0)),
             "nbTravelers": trip.nb_travelers or 1,
             "daysUntilTrip": days_until_trip,
             "tripDuration": trip_duration,

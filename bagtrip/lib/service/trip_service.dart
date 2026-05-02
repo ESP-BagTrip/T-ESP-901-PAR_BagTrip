@@ -25,7 +25,7 @@ class TripRepositoryImpl implements TripRepository {
     String? destinationName,
     int? nbTravelers,
     String? coverImageUrl,
-    double? budgetTotal,
+    double? budgetTarget,
     String? origin,
   }) async {
     try {
@@ -51,7 +51,7 @@ class TripRepositoryImpl implements TripRepository {
           if (destinationName != null) 'destinationName': destinationName,
           if (nbTravelers != null) 'nbTravelers': nbTravelers,
           if (coverImageUrl != null) 'coverImageUrl': coverImageUrl,
-          if (budgetTotal != null) 'budgetTotal': budgetTotal,
+          if (budgetTarget != null) 'budgetTarget': budgetTarget,
           if (origin != null) 'origin': origin,
         },
       );

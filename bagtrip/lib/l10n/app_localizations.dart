@@ -4995,6 +4995,36 @@ abstract class AppLocalizations {
   /// **'Encore à compléter'**
   String get completionSegmentsSheetTitle;
 
+  /// No description provided for @completionScoreBudgetNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le budget est suivi séparément et n\'entre pas dans ce score.'**
+  String get completionScoreBudgetNote;
+
+  /// No description provided for @budgetViewerStatusOnTrack.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dans les clous'**
+  String get budgetViewerStatusOnTrack;
+
+  /// No description provided for @budgetViewerStatusTight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tendu'**
+  String get budgetViewerStatusTight;
+
+  /// No description provided for @budgetViewerStatusOverBudget.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dépassé'**
+  String get budgetViewerStatusOverBudget;
+
+  /// No description provided for @budgetViewerNoFiguresHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les montants détaillés ne sont visibles que par le propriétaire du voyage.'**
+  String get budgetViewerNoFiguresHint;
+
   /// No description provided for @shareTooltip.
   ///
   /// In fr, this message translates to:
@@ -5694,7 +5724,7 @@ abstract class AppLocalizations {
   /// No description provided for @budgetDeltaUnder.
   ///
   /// In fr, this message translates to:
-  /// **'Il reste {amount} sur le prévisionnel'**
+  /// **'{amount} encore à confirmer'**
   String budgetDeltaUnder(String amount);
 
   /// No description provided for @premiumFeaturePageAiTitle.

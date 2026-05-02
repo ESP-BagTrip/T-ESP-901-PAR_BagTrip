@@ -3,6 +3,7 @@ import 'package:bagtrip/components/adaptive/adaptive_edit_dialog.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/core/extensions/price_format_ext.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/review/panel_chips_bar.dart';
@@ -578,7 +579,39 @@ class _LoadedTripViewState extends State<_LoadedTripView>
                   },
                 ),
               ),
-              const SizedBox(height: AppSpacing.space16),
+              // B20 — make it explicit that budget is tracked separately
+              // and not included in the completion percentage so users
+              // don't read "100% complete" as "budget on track".
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.space16,
+                  AppSpacing.space12,
+                  AppSpacing.space16,
+                  AppSpacing.space16,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.info_outline_rounded,
+                      size: 16,
+                      color: AppColors.reviewInk.withValues(alpha: 0.55),
+                    ),
+                    const SizedBox(width: AppSpacing.space8),
+                    Expanded(
+                      child: Text(
+                        l10n.completionScoreBudgetNote,
+                        style: TextStyle(
+                          fontFamily: FontFamily.dMSans,
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                          color: AppColors.reviewInk.withValues(alpha: 0.55),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         );

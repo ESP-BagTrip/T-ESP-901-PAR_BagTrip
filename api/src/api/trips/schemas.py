@@ -21,7 +21,7 @@ class TripCreateRequest(BagtripRequestModel):
     destinationName: str | None = None
     nbTravelers: int | None = None
     coverImageUrl: str | None = None
-    budgetTotal: float | None = None
+    budgetTarget: float | None = None
     origin: TripOrigin | None = None
     dateMode: DateMode = DateMode.EXACT
 
@@ -40,7 +40,12 @@ class TripCreateRequest(BagtripRequestModel):
 
 
 class TripUpdateRequest(BagtripRequestModel):
-    """Requête de mise à jour de trip."""
+    """Requête de mise à jour de trip.
+
+    Topic 02 — only ``budgetTarget`` (the user's intent) is mutable here.
+    ``budgetEstimated`` flows through ``POST /budget/estimate/accept`` and
+    ``budgetActual`` is computed at runtime from confirmed BudgetItems.
+    """
 
     title: str | None = None
     originIata: str | None = None
@@ -51,7 +56,7 @@ class TripUpdateRequest(BagtripRequestModel):
     destinationName: str | None = None
     nbTravelers: int | None = None
     coverImageUrl: str | None = None
-    budgetTotal: float | None = None
+    budgetTarget: float | None = None
     dateMode: DateMode | None = None
 
 
@@ -70,7 +75,9 @@ class TripResponse(BaseModel):
     destinationTimezone: str | None = Field(default=None, alias="destination_timezone")
     nbTravelers: int | None = Field(default=None, alias="nb_travelers")
     coverImageUrl: str | None = Field(default=None, alias="cover_image_url")
-    budgetTotal: float | None = Field(default=None, alias="budget_total")
+    budgetTarget: float | None = Field(default=None, alias="budget_target")
+    budgetEstimated: float | None = Field(default=None, alias="budget_estimated")
+    budgetActual: float | None = Field(default=None, alias="budget_actual")
     origin: str | None = None
     dateMode: str = Field(default="EXACT", alias="date_mode")
     flightsTracking: str = Field(default="TRACKED", alias="flights_tracking")

@@ -69,6 +69,7 @@ _BudgetSummary _$BudgetSummaryFromJson(Map<String, dynamic> json) =>
       percentConsumed: (json['percentConsumed'] as num?)?.toDouble(),
       alertLevel: json['alertLevel'] as String?,
       alertMessage: json['alertMessage'] as String?,
+      budgetStatus: json['budgetStatus'] as String?,
     );
 
 Map<String, dynamic> _$BudgetSummaryToJson(_BudgetSummary instance) =>
@@ -82,4 +83,5 @@ Map<String, dynamic> _$BudgetSummaryToJson(_BudgetSummary instance) =>
       'percentConsumed': instance.percentConsumed,
       'alertLevel': instance.alertLevel,
       'alertMessage': instance.alertMessage,
+      'budgetStatus': instance.budgetStatus,
     };

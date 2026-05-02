@@ -45,7 +45,20 @@ class Trip(Base):
         String, nullable=False, server_default="DRAFT", default=TripStatus.DRAFT
     )
     description: Mapped[str | None] = mapped_column(String, nullable=True)
-    budget_total: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
+    # Topic 02 — `budget_total` was split into three explicit semantics
+    # (cf. migration 0029). `budget_target` is the user's stated intent,
+    # `budget_estimated` is the AI estimation accepted via /budget/estimate
+    # /accept, and `budget_actual` is reserved for future materialisation
+    # (currently computed at runtime by BudgetItemService.get_budget_summary).
+    budget_target: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
+    budget_estimated: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
+    budget_actual: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
+    # Topic 04b — canonical currency the trip's aggregates are reported in.
+    # All `BudgetItem.amount` values are converted to this code by
+    # `BudgetItemService.get_budget_summary` before aggregation.
+    currency: Mapped[str] = mapped_column(
+        String(3), nullable=False, server_default="EUR", default="EUR"
+    )
     origin: Mapped[str | None] = mapped_column(String, nullable=True, default="MANUAL")
     cover_image_url: Mapped[str | None] = mapped_column(String, nullable=True)
     destination_name: Mapped[str | None] = mapped_column(String, nullable=True)
