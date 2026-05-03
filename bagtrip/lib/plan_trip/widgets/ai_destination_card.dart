@@ -225,6 +225,28 @@ class AiDestinationCard extends StatelessWidget {
                         )
                         .toList(),
                   ),
+                  if (activityLabels.length > 3 && onToggleExpanded != null)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                        onPressed: onToggleExpanded,
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.space8,
+                            vertical: AppSpacing.space4,
+                          ),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          foregroundColor: AppColors.chipActivityForeground,
+                          textStyle: const TextStyle(
+                            fontFamily: FontFamily.dMSans,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        child: Text(isExpanded ? l10n.showLess : l10n.showMore),
+                      ),
+                    ),
                 ],
               ],
             ),

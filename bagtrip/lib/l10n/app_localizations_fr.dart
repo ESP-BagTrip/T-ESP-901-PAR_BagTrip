@@ -3484,4 +3484,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get errorInvalidRefundReason => 'Motif de remboursement invalide.';
+
+  @override
+  String get showMore => 'Voir plus';
+
+  @override
+  String get showLess => 'Voir moins';
 }

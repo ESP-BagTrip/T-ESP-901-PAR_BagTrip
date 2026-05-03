@@ -1701,5 +1701,7 @@
   "errorMissingStripeCustomer": "Profil de paiement non configuré. Contacte le support.",
   "errorRefundExceedsRemaining": "Ce remboursement dépasse le montant disponible.",
   "errorAlreadyFullyRefunded": "Ce paiement a déjà été entièrement remboursé.",
-  "errorInvalidRefundReason": "Motif de remboursement invalide."
+  "errorInvalidRefundReason": "Motif de remboursement invalide.",
+  "showMore": "Voir plus",
+  "showLess": "Voir moins"
 }

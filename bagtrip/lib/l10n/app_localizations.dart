@@ -6206,6 +6206,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Motif de remboursement invalide.'**
   String get errorInvalidRefundReason;
+
+  /// No description provided for @showMore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir plus'**
+  String get showMore;
+
+  /// No description provided for @showLess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir moins'**
+  String get showLess;
 }
 
 class _AppLocalizationsDelegate

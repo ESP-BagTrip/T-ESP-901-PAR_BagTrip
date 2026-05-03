@@ -1701,5 +1701,7 @@
   "errorMissingStripeCustomer": "Payment profile not set up. Contact support.",
   "errorRefundExceedsRemaining": "This refund exceeds the available amount.",
   "errorAlreadyFullyRefunded": "This payment has already been fully refunded.",
-  "errorInvalidRefundReason": "Invalid refund reason."
+  "errorInvalidRefundReason": "Invalid refund reason.",
+  "showMore": "Show more",
+  "showLess": "Show less"
 }
