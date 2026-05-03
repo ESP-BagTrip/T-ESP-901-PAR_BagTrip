@@ -4,7 +4,13 @@ from src.enums import ActivityCategory, BaggageCategory
 
 
 def test_activity_category_values():
-    """Verify new ActivityCategory enum has all expected values."""
+    """Verify ActivityCategory enum has all expected values.
+
+    SMP-324 added ``TRANSPORT`` so the AI ``activity_planner`` can emit
+    transport recommendations (JR Pass, transfer aéroport, ...) as
+    Activity rows, sharing the BudgetItem aggregation path with the
+    dated itinerary instead of becoming orphan budget breakdown lines.
+    """
     expected = {
         "CULTURE",
         "NATURE",
@@ -13,6 +19,7 @@ def test_activity_category_values():
         "SHOPPING",
         "NIGHTLIFE",
         "RELAXATION",
+        "TRANSPORT",
         "OTHER",
     }
     actual = {e.value for e in ActivityCategory}
@@ -20,9 +27,14 @@ def test_activity_category_values():
 
 
 def test_activity_old_values_removed():
-    """Verify old ActivityCategory values are gone."""
+    """Verify legacy ActivityCategory values are gone.
+
+    ``TRANSPORT`` was originally on this list because it had been
+    removed in the A2/A3 migration; SMP-324 reintroduces it for AI
+    transport recommendations, so it is excluded here.
+    """
     values = {e.value for e in ActivityCategory}
-    for old in ("VISIT", "RESTAURANT", "TRANSPORT", "LEISURE"):
+    for old in ("VISIT", "RESTAURANT", "LEISURE"):
         assert old not in values, f"{old} should have been removed"
 
 
