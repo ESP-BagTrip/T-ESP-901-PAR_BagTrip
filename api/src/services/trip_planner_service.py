@@ -68,14 +68,38 @@ _QUICK_DESTINATION_LABELS: dict[str, dict[str, str]] = {
 
 
 async def _quick_destination_suggestions(state: Any) -> list[dict]:
-    """Single LLM call (no ReAct, no tools) for `destinations_only` mode."""
-    # Local imports: LLMService drags optional deps we don't want at module load,
-    # and `render` lives in the agent prompts package.
-    from src.agent.prompts import render
-    from src.services.llm_service import LLMService
+    """Generate destination suggestions for the wizard's step 3.
+
+    Tries the Amadeus-first ``inspire_then_rank`` pipeline first
+    (real flight inspiration + Amadeus POIs + Open-Meteo weather +
+    LLM ranking only). Falls back to the legacy LLM-only path when
+    the pipeline cannot proceed (no origin city, Amadeus down, …) so
+    the wizard never ends up empty-handed.
+    """
+    from src.services.destination_inspiration_service import inspire_then_rank
     from src.utils.locale import normalize_locale
 
     locale = normalize_locale(state.get("locale"))
+
+    amadeus_first = await inspire_then_rank(state)
+    if amadeus_first is not None:
+        logger.info(
+            "Quick destination suggestions (amadeus_first)",
+            {"count": len(amadeus_first), "locale": locale},
+        )
+        return amadeus_first
+
+    # ── Legacy fallback path — keeps the wizard producing something even
+    # when Amadeus inspiration is unavailable or the user did not provide
+    # an origin city.
+    return await _legacy_llm_only_destinations(state, locale)
+
+
+async def _legacy_llm_only_destinations(state: Any, locale: str) -> list[dict]:
+    """Single LLM call (no ReAct, no tools) — pre-SMP-324 behavior."""
+    from src.agent.prompts import render
+    from src.services.llm_service import LLMService
+
     labels = _QUICK_DESTINATION_LABELS.get(locale, _QUICK_DESTINATION_LABELS["en"])
 
     system_prompt = render("destination_quick", locale=locale)
@@ -103,7 +127,10 @@ async def _quick_destination_suggestions(state: Any) -> list[dict]:
     llm_service = LLMService()
     result = await llm_service.acall_llm(system_prompt, user_prompt)
     destinations = result.get("destinations", [])
-    logger.info("Quick destination suggestions", {"count": len(destinations), "locale": locale})
+    logger.info(
+        "Quick destination suggestions (llm_fallback)",
+        {"count": len(destinations), "locale": locale},
+    )
     return destinations
 
 
