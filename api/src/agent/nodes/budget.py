@@ -27,10 +27,12 @@ don't move.
 
 from __future__ import annotations
 
+import math
 from datetime import datetime, time, timedelta
 
 from src.agent.runtime_budget import guard
 from src.agent.state import TripPlanState
+from src.integrations.aviation_data import aviation_data_service
 from src.utils.logger import logger
 
 # Topic 05 (B12) — singular keys aligned with the Flutter `BudgetCategory`
@@ -54,38 +56,121 @@ def _sum_estimation(estimation: dict) -> float:
     return sum(_extract_amount(estimation.get(k)) for k in _BUDGET_KEYS)
 
 
+# Commercial-jet cruise speed used to translate distance into flight time.
+# 800 km/h is the typical effective ground speed averaged across taxi,
+# climb, cruise and descent; gets us within ~10% of real schedules.
+_AVERAGE_FLIGHT_KMPH = 800.0
+# Fixed per-passenger one-way overhead (taxes, airport fees, fuel surcharge).
+_FLIGHT_FIXED_OVERHEAD_EUR = 80.0
+# Per-km coefficient — empirical mid-range fare for economy round-trip,
+# tuned against typical CDG outbound prices. Round-trip is computed as
+# ``2 × one_way`` so a single coefficient parameterizes the whole curve.
+_FLIGHT_PER_KM_EUR = 0.10
+
+
+def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Great-circle distance between two coords in kilometres."""
+    radius_km = 6371.0
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    delta_phi = math.radians(lat2 - lat1)
+    delta_lambda = math.radians(lon2 - lon1)
+    a = (
+        math.sin(delta_phi / 2) ** 2
+        + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2) ** 2
+    )
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return radius_km * c
+
+
+def _airport_coords(iata: str) -> tuple[float, float] | None:
+    """Look up an airport's coordinates via the offline aviation dataset."""
+    if not iata:
+        return None
+    loc = aviation_data_service.get_by_id(iata)
+    if loc is None:
+        return None
+    return float(loc.geoCode.latitude), float(loc.geoCode.longitude)
+
+
+def _estimate_flight_duration_hours(distance_km: float) -> float:
+    """Translate a great-circle distance into a plausible flight duration.
+
+    Adds a 1-hour ground buffer (taxi, turn-around) on top of the cruise
+    estimate so a Paris-Lyon hop doesn't look unrealistically short.
+    """
+    if distance_km <= 0:
+        return 2.0
+    return distance_km / _AVERAGE_FLIGHT_KMPH + 1.0
+
+
+def _estimate_flight_price_eur(distance_km: float, *, adults: int, round_trip: bool) -> float:
+    """Estimate a round-trip economy fare in EUR for the requested party.
+
+    The function returns the *total* price for ``adults`` passengers so
+    the call-site can drop it straight into the budget breakdown.
+    Distance under-counted on short hops is dwarfed by the fixed
+    overhead, distance over-counted on long-haul leaves enough headroom
+    that the user never sees a 300 € Tokyo (the bug this fix targets).
+    """
+    one_way = _FLIGHT_FIXED_OVERHEAD_EUR + _FLIGHT_PER_KM_EUR * max(distance_km, 0)
+    multiplier = 2.0 if round_trip else 1.0
+    return round(one_way * multiplier * max(adults, 1), 2)
+
+
 def _synthesize_flight_offer(
     *,
     origin_iata: str,
     dest_iata: str,
     departure_date: str,
     return_date: str | None,
-    flight_price: float,
+    nb_travelers: int = 1,
     currency: str = "EUR",
 ) -> list[dict]:
     """Build a deterministic flight-offer payload when Amadeus is unavailable.
 
-    The plan must still show *something* to the user — otherwise the Flutter
-    review drops the whole flight card (bug reported on SMP-316 for
-    Barcelone). Rather than asking the LLM to fabricate airline codes
-    (which causes hallucinations and makes the `source` field unreliable),
-    we fill the slot with plausible placeholder hours and mark every field
-    as ``source="estimated"``. The user validates or edits later via
-    trip_detail.
+    The review screen needs to show *something* to the user — otherwise
+    the Flutter card drops to "ALLER" with empty hours (bug SMP-316 for
+    Barcelone, regression observed on Paris→Tokyo when the Amadeus
+    sandbox returned 500). Rather than asking the LLM to fabricate
+    airline codes (which makes the ``source`` field unreliable), we
+    derive duration and price from the great-circle distance between
+    the two airports and stamp the result with ``source="estimated"``
+    so the UI can render the estimated badge. The user validates or
+    edits later via trip_detail.
 
     Heuristics:
-    - Outbound: 10:00 → 12:00 local of `departure_date` (2h default)
-    - Return:   18:00 → 20:00 local of `return_date`
-    - Flight number empty → client renders em-dash
-    - Airline: "Estimated" so the UI shows the estimated source badge
+        - Distance: haversine over ``aviation_data`` coords.
+        - Duration: distance / 800 km/h + 1 h taxi/turn-around.
+        - Price: ``2 × (80 + 0.10 × distance_km) × adults`` (round-trip).
+        - Outbound starts at 10:00 local of ``departure_date``.
+        - Return at 18:00 local of ``return_date``.
+        - Flight number empty → the client renders em-dash.
+        - Airline ``EST`` / "Estimated" so the badge stays consistent.
     """
     try:
         dep_day = datetime.fromisoformat(departure_date)
     except ValueError:
         return []
 
+    origin_coords = _airport_coords(origin_iata)
+    dest_coords = _airport_coords(dest_iata)
+    if origin_coords and dest_coords:
+        distance_km = _haversine_km(*origin_coords, *dest_coords)
+    else:
+        # Both IATAs missing from airportsdata is rare but possible
+        # (private fields, older codes). Default to a short-haul shape so
+        # the card still renders without lying about long-haul times.
+        distance_km = 0.0
+    duration_hours = _estimate_flight_duration_hours(distance_km)
+    duration_seconds = int(round(duration_hours * 3600))
+    iso_duration = _seconds_to_iso8601(duration_seconds)
+    flight_price = _estimate_flight_price_eur(
+        distance_km, adults=nb_travelers, round_trip=bool(return_date)
+    )
+
     dep_dt = datetime.combine(dep_day.date(), time(10, 0))
-    arr_dt = dep_dt + timedelta(hours=2)
+    arr_dt = dep_dt + timedelta(seconds=duration_seconds)
     offer: dict = {
         "airline": "EST",
         "airline_name": "Estimated",
@@ -94,10 +179,11 @@ def _synthesize_flight_offer(
         "currency": currency,
         "departure": dep_dt.isoformat(),
         "arrival": arr_dt.isoformat(),
-        "duration": "PT2H",
+        "duration": iso_duration,
         "origin_iata": origin_iata,
         "destination_iata": dest_iata,
         "source": "estimated",
+        "estimated_distance_km": int(distance_km),
     }
     if return_date:
         try:
@@ -105,11 +191,27 @@ def _synthesize_flight_offer(
         except ValueError:
             return [offer]
         ret_dt = datetime.combine(ret_day.date(), time(18, 0))
-        ret_arr = ret_dt + timedelta(hours=2)
+        ret_arr = ret_dt + timedelta(seconds=duration_seconds)
         offer["return_departure"] = ret_dt.isoformat()
         offer["return_arrival"] = ret_arr.isoformat()
-        offer["return_duration"] = "PT2H"
+        offer["return_duration"] = iso_duration
     return [offer]
+
+
+def _seconds_to_iso8601(total_seconds: int) -> str:
+    """Format a duration as ISO-8601 (e.g. ``PT13H10M``)."""
+    if total_seconds <= 0:
+        return "PT0M"
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes = remainder // 60
+    parts = ["PT"]
+    if hours:
+        parts.append(f"{hours}H")
+    if minutes:
+        parts.append(f"{minutes}M")
+    if hours == 0 and minutes == 0:
+        parts.append("0M")
+    return "".join(parts)
 
 
 def _accommodation_stay_total(best: dict) -> float:
@@ -284,13 +386,15 @@ async def budget_node(state: TripPlanState) -> dict:
     if not flight_offers and origin_iata and dest_iata and state.get("departure_date"):
         # Synthesize a placeholder so the review screen still shows a flight
         # card — preserves the SMP-316 fix for Barcelone-style empty cards.
-        per_offer_estimate = _per_diem_for(state)["food"] * duration_days  # rough heuristic
+        # Duration and price are now derived from the great-circle distance
+        # between the two IATAs (haversine over airportsdata coords) so a
+        # Paris-Tokyo no longer renders as a 2-hour 315 € flight.
         flight_offers = _synthesize_flight_offer(
             origin_iata=origin_iata,
             dest_iata=dest_iata,
             departure_date=state["departure_date"],
             return_date=state.get("return_date"),
-            flight_price=per_offer_estimate,
+            nb_travelers=nb_travelers,
         )
 
     flight_total = _flight_total_from_offers(flight_offers)
