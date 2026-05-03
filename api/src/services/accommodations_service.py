@@ -14,6 +14,31 @@ from src.services.budget_item_service import BudgetItemService
 from src.utils.errors import AppError
 from src.utils.logger import logger
 
+_ACCOMMODATION_SUGGEST_LABELS: dict[str, dict[str, str]] = {
+    "en": {
+        "destination": "Destination",
+        "unknown": "Unknown",
+        "iata": "IATA code",
+        "duration": "Trip duration",
+        "days": "days",
+        "to": "to",
+        "travelers": "Number of travelers",
+        "budget": "Total budget",
+        "existing": "Already added (avoid duplicates)",
+    },
+    "fr": {
+        "destination": "Destination",
+        "unknown": "Inconnue",
+        "iata": "Code IATA",
+        "duration": "Durée du voyage",
+        "days": "jours",
+        "to": "au",
+        "travelers": "Nombre de voyageurs",
+        "budget": "Budget total",
+        "existing": "Déjà ajouté (éviter les doublons)",
+    },
+}
+
 
 class AccommodationsService:
     """Service pour les opérations CRUD sur les accommodations."""
@@ -188,37 +213,49 @@ class AccommodationsService:
         db.commit()
 
     @staticmethod
-    async def suggest_accommodations(db: Session, trip: Trip) -> list[dict]:
+    async def suggest_accommodations(
+        db: Session, trip: Trip, locale: str | None = None
+    ) -> list[dict]:
         """Generate AI accommodation suggestions for a trip."""
         from src.agent.prompts import render as render_prompt
         from src.services.llm_service import LLMService
+        from src.utils.locale import normalize_locale
 
-        parts = [f"Destination: {trip.destination_name or 'Unknown'}"]
+        resolved_locale = normalize_locale(locale)
+        labels = _ACCOMMODATION_SUGGEST_LABELS[resolved_locale]
+
+        parts = [f"{labels['destination']}: {trip.destination_name or labels['unknown']}"]
 
         if trip.destination_iata:
-            parts.append(f"IATA code: {trip.destination_iata}")
+            parts.append(f"{labels['iata']}: {trip.destination_iata}")
 
         if trip.start_date and trip.end_date:
             duration = (trip.end_date - trip.start_date).days + 1
-            parts.append(f"Trip duration: {duration} days ({trip.start_date} to {trip.end_date})")
+            parts.append(
+                f"{labels['duration']}: {duration} {labels['days']} "
+                f"({trip.start_date} {labels['to']} {trip.end_date})"
+            )
 
         if trip.nb_travelers:
-            parts.append(f"Number of travelers: {trip.nb_travelers}")
+            parts.append(f"{labels['travelers']}: {trip.nb_travelers}")
 
         if trip.budget_target:
-            parts.append(f"Total budget: {trip.budget_target} EUR")
+            parts.append(f"{labels['budget']}: {trip.budget_target} EUR")
 
         # Dedup: list existing accommodations
         existing = AccommodationsService.get_accommodations_by_trip(db, trip.id)
         if existing:
             names = [a.name for a in existing]
-            parts.append(f"Already added (avoid duplicates): {', '.join(names)}")
+            parts.append(f"{labels['existing']}: {', '.join(names)}")
 
         user_prompt = "\n".join(parts)
 
         llm = LLMService()
         try:
-            result = await llm.acall_llm(render_prompt("accommodation_suggest"), user_prompt)
+            result = await llm.acall_llm(
+                render_prompt("accommodation_suggest", locale=resolved_locale),
+                user_prompt,
+            )
             accommodations = result.get("accommodations", [])
         except Exception as e:
             logger.error("Accommodation suggest LLM call failed", {"error": str(e)})

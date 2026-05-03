@@ -168,3 +168,28 @@ class TestSuggest:
 
         # Fallback is returned and nothing is deduped
         assert len(result) >= 4
+
+    @pytest.mark.asyncio
+    async def test_locale_fr_renders_french_prompt(self, mock_db_session, make_trip):
+        trip = make_trip(
+            destination_name="Lyon",
+            start_date=date(2026, 5, 1),
+            end_date=date(2026, 5, 5),
+            nb_travelers=3,
+        )
+        trip.activities = []
+        mock_db_session.query.return_value.filter.return_value.all.return_value = []
+
+        fake_llm = MagicMock()
+        fake_llm.acall_llm = AsyncMock(return_value={"items": []})
+
+        with patch("src.services.llm_service.LLMService", return_value=fake_llm):
+            await BaggageItemsService.suggest_baggage_items(mock_db_session, trip, locale="fr")
+
+        system_prompt, user_prompt = fake_llm.acall_llm.call_args.args
+        # FR Jinja template selected.
+        assert "français" in system_prompt.lower() or "francais" in system_prompt.lower()
+        # User prompt labels translated.
+        assert "Destination:" in user_prompt
+        assert "Durée du voyage:" in user_prompt
+        assert "Nombre de voyageurs:" in user_prompt

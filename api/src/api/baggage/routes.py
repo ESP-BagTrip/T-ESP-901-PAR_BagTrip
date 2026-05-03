@@ -3,7 +3,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Path, status
+from fastapi import APIRouter, Depends, Path, Request, status
 from sqlalchemy.orm import Session
 
 from src.api.auth.plan_guard import require_ai_quota
@@ -20,6 +20,7 @@ from src.models.user import User
 from src.services.baggage_items_service import BaggageItemsService
 from src.services.plan_service import PlanService
 from src.utils.errors import AppError, create_http_exception
+from src.utils.locale import normalize_locale
 
 router = APIRouter(prefix="/v1/trips", tags=["Baggage"])
 
@@ -126,13 +127,15 @@ async def delete_baggage_item(
     description="Get AI-powered baggage suggestions for a trip",
 )
 async def suggest_baggage_items(
+    raw_request: Request,
     access: Annotated[TripAccess, Depends(get_trip_editor_access)],
     current_user: Annotated[User, Depends(require_ai_quota)],
     db: Annotated[Session, Depends(get_db)],
 ):
     """Suggestions IA de bagages pour un trip."""
     try:
-        items = await BaggageItemsService.suggest_baggage_items(db, access.trip)
+        locale = normalize_locale(raw_request.headers.get("accept-language"))
+        items = await BaggageItemsService.suggest_baggage_items(db, access.trip, locale=locale)
         PlanService.increment_ai_generation(db, current_user)
         return BaggageSuggestionListResponse(items=items)
     except AppError as e:

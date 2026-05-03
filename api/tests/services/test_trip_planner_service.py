@@ -141,25 +141,55 @@ class TestQuickDestinationSuggestions:
         assert "diverse" in user_prompt.lower()
 
     @pytest.mark.asyncio
-    async def test_fr_locale_injects_french_instruction(self):
-        state = {"locale": "fr", "travel_types": "culture"}
+    async def test_fr_locale_renders_french_template_and_labels(self):
+        state = {
+            "locale": "fr",
+            "travel_types": "culture",
+            "duration_days": 5,
+            "nb_travelers": 2,
+        }
         fake_llm = MagicMock()
         fake_llm.acall_llm = AsyncMock(return_value={"destinations": [{"city": "Lyon"}]})
         with patch("src.services.llm_service.LLMService", return_value=fake_llm):
             await _quick_destination_suggestions(state)
-        system_prompt, _ = fake_llm.acall_llm.call_args.args
+        system_prompt, user_prompt = fake_llm.acall_llm.call_args.args
+        # The FR Jinja template is selected (mentions "français").
         assert "français" in system_prompt.lower()
+        # User-facing labels are translated.
+        assert "Préférences:" in user_prompt
+        assert "Durée:" in user_prompt
+        assert "jours" in user_prompt
+        assert "Voyageurs:" in user_prompt
 
     @pytest.mark.asyncio
-    async def test_en_locale_injects_english_instruction(self):
-        state = {"locale": "en"}
+    async def test_en_locale_renders_english_template_and_labels(self):
+        state = {
+            "locale": "en",
+            "travel_types": "beach",
+            "duration_days": 7,
+            "nb_travelers": 2,
+        }
         fake_llm = MagicMock()
         fake_llm.acall_llm = AsyncMock(return_value={"destinations": []})
         with patch("src.services.llm_service.LLMService", return_value=fake_llm):
             await _quick_destination_suggestions(state)
-        system_prompt, _ = fake_llm.acall_llm.call_args.args
+        system_prompt, user_prompt = fake_llm.acall_llm.call_args.args
         assert "english" in system_prompt.lower()
         assert "français" not in system_prompt.lower()
+        assert "Preferences:" in user_prompt
+        assert "Duration:" in user_prompt
+        assert "Travelers:" in user_prompt
+
+    @pytest.mark.asyncio
+    async def test_unknown_locale_falls_back_to_english(self):
+        state = {"locale": "es", "travel_types": "beach"}
+        fake_llm = MagicMock()
+        fake_llm.acall_llm = AsyncMock(return_value={"destinations": []})
+        with patch("src.services.llm_service.LLMService", return_value=fake_llm):
+            await _quick_destination_suggestions(state)
+        system_prompt, user_prompt = fake_llm.acall_llm.call_args.args
+        assert "english" in system_prompt.lower()
+        assert "Preferences:" in user_prompt
 
 
 # ---------------------------------------------------------------------------

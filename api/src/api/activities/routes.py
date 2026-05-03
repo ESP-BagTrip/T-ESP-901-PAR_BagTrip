@@ -1,7 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Path, Query, status
+from fastapi import APIRouter, Depends, Path, Query, Request, status
 from sqlalchemy.orm import Session
 
 from src.api.activities.schemas import (
@@ -20,6 +20,7 @@ from src.models.user import User
 from src.services.activity_service import ActivityService
 from src.services.plan_service import PlanService
 from src.utils.errors import AppError, create_http_exception
+from src.utils.locale import normalize_locale
 
 router = APIRouter(prefix="/v1/trips", tags=["Activities"])
 
@@ -163,16 +164,19 @@ async def batch_update_activities(
 
 @router.post("/{tripId}/activities/suggest", response_model=ActivitySuggestResponse)
 async def suggest_activities(
+    raw_request: Request,
     access: Annotated[TripAccess, Depends(get_trip_editor_access)],
     current_user: Annotated[User, Depends(require_ai_quota)],
     db: Annotated[Session, Depends(get_db)],
     day: Annotated[int | None, Query(ge=1, description="Target day number (1-based)")] = None,
 ):
     try:
+        locale = normalize_locale(raw_request.headers.get("accept-language"))
         suggestions = await ActivityService.suggest(
             db=db,
             trip=access.trip,
             day=day,
+            locale=locale,
         )
         PlanService.increment_ai_generation(db, current_user)
         return ActivitySuggestResponse(activities=suggestions)

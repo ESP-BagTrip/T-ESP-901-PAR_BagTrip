@@ -53,11 +53,39 @@ class TestPostTripAIService:
 
         assert result["suggestion"]["destination"] == "Porto"
         fake_llm.call_llm.assert_called_once()
-        # Check the user prompt embeds the feedback
-        _, user_prompt = fake_llm.call_llm.call_args.args
+        # Default locale is English when no locale is passed.
+        system_prompt, user_prompt = fake_llm.call_llm.call_args.args
+        assert "english" in system_prompt.lower()
         assert "Lisbon" in user_prompt
         assert "5/5" in user_prompt
         assert "Food, weather" in user_prompt
+        assert "Highlights:" in user_prompt
+
+    def test_suggest_next_trip_locale_fr_renders_french(self, mock_db_session, make_trip):
+        trip = make_trip(destination_name="Lisbon", title="City break")
+        feedback = MagicMock(
+            overall_rating=4,
+            highlights="Cuisine, météo",
+            lowlights=None,
+            would_recommend=True,
+        )
+        mock_db_session.query.return_value.join.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = [
+            (feedback, trip)
+        ]
+        fake_llm = MagicMock()
+        fake_llm.call_llm = MagicMock(return_value={"suggestion": {}})
+        with patch(
+            "src.services.post_trip_ai_service.LLMService",
+            return_value=fake_llm,
+        ):
+            PostTripAIService.suggest_next_trip(mock_db_session, trip.user_id, locale="fr-FR")
+        system_prompt, user_prompt = fake_llm.call_llm.call_args.args
+        assert "français" in system_prompt.lower()
+        # Translated labels in user prompt.
+        assert "Voyage:" in user_prompt
+        assert "Note:" in user_prompt
+        assert "Points forts:" in user_prompt
+        assert "Recommande:" in user_prompt
 
     def test_suggest_handles_missing_highlights(self, mock_db_session, make_trip):
         trip = make_trip(destination_name=None, destination_iata="CDG")
