@@ -15,6 +15,7 @@ from .hotels import (
     search_hotel_list,
     search_hotel_offers,
 )
+from .pois import search_pois
 from .types import (
     FlightCheapestDateSearchQuery,
     FlightInspirationSearchQuery,
@@ -23,6 +24,7 @@ from .types import (
     FlightOrderTraveler,
     HotelListSearchQuery,
     HotelOffersSearchQuery,
+    PoiSearchQuery,
 )
 
 
@@ -60,6 +62,11 @@ class AmadeusClient:
     async def search_hotel_offers(self, query: HotelOffersSearchQuery):
         """Recherche d'offres d'hôtels."""
         return await search_hotel_offers(query)
+
+    # POIs
+    async def search_pois(self, query: PoiSearchQuery):
+        """Recherche de Points of Interest autour d'un point géographique."""
+        return await search_pois(query)
 
 
 # Instance globale du client

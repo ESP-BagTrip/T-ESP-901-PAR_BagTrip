@@ -27,6 +27,8 @@ from src.integrations.amadeus.types import (
     FlightOrderTraveler,
     HotelListSearchQuery,
     HotelOffersSearchQuery,
+    Poi,
+    PoiSearchQuery,
 )
 
 
@@ -67,3 +69,16 @@ class AmadeusService:
     @staticmethod
     async def search_hotel_offers(query: HotelOffersSearchQuery):
         return await amadeus_client.search_hotel_offers(query)
+
+    # ---- Points of Interest -----------------------------------------------
+
+    @staticmethod
+    async def search_pois(query: PoiSearchQuery) -> list[Poi]:
+        """Resolve sights / restaurants / shopping near a coordinate.
+
+        Returns Amadeus-curated, locale-aware POIs. Callers that need a
+        cache should wrap this in their own Redis layer (e.g. the
+        activity_planner node) — we keep this method side-effect free
+        so unit tests stay simple.
+        """
+        return await amadeus_client.search_pois(query)

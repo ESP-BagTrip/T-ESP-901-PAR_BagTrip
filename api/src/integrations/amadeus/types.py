@@ -573,3 +573,65 @@ class HotelOffersResponse(BaseModel):
     """Réponse de recherche d'offres d'hôtels."""
 
     data: list[HotelOfferResult]
+
+
+# ============================================================================
+# POI TYPES (Reference Data — Locations Points of Interest)
+# ============================================================================
+
+
+class PoiSearchQuery(BaseModel):
+    """Requête de recherche de POIs autour d'un point géographique.
+
+    Maps directly onto ``GET /v1/reference-data/locations/pois``. The
+    ``lang`` parameter is the key reason we wrap this endpoint: Amadeus
+    returns localized POI names + tags so we never have to send raw
+    LLM-generated text on the activity chips.
+    """
+
+    latitude: float
+    longitude: float
+    radius: int = Field(1, ge=1, le=20, description="Radius in km, max 20")
+    categories: str | None = Field(
+        default=None,
+        description=(
+            "Comma-separated list among SIGHTS, BEACH_PARK, HISTORICAL,"
+            " NIGHTLIFE, RESTAURANT, SHOPPING."
+        ),
+    )
+    page_limit: int = Field(default=10, ge=1, le=100, alias="page[limit]")
+    page_offset: int = Field(default=0, ge=0, alias="page[offset]")
+    lang: str | None = Field(
+        default=None,
+        description="2-letter language code (en, fr, ...). Defaults to en server-side.",
+    )
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class PoiGeoCode(BaseModel):
+    """Coordinates for a POI."""
+
+    latitude: float
+    longitude: float
+
+
+class Poi(BaseModel):
+    """A single Point of Interest returned by Amadeus."""
+
+    type: str = "location"
+    subType: str = "POINT_OF_INTEREST"
+    id: str
+    name: str
+    geoCode: PoiGeoCode
+    category: str | None = None
+    rank: int | None = None
+    tags: list[str] = Field(default_factory=list)
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class PoiListResponse(BaseModel):
+    """Wrapper around Amadeus' ``data`` array."""
+
+    data: list[Poi] = Field(default_factory=list)
