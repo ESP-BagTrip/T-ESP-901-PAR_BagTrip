@@ -167,6 +167,37 @@ def _build_budget_item(
     )
 
 
+def _coerce_breakdown_amount(raw: object) -> float:
+    """Pull the numeric amount out of a breakdown entry.
+
+    The SSE event ships each line as ``{"amount": float, "currency": str,
+    "source": str}``; older code paths sometimes shipped the raw float.
+    Accept both shapes and fall back to 0 on anything unparsable.
+    """
+    value: object = raw.get("amount", 0) if isinstance(raw, dict) else raw
+    if value is None or isinstance(value, bool):
+        return 0.0
+    try:
+        return float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _coerce_iso_date(value: str | date | None) -> date | None:
+    """Convert a YYYY-MM-DD string (the resolver output) to a ``date``.
+
+    ``BudgetItem.date`` is a SQLAlchemy ``Date`` column, so the persister
+    must hand it a real ``datetime.date`` rather than the ISO string the
+    rest of the service passes around.
+    """
+    if value is None or isinstance(value, date):
+        return value
+    try:
+        return date.fromisoformat(value)
+    except (TypeError, ValueError):
+        return None
+
+
 # ── Service ───────────────────────────────────────────────────────────
 
 
@@ -215,6 +246,7 @@ class PlanAcceptanceService:
         cls._persist_accommodations(db, trip, suggestion)
         cls._persist_flights(db, trip, suggestion)
         cls._persist_baggage(db, trip, suggestion, accept_language)
+        cls._persist_breakdown_estimates(db, trip, suggestion, start_date_value)
 
         db.commit()
         db.refresh(trip)
@@ -477,6 +509,76 @@ class PlanAcceptanceService:
                     name=bag.get("name", "Item"),
                     quantity=bag.get("quantity", 1),
                     category=bag.get("category", "OTHER"),
+                )
+            )
+
+    # ── Budget breakdown estimation ──────────────────────────────────
+    #
+    # ``flight``, ``accommodation`` and ``activity`` already get budget
+    # items via the dedicated persisters because they map to concrete
+    # objects (a flight booking, a hotel offer, an activity entry).
+    # ``food`` and ``transport`` have no concrete object — they are pure
+    # estimates carried by the SSE ``budget`` event. Without this
+    # method those two lines vanish at acceptance and the trip detail
+    # screen shows a "prévisionnel" of just the flight (the user
+    # regression report).
+    #
+    # We persist them as ``is_planned=True`` budget items so they
+    # show up under "PRÉVISIONNEL" without polluting "RÉEL" (which
+    # only counts ``is_planned=False`` actual spend).
+    _BREAKDOWN_PERSISTED_CATEGORIES: tuple[str, ...] = ("food", "transport")
+    _BREAKDOWN_LABELS_FR: dict[str, str] = {
+        "food": "Repas estimés",
+        "transport": "Transport estimé",
+    }
+    _BREAKDOWN_TO_ENUM: dict[str, BudgetCategory] = {
+        "food": BudgetCategory.FOOD,
+        "transport": BudgetCategory.TRANSPORT,
+    }
+
+    @classmethod
+    def _persist_breakdown_estimates(
+        cls,
+        db: Session,
+        trip: Trip,
+        suggestion: dict,
+        start_date_value: str | date | None,
+    ) -> None:
+        """Materialize the SSE ``budget`` breakdown into planned items.
+
+        The Flutter wizard sends the pre-computed breakdown back inside
+        ``suggestion["budget_breakdown"]`` (typed shape, EUR amounts).
+        Falls back to ``suggestion["budget"]["estimation"]`` for
+        backwards compatibility with payloads emitted before SMP-324.
+
+        Categories that already have a per-object persister
+        (``flight``, ``accommodation``, ``activity``) are skipped to
+        avoid double-counting; only ``food`` and ``transport`` are
+        materialized here.
+        """
+        breakdown = (
+            suggestion.get("budget_breakdown")
+            or (suggestion.get("budget") or {}).get("estimation")
+            or {}
+        )
+        if not isinstance(breakdown, dict):
+            return
+
+        item_date = _coerce_iso_date(start_date_value)
+
+        for key in cls._BREAKDOWN_PERSISTED_CATEGORIES:
+            raw = breakdown.get(key)
+            amount = _coerce_breakdown_amount(raw)
+            if amount <= 0:
+                continue
+            db.add(
+                _build_budget_item(
+                    trip_id=trip.id,
+                    label=cls._BREAKDOWN_LABELS_FR.get(key, key.title()),
+                    amount=amount,
+                    category=cls._BREAKDOWN_TO_ENUM[key].value,
+                    source_type="estimation",
+                    item_date=item_date,
                 )
             )
 

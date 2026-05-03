@@ -1161,6 +1161,19 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
               : '',
         };
       }),
+      // SMP-324 — ship the typed budget breakdown to the backend so the
+      // plan acceptance service can materialize the food / transport
+      // estimation lines as PRÉVISIONNEL budget items. Without it the
+      // trip detail screen shows only the flight cost (the per-object
+      // persisters cover flight / accommodation / activity already).
+      'budget_breakdown': {
+        'flight': plan.budgetBreakdown.flight,
+        'accommodation': plan.budgetBreakdown.accommodation,
+        'food': plan.budgetBreakdown.food,
+        'transport': plan.budgetBreakdown.transport,
+        'activity': plan.budgetBreakdown.activity,
+        'other': plan.budgetBreakdown.other,
+      },
       'matchReason': 'Planned with real-time data',
     };
   }
