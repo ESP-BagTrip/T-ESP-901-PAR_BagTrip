@@ -1,11 +1,7 @@
-import 'dart:async';
-
 import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/design/app_animations.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/design/widgets/destination_carousel.dart';
-import 'package:bagtrip/design/widgets/progression_cta_button.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -29,9 +25,8 @@ class _StepAiProposalsViewState extends State<StepAiProposalsView>
   late final CurvedAnimation _fadeOthersAnim;
 
   int? _selectedCardIndex;
-  bool _swipeHintVisible = true;
-  Timer? _swipeHintTimer;
-  int _currentPage = 0;
+  int _activeCardIndex = 0;
+  int? _expandedCardIndex;
 
   @override
   void initState() {
@@ -53,15 +48,10 @@ class _StepAiProposalsViewState extends State<StepAiProposalsView>
       parent: _selectionController,
       curve: const Interval(0.5, 0.75, curve: AppAnimations.standardCurve),
     );
-
-    _swipeHintTimer = Timer(const Duration(seconds: 3), () {
-      if (mounted) setState(() => _swipeHintVisible = false);
-    });
   }
 
   @override
   void dispose() {
-    _swipeHintTimer?.cancel();
     _scaleAnim.dispose();
     _overlayAnim.dispose();
     _fadeOthersAnim.dispose();
@@ -72,17 +62,20 @@ class _StepAiProposalsViewState extends State<StepAiProposalsView>
   void _onSelectionComplete(AnimationStatus status) {
     if (status == AnimationStatus.completed && mounted) {
       context.read<PlanTripBloc>().add(
-        PlanTripEvent.swipeProposal(_currentPage),
+        PlanTripEvent.swipeProposal(_activeCardIndex),
       );
     }
   }
 
-  void _onChoose() {
+  void _onChoose(int index) {
     // Double-tap guard
     if (_selectedCardIndex != null) return;
 
     AppHaptics.success();
-    setState(() => _selectedCardIndex = _currentPage);
+    setState(() {
+      _activeCardIndex = index;
+      _selectedCardIndex = index;
+    });
     _selectionController.forward();
   }
 
@@ -104,117 +97,84 @@ class _StepAiProposalsViewState extends State<StepAiProposalsView>
           );
         }
 
-        final showSwipeHint =
-            _swipeHintVisible && state.aiSuggestions.length > 1;
-
         return AnimatedBuilder(
           animation: _selectionController,
           builder: (context, _) {
-            return Column(
-              children: [
-                // Section header
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.space22,
-                    AppSpacing.space22,
-                    AppSpacing.space22,
-                    0,
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.auto_awesome_rounded,
-                        size: 18,
-                        color: ColorName.secondary,
-                      ),
-                      const SizedBox(width: AppSpacing.space8),
-                      Text(
-                        l10n.stepAiProposals,
-                        style: const TextStyle(
-                          fontFamily: FontFamily.b612,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+            return ListView.separated(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.space16,
+                AppSpacing.space22,
+                AppSpacing.space16,
+                AppSpacing.space24,
+              ),
+              itemCount: state.aiSuggestions.length + 1,
+              separatorBuilder: (context, index) {
+                if (index == 0) {
+                  return const SizedBox(height: AppSpacing.space16);
+                }
+                return const SizedBox(height: AppSpacing.space32);
+              },
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.space8,
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.auto_awesome_rounded,
+                          size: 18,
                           color: ColorName.secondary,
-                          letterSpacing: 0.5,
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.space16),
-
-                // Carousel
-                Expanded(
-                  child: DestinationCarousel(
-                    itemCount: state.aiSuggestions.length,
-                    onPageChanged: (page) =>
-                        setState(() => _currentPage = page),
-                    itemBuilder: (context, index) {
-                      final isSelected = _selectedCardIndex == index;
-                      final isOther = _selectedCardIndex != null && !isSelected;
-
-                      // Scale selected card
-                      final scale = isSelected
-                          ? 1.0 + 0.05 * _scaleAnim.value
-                          : 1.0;
-                      // Fade non-selected cards
-                      final opacity = isOther
-                          ? 1.0 - 0.7 * _fadeOthersAnim.value
-                          : 1.0;
-                      // Overlay progress for selected card
-                      final overlayProgress = isSelected
-                          ? _overlayAnim.value
-                          : 0.0;
-
-                      return Transform.scale(
-                        scale: scale,
-                        child: Opacity(
-                          opacity: opacity,
-                          child: AiDestinationCard(
-                            destination: state.aiSuggestions[index],
-                            selectionProgress: overlayProgress,
+                        const SizedBox(width: AppSpacing.space8),
+                        Text(
+                          l10n.stepAiProposals,
+                          style: const TextStyle(
+                            fontFamily: FontFamily.dMSans,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: ColorName.secondary,
+                            letterSpacing: 0.5,
                           ),
                         ),
-                      );
-                    },
-                  ),
-                ),
+                      ],
+                    ),
+                  );
+                }
 
-                // Swipe hint
-                AnimatedOpacity(
-                  opacity: showSwipeHint ? 1.0 : 0.0,
-                  duration: AppAnimations.fadeIn,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: AppSpacing.space8),
-                    child: Text(
-                      l10n.swipeToDiscover,
-                      style: const TextStyle(
-                        fontFamily: FontFamily.b612,
-                        fontSize: 13,
-                        color: ColorName.hint,
+                final suggestionIndex = index - 1;
+                final isSelected = _selectedCardIndex == suggestionIndex;
+                final isOther = _selectedCardIndex != null && !isSelected;
+                final overlayProgress = isSelected ? _overlayAnim.value : 0.0;
+                final opacity = isOther
+                    ? 1.0 - 0.7 * _fadeOthersAnim.value
+                    : 1.0;
+                final scale = isSelected ? 1.0 + 0.03 * _scaleAnim.value : 1.0;
+
+                return GestureDetector(
+                  onTap: () => _onChoose(suggestionIndex),
+                  child: Transform.scale(
+                    scale: scale,
+                    child: Opacity(
+                      opacity: opacity,
+                      child: AiDestinationCard(
+                        destination: state.aiSuggestions[suggestionIndex],
+                        selectionProgress: overlayProgress,
+                        isExpanded: _expandedCardIndex == suggestionIndex,
+                        onToggleExpanded: () {
+                          setState(() {
+                            _expandedCardIndex =
+                                _expandedCardIndex == suggestionIndex
+                                ? null
+                                : suggestionIndex;
+                          });
+                        },
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.space16),
-
-                // "Choose this destination" CTA
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.space22,
-                    0,
-                    AppSpacing.space22,
-                    AppSpacing.space24,
-                  ),
-                  child: ProgressionCtaButton(
-                    text: l10n.chooseThisDestination,
-                    icon: Icons.check_circle_outline_rounded,
-                    iconPosition: ProgressionCtaIconPosition.left,
-                    enabled: _selectedCardIndex == null,
-                    onPressed: _onChoose,
-                  ),
-                ),
-              ],
+                );
+              },
             );
           },
         );
