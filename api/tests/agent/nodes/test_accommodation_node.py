@@ -47,7 +47,10 @@ async def test_returns_amadeus_hotels_when_available():
 
 
 @pytest.mark.asyncio
-async def test_synthesizes_placeholder_when_amadeus_returns_no_hotels():
+async def test_returns_deferred_marker_when_amadeus_returns_no_hotels():
+    """No hotel data → emit a marker that lets the front render an
+    unambiguous 'Hôtel à choisir' tile instead of inventing a name and
+    a per-night price."""
     state = {
         "selected_destination": {"iata": "HND", "city": "Tokyo"},
         "departure_date": "2026-08-15",
@@ -65,17 +68,18 @@ async def test_synthesizes_placeholder_when_amadeus_returns_no_hotels():
 
     assert len(result["accommodations"]) == 1
     placeholder = result["accommodations"][0]
-    assert placeholder["source"] == "estimated"
-    # Nightly rate for premium = 280 EUR; 7 nights -> 1960 EUR.
-    assert placeholder["price_total"] == 280.0 * 7
-    assert placeholder["price_per_night"] == 280.0
+    assert placeholder["source"] == "deferred"
+    assert placeholder["name"] == ""  # no fabricated hotel name
+    assert placeholder["price_total"] is None
+    assert placeholder["price_per_night"] is None
     assert placeholder["nights"] == 7
-    assert "Tokyo" in placeholder["name"]
+    assert placeholder["check_in"] == "2026-08-15"
+    assert placeholder["check_out"] == "2026-08-22"
     assert result["events"][0]["data"]["source"] == "estimated"
 
 
 @pytest.mark.asyncio
-async def test_synthesizes_placeholder_when_amadeus_raises():
+async def test_returns_deferred_marker_when_amadeus_raises():
     state = {
         "selected_destination": {"iata": "HND", "city": "Tokyo"},
         "departure_date": "2026-08-15",
@@ -93,9 +97,10 @@ async def test_synthesizes_placeholder_when_amadeus_raises():
 
     assert len(result["accommodations"]) == 1
     placeholder = result["accommodations"][0]
-    assert placeholder["source"] == "estimated"
-    # Mid band = 120 EUR/night × 5 = 600 EUR.
-    assert placeholder["price_total"] == 600.0
+    assert placeholder["source"] == "deferred"
+    assert placeholder["name"] == ""
+    assert placeholder["price_total"] is None
+    assert placeholder["price_per_night"] is None
 
 
 @pytest.mark.asyncio
@@ -106,7 +111,6 @@ async def test_skips_search_when_dates_missing():
         "return_date": "",
         "nb_travelers": 2,
     }
-    # The amadeus call must not even fire — patch it as an exploding mock.
     boom = AsyncMock(side_effect=AssertionError("should not be called"))
 
     with patch("src.agent.nodes.accommodation.search_real_hotels", new=boom):
@@ -114,7 +118,7 @@ async def test_skips_search_when_dates_missing():
 
     boom.assert_not_called()
     # No dates → no placeholder either; downstream knows to render
-    # "À déterminer" without a tile.
+    # "Hôtel à choisir" without a tile.
     assert result["accommodations"] == []
 
 
@@ -126,17 +130,25 @@ def test_placeholder_returns_none_without_dates():
     assert placeholder is None
 
 
-def test_placeholder_falls_back_to_mid_for_unknown_preset():
+def test_placeholder_carries_trip_dates_and_pax():
     placeholder = _synthesize_accommodation_placeholder(
         {
             "departure_date": "2026-08-15",
             "return_date": "2026-08-20",
             "duration_days": 5,
             "budget_preset": "absurd",
-            "nb_travelers": 2,
+            "nb_travelers": 3,
         },
         {"city": "Lyon"},
     )
     assert placeholder is not None
-    # Falls back to 120 EUR mid-band.
-    assert placeholder["price_per_night"] == 120.0
+    # No fabricated price field — the front must not display a number
+    # we don't have ground truth for.
+    assert placeholder["price_per_night"] is None
+    assert placeholder["price_total"] is None
+    # Trip context is preserved so the front can render
+    # "Hôtel à choisir · 5 nuits · 3 voyageurs" without re-deriving.
+    assert placeholder["nights"] == 5
+    assert placeholder["adults"] == 3
+    assert placeholder["check_in"] == "2026-08-15"
+    assert placeholder["source"] == "deferred"

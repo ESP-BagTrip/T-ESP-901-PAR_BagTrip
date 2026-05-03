@@ -4529,8 +4529,8 @@ abstract class AppLocalizations {
   /// No description provided for @accommodationPerNight.
   ///
   /// In fr, this message translates to:
-  /// **'/nuit'**
-  String get accommodationPerNight;
+  /// **'{amount} {currency}/nuit'**
+  String accommodationPerNight(String amount, String currency);
 
   /// No description provided for @accommodationNoResults.
   ///
@@ -6218,6 +6218,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Voir moins'**
   String get showLess;
+
+  /// No description provided for @accommodationToBeChosen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hôtel à choisir'**
+  String get accommodationToBeChosen;
+
+  /// No description provided for @accommodationDeferredSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'{city} · {nights} à réserver'**
+  String accommodationDeferredSubtitle(String city, String nights);
 }
 
 class _AppLocalizationsDelegate

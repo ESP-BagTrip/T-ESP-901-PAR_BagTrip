@@ -277,9 +277,12 @@ def _compute_fallback_budget(accommodations: list, activities: list, estimation:
 # Tuned roughly against eurostat & numbeo medians, biased to err on the
 # safe (slightly high) side for the user's expectations.
 _PER_DIEM_TABLE: dict[str, dict[str, float]] = {
-    "low": {"food": 25.0, "transport": 10.0},
-    "mid": {"food": 45.0, "transport": 18.0},
-    "premium": {"food": 90.0, "transport": 35.0},
+    # ``accommodation`` is per-room / per-night and only kicks in when the
+    # accommodation node returned a deferred placeholder (no Amadeus hit).
+    # It feeds the budget breakdown but never the hotel card itself.
+    "low": {"food": 25.0, "transport": 10.0, "accommodation": 60.0},
+    "mid": {"food": 45.0, "transport": 18.0, "accommodation": 120.0},
+    "premium": {"food": 90.0, "transport": 35.0, "accommodation": 280.0},
 }
 _DEFAULT_PER_DIEM = _PER_DIEM_TABLE["mid"]
 
@@ -399,15 +402,23 @@ async def budget_node(state: TripPlanState) -> dict:
 
     flight_total = _flight_total_from_offers(flight_offers)
 
-    # ── Accommodation: best stay total (existing helper).
+    # ── Per-diem table (food, transport, accommodation fallback).
+    per_diem = _per_diem_for(state)
+
+    # ── Accommodation: prefer the gathered Amadeus stay total. When the
+    # accommodation node returned a deferred placeholder (no Amadeus hit),
+    # fall back to ``accommodation_per_diem × nights``. This keeps the
+    # *budget* informed even though the *hotel card* stays empty — the
+    # split is intentional: we never want to invent a hotel name.
     accom_total = _accommodation_stay_total(accommodations[0]) if accommodations else 0.0
-    accom_source = "amadeus" if accom_total > 0 else "estimated"
+    if accom_total > 0:
+        accom_source = "amadeus"
+    else:
+        accom_total = round(per_diem["accommodation"] * duration_days, 2)
+        accom_source = "per_diem"
 
     # ── Activities: sum of gathered estimated costs.
     activity_total = sum(float(a.get("estimated_cost", 0) or 0) for a in activities)
-
-    # ── Per-diem food + transport.
-    per_diem = _per_diem_for(state)
 
     estimation = _build_estimation(
         flight_total=flight_total,

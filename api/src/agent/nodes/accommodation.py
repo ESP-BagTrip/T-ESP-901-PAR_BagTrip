@@ -86,25 +86,33 @@ async def accommodation_node(state: TripPlanState) -> dict:
     }
 
 
-# Per-night placeholder budget (EUR / room / night). Coarse but shaped to
-# the same budget bands the budget node uses, so the review screen
-# numbers stay internally consistent.
-_PLACEHOLDER_NIGHTLY_RATE: dict[str, float] = {
-    "low": 60.0,
-    "mid": 120.0,
-    "premium": 280.0,
-}
-
-
 def _synthesize_accommodation_placeholder(state: TripPlanState, destination: dict) -> dict | None:
-    """Build a single ``estimated`` accommodation entry.
+    """Return a deferred-accommodation marker for the review screen.
 
     Used when Amadeus returns no offers (sandbox unavailable, niche
-    city, dates outside the inventory window). Mirrors the ``estimated``
-    flight-offer pattern: a clearly marked source = "estimated", a
-    plausible price tied to ``budget_preset``, and the trip dates so
-    downstream code (budget aggregation, persist on accept) can reason
-    about nights × rate without re-deriving them.
+    city, dates outside the inventory window). The previous version
+    fabricated a hotel called ``"À déterminer · {city}"`` with a
+    ``price_per_night`` from a coarse budget-preset table. That
+    backfired in two ways the user immediately spotted on the Tokyo
+    trial:
+
+    - the front renders the per-night value with no unit suffix, so
+      "120 EUR" reads as "for the whole stay", which is absurd next
+      to a 7-night Tokyo trip;
+    - the value was made up — there is no ground truth that says a
+      mid-band Tokyo hotel costs 120 EUR/night, and presenting an
+      invented number as if it were real undermines the rest of the
+      generated plan.
+
+    We now return a minimal marker (no name, no per-night, no total)
+    and let the front render an unambiguous "Hôtel à choisir · {city}
+    · N nuits" placeholder. The accommodation budget line is still
+    produced by ``budget_node`` from its per-diem table, so the
+    *budget* the user sees stays informed; we just stop pretending we
+    found a *hotel*.
+
+    The ``source="deferred"`` marker lets the front widget tell this
+    case apart from a real Amadeus hit (``"amadeus"``).
     """
     check_in = state.get("departure_date", "") or ""
     check_out = state.get("return_date", "") or ""
@@ -112,21 +120,17 @@ def _synthesize_accommodation_placeholder(state: TripPlanState, destination: dic
         return None
     duration_days = int(state.get("duration_days") or 1) or 1
     nights = max(duration_days, 1)
-    preset = (state.get("budget_preset") or "mid").lower()
-    nightly = _PLACEHOLDER_NIGHTLY_RATE.get(preset, _PLACEHOLDER_NIGHTLY_RATE["mid"])
-    price_total = round(nightly * nights, 2)
 
-    city = destination.get("city") or ""
     return {
-        "name": f"À déterminer · {city}".strip(" ·") or "À déterminer",
+        "name": "",
         "hotel_id": "",
         "rating": None,
-        "price_total": price_total,
-        "price_per_night": nightly,
+        "price_total": None,
+        "price_per_night": None,
         "nights": nights,
         "adults": int(state.get("nb_travelers") or 1) or 1,
         "currency": "EUR",
         "check_in": check_in,
         "check_out": check_out,
-        "source": "estimated",
+        "source": "deferred",
     }

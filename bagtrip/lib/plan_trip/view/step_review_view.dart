@@ -245,13 +245,36 @@ class StepReviewView extends StatelessWidget {
     int durationDays,
     AppLocalizations l10n,
   ) {
-    if (plan.accommodationName.isEmpty) return null;
+    final hasRealHotel = plan.accommodationName.isNotEmpty;
+    final hasDates = durationDays > 0;
+    if (!hasRealHotel && !hasDates) return null;
+
+    if (hasRealHotel) {
+      return ReviewInlineHotelData(
+        name: plan.accommodationName,
+        rating: plan.hotelRating,
+        arrivalLabel: l10n.reviewHotelArrival,
+        staySummary: l10n.reviewHotelStayNights(durationDays),
+        subtitle: plan.accommodationSubtitle,
+      );
+    }
+
+    // Deferred-marker case: backend could not retrieve a real hotel
+    // (Amadeus down, niche city). Render a clear placeholder instead
+    // of fabricating a name + per-night price the user would mis-read
+    // as a stay total.
+    final destName = plan.destinationCity.isNotEmpty
+        ? plan.destinationCity
+        : (plan.destinationIata ?? '');
     return ReviewInlineHotelData(
-      name: plan.accommodationName,
-      rating: plan.hotelRating,
+      name: l10n.accommodationToBeChosen,
+      rating: 0,
       arrivalLabel: l10n.reviewHotelArrival,
       staySummary: l10n.reviewHotelStayNights(durationDays),
-      subtitle: plan.accommodationSubtitle,
+      subtitle: l10n.accommodationDeferredSubtitle(
+        destName,
+        l10n.reviewHotelStayNights(durationDays),
+      ),
     );
   }
 

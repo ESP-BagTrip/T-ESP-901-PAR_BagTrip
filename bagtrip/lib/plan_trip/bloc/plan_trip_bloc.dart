@@ -914,27 +914,44 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     // (B23 / topic 04a). Prefer the explicit per-night unit; fall back
     // to dividing the stay total by `nights` when the tool only emitted
     // a total.
-    String accommodationName = 'À déterminer';
+    //
+    // When the backend returns a deferred-marker (Amadeus unavailable
+    // → name="" / prices=null / source="deferred"), we leave the
+    // values empty and let the review view render an l10n
+    // "accommodation to be chosen" placeholder rather than fabricating
+    // a hotel name and a price the front would display without unit.
+    String accommodationName = '';
     String accommodationSubtitle = '';
     double accommodationPrice = 0;
-    String accommodationSource = 'estimated';
+    String accommodationSource = 'deferred';
     if (accommodations.isNotEmpty) {
       final best = accommodations.first;
-      accommodationName = best['name'] as String? ?? 'Hôtel';
-      final perNight = (best['price_per_night'] as num?)?.toDouble();
-      final priceTotal = (best['price_total'] as num?)?.toDouble();
-      final nightsRaw = (best['nights'] as num?)?.toInt() ?? 0;
-      if (perNight != null && perNight > 0) {
-        accommodationPrice = perNight;
-      } else if (priceTotal != null && priceTotal > 0 && nightsRaw > 0) {
-        accommodationPrice = priceTotal / nightsRaw;
-      } else {
-        accommodationPrice = 0;
-      }
+      final rawName = (best['name'] as String?) ?? '';
       accommodationSource = best['source'] as String? ?? 'estimated';
-      final currency = best['currency'] as String? ?? 'EUR';
-      accommodationSubtitle =
-          '${dest['city'] ?? ''} · ${accommodationPrice.toStringAsFixed(0)} $currency';
+      if (rawName.isNotEmpty) {
+        accommodationName = rawName;
+        final perNight = (best['price_per_night'] as num?)?.toDouble();
+        final priceTotal = (best['price_total'] as num?)?.toDouble();
+        final nightsRaw = (best['nights'] as num?)?.toInt() ?? 0;
+        if (perNight != null && perNight > 0) {
+          accommodationPrice = perNight;
+        } else if (priceTotal != null && priceTotal > 0 && nightsRaw > 0) {
+          accommodationPrice = priceTotal / nightsRaw;
+        } else {
+          accommodationPrice = 0;
+        }
+        if (accommodationPrice > 0) {
+          // Subtitle is built by the view via l10n.accommodationPerNight
+          // so the unit suffix is consistent across locales; we hand it
+          // a pre-formatted "{city} · {amount}" string for backwards
+          // compatibility with consumers that still read this field.
+          final currency = best['currency'] as String? ?? 'EUR';
+          accommodationSubtitle =
+              '${dest['city'] ?? ''} · ${accommodationPrice.toStringAsFixed(0)} $currency/nuit';
+        } else {
+          accommodationSubtitle = '${dest['city'] ?? ''}';
+        }
+      }
     }
 
     // Flight info from budget
