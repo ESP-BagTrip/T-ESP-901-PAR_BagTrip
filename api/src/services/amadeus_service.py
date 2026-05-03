@@ -20,6 +20,8 @@ from __future__ import annotations
 
 from src.integrations.amadeus.client import amadeus_client
 from src.integrations.amadeus.types import (
+    Activity,
+    ActivitySearchQuery,
     FlightCheapestDateSearchQuery,
     FlightInspirationSearchQuery,
     FlightOffer,
@@ -82,3 +84,10 @@ class AmadeusService:
         so unit tests stay simple.
         """
         return await amadeus_client.search_pois(query)
+
+    # ---- Tours & Activities -----------------------------------------------
+
+    @staticmethod
+    async def search_activities(query: ActivitySearchQuery) -> list[Activity]:
+        """Resolve bookable tours / activities near a coordinate."""
+        return await amadeus_client.search_activities(query)

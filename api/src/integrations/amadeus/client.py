@@ -4,6 +4,7 @@ Les recherches de locations (aéroports, villes, codes IATA) sont gérées
 par le module aviation_data (données offline).
 """
 
+from .activities import search_activities
 from .flights import (
     confirm_flight_price,
     create_flight_order,
@@ -17,6 +18,7 @@ from .hotels import (
 )
 from .pois import search_pois
 from .types import (
+    ActivitySearchQuery,
     FlightCheapestDateSearchQuery,
     FlightInspirationSearchQuery,
     FlightOffer,
@@ -67,6 +69,11 @@ class AmadeusClient:
     async def search_pois(self, query: PoiSearchQuery):
         """Recherche de Points of Interest autour d'un point géographique."""
         return await search_pois(query)
+
+    # Tours & Activities
+    async def search_activities(self, query: ActivitySearchQuery):
+        """Recherche d'activités bookables autour d'un point géographique."""
+        return await search_activities(query)
 
 
 # Instance globale du client

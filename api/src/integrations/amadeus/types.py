@@ -635,3 +635,52 @@ class PoiListResponse(BaseModel):
     """Wrapper around Amadeus' ``data`` array."""
 
     data: list[Poi] = Field(default_factory=list)
+
+
+# ============================================================================
+# TOURS & ACTIVITIES TYPES (Shopping — Tours and Activities)
+# ============================================================================
+
+
+class ActivitySearchQuery(BaseModel):
+    """Requête de recherche d'activités bookables autour d'un point.
+
+    Backs ``GET /v1/shopping/activities``. Returned objects expose
+    booking links, prices, durations and pictures — everything we need
+    to ship a real activity chip without LLM-generated copy.
+    """
+
+    latitude: float
+    longitude: float
+    radius: int = Field(1, ge=1, le=20, description="Radius in km, max 20")
+
+
+class ActivityPrice(BaseModel):
+    """Activity price block."""
+
+    amount: str
+    currencyCode: str | None = None
+
+
+class Activity(BaseModel):
+    """Single bookable activity returned by Amadeus."""
+
+    type: str = "activity"
+    id: str
+    name: str
+    shortDescription: str | None = None
+    description: str | None = None
+    geoCode: PoiGeoCode
+    rating: str | None = None
+    price: ActivityPrice | None = None
+    pictures: list[str] = Field(default_factory=list)
+    bookingLink: str | None = None
+    minimumDuration: str | None = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class ActivityListResponse(BaseModel):
+    """Wrapper around the Amadeus activities ``data`` array."""
+
+    data: list[Activity] = Field(default_factory=list)
