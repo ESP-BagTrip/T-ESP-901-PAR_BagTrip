@@ -1,15 +1,36 @@
-"""Budget estimator node — uses real flight prices + gathered hotel/activity data."""
+"""Budget estimator node — deterministic aggregation over Amadeus + per-diem table.
+
+Pre-SMP-324 this node ran a ReAct loop over ``search_real_flights`` and
+``resolve_iata_code``, asking the LLM to fold five categories
+(flight / accommodation / food / transport / activity) into one JSON
+estimation. That worked when every input was perfect but stalled hard
+the moment a localized destination_city left ``destination_iata`` empty:
+the LLM emitted "Thought: Need IATA code for Singapore." with no Action,
+the JSON parse failed, and the budget came back as 0 EUR — exactly the
+production stall this PR was filed to remove.
+
+The new implementation is deterministic:
+
+  - Flight: read directly from the offers Amadeus already returned in
+    the same node (or from the synthesized placeholder when Amadeus
+    is unavailable).
+  - Accommodation: sum of the best gathered hotel's stay total,
+    using the existing ``_accommodation_stay_total`` helper.
+  - Activity: sum of activities' ``estimated_cost``.
+  - Food + transport: per-diem table (per traveler / per day), tuned
+    to the ``budget_preset`` band selected by the wizard.
+
+The LLM is no longer in the critical path of the budget. We keep the
+SSE event format identical so the front-end and the persistence layer
+don't move.
+"""
 
 from __future__ import annotations
 
-import json
 from datetime import datetime, time, timedelta
 
-from src.agent.prompts import render
-from src.agent.react_executor import react_execute
 from src.agent.runtime_budget import guard
 from src.agent.state import TripPlanState
-from src.agent.tools import TOOL_REGISTRY
 from src.utils.logger import logger
 
 # Topic 05 (B12) — singular keys aligned with the Flutter `BudgetCategory`
@@ -149,126 +170,166 @@ def _compute_fallback_budget(accommodations: list, activities: list, estimation:
     }
 
 
+# Per-traveler / per-day daily costs in EUR. Coarse on purpose — better
+# to be 20 % off than to ask the LLM and stall on a "Thought:" parse error.
+# Tuned roughly against eurostat & numbeo medians, biased to err on the
+# safe (slightly high) side for the user's expectations.
+_PER_DIEM_TABLE: dict[str, dict[str, float]] = {
+    "low": {"food": 25.0, "transport": 10.0},
+    "mid": {"food": 45.0, "transport": 18.0},
+    "premium": {"food": 90.0, "transport": 35.0},
+}
+_DEFAULT_PER_DIEM = _PER_DIEM_TABLE["mid"]
+
+
+def _flight_total_from_offers(offers: list[dict]) -> float:
+    """Sum the per-traveler price field of every offer (Amadeus or synthetic)."""
+    total = 0.0
+    for offer in offers:
+        try:
+            total += float(offer.get("price", 0) or 0)
+        except (TypeError, ValueError):
+            continue
+    return total
+
+
+def _per_diem_for(state: TripPlanState) -> dict[str, float]:
+    preset = (state.get("budget_preset") or "").lower()
+    return _PER_DIEM_TABLE.get(preset, _DEFAULT_PER_DIEM)
+
+
+def _build_estimation(
+    *,
+    flight_total: float,
+    accommodation_total: float,
+    activity_total: float,
+    duration_days: int,
+    nb_travelers: int,
+    per_diem: dict[str, float],
+    flight_source: str,
+    accommodation_source: str,
+) -> dict:
+    """Assemble the singular-key estimation payload the front consumes."""
+    food_total = round(per_diem["food"] * duration_days * nb_travelers, 2)
+    transport_total = round(per_diem["transport"] * duration_days * nb_travelers, 2)
+
+    total = flight_total + accommodation_total + activity_total + food_total + transport_total
+    return {
+        "flight": {
+            "amount": round(flight_total, 2),
+            "currency": "EUR",
+            "source": flight_source,
+        },
+        "accommodation": {
+            "amount": round(accommodation_total, 2),
+            "currency": "EUR",
+            "source": accommodation_source,
+        },
+        "food": {
+            "amount": food_total,
+            "currency": "EUR",
+            "source": "per_diem",
+            "per_day_per_person": per_diem["food"],
+        },
+        "transport": {
+            "amount": transport_total,
+            "currency": "EUR",
+            "source": "per_diem",
+            "per_day_per_person": per_diem["transport"],
+        },
+        "activity": {
+            "amount": round(activity_total, 2),
+            "currency": "EUR",
+            "source": "gathered_data" if activity_total > 0 else "estimated",
+        },
+        "total_min": int(total * 0.85),
+        "total_max": int(total * 1.15),
+        "currency": "EUR",
+    }
+
+
 async def budget_node(state: TripPlanState) -> dict:
-    """Estimate budget using real Amadeus flight prices + aggregated data."""
-    guard(state, min_required=5.0)
+    """Aggregate the budget deterministically from Amadeus + per-diem table."""
+    guard(state, min_required=2.0)
     logger.info("=== Budget Estimator Node ===")
 
     dest = state.get("selected_destination", {})
-    accommodations = state.get("accommodations", [])
-    activities = state.get("activities", [])
+    accommodations = state.get("accommodations", []) or []
+    activities = state.get("activities", []) or []
+    origin_iata = state.get("origin_iata", "") or ""
+    dest_iata = dest.get("iata", "") or ""
+    duration_days = int(state.get("duration_days") or 1) or 1
+    nb_travelers = int(state.get("nb_travelers") or 1) or 1
 
-    parts = [
-        f"Destination: {dest.get('city', 'Unknown')}, {dest.get('country', '')} (IATA: {dest.get('iata', '')})",
-    ]
-
-    # Include origin for flight search
-    if state.get("origin_city"):
-        parts.append(f"Origin city: {state['origin_city']}")
-
-    if state.get("departure_date"):
-        parts.append(f"Departure date: {state['departure_date']}")
-    if state.get("return_date"):
-        parts.append(f"Return date: {state['return_date']}")
-    if state.get("duration_days"):
-        parts.append(f"Duration: {state['duration_days']} days")
-    if state.get("companions"):
-        parts.append(f"Travelers: {state['companions']}")
-    if state.get("budget_preset"):
-        from src.api.ai.plan_trip_schemas import BUDGET_PRESET_RANGES
-
-        label = BUDGET_PRESET_RANGES.get(state["budget_preset"], {}).get(
-            "label", state["budget_preset"]
-        )
-        parts.append(f"Budget level: {label}")
-    # Topic 01 — feed the user's explicit numeric ceiling to the LLM so the
-    # estimation stays anchored to it rather than emerging from the breakdown.
-    target_budget = state.get("target_budget")
-    if target_budget is not None and target_budget > 0:
-        parts.append(
-            f"User's target budget: {target_budget} EUR — keep the breakdown "
-            "consistent with this ceiling."
-        )
-    if state.get("nb_travelers"):
-        parts.append(f"Number of travelers: {state['nb_travelers']}")
-
-    # Include gathered data for the LLM to use
-    if accommodations:
-        parts.append(f"Hotel data already gathered: {json.dumps(accommodations[:3], default=str)}")
-    if activities:
-        total_activity_cost = sum(a.get("estimated_cost", 0) or 0 for a in activities)
-        parts.append(f"Total estimated activity costs: {total_activity_cost} EUR")
-
-    user_prompt = "\n".join(parts)
-
-    # Direct flight search to capture raw offer data for Flutter display
-    from src.agent.tools import search_real_flights
-
+    # ── Flights: try Amadeus directly; synthesize a placeholder otherwise.
     flight_offers: list[dict] = []
-    origin_iata = state.get("origin_iata", "")
-    dest_iata = dest.get("iata", "")
+    flight_source = "estimated"
     if origin_iata and dest_iata and state.get("departure_date"):
+        from src.agent.tools import search_real_flights
+
         try:
             flight_result = await search_real_flights(
                 origin=origin_iata,
                 destination=dest_iata,
                 date=state["departure_date"],
                 return_date=state.get("return_date"),
-                adults=state.get("nb_travelers", 1),
+                adults=nb_travelers,
             )
-            flight_offers = flight_result.get("flights", [])
-        except Exception as e:
-            logger.warn("Direct flight search for raw data failed", {"error": str(e)})
+            flight_offers = flight_result.get("flights", []) or []
+            if flight_offers:
+                flight_source = "amadeus"
+        except Exception as exc:
+            logger.warn("budget_node: direct flight search failed", {"error": str(exc)})
 
-    # Remember whether Amadeus actually produced anything — we might need to
-    # synthesize a fallback offer after the LLM returns a budget estimation.
-    _amadeus_delivered = len(flight_offers) > 0
-
-    # ReAct with flight search tool
-    tool_names = ["search_real_flights", "resolve_iata_code"]
-    result = await react_execute(
-        agent_instruction=render("budget", locale=state.get("locale", "en")),
-        user_prompt=user_prompt,
-        tool_names=tool_names,
-        tool_registry=TOOL_REGISTRY,
-    )
-
-    estimation = result.get("estimation", result)
-
-    # Validate: if breakdown sums to 0, compute fallback from gathered data
-    llm_total = _sum_estimation(estimation)
-    if llm_total == 0:
-        llm_total = max(
-            float(estimation.get("total_max", 0) or 0),
-            float(estimation.get("total_min", 0) or 0),
-        )
-    if llm_total == 0 and (accommodations or activities):
-        logger.warn(
-            "Budget LLM returned zero estimation, computing fallback from gathered data",
-            {"raw_estimation": estimation},
-        )
-        estimation = _compute_fallback_budget(accommodations, activities, estimation)
-
-    # Synthesize a placeholder flight offer when Amadeus returned nothing.
-    # Keeps the review + trip_detail flight cards populated instead of a
-    # silent drop (bug SMP-316 on Barcelone).
-    if not _amadeus_delivered and origin_iata and dest_iata and state.get("departure_date"):
-        flight_price = _extract_amount(estimation.get("flight"))
-        synthetic = _synthesize_flight_offer(
+    if not flight_offers and origin_iata and dest_iata and state.get("departure_date"):
+        # Synthesize a placeholder so the review screen still shows a flight
+        # card — preserves the SMP-316 fix for Barcelone-style empty cards.
+        per_offer_estimate = _per_diem_for(state)["food"] * duration_days  # rough heuristic
+        flight_offers = _synthesize_flight_offer(
             origin_iata=origin_iata,
             dest_iata=dest_iata,
             departure_date=state["departure_date"],
             return_date=state.get("return_date"),
-            flight_price=flight_price,
+            flight_price=per_offer_estimate,
         )
-        if synthetic:
-            logger.info(
-                "Amadeus unavailable, emitting estimated flight offer",
-                {"origin": origin_iata, "destination": dest_iata},
-            )
-            flight_offers = synthetic
 
-    logger.info("Budget estimation complete", {"estimation": estimation})
+    flight_total = _flight_total_from_offers(flight_offers)
+
+    # ── Accommodation: best stay total (existing helper).
+    accom_total = _accommodation_stay_total(accommodations[0]) if accommodations else 0.0
+    accom_source = "amadeus" if accom_total > 0 else "estimated"
+
+    # ── Activities: sum of gathered estimated costs.
+    activity_total = sum(float(a.get("estimated_cost", 0) or 0) for a in activities)
+
+    # ── Per-diem food + transport.
+    per_diem = _per_diem_for(state)
+
+    estimation = _build_estimation(
+        flight_total=flight_total,
+        accommodation_total=accom_total,
+        activity_total=activity_total,
+        duration_days=duration_days,
+        nb_travelers=nb_travelers,
+        per_diem=per_diem,
+        flight_source=flight_source,
+        accommodation_source=accom_source,
+    )
+
+    logger.info(
+        "Budget estimation complete",
+        {
+            "flight": estimation["flight"]["amount"],
+            "accommodation": estimation["accommodation"]["amount"],
+            "food": estimation["food"]["amount"],
+            "transport": estimation["transport"]["amount"],
+            "activity": estimation["activity"]["amount"],
+            "source_mix": {
+                "flight": flight_source,
+                "accommodation": accom_source,
+            },
+        },
+    )
 
     return {
         "budget_estimation": estimation,
@@ -276,7 +337,7 @@ async def budget_node(state: TripPlanState) -> dict:
         "events": [
             {
                 "event": "budget",
-                "data": {"estimation": estimation, "source": "amadeus+llm"},
+                "data": {"estimation": estimation, "source": "deterministic"},
             },
         ],
     }
