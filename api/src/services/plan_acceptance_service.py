@@ -183,19 +183,33 @@ def _coerce_breakdown_amount(raw: object) -> float:
         return 0.0
 
 
-def _coerce_iso_date(value: str | date | None) -> date | None:
-    """Convert a YYYY-MM-DD string (the resolver output) to a ``date``.
+def _is_dated_activity(activity: dict) -> bool:
+    """An itinerary entry is dated when the LLM pinned it to a slot.
 
-    ``BudgetItem.date`` is a SQLAlchemy ``Date`` column, so the persister
-    must hand it a real ``datetime.date`` rather than the ISO string the
-    rest of the service passes around.
+    SMP-324 — undated rows (FOOD / TRANSPORT recommendations) don't
+    have ``suggested_day`` or ``time_of_day`` and live in dedicated
+    review-screen sections. Dated rows go on the day-by-day timeline.
     """
-    if value is None or isinstance(value, date):
-        return value
-    try:
-        return date.fromisoformat(value)
-    except (TypeError, ValueError):
-        return None
+    return activity.get("suggested_day") not in (None, "") or activity.get("time_of_day") not in (
+        None,
+        "",
+    )
+
+
+def _budget_category_for_activity(activity_category: str) -> BudgetCategory:
+    """Map an Activity.category string onto the matching BudgetCategory.
+
+    ``FOOD`` and ``TRANSPORT`` Activity rows now carry the same name
+    on both sides (Activity.category mirrors BudgetCategory) so the
+    budget breakdown lines and the trip-detail tabs filter against
+    the same value. Everything else falls into the ACTIVITY bucket.
+    """
+    upper = (activity_category or "").upper()
+    if upper == BudgetCategory.FOOD.value:
+        return BudgetCategory.FOOD
+    if upper == BudgetCategory.TRANSPORT.value:
+        return BudgetCategory.TRANSPORT
+    return BudgetCategory.ACTIVITY
 
 
 # ── Service ───────────────────────────────────────────────────────────
@@ -246,7 +260,6 @@ class PlanAcceptanceService:
         cls._persist_accommodations(db, trip, suggestion)
         cls._persist_flights(db, trip, suggestion)
         cls._persist_baggage(db, trip, suggestion, accept_language)
-        cls._persist_breakdown_estimates(db, trip, suggestion, start_date_value)
 
         db.commit()
         db.refresh(trip)
@@ -354,44 +367,57 @@ class PlanAcceptanceService:
             with contextlib.suppress(ValueError):
                 trip_start = date.fromisoformat(start_date_value)
 
-        duration_days = suggestion.get("durationDays", len(activities_data)) or len(activities_data)
+        # Only dated entries (CULTURE / NATURE / SPORT / ...) consume an
+        # itinerary slot. MEAL and TRANSPORT recommendations stay
+        # undated so the front renders them in dedicated sections.
+        dated_activities = [act for act in activities_data if _is_dated_activity(act)]
+        duration_days = suggestion.get("durationDays") or len(dated_activities) or 1
 
-        for i, act in enumerate(activities_data):
-            suggested_day = act.get("suggested_day")
-            if suggested_day and isinstance(suggested_day, int):
-                day_offset = (suggested_day - 1) % max(duration_days, 1)
-            else:
-                day_offset = i % max(duration_days, 1)
+        dated_index = 0
+        for act in activities_data:
+            activity_date: date | None = None
+            start_time_value = None
 
-            activity_date = (
-                trip_start + timedelta(days=day_offset)
-                if trip_start
-                else date.today() + timedelta(days=day_offset)
-            )
-            start_time_value = TIME_OF_DAY_MAP.get(act.get("time_of_day", ""))
+            if _is_dated_activity(act):
+                suggested_day = act.get("suggested_day")
+                if isinstance(suggested_day, int) and suggested_day > 0:
+                    day_offset = (suggested_day - 1) % max(duration_days, 1)
+                else:
+                    day_offset = dated_index % max(duration_days, 1)
+                dated_index += 1
+
+                activity_date = (
+                    trip_start + timedelta(days=day_offset)
+                    if trip_start
+                    else date.today() + timedelta(days=day_offset)
+                )
+                start_time_value = TIME_OF_DAY_MAP.get(act.get("time_of_day", ""))
 
             activity = Activity(
                 trip_id=trip.id,
-                title=act.get("title", f"Activite {i + 1}"),
+                title=act.get("title", "Activité"),
                 description=act.get("description", ""),
                 date=activity_date,
                 start_time=start_time_value,
                 location=act.get("location"),
                 category=act.get("category", "OTHER"),
-                estimated_cost=act.get("estimatedCost"),
+                estimated_cost=_coerce_breakdown_amount(
+                    act.get("estimated_cost", act.get("estimatedCost"))
+                )
+                or None,
                 validation_status=ValidationStatus.SUGGESTED,
             )
             db.add(activity)
             db.flush()
 
-            estimated = act.get("estimatedCost")
-            if estimated:
+            cost = _coerce_breakdown_amount(act.get("estimated_cost", act.get("estimatedCost")))
+            if cost > 0:
                 db.add(
                     _build_budget_item(
                         trip_id=trip.id,
                         label=activity.title,
-                        amount=float(estimated),
-                        category=BudgetCategory.ACTIVITY,
+                        amount=cost,
+                        category=_budget_category_for_activity(act.get("category", "OTHER")),
                         source_type="activity",
                         source_id=activity.id,
                         item_date=activity_date,
@@ -509,76 +535,6 @@ class PlanAcceptanceService:
                     name=bag.get("name", "Item"),
                     quantity=bag.get("quantity", 1),
                     category=bag.get("category", "OTHER"),
-                )
-            )
-
-    # ── Budget breakdown estimation ──────────────────────────────────
-    #
-    # ``flight``, ``accommodation`` and ``activity`` already get budget
-    # items via the dedicated persisters because they map to concrete
-    # objects (a flight booking, a hotel offer, an activity entry).
-    # ``food`` and ``transport`` have no concrete object — they are pure
-    # estimates carried by the SSE ``budget`` event. Without this
-    # method those two lines vanish at acceptance and the trip detail
-    # screen shows a "prévisionnel" of just the flight (the user
-    # regression report).
-    #
-    # We persist them as ``is_planned=True`` budget items so they
-    # show up under "PRÉVISIONNEL" without polluting "RÉEL" (which
-    # only counts ``is_planned=False`` actual spend).
-    _BREAKDOWN_PERSISTED_CATEGORIES: tuple[str, ...] = ("food", "transport")
-    _BREAKDOWN_LABELS_FR: dict[str, str] = {
-        "food": "Repas estimés",
-        "transport": "Transport estimé",
-    }
-    _BREAKDOWN_TO_ENUM: dict[str, BudgetCategory] = {
-        "food": BudgetCategory.FOOD,
-        "transport": BudgetCategory.TRANSPORT,
-    }
-
-    @classmethod
-    def _persist_breakdown_estimates(
-        cls,
-        db: Session,
-        trip: Trip,
-        suggestion: dict,
-        start_date_value: str | date | None,
-    ) -> None:
-        """Materialize the SSE ``budget`` breakdown into planned items.
-
-        The Flutter wizard sends the pre-computed breakdown back inside
-        ``suggestion["budget_breakdown"]`` (typed shape, EUR amounts).
-        Falls back to ``suggestion["budget"]["estimation"]`` for
-        backwards compatibility with payloads emitted before SMP-324.
-
-        Categories that already have a per-object persister
-        (``flight``, ``accommodation``, ``activity``) are skipped to
-        avoid double-counting; only ``food`` and ``transport`` are
-        materialized here.
-        """
-        breakdown = (
-            suggestion.get("budget_breakdown")
-            or (suggestion.get("budget") or {}).get("estimation")
-            or {}
-        )
-        if not isinstance(breakdown, dict):
-            return
-
-        item_date = _coerce_iso_date(start_date_value)
-
-        for key in cls._BREAKDOWN_PERSISTED_CATEGORIES:
-            raw = breakdown.get(key)
-            amount = _coerce_breakdown_amount(raw)
-            if amount <= 0:
-                continue
-            db.add(
-                _build_budget_item(
-                    trip_id=trip.id,
-                    label=cls._BREAKDOWN_LABELS_FR.get(key, key.title()),
-                    amount=amount,
-                    category=cls._BREAKDOWN_TO_ENUM[key].value,
-                    source_type="estimation",
-                    item_date=item_date,
                 )
             )
 

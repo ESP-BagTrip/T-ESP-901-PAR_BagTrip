@@ -88,17 +88,21 @@ def trip():
 
 
 class TestPersistActivities:
-    def test_creates_activity_and_budget_line_when_cost(self, mock_db, trip):
+    def test_creates_dated_activity_and_budget_line_with_culture_category(
+        self, mock_db, trip
+    ):
+        """Dated CULTURE entry → Activity row dated + BudgetItem in
+        ACTIVITY bucket."""
         suggestion = {
             "durationDays": 7,
             "activities": [
                 {
-                    "title": "Tapas tour",
-                    "description": "Born quarter",
-                    "category": "FOOD",
+                    "title": "Sagrada Família",
+                    "description": "Architecture iconique",
+                    "category": "CULTURE",
                     "suggested_day": 2,
-                    "time_of_day": "evening",
-                    "estimatedCost": 45,
+                    "time_of_day": "morning",
+                    "estimated_cost": 26,
                 }
             ],
         }
@@ -112,16 +116,83 @@ class TestPersistActivities:
         assert len(activities) == 1
         assert activities[0].validation_status == ValidationStatus.SUGGESTED
         assert activities[0].date == date(2026, 4, 24)  # day 2
+        assert activities[0].category == "CULTURE"
         assert len(budget_lines) == 1
         assert budget_lines[0].category == BudgetCategory.ACTIVITY
-        assert float(budget_lines[0].amount) == 45.0
+        assert float(budget_lines[0].amount) == 26.0
         assert budget_lines[0].is_planned is True
         assert budget_lines[0].source_type == "activity"
+
+    def test_food_recommendation_routes_to_food_budget_bucket(self, mock_db, trip):
+        """FOOD recommendation (undated) → undated Activity + FOOD BudgetItem.
+
+        SMP-324 cohérence — the LLM emits restaurant recommendations as
+        ``category=FOOD`` undated entries; the persistence path must
+        route them to the FOOD budget bucket so the review breakdown
+        and the trip detail Repas tab agree.
+        """
+        suggestion = {
+            "durationDays": 7,
+            "activities": [
+                {
+                    "title": "Tapas tour",
+                    "description": "Born quarter",
+                    "category": "FOOD",
+                    "estimated_cost": 45,
+                }
+            ],
+        }
+
+        PlanAcceptanceService._persist_activities(mock_db, trip, suggestion, "2026-04-23")
+
+        added = [call.args[0] for call in mock_db.add.call_args_list]
+        activities = [x for x in added if isinstance(x, Activity)]
+        budget_lines = [x for x in added if isinstance(x, BudgetItem)]
+
+        assert len(activities) == 1
+        # Undated by design — lives in the trip detail Repas tab.
+        assert activities[0].date is None
+        assert activities[0].category == "FOOD"
+        assert len(budget_lines) == 1
+        assert budget_lines[0].category == BudgetCategory.FOOD
+        assert float(budget_lines[0].amount) == 45.0
+
+    def test_transport_recommendation_routes_to_transport_budget_bucket(
+        self, mock_db, trip
+    ):
+        suggestion = {
+            "durationDays": 7,
+            "activities": [
+                {
+                    "title": "JR Pass 7 jours",
+                    "category": "TRANSPORT",
+                    "estimated_cost": 240,
+                }
+            ],
+        }
+
+        PlanAcceptanceService._persist_activities(mock_db, trip, suggestion, "2026-04-23")
+
+        added = [call.args[0] for call in mock_db.add.call_args_list]
+        budget_lines = [x for x in added if isinstance(x, BudgetItem)]
+        activities = [x for x in added if isinstance(x, Activity)]
+
+        assert activities[0].date is None
+        assert activities[0].category == "TRANSPORT"
+        assert budget_lines[0].category == BudgetCategory.TRANSPORT
+        assert float(budget_lines[0].amount) == 240.0
 
     def test_skips_budget_line_when_cost_missing(self, mock_db, trip):
         suggestion = {
             "durationDays": 7,
-            "activities": [{"title": "Free walk"}],
+            "activities": [
+                {
+                    "title": "Free walk",
+                    "category": "CULTURE",
+                    "suggested_day": 1,
+                    "time_of_day": "morning",
+                }
+            ],
         }
 
         PlanAcceptanceService._persist_activities(mock_db, trip, suggestion, "2026-04-23")
@@ -133,6 +204,28 @@ class TestPersistActivities:
     def test_no_activities_is_noop(self, mock_db, trip):
         PlanAcceptanceService._persist_activities(mock_db, trip, {"activities": []}, "2026-04-23")
         assert mock_db.add.call_count == 0
+
+    def test_camelCase_estimatedCost_still_accepted(self, mock_db, trip):
+        """Backwards compat with payloads emitted before SMP-324
+        renamed ``estimatedCost`` to the snake-case ``estimated_cost``."""
+        suggestion = {
+            "durationDays": 7,
+            "activities": [
+                {
+                    "title": "Sagrada Família",
+                    "category": "CULTURE",
+                    "suggested_day": 1,
+                    "time_of_day": "morning",
+                    "estimatedCost": 26,
+                }
+            ],
+        }
+
+        PlanAcceptanceService._persist_activities(mock_db, trip, suggestion, "2026-04-23")
+
+        added = [call.args[0] for call in mock_db.add.call_args_list]
+        budget_lines = [x for x in added if isinstance(x, BudgetItem)]
+        assert float(budget_lines[0].amount) == 26.0
 
 
 class TestPersistAccommodations:
@@ -282,93 +375,6 @@ class TestPersistBaggage:
         PlanAcceptanceService._persist_baggage(mock_db, trip, {}, "fr-FR,fr;q=0.9")
         added = [call.args[0] for call in mock_db.add.call_args_list]
         assert added[0].name == "Passeport"
-
-
-class TestPersistBreakdownEstimates:
-    """The SSE budget event ships estimation lines (food, transport,
-    accommodation, activity) that have no concrete object to attach to.
-    Without ``_persist_breakdown_estimates`` they vanish at acceptance
-    and the trip detail "PRÉVISIONNEL" only shows the flight line —
-    the regression the user spotted on the Tokyo trip."""
-
-    @staticmethod
-    def _by_category(mock_db):
-        return {
-            call.args[0].category: call.args[0]
-            for call in mock_db.add.call_args_list
-        }
-
-    def test_persists_food_and_transport_lines_from_breakdown(self, mock_db, trip):
-        suggestion = {
-            "budget_breakdown": {
-                "flight": {"amount": 2101, "source": "amadeus"},
-                "accommodation": {"amount": 0, "source": "deferred"},
-                "food": {"amount": 315, "source": "per_diem"},
-                "transport": {"amount": 126, "source": "per_diem"},
-                "activity": {"amount": 225, "source": "gathered_data"},
-            }
-        }
-        PlanAcceptanceService._persist_breakdown_estimates(
-            mock_db, trip, suggestion, date(2026, 5, 3)
-        )
-        added = self._by_category(mock_db)
-        assert "FOOD" in added
-        assert "TRANSPORT" in added
-        # Flight / accommodation / activity remain handled by their dedicated
-        # persisters, so this method must NOT double-count them.
-        assert "FLIGHT" not in added
-        assert "ACCOMMODATION" not in added
-        assert "ACTIVITY" not in added
-        assert added["FOOD"].amount == 315
-        assert added["FOOD"].is_planned is True
-        assert added["FOOD"].source_type == "estimation"
-        assert added["FOOD"].date == date(2026, 5, 3)
-        assert added["TRANSPORT"].amount == 126
-
-    def test_skips_zero_or_missing_breakdown_lines(self, mock_db, trip):
-        suggestion = {
-            "budget_breakdown": {
-                "food": {"amount": 0, "source": "per_diem"},
-                # transport intentionally omitted
-            }
-        }
-        PlanAcceptanceService._persist_breakdown_estimates(
-            mock_db, trip, suggestion, None
-        )
-        assert mock_db.add.call_args_list == []
-
-    def test_falls_back_to_legacy_budget_estimation_shape(self, mock_db, trip):
-        # Pre-SMP-324 SSE shape was ``{"budget": {"estimation": {...}}}``.
-        suggestion = {
-            "budget": {
-                "estimation": {
-                    "food": 200,
-                    "transport": 60,
-                }
-            }
-        }
-        PlanAcceptanceService._persist_breakdown_estimates(
-            mock_db, trip, suggestion, date(2026, 5, 3)
-        )
-        added = self._by_category(mock_db)
-        assert added["FOOD"].amount == 200
-        assert added["TRANSPORT"].amount == 60
-
-    def test_no_breakdown_is_noop(self, mock_db, trip):
-        PlanAcceptanceService._persist_breakdown_estimates(mock_db, trip, {}, None)
-        assert mock_db.add.call_args_list == []
-
-    def test_malformed_amount_silently_drops_line(self, mock_db, trip):
-        suggestion = {
-            "budget_breakdown": {
-                "food": {"amount": "not-a-number"},
-                "transport": "garbage",
-            }
-        }
-        PlanAcceptanceService._persist_breakdown_estimates(
-            mock_db, trip, suggestion, None
-        )
-        assert mock_db.add.call_args_list == []
 
 
 class TestResolveDates:
