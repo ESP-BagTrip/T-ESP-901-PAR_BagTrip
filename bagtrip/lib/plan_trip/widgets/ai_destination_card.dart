@@ -180,14 +180,16 @@ class AiDestinationCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Match reason
+                // Match reason — capped to 3 lines as a UI safeguard so a
+                // verbose LLM response can never blow up the card height.
                 if (destination.matchReason != null) ...[
                   Text(
                     destination.matchReason!,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontFamily: FontFamily.dMSans,
                       fontSize: 14,
-
                       color: ColorName.onSurface,
                     ),
                   ),
