@@ -12,13 +12,6 @@ import 'package:flutter/material.dart';
 /// Pure presentation — no BLoC dependency. The [selectionProgress] (0.0–1.0)
 /// drives the green overlay + checkmark animation externally.
 class AiDestinationCard extends StatelessWidget {
-  static const String _mockWeatherLabel = '18–22°C au printemps';
-  static const List<String> _mockActivities = [
-    'Alfama & Sao Jorge',
-    'Pastel de nata',
-    'Sintra day trip',
-  ];
-
   final AiDestination destination;
   final double selectionProgress;
   final bool isExpanded;
@@ -35,8 +28,9 @@ class AiDestinationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final weatherLabel = _resolvedWeatherLabel();
-    final activityLabels = _resolvedActivities();
+    final weatherLabel = destination.weatherSummary?.trim();
+    final hasWeather = weatherLabel != null && weatherLabel.isNotEmpty;
+    final activityLabels = destination.topActivities;
 
     return Container(
       decoration: BoxDecoration(
@@ -185,25 +179,27 @@ class AiDestinationCard extends StatelessWidget {
                 ],
 
                 // Weather + Budget chips
-                Wrap(
-                  spacing: AppSpacing.space8,
-                  runSpacing: AppSpacing.space4,
-                  children: [
-                    _InfoChip(
-                      icon: Icons.wb_sunny_rounded,
-                      label: weatherLabel,
-                      backgroundColor: AppColors.chipWeatherBackground,
-                      textColor: AppColors.chipWeatherForeground,
-                      iconColor: AppColors.chipWeatherForeground,
-                    ),
-                    if (destination.estimatedBudgetRange != null)
-                      _InfoChip(
-                        icon: Icons.euro_rounded,
-                        label:
-                            '${destination.estimatedBudgetRange!.min.toInt()}–${destination.estimatedBudgetRange!.max.toInt()}€',
-                      ),
-                  ],
-                ),
+                if (hasWeather || destination.estimatedBudgetRange != null)
+                  Wrap(
+                    spacing: AppSpacing.space8,
+                    runSpacing: AppSpacing.space4,
+                    children: [
+                      if (hasWeather)
+                        _InfoChip(
+                          icon: Icons.wb_sunny_rounded,
+                          label: weatherLabel,
+                          backgroundColor: AppColors.chipWeatherBackground,
+                          textColor: AppColors.chipWeatherForeground,
+                          iconColor: AppColors.chipWeatherForeground,
+                        ),
+                      if (destination.estimatedBudgetRange != null)
+                        _InfoChip(
+                          icon: Icons.euro_rounded,
+                          label:
+                              '${destination.estimatedBudgetRange!.min.toInt()}–${destination.estimatedBudgetRange!.max.toInt()}€',
+                        ),
+                    ],
+                  ),
 
                 // Activity pills
                 if (activityLabels.isNotEmpty) ...[
@@ -248,21 +244,6 @@ class AiDestinationCard extends StatelessWidget {
         color: ColorName.hint,
       ),
     );
-  }
-
-  String _resolvedWeatherLabel() {
-    final summary = destination.weatherSummary?.trim();
-    if (summary != null && summary.isNotEmpty) {
-      return summary;
-    }
-    return _mockWeatherLabel;
-  }
-
-  List<String> _resolvedActivities() {
-    if (destination.topActivities.isNotEmpty) {
-      return destination.topActivities;
-    }
-    return _mockActivities;
   }
 }
 
