@@ -1,4 +1,5 @@
 import 'package:bagtrip/components/optimized_image.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -191,9 +192,9 @@ class AiDestinationCard extends StatelessWidget {
                     _InfoChip(
                       icon: Icons.wb_sunny_rounded,
                       label: weatherLabel,
-                      backgroundColor: const Color(0xFFE3F5F4),
-                      textColor: const Color(0xFF0B7F80),
-                      iconColor: const Color(0xFF0B7F80),
+                      backgroundColor: AppColors.chipWeatherBackground,
+                      textColor: AppColors.chipWeatherForeground,
+                      iconColor: AppColors.chipWeatherForeground,
                     ),
                     if (destination.estimatedBudgetRange != null)
                       _InfoChip(
@@ -216,9 +217,9 @@ class AiDestinationCard extends StatelessWidget {
                           (activity) => _InfoChip(
                             icon: Icons.place_rounded,
                             label: activity,
-                            backgroundColor: const Color(0xFFF0F2F6),
-                            textColor: const Color(0xFF58617A),
-                            iconColor: const Color(0xFF58617A),
+                            backgroundColor: AppColors.chipActivityBackground,
+                            textColor: AppColors.chipActivityForeground,
+                            iconColor: AppColors.chipActivityForeground,
                             textStyle: const TextStyle(
                               fontFamily: FontFamily.dMSans,
                               fontSize: 12,
