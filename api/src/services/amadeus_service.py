@@ -29,6 +29,8 @@ from src.integrations.amadeus.types import (
     FlightOrderTraveler,
     HotelListSearchQuery,
     HotelOffersSearchQuery,
+    HotelSentiment,
+    HotelSentimentSearchQuery,
     Poi,
     PoiSearchQuery,
 )
@@ -91,3 +93,12 @@ class AmadeusService:
     async def search_activities(query: ActivitySearchQuery) -> list[Activity]:
         """Resolve bookable tours / activities near a coordinate."""
         return await amadeus_client.search_activities(query)
+
+    # ---- Hotel Sentiments -------------------------------------------------
+
+    @staticmethod
+    async def search_hotel_sentiments(
+        query: HotelSentimentSearchQuery,
+    ) -> list[HotelSentiment]:
+        """Resolve Amadeus sentiment scores for up to 3 hotel IDs."""
+        return await amadeus_client.search_hotel_sentiments(query)

@@ -684,3 +684,60 @@ class ActivityListResponse(BaseModel):
     """Wrapper around the Amadeus activities ``data`` array."""
 
     data: list[Activity] = Field(default_factory=list)
+
+
+# ============================================================================
+# HOTEL SENTIMENTS TYPES (E-Reputation — Hotel Sentiments)
+# ============================================================================
+
+
+class HotelSentimentSearchQuery(BaseModel):
+    """Requête de sentiment pour une liste de hotelIds Amadeus.
+
+    Wraps ``GET /v2/e-reputation/hotel-sentiments?hotelIds=...``. Up to
+    3 IDs per call per Amadeus quotas; the wrapper passes them as a
+    comma-separated list.
+    """
+
+    hotelIds: list[str] = Field(..., min_length=1, max_length=3)
+
+
+class HotelSentimentScores(BaseModel):
+    """Per-axis sentiment scores returned by Amadeus.
+
+    All scores are integers in the 0–100 range. Missing axes default to
+    ``None`` so a caller can distinguish "not enough reviews" from "0".
+    """
+
+    sleep: int | None = None
+    location: int | None = None
+    service: int | None = None
+    staff: int | None = None
+    value: int | None = None
+    catering: int | None = None
+    swimmingPool: int | None = None
+    facilities: int | None = None
+    pointsOfInterest: int | None = None
+    roomComforts: int | None = None
+    internet: int | None = None
+
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+
+
+class HotelSentiment(BaseModel):
+    """Aggregate Amadeus sentiment for one hotel."""
+
+    type: str = "hotelSentiment"
+    hotelId: str
+    overallRating: int | None = None
+    numberOfReviews: int | None = None
+    numberOfRatings: int | None = None
+    sentiments: HotelSentimentScores | None = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class HotelSentimentResponse(BaseModel):
+    """Wrapper around the Amadeus hotel-sentiments ``data`` array."""
+
+    data: list[HotelSentiment] = Field(default_factory=list)
