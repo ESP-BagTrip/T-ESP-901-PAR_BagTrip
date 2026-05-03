@@ -1706,6 +1706,8 @@
   "showLess": "Voir moins",
   "accommodationToBeChosen": "Hôtel à choisir",
   "budgetAccommodationDeferred": "À déterminer",
+  "reviewMealsToTry": "Restos à essayer",
+  "reviewTransportTips": "Transports utiles",
   "accommodationDeferredSubtitle": "{city} · {nights} à réserver",
   "@accommodationDeferredSubtitle": {
     "placeholders": {

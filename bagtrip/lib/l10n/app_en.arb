@@ -1706,6 +1706,8 @@
   "showLess": "Show less",
   "accommodationToBeChosen": "Accommodation to be chosen",
   "budgetAccommodationDeferred": "TBD",
+  "reviewMealsToTry": "Restaurants to try",
+  "reviewTransportTips": "Useful transports",
   "accommodationDeferredSubtitle": "{city} · {nights} to book later",
   "@accommodationDeferredSubtitle": {
     "placeholders": {

@@ -1002,14 +1002,65 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       hotelRating = (accommodations.first['rating'] as num?)?.toInt() ?? 0;
     }
 
-    // Day-by-day from activities
-    final dayProgram = activities
+    // SMP-324 — partition the agent's flat ``activities`` list into the
+    // three buckets the review screen renders separately:
+    //
+    //  - dated itinerary entries (CULTURE / NATURE / SPORT / ...) feed
+    //    the day-by-day timeline as before;
+    //  - undated FOOD entries become the "Restos à essayer" section;
+    //  - undated TRANSPORT entries become the "Transports utiles"
+    //    section.
+    //
+    // Categorisation is permissive: anything tagged FOOD / TRANSPORT
+    // *without* a slot lands in the recommendation bucket regardless
+    // of the order the LLM put it in. Anything else stays in the
+    // dated timeline, falling back to the activity index for the day
+    // when the agent forgot to attach a slot.
+    final datedActivities = <Map<String, dynamic>>[];
+    final mealReco = <TripRecommendation>[];
+    final transportReco = <TripRecommendation>[];
+
+    for (final a in activities) {
+      final category = ((a['category'] ?? 'OTHER') as String).toUpperCase();
+      final hasSlot =
+          a['suggested_day'] != null || a['time_of_day'] != null;
+      final estimatedCost =
+          (a['estimated_cost'] as num?)?.toDouble() ??
+          (a['estimatedCost'] as num?)?.toDouble() ??
+          0.0;
+
+      if (!hasSlot && category == 'FOOD') {
+        mealReco.add(
+          TripRecommendation(
+            title: (a['title'] ?? '') as String,
+            description: (a['description'] ?? '') as String,
+            estimatedCost: estimatedCost,
+            location: (a['location'] ?? '') as String,
+          ),
+        );
+        continue;
+      }
+      if (!hasSlot && category == 'TRANSPORT') {
+        transportReco.add(
+          TripRecommendation(
+            title: (a['title'] ?? '') as String,
+            description: (a['description'] ?? '') as String,
+            estimatedCost: estimatedCost,
+            location: (a['location'] ?? '') as String,
+          ),
+        );
+        continue;
+      }
+      datedActivities.add(a);
+    }
+
+    final dayProgram = datedActivities
         .map((a) => (a['title'] ?? '') as String)
         .toList();
-    final dayDescriptions = activities
+    final dayDescriptions = datedActivities
         .map((a) => (a['description'] ?? '') as String)
         .toList();
-    final dayCategories = activities
+    final dayCategories = datedActivities
         .map((a) => (a['category'] ?? 'OTHER') as String)
         .toList();
 
@@ -1084,6 +1135,8 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       dayProgram: dayProgram,
       dayDescriptions: dayDescriptions,
       dayCategories: dayCategories,
+      mealRecommendations: mealReco,
+      transportRecommendations: transportReco,
       essentialItems: essentialItems,
       essentialReasons: essentialReasons,
       budgetBreakdown: BudgetBreakdown.fromSseMap(budget),
@@ -1161,19 +1214,12 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
               : '',
         };
       }),
-      // SMP-324 — ship the typed budget breakdown to the backend so the
-      // plan acceptance service can materialize the food / transport
-      // estimation lines as PRÉVISIONNEL budget items. Without it the
-      // trip detail screen shows only the flight cost (the per-object
-      // persisters cover flight / accommodation / activity already).
-      'budget_breakdown': {
-        'flight': plan.budgetBreakdown.flight,
-        'accommodation': plan.budgetBreakdown.accommodation,
-        'food': plan.budgetBreakdown.food,
-        'transport': plan.budgetBreakdown.transport,
-        'activity': plan.budgetBreakdown.activity,
-        'other': plan.budgetBreakdown.other,
-      },
+      // SMP-324 — the breakdown used to ride along here so the backend
+      // could materialize orphan ``Repas estimés`` / ``Transport estimé``
+      // budget lines. The agent now emits typed FOOD / TRANSPORT
+      // recommendations as Activity rows, the persistence path covers
+      // them via the same ``activities`` array, and the breakdown is
+      // derived server-side. Shipping it again would only invite drift.
       'matchReason': 'Planned with real-time data',
     };
   }

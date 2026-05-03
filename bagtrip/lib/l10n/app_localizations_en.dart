@@ -3478,6 +3478,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budgetAccommodationDeferred => 'TBD';
 
   @override
+  String get reviewMealsToTry => 'Restaurants to try';
+
+  @override
+  String get reviewTransportTips => 'Useful transports';
+
+  @override
   String accommodationDeferredSubtitle(String city, String nights) {
     return '$city · $nights to book later';
   }

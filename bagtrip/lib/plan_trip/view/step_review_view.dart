@@ -10,6 +10,7 @@ import 'package:bagtrip/design/widgets/review/review_day_timeline.dart';
 import 'package:bagtrip/design/widgets/review/review_decision_inline.dart';
 import 'package:bagtrip/design/widgets/review/review_inline_flight.dart';
 import 'package:bagtrip/design/widgets/review/review_inline_hotel.dart';
+import 'package:bagtrip/design/widgets/review/review_recommendation_section.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
@@ -76,6 +77,16 @@ class StepReviewView extends StatelessWidget {
                   freeDayLabel: l10n.reviewDayFree,
                   dayTitleBuilder: (data) =>
                       l10n.reviewDayTitle(data.dayNumber, data.dateLabel),
+                ),
+                ReviewRecommendationSection(
+                  title: l10n.reviewMealsToTry,
+                  icon: Icons.restaurant_rounded,
+                  recommendations: plan.mealRecommendations,
+                ),
+                ReviewRecommendationSection(
+                  title: l10n.reviewTransportTips,
+                  icon: Icons.directions_transit_rounded,
+                  recommendations: plan.transportRecommendations,
                 ),
                 ReviewBudgetReveal(
                   header: l10n.reviewBudgetHeader,

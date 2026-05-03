@@ -6231,6 +6231,18 @@ abstract class AppLocalizations {
   /// **'À déterminer'**
   String get budgetAccommodationDeferred;
 
+  /// No description provided for @reviewMealsToTry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restos à essayer'**
+  String get reviewMealsToTry;
+
+  /// No description provided for @reviewTransportTips.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transports utiles'**
+  String get reviewTransportTips;
+
   /// No description provided for @accommodationDeferredSubtitle.
   ///
   /// In fr, this message translates to:

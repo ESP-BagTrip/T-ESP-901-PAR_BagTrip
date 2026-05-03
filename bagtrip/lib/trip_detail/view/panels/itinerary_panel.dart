@@ -52,9 +52,10 @@ class ItineraryPanel extends StatelessWidget {
     if (tripStartDate != null) {
       return tripStartDate!.add(Duration(days: index));
     }
-    if (activities.isEmpty) return DateTime.now().add(Duration(days: index));
-    final earliest = activities
-        .map((a) => a.date)
+    final dated = _datedActivities;
+    if (dated.isEmpty) return DateTime.now().add(Duration(days: index));
+    final earliest = dated
+        .map((a) => a.date!)
         .reduce((a, b) => a.isBefore(b) ? a : b);
     return DateTime(
       earliest.year,
@@ -63,23 +64,35 @@ class ItineraryPanel extends StatelessWidget {
     ).add(Duration(days: index));
   }
 
+  /// Activities the timeline will display — dated only.
+  ///
+  /// SMP-324 — undated AI recommendations (FOOD / TRANSPORT) are
+  /// filtered out by the parent before they reach this panel, but we
+  /// guard here too so the rest of the file can assume ``date != null``
+  /// and stays free of null-checks.
+  List<Activity> get _datedActivities =>
+      activities.where((a) => a.date != null).toList();
+
   int _dayIndexFor(Activity activity) {
-    if (activities.isEmpty) return 0;
-    final earliest = activities
-        .map((a) => a.date)
+    final dated = _datedActivities;
+    if (dated.isEmpty || activity.date == null) return 0;
+    final earliest = dated
+        .map((a) => a.date!)
         .reduce((a, b) => a.isBefore(b) ? a : b);
     final base = DateTime(earliest.year, earliest.month, earliest.day);
+    final activityDate = activity.date!;
     final current = DateTime(
-      activity.date.year,
-      activity.date.month,
-      activity.date.day,
+      activityDate.year,
+      activityDate.month,
+      activityDate.day,
     );
     return current.difference(base).inDays.clamp(0, _safeTotal - 1);
   }
 
   List<List<Activity>> _groupByDay() {
     final groups = List<List<Activity>>.generate(_safeTotal, (_) => []);
-    final sorted = [...activities]..sort((a, b) => a.date.compareTo(b.date));
+    final sorted = _datedActivities
+      ..sort((a, b) => a.date!.compareTo(b.date!));
     for (final activity in sorted) {
       groups[_dayIndexFor(activity)].add(activity);
     }
@@ -94,6 +107,7 @@ class ItineraryPanel extends StatelessWidget {
     ActivityCategory.shopping => 'SHOP',
     ActivityCategory.nightlife => 'NIGHT',
     ActivityCategory.relaxation => 'RELAX',
+    ActivityCategory.transport => 'TRANSP',
     ActivityCategory.other => 'ACT',
   };
 
@@ -493,7 +507,10 @@ class _ActivityPreviewBody extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          formatter.format(activity.date),
+          // Itinerary panel only renders dated activities — guarded by
+          // ``_datedActivities``. The fallback string keeps the type
+          // checker happy without changing user-visible behaviour.
+          activity.date != null ? formatter.format(activity.date!) : '',
           style: const TextStyle(
             fontFamily: FontFamily.dMSans,
             fontSize: 13,
