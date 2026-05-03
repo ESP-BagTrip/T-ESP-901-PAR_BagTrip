@@ -85,7 +85,11 @@ class StepReviewView extends StatelessWidget {
                     l10n,
                   ),
                   total: plan.budgetEur,
-                  entries: extractBudgetEntries(l10n, plan.budgetBreakdown),
+                  entries: extractBudgetEntries(
+                    l10n,
+                    plan.budgetBreakdown,
+                    accommodationDeferred: plan.accommodationName.isEmpty,
+                  ),
                   subtitle:
                       '${l10n.reviewBudgetEstimationPrefix} · '
                       '${l10n.summaryDaysCount(plan.durationDays)}',

@@ -6225,6 +6225,12 @@ abstract class AppLocalizations {
   /// **'Hôtel à choisir'**
   String get accommodationToBeChosen;
 
+  /// No description provided for @budgetAccommodationDeferred.
+  ///
+  /// In fr, this message translates to:
+  /// **'À déterminer'**
+  String get budgetAccommodationDeferred;
+
   /// No description provided for @accommodationDeferredSubtitle.
   ///
   /// In fr, this message translates to:

@@ -3497,6 +3497,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get accommodationToBeChosen => 'Hôtel à choisir';
 
   @override
+  String get budgetAccommodationDeferred => 'À déterminer';
+
+  @override
   String accommodationDeferredSubtitle(String city, String nights) {
     return '$city · $nights à réserver';
   }

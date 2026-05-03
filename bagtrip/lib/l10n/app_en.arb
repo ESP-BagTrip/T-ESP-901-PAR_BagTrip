@@ -1705,6 +1705,7 @@
   "showMore": "Show more",
   "showLess": "Show less",
   "accommodationToBeChosen": "Accommodation to be chosen",
+  "budgetAccommodationDeferred": "TBD",
   "accommodationDeferredSubtitle": "{city} · {nights} to book later",
   "@accommodationDeferredSubtitle": {
     "placeholders": {

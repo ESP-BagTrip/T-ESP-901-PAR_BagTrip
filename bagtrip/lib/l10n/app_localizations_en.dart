@@ -3475,6 +3475,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accommodationToBeChosen => 'Accommodation to be chosen';
 
   @override
+  String get budgetAccommodationDeferred => 'TBD';
+
+  @override
   String accommodationDeferredSubtitle(String city, String nights) {
     return '$city · $nights to book later';
   }

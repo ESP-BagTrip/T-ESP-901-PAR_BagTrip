@@ -1705,6 +1705,7 @@
   "showMore": "Voir plus",
   "showLess": "Voir moins",
   "accommodationToBeChosen": "Hôtel à choisir",
+  "budgetAccommodationDeferred": "À déterminer",
   "accommodationDeferredSubtitle": "{city} · {nights} à réserver",
   "@accommodationDeferredSubtitle": {
     "placeholders": {

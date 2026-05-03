@@ -5,16 +5,27 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:flutter/material.dart';
 
 /// One labelled + colored entry inside a [BudgetStripe].
+///
+/// ``displayOverride`` lets the caller force the amount column to a
+/// non-numeric string (e.g. "À déterminer" when the corresponding
+/// figure is intentionally unknown). When it's null the legend formats
+/// ``amount`` as a price as before. ``deferred`` carries the same
+/// signal in semantic form so the stripe segment can be skipped while
+/// the legend row stays visible.
 class BudgetStripeEntry {
   const BudgetStripeEntry({
     required this.label,
     required this.amount,
     required this.color,
+    this.displayOverride,
+    this.deferred = false,
   });
 
   final String label;
   final double amount;
   final Color color;
+  final String? displayOverride;
+  final bool deferred;
 }
 
 /// A rounded segment of the horizontal stripe above the legend.

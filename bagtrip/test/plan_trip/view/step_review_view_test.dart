@@ -259,6 +259,9 @@ void main() {
         // a fabricated hotel name with a truncated per-night price.
         expect(find.byType(ReviewInlineHotel), findsOneWidget);
         expect(find.text('Accommodation to be chosen'), findsOneWidget);
+        // Budget legend mirrors the deferred state with a short "TBD"
+        // override so the user sees the missing line at a glance.
+        expect(find.text('TBD'), findsOneWidget);
         // Empty days still appear in the timeline; the precise count
         // depends on whether the hotel tile occupies a day slot, so we
         // just assert at least one free day shows up.

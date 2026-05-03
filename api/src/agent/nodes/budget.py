@@ -277,12 +277,9 @@ def _compute_fallback_budget(accommodations: list, activities: list, estimation:
 # Tuned roughly against eurostat & numbeo medians, biased to err on the
 # safe (slightly high) side for the user's expectations.
 _PER_DIEM_TABLE: dict[str, dict[str, float]] = {
-    # ``accommodation`` is per-room / per-night and only kicks in when the
-    # accommodation node returned a deferred placeholder (no Amadeus hit).
-    # It feeds the budget breakdown but never the hotel card itself.
-    "low": {"food": 25.0, "transport": 10.0, "accommodation": 60.0},
-    "mid": {"food": 45.0, "transport": 18.0, "accommodation": 120.0},
-    "premium": {"food": 90.0, "transport": 35.0, "accommodation": 280.0},
+    "low": {"food": 25.0, "transport": 10.0},
+    "mid": {"food": 45.0, "transport": 18.0},
+    "premium": {"food": 90.0, "transport": 35.0},
 }
 _DEFAULT_PER_DIEM = _PER_DIEM_TABLE["mid"]
 
@@ -402,20 +399,23 @@ async def budget_node(state: TripPlanState) -> dict:
 
     flight_total = _flight_total_from_offers(flight_offers)
 
-    # ── Per-diem table (food, transport, accommodation fallback).
+    # ── Per-diem table (food, transport).
     per_diem = _per_diem_for(state)
 
-    # ── Accommodation: prefer the gathered Amadeus stay total. When the
-    # accommodation node returned a deferred placeholder (no Amadeus hit),
-    # fall back to ``accommodation_per_diem × nights``. This keeps the
-    # *budget* informed even though the *hotel card* stays empty — the
-    # split is intentional: we never want to invent a hotel name.
-    accom_total = _accommodation_stay_total(accommodations[0]) if accommodations else 0.0
-    if accom_total > 0:
-        accom_source = "amadeus"
-    else:
-        accom_total = round(per_diem["accommodation"] * duration_days, 2)
-        accom_source = "per_diem"
+    # ── Accommodation: prefer the gathered Amadeus stay total. If the
+    # accommodation node returned a ``deferred`` marker (no Amadeus hit
+    # → the review card shows "Hôtel à choisir" without a price), keep
+    # this budget line at 0 with ``source="deferred"`` so the breakdown
+    # stays consistent with the card. The total_min/max therefore
+    # exclude accommodation in that case — the user knows they still
+    # need to add a hotel before reading the bottom line.
+    accom_total = 0.0
+    accom_source = "deferred" if accommodations else "estimated"
+    if accommodations:
+        gathered_total = _accommodation_stay_total(accommodations[0])
+        if gathered_total > 0:
+            accom_total = gathered_total
+            accom_source = "amadeus"
 
     # ── Activities: sum of gathered estimated costs.
     activity_total = sum(float(a.get("estimated_cost", 0) or 0) for a in activities)
