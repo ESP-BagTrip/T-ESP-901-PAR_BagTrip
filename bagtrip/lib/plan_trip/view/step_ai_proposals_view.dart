@@ -100,81 +100,87 @@ class _StepAiProposalsViewState extends State<StepAiProposalsView>
         return AnimatedBuilder(
           animation: _selectionController,
           builder: (context, _) {
-            return ListView.separated(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.space16,
-                AppSpacing.space22,
-                AppSpacing.space16,
-                AppSpacing.space24,
-              ),
-              itemCount: state.aiSuggestions.length + 1,
-              separatorBuilder: (context, index) {
-                if (index == 0) {
-                  return const SizedBox(height: AppSpacing.space16);
-                }
-                return const SizedBox(height: AppSpacing.space32);
-              },
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.space8,
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.auto_awesome_rounded,
-                          size: 18,
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.space24,
+                    AppSpacing.space22,
+                    AppSpacing.space24,
+                    AppSpacing.space16,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.auto_awesome_rounded,
+                        size: 18,
+                        color: ColorName.secondary,
+                      ),
+                      const SizedBox(width: AppSpacing.space8),
+                      Text(
+                        l10n.stepAiProposals,
+                        style: const TextStyle(
+                          fontFamily: FontFamily.dMSans,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
                           color: ColorName.secondary,
+                          letterSpacing: 0.5,
                         ),
-                        const SizedBox(width: AppSpacing.space8),
-                        Text(
-                          l10n.stepAiProposals,
-                          style: const TextStyle(
-                            fontFamily: FontFamily.dMSans,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: ColorName.secondary,
-                            letterSpacing: 0.5,
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.space16,
+                      0,
+                      AppSpacing.space16,
+                      AppSpacing.space24,
+                    ),
+                    itemCount: state.aiSuggestions.length,
+                    separatorBuilder: (_, _) =>
+                        const SizedBox(height: AppSpacing.space32),
+                    itemBuilder: (context, suggestionIndex) {
+                      final isSelected = _selectedCardIndex == suggestionIndex;
+                      final isOther = _selectedCardIndex != null && !isSelected;
+                      final overlayProgress = isSelected
+                          ? _overlayAnim.value
+                          : 0.0;
+                      final opacity = isOther
+                          ? 1.0 - 0.7 * _fadeOthersAnim.value
+                          : 1.0;
+                      final scale = isSelected
+                          ? 1.0 + 0.03 * _scaleAnim.value
+                          : 1.0;
+
+                      return GestureDetector(
+                        onTap: () => _onChoose(suggestionIndex),
+                        child: Transform.scale(
+                          scale: scale,
+                          child: Opacity(
+                            opacity: opacity,
+                            child: AiDestinationCard(
+                              destination: state.aiSuggestions[suggestionIndex],
+                              selectionProgress: overlayProgress,
+                              isExpanded: _expandedCardIndex == suggestionIndex,
+                              onToggleExpanded: () {
+                                setState(() {
+                                  _expandedCardIndex =
+                                      _expandedCardIndex == suggestionIndex
+                                      ? null
+                                      : suggestionIndex;
+                                });
+                              },
+                            ),
                           ),
                         ),
-                      ],
-                    ),
-                  );
-                }
-
-                final suggestionIndex = index - 1;
-                final isSelected = _selectedCardIndex == suggestionIndex;
-                final isOther = _selectedCardIndex != null && !isSelected;
-                final overlayProgress = isSelected ? _overlayAnim.value : 0.0;
-                final opacity = isOther
-                    ? 1.0 - 0.7 * _fadeOthersAnim.value
-                    : 1.0;
-                final scale = isSelected ? 1.0 + 0.03 * _scaleAnim.value : 1.0;
-
-                return GestureDetector(
-                  onTap: () => _onChoose(suggestionIndex),
-                  child: Transform.scale(
-                    scale: scale,
-                    child: Opacity(
-                      opacity: opacity,
-                      child: AiDestinationCard(
-                        destination: state.aiSuggestions[suggestionIndex],
-                        selectionProgress: overlayProgress,
-                        isExpanded: _expandedCardIndex == suggestionIndex,
-                        onToggleExpanded: () {
-                          setState(() {
-                            _expandedCardIndex =
-                                _expandedCardIndex == suggestionIndex
-                                ? null
-                                : suggestionIndex;
-                          });
-                        },
-                      ),
-                    ),
+                      );
+                    },
                   ),
-                );
-              },
+                ),
+              ],
             );
           },
         );
