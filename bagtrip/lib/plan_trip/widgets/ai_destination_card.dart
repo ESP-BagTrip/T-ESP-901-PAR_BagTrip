@@ -149,6 +149,22 @@ class AiDestinationCard extends StatelessWidget {
                     ],
                   ),
                 ),
+
+                // Selection overlay (green tint + check)
+                if (selectionProgress > 0)
+                  Positioned.fill(
+                    child: Container(
+                      color: ColorName.success.withValues(
+                        alpha: selectionProgress * 0.3,
+                      ),
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.check_circle_rounded,
+                        size: 48 * selectionProgress,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
