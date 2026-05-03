@@ -41,49 +41,67 @@ def _sse(event: str, data: dict) -> str:
     return f"event: {event}\ndata: {json.dumps(data, default=str, ensure_ascii=False)}\n\n"
 
 
+_QUICK_DESTINATION_LABELS: dict[str, dict[str, str]] = {
+    "en": {
+        "travel_types": "Preferences",
+        "budget_preset": "Budget",
+        "duration_days": "Duration",
+        "duration_unit": "days",
+        "companions": "Traveling with",
+        "season": "Season",
+        "constraints": "Constraints",
+        "nb_travelers": "Travelers",
+        "fallback": "Suggest diverse travel destinations.",
+    },
+    "fr": {
+        "travel_types": "Préférences",
+        "budget_preset": "Budget",
+        "duration_days": "Durée",
+        "duration_unit": "jours",
+        "companions": "Accompagné de",
+        "season": "Saison",
+        "constraints": "Contraintes",
+        "nb_travelers": "Voyageurs",
+        "fallback": "Propose des destinations de voyage variées.",
+    },
+}
+
+
 async def _quick_destination_suggestions(state: Any) -> list[dict]:
     """Single LLM call (no ReAct, no tools) for `destinations_only` mode."""
-    # Local import: LLMService drags optional deps we don't want at module load.
+    # Local imports: LLMService drags optional deps we don't want at module load,
+    # and `render` lives in the agent prompts package.
+    from src.agent.prompts import render
     from src.services.llm_service import LLMService
+    from src.utils.locale import normalize_locale
 
-    locale = state.get("locale", "en")
+    locale = normalize_locale(state.get("locale"))
+    labels = _QUICK_DESTINATION_LABELS.get(locale, _QUICK_DESTINATION_LABELS["en"])
 
-    lang_instruction = (
-        "Réponds UNIQUEMENT en français. Les valeurs match_reason, weather_summary "
-        "et topActivities doivent être rédigées en français."
-        if locale == "fr"
-        else "Respond ONLY in English."
-    )
+    system_prompt = render("destination_quick", locale=locale)
 
-    prompt = f"""Suggest 3-4 travel destinations as a JSON object.
-Consider the user's preferences and return ONLY a valid JSON object (no explanation).
-{lang_instruction}
-{{
-  "destinations": [
-    {{"city": "...", "country": "...", "match_reason": "...", "weather_summary": "...", "topActivities": ["...", "..."]}}
-  ]
-}}"""
-
-    parts = []
+    parts: list[str] = []
     if state.get("travel_types"):
-        parts.append(f"Preferences: {state['travel_types']}")
+        parts.append(f"{labels['travel_types']}: {state['travel_types']}")
     if state.get("budget_preset"):
-        parts.append(f"Budget: {state['budget_preset']}")
+        parts.append(f"{labels['budget_preset']}: {state['budget_preset']}")
     if state.get("duration_days"):
-        parts.append(f"Duration: {state['duration_days']} days")
+        parts.append(
+            f"{labels['duration_days']}: {state['duration_days']} {labels['duration_unit']}"
+        )
     if state.get("companions"):
-        parts.append(f"Traveling with: {state['companions']}")
+        parts.append(f"{labels['companions']}: {state['companions']}")
     if state.get("season"):
-        parts.append(f"Season: {state['season']}")
+        parts.append(f"{labels['season']}: {state['season']}")
     if state.get("constraints"):
-        parts.append(f"Constraints: {state['constraints']}")
+        parts.append(f"{labels['constraints']}: {state['constraints']}")
     if state.get("nb_travelers"):
-        parts.append(f"Travelers: {state['nb_travelers']}")
+        parts.append(f"{labels['nb_travelers']}: {state['nb_travelers']}")
 
-    user_prompt = "\n".join(parts) if parts else "Suggest diverse travel destinations."
+    user_prompt = "\n".join(parts) if parts else labels["fallback"]
 
     llm_service = LLMService()
-    result = await llm_service.acall_llm(prompt, user_prompt)
+    result = await llm_service.acall_llm(system_prompt, user_prompt)
     destinations = result.get("destinations", [])
     logger.info("Quick destination suggestions", {"count": len(destinations), "locale": locale})
     return destinations

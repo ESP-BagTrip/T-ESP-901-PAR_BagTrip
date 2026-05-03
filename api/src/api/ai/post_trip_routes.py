@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
 from src.api.ai.post_trip_schemas import PostTripSuggestion, PostTripSuggestionResponse
@@ -12,19 +12,22 @@ from src.models.user import User
 from src.services.plan_service import PlanService
 from src.services.post_trip_ai_service import PostTripAIService
 from src.utils.errors import AppError, create_http_exception
+from src.utils.locale import normalize_locale
 
 router = APIRouter(prefix="/v1/ai", tags=["AI Post-Trip"])
 
 
 @router.post("/post-trip-suggestion", response_model=PostTripSuggestionResponse)
 async def suggest_post_trip(
+    raw_request: Request,
     current_user: Annotated[User, Depends(require_ai_quota)],
     _premium: Annotated[User, Depends(require_premium)],
     db: Annotated[Session, Depends(get_db)],
 ):
     """Suggère un prochain voyage basé sur l'historique de feedbacks."""
     try:
-        result = PostTripAIService.suggest_next_trip(db, current_user.id)
+        locale = normalize_locale(raw_request.headers.get("accept-language"))
+        result = PostTripAIService.suggest_next_trip(db, current_user.id, locale=locale)
         suggestion = PostTripSuggestion(**result.get("suggestion", result))
         PlanService.increment_ai_generation(db, current_user)
         return PostTripSuggestionResponse(suggestion=suggestion)

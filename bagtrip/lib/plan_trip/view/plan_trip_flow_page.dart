@@ -81,8 +81,9 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
 
           // Auto-fire generation when entering step 4
           if (state.currentStep == 4 && state.generationSteps.isEmpty) {
+            final locale = Localizations.localeOf(context).languageCode;
             context.read<PlanTripBloc>().add(
-              const PlanTripEvent.startGeneration(),
+              PlanTripEvent.startGeneration(locale: locale),
             );
           }
 

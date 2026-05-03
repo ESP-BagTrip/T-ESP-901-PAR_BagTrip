@@ -3,7 +3,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Path, status
+from fastapi import APIRouter, Depends, Path, Request, status
 from sqlalchemy.orm import Session
 
 from src.api.accommodations.schemas import (
@@ -20,6 +20,7 @@ from src.models.user import User
 from src.services.accommodations_service import AccommodationsService
 from src.services.plan_service import PlanService
 from src.utils.errors import AppError, create_http_exception
+from src.utils.locale import normalize_locale
 
 router = APIRouter(prefix="/v1/trips", tags=["Accommodations"])
 
@@ -86,13 +87,17 @@ async def list_accommodations(
     description="Get AI-powered accommodation suggestions for a trip",
 )
 async def suggest_accommodations(
+    raw_request: Request,
     access: Annotated[TripAccess, Depends(get_trip_editor_access)],
     current_user: Annotated[User, Depends(require_ai_quota)],
     db: Annotated[Session, Depends(get_db)],
 ):
     """Suggestions IA d'hébergements pour un trip."""
     try:
-        suggestions = await AccommodationsService.suggest_accommodations(db, access.trip)
+        locale = normalize_locale(raw_request.headers.get("accept-language"))
+        suggestions = await AccommodationsService.suggest_accommodations(
+            db, access.trip, locale=locale
+        )
         PlanService.increment_ai_generation(db, current_user)
         return AccommodationSuggestResponse(accommodations=suggestions)
     except AppError as e:

@@ -12,6 +12,25 @@ from src.models.trip import Trip
 from src.utils.errors import AppError
 from src.utils.logger import logger
 
+_BAGGAGE_SUGGEST_LABELS: dict[str, dict[str, str]] = {
+    "en": {
+        "destination": "Destination",
+        "unknown": "Unknown",
+        "duration": "Trip duration",
+        "days": "days",
+        "activities": "Planned activities",
+        "travelers": "Number of travelers",
+    },
+    "fr": {
+        "destination": "Destination",
+        "unknown": "Inconnue",
+        "duration": "Durée du voyage",
+        "days": "jours",
+        "activities": "Activités prévues",
+        "travelers": "Nombre de voyageurs",
+    },
+}
+
 
 class BaggageItemsService:
     """Service pour les opérations CRUD sur les baggage items."""
@@ -110,34 +129,42 @@ class BaggageItemsService:
         db.commit()
 
     @staticmethod
-    async def suggest_baggage_items(db: Session, trip: Trip) -> list[dict]:
+    async def suggest_baggage_items(
+        db: Session, trip: Trip, locale: str | None = None
+    ) -> list[dict]:
         """Suggest baggage items via AI, deduplicating against existing items."""
         from src.agent.prompts import render as render_prompt
         from src.services.llm_service import LLMService
+        from src.utils.locale import normalize_locale
 
-        # Build prompt from trip data
+        resolved_locale = normalize_locale(locale)
+        labels = _BAGGAGE_SUGGEST_LABELS[resolved_locale]
+
         parts = [
-            f"Destination: {trip.destination_name or 'Unknown'}",
+            f"{labels['destination']}: {trip.destination_name or labels['unknown']}",
         ]
 
         if trip.start_date and trip.end_date:
             duration = (trip.end_date - trip.start_date).days
-            parts.append(f"Trip duration: {duration} days")
+            parts.append(f"{labels['duration']}: {duration} {labels['days']}")
 
         # Include activities if loaded
         if trip.activities:
             activity_titles = [a.title for a in trip.activities[:8]]
-            parts.append(f"Planned activities: {', '.join(activity_titles)}")
+            parts.append(f"{labels['activities']}: {', '.join(activity_titles)}")
 
         if trip.nb_travelers:
-            parts.append(f"Number of travelers: {trip.nb_travelers}")
+            parts.append(f"{labels['travelers']}: {trip.nb_travelers}")
 
         user_prompt = "\n".join(parts)
 
         # Call LLM
         llm = LLMService()
         try:
-            result = await llm.acall_llm(render_prompt("baggage"), user_prompt)
+            result = await llm.acall_llm(
+                render_prompt("baggage", locale=resolved_locale),
+                user_prompt,
+            )
             items = result.get("items", [])
         except Exception as e:
             logger.error("Baggage suggest LLM call failed", {"error": str(e)})

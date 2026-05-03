@@ -14,6 +14,25 @@ from src.models.trip import Trip
 from src.utils.errors import AppError
 from src.utils.logger import logger
 
+_ACTIVITY_SUGGEST_LABELS: dict[str, dict[str, str]] = {
+    "en": {
+        "destination": "Destination",
+        "unknown": "Unknown",
+        "duration": "Trip duration",
+        "days": "days",
+        "travelers": "Number of travelers",
+        "day_focus": "Suggest activities specifically for day {day} of the trip.",
+    },
+    "fr": {
+        "destination": "Destination",
+        "unknown": "Inconnue",
+        "duration": "Durée du voyage",
+        "days": "jours",
+        "travelers": "Nombre de voyageurs",
+        "day_focus": "Propose des activités spécifiquement pour le jour {day} du voyage.",
+    },
+}
+
 
 class ActivityService:
     """Service for Activity CRUD operations."""
@@ -190,27 +209,35 @@ class ActivityService:
         db: Session,
         trip: Trip,
         day: int | None = None,
+        locale: str | None = None,
     ) -> list[dict]:
         """Generate AI activity suggestions for a trip (optionally for a specific day)."""
         from src.agent.prompts import render as render_prompt
         from src.services.llm_service import LLMService
+        from src.utils.locale import normalize_locale
+
+        resolved_locale = normalize_locale(locale)
+        labels = _ACTIVITY_SUGGEST_LABELS[resolved_locale]
 
         parts = []
-        dest_name = trip.destination_name or "Unknown"
-        parts.append(f"Destination: {dest_name}")
+        dest_name = trip.destination_name or labels["unknown"]
+        parts.append(f"{labels['destination']}: {dest_name}")
         if trip.start_date and trip.end_date:
             duration = (trip.end_date - trip.start_date).days + 1
-            parts.append(f"Trip duration: {duration} days")
+            parts.append(f"{labels['duration']}: {duration} {labels['days']}")
         if trip.nb_travelers:
-            parts.append(f"Number of travelers: {trip.nb_travelers}")
+            parts.append(f"{labels['travelers']}: {trip.nb_travelers}")
         if day is not None:
-            parts.append(f"Suggest activities specifically for day {day} of the trip.")
+            parts.append(labels["day_focus"].format(day=day))
 
         user_prompt = "\n".join(parts)
 
         llm = LLMService()
         try:
-            result = await llm.acall_llm(render_prompt("activity_planner"), user_prompt)
+            result = await llm.acall_llm(
+                render_prompt("activity_planner", locale=resolved_locale),
+                user_prompt,
+            )
             activities = result.get("activities", [])
         except Exception as e:
             logger.error("Activity suggest LLM call failed", {"error": str(e)})

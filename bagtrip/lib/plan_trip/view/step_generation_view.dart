@@ -61,7 +61,10 @@ class _StepGenerationViewState extends State<StepGenerationView>
   void _onRetry() {
     setState(() => _isTimedOut = false);
     _startTimeoutTimer();
-    context.read<PlanTripBloc>().add(const PlanTripEvent.retryGeneration());
+    final locale = Localizations.localeOf(context).languageCode;
+    context.read<PlanTripBloc>().add(
+      PlanTripEvent.retryGeneration(locale: locale),
+    );
   }
 
   @override

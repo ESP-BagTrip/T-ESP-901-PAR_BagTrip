@@ -37,7 +37,7 @@ sealed class PlanTripEvent with _$PlanTripEvent {
       PlanTripSearchDestination;
   const factory PlanTripEvent.selectManualDestination(LocationResult location) =
       PlanTripSelectManualDestination;
-  const factory PlanTripEvent.requestAiSuggestions() =
+  const factory PlanTripEvent.requestAiSuggestions({required String locale}) =
       PlanTripRequestAiSuggestions;
   const factory PlanTripEvent.selectAiDestination(AiDestination destination) =
       PlanTripSelectAiDestination;
@@ -46,8 +46,10 @@ sealed class PlanTripEvent with _$PlanTripEvent {
   const factory PlanTripEvent.swipeProposal(int index) = PlanTripSwipeProposal;
 
   // Step 4 — Generation
-  const factory PlanTripEvent.startGeneration() = PlanTripStartGeneration;
-  const factory PlanTripEvent.retryGeneration() = PlanTripRetryGeneration;
+  const factory PlanTripEvent.startGeneration({required String locale}) =
+      PlanTripStartGeneration;
+  const factory PlanTripEvent.retryGeneration({required String locale}) =
+      PlanTripRetryGeneration;
 
   // Step 5 — Review
   const factory PlanTripEvent.createTrip() = PlanTripCreateTrip;

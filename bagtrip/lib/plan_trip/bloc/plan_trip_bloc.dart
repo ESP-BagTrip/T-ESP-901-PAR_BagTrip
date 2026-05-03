@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/core/app_error.dart';
@@ -433,7 +432,6 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         };
       }
 
-      final locale = PlatformDispatcher.instance.locale.languageCode;
       final result = await _aiRepository.getInspiration(
         travelTypes: travelTypes,
         budgetRange: budget,
@@ -441,7 +439,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         companions: companions,
         season: season,
         constraints: constraints,
-        locale: locale,
+        locale: event.locale,
       );
       if (isClosed) return;
 
@@ -610,7 +608,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
           originCity: params['originCity'] as String?,
           destinationCity: params['destinationCity'] as String?,
           destinationIata: params['destinationIata'] as String?,
-          locale: PlatformDispatcher.instance.locale.languageCode,
+          locale: event.locale,
         )
         .listen(
           (sseEvent) {
@@ -724,7 +722,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
   ) async {
     await _sseSubscription?.cancel();
     _sseSubscription = null;
-    add(const PlanTripEvent.startGeneration());
+    add(PlanTripEvent.startGeneration(locale: event.locale));
   }
 
   // ---------------------------------------------------------------------------

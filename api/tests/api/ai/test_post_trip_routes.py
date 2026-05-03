@@ -126,3 +126,39 @@ class TestSuggestPostTrip:
 
         assert response.status_code == 400
         incr.assert_not_called()
+
+    def test_propagates_accept_language_header(self, client: TestClient) -> None:
+        with (
+            patch(
+                "src.api.ai.post_trip_routes.PostTripAIService.suggest_next_trip",
+                return_value={"suggestion": _SUGGESTION},
+            ) as suggest,
+            patch(
+                "src.api.ai.post_trip_routes.PlanService.increment_ai_generation",
+            ),
+        ):
+            response = client.post(
+                "/v1/ai/post-trip-suggestion",
+                headers={"Accept-Language": "fr-FR,fr;q=0.9"},
+            )
+
+        assert response.status_code == 200
+        suggest.assert_called_once()
+        # The route normalizes the header before passing to the service.
+        assert suggest.call_args.kwargs.get("locale") == "fr"
+
+    def test_defaults_to_english_when_no_header(self, client: TestClient) -> None:
+        with (
+            patch(
+                "src.api.ai.post_trip_routes.PostTripAIService.suggest_next_trip",
+                return_value={"suggestion": _SUGGESTION},
+            ) as suggest,
+            patch(
+                "src.api.ai.post_trip_routes.PlanService.increment_ai_generation",
+            ),
+        ):
+            response = client.post("/v1/ai/post-trip-suggestion")
+
+        assert response.status_code == 200
+        # No Accept-Language sent → normalize_locale falls back to "en".
+        assert suggest.call_args.kwargs.get("locale") == "en"

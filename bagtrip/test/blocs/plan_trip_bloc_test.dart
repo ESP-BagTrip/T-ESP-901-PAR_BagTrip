@@ -684,7 +684,7 @@ void main() {
       );
 
       final bloc = buildBloc();
-      bloc.add(const PlanTripEvent.startGeneration());
+      bloc.add(const PlanTripEvent.startGeneration(locale: 'fr'));
 
       // Allow the bloc event handler to start
       await Future<void>.delayed(const Duration(milliseconds: 50));
@@ -713,7 +713,7 @@ void main() {
       );
 
       final bloc = buildBloc();
-      bloc.add(const PlanTripEvent.startGeneration());
+      bloc.add(const PlanTripEvent.startGeneration(locale: 'fr'));
       await Future<void>.delayed(const Duration(milliseconds: 50));
 
       // Stream should be listening
@@ -741,7 +741,7 @@ void main() {
       );
 
       final bloc = buildBloc();
-      bloc.add(const PlanTripEvent.startGeneration());
+      bloc.add(const PlanTripEvent.startGeneration(locale: 'fr'));
       await Future<void>.delayed(const Duration(milliseconds: 50));
 
       expect(controller.hasListener, isTrue);
@@ -763,7 +763,7 @@ void main() {
       );
 
       final bloc = buildBloc();
-      bloc.add(const PlanTripEvent.startGeneration());
+      bloc.add(const PlanTripEvent.startGeneration(locale: 'fr'));
       await Future<void>.delayed(const Duration(milliseconds: 50));
 
       controller.addError(Exception('SSE connection lost'));
@@ -804,13 +804,13 @@ void main() {
       });
 
       final bloc = buildBloc();
-      bloc.add(const PlanTripEvent.startGeneration());
+      bloc.add(const PlanTripEvent.startGeneration(locale: 'fr'));
       await Future<void>.delayed(const Duration(milliseconds: 50));
 
       expect(controller1.hasListener, isTrue);
 
       // Retry cancels the first stream and starts a new one
-      bloc.add(const PlanTripEvent.retryGeneration());
+      bloc.add(const PlanTripEvent.retryGeneration(locale: 'fr'));
       await Future<void>.delayed(const Duration(milliseconds: 100));
 
       expect(controller1.hasListener, isFalse);
@@ -832,7 +832,7 @@ void main() {
       ).thenAnswer((_) async => const Success(outOfQuota));
 
       final bloc = buildBloc();
-      bloc.add(const PlanTripEvent.startGeneration());
+      bloc.add(const PlanTripEvent.startGeneration(locale: 'fr'));
       await Future<void>.delayed(const Duration(milliseconds: 50));
 
       expect(bloc.state.generationError, 'AI generation quota exceeded');
@@ -865,7 +865,7 @@ void main() {
       );
       final bloc = buildBloc();
       if (seedOverride != null) bloc.emit(seedOverride);
-      bloc.add(const PlanTripEvent.startGeneration());
+      bloc.add(const PlanTripEvent.startGeneration(locale: 'fr'));
       await Future<void>.delayed(const Duration(milliseconds: 50));
       return bloc;
     }
@@ -1229,7 +1229,8 @@ void main() {
         startDate: DateTime(2026, 7, 1),
         endDate: DateTime(2026, 7, 8),
       ),
-      act: (bloc) => bloc.add(const PlanTripEvent.requestAiSuggestions()),
+      act: (bloc) =>
+          bloc.add(const PlanTripEvent.requestAiSuggestions(locale: 'fr')),
       expect: () => [
         isA<PlanTripState>().having(
           (s) => s.isLoadingAiSuggestions,
@@ -1290,7 +1291,8 @@ void main() {
         preferredYear: 2026,
         dateMode: DateMode.month,
       ),
-      act: (bloc) => bloc.add(const PlanTripEvent.requestAiSuggestions()),
+      act: (bloc) =>
+          bloc.add(const PlanTripEvent.requestAiSuggestions(locale: 'fr')),
       verify: (_) {
         verify(
           () => mockAiRepo.getInspiration(
@@ -1326,7 +1328,8 @@ void main() {
         ).thenAnswer((_) async => const Success([]));
         return buildBloc();
       },
-      act: (bloc) => bloc.add(const PlanTripEvent.requestAiSuggestions()),
+      act: (bloc) =>
+          bloc.add(const PlanTripEvent.requestAiSuggestions(locale: 'fr')),
       verify: (bloc) {
         expect(bloc.state.error, isA<UnknownError>());
         expect(bloc.state.aiSuggestions, isEmpty);
@@ -1353,7 +1356,8 @@ void main() {
         ).thenAnswer((_) async => const Failure(NetworkError('offline')));
         return buildBloc();
       },
-      act: (bloc) => bloc.add(const PlanTripEvent.requestAiSuggestions()),
+      act: (bloc) =>
+          bloc.add(const PlanTripEvent.requestAiSuggestions(locale: 'fr')),
       verify: (bloc) {
         expect(bloc.state.error, isA<NetworkError>());
       },
@@ -1365,7 +1369,8 @@ void main() {
         when(() => mockAuthRepo.getCurrentUser()).thenThrow(Exception('boom'));
         return buildBloc();
       },
-      act: (bloc) => bloc.add(const PlanTripEvent.requestAiSuggestions()),
+      act: (bloc) =>
+          bloc.add(const PlanTripEvent.requestAiSuggestions(locale: 'fr')),
       verify: (bloc) {
         expect(bloc.state.error, isA<UnknownError>());
       },

@@ -246,3 +246,23 @@ class TestSuggest:
             result = await ActivityService.suggest(mock_db_session, trip)
 
         assert result == []
+
+    @pytest.mark.asyncio
+    async def test_locale_fr_renders_french_prompt(self, mock_db_session, make_trip):
+        trip = make_trip(
+            destination_name="Lyon",
+            start_date=date(2026, 5, 1),
+            end_date=date(2026, 5, 5),
+            nb_travelers=3,
+        )
+        fake_llm = MagicMock()
+        fake_llm.acall_llm = AsyncMock(return_value={"activities": []})
+
+        with patch("src.services.llm_service.LLMService", return_value=fake_llm):
+            await ActivityService.suggest(mock_db_session, trip, day=2, locale="fr")
+
+        _, user_prompt = fake_llm.acall_llm.call_args.args
+        assert "Destination:" in user_prompt
+        assert "Durée du voyage:" in user_prompt
+        assert "Nombre de voyageurs:" in user_prompt
+        assert "jour 2" in user_prompt
