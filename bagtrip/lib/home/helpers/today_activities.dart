@@ -40,11 +40,7 @@ TodayActivitiesResult classifyTodayActivities({
     // specific calendar day.
     if (a.date == null) return false;
     final activityDate = a.date!;
-    final d = DateTime(
-      activityDate.year,
-      activityDate.month,
-      activityDate.day,
-    );
+    final d = DateTime(activityDate.year, activityDate.month, activityDate.day);
     return d == today;
   }).toList();
 

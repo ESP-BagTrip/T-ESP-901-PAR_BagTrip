@@ -91,8 +91,7 @@ class ItineraryPanel extends StatelessWidget {
 
   List<List<Activity>> _groupByDay() {
     final groups = List<List<Activity>>.generate(_safeTotal, (_) => []);
-    final sorted = _datedActivities
-      ..sort((a, b) => a.date!.compareTo(b.date!));
+    final sorted = _datedActivities..sort((a, b) => a.date!.compareTo(b.date!));
     for (final activity in sorted) {
       groups[_dayIndexFor(activity)].add(activity);
     }

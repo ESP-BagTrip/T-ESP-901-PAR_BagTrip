@@ -1022,8 +1022,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
 
     for (final a in activities) {
       final category = ((a['category'] ?? 'OTHER') as String).toUpperCase();
-      final hasSlot =
-          a['suggested_day'] != null || a['time_of_day'] != null;
+      final hasSlot = a['suggested_day'] != null || a['time_of_day'] != null;
       final estimatedCost =
           (a['estimated_cost'] as num?)?.toDouble() ??
           (a['estimatedCost'] as num?)?.toDouble() ??

@@ -146,9 +146,12 @@ class TestCheckAiGenerationQuota:
             ai_generations_count=3,
             stripe_subscription_id="sub_X",
         )
-        with patch(
-            "src.services.plan_service._fetch_subscription_snapshot",
-            new=AsyncMock(return_value={"status": "active", "current_period_end": None}),
+        with (
+            patch(
+                "src.services.plan_service._fetch_subscription_snapshot",
+                new=AsyncMock(return_value={"status": "active", "current_period_end": None}),
+            ),
+            patch("src.services.plan_service.settings.STRIPE_SECRET_KEY", "sk_test"),
         ):
             # Should not raise — reconcile flips the user to PREMIUM.
             await PlanService.check_ai_generation_quota(mock_db_session, user)
@@ -267,6 +270,7 @@ class TestReconcilePlanWithStripe:
                 "src.services.plan_service.AuditService.log",
                 return_value=MagicMock(),
             ) as audit,
+            patch("src.services.plan_service.settings.STRIPE_SECRET_KEY", "sk_test"),
         ):
             result = await PlanService.reconcile_plan_with_stripe(mock_db_session, user)
         assert result == UserPlan.PREMIUM
@@ -290,6 +294,7 @@ class TestReconcilePlanWithStripe:
                 "src.services.plan_service.AuditService.log",
                 return_value=MagicMock(),
             ) as audit,
+            patch("src.services.plan_service.settings.STRIPE_SECRET_KEY", "sk_test"),
         ):
             result = await PlanService.reconcile_plan_with_stripe(mock_db_session, user)
         assert result == UserPlan.FREE
