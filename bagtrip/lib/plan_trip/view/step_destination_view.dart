@@ -249,8 +249,11 @@ class _StepDestinationViewState extends State<StepDestinationView> {
                   ? null
                   : () {
                       AppHaptics.medium();
+                      final locale = Localizations.localeOf(
+                        context,
+                      ).languageCode;
                       context.read<PlanTripBloc>().add(
-                        const PlanTripEvent.requestAiSuggestions(),
+                        PlanTripEvent.requestAiSuggestions(locale: locale),
                       );
                     },
             ),

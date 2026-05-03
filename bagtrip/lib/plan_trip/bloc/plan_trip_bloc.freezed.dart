@@ -179,7 +179,7 @@ return updateReviewDates(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loadPersonalization,TResult Function()?  nextStep,TResult Function()?  previousStep,TResult Function( int step)?  goToStep,TResult Function( DateMode mode)?  setDateMode,TResult Function( DateTime start,  DateTime end)?  setExactDates,TResult Function( int month,  int year)?  setMonthPreference,TResult Function( DurationPreset preset)?  setFlexibleDuration,TResult Function( int? adults,  int? children,  int? babies)?  setTravelerCounts,TResult Function( BudgetPreset? preset)?  setBudgetPreset,TResult Function( String city)?  setOriginCity,TResult Function( String query)?  searchOrigin,TResult Function( String query)?  searchDestination,TResult Function( LocationResult location)?  selectManualDestination,TResult Function()?  requestAiSuggestions,TResult Function( AiDestination destination)?  selectAiDestination,TResult Function( int index)?  swipeProposal,TResult Function()?  startGeneration,TResult Function()?  retryGeneration,TResult Function()?  createTrip,TResult Function()?  backToProposals,TResult Function( DateTime start,  DateTime end)?  updateReviewDates,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loadPersonalization,TResult Function()?  nextStep,TResult Function()?  previousStep,TResult Function( int step)?  goToStep,TResult Function( DateMode mode)?  setDateMode,TResult Function( DateTime start,  DateTime end)?  setExactDates,TResult Function( int month,  int year)?  setMonthPreference,TResult Function( DurationPreset preset)?  setFlexibleDuration,TResult Function( int? adults,  int? children,  int? babies)?  setTravelerCounts,TResult Function( BudgetPreset? preset)?  setBudgetPreset,TResult Function( String city)?  setOriginCity,TResult Function( String query)?  searchOrigin,TResult Function( String query)?  searchDestination,TResult Function( LocationResult location)?  selectManualDestination,TResult Function( String locale)?  requestAiSuggestions,TResult Function( AiDestination destination)?  selectAiDestination,TResult Function( int index)?  swipeProposal,TResult Function( String locale)?  startGeneration,TResult Function( String locale)?  retryGeneration,TResult Function()?  createTrip,TResult Function()?  backToProposals,TResult Function( DateTime start,  DateTime end)?  updateReviewDates,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case PlanTripLoadPersonalization() when loadPersonalization != null:
 return loadPersonalization();case PlanTripNextStep() when nextStep != null:
@@ -196,11 +196,11 @@ return setOriginCity(_that.city);case PlanTripSearchOrigin() when searchOrigin !
 return searchOrigin(_that.query);case PlanTripSearchDestination() when searchDestination != null:
 return searchDestination(_that.query);case PlanTripSelectManualDestination() when selectManualDestination != null:
 return selectManualDestination(_that.location);case PlanTripRequestAiSuggestions() when requestAiSuggestions != null:
-return requestAiSuggestions();case PlanTripSelectAiDestination() when selectAiDestination != null:
+return requestAiSuggestions(_that.locale);case PlanTripSelectAiDestination() when selectAiDestination != null:
 return selectAiDestination(_that.destination);case PlanTripSwipeProposal() when swipeProposal != null:
 return swipeProposal(_that.index);case PlanTripStartGeneration() when startGeneration != null:
-return startGeneration();case PlanTripRetryGeneration() when retryGeneration != null:
-return retryGeneration();case PlanTripCreateTrip() when createTrip != null:
+return startGeneration(_that.locale);case PlanTripRetryGeneration() when retryGeneration != null:
+return retryGeneration(_that.locale);case PlanTripCreateTrip() when createTrip != null:
 return createTrip();case PlanTripBackToProposals() when backToProposals != null:
 return backToProposals();case PlanTripUpdateReviewDates() when updateReviewDates != null:
 return updateReviewDates(_that.start,_that.end);case _:
@@ -221,7 +221,7 @@ return updateReviewDates(_that.start,_that.end);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loadPersonalization,required TResult Function()  nextStep,required TResult Function()  previousStep,required TResult Function( int step)  goToStep,required TResult Function( DateMode mode)  setDateMode,required TResult Function( DateTime start,  DateTime end)  setExactDates,required TResult Function( int month,  int year)  setMonthPreference,required TResult Function( DurationPreset preset)  setFlexibleDuration,required TResult Function( int? adults,  int? children,  int? babies)  setTravelerCounts,required TResult Function( BudgetPreset? preset)  setBudgetPreset,required TResult Function( String city)  setOriginCity,required TResult Function( String query)  searchOrigin,required TResult Function( String query)  searchDestination,required TResult Function( LocationResult location)  selectManualDestination,required TResult Function()  requestAiSuggestions,required TResult Function( AiDestination destination)  selectAiDestination,required TResult Function( int index)  swipeProposal,required TResult Function()  startGeneration,required TResult Function()  retryGeneration,required TResult Function()  createTrip,required TResult Function()  backToProposals,required TResult Function( DateTime start,  DateTime end)  updateReviewDates,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loadPersonalization,required TResult Function()  nextStep,required TResult Function()  previousStep,required TResult Function( int step)  goToStep,required TResult Function( DateMode mode)  setDateMode,required TResult Function( DateTime start,  DateTime end)  setExactDates,required TResult Function( int month,  int year)  setMonthPreference,required TResult Function( DurationPreset preset)  setFlexibleDuration,required TResult Function( int? adults,  int? children,  int? babies)  setTravelerCounts,required TResult Function( BudgetPreset? preset)  setBudgetPreset,required TResult Function( String city)  setOriginCity,required TResult Function( String query)  searchOrigin,required TResult Function( String query)  searchDestination,required TResult Function( LocationResult location)  selectManualDestination,required TResult Function( String locale)  requestAiSuggestions,required TResult Function( AiDestination destination)  selectAiDestination,required TResult Function( int index)  swipeProposal,required TResult Function( String locale)  startGeneration,required TResult Function( String locale)  retryGeneration,required TResult Function()  createTrip,required TResult Function()  backToProposals,required TResult Function( DateTime start,  DateTime end)  updateReviewDates,}) {final _that = this;
 switch (_that) {
 case PlanTripLoadPersonalization():
 return loadPersonalization();case PlanTripNextStep():
@@ -238,11 +238,11 @@ return setOriginCity(_that.city);case PlanTripSearchOrigin():
 return searchOrigin(_that.query);case PlanTripSearchDestination():
 return searchDestination(_that.query);case PlanTripSelectManualDestination():
 return selectManualDestination(_that.location);case PlanTripRequestAiSuggestions():
-return requestAiSuggestions();case PlanTripSelectAiDestination():
+return requestAiSuggestions(_that.locale);case PlanTripSelectAiDestination():
 return selectAiDestination(_that.destination);case PlanTripSwipeProposal():
 return swipeProposal(_that.index);case PlanTripStartGeneration():
-return startGeneration();case PlanTripRetryGeneration():
-return retryGeneration();case PlanTripCreateTrip():
+return startGeneration(_that.locale);case PlanTripRetryGeneration():
+return retryGeneration(_that.locale);case PlanTripCreateTrip():
 return createTrip();case PlanTripBackToProposals():
 return backToProposals();case PlanTripUpdateReviewDates():
 return updateReviewDates(_that.start,_that.end);}
@@ -259,7 +259,7 @@ return updateReviewDates(_that.start,_that.end);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loadPersonalization,TResult? Function()?  nextStep,TResult? Function()?  previousStep,TResult? Function( int step)?  goToStep,TResult? Function( DateMode mode)?  setDateMode,TResult? Function( DateTime start,  DateTime end)?  setExactDates,TResult? Function( int month,  int year)?  setMonthPreference,TResult? Function( DurationPreset preset)?  setFlexibleDuration,TResult? Function( int? adults,  int? children,  int? babies)?  setTravelerCounts,TResult? Function( BudgetPreset? preset)?  setBudgetPreset,TResult? Function( String city)?  setOriginCity,TResult? Function( String query)?  searchOrigin,TResult? Function( String query)?  searchDestination,TResult? Function( LocationResult location)?  selectManualDestination,TResult? Function()?  requestAiSuggestions,TResult? Function( AiDestination destination)?  selectAiDestination,TResult? Function( int index)?  swipeProposal,TResult? Function()?  startGeneration,TResult? Function()?  retryGeneration,TResult? Function()?  createTrip,TResult? Function()?  backToProposals,TResult? Function( DateTime start,  DateTime end)?  updateReviewDates,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loadPersonalization,TResult? Function()?  nextStep,TResult? Function()?  previousStep,TResult? Function( int step)?  goToStep,TResult? Function( DateMode mode)?  setDateMode,TResult? Function( DateTime start,  DateTime end)?  setExactDates,TResult? Function( int month,  int year)?  setMonthPreference,TResult? Function( DurationPreset preset)?  setFlexibleDuration,TResult? Function( int? adults,  int? children,  int? babies)?  setTravelerCounts,TResult? Function( BudgetPreset? preset)?  setBudgetPreset,TResult? Function( String city)?  setOriginCity,TResult? Function( String query)?  searchOrigin,TResult? Function( String query)?  searchDestination,TResult? Function( LocationResult location)?  selectManualDestination,TResult? Function( String locale)?  requestAiSuggestions,TResult? Function( AiDestination destination)?  selectAiDestination,TResult? Function( int index)?  swipeProposal,TResult? Function( String locale)?  startGeneration,TResult? Function( String locale)?  retryGeneration,TResult? Function()?  createTrip,TResult? Function()?  backToProposals,TResult? Function( DateTime start,  DateTime end)?  updateReviewDates,}) {final _that = this;
 switch (_that) {
 case PlanTripLoadPersonalization() when loadPersonalization != null:
 return loadPersonalization();case PlanTripNextStep() when nextStep != null:
@@ -276,11 +276,11 @@ return setOriginCity(_that.city);case PlanTripSearchOrigin() when searchOrigin !
 return searchOrigin(_that.query);case PlanTripSearchDestination() when searchDestination != null:
 return searchDestination(_that.query);case PlanTripSelectManualDestination() when selectManualDestination != null:
 return selectManualDestination(_that.location);case PlanTripRequestAiSuggestions() when requestAiSuggestions != null:
-return requestAiSuggestions();case PlanTripSelectAiDestination() when selectAiDestination != null:
+return requestAiSuggestions(_that.locale);case PlanTripSelectAiDestination() when selectAiDestination != null:
 return selectAiDestination(_that.destination);case PlanTripSwipeProposal() when swipeProposal != null:
 return swipeProposal(_that.index);case PlanTripStartGeneration() when startGeneration != null:
-return startGeneration();case PlanTripRetryGeneration() when retryGeneration != null:
-return retryGeneration();case PlanTripCreateTrip() when createTrip != null:
+return startGeneration(_that.locale);case PlanTripRetryGeneration() when retryGeneration != null:
+return retryGeneration(_that.locale);case PlanTripCreateTrip() when createTrip != null:
 return createTrip();case PlanTripBackToProposals() when backToProposals != null:
 return backToProposals();case PlanTripUpdateReviewDates() when updateReviewDates != null:
 return updateReviewDates(_that.start,_that.end);case _:
@@ -1134,33 +1134,67 @@ $LocationResultCopyWith<$Res> get location {
 
 
 class PlanTripRequestAiSuggestions implements PlanTripEvent {
-  const PlanTripRequestAiSuggestions();
+  const PlanTripRequestAiSuggestions({required this.locale});
   
 
+ final  String locale;
 
-
+/// Create a copy of PlanTripEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PlanTripRequestAiSuggestionsCopyWith<PlanTripRequestAiSuggestions> get copyWith => _$PlanTripRequestAiSuggestionsCopyWithImpl<PlanTripRequestAiSuggestions>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlanTripRequestAiSuggestions);
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlanTripRequestAiSuggestions&&(identical(other.locale, locale) || other.locale == locale));
 }
 
 
 @override
-int get hashCode => runtimeType.hashCode;
+int get hashCode => Object.hash(runtimeType,locale);
 
 @override
 String toString() {
-  return 'PlanTripEvent.requestAiSuggestions()';
+  return 'PlanTripEvent.requestAiSuggestions(locale: $locale)';
 }
 
 
 }
 
+/// @nodoc
+abstract mixin class $PlanTripRequestAiSuggestionsCopyWith<$Res> implements $PlanTripEventCopyWith<$Res> {
+  factory $PlanTripRequestAiSuggestionsCopyWith(PlanTripRequestAiSuggestions value, $Res Function(PlanTripRequestAiSuggestions) _then) = _$PlanTripRequestAiSuggestionsCopyWithImpl;
+@useResult
+$Res call({
+ String locale
+});
 
 
+
+
+}
+/// @nodoc
+class _$PlanTripRequestAiSuggestionsCopyWithImpl<$Res>
+    implements $PlanTripRequestAiSuggestionsCopyWith<$Res> {
+  _$PlanTripRequestAiSuggestionsCopyWithImpl(this._self, this._then);
+
+  final PlanTripRequestAiSuggestions _self;
+  final $Res Function(PlanTripRequestAiSuggestions) _then;
+
+/// Create a copy of PlanTripEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? locale = null,}) {
+  return _then(PlanTripRequestAiSuggestions(
+locale: null == locale ? _self.locale : locale // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
 
 /// @nodoc
 
@@ -1307,65 +1341,133 @@ as int,
 
 
 class PlanTripStartGeneration implements PlanTripEvent {
-  const PlanTripStartGeneration();
+  const PlanTripStartGeneration({required this.locale});
   
 
+ final  String locale;
 
-
+/// Create a copy of PlanTripEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PlanTripStartGenerationCopyWith<PlanTripStartGeneration> get copyWith => _$PlanTripStartGenerationCopyWithImpl<PlanTripStartGeneration>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlanTripStartGeneration);
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlanTripStartGeneration&&(identical(other.locale, locale) || other.locale == locale));
 }
 
 
 @override
-int get hashCode => runtimeType.hashCode;
+int get hashCode => Object.hash(runtimeType,locale);
 
 @override
 String toString() {
-  return 'PlanTripEvent.startGeneration()';
+  return 'PlanTripEvent.startGeneration(locale: $locale)';
 }
 
 
 }
 
+/// @nodoc
+abstract mixin class $PlanTripStartGenerationCopyWith<$Res> implements $PlanTripEventCopyWith<$Res> {
+  factory $PlanTripStartGenerationCopyWith(PlanTripStartGeneration value, $Res Function(PlanTripStartGeneration) _then) = _$PlanTripStartGenerationCopyWithImpl;
+@useResult
+$Res call({
+ String locale
+});
 
 
+
+
+}
+/// @nodoc
+class _$PlanTripStartGenerationCopyWithImpl<$Res>
+    implements $PlanTripStartGenerationCopyWith<$Res> {
+  _$PlanTripStartGenerationCopyWithImpl(this._self, this._then);
+
+  final PlanTripStartGeneration _self;
+  final $Res Function(PlanTripStartGeneration) _then;
+
+/// Create a copy of PlanTripEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? locale = null,}) {
+  return _then(PlanTripStartGeneration(
+locale: null == locale ? _self.locale : locale // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
 
 /// @nodoc
 
 
 class PlanTripRetryGeneration implements PlanTripEvent {
-  const PlanTripRetryGeneration();
+  const PlanTripRetryGeneration({required this.locale});
   
 
+ final  String locale;
 
-
+/// Create a copy of PlanTripEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PlanTripRetryGenerationCopyWith<PlanTripRetryGeneration> get copyWith => _$PlanTripRetryGenerationCopyWithImpl<PlanTripRetryGeneration>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlanTripRetryGeneration);
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlanTripRetryGeneration&&(identical(other.locale, locale) || other.locale == locale));
 }
 
 
 @override
-int get hashCode => runtimeType.hashCode;
+int get hashCode => Object.hash(runtimeType,locale);
 
 @override
 String toString() {
-  return 'PlanTripEvent.retryGeneration()';
+  return 'PlanTripEvent.retryGeneration(locale: $locale)';
 }
 
 
 }
 
+/// @nodoc
+abstract mixin class $PlanTripRetryGenerationCopyWith<$Res> implements $PlanTripEventCopyWith<$Res> {
+  factory $PlanTripRetryGenerationCopyWith(PlanTripRetryGeneration value, $Res Function(PlanTripRetryGeneration) _then) = _$PlanTripRetryGenerationCopyWithImpl;
+@useResult
+$Res call({
+ String locale
+});
 
 
+
+
+}
+/// @nodoc
+class _$PlanTripRetryGenerationCopyWithImpl<$Res>
+    implements $PlanTripRetryGenerationCopyWith<$Res> {
+  _$PlanTripRetryGenerationCopyWithImpl(this._self, this._then);
+
+  final PlanTripRetryGeneration _self;
+  final $Res Function(PlanTripRetryGeneration) _then;
+
+/// Create a copy of PlanTripEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? locale = null,}) {
+  return _then(PlanTripRetryGeneration(
+locale: null == locale ? _self.locale : locale // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
 
 /// @nodoc
 
