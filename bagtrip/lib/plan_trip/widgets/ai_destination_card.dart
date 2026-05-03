@@ -1,5 +1,5 @@
 import 'package:bagtrip/components/optimized_image.dart';
-import 'package:bagtrip/design/personalization_colors.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -14,19 +14,25 @@ import 'package:flutter/material.dart';
 class AiDestinationCard extends StatelessWidget {
   final AiDestination destination;
   final double selectionProgress;
+  final bool isExpanded;
+  final VoidCallback? onToggleExpanded;
 
   const AiDestinationCard({
     super.key,
     required this.destination,
     this.selectionProgress = 0.0,
+    this.isExpanded = false,
+    this.onToggleExpanded,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final weatherLabel = destination.weatherSummary?.trim();
+    final hasWeather = weatherLabel != null && weatherLabel.isNotEmpty;
+    final activityLabels = destination.topActivities;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.space8),
       decoration: BoxDecoration(
         borderRadius: AppRadius.large16,
         color: ColorName.surface,
@@ -86,25 +92,24 @@ class AiDestinationCard extends StatelessWidget {
                       vertical: AppSpacing.space4,
                     ),
                     decoration: BoxDecoration(
-                      color: PersonalizationColors.accentBlue.withValues(
-                        alpha: 0.9,
-                      ),
+                      color: ColorName.secondary,
                       borderRadius: AppRadius.pill,
+                      border: Border.all(color: ColorName.surface, width: 0.5),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(
                           Icons.auto_awesome_rounded,
-                          size: 12,
+                          size: 16,
                           color: Colors.white,
                         ),
                         const SizedBox(width: AppSpacing.space4),
                         Text(
                           l10n.aiBadgeLabel,
                           style: const TextStyle(
-                            fontFamily: FontFamily.b612,
-                            fontSize: 11,
+                            fontFamily: FontFamily.dMSans,
+                            fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
                           ),
@@ -126,8 +131,8 @@ class AiDestinationCard extends StatelessWidget {
                       Text(
                         destination.city,
                         style: const TextStyle(
-                          fontFamily: FontFamily.b612,
-                          fontSize: 18,
+                          fontFamily: FontFamily.dMSerifDisplay,
+                          fontSize: 24,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
                         ),
@@ -135,8 +140,9 @@ class AiDestinationCard extends StatelessWidget {
                       Text(
                         destination.country,
                         style: TextStyle(
-                          fontFamily: FontFamily.b612,
-                          fontSize: 13,
+                          fontFamily: FontFamily.dMSans,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
                           color: Colors.white.withValues(alpha: 0.7),
                         ),
                       ),
@@ -144,7 +150,7 @@ class AiDestinationCard extends StatelessWidget {
                   ),
                 ),
 
-                // Selection overlay
+                // Selection overlay (green tint + check)
                 if (selectionProgress > 0)
                   Positioned.fill(
                     child: Container(
@@ -164,88 +170,103 @@ class AiDestinationCard extends StatelessWidget {
           ),
 
           // Content section
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.space16,
-                AppSpacing.space12,
-                AppSpacing.space16,
-                AppSpacing.space12,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Match reason
-                    if (destination.matchReason != null) ...[
-                      Text(
-                        destination.matchReason!,
-                        style: const TextStyle(
-                          fontFamily: FontFamily.b612,
-                          fontSize: 12,
-                          fontStyle: FontStyle.italic,
-                          color: ColorName.secondary,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: AppSpacing.space8),
-                    ],
-
-                    // Weather + Budget chips
-                    Wrap(
-                      spacing: AppSpacing.space8,
-                      runSpacing: AppSpacing.space4,
-                      children: [
-                        if (destination.weatherSummary != null)
-                          _InfoChip(
-                            icon: Icons.wb_sunny_rounded,
-                            label: destination.weatherSummary!,
-                          ),
-                        if (destination.estimatedBudgetRange != null)
-                          _InfoChip(
-                            icon: Icons.euro_rounded,
-                            label:
-                                '${destination.estimatedBudgetRange!.min.toInt()}–${destination.estimatedBudgetRange!.max.toInt()}€',
-                          ),
-                      ],
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.space16,
+              AppSpacing.space12,
+              AppSpacing.space16,
+              AppSpacing.space12,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Match reason — capped to 3 lines as a UI safeguard so a
+                // verbose LLM response can never blow up the card height.
+                if (destination.matchReason != null) ...[
+                  Text(
+                    destination.matchReason!,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontFamily: FontFamily.dMSans,
+                      fontSize: 14,
+                      color: ColorName.onSurface,
                     ),
+                  ),
+                  const SizedBox(height: AppSpacing.space16),
+                ],
 
-                    // Activity pills
-                    if (destination.topActivities.isNotEmpty) ...[
-                      const SizedBox(height: AppSpacing.space8),
-                      Wrap(
-                        spacing: AppSpacing.space8,
-                        runSpacing: AppSpacing.space4,
-                        children: destination.topActivities
-                            .take(3)
-                            .map(
-                              (activity) => Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppSpacing.space8,
-                                  vertical: AppSpacing.space4,
-                                ),
-                                decoration: const BoxDecoration(
-                                  color: ColorName.primaryLight,
-                                  borderRadius: AppRadius.pill,
-                                ),
-                                child: Text(
-                                  activity,
-                                  style: const TextStyle(
-                                    fontFamily: FontFamily.b612,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: ColorName.primary,
-                                  ),
-                                ),
-                              ),
-                            )
-                            .toList(),
-                      ),
+                // Weather + Budget chips
+                if (hasWeather || destination.estimatedBudgetRange != null)
+                  Wrap(
+                    spacing: AppSpacing.space8,
+                    runSpacing: AppSpacing.space4,
+                    children: [
+                      if (hasWeather)
+                        _InfoChip(
+                          icon: Icons.wb_sunny_rounded,
+                          label: weatherLabel,
+                          backgroundColor: AppColors.chipWeatherBackground,
+                          textColor: AppColors.chipWeatherForeground,
+                          iconColor: AppColors.chipWeatherForeground,
+                        ),
+                      if (destination.estimatedBudgetRange != null)
+                        _InfoChip(
+                          icon: Icons.euro_rounded,
+                          label:
+                              '${destination.estimatedBudgetRange!.min.toInt()}–${destination.estimatedBudgetRange!.max.toInt()}€',
+                        ),
                     ],
-                  ],
-                ),
-              ),
+                  ),
+
+                // Activity pills
+                if (activityLabels.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.space8),
+                  Wrap(
+                    spacing: AppSpacing.space8,
+                    runSpacing: AppSpacing.space4,
+                    children: activityLabels
+                        .take(isExpanded ? activityLabels.length : 3)
+                        .map(
+                          (activity) => _InfoChip(
+                            icon: Icons.place_rounded,
+                            label: activity,
+                            backgroundColor: AppColors.chipActivityBackground,
+                            textColor: AppColors.chipActivityForeground,
+                            iconColor: AppColors.chipActivityForeground,
+                            textStyle: const TextStyle(
+                              fontFamily: FontFamily.dMSans,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                  if (activityLabels.length > 3 && onToggleExpanded != null)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                        onPressed: onToggleExpanded,
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.space8,
+                            vertical: AppSpacing.space4,
+                          ),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          foregroundColor: AppColors.chipActivityForeground,
+                          textStyle: const TextStyle(
+                            fontFamily: FontFamily.dMSans,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        child: Text(isExpanded ? l10n.showLess : l10n.showMore),
+                      ),
+                    ),
+                ],
+              ],
             ),
           ),
         ],
@@ -269,34 +290,48 @@ class AiDestinationCard extends StatelessWidget {
 class _InfoChip extends StatelessWidget {
   final IconData icon;
   final String label;
+  final Color backgroundColor;
+  final Color textColor;
+  final Color iconColor;
+  final TextStyle? textStyle;
 
-  const _InfoChip({required this.icon, required this.label});
+  const _InfoChip({
+    required this.icon,
+    required this.label,
+    this.backgroundColor = ColorName.primaryLight,
+    this.textColor = ColorName.primary,
+    this.iconColor = ColorName.primary,
+    this.textStyle,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.space8,
-        vertical: AppSpacing.space4,
+        horizontal: AppSpacing.space12,
+        vertical: AppSpacing.space8,
       ),
-      decoration: const BoxDecoration(
-        color: ColorName.primaryLight,
-        borderRadius: AppRadius.medium8,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: AppRadius.pill,
+        border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: ColorName.primary),
+          Icon(icon, size: 16, color: iconColor),
           const SizedBox(width: AppSpacing.space4),
           Flexible(
             child: Text(
               label,
-              style: const TextStyle(
-                fontFamily: FontFamily.b612,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: ColorName.primary,
-              ),
+              style:
+                  textStyle ??
+                  TextStyle(
+                    fontFamily: FontFamily.dMSans,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: textColor,
+                  ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

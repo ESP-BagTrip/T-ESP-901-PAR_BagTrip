@@ -155,6 +155,12 @@ class AppColors {
   static const Color budgetTransport = Color(0xFFE8A4B8);
   static const Color budgetDefault = Color(0xFF8B8882);
 
+  // --- AI destination card chips ---
+  static const Color chipWeatherBackground = Color(0xFFE3F5F4);
+  static const Color chipWeatherForeground = Color(0xFF0B7F80);
+  static const Color chipActivityBackground = Color(0xFFF0F2F6);
+  static const Color chipActivityForeground = Color(0xFF58617A);
+
   // --- Overlays / shadows / dividers ---
   static const Color white = ColorName.surface; // #FFFFFF
   static final Color shadowLight = const Color(
