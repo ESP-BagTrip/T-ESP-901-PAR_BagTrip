@@ -13,6 +13,278 @@ part of 'trip_plan.dart';
 T _$identity<T>(T value) => value;
 
 /// @nodoc
+mixin _$TripRecommendation {
+
+ String get title; String get description; double get estimatedCost; String get location;
+/// Create a copy of TripRecommendation
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$TripRecommendationCopyWith<TripRecommendation> get copyWith => _$TripRecommendationCopyWithImpl<TripRecommendation>(this as TripRecommendation, _$identity);
+
+  /// Serializes this TripRecommendation to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TripRecommendation&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.estimatedCost, estimatedCost) || other.estimatedCost == estimatedCost)&&(identical(other.location, location) || other.location == location));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,title,description,estimatedCost,location);
+
+@override
+String toString() {
+  return 'TripRecommendation(title: $title, description: $description, estimatedCost: $estimatedCost, location: $location)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $TripRecommendationCopyWith<$Res>  {
+  factory $TripRecommendationCopyWith(TripRecommendation value, $Res Function(TripRecommendation) _then) = _$TripRecommendationCopyWithImpl;
+@useResult
+$Res call({
+ String title, String description, double estimatedCost, String location
+});
+
+
+
+
+}
+/// @nodoc
+class _$TripRecommendationCopyWithImpl<$Res>
+    implements $TripRecommendationCopyWith<$Res> {
+  _$TripRecommendationCopyWithImpl(this._self, this._then);
+
+  final TripRecommendation _self;
+  final $Res Function(TripRecommendation) _then;
+
+/// Create a copy of TripRecommendation
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? description = null,Object? estimatedCost = null,Object? location = null,}) {
+  return _then(_self.copyWith(
+title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,estimatedCost: null == estimatedCost ? _self.estimatedCost : estimatedCost // ignore: cast_nullable_to_non_nullable
+as double,location: null == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [TripRecommendation].
+extension TripRecommendationPatterns on TripRecommendation {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _TripRecommendation value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _TripRecommendation() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _TripRecommendation value)  $default,){
+final _that = this;
+switch (_that) {
+case _TripRecommendation():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _TripRecommendation value)?  $default,){
+final _that = this;
+switch (_that) {
+case _TripRecommendation() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String title,  String description,  double estimatedCost,  String location)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _TripRecommendation() when $default != null:
+return $default(_that.title,_that.description,_that.estimatedCost,_that.location);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String title,  String description,  double estimatedCost,  String location)  $default,) {final _that = this;
+switch (_that) {
+case _TripRecommendation():
+return $default(_that.title,_that.description,_that.estimatedCost,_that.location);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String title,  String description,  double estimatedCost,  String location)?  $default,) {final _that = this;
+switch (_that) {
+case _TripRecommendation() when $default != null:
+return $default(_that.title,_that.description,_that.estimatedCost,_that.location);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _TripRecommendation implements TripRecommendation {
+  const _TripRecommendation({this.title = '', this.description = '', this.estimatedCost = 0.0, this.location = ''});
+  factory _TripRecommendation.fromJson(Map<String, dynamic> json) => _$TripRecommendationFromJson(json);
+
+@override@JsonKey() final  String title;
+@override@JsonKey() final  String description;
+@override@JsonKey() final  double estimatedCost;
+@override@JsonKey() final  String location;
+
+/// Create a copy of TripRecommendation
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$TripRecommendationCopyWith<_TripRecommendation> get copyWith => __$TripRecommendationCopyWithImpl<_TripRecommendation>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$TripRecommendationToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TripRecommendation&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.estimatedCost, estimatedCost) || other.estimatedCost == estimatedCost)&&(identical(other.location, location) || other.location == location));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,title,description,estimatedCost,location);
+
+@override
+String toString() {
+  return 'TripRecommendation(title: $title, description: $description, estimatedCost: $estimatedCost, location: $location)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$TripRecommendationCopyWith<$Res> implements $TripRecommendationCopyWith<$Res> {
+  factory _$TripRecommendationCopyWith(_TripRecommendation value, $Res Function(_TripRecommendation) _then) = __$TripRecommendationCopyWithImpl;
+@override @useResult
+$Res call({
+ String title, String description, double estimatedCost, String location
+});
+
+
+
+
+}
+/// @nodoc
+class __$TripRecommendationCopyWithImpl<$Res>
+    implements _$TripRecommendationCopyWith<$Res> {
+  __$TripRecommendationCopyWithImpl(this._self, this._then);
+
+  final _TripRecommendation _self;
+  final $Res Function(_TripRecommendation) _then;
+
+/// Create a copy of TripRecommendation
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? title = null,Object? description = null,Object? estimatedCost = null,Object? location = null,}) {
+  return _then(_TripRecommendation(
+title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,estimatedCost: null == estimatedCost ? _self.estimatedCost : estimatedCost // ignore: cast_nullable_to_non_nullable
+as double,location: null == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$TripPlan {
 
 // Destination
@@ -23,8 +295,11 @@ mixin _$TripPlan {
  double get budgetEur; List<String> get highlights;// Accommodation
  String get accommodationName; String get accommodationSubtitle; double get accommodationPrice; String get accommodationSource;// Flight
  String get flightRoute; String get flightDetails; double get flightPrice; String get flightSource;// Flight offer details (from Amadeus)
- String get originIata; String get flightAirline; String get flightNumber; String get flightDeparture; String get flightArrival; String get flightDuration; String get returnDeparture; String get returnArrival; String get returnDuration;// Day-by-day
- List<String> get dayProgram; List<String> get dayDescriptions; List<String> get dayCategories;// Baggage
+ String get originIata; String get flightAirline; String get flightNumber; String get flightDeparture; String get flightArrival; String get flightDuration; String get returnDeparture; String get returnArrival; String get returnDuration;// Day-by-day (only dated activities — CULTURE / NATURE / SPORT / ...).
+ List<String> get dayProgram; List<String> get dayDescriptions; List<String> get dayCategories;// SMP-324 — undated AI recommendations rendered as dedicated review
+// sections and trip-detail tabs ("Restos à essayer" / "Transports
+// utiles"). Empty when the agent did not surface any.
+ List<TripRecommendation> get mealRecommendations; List<TripRecommendation> get transportRecommendations;// Baggage
  List<String> get essentialItems; List<String> get essentialReasons;// Hotel rating
  int get hotelRating;// Budget breakdown — typed Freezed view (B13). Replaces the old
 // `Map<String, dynamic>` that produced silent zeros on SSE shape drift.
@@ -42,16 +317,16 @@ $TripPlanCopyWith<TripPlan> get copyWith => _$TripPlanCopyWithImpl<TripPlan>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TripPlan&&(identical(other.destinationCity, destinationCity) || other.destinationCity == destinationCity)&&(identical(other.destinationCountry, destinationCountry) || other.destinationCountry == destinationCountry)&&(identical(other.destinationIata, destinationIata) || other.destinationIata == destinationIata)&&(identical(other.durationDays, durationDays) || other.durationDays == durationDays)&&(identical(other.budgetEur, budgetEur) || other.budgetEur == budgetEur)&&const DeepCollectionEquality().equals(other.highlights, highlights)&&(identical(other.accommodationName, accommodationName) || other.accommodationName == accommodationName)&&(identical(other.accommodationSubtitle, accommodationSubtitle) || other.accommodationSubtitle == accommodationSubtitle)&&(identical(other.accommodationPrice, accommodationPrice) || other.accommodationPrice == accommodationPrice)&&(identical(other.accommodationSource, accommodationSource) || other.accommodationSource == accommodationSource)&&(identical(other.flightRoute, flightRoute) || other.flightRoute == flightRoute)&&(identical(other.flightDetails, flightDetails) || other.flightDetails == flightDetails)&&(identical(other.flightPrice, flightPrice) || other.flightPrice == flightPrice)&&(identical(other.flightSource, flightSource) || other.flightSource == flightSource)&&(identical(other.originIata, originIata) || other.originIata == originIata)&&(identical(other.flightAirline, flightAirline) || other.flightAirline == flightAirline)&&(identical(other.flightNumber, flightNumber) || other.flightNumber == flightNumber)&&(identical(other.flightDeparture, flightDeparture) || other.flightDeparture == flightDeparture)&&(identical(other.flightArrival, flightArrival) || other.flightArrival == flightArrival)&&(identical(other.flightDuration, flightDuration) || other.flightDuration == flightDuration)&&(identical(other.returnDeparture, returnDeparture) || other.returnDeparture == returnDeparture)&&(identical(other.returnArrival, returnArrival) || other.returnArrival == returnArrival)&&(identical(other.returnDuration, returnDuration) || other.returnDuration == returnDuration)&&const DeepCollectionEquality().equals(other.dayProgram, dayProgram)&&const DeepCollectionEquality().equals(other.dayDescriptions, dayDescriptions)&&const DeepCollectionEquality().equals(other.dayCategories, dayCategories)&&const DeepCollectionEquality().equals(other.essentialItems, essentialItems)&&const DeepCollectionEquality().equals(other.essentialReasons, essentialReasons)&&(identical(other.hotelRating, hotelRating) || other.hotelRating == hotelRating)&&(identical(other.budgetBreakdown, budgetBreakdown) || other.budgetBreakdown == budgetBreakdown)&&const DeepCollectionEquality().equals(other.weatherData, weatherData));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TripPlan&&(identical(other.destinationCity, destinationCity) || other.destinationCity == destinationCity)&&(identical(other.destinationCountry, destinationCountry) || other.destinationCountry == destinationCountry)&&(identical(other.destinationIata, destinationIata) || other.destinationIata == destinationIata)&&(identical(other.durationDays, durationDays) || other.durationDays == durationDays)&&(identical(other.budgetEur, budgetEur) || other.budgetEur == budgetEur)&&const DeepCollectionEquality().equals(other.highlights, highlights)&&(identical(other.accommodationName, accommodationName) || other.accommodationName == accommodationName)&&(identical(other.accommodationSubtitle, accommodationSubtitle) || other.accommodationSubtitle == accommodationSubtitle)&&(identical(other.accommodationPrice, accommodationPrice) || other.accommodationPrice == accommodationPrice)&&(identical(other.accommodationSource, accommodationSource) || other.accommodationSource == accommodationSource)&&(identical(other.flightRoute, flightRoute) || other.flightRoute == flightRoute)&&(identical(other.flightDetails, flightDetails) || other.flightDetails == flightDetails)&&(identical(other.flightPrice, flightPrice) || other.flightPrice == flightPrice)&&(identical(other.flightSource, flightSource) || other.flightSource == flightSource)&&(identical(other.originIata, originIata) || other.originIata == originIata)&&(identical(other.flightAirline, flightAirline) || other.flightAirline == flightAirline)&&(identical(other.flightNumber, flightNumber) || other.flightNumber == flightNumber)&&(identical(other.flightDeparture, flightDeparture) || other.flightDeparture == flightDeparture)&&(identical(other.flightArrival, flightArrival) || other.flightArrival == flightArrival)&&(identical(other.flightDuration, flightDuration) || other.flightDuration == flightDuration)&&(identical(other.returnDeparture, returnDeparture) || other.returnDeparture == returnDeparture)&&(identical(other.returnArrival, returnArrival) || other.returnArrival == returnArrival)&&(identical(other.returnDuration, returnDuration) || other.returnDuration == returnDuration)&&const DeepCollectionEquality().equals(other.dayProgram, dayProgram)&&const DeepCollectionEquality().equals(other.dayDescriptions, dayDescriptions)&&const DeepCollectionEquality().equals(other.dayCategories, dayCategories)&&const DeepCollectionEquality().equals(other.mealRecommendations, mealRecommendations)&&const DeepCollectionEquality().equals(other.transportRecommendations, transportRecommendations)&&const DeepCollectionEquality().equals(other.essentialItems, essentialItems)&&const DeepCollectionEquality().equals(other.essentialReasons, essentialReasons)&&(identical(other.hotelRating, hotelRating) || other.hotelRating == hotelRating)&&(identical(other.budgetBreakdown, budgetBreakdown) || other.budgetBreakdown == budgetBreakdown)&&const DeepCollectionEquality().equals(other.weatherData, weatherData));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,destinationCity,destinationCountry,destinationIata,durationDays,budgetEur,const DeepCollectionEquality().hash(highlights),accommodationName,accommodationSubtitle,accommodationPrice,accommodationSource,flightRoute,flightDetails,flightPrice,flightSource,originIata,flightAirline,flightNumber,flightDeparture,flightArrival,flightDuration,returnDeparture,returnArrival,returnDuration,const DeepCollectionEquality().hash(dayProgram),const DeepCollectionEquality().hash(dayDescriptions),const DeepCollectionEquality().hash(dayCategories),const DeepCollectionEquality().hash(essentialItems),const DeepCollectionEquality().hash(essentialReasons),hotelRating,budgetBreakdown,const DeepCollectionEquality().hash(weatherData)]);
+int get hashCode => Object.hashAll([runtimeType,destinationCity,destinationCountry,destinationIata,durationDays,budgetEur,const DeepCollectionEquality().hash(highlights),accommodationName,accommodationSubtitle,accommodationPrice,accommodationSource,flightRoute,flightDetails,flightPrice,flightSource,originIata,flightAirline,flightNumber,flightDeparture,flightArrival,flightDuration,returnDeparture,returnArrival,returnDuration,const DeepCollectionEquality().hash(dayProgram),const DeepCollectionEquality().hash(dayDescriptions),const DeepCollectionEquality().hash(dayCategories),const DeepCollectionEquality().hash(mealRecommendations),const DeepCollectionEquality().hash(transportRecommendations),const DeepCollectionEquality().hash(essentialItems),const DeepCollectionEquality().hash(essentialReasons),hotelRating,budgetBreakdown,const DeepCollectionEquality().hash(weatherData)]);
 
 @override
 String toString() {
-  return 'TripPlan(destinationCity: $destinationCity, destinationCountry: $destinationCountry, destinationIata: $destinationIata, durationDays: $durationDays, budgetEur: $budgetEur, highlights: $highlights, accommodationName: $accommodationName, accommodationSubtitle: $accommodationSubtitle, accommodationPrice: $accommodationPrice, accommodationSource: $accommodationSource, flightRoute: $flightRoute, flightDetails: $flightDetails, flightPrice: $flightPrice, flightSource: $flightSource, originIata: $originIata, flightAirline: $flightAirline, flightNumber: $flightNumber, flightDeparture: $flightDeparture, flightArrival: $flightArrival, flightDuration: $flightDuration, returnDeparture: $returnDeparture, returnArrival: $returnArrival, returnDuration: $returnDuration, dayProgram: $dayProgram, dayDescriptions: $dayDescriptions, dayCategories: $dayCategories, essentialItems: $essentialItems, essentialReasons: $essentialReasons, hotelRating: $hotelRating, budgetBreakdown: $budgetBreakdown, weatherData: $weatherData)';
+  return 'TripPlan(destinationCity: $destinationCity, destinationCountry: $destinationCountry, destinationIata: $destinationIata, durationDays: $durationDays, budgetEur: $budgetEur, highlights: $highlights, accommodationName: $accommodationName, accommodationSubtitle: $accommodationSubtitle, accommodationPrice: $accommodationPrice, accommodationSource: $accommodationSource, flightRoute: $flightRoute, flightDetails: $flightDetails, flightPrice: $flightPrice, flightSource: $flightSource, originIata: $originIata, flightAirline: $flightAirline, flightNumber: $flightNumber, flightDeparture: $flightDeparture, flightArrival: $flightArrival, flightDuration: $flightDuration, returnDeparture: $returnDeparture, returnArrival: $returnArrival, returnDuration: $returnDuration, dayProgram: $dayProgram, dayDescriptions: $dayDescriptions, dayCategories: $dayCategories, mealRecommendations: $mealRecommendations, transportRecommendations: $transportRecommendations, essentialItems: $essentialItems, essentialReasons: $essentialReasons, hotelRating: $hotelRating, budgetBreakdown: $budgetBreakdown, weatherData: $weatherData)';
 }
 
 
@@ -62,7 +337,7 @@ abstract mixin class $TripPlanCopyWith<$Res>  {
   factory $TripPlanCopyWith(TripPlan value, $Res Function(TripPlan) _then) = _$TripPlanCopyWithImpl;
 @useResult
 $Res call({
- String destinationCity, String destinationCountry, String? destinationIata, int durationDays, double budgetEur, List<String> highlights, String accommodationName, String accommodationSubtitle, double accommodationPrice, String accommodationSource, String flightRoute, String flightDetails, double flightPrice, String flightSource, String originIata, String flightAirline, String flightNumber, String flightDeparture, String flightArrival, String flightDuration, String returnDeparture, String returnArrival, String returnDuration, List<String> dayProgram, List<String> dayDescriptions, List<String> dayCategories, List<String> essentialItems, List<String> essentialReasons, int hotelRating, BudgetBreakdown budgetBreakdown, Map<String, dynamic> weatherData
+ String destinationCity, String destinationCountry, String? destinationIata, int durationDays, double budgetEur, List<String> highlights, String accommodationName, String accommodationSubtitle, double accommodationPrice, String accommodationSource, String flightRoute, String flightDetails, double flightPrice, String flightSource, String originIata, String flightAirline, String flightNumber, String flightDeparture, String flightArrival, String flightDuration, String returnDeparture, String returnArrival, String returnDuration, List<String> dayProgram, List<String> dayDescriptions, List<String> dayCategories, List<TripRecommendation> mealRecommendations, List<TripRecommendation> transportRecommendations, List<String> essentialItems, List<String> essentialReasons, int hotelRating, BudgetBreakdown budgetBreakdown, Map<String, dynamic> weatherData
 });
 
 
@@ -79,7 +354,7 @@ class _$TripPlanCopyWithImpl<$Res>
 
 /// Create a copy of TripPlan
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? destinationCity = null,Object? destinationCountry = null,Object? destinationIata = freezed,Object? durationDays = null,Object? budgetEur = null,Object? highlights = null,Object? accommodationName = null,Object? accommodationSubtitle = null,Object? accommodationPrice = null,Object? accommodationSource = null,Object? flightRoute = null,Object? flightDetails = null,Object? flightPrice = null,Object? flightSource = null,Object? originIata = null,Object? flightAirline = null,Object? flightNumber = null,Object? flightDeparture = null,Object? flightArrival = null,Object? flightDuration = null,Object? returnDeparture = null,Object? returnArrival = null,Object? returnDuration = null,Object? dayProgram = null,Object? dayDescriptions = null,Object? dayCategories = null,Object? essentialItems = null,Object? essentialReasons = null,Object? hotelRating = null,Object? budgetBreakdown = null,Object? weatherData = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? destinationCity = null,Object? destinationCountry = null,Object? destinationIata = freezed,Object? durationDays = null,Object? budgetEur = null,Object? highlights = null,Object? accommodationName = null,Object? accommodationSubtitle = null,Object? accommodationPrice = null,Object? accommodationSource = null,Object? flightRoute = null,Object? flightDetails = null,Object? flightPrice = null,Object? flightSource = null,Object? originIata = null,Object? flightAirline = null,Object? flightNumber = null,Object? flightDeparture = null,Object? flightArrival = null,Object? flightDuration = null,Object? returnDeparture = null,Object? returnArrival = null,Object? returnDuration = null,Object? dayProgram = null,Object? dayDescriptions = null,Object? dayCategories = null,Object? mealRecommendations = null,Object? transportRecommendations = null,Object? essentialItems = null,Object? essentialReasons = null,Object? hotelRating = null,Object? budgetBreakdown = null,Object? weatherData = null,}) {
   return _then(_self.copyWith(
 destinationCity: null == destinationCity ? _self.destinationCity : destinationCity // ignore: cast_nullable_to_non_nullable
 as String,destinationCountry: null == destinationCountry ? _self.destinationCountry : destinationCountry // ignore: cast_nullable_to_non_nullable
@@ -107,7 +382,9 @@ as String,returnDuration: null == returnDuration ? _self.returnDuration : return
 as String,dayProgram: null == dayProgram ? _self.dayProgram : dayProgram // ignore: cast_nullable_to_non_nullable
 as List<String>,dayDescriptions: null == dayDescriptions ? _self.dayDescriptions : dayDescriptions // ignore: cast_nullable_to_non_nullable
 as List<String>,dayCategories: null == dayCategories ? _self.dayCategories : dayCategories // ignore: cast_nullable_to_non_nullable
-as List<String>,essentialItems: null == essentialItems ? _self.essentialItems : essentialItems // ignore: cast_nullable_to_non_nullable
+as List<String>,mealRecommendations: null == mealRecommendations ? _self.mealRecommendations : mealRecommendations // ignore: cast_nullable_to_non_nullable
+as List<TripRecommendation>,transportRecommendations: null == transportRecommendations ? _self.transportRecommendations : transportRecommendations // ignore: cast_nullable_to_non_nullable
+as List<TripRecommendation>,essentialItems: null == essentialItems ? _self.essentialItems : essentialItems // ignore: cast_nullable_to_non_nullable
 as List<String>,essentialReasons: null == essentialReasons ? _self.essentialReasons : essentialReasons // ignore: cast_nullable_to_non_nullable
 as List<String>,hotelRating: null == hotelRating ? _self.hotelRating : hotelRating // ignore: cast_nullable_to_non_nullable
 as int,budgetBreakdown: null == budgetBreakdown ? _self.budgetBreakdown : budgetBreakdown // ignore: cast_nullable_to_non_nullable
@@ -206,10 +483,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String destinationCity,  String destinationCountry,  String? destinationIata,  int durationDays,  double budgetEur,  List<String> highlights,  String accommodationName,  String accommodationSubtitle,  double accommodationPrice,  String accommodationSource,  String flightRoute,  String flightDetails,  double flightPrice,  String flightSource,  String originIata,  String flightAirline,  String flightNumber,  String flightDeparture,  String flightArrival,  String flightDuration,  String returnDeparture,  String returnArrival,  String returnDuration,  List<String> dayProgram,  List<String> dayDescriptions,  List<String> dayCategories,  List<String> essentialItems,  List<String> essentialReasons,  int hotelRating,  BudgetBreakdown budgetBreakdown,  Map<String, dynamic> weatherData)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String destinationCity,  String destinationCountry,  String? destinationIata,  int durationDays,  double budgetEur,  List<String> highlights,  String accommodationName,  String accommodationSubtitle,  double accommodationPrice,  String accommodationSource,  String flightRoute,  String flightDetails,  double flightPrice,  String flightSource,  String originIata,  String flightAirline,  String flightNumber,  String flightDeparture,  String flightArrival,  String flightDuration,  String returnDeparture,  String returnArrival,  String returnDuration,  List<String> dayProgram,  List<String> dayDescriptions,  List<String> dayCategories,  List<TripRecommendation> mealRecommendations,  List<TripRecommendation> transportRecommendations,  List<String> essentialItems,  List<String> essentialReasons,  int hotelRating,  BudgetBreakdown budgetBreakdown,  Map<String, dynamic> weatherData)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TripPlan() when $default != null:
-return $default(_that.destinationCity,_that.destinationCountry,_that.destinationIata,_that.durationDays,_that.budgetEur,_that.highlights,_that.accommodationName,_that.accommodationSubtitle,_that.accommodationPrice,_that.accommodationSource,_that.flightRoute,_that.flightDetails,_that.flightPrice,_that.flightSource,_that.originIata,_that.flightAirline,_that.flightNumber,_that.flightDeparture,_that.flightArrival,_that.flightDuration,_that.returnDeparture,_that.returnArrival,_that.returnDuration,_that.dayProgram,_that.dayDescriptions,_that.dayCategories,_that.essentialItems,_that.essentialReasons,_that.hotelRating,_that.budgetBreakdown,_that.weatherData);case _:
+return $default(_that.destinationCity,_that.destinationCountry,_that.destinationIata,_that.durationDays,_that.budgetEur,_that.highlights,_that.accommodationName,_that.accommodationSubtitle,_that.accommodationPrice,_that.accommodationSource,_that.flightRoute,_that.flightDetails,_that.flightPrice,_that.flightSource,_that.originIata,_that.flightAirline,_that.flightNumber,_that.flightDeparture,_that.flightArrival,_that.flightDuration,_that.returnDeparture,_that.returnArrival,_that.returnDuration,_that.dayProgram,_that.dayDescriptions,_that.dayCategories,_that.mealRecommendations,_that.transportRecommendations,_that.essentialItems,_that.essentialReasons,_that.hotelRating,_that.budgetBreakdown,_that.weatherData);case _:
   return orElse();
 
 }
@@ -227,10 +504,10 @@ return $default(_that.destinationCity,_that.destinationCountry,_that.destination
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String destinationCity,  String destinationCountry,  String? destinationIata,  int durationDays,  double budgetEur,  List<String> highlights,  String accommodationName,  String accommodationSubtitle,  double accommodationPrice,  String accommodationSource,  String flightRoute,  String flightDetails,  double flightPrice,  String flightSource,  String originIata,  String flightAirline,  String flightNumber,  String flightDeparture,  String flightArrival,  String flightDuration,  String returnDeparture,  String returnArrival,  String returnDuration,  List<String> dayProgram,  List<String> dayDescriptions,  List<String> dayCategories,  List<String> essentialItems,  List<String> essentialReasons,  int hotelRating,  BudgetBreakdown budgetBreakdown,  Map<String, dynamic> weatherData)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String destinationCity,  String destinationCountry,  String? destinationIata,  int durationDays,  double budgetEur,  List<String> highlights,  String accommodationName,  String accommodationSubtitle,  double accommodationPrice,  String accommodationSource,  String flightRoute,  String flightDetails,  double flightPrice,  String flightSource,  String originIata,  String flightAirline,  String flightNumber,  String flightDeparture,  String flightArrival,  String flightDuration,  String returnDeparture,  String returnArrival,  String returnDuration,  List<String> dayProgram,  List<String> dayDescriptions,  List<String> dayCategories,  List<TripRecommendation> mealRecommendations,  List<TripRecommendation> transportRecommendations,  List<String> essentialItems,  List<String> essentialReasons,  int hotelRating,  BudgetBreakdown budgetBreakdown,  Map<String, dynamic> weatherData)  $default,) {final _that = this;
 switch (_that) {
 case _TripPlan():
-return $default(_that.destinationCity,_that.destinationCountry,_that.destinationIata,_that.durationDays,_that.budgetEur,_that.highlights,_that.accommodationName,_that.accommodationSubtitle,_that.accommodationPrice,_that.accommodationSource,_that.flightRoute,_that.flightDetails,_that.flightPrice,_that.flightSource,_that.originIata,_that.flightAirline,_that.flightNumber,_that.flightDeparture,_that.flightArrival,_that.flightDuration,_that.returnDeparture,_that.returnArrival,_that.returnDuration,_that.dayProgram,_that.dayDescriptions,_that.dayCategories,_that.essentialItems,_that.essentialReasons,_that.hotelRating,_that.budgetBreakdown,_that.weatherData);case _:
+return $default(_that.destinationCity,_that.destinationCountry,_that.destinationIata,_that.durationDays,_that.budgetEur,_that.highlights,_that.accommodationName,_that.accommodationSubtitle,_that.accommodationPrice,_that.accommodationSource,_that.flightRoute,_that.flightDetails,_that.flightPrice,_that.flightSource,_that.originIata,_that.flightAirline,_that.flightNumber,_that.flightDeparture,_that.flightArrival,_that.flightDuration,_that.returnDeparture,_that.returnArrival,_that.returnDuration,_that.dayProgram,_that.dayDescriptions,_that.dayCategories,_that.mealRecommendations,_that.transportRecommendations,_that.essentialItems,_that.essentialReasons,_that.hotelRating,_that.budgetBreakdown,_that.weatherData);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -247,10 +524,10 @@ return $default(_that.destinationCity,_that.destinationCountry,_that.destination
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String destinationCity,  String destinationCountry,  String? destinationIata,  int durationDays,  double budgetEur,  List<String> highlights,  String accommodationName,  String accommodationSubtitle,  double accommodationPrice,  String accommodationSource,  String flightRoute,  String flightDetails,  double flightPrice,  String flightSource,  String originIata,  String flightAirline,  String flightNumber,  String flightDeparture,  String flightArrival,  String flightDuration,  String returnDeparture,  String returnArrival,  String returnDuration,  List<String> dayProgram,  List<String> dayDescriptions,  List<String> dayCategories,  List<String> essentialItems,  List<String> essentialReasons,  int hotelRating,  BudgetBreakdown budgetBreakdown,  Map<String, dynamic> weatherData)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String destinationCity,  String destinationCountry,  String? destinationIata,  int durationDays,  double budgetEur,  List<String> highlights,  String accommodationName,  String accommodationSubtitle,  double accommodationPrice,  String accommodationSource,  String flightRoute,  String flightDetails,  double flightPrice,  String flightSource,  String originIata,  String flightAirline,  String flightNumber,  String flightDeparture,  String flightArrival,  String flightDuration,  String returnDeparture,  String returnArrival,  String returnDuration,  List<String> dayProgram,  List<String> dayDescriptions,  List<String> dayCategories,  List<TripRecommendation> mealRecommendations,  List<TripRecommendation> transportRecommendations,  List<String> essentialItems,  List<String> essentialReasons,  int hotelRating,  BudgetBreakdown budgetBreakdown,  Map<String, dynamic> weatherData)?  $default,) {final _that = this;
 switch (_that) {
 case _TripPlan() when $default != null:
-return $default(_that.destinationCity,_that.destinationCountry,_that.destinationIata,_that.durationDays,_that.budgetEur,_that.highlights,_that.accommodationName,_that.accommodationSubtitle,_that.accommodationPrice,_that.accommodationSource,_that.flightRoute,_that.flightDetails,_that.flightPrice,_that.flightSource,_that.originIata,_that.flightAirline,_that.flightNumber,_that.flightDeparture,_that.flightArrival,_that.flightDuration,_that.returnDeparture,_that.returnArrival,_that.returnDuration,_that.dayProgram,_that.dayDescriptions,_that.dayCategories,_that.essentialItems,_that.essentialReasons,_that.hotelRating,_that.budgetBreakdown,_that.weatherData);case _:
+return $default(_that.destinationCity,_that.destinationCountry,_that.destinationIata,_that.durationDays,_that.budgetEur,_that.highlights,_that.accommodationName,_that.accommodationSubtitle,_that.accommodationPrice,_that.accommodationSource,_that.flightRoute,_that.flightDetails,_that.flightPrice,_that.flightSource,_that.originIata,_that.flightAirline,_that.flightNumber,_that.flightDeparture,_that.flightArrival,_that.flightDuration,_that.returnDeparture,_that.returnArrival,_that.returnDuration,_that.dayProgram,_that.dayDescriptions,_that.dayCategories,_that.mealRecommendations,_that.transportRecommendations,_that.essentialItems,_that.essentialReasons,_that.hotelRating,_that.budgetBreakdown,_that.weatherData);case _:
   return null;
 
 }
@@ -262,7 +539,7 @@ return $default(_that.destinationCity,_that.destinationCountry,_that.destination
 @JsonSerializable()
 
 class _TripPlan implements TripPlan {
-  const _TripPlan({this.destinationCity = '', this.destinationCountry = '', this.destinationIata, this.durationDays = 7, this.budgetEur = 0.0, final  List<String> highlights = const [], this.accommodationName = '', this.accommodationSubtitle = '', this.accommodationPrice = 0.0, this.accommodationSource = 'estimated', this.flightRoute = '', this.flightDetails = '', this.flightPrice = 0.0, this.flightSource = 'estimated', this.originIata = '', this.flightAirline = '', this.flightNumber = '', this.flightDeparture = '', this.flightArrival = '', this.flightDuration = '', this.returnDeparture = '', this.returnArrival = '', this.returnDuration = '', final  List<String> dayProgram = const [], final  List<String> dayDescriptions = const [], final  List<String> dayCategories = const [], final  List<String> essentialItems = const [], final  List<String> essentialReasons = const [], this.hotelRating = 0, this.budgetBreakdown = const BudgetBreakdown(), final  Map<String, dynamic> weatherData = const {}}): _highlights = highlights,_dayProgram = dayProgram,_dayDescriptions = dayDescriptions,_dayCategories = dayCategories,_essentialItems = essentialItems,_essentialReasons = essentialReasons,_weatherData = weatherData;
+  const _TripPlan({this.destinationCity = '', this.destinationCountry = '', this.destinationIata, this.durationDays = 7, this.budgetEur = 0.0, final  List<String> highlights = const [], this.accommodationName = '', this.accommodationSubtitle = '', this.accommodationPrice = 0.0, this.accommodationSource = 'estimated', this.flightRoute = '', this.flightDetails = '', this.flightPrice = 0.0, this.flightSource = 'estimated', this.originIata = '', this.flightAirline = '', this.flightNumber = '', this.flightDeparture = '', this.flightArrival = '', this.flightDuration = '', this.returnDeparture = '', this.returnArrival = '', this.returnDuration = '', final  List<String> dayProgram = const [], final  List<String> dayDescriptions = const [], final  List<String> dayCategories = const [], final  List<TripRecommendation> mealRecommendations = const [], final  List<TripRecommendation> transportRecommendations = const [], final  List<String> essentialItems = const [], final  List<String> essentialReasons = const [], this.hotelRating = 0, this.budgetBreakdown = const BudgetBreakdown(), final  Map<String, dynamic> weatherData = const {}}): _highlights = highlights,_dayProgram = dayProgram,_dayDescriptions = dayDescriptions,_dayCategories = dayCategories,_mealRecommendations = mealRecommendations,_transportRecommendations = transportRecommendations,_essentialItems = essentialItems,_essentialReasons = essentialReasons,_weatherData = weatherData;
   factory _TripPlan.fromJson(Map<String, dynamic> json) => _$TripPlanFromJson(json);
 
 // Destination
@@ -302,9 +579,9 @@ class _TripPlan implements TripPlan {
 @override@JsonKey() final  String returnDeparture;
 @override@JsonKey() final  String returnArrival;
 @override@JsonKey() final  String returnDuration;
-// Day-by-day
+// Day-by-day (only dated activities — CULTURE / NATURE / SPORT / ...).
  final  List<String> _dayProgram;
-// Day-by-day
+// Day-by-day (only dated activities — CULTURE / NATURE / SPORT / ...).
 @override@JsonKey() List<String> get dayProgram {
   if (_dayProgram is EqualUnmodifiableListView) return _dayProgram;
   // ignore: implicit_dynamic_type
@@ -323,6 +600,26 @@ class _TripPlan implements TripPlan {
   if (_dayCategories is EqualUnmodifiableListView) return _dayCategories;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_dayCategories);
+}
+
+// SMP-324 — undated AI recommendations rendered as dedicated review
+// sections and trip-detail tabs ("Restos à essayer" / "Transports
+// utiles"). Empty when the agent did not surface any.
+ final  List<TripRecommendation> _mealRecommendations;
+// SMP-324 — undated AI recommendations rendered as dedicated review
+// sections and trip-detail tabs ("Restos à essayer" / "Transports
+// utiles"). Empty when the agent did not surface any.
+@override@JsonKey() List<TripRecommendation> get mealRecommendations {
+  if (_mealRecommendations is EqualUnmodifiableListView) return _mealRecommendations;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_mealRecommendations);
+}
+
+ final  List<TripRecommendation> _transportRecommendations;
+@override@JsonKey() List<TripRecommendation> get transportRecommendations {
+  if (_transportRecommendations is EqualUnmodifiableListView) return _transportRecommendations;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_transportRecommendations);
 }
 
 // Baggage
@@ -369,16 +666,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TripPlan&&(identical(other.destinationCity, destinationCity) || other.destinationCity == destinationCity)&&(identical(other.destinationCountry, destinationCountry) || other.destinationCountry == destinationCountry)&&(identical(other.destinationIata, destinationIata) || other.destinationIata == destinationIata)&&(identical(other.durationDays, durationDays) || other.durationDays == durationDays)&&(identical(other.budgetEur, budgetEur) || other.budgetEur == budgetEur)&&const DeepCollectionEquality().equals(other._highlights, _highlights)&&(identical(other.accommodationName, accommodationName) || other.accommodationName == accommodationName)&&(identical(other.accommodationSubtitle, accommodationSubtitle) || other.accommodationSubtitle == accommodationSubtitle)&&(identical(other.accommodationPrice, accommodationPrice) || other.accommodationPrice == accommodationPrice)&&(identical(other.accommodationSource, accommodationSource) || other.accommodationSource == accommodationSource)&&(identical(other.flightRoute, flightRoute) || other.flightRoute == flightRoute)&&(identical(other.flightDetails, flightDetails) || other.flightDetails == flightDetails)&&(identical(other.flightPrice, flightPrice) || other.flightPrice == flightPrice)&&(identical(other.flightSource, flightSource) || other.flightSource == flightSource)&&(identical(other.originIata, originIata) || other.originIata == originIata)&&(identical(other.flightAirline, flightAirline) || other.flightAirline == flightAirline)&&(identical(other.flightNumber, flightNumber) || other.flightNumber == flightNumber)&&(identical(other.flightDeparture, flightDeparture) || other.flightDeparture == flightDeparture)&&(identical(other.flightArrival, flightArrival) || other.flightArrival == flightArrival)&&(identical(other.flightDuration, flightDuration) || other.flightDuration == flightDuration)&&(identical(other.returnDeparture, returnDeparture) || other.returnDeparture == returnDeparture)&&(identical(other.returnArrival, returnArrival) || other.returnArrival == returnArrival)&&(identical(other.returnDuration, returnDuration) || other.returnDuration == returnDuration)&&const DeepCollectionEquality().equals(other._dayProgram, _dayProgram)&&const DeepCollectionEquality().equals(other._dayDescriptions, _dayDescriptions)&&const DeepCollectionEquality().equals(other._dayCategories, _dayCategories)&&const DeepCollectionEquality().equals(other._essentialItems, _essentialItems)&&const DeepCollectionEquality().equals(other._essentialReasons, _essentialReasons)&&(identical(other.hotelRating, hotelRating) || other.hotelRating == hotelRating)&&(identical(other.budgetBreakdown, budgetBreakdown) || other.budgetBreakdown == budgetBreakdown)&&const DeepCollectionEquality().equals(other._weatherData, _weatherData));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TripPlan&&(identical(other.destinationCity, destinationCity) || other.destinationCity == destinationCity)&&(identical(other.destinationCountry, destinationCountry) || other.destinationCountry == destinationCountry)&&(identical(other.destinationIata, destinationIata) || other.destinationIata == destinationIata)&&(identical(other.durationDays, durationDays) || other.durationDays == durationDays)&&(identical(other.budgetEur, budgetEur) || other.budgetEur == budgetEur)&&const DeepCollectionEquality().equals(other._highlights, _highlights)&&(identical(other.accommodationName, accommodationName) || other.accommodationName == accommodationName)&&(identical(other.accommodationSubtitle, accommodationSubtitle) || other.accommodationSubtitle == accommodationSubtitle)&&(identical(other.accommodationPrice, accommodationPrice) || other.accommodationPrice == accommodationPrice)&&(identical(other.accommodationSource, accommodationSource) || other.accommodationSource == accommodationSource)&&(identical(other.flightRoute, flightRoute) || other.flightRoute == flightRoute)&&(identical(other.flightDetails, flightDetails) || other.flightDetails == flightDetails)&&(identical(other.flightPrice, flightPrice) || other.flightPrice == flightPrice)&&(identical(other.flightSource, flightSource) || other.flightSource == flightSource)&&(identical(other.originIata, originIata) || other.originIata == originIata)&&(identical(other.flightAirline, flightAirline) || other.flightAirline == flightAirline)&&(identical(other.flightNumber, flightNumber) || other.flightNumber == flightNumber)&&(identical(other.flightDeparture, flightDeparture) || other.flightDeparture == flightDeparture)&&(identical(other.flightArrival, flightArrival) || other.flightArrival == flightArrival)&&(identical(other.flightDuration, flightDuration) || other.flightDuration == flightDuration)&&(identical(other.returnDeparture, returnDeparture) || other.returnDeparture == returnDeparture)&&(identical(other.returnArrival, returnArrival) || other.returnArrival == returnArrival)&&(identical(other.returnDuration, returnDuration) || other.returnDuration == returnDuration)&&const DeepCollectionEquality().equals(other._dayProgram, _dayProgram)&&const DeepCollectionEquality().equals(other._dayDescriptions, _dayDescriptions)&&const DeepCollectionEquality().equals(other._dayCategories, _dayCategories)&&const DeepCollectionEquality().equals(other._mealRecommendations, _mealRecommendations)&&const DeepCollectionEquality().equals(other._transportRecommendations, _transportRecommendations)&&const DeepCollectionEquality().equals(other._essentialItems, _essentialItems)&&const DeepCollectionEquality().equals(other._essentialReasons, _essentialReasons)&&(identical(other.hotelRating, hotelRating) || other.hotelRating == hotelRating)&&(identical(other.budgetBreakdown, budgetBreakdown) || other.budgetBreakdown == budgetBreakdown)&&const DeepCollectionEquality().equals(other._weatherData, _weatherData));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,destinationCity,destinationCountry,destinationIata,durationDays,budgetEur,const DeepCollectionEquality().hash(_highlights),accommodationName,accommodationSubtitle,accommodationPrice,accommodationSource,flightRoute,flightDetails,flightPrice,flightSource,originIata,flightAirline,flightNumber,flightDeparture,flightArrival,flightDuration,returnDeparture,returnArrival,returnDuration,const DeepCollectionEquality().hash(_dayProgram),const DeepCollectionEquality().hash(_dayDescriptions),const DeepCollectionEquality().hash(_dayCategories),const DeepCollectionEquality().hash(_essentialItems),const DeepCollectionEquality().hash(_essentialReasons),hotelRating,budgetBreakdown,const DeepCollectionEquality().hash(_weatherData)]);
+int get hashCode => Object.hashAll([runtimeType,destinationCity,destinationCountry,destinationIata,durationDays,budgetEur,const DeepCollectionEquality().hash(_highlights),accommodationName,accommodationSubtitle,accommodationPrice,accommodationSource,flightRoute,flightDetails,flightPrice,flightSource,originIata,flightAirline,flightNumber,flightDeparture,flightArrival,flightDuration,returnDeparture,returnArrival,returnDuration,const DeepCollectionEquality().hash(_dayProgram),const DeepCollectionEquality().hash(_dayDescriptions),const DeepCollectionEquality().hash(_dayCategories),const DeepCollectionEquality().hash(_mealRecommendations),const DeepCollectionEquality().hash(_transportRecommendations),const DeepCollectionEquality().hash(_essentialItems),const DeepCollectionEquality().hash(_essentialReasons),hotelRating,budgetBreakdown,const DeepCollectionEquality().hash(_weatherData)]);
 
 @override
 String toString() {
-  return 'TripPlan(destinationCity: $destinationCity, destinationCountry: $destinationCountry, destinationIata: $destinationIata, durationDays: $durationDays, budgetEur: $budgetEur, highlights: $highlights, accommodationName: $accommodationName, accommodationSubtitle: $accommodationSubtitle, accommodationPrice: $accommodationPrice, accommodationSource: $accommodationSource, flightRoute: $flightRoute, flightDetails: $flightDetails, flightPrice: $flightPrice, flightSource: $flightSource, originIata: $originIata, flightAirline: $flightAirline, flightNumber: $flightNumber, flightDeparture: $flightDeparture, flightArrival: $flightArrival, flightDuration: $flightDuration, returnDeparture: $returnDeparture, returnArrival: $returnArrival, returnDuration: $returnDuration, dayProgram: $dayProgram, dayDescriptions: $dayDescriptions, dayCategories: $dayCategories, essentialItems: $essentialItems, essentialReasons: $essentialReasons, hotelRating: $hotelRating, budgetBreakdown: $budgetBreakdown, weatherData: $weatherData)';
+  return 'TripPlan(destinationCity: $destinationCity, destinationCountry: $destinationCountry, destinationIata: $destinationIata, durationDays: $durationDays, budgetEur: $budgetEur, highlights: $highlights, accommodationName: $accommodationName, accommodationSubtitle: $accommodationSubtitle, accommodationPrice: $accommodationPrice, accommodationSource: $accommodationSource, flightRoute: $flightRoute, flightDetails: $flightDetails, flightPrice: $flightPrice, flightSource: $flightSource, originIata: $originIata, flightAirline: $flightAirline, flightNumber: $flightNumber, flightDeparture: $flightDeparture, flightArrival: $flightArrival, flightDuration: $flightDuration, returnDeparture: $returnDeparture, returnArrival: $returnArrival, returnDuration: $returnDuration, dayProgram: $dayProgram, dayDescriptions: $dayDescriptions, dayCategories: $dayCategories, mealRecommendations: $mealRecommendations, transportRecommendations: $transportRecommendations, essentialItems: $essentialItems, essentialReasons: $essentialReasons, hotelRating: $hotelRating, budgetBreakdown: $budgetBreakdown, weatherData: $weatherData)';
 }
 
 
@@ -389,7 +686,7 @@ abstract mixin class _$TripPlanCopyWith<$Res> implements $TripPlanCopyWith<$Res>
   factory _$TripPlanCopyWith(_TripPlan value, $Res Function(_TripPlan) _then) = __$TripPlanCopyWithImpl;
 @override @useResult
 $Res call({
- String destinationCity, String destinationCountry, String? destinationIata, int durationDays, double budgetEur, List<String> highlights, String accommodationName, String accommodationSubtitle, double accommodationPrice, String accommodationSource, String flightRoute, String flightDetails, double flightPrice, String flightSource, String originIata, String flightAirline, String flightNumber, String flightDeparture, String flightArrival, String flightDuration, String returnDeparture, String returnArrival, String returnDuration, List<String> dayProgram, List<String> dayDescriptions, List<String> dayCategories, List<String> essentialItems, List<String> essentialReasons, int hotelRating, BudgetBreakdown budgetBreakdown, Map<String, dynamic> weatherData
+ String destinationCity, String destinationCountry, String? destinationIata, int durationDays, double budgetEur, List<String> highlights, String accommodationName, String accommodationSubtitle, double accommodationPrice, String accommodationSource, String flightRoute, String flightDetails, double flightPrice, String flightSource, String originIata, String flightAirline, String flightNumber, String flightDeparture, String flightArrival, String flightDuration, String returnDeparture, String returnArrival, String returnDuration, List<String> dayProgram, List<String> dayDescriptions, List<String> dayCategories, List<TripRecommendation> mealRecommendations, List<TripRecommendation> transportRecommendations, List<String> essentialItems, List<String> essentialReasons, int hotelRating, BudgetBreakdown budgetBreakdown, Map<String, dynamic> weatherData
 });
 
 
@@ -406,7 +703,7 @@ class __$TripPlanCopyWithImpl<$Res>
 
 /// Create a copy of TripPlan
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? destinationCity = null,Object? destinationCountry = null,Object? destinationIata = freezed,Object? durationDays = null,Object? budgetEur = null,Object? highlights = null,Object? accommodationName = null,Object? accommodationSubtitle = null,Object? accommodationPrice = null,Object? accommodationSource = null,Object? flightRoute = null,Object? flightDetails = null,Object? flightPrice = null,Object? flightSource = null,Object? originIata = null,Object? flightAirline = null,Object? flightNumber = null,Object? flightDeparture = null,Object? flightArrival = null,Object? flightDuration = null,Object? returnDeparture = null,Object? returnArrival = null,Object? returnDuration = null,Object? dayProgram = null,Object? dayDescriptions = null,Object? dayCategories = null,Object? essentialItems = null,Object? essentialReasons = null,Object? hotelRating = null,Object? budgetBreakdown = null,Object? weatherData = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? destinationCity = null,Object? destinationCountry = null,Object? destinationIata = freezed,Object? durationDays = null,Object? budgetEur = null,Object? highlights = null,Object? accommodationName = null,Object? accommodationSubtitle = null,Object? accommodationPrice = null,Object? accommodationSource = null,Object? flightRoute = null,Object? flightDetails = null,Object? flightPrice = null,Object? flightSource = null,Object? originIata = null,Object? flightAirline = null,Object? flightNumber = null,Object? flightDeparture = null,Object? flightArrival = null,Object? flightDuration = null,Object? returnDeparture = null,Object? returnArrival = null,Object? returnDuration = null,Object? dayProgram = null,Object? dayDescriptions = null,Object? dayCategories = null,Object? mealRecommendations = null,Object? transportRecommendations = null,Object? essentialItems = null,Object? essentialReasons = null,Object? hotelRating = null,Object? budgetBreakdown = null,Object? weatherData = null,}) {
   return _then(_TripPlan(
 destinationCity: null == destinationCity ? _self.destinationCity : destinationCity // ignore: cast_nullable_to_non_nullable
 as String,destinationCountry: null == destinationCountry ? _self.destinationCountry : destinationCountry // ignore: cast_nullable_to_non_nullable
@@ -434,7 +731,9 @@ as String,returnDuration: null == returnDuration ? _self.returnDuration : return
 as String,dayProgram: null == dayProgram ? _self._dayProgram : dayProgram // ignore: cast_nullable_to_non_nullable
 as List<String>,dayDescriptions: null == dayDescriptions ? _self._dayDescriptions : dayDescriptions // ignore: cast_nullable_to_non_nullable
 as List<String>,dayCategories: null == dayCategories ? _self._dayCategories : dayCategories // ignore: cast_nullable_to_non_nullable
-as List<String>,essentialItems: null == essentialItems ? _self._essentialItems : essentialItems // ignore: cast_nullable_to_non_nullable
+as List<String>,mealRecommendations: null == mealRecommendations ? _self._mealRecommendations : mealRecommendations // ignore: cast_nullable_to_non_nullable
+as List<TripRecommendation>,transportRecommendations: null == transportRecommendations ? _self._transportRecommendations : transportRecommendations // ignore: cast_nullable_to_non_nullable
+as List<TripRecommendation>,essentialItems: null == essentialItems ? _self._essentialItems : essentialItems // ignore: cast_nullable_to_non_nullable
 as List<String>,essentialReasons: null == essentialReasons ? _self._essentialReasons : essentialReasons // ignore: cast_nullable_to_non_nullable
 as List<String>,hotelRating: null == hotelRating ? _self.hotelRating : hotelRating // ignore: cast_nullable_to_non_nullable
 as int,budgetBreakdown: null == budgetBreakdown ? _self.budgetBreakdown : budgetBreakdown // ignore: cast_nullable_to_non_nullable

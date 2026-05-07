@@ -24,7 +24,11 @@ class Activity(Base):
     )
     title: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
-    date: Mapped[date] = mapped_column(Date, nullable=False)
+    # Nullable since SMP-324: AI-generated MEAL / TRANSPORT recommendations
+    # are not pinned to a calendar slot — they live in dedicated sections
+    # of the review screen and the trip detail. Dated itinerary entries
+    # (CULTURE, NATURE, ...) still use this column as before.
+    date: Mapped[date | None] = mapped_column(Date, nullable=True)
     start_time: Mapped[time | None] = mapped_column(Time, nullable=True)
     end_time: Mapped[time | None] = mapped_column(Time, nullable=True)
     location: Mapped[str | None] = mapped_column(String, nullable=True)

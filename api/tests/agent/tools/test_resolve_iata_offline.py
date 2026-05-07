@@ -1,92 +1,74 @@
-"""Unit tests for resolve_iata_code using offline aviation data."""
+"""Smoke tests for the ``resolve_iata_code`` agent tool façade.
 
-from unittest.mock import patch
+Since SMP-324 the heavy cascade lives in
+:mod:`src.services.location_resolver` and is exhaustively tested in
+``tests/services/test_location_resolver.py``. The thin façade kept
+under ``src.agent.tools.locations`` only transforms the resolver's
+``ResolvedCity | None`` into the dict shape the agent expects, so the
+tests below stay focused on that dict translation and on the
+exception-safety contract.
+"""
+
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from src.agent.tools import resolve_iata_code
-from src.integrations.amadeus.types import (
-    Location,
-    LocationAddress,
-    LocationGeoCode,
-    LocationSelf,
-)
+from src.services.location_resolver import ResolvedCity
 
 
-def _make_location(iata: str, city: str, country: str, lat: float, lon: float) -> Location:
-    return Location(
-        type="location",
-        subType="AIRPORT",
-        name=f"{city} Airport",
-        detailedName=f"{city} Airport, {city}",
-        id=iata,
-        self_=LocationSelf(href=f"/v1/travel/locations/{iata}", methods=["GET"]),
-        timeZoneOffset="+00:00",
-        iataCode=iata,
-        geoCode=LocationGeoCode(latitude=lat, longitude=lon),
-        address=LocationAddress(
-            cityName=city,
-            cityCode=iata,
-            countryName=country,
-            countryCode="FR",
-            regionCode="EU",
-        ),
+def _make_resolved(
+    iata: str,
+    city: str,
+    country: str,
+    lat: float,
+    lon: float,
+    *,
+    source: str = "airportsdata.keyword",
+) -> ResolvedCity:
+    return ResolvedCity(
+        iata=iata,
+        city=city,
+        country=country,
+        country_code="",
+        latitude=lat,
+        longitude=lon,
+        source=source,
     )
 
 
-class TestResolveIataCodeOffline:
-    """Tests for resolve_iata_code using offline aviation data."""
+class TestResolveIataCodeFacade:
+    @pytest.mark.asyncio
+    async def test_translates_resolved_city_into_legacy_dict(self):
+        with patch(
+            "src.agent.tools.locations.resolve_city",
+            new=AsyncMock(return_value=_make_resolved("CDG", "Paris", "France", 49.01, 2.55)),
+        ):
+            result = await resolve_iata_code("Paris")
+        assert result == {
+            "iata": "CDG",
+            "city": "Paris",
+            "country": "France",
+            "lat": 49.01,
+            "lon": 2.55,
+        }
 
     @pytest.mark.asyncio
-    @patch("src.agent.tools.locations.aviation_data_service")
-    async def test_resolve_paris(self, mock_service):
-        """Resolving 'Paris' returns CDG IATA code."""
-        mock_service.search_by_keyword.return_value = [
-            _make_location("CDG", "Paris", "France", 49.01, 2.55)
-        ]
-
-        result = await resolve_iata_code("Paris")
-
-        assert result["iata"] == "CDG"
-        assert result["city"] == "Paris"
-        assert result["country"] == "France"
-        assert result["lat"] == 49.01
-        assert result["lon"] == 2.55
-        mock_service.search_by_keyword.assert_called_once_with(
-            "Paris", sub_type="CITY,AIRPORT", limit=1
-        )
-
-    @pytest.mark.asyncio
-    @patch("src.agent.tools.locations.aviation_data_service")
-    async def test_resolve_unknown_city(self, mock_service):
-        """Unknown city returns error dict."""
-        mock_service.search_by_keyword.return_value = []
-
-        result = await resolve_iata_code("Atlantis")
-
+    async def test_unresolved_returns_error_dict(self):
+        with patch(
+            "src.agent.tools.locations.resolve_city",
+            new=AsyncMock(return_value=None),
+        ):
+            result = await resolve_iata_code("Atlantis")
         assert "error" in result
         assert "Atlantis" in result["error"]
 
     @pytest.mark.asyncio
-    @patch("src.agent.tools.locations.aviation_data_service")
-    async def test_no_amadeus_call(self, mock_service):
-        """Verify no Amadeus API call is made (offline only)."""
-        mock_service.search_by_keyword.return_value = [
-            _make_location("JFK", "New York", "United States", 40.64, -73.78)
-        ]
-
-        with patch("src.agent.tools.locations.amadeus_client", create=True) as mock_amadeus:
-            await resolve_iata_code("New York")
-            # amadeus_client should never be called
-            mock_amadeus.search_locations_by_keyword.assert_not_called()
-
-    @pytest.mark.asyncio
-    @patch("src.agent.tools.locations.aviation_data_service")
-    async def test_error_handling(self, mock_service):
-        """Service exception returns error dict gracefully."""
-        mock_service.search_by_keyword.side_effect = RuntimeError("data corrupted")
-
-        result = await resolve_iata_code("Berlin")
-
+    async def test_resolver_exception_is_translated_into_error_dict(self):
+        with patch(
+            "src.agent.tools.locations.resolve_city",
+            new=AsyncMock(side_effect=RuntimeError("data corrupted")),
+        ):
+            result = await resolve_iata_code("Berlin")
         assert "error" in result
         assert "data corrupted" in result["error"]

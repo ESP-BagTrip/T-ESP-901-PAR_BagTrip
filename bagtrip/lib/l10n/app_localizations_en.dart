@@ -2474,7 +2474,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accommodationSelectHotel => 'Select';
 
   @override
-  String get accommodationPerNight => '/night';
+  String accommodationPerNight(String amount, String currency) {
+    return '$amount $currency/night';
+  }
 
   @override
   String get accommodationNoResults => 'No hotels found';
@@ -3468,4 +3470,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get showLess => 'Show less';
+
+  @override
+  String get accommodationToBeChosen => 'Accommodation to be chosen';
+
+  @override
+  String get budgetAccommodationDeferred => 'TBD';
+
+  @override
+  String get reviewMealsToTry => 'Restaurants to try';
+
+  @override
+  String get reviewTransportTips => 'Useful transports';
+
+  @override
+  String accommodationDeferredSubtitle(String city, String nights) {
+    return '$city · $nights to book later';
+  }
 }

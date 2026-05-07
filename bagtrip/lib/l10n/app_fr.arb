@@ -1703,5 +1703,23 @@
   "errorAlreadyFullyRefunded": "Ce paiement a déjà été entièrement remboursé.",
   "errorInvalidRefundReason": "Motif de remboursement invalide.",
   "showMore": "Voir plus",
-  "showLess": "Voir moins"
+  "showLess": "Voir moins",
+  "accommodationToBeChosen": "Hôtel à choisir",
+  "budgetAccommodationDeferred": "À déterminer",
+  "reviewMealsToTry": "Restos à essayer",
+  "reviewTransportTips": "Transports utiles",
+  "accommodationDeferredSubtitle": "{city} · {nights} à réserver",
+  "@accommodationDeferredSubtitle": {
+    "placeholders": {
+      "city": {"type": "String"},
+      "nights": {"type": "String"}
+    }
+  },
+  "accommodationPerNight": "{amount} {currency}/nuit",
+  "@accommodationPerNight": {
+    "placeholders": {
+      "amount": {"type": "String"},
+      "currency": {"type": "String"}
+    }
+  }
 }

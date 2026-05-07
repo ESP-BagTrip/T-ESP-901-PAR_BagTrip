@@ -348,9 +348,13 @@ class SubscriptionService:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def get_status(db: Session, user: User) -> dict:
-        """Lightweight plan info — backwards compat with the existing route."""
-        plan_info = PlanService.get_plan_info(db, user)
+    async def get_status(db: Session, user: User) -> dict:
+        """Lightweight plan info — backwards compat with the existing route.
+
+        ``get_plan_info`` reconciles against Stripe before returning, so
+        the caller never sees a stale FREE for a freshly-subscribed user.
+        """
+        plan_info = await PlanService.get_plan_info(db, user)
         return {
             **plan_info,
             "stripe_subscription_id": user.stripe_subscription_id,
@@ -358,23 +362,15 @@ class SubscriptionService:
         }
 
     @staticmethod
-    def get_subscription_details(db: Session, user: User) -> dict:
+    async def get_subscription_details(db: Session, user: User) -> dict:
         """Detailed view for the "Manage my subscription" screen.
 
-        Combines local plan info with live Stripe state (renewal date, card
-        last4, cancel_at_period_end). Falls back gracefully when Stripe is
-        unreachable so the UI can still show *something*.
-
-        **Self-heal on read**: when the user has a `stripe_subscription_id`
-        and Stripe says the subscription is `active` / `trialing`, we treat
-        them as PREMIUM regardless of what the local `User.plan` column
-        says. Source of truth stays the
-        `customer.subscription.{created,updated,deleted}` webhook — but
-        in local dev (no `stripe listen`) and during the brief window
-        between confirm and webhook delivery, this avoids a paid user
-        being shown the FREE paywall.
+        Combines local plan info with live Stripe state (renewal date,
+        card last4, ``cancel_at_period_end``). The plan field is taken
+        from ``PlanService.get_plan_info``, which itself reconciles
+        against Stripe — no need for a duplicate self-heal here.
         """
-        base = SubscriptionService.get_status(db, user)
+        base = await SubscriptionService.get_status(db, user)
         details: dict[str, Any] = {
             **base,
             "cancel_at_period_end": False,
@@ -390,18 +386,6 @@ class SubscriptionService:
         except stripe.StripeError as exc:
             logger.warn(f"Could not retrieve subscription {user.stripe_subscription_id}: {exc}")
             return details
-
-        # Statuses that grant Premium access. `incomplete` is excluded on
-        # purpose — the PaymentIntent hasn't been confirmed yet, so paying
-        # for nothing would be wrong; we wait for the SDK to finalise.
-        # `past_due` keeps Premium per Stripe's grace-period policy.
-        sub_status = getattr(sub, "status", None)
-        if sub_status in ("active", "trialing", "past_due") and details.get("plan") == "FREE":
-            logger.info(
-                f"Self-heal: user {user.id} has stripe sub {user.stripe_subscription_id} "
-                f"in status={sub_status} — overriding local plan FREE → PREMIUM until webhook."
-            )
-            details["plan"] = "PREMIUM"
 
         details["cancel_at_period_end"] = bool(getattr(sub, "cancel_at_period_end", False))
         period_end = getattr(sub, "current_period_end", None)

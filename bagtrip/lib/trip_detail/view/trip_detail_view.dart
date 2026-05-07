@@ -233,7 +233,15 @@ class _LoadedTripViewState extends State<_LoadedTripView>
                         ItineraryPanel(
                           tripId: widget.tripId,
                           tripStartDate: state.trip.startDate,
-                          activities: state.activities,
+                          // SMP-324 — undated FOOD / TRANSPORT
+                          // recommendations live outside the day-by-day
+                          // grid; the timeline panel only consumes
+                          // dated rows. The undated items surface in
+                          // their own sections (review screen + future
+                          // dedicated tabs).
+                          activities: state.activities
+                              .where((a) => a.date != null)
+                              .toList(),
                           totalDays: state.totalDays,
                           selectedDayIndex: state.selectedDayIndex,
                           canEdit: _canEdit,
@@ -447,7 +455,15 @@ class _LoadedTripViewState extends State<_LoadedTripView>
     final newEnd = result.end;
 
     final outOfRange = state.activities.where((a) {
-      final d = DateTime(a.date.year, a.date.month, a.date.day);
+      // Undated AI recommendations (FOOD / TRANSPORT) never fall out of
+      // range — they live on the side, not on the calendar.
+      if (a.date == null) return false;
+      final activityDate = a.date!;
+      final d = DateTime(
+        activityDate.year,
+        activityDate.month,
+        activityDate.day,
+      );
       final s = DateTime(newStart.year, newStart.month, newStart.day);
       final e = DateTime(newEnd.year, newEnd.month, newEnd.day);
       return d.isBefore(s) || d.isAfter(e);

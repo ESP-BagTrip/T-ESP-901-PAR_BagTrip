@@ -138,6 +138,31 @@ class TestACallLlm:
 
         assert exc.value.code == "LLM_INVALID_RESPONSE"
 
+    @pytest.mark.asyncio
+    async def test_hung_call_raises_llm_timeout(self):
+        """SMP-324 — a stuck upstream proxy used to keep the SSE
+        connection open silently. Wrap the underlying ``ainvoke`` in
+        ``asyncio.wait_for`` so the caller always observes a bounded
+        failure path."""
+        import asyncio
+
+        async def _hang(*_args, **_kwargs):
+            await asyncio.sleep(60)  # longer than the patched timeout
+
+        fake_llm = MagicMock()
+        fake_llm.ainvoke = _hang
+
+        service = LLMService()
+        with (
+            patch.object(service, "_get_llm", return_value=fake_llm),
+            patch("src.services.llm_service.settings.LLM_CALL_TIMEOUT_SECONDS", 0.05),
+            pytest.raises(AppError) as exc,
+        ):
+            await service.acall_llm("sys", "user")
+
+        assert exc.value.code == "LLM_TIMEOUT"
+        assert exc.value.status_code == 504
+
 
 class TestACallLlmMessages:
     @pytest.mark.asyncio
@@ -166,6 +191,28 @@ class TestACallLlmMessages:
             await service.acall_llm_messages([MagicMock()])
 
         assert exc.value.code == "LLM_ERROR"
+
+    @pytest.mark.asyncio
+    async def test_hung_call_raises_llm_timeout(self):
+        """Same hang protection as ``acall_llm`` — covers the ReAct
+        executor path which uses ``acall_llm_messages``."""
+        import asyncio
+
+        async def _hang(*_args, **_kwargs):
+            await asyncio.sleep(60)
+
+        fake_llm = MagicMock()
+        fake_llm.ainvoke = _hang
+
+        service = LLMService()
+        with (
+            patch.object(service, "_get_llm", return_value=fake_llm),
+            patch("src.services.llm_service.settings.LLM_CALL_TIMEOUT_SECONDS", 0.05),
+            pytest.raises(AppError) as exc,
+        ):
+            await service.acall_llm_messages([MagicMock()])
+
+        assert exc.value.code == "LLM_TIMEOUT"
 
 
 class TestSingleton:

@@ -2492,7 +2492,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get accommodationSelectHotel => 'Sélectionner';
 
   @override
-  String get accommodationPerNight => '/nuit';
+  String accommodationPerNight(String amount, String currency) {
+    return '$amount $currency/nuit';
+  }
 
   @override
   String get accommodationNoResults => 'Aucun hôtel trouvé';
@@ -3490,4 +3492,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get showLess => 'Voir moins';
+
+  @override
+  String get accommodationToBeChosen => 'Hôtel à choisir';
+
+  @override
+  String get budgetAccommodationDeferred => 'À déterminer';
+
+  @override
+  String get reviewMealsToTry => 'Restos à essayer';
+
+  @override
+  String get reviewTransportTips => 'Transports utiles';
+
+  @override
+  String accommodationDeferredSubtitle(String city, String nights) {
+    return '$city · $nights à réserver';
+  }
 }

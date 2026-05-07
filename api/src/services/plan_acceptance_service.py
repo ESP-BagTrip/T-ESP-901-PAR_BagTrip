@@ -167,6 +167,69 @@ def _build_budget_item(
     )
 
 
+def _coerce_breakdown_amount(raw: object) -> float:
+    """Pull the numeric amount out of a breakdown entry.
+
+    The SSE event ships each line as ``{"amount": float, "currency": str,
+    "source": str}``; older code paths sometimes shipped the raw float.
+    Accept both shapes and fall back to 0 on anything unparsable.
+    """
+    value: object = raw.get("amount", 0) if isinstance(raw, dict) else raw
+    if value is None or isinstance(value, bool):
+        return 0.0
+    try:
+        return float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _is_dated_activity(activity: dict) -> bool:
+    """An itinerary entry is dated when the LLM pinned it to a slot.
+
+    SMP-324 — undated rows (FOOD / TRANSPORT recommendations) don't
+    have ``suggested_day`` or ``time_of_day`` and live in dedicated
+    review-screen sections. Dated rows go on the day-by-day timeline.
+    """
+    return activity.get("suggested_day") not in (None, "") or activity.get("time_of_day") not in (
+        None,
+        "",
+    )
+
+
+def _accommodation_stay_total(acc: dict, trip_nights: int) -> float:
+    """Whole-stay accommodation cost — same precedence rule as ``budget_node``.
+
+    Prefers ``price_total`` (Amadeus stay total) so the breakdown line
+    in the review screen matches the BudgetItem amount on the trip detail.
+    Falls back to ``price_per_night × nights`` when only the per-night
+    unit is exposed by the upstream payload. Returns 0 when neither is
+    usable so the caller skips creating an orphan BudgetItem.
+    """
+    price_total = acc.get("price_total")
+    if isinstance(price_total, (int, float)) and price_total > 0:
+        return float(price_total)
+    price_per_night = acc.get("price_per_night")
+    if isinstance(price_per_night, (int, float)) and price_per_night > 0 and trip_nights > 0:
+        return float(price_per_night) * trip_nights
+    return 0.0
+
+
+def _budget_category_for_activity(activity_category: str) -> BudgetCategory:
+    """Map an Activity.category string onto the matching BudgetCategory.
+
+    ``FOOD`` and ``TRANSPORT`` Activity rows now carry the same name
+    on both sides (Activity.category mirrors BudgetCategory) so the
+    budget breakdown lines and the trip-detail tabs filter against
+    the same value. Everything else falls into the ACTIVITY bucket.
+    """
+    upper = (activity_category or "").upper()
+    if upper == BudgetCategory.FOOD.value:
+        return BudgetCategory.FOOD
+    if upper == BudgetCategory.TRANSPORT.value:
+        return BudgetCategory.TRANSPORT
+    return BudgetCategory.ACTIVITY
+
+
 # ── Service ───────────────────────────────────────────────────────────
 
 
@@ -322,44 +385,57 @@ class PlanAcceptanceService:
             with contextlib.suppress(ValueError):
                 trip_start = date.fromisoformat(start_date_value)
 
-        duration_days = suggestion.get("durationDays", len(activities_data)) or len(activities_data)
+        # Only dated entries (CULTURE / NATURE / SPORT / ...) consume an
+        # itinerary slot. MEAL and TRANSPORT recommendations stay
+        # undated so the front renders them in dedicated sections.
+        dated_activities = [act for act in activities_data if _is_dated_activity(act)]
+        duration_days = suggestion.get("durationDays") or len(dated_activities) or 1
 
-        for i, act in enumerate(activities_data):
-            suggested_day = act.get("suggested_day")
-            if suggested_day and isinstance(suggested_day, int):
-                day_offset = (suggested_day - 1) % max(duration_days, 1)
-            else:
-                day_offset = i % max(duration_days, 1)
+        dated_index = 0
+        for act in activities_data:
+            activity_date: date | None = None
+            start_time_value = None
 
-            activity_date = (
-                trip_start + timedelta(days=day_offset)
-                if trip_start
-                else date.today() + timedelta(days=day_offset)
-            )
-            start_time_value = TIME_OF_DAY_MAP.get(act.get("time_of_day", ""))
+            if _is_dated_activity(act):
+                suggested_day = act.get("suggested_day")
+                if isinstance(suggested_day, int) and suggested_day > 0:
+                    day_offset = (suggested_day - 1) % max(duration_days, 1)
+                else:
+                    day_offset = dated_index % max(duration_days, 1)
+                dated_index += 1
+
+                activity_date = (
+                    trip_start + timedelta(days=day_offset)
+                    if trip_start
+                    else date.today() + timedelta(days=day_offset)
+                )
+                start_time_value = TIME_OF_DAY_MAP.get(act.get("time_of_day", ""))
 
             activity = Activity(
                 trip_id=trip.id,
-                title=act.get("title", f"Activite {i + 1}"),
+                title=act.get("title", "Activité"),
                 description=act.get("description", ""),
                 date=activity_date,
                 start_time=start_time_value,
                 location=act.get("location"),
                 category=act.get("category", "OTHER"),
-                estimated_cost=act.get("estimatedCost"),
+                estimated_cost=_coerce_breakdown_amount(
+                    act.get("estimated_cost", act.get("estimatedCost"))
+                )
+                or None,
                 validation_status=ValidationStatus.SUGGESTED,
             )
             db.add(activity)
             db.flush()
 
-            estimated = act.get("estimatedCost")
-            if estimated:
+            cost = _coerce_breakdown_amount(act.get("estimated_cost", act.get("estimatedCost")))
+            if cost > 0:
                 db.add(
                     _build_budget_item(
                         trip_id=trip.id,
                         label=activity.title,
-                        amount=float(estimated),
-                        category=BudgetCategory.ACTIVITY,
+                        amount=cost,
+                        category=_budget_category_for_activity(act.get("category", "OTHER")),
                         source_type="activity",
                         source_id=activity.id,
                         item_date=activity_date,
@@ -385,13 +461,13 @@ class PlanAcceptanceService:
             db.add(accommodation)
             db.flush()
 
-            price_per_night = acc.get("price_per_night")
-            if price_per_night and trip_nights > 0:
+            stay_total = _accommodation_stay_total(acc, trip_nights)
+            if stay_total > 0:
                 db.add(
                     _build_budget_item(
                         trip_id=trip.id,
                         label=accommodation.name,
-                        amount=float(price_per_night) * trip_nights,
+                        amount=stay_total,
                         category=BudgetCategory.ACCOMMODATION,
                         source_type="accommodation",
                         source_id=accommodation.id,

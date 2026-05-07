@@ -573,3 +573,171 @@ class HotelOffersResponse(BaseModel):
     """Réponse de recherche d'offres d'hôtels."""
 
     data: list[HotelOfferResult]
+
+
+# ============================================================================
+# POI TYPES (Reference Data — Locations Points of Interest)
+# ============================================================================
+
+
+class PoiSearchQuery(BaseModel):
+    """Requête de recherche de POIs autour d'un point géographique.
+
+    Maps directly onto ``GET /v1/reference-data/locations/pois``. The
+    ``lang`` parameter is the key reason we wrap this endpoint: Amadeus
+    returns localized POI names + tags so we never have to send raw
+    LLM-generated text on the activity chips.
+    """
+
+    latitude: float
+    longitude: float
+    radius: int = Field(1, ge=1, le=20, description="Radius in km, max 20")
+    categories: str | None = Field(
+        default=None,
+        description=(
+            "Comma-separated list among SIGHTS, BEACH_PARK, HISTORICAL,"
+            " NIGHTLIFE, RESTAURANT, SHOPPING."
+        ),
+    )
+    page_limit: int = Field(default=10, ge=1, le=100, alias="page[limit]")
+    page_offset: int = Field(default=0, ge=0, alias="page[offset]")
+    lang: str | None = Field(
+        default=None,
+        description="2-letter language code (en, fr, ...). Defaults to en server-side.",
+    )
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class PoiGeoCode(BaseModel):
+    """Coordinates for a POI."""
+
+    latitude: float
+    longitude: float
+
+
+class Poi(BaseModel):
+    """A single Point of Interest returned by Amadeus."""
+
+    type: str = "location"
+    subType: str = "POINT_OF_INTEREST"
+    id: str
+    name: str
+    geoCode: PoiGeoCode
+    category: str | None = None
+    rank: int | None = None
+    tags: list[str] = Field(default_factory=list)
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class PoiListResponse(BaseModel):
+    """Wrapper around Amadeus' ``data`` array."""
+
+    data: list[Poi] = Field(default_factory=list)
+
+
+# ============================================================================
+# TOURS & ACTIVITIES TYPES (Shopping — Tours and Activities)
+# ============================================================================
+
+
+class ActivitySearchQuery(BaseModel):
+    """Requête de recherche d'activités bookables autour d'un point.
+
+    Backs ``GET /v1/shopping/activities``. Returned objects expose
+    booking links, prices, durations and pictures — everything we need
+    to ship a real activity chip without LLM-generated copy.
+    """
+
+    latitude: float
+    longitude: float
+    radius: int = Field(1, ge=1, le=20, description="Radius in km, max 20")
+
+
+class ActivityPrice(BaseModel):
+    """Activity price block."""
+
+    amount: str
+    currencyCode: str | None = None
+
+
+class Activity(BaseModel):
+    """Single bookable activity returned by Amadeus."""
+
+    type: str = "activity"
+    id: str
+    name: str
+    shortDescription: str | None = None
+    description: str | None = None
+    geoCode: PoiGeoCode
+    rating: str | None = None
+    price: ActivityPrice | None = None
+    pictures: list[str] = Field(default_factory=list)
+    bookingLink: str | None = None
+    minimumDuration: str | None = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class ActivityListResponse(BaseModel):
+    """Wrapper around the Amadeus activities ``data`` array."""
+
+    data: list[Activity] = Field(default_factory=list)
+
+
+# ============================================================================
+# HOTEL SENTIMENTS TYPES (E-Reputation — Hotel Sentiments)
+# ============================================================================
+
+
+class HotelSentimentSearchQuery(BaseModel):
+    """Requête de sentiment pour une liste de hotelIds Amadeus.
+
+    Wraps ``GET /v2/e-reputation/hotel-sentiments?hotelIds=...``. Up to
+    3 IDs per call per Amadeus quotas; the wrapper passes them as a
+    comma-separated list.
+    """
+
+    hotelIds: list[str] = Field(..., min_length=1, max_length=3)
+
+
+class HotelSentimentScores(BaseModel):
+    """Per-axis sentiment scores returned by Amadeus.
+
+    All scores are integers in the 0–100 range. Missing axes default to
+    ``None`` so a caller can distinguish "not enough reviews" from "0".
+    """
+
+    sleep: int | None = None
+    location: int | None = None
+    service: int | None = None
+    staff: int | None = None
+    value: int | None = None
+    catering: int | None = None
+    swimmingPool: int | None = None
+    facilities: int | None = None
+    pointsOfInterest: int | None = None
+    roomComforts: int | None = None
+    internet: int | None = None
+
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+
+
+class HotelSentiment(BaseModel):
+    """Aggregate Amadeus sentiment for one hotel."""
+
+    type: str = "hotelSentiment"
+    hotelId: str
+    overallRating: int | None = None
+    numberOfReviews: int | None = None
+    numberOfRatings: int | None = None
+    sentiments: HotelSentimentScores | None = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class HotelSentimentResponse(BaseModel):
+    """Wrapper around the Amadeus hotel-sentiments ``data`` array."""
+
+    data: list[HotelSentiment] = Field(default_factory=list)
