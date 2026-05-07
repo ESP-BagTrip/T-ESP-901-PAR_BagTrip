@@ -1721,5 +1721,15 @@
       "amount": {"type": "String"},
       "currency": {"type": "String"}
     }
-  }
+  },
+  "itemStatusSuggested": "Proposé par l'IA",
+  "itemStatusValidated": "Validé",
+  "itemStatusManual": "Ajouté par vous",
+  "flightValidateSheetTitle": "Valider ce vol",
+  "flightValidateExternalTitle": "J'ai déjà réservé ailleurs",
+  "flightValidateExternalSubtitle": "Saisissez votre numéro de vol — on garde un œil dessus.",
+  "flightValidateAmadeusTitle": "Réserver via BagTrip",
+  "flightValidateAmadeusSubtitle": "Confirmez cette offre directement avec la compagnie.",
+  "flightValidateExternalNumberLabel": "Numéro de vol",
+  "flightValidateExternalNumberHint": "AF1234"
 }

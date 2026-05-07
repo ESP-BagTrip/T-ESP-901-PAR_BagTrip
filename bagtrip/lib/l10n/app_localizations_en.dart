@@ -3487,4 +3487,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String accommodationDeferredSubtitle(String city, String nights) {
     return '$city · $nights to book later';
   }
+
+  @override
+  String get itemStatusSuggested => 'AI suggestion';
+
+  @override
+  String get itemStatusValidated => 'Validated';
+
+  @override
+  String get itemStatusManual => 'Added by you';
+
+  @override
+  String get flightValidateSheetTitle => 'Validate this flight';
+
+  @override
+  String get flightValidateExternalTitle => 'I already booked elsewhere';
+
+  @override
+  String get flightValidateExternalSubtitle =>
+      'Enter your flight number — we\'ll keep an eye on it.';
+
+  @override
+  String get flightValidateAmadeusTitle => 'Book through BagTrip';
+
+  @override
+  String get flightValidateAmadeusSubtitle =>
+      'Lock in this offer with the airline directly.';
+
+  @override
+  String get flightValidateExternalNumberLabel => 'Flight number';
+
+  @override
+  String get flightValidateExternalNumberHint => 'AF1234';
 }

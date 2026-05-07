@@ -6248,6 +6248,66 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{city} · {nights} à réserver'**
   String accommodationDeferredSubtitle(String city, String nights);
+
+  /// No description provided for @itemStatusSuggested.
+  ///
+  /// In fr, this message translates to:
+  /// **'Proposé par l\'IA'**
+  String get itemStatusSuggested;
+
+  /// No description provided for @itemStatusValidated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Validé'**
+  String get itemStatusValidated;
+
+  /// No description provided for @itemStatusManual.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouté par vous'**
+  String get itemStatusManual;
+
+  /// No description provided for @flightValidateSheetTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valider ce vol'**
+  String get flightValidateSheetTitle;
+
+  /// No description provided for @flightValidateExternalTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'J\'ai déjà réservé ailleurs'**
+  String get flightValidateExternalTitle;
+
+  /// No description provided for @flightValidateExternalSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisissez votre numéro de vol — on garde un œil dessus.'**
+  String get flightValidateExternalSubtitle;
+
+  /// No description provided for @flightValidateAmadeusTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réserver via BagTrip'**
+  String get flightValidateAmadeusTitle;
+
+  /// No description provided for @flightValidateAmadeusSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmez cette offre directement avec la compagnie.'**
+  String get flightValidateAmadeusSubtitle;
+
+  /// No description provided for @flightValidateExternalNumberLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Numéro de vol'**
+  String get flightValidateExternalNumberLabel;
+
+  /// No description provided for @flightValidateExternalNumberHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'AF1234'**
+  String get flightValidateExternalNumberHint;
 }
 
 class _AppLocalizationsDelegate

@@ -3509,4 +3509,36 @@ class AppLocalizationsFr extends AppLocalizations {
   String accommodationDeferredSubtitle(String city, String nights) {
     return '$city · $nights à réserver';
   }
+
+  @override
+  String get itemStatusSuggested => 'Proposé par l\'IA';
+
+  @override
+  String get itemStatusValidated => 'Validé';
+
+  @override
+  String get itemStatusManual => 'Ajouté par vous';
+
+  @override
+  String get flightValidateSheetTitle => 'Valider ce vol';
+
+  @override
+  String get flightValidateExternalTitle => 'J\'ai déjà réservé ailleurs';
+
+  @override
+  String get flightValidateExternalSubtitle =>
+      'Saisissez votre numéro de vol — on garde un œil dessus.';
+
+  @override
+  String get flightValidateAmadeusTitle => 'Réserver via BagTrip';
+
+  @override
+  String get flightValidateAmadeusSubtitle =>
+      'Confirmez cette offre directement avec la compagnie.';
+
+  @override
+  String get flightValidateExternalNumberLabel => 'Numéro de vol';
+
+  @override
+  String get flightValidateExternalNumberHint => 'AF1234';
 }
