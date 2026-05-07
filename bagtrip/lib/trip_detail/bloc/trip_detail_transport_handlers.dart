@@ -1,8 +1,11 @@
 part of 'trip_detail_bloc.dart';
 
-/// Handlers for flights and accommodations (add / delete). Both share the
-/// pattern of recomputing `completionResult` after the list mutation so the
-/// progress bar stays consistent.
+/// Handlers for flights and accommodations (add / delete / validate).
+/// Both share the pattern of recomputing `completionResult` after a list
+/// mutation so the progress bar stays consistent. The `validate` handlers
+/// flip a SUGGESTED row to VALIDATED through the shared
+/// [TransportValidation] / [AccommodationValidation] extensions, with
+/// optimistic local update + rollback on failure.
 extension _TripDetailTransportHandlers on TripDetailBloc {
   void _onAddFlightToDetail(
     AddFlightToDetail event,
@@ -236,6 +239,88 @@ extension _TripDetailTransportHandlers on TripDetailBloc {
       case Failure(:final error):
         emit(loaded.copyWith(operationError: error));
         emit(loaded.copyWith(clearOperationError: true));
+    }
+  }
+
+  Future<void> _onValidateFlight(
+    ValidateFlightFromDetail event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+
+    // Optimistic flip — render the chip flip + jauge bump before the
+    // network call lands. On failure we rebuild the state from the
+    // original `loaded` snapshot so the rollback is total.
+    final updatedFlights = loaded.flights
+        .map(
+          (f) => f.id == event.flightId
+              ? f.copyWith(validationStatus: ValidationStatus.validated)
+              : f,
+        )
+        .toList();
+    final completion = tripDetailCompletion(
+      trip: loaded.trip,
+      flights: updatedFlights,
+      accommodations: loaded.accommodations,
+      activities: loaded.activities,
+      baggageItems: loaded.baggageItems,
+    );
+    emit(
+      loaded.copyWith(flights: updatedFlights, completionResult: completion),
+    );
+
+    final result = await _transportRepository.validate(
+      _tripId!,
+      event.flightId,
+    );
+
+    if (isClosed) return;
+
+    if (result case Failure(:final error)) {
+      emit(loaded.copyWith(operationError: error));
+      emit(loaded.copyWith(clearOperationError: true));
+    }
+  }
+
+  Future<void> _onValidateAccommodation(
+    ValidateAccommodationFromDetail event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+
+    final updatedAccommodations = loaded.accommodations
+        .map(
+          (a) => a.id == event.accommodationId
+              ? a.copyWith(validationStatus: ValidationStatus.validated)
+              : a,
+        )
+        .toList();
+    final completion = tripDetailCompletion(
+      trip: loaded.trip,
+      flights: loaded.flights,
+      accommodations: updatedAccommodations,
+      activities: loaded.activities,
+      baggageItems: loaded.baggageItems,
+    );
+    emit(
+      loaded.copyWith(
+        accommodations: updatedAccommodations,
+        completionResult: completion,
+      ),
+    );
+
+    final result = await _accommodationRepository.validate(
+      _tripId!,
+      event.accommodationId,
+    );
+
+    if (isClosed) return;
+
+    if (result case Failure(:final error)) {
+      emit(loaded.copyWith(operationError: error));
+      emit(loaded.copyWith(clearOperationError: true));
     }
   }
 }

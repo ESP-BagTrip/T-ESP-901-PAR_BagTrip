@@ -5,6 +5,7 @@ import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/category_mappers.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/item_status_chip.dart';
 import 'package:bagtrip/design/widgets/review/budget_alert_banner.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/design/widgets/review/sheets/quick_preview_sheet.dart';
@@ -12,6 +13,7 @@ import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/budget_item.dart';
+import 'package:bagtrip/models/validation_status.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -80,15 +82,33 @@ class BudgetPanel extends StatelessWidget {
     );
   }
 
+  void _validateItem(BuildContext context, BudgetItem item) {
+    AppHaptics.success();
+    context.read<TripDetailBloc>().add(
+      ValidateBudgetItemFromDetail(itemId: item.id),
+    );
+  }
+
   Future<void> _showPreview(BuildContext context, BudgetItem item) async {
     final l10n = AppLocalizations.of(context)!;
     AppHaptics.light();
+    final isSuggested = item.validationStatus == ValidationStatus.suggested;
     await showQuickPreviewSheet(
       context: context,
       icon: item.category.icon,
       title: item.label,
       subtitle: item.category.label(l10n),
       body: _BudgetPreviewBody(item: item),
+      validateAction: isSuggested && canEdit
+          ? QuickPreviewAction(
+              label: l10n.activityValidateAction,
+              icon: Icons.check_rounded,
+              onPressed: () {
+                Navigator.of(context).pop();
+                _validateItem(context, item);
+              },
+            )
+          : null,
       primaryAction: QuickPreviewAction(
         label: l10n.panelActionEdit,
         icon: Icons.edit_rounded,
@@ -501,15 +521,29 @@ class _ExpenseRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    item.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontFamily: FontFamily.dMSerifDisplay,
-                      fontSize: 15,
-                      color: ColorName.primaryDark,
-                    ),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          item.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontFamily: FontFamily.dMSerifDisplay,
+                            fontSize: 15,
+                            color: ColorName.primaryDark,
+                          ),
+                        ),
+                      ),
+                      if (item.validationStatus ==
+                          ValidationStatus.suggested) ...[
+                        const SizedBox(width: AppSpacing.space8),
+                        const ItemStatusChip(
+                          kind: ItemStatusChipKind.suggested,
+                          compact: true,
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 2),
                   Text(

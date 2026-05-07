@@ -7,6 +7,7 @@ import 'package:bagtrip/core/trip_enums.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/item_status_chip.dart';
 import 'package:bagtrip/design/widgets/review/hotel_stats_grid.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/design/widgets/review/sheets/quick_preview_sheet.dart';
@@ -15,6 +16,7 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/accommodation.dart';
 import 'package:bagtrip/models/trip.dart';
+import 'package:bagtrip/models/validation_status.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/view/panels/skipped_panel_state.dart';
 import 'package:flutter/material.dart';
@@ -88,15 +90,33 @@ class HotelPanel extends StatelessWidget {
     );
   }
 
+  void _validate(BuildContext context, Accommodation acc) {
+    AppHaptics.success();
+    context.read<TripDetailBloc>().add(
+      ValidateAccommodationFromDetail(accommodationId: acc.id),
+    );
+  }
+
   Future<void> _showPreview(BuildContext context, Accommodation acc) async {
     final l10n = AppLocalizations.of(context)!;
     AppHaptics.light();
+    final isSuggested = acc.validationStatus == ValidationStatus.suggested;
     await showQuickPreviewSheet(
       context: context,
       icon: Icons.hotel_rounded,
       title: acc.name,
       subtitle: acc.address,
       body: _HotelPreviewBody(accommodation: acc, l10n: l10n),
+      validateAction: isSuggested && canEdit
+          ? QuickPreviewAction(
+              label: l10n.activityValidateAction,
+              icon: Icons.check_rounded,
+              onPressed: () {
+                Navigator.of(context).pop();
+                _validate(context, acc);
+              },
+            )
+          : null,
       primaryAction: canEdit
           ? QuickPreviewAction(
               label: l10n.panelActionEdit,
@@ -221,12 +241,28 @@ class HotelPanel extends StatelessWidget {
               );
             }
             final acc = sortedList[index];
-            final card = _HotelCard(
+            final hotelCard = _HotelCard(
               accommodation: acc,
               l10n: l10n,
               locale: locale,
               onTap: () => _showPreview(context, acc),
             );
+            // Phase 1 — material truth on the panel: SUGGESTED hôtel
+            // wears the halo chip; VALIDATED + MANUAL stay clean.
+            final card = acc.validationStatus == ValidationStatus.suggested
+                ? Stack(
+                    children: [
+                      hotelCard,
+                      const Positioned(
+                        top: AppSpacing.space8,
+                        right: AppSpacing.space8,
+                        child: ItemStatusChip(
+                          kind: ItemStatusChipKind.suggested,
+                        ),
+                      ),
+                    ],
+                  )
+                : hotelCard;
             if (!canEdit) return card;
             return Dismissible(
               key: ValueKey('accommodation-${acc.id}'),

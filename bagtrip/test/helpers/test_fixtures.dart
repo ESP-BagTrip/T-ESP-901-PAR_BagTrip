@@ -187,6 +187,7 @@ BudgetItem makeBudgetItem({
   String label = 'Hotel',
   double amount = 120.0,
   BudgetCategory category = BudgetCategory.accommodation,
+  ValidationStatus validationStatus = ValidationStatus.manual,
 }) {
   return BudgetItem(
     id: id,
@@ -194,6 +195,7 @@ BudgetItem makeBudgetItem({
     label: label,
     amount: amount,
     category: category,
+    validationStatus: validationStatus,
   );
 }
 

@@ -26,6 +26,25 @@ final class ValidateActivity extends TripDetailEvent {
   ValidateActivity({required this.activityId});
 }
 
+/// One-gesture validation for the other three trip-detail entities.
+/// Same intent as [ValidateActivity], same repo extension under the
+/// hood (`_repository.validate(...)`), kept as separate events so the
+/// dispatch table stays explicit per domain.
+final class ValidateFlightFromDetail extends TripDetailEvent {
+  final String flightId;
+  ValidateFlightFromDetail({required this.flightId});
+}
+
+final class ValidateAccommodationFromDetail extends TripDetailEvent {
+  final String accommodationId;
+  ValidateAccommodationFromDetail({required this.accommodationId});
+}
+
+final class ValidateBudgetItemFromDetail extends TripDetailEvent {
+  final String itemId;
+  ValidateBudgetItemFromDetail({required this.itemId});
+}
+
 final class RejectActivity extends TripDetailEvent {
   final String activityId;
   RejectActivity({required this.activityId});

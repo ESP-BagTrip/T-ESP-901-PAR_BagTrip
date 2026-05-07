@@ -169,7 +169,11 @@ class ItineraryPanel extends StatelessWidget {
       title: activity.title,
       subtitle: _categoryLabel(activity.category),
       body: _ActivityPreviewBody(activity: activity),
-      primaryAction: isSuggested && canEdit
+      // Phase 1 — universal validate gesture: when the item is SUGGESTED
+      // and editable, the sheet promotes the Validate CTA to primary
+      // automatically and demotes Edit to secondary. Same code path for
+      // every domain (vols, hôtels, dépenses).
+      validateAction: isSuggested && canEdit
           ? QuickPreviewAction(
               label: l10n.activityValidateAction,
               icon: Icons.check_rounded,
@@ -178,15 +182,8 @@ class ItineraryPanel extends StatelessWidget {
                 _validate(context, activity);
               },
             )
-          : QuickPreviewAction(
-              label: l10n.panelActionEdit,
-              icon: Icons.edit_rounded,
-              onPressed: () {
-                Navigator.of(context).pop();
-                _showEditSheet(context, activity);
-              },
-            ),
-      secondaryAction: isSuggested && canEdit
+          : null,
+      primaryAction: canEdit
           ? QuickPreviewAction(
               label: l10n.panelActionEdit,
               icon: Icons.edit_rounded,

@@ -36,6 +36,7 @@ class QuickPreviewSheet extends StatelessWidget {
     this.subtitle,
     this.secondaryAction,
     this.destructiveAction,
+    this.validateAction,
     this.openFullLabel,
     this.onOpenFull,
     this.initialChildSize = 0.55,
@@ -53,6 +54,13 @@ class QuickPreviewSheet extends StatelessWidget {
   final QuickPreviewAction? primaryAction;
   final QuickPreviewAction? secondaryAction;
   final QuickPreviewAction? destructiveAction;
+
+  /// "Validate this item" — passed by panels when the underlying item is
+  /// SUGGESTED. When non-null, it takes the primary CTA slot ahead of
+  /// [primaryAction] (which becomes the secondary "Edit" affordance) so
+  /// the user's first instinct is to confirm rather than to edit.
+  final QuickPreviewAction? validateAction;
+
   final String? openFullLabel;
   final VoidCallback? onOpenFull;
   final double initialChildSize;
@@ -91,8 +99,13 @@ class QuickPreviewSheet extends StatelessWidget {
                   ),
                 ),
                 _Actions(
-                  primary: primaryAction,
-                  secondary: secondaryAction,
+                  // When validateAction is provided, it takes the primary
+                  // slot and the previous primary becomes the secondary so
+                  // the original Edit/etc. CTA stays reachable.
+                  primary: validateAction ?? primaryAction,
+                  secondary: validateAction != null
+                      ? (primaryAction ?? secondaryAction)
+                      : secondaryAction,
                   destructive: destructiveAction,
                   openFullLabel: openFullLabel,
                   onOpenFull: onOpenFull == null
@@ -345,6 +358,7 @@ Future<void> showQuickPreviewSheet({
   String? subtitle,
   QuickPreviewAction? secondaryAction,
   QuickPreviewAction? destructiveAction,
+  QuickPreviewAction? validateAction,
   String? openFullLabel,
   VoidCallback? onOpenFull,
 }) {
@@ -360,6 +374,7 @@ Future<void> showQuickPreviewSheet({
       primaryAction: primaryAction,
       secondaryAction: secondaryAction,
       destructiveAction: destructiveAction,
+      validateAction: validateAction,
       openFullLabel: openFullLabel,
       onOpenFull: onOpenFull,
     ),

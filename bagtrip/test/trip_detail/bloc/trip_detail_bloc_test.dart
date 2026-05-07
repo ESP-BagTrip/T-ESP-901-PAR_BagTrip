@@ -2,6 +2,7 @@ import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/models/trip.dart';
+import 'package:bagtrip/models/validation_status.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
 import 'package:bloc_test/bloc_test.dart';
@@ -360,9 +361,13 @@ void main() {
         isA<TripDetailLoaded>(),
       ],
       verify: (_) {
+        // Phase 1 — the handler now goes through the shared
+        // `ActivityRepository.validate(...)` extension, which speaks
+        // to the backend in camelCase (the convention of every modern
+        // call site).
         verify(
           () => mockActivityRepo.updateActivity('trip-1', 'act-1', {
-            'validation_status': 'VALIDATED',
+            'validationStatus': 'VALIDATED',
           }),
         ).called(1);
       },
@@ -2085,6 +2090,238 @@ void main() {
           'accommodationsTracking',
           'SKIPPED',
         ),
+        isA<TripDetailLoaded>().having(
+          (s) => s.operationError,
+          'operationError',
+          isA<NetworkError>(),
+        ),
+        isA<TripDetailLoaded>().having(
+          (s) => s.operationError,
+          'operationError',
+          isNull,
+        ),
+      ],
+    );
+
+    // ── Phase 1 — universal validate gesture ──────────────────────
+    //
+    // Same shape for vols, hôtels, dépenses: optimistic flip on the
+    // shared state, repository PATCH with the canonical payload, and
+    // rollback to the pre-optimistic snapshot on Failure. The matrix
+    // below covers each event in both happy and failure paths.
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ValidateFlightFromDetail flips status + PATCHes camelCase',
+      build: () {
+        stubAllSuccess();
+        final flight = makeManualFlight(
+          id: 'f1',
+          validationStatus: ValidationStatus.suggested,
+        );
+        when(
+          () => mockTransportRepo.getManualFlights(any()),
+        ).thenAnswer((_) async => Success([flight]));
+        when(
+          () => mockTransportRepo.updateManualFlight(any(), any(), any()),
+        ).thenAnswer(
+          (_) async => Success(
+            flight.copyWith(validationStatus: ValidationStatus.validated),
+          ),
+        );
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(ValidateFlightFromDetail(flightId: 'f1'));
+      },
+      wait: const Duration(milliseconds: 300),
+      verify: (_) {
+        verify(
+          () => mockTransportRepo.updateManualFlight('trip-1', 'f1', {
+            'validationStatus': 'VALIDATED',
+          }),
+        ).called(1);
+      },
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ValidateFlightFromDetail rolls back on API failure',
+      build: () {
+        stubAllSuccess();
+        final flight = makeManualFlight(
+          id: 'f1',
+          validationStatus: ValidationStatus.suggested,
+        );
+        when(
+          () => mockTransportRepo.getManualFlights(any()),
+        ).thenAnswer((_) async => Success([flight]));
+        when(
+          () => mockTransportRepo.updateManualFlight(any(), any(), any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('boom')));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(ValidateFlightFromDetail(flightId: 'f1'));
+      },
+      wait: const Duration(milliseconds: 300),
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>().having(
+          (s) => s.operationError,
+          'operationError',
+          isA<NetworkError>(),
+        ),
+        isA<TripDetailLoaded>().having(
+          (s) => s.operationError,
+          'operationError',
+          isNull,
+        ),
+      ],
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ValidateAccommodationFromDetail flips status + PATCHes camelCase',
+      build: () {
+        stubAllSuccess();
+        final acc = makeAccommodation(
+          id: 'h1',
+          validationStatus: ValidationStatus.suggested,
+        );
+        when(
+          () => mockAccommodationRepo.getByTrip(any()),
+        ).thenAnswer((_) async => Success([acc]));
+        when(
+          () => mockAccommodationRepo.updateAccommodation(any(), any(), any()),
+        ).thenAnswer(
+          (_) async => Success(
+            acc.copyWith(validationStatus: ValidationStatus.validated),
+          ),
+        );
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(ValidateAccommodationFromDetail(accommodationId: 'h1'));
+      },
+      wait: const Duration(milliseconds: 300),
+      verify: (_) {
+        verify(
+          () => mockAccommodationRepo.updateAccommodation('trip-1', 'h1', {
+            'validationStatus': 'VALIDATED',
+          }),
+        ).called(1);
+      },
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ValidateAccommodationFromDetail rolls back on API failure',
+      build: () {
+        stubAllSuccess();
+        final acc = makeAccommodation(
+          id: 'h1',
+          validationStatus: ValidationStatus.suggested,
+        );
+        when(
+          () => mockAccommodationRepo.getByTrip(any()),
+        ).thenAnswer((_) async => Success([acc]));
+        when(
+          () => mockAccommodationRepo.updateAccommodation(any(), any(), any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('boom')));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(ValidateAccommodationFromDetail(accommodationId: 'h1'));
+      },
+      wait: const Duration(milliseconds: 300),
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>().having(
+          (s) => s.operationError,
+          'operationError',
+          isA<NetworkError>(),
+        ),
+        isA<TripDetailLoaded>().having(
+          (s) => s.operationError,
+          'operationError',
+          isNull,
+        ),
+      ],
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ValidateBudgetItemFromDetail flips status + PATCHes camelCase',
+      build: () {
+        stubAllSuccess();
+        final item = makeBudgetItem(
+          id: 'b1',
+          validationStatus: ValidationStatus.suggested,
+        );
+        when(
+          () => mockBudgetRepo.getBudgetItems(any()),
+        ).thenAnswer((_) async => Success([item]));
+        when(
+          () => mockBudgetRepo.updateBudgetItem(any(), any(), any()),
+        ).thenAnswer(
+          (_) async => Success(
+            item.copyWith(validationStatus: ValidationStatus.validated),
+          ),
+        );
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(ValidateBudgetItemFromDetail(itemId: 'b1'));
+      },
+      wait: const Duration(milliseconds: 300),
+      verify: (_) {
+        verify(
+          () => mockBudgetRepo.updateBudgetItem('trip-1', 'b1', {
+            'validationStatus': 'VALIDATED',
+          }),
+        ).called(1);
+      },
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ValidateBudgetItemFromDetail rolls back on API failure',
+      build: () {
+        stubAllSuccess();
+        final item = makeBudgetItem(
+          id: 'b1',
+          validationStatus: ValidationStatus.suggested,
+        );
+        when(
+          () => mockBudgetRepo.getBudgetItems(any()),
+        ).thenAnswer((_) async => Success([item]));
+        when(
+          () => mockBudgetRepo.updateBudgetItem(any(), any(), any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('boom')));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(ValidateBudgetItemFromDetail(itemId: 'b1'));
+      },
+      wait: const Duration(milliseconds: 300),
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
         isA<TripDetailLoaded>().having(
           (s) => s.operationError,
           'operationError',

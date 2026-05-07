@@ -15,6 +15,7 @@ import 'package:bagtrip/repositories/budget_repository.dart';
 import 'package:bagtrip/repositories/transport_repository.dart';
 import 'package:bagtrip/repositories/trip_repository.dart';
 import 'package:bagtrip/repositories/trip_share_repository.dart';
+import 'package:bagtrip/repositories/validation_extensions.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
 import 'package:bagtrip/utils/destination_time.dart';
 import 'package:bloc/bloc.dart';
@@ -102,6 +103,8 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     on<CreateAccommodationFromDetail>(_onCreateAccommodationFromDetail);
     on<UpdateAccommodationFromDetail>(_onUpdateAccommodationFromDetail);
     on<DeleteAccommodationFromDetail>(_onDeleteAccommodation);
+    on<ValidateFlightFromDetail>(_onValidateFlight);
+    on<ValidateAccommodationFromDetail>(_onValidateAccommodation);
 
     // Baggage (see trip_detail_baggage_handlers.dart).
     on<ToggleBaggagePackedFromDetail>(_onToggleBaggagePacked);
@@ -113,6 +116,7 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     on<CreateBudgetItemFromDetail>(_onCreateBudgetItemFromDetail);
     on<UpdateBudgetItemFromDetail>(_onUpdateBudgetItemFromDetail);
     on<DeleteBudgetItemFromDetail>(_onDeleteBudgetItemFromDetail);
+    on<ValidateBudgetItemFromDetail>(_onValidateBudgetItemFromDetail);
     on<RefreshBudgetSummaryFromDetail>(_onRefreshBudgetSummaryFromDetail);
 
     // Shares (see trip_detail_misc_handlers.dart).

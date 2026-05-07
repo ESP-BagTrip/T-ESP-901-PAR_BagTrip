@@ -3,6 +3,7 @@ import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/core/trip_enums.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/item_status_chip.dart';
 import 'package:bagtrip/design/widgets/review/boarding_pass_card.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/design/widgets/review/sheets/quick_preview_sheet.dart';
@@ -10,6 +11,7 @@ import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/manual_flight.dart';
+import 'package:bagtrip/models/validation_status.dart';
 import 'package:bagtrip/transports/widgets/manual_flight_form.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/view/panels/skipped_panel_state.dart';
@@ -81,18 +83,36 @@ class FlightsPanel extends StatelessWidget {
     );
   }
 
+  void _validate(BuildContext context, ManualFlight flight) {
+    AppHaptics.success();
+    context.read<TripDetailBloc>().add(
+      ValidateFlightFromDetail(flightId: flight.id),
+    );
+  }
+
   Future<void> _showPreview(BuildContext context, ManualFlight flight) async {
     final l10n = AppLocalizations.of(context)!;
     AppHaptics.light();
     final subtitle = flight.flightType == 'RETURN'
         ? l10n.reviewFlightReturn
         : l10n.reviewFlightOutbound;
+    final isSuggested = flight.validationStatus == ValidationStatus.suggested;
     await showQuickPreviewSheet(
       context: context,
       icon: Icons.flight_takeoff_rounded,
       title: _titleFor(flight),
       subtitle: subtitle,
       body: _FlightPreviewBody(flight: flight),
+      validateAction: isSuggested && canEdit
+          ? QuickPreviewAction(
+              label: l10n.activityValidateAction,
+              icon: Icons.check_rounded,
+              onPressed: () {
+                Navigator.of(context).pop();
+                _validate(context, flight);
+              },
+            )
+          : null,
       primaryAction: canEdit
           ? QuickPreviewAction(
               label: l10n.panelActionEdit,
@@ -221,11 +241,28 @@ class FlightsPanel extends StatelessWidget {
               );
             }
             final flight = sortedFlights[index];
-            final card = BoardingPassCard(
+            final boardingPass = BoardingPassCard(
               title: _flightTitle(flight, l10n),
               flight: _toBoardingPassModel(flight, l10n, locale),
               onTap: () => _showPreview(context, flight),
             );
+            // Phase 1 — material truth: a SUGGESTED flight wears a halo
+            // chip so the user knows it's awaiting their review.
+            // VALIDATED + MANUAL stay chip-free to keep the list calm.
+            final card = flight.validationStatus == ValidationStatus.suggested
+                ? Stack(
+                    children: [
+                      boardingPass,
+                      const Positioned(
+                        top: AppSpacing.space8,
+                        right: AppSpacing.space8,
+                        child: ItemStatusChip(
+                          kind: ItemStatusChipKind.suggested,
+                        ),
+                      ),
+                    ],
+                  )
+                : boardingPass;
             if (!canEdit) return card;
             return Dismissible(
               key: ValueKey('flight-${flight.id}'),
