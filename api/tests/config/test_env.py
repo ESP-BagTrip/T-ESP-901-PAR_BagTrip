@@ -38,8 +38,6 @@ class TestSettings:
         # Check new defaults (Redis + timeouts)
         assert settings.REDIS_URL is None
         assert settings.GRAPH_TIMEOUT_SECONDS == 300
-        # SMP-324 — bumped from 60/120 after measuring the OVH gpt-oss-120b
-        # endpoint at 50–66 s on a cold ``destination_quick`` prompt.
         assert settings.LLM_CALL_TIMEOUT_SECONDS == 120
         assert settings.NODE_TIMEOUT_SECONDS == 180
 
