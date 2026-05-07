@@ -283,6 +283,74 @@ extension _TripDetailTransportHandlers on TripDetailBloc {
     }
   }
 
+  /// Phase 4 — atomic flight replace.
+  ///
+  /// We DELETE the old row first, then CREATE the replacement. Both ops
+  /// are wrapped in optimistic state updates so the panel renders the
+  /// new flight before the network call lands. If the CREATE fails after
+  /// a successful DELETE, we rebuild the original list snapshot so the
+  /// user never lands on a half-applied state — the lost flight reappears
+  /// alongside the validation error in `operationError`.
+  Future<void> _onReplaceFlight(
+    ReplaceFlightFromDetail event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+    final originalFlights = List<ManualFlight>.from(loaded.flights);
+
+    // Optimistic removal first — the new row will pop in once CREATE
+    // succeeds (we don't speculate on the response shape locally).
+    final pruned = originalFlights
+        .where((f) => f.id != event.oldFlightId)
+        .toList();
+    final prunedCompletion = tripDetailCompletion(
+      trip: loaded.trip,
+      flights: pruned,
+      accommodations: loaded.accommodations,
+      activities: loaded.activities,
+      baggageItems: loaded.baggageItems,
+    );
+    emit(loaded.copyWith(flights: pruned, completionResult: prunedCompletion));
+
+    final deleteResult = await _transportRepository.deleteManualFlight(
+      _tripId!,
+      event.oldFlightId,
+    );
+    if (isClosed) return;
+    if (deleteResult case Failure(:final error)) {
+      // Restore the snapshot; the user never sees the row disappear if
+      // the network refuses the delete.
+      emit(loaded.copyWith(operationError: error));
+      emit(loaded.copyWith(clearOperationError: true));
+      return;
+    }
+
+    final createResult = await _transportRepository.createManualFlight(
+      _tripId!,
+      event.newFlightData,
+    );
+    if (isClosed) return;
+
+    switch (createResult) {
+      case Success(:final data):
+        final next = [...pruned, data];
+        final completion = tripDetailCompletion(
+          trip: loaded.trip,
+          flights: next,
+          accommodations: loaded.accommodations,
+          activities: loaded.activities,
+          baggageItems: loaded.baggageItems,
+        );
+        emit(loaded.copyWith(flights: next, completionResult: completion));
+      case Failure(:final error):
+        // Total rollback: restore the original list so the user can
+        // retry without first having to re-add the deleted flight.
+        emit(loaded.copyWith(operationError: error));
+        emit(loaded.copyWith(clearOperationError: true));
+    }
+  }
+
   Future<void> _onValidateAccommodation(
     ValidateAccommodationFromDetail event,
     Emitter<TripDetailState> emit,

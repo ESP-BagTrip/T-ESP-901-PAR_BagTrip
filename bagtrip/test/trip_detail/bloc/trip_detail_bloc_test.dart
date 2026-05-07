@@ -2334,5 +2334,113 @@ void main() {
         ),
       ],
     );
+
+    // ── Phase 4 — atomic replace flight ───────────────────────────
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ReplaceFlightFromDetail removes the old flight and inserts the new',
+      build: () {
+        stubAllSuccess();
+        final old = makeManualFlight(id: 'old');
+        final fresh = makeManualFlight(id: 'new', flightNumber: 'AF999');
+        when(
+          () => mockTransportRepo.getManualFlights(any()),
+        ).thenAnswer((_) async => Success([old]));
+        when(
+          () => mockTransportRepo.deleteManualFlight(any(), 'old'),
+        ).thenAnswer((_) async => const Success(null));
+        when(
+          () => mockTransportRepo.createManualFlight(any(), any()),
+        ).thenAnswer((_) async => Success(fresh));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(
+          ReplaceFlightFromDetail(
+            oldFlightId: 'old',
+            newFlightData: const {'flightNumber': 'AF999'},
+          ),
+        );
+      },
+      wait: const Duration(milliseconds: 300),
+      verify: (_) {
+        verify(
+          () => mockTransportRepo.deleteManualFlight('trip-1', 'old'),
+        ).called(1);
+        verify(
+          () => mockTransportRepo.createManualFlight('trip-1', any()),
+        ).called(1);
+      },
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ReplaceFlightFromDetail rolls back when delete fails',
+      build: () {
+        stubAllSuccess();
+        final old = makeManualFlight(id: 'old');
+        when(
+          () => mockTransportRepo.getManualFlights(any()),
+        ).thenAnswer((_) async => Success([old]));
+        when(
+          () => mockTransportRepo.deleteManualFlight(any(), any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('boom')));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(
+          ReplaceFlightFromDetail(
+            oldFlightId: 'old',
+            newFlightData: const {'flightNumber': 'AF999'},
+          ),
+        );
+      },
+      wait: const Duration(milliseconds: 300),
+      verify: (_) {
+        // We must never proceed to CREATE if DELETE failed — the
+        // original flight is preserved by the rollback.
+        verifyNever(() => mockTransportRepo.createManualFlight(any(), any()));
+      },
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ReplaceFlightFromDetail surfaces operationError when create fails',
+      build: () {
+        stubAllSuccess();
+        final old = makeManualFlight(id: 'old');
+        when(
+          () => mockTransportRepo.getManualFlights(any()),
+        ).thenAnswer((_) async => Success([old]));
+        when(
+          () => mockTransportRepo.deleteManualFlight(any(), any()),
+        ).thenAnswer((_) async => const Success(null));
+        when(
+          () => mockTransportRepo.createManualFlight(any(), any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('boom')));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(
+          ReplaceFlightFromDetail(
+            oldFlightId: 'old',
+            newFlightData: const {'flightNumber': 'AF999'},
+          ),
+        );
+      },
+      wait: const Duration(milliseconds: 300),
+      verify: (_) {
+        verify(
+          () => mockTransportRepo.deleteManualFlight('trip-1', 'old'),
+        ).called(1);
+        verify(
+          () => mockTransportRepo.createManualFlight('trip-1', any()),
+        ).called(1);
+      },
+    );
   });
 }

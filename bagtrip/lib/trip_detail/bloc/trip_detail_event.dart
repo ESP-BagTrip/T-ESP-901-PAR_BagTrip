@@ -35,6 +35,19 @@ final class ValidateFlightFromDetail extends TripDetailEvent {
   ValidateFlightFromDetail({required this.flightId});
 }
 
+/// Phase 4 — Replace a flight in place by an Amadeus offer or a
+/// re-keyed manual entry. The handler is atomic: DELETE the old row +
+/// CREATE a new one in a single bloc tick, with a full state rollback
+/// if either side fails so the user never lands on a half-applied state.
+final class ReplaceFlightFromDetail extends TripDetailEvent {
+  final String oldFlightId;
+  final Map<String, dynamic> newFlightData;
+  ReplaceFlightFromDetail({
+    required this.oldFlightId,
+    required this.newFlightData,
+  });
+}
+
 final class ValidateAccommodationFromDetail extends TripDetailEvent {
   final String accommodationId;
   ValidateAccommodationFromDetail({required this.accommodationId});

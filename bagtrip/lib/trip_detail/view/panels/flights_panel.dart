@@ -1,9 +1,12 @@
 import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
+import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/core/trip_enums.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/flight_validation_branch_sheet.dart';
 import 'package:bagtrip/design/widgets/item_status_chip.dart';
+import 'package:bagtrip/design/widgets/replace_search_sheet.dart';
 import 'package:bagtrip/design/widgets/review/boarding_pass_card.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/design/widgets/review/sheets/quick_preview_sheet.dart';
@@ -83,10 +86,166 @@ class FlightsPanel extends StatelessWidget {
     );
   }
 
-  void _validate(BuildContext context, ManualFlight flight) {
-    AppHaptics.success();
-    context.read<TripDetailBloc>().add(
-      ValidateFlightFromDetail(flightId: flight.id),
+  /// Phase 4 — opens the two-branch validate sheet.
+  /// External branch: collect the flight number then dispatch the
+  /// universal validate event + persist the number on the row.
+  /// Amadeus branch: stub for now (Phase 4 follow-up wires the
+  /// reprice + booking-intent orchestration).
+  Future<void> _showValidateBranchSheet(
+    BuildContext parentContext,
+    ManualFlight flight,
+  ) async {
+    final l10n = AppLocalizations.of(parentContext)!;
+    final bloc = parentContext.read<TripDetailBloc>();
+    Navigator.of(parentContext).pop();
+    await showFlightValidationBranchSheet<void>(
+      context: parentContext,
+      onPickExternal: () {
+        Navigator.of(parentContext).pop();
+        _showExternalNumberSheet(parentContext, flight, bloc);
+      },
+      onPickAmadeus: () {
+        Navigator.of(parentContext).pop();
+        // Amadeus reprice + booking-intent flow lands in a follow-up.
+        // We surface the intent honestly instead of pretending to act.
+        AppSnackBar.showInfo(
+          parentContext,
+          message: l10n.flightValidateAmadeusSubtitle,
+        );
+      },
+    );
+  }
+
+  Future<void> _showExternalNumberSheet(
+    BuildContext context,
+    ManualFlight flight,
+    TripDetailBloc bloc,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final controller = TextEditingController(text: flight.flightNumber);
+    final formKey = GlobalKey<FormState>();
+
+    Future<void> submit(BuildContext sheetContext) async {
+      if (!formKey.currentState!.validate()) return;
+      final number = controller.text.trim().toUpperCase();
+      Navigator.of(sheetContext).pop();
+      bloc.add(
+        UpdateFlightFromDetail(
+          flightId: flight.id,
+          data: <String, dynamic>{'flightNumber': number},
+        ),
+      );
+      bloc.add(ValidateFlightFromDetail(flightId: flight.id));
+    }
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+        ),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(AppRadius.cornerRadius20),
+            ),
+          ),
+          padding: AppSpacing.allEdgeInsetSpace24,
+          child: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withValues(alpha: 0.3),
+                      borderRadius: AppRadius.handleBar,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.space16),
+                Text(
+                  l10n.flightValidateExternalTitle,
+                  style: const TextStyle(
+                    fontFamily: FontFamily.b612,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.space8),
+                Text(
+                  l10n.flightValidateExternalSubtitle,
+                  style: const TextStyle(
+                    fontFamily: FontFamily.dMSans,
+                    fontSize: 13,
+                    color: ColorName.hint,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.space16),
+                TextFormField(
+                  controller: controller,
+                  textCapitalization: TextCapitalization.characters,
+                  decoration: InputDecoration(
+                    labelText: l10n.flightValidateExternalNumberLabel,
+                    hintText: l10n.flightValidateExternalNumberHint,
+                  ),
+                  validator: (v) => v == null || v.trim().isEmpty
+                      ? l10n.flightNumberRequired
+                      : null,
+                ),
+                const SizedBox(height: AppSpacing.space16),
+                FilledButton(
+                  onPressed: () => submit(sheetContext),
+                  child: Text(l10n.activityValidateAction),
+                ),
+                const SizedBox(height: AppSpacing.space16),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    controller.dispose();
+  }
+
+  /// Phase 4 — opens the inline replace sheet. The Amadeus search wrap
+  /// is left as a placeholder for the follow-up that re-keys
+  /// FlightSearchForm onto a callback contract; the bloc handler
+  /// already supports the atomic DELETE+CREATE round-trip.
+  Future<void> _showReplaceSheet(
+    BuildContext parentContext,
+    ManualFlight flight,
+  ) async {
+    final l10n = AppLocalizations.of(parentContext)!;
+    Navigator.of(parentContext).pop();
+    await showReplaceSearchSheet<void>(
+      context: parentContext,
+      sheet: ReplaceSearchSheet(
+        title: l10n.activityValidateAction,
+        subtitle:
+            '${flight.departureAirport ?? '?'} → ${flight.arrivalAirport ?? '?'}',
+        child: Center(
+          child: Padding(
+            padding: AppSpacing.allEdgeInsetSpace24,
+            child: Text(
+              l10n.flightValidateAmadeusSubtitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: FontFamily.dMSans,
+                fontSize: 14,
+                color: ColorName.hint,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -103,24 +262,25 @@ class FlightsPanel extends StatelessWidget {
       title: _titleFor(flight),
       subtitle: subtitle,
       body: _FlightPreviewBody(flight: flight),
+      // Phase 4 — three-action preview sheet:
+      //   Validate (branche externe / Amadeus) — when the flight is
+      //   SUGGESTED and editable.
+      //   Replace (search Amadeus inline) — re-key the row from a
+      //   different offer with a single atomic DELETE+CREATE handler.
+      //   Delete (destructive) — unchanged.
+      // Edit stays accessible via long-press on the card (context menu).
       validateAction: isSuggested && canEdit
           ? QuickPreviewAction(
               label: l10n.activityValidateAction,
               icon: Icons.check_rounded,
-              onPressed: () {
-                Navigator.of(context).pop();
-                _validate(context, flight);
-              },
+              onPressed: () => _showValidateBranchSheet(context, flight),
             )
           : null,
       primaryAction: canEdit
           ? QuickPreviewAction(
-              label: l10n.panelActionEdit,
-              icon: Icons.edit_rounded,
-              onPressed: () {
-                Navigator.of(context).pop();
-                _showEditSheet(context, flight);
-              },
+              label: l10n.flightValidateAmadeusTitle,
+              icon: Icons.swap_horiz_rounded,
+              onPressed: () => _showReplaceSheet(context, flight),
             )
           : null,
       destructiveAction: canEdit
