@@ -58,37 +58,9 @@ class AiRepositoryImpl implements AiRepository {
     }
   }
 
-  @override
-  Future<Result<Map<String, dynamic>>> acceptInspiration(
-    Map<String, dynamic> suggestion, {
-    String? startDate,
-    String? endDate,
-    String? dateMode,
-    String? originCity,
-  }) async {
-    try {
-      final response = await _apiClient.post(
-        '/ai/plan-trip/accept',
-        data: {
-          'suggestion': suggestion,
-          if (startDate != null) 'startDate': startDate,
-          if (endDate != null) 'endDate': endDate,
-          if (dateMode != null) 'dateMode': dateMode,
-          if (originCity != null) 'originCity': originCity,
-        },
-      );
-      if (response.statusCode == 200) {
-        return Success(Map<String, dynamic>.from(response.data));
-      }
-      return loggedFailure(
-        UnknownError('accept inspiration failed: ${response.statusCode}'),
-      );
-    } on DioException catch (e) {
-      return loggedFailure(ApiClient.mapDioError(e));
-    } catch (e) {
-      return loggedFailure(UnknownError(e.toString(), originalError: e));
-    }
-  }
+  // SMP-324 — ``acceptInspiration`` was removed alongside the legacy
+  // ``POST /ai/plan-trip/accept`` route. The SSE pipeline persists the
+  // DRAFT trip itself; the wizard confirms via ``TripRepository.updateTripStatus``.
 
   @override
   Future<Result<Map<String, dynamic>>> getPostTripSuggestion() async {

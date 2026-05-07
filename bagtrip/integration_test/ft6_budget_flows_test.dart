@@ -119,78 +119,12 @@ void main() {
       expect((result as Failure).error, isA<NetworkError>());
     });
 
-    testWidgets(
-      'plan_trip_5nights_hotel_total_500: accept payload sends per-night unit',
-      (tester) async {
-        // Topic 04a (B23). 5-night Amadeus hotel at 500 EUR total →
-        // the accept payload must ship `price_per_night = 100`, never
-        // the stay total. Pre-fix, the wizard sent `price_per_night = 500`
-        // and the backend re-multiplied by trip nights ⇒ 2500 EUR
-        // BudgetItem on a 5-night trip.
-        final trip = makeTrip(
-          id: 'trip-5n',
-          title: 'Barcelona 5N',
-          status: TripStatus.draft,
-          destinationName: 'Barcelona',
-        );
-        final mocks = await setupTestServiceLocator();
-        stubTripManagerHome(mocks, planned: [trip]);
-
-        when(
-          () => mocks.ai.acceptInspiration(
-            any(),
-            startDate: any(named: 'startDate'),
-            endDate: any(named: 'endDate'),
-            dateMode: any(named: 'dateMode'),
-            originCity: any(named: 'originCity'),
-          ),
-        ).thenAnswer((_) async => Success({'id': 'trip-5n'}));
-
-        await pumpTestApp(tester, existingMocks: mocks);
-        expect(f.homeIdle, findsOneWidget);
-
-        // Simulate the wizard's `_tripPlanToSuggestion` payload after
-        // the B23 fix : Flutter sends `price_per_night` (real per-night
-        // value), backend multiplies by trip nights.
-        await mocks.ai.acceptInspiration(
-          {
-            'destination': {'city': 'Barcelona', 'country': 'Spain'},
-            'durationDays': 5,
-            'accommodations': [
-              {
-                'name': 'Hotel BCN',
-                // 100 EUR/night, NOT 500 (which is the stay total).
-                // Fix B23 : the bloc now derives this from
-                // `price_total / nights` when the SSE only carries
-                // the stay total.
-                'price_per_night': 100,
-                'currency': 'EUR',
-                'source': 'amadeus',
-              },
-            ],
-          },
-          startDate: '2026-06-01',
-          endDate: '2026-06-06',
-        );
-
-        final captured = verify(
-          () => mocks.ai.acceptInspiration(
-            captureAny(),
-            startDate: any(named: 'startDate'),
-            endDate: any(named: 'endDate'),
-            dateMode: any(named: 'dateMode'),
-            originCity: any(named: 'originCity'),
-          ),
-        ).captured;
-        expect(captured, isNotEmpty);
-        final payload = captured.first as Map<String, dynamic>;
-        final accommodations = (payload['accommodations'] as List)
-            .cast<Map<String, dynamic>>();
-        expect(accommodations.first['price_per_night'], 100);
-        // Stay total absent — we ship the per-night unit only.
-        expect(accommodations.first.containsKey('price_total'), isFalse);
-      },
-    );
+    // SMP-324 — the ``plan_trip_5nights_hotel_total_500`` test asserted
+    // that the wizard's ``_tripPlanToSuggestion`` shipped ``price_per_night``
+    // and not the stay total back to ``/ai/plan-trip/accept``. Both the
+    // helper and the route are gone now (the SSE pipeline persists the
+    // DRAFT trip server-side); the equivalent contract is locked down by
+    // ``api/tests/services/test_plan_draft_service.py::TestPersistAccommodations``.
 
     testWidgets(
       'plan_trip_multi_currency: BudgetSummary surface accepts mixed-currency response',

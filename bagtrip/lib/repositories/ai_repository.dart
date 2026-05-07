@@ -10,13 +10,10 @@ abstract class AiRepository {
     String? constraints,
     String? locale,
   });
-  Future<Result<Map<String, dynamic>>> acceptInspiration(
-    Map<String, dynamic> suggestion, {
-    String? startDate,
-    String? endDate,
-    String? dateMode,
-    String? originCity,
-  });
+  // SMP-324 — ``acceptInspiration`` is gone. The SSE pipeline persists
+  // a DRAFT trip itself and ships its ``tripId`` in the ``complete``
+  // event; confirming is just ``TripRepository.updateTripStatus(id,
+  // "PLANNED")``.
   Future<Result<Map<String, dynamic>>> getPostTripSuggestion();
 
   /// Stream trip planning events via SSE from the multi-agent pipeline.

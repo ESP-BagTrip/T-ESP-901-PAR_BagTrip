@@ -158,17 +158,8 @@ void main() {
 
       final barcelonaTrip = makeBarcelonaTrip();
 
-      // Stub accept inspiration
-      when(
-        () => mocks.ai.acceptInspiration(
-          any(),
-          startDate: any(named: 'startDate'),
-          endDate: any(named: 'endDate'),
-        ),
-      ).thenAnswer(
-        (_) async =>
-            const Success({'tripId': 'trip-barcelona', 'status': 'planned'}),
-      );
+      // SMP-324 — the SSE pipeline persists the DRAFT trip itself.
+      // Confirming is just ``updateTripStatus``; no more accept route.
 
       // Stub trip detail loading after acceptance
       when(() => mocks.trip.getTripHome('trip-barcelona')).thenAnswer(
@@ -192,21 +183,21 @@ void main() {
       await pumpTestApp(tester, existingMocks: mocks);
       expect(f.homeIdle, findsOneWidget);
 
-      // Accept inspiration
-      final result = await mocks.ai.acceptInspiration(
-        {'destination': 'Barcelona'},
-        startDate: '2026-04-15',
-        endDate: '2026-04-22',
+      // SMP-324 — confirming an AI plan is now ``updateTripStatus``.
+      // The SSE pipeline persists the DRAFT trip on the backend; the
+      // wizard just flips the status to PLANNED.
+      when(
+        () => mocks.trip.updateTripStatus('trip-barcelona', 'PLANNED'),
+      ).thenAnswer((_) async => Success(barcelonaTrip));
+      final result = await mocks.trip.updateTripStatus(
+        'trip-barcelona',
+        'PLANNED',
       );
       expect(result, isA<Success>());
-      expect((result as Success).data['tripId'], 'trip-barcelona');
+      expect((result as Success).data.id, 'trip-barcelona');
 
       verify(
-        () => mocks.ai.acceptInspiration(
-          any(),
-          startDate: any(named: 'startDate'),
-          endDate: any(named: 'endDate'),
-        ),
+        () => mocks.trip.updateTripStatus('trip-barcelona', 'PLANNED'),
       ).called(1);
     });
 
@@ -261,14 +252,10 @@ void main() {
           ]),
         );
 
-        // Step 3: Accept
+        // Step 3: Confirm draft via PATCH /trips/{id}/status
         when(
-          () => mocks.ai.acceptInspiration(
-            any(),
-            startDate: any(named: 'startDate'),
-            endDate: any(named: 'endDate'),
-          ),
-        ).thenAnswer((_) async => const Success({'tripId': 'trip-barcelona'}));
+          () => mocks.trip.updateTripStatus('trip-barcelona', 'PLANNED'),
+        ).thenAnswer((_) async => Success(barcelonaTrip));
 
         // Step 4: Trip detail
         when(() => mocks.trip.getTripHome('trip-barcelona')).thenAnswer(
@@ -293,13 +280,12 @@ void main() {
         final events = await mocks.ai.planTripStream(durationDays: 7).toList();
         expect(events.last['event'], 'done');
 
-        // 3. Accept inspiration
-        final accepted = await mocks.ai.acceptInspiration(
-          {'destination': 'Barcelona'},
-          startDate: '2026-04-15',
-          endDate: '2026-04-22',
+        // 3. Confirm via updateTripStatus (DRAFT → PLANNED)
+        final confirmed = await mocks.trip.updateTripStatus(
+          'trip-barcelona',
+          'PLANNED',
         );
-        expect((accepted as Success).data['tripId'], 'trip-barcelona');
+        expect((confirmed as Success).data.id, 'trip-barcelona');
 
         // 4. Load trip
         final tripHome = await mocks.trip.getTripHome('trip-barcelona');
@@ -321,11 +307,7 @@ void main() {
           ),
         ).called(1);
         verify(
-          () => mocks.ai.acceptInspiration(
-            any(),
-            startDate: any(named: 'startDate'),
-            endDate: any(named: 'endDate'),
-          ),
+          () => mocks.trip.updateTripStatus('trip-barcelona', 'PLANNED'),
         ).called(1);
       },
     );
