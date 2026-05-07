@@ -58,10 +58,6 @@ class AiRepositoryImpl implements AiRepository {
     }
   }
 
-  // SMP-324 — ``acceptInspiration`` was removed alongside the legacy
-  // ``POST /ai/plan-trip/accept`` route. The SSE pipeline persists the
-  // DRAFT trip itself; the wizard confirms via ``TripRepository.updateTripStatus``.
-
   @override
   Future<Result<Map<String, dynamic>>> getPostTripSuggestion() async {
     try {

@@ -149,7 +149,7 @@ void main() {
       expect(completeEvent['data']['tripId'], 'trip-barcelona');
     });
 
-    testWidgets('acceptInspiration creates trip and returns tripId', (
+    testWidgets('SSE complete event surfaces tripId for the wizard', (
       tester,
     ) async {
       final mocks = await setupTestServiceLocator();

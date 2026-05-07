@@ -64,9 +64,3 @@ class PlanTripRequest(BaseModel):
 
 # Alias for Sprint 2.8 documentation
 PlanTripUnifiedRequest = PlanTripRequest
-
-# SMP-324 — ``AcceptPlanRequest`` lived here for the now-removed
-# ``POST /v1/ai/plan-trip/accept`` route. The backend persists the
-# draft directly inside the SSE pipeline and ships its ``tripId`` in
-# the ``complete`` event; the wizard PATCHes ``/trips/{id}/status`` to
-# confirm. No client-side suggestion payload to validate anymore.

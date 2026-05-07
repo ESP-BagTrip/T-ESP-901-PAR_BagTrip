@@ -1159,11 +1159,6 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     );
   }
 
-  // SMP-324 — ``_tripPlanToSuggestion`` and its flight-route helpers
-  // are gone. The wizard no longer rebuilds the plan client-side; the
-  // SSE pipeline persists a DRAFT trip on its own and ``_createAiTrip``
-  // confirms it via ``PATCH /trips/{id}/status``.
-
   Future<void> _cancelSseStream() async {
     await _sseSubscription?.cancel();
     _sseSubscription = null;

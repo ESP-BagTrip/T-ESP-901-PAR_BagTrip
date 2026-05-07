@@ -41,11 +41,6 @@ void main() {
     );
   });
 
-  // SMP-324 — ``AiRepositoryImpl.acceptInspiration`` tests removed
-  // along with the method itself. The SSE pipeline now persists the
-  // DRAFT trip on its own and ships its ``tripId`` in the ``complete``
-  // event; confirming is covered by the trip repository tests.
-
   group('AiRepositoryImpl.getPostTripSuggestion', () {
     test('unwraps nested {suggestion: {...}} envelope', () async {
       when(() => mockApiClient.post('/ai/post-trip-suggestion')).thenAnswer(

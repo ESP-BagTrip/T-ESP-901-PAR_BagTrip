@@ -119,13 +119,6 @@ void main() {
       expect((result as Failure).error, isA<NetworkError>());
     });
 
-    // SMP-324 — the ``plan_trip_5nights_hotel_total_500`` test asserted
-    // that the wizard's ``_tripPlanToSuggestion`` shipped ``price_per_night``
-    // and not the stay total back to ``/ai/plan-trip/accept``. Both the
-    // helper and the route are gone now (the SSE pipeline persists the
-    // DRAFT trip server-side); the equivalent contract is locked down by
-    // ``api/tests/services/test_plan_draft_service.py::TestPersistAccommodations``.
-
     testWidgets(
       'plan_trip_multi_currency: BudgetSummary surface accepts mixed-currency response',
       (tester) async {

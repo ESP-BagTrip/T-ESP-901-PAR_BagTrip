@@ -331,8 +331,7 @@ def _project_for_frontend(ranked: list[dict], enriched: list[dict]) -> list[dict
                 "weather_summary": ranked_entry.get("weather_summary") or "",
                 "topActivities": ranked_entry.get("topActivities") or [],
                 # Carried through for downstream consumers (budget chip,
-                # acceptInspiration). The wizard model already understands
-                # these fields.
+                # wizard review screen).
                 "flight_price_eur": base["flight_price_eur"],
                 "weather": base["weather"],
                 "lat": base["lat"],
