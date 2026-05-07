@@ -17,5 +17,9 @@ abstract class FlightSearchArguments with _$FlightSearchArguments {
     required String travelClass,
     List<FlightSegment>? multiDestSegments,
     double? maxPrice,
+    // Phase 4 follow-up — when set, the search-result page is in
+    // replace mode: choosing a result must fire ReplaceFlightFromDetail
+    // (atomic DELETE+CREATE) instead of plain CreateFlightFromDetail.
+    String? replaceFlightId,
   }) = _FlightSearchArguments;
 }

@@ -8,6 +8,10 @@ import 'package:bagtrip/design/widgets/flight_validation_branch_sheet.dart';
 import 'package:bagtrip/design/widgets/item_status_chip.dart';
 import 'package:bagtrip/design/widgets/replace_search_sheet.dart';
 import 'package:bagtrip/design/widgets/review/boarding_pass_card.dart';
+import 'package:bagtrip/flight_search/bloc/flight_search_bloc.dart';
+import 'package:bagtrip/flight_search/models/flight_search_prefill.dart';
+import 'package:bagtrip/flight_search/view/flight_search_form.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/design/widgets/review/sheets/quick_preview_sheet.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -215,34 +219,70 @@ class FlightsPanel extends StatelessWidget {
     controller.dispose();
   }
 
-  /// Phase 4 — opens the inline replace sheet. The Amadeus search wrap
-  /// is left as a placeholder for the follow-up that re-keys
-  /// FlightSearchForm onto a callback contract; the bloc handler
-  /// already supports the atomic DELETE+CREATE round-trip.
+  /// Phase 4 follow-up — wraps the real FlightSearchForm in the
+  /// ReplaceSearchSheet, prefilled with the flight's IATAs and the
+  /// trip dates. When the user submits, we navigate to the existing
+  /// flight-search-result page with `replaceFlightId` set so the
+  /// downstream "save to trip" action knows to dispatch
+  /// ReplaceFlightFromDetail (atomic DELETE+CREATE) instead of a plain
+  /// CreateFlightFromDetail. The bloc handler is already in place
+  /// (Phase 4); the result-page wiring lands in a follow-up commit.
   Future<void> _showReplaceSheet(
     BuildContext parentContext,
     ManualFlight flight,
   ) async {
     final l10n = AppLocalizations.of(parentContext)!;
     Navigator.of(parentContext).pop();
+
+    final prefill = FlightSearchPrefill(
+      tripId: tripId,
+      originIata: flight.departureAirport,
+      destinationIata: flight.arrivalAirport,
+      departureDate: flight.departureDate,
+      returnDate: flight.arrivalDate,
+      nbTravelers: 1,
+    );
+
     await showReplaceSearchSheet<void>(
       context: parentContext,
       sheet: ReplaceSearchSheet(
         title: l10n.activityValidateAction,
         subtitle:
             '${flight.departureAirport ?? '?'} → ${flight.arrivalAirport ?? '?'}',
-        child: Center(
-          child: Padding(
-            padding: AppSpacing.allEdgeInsetSpace24,
-            child: Text(
-              l10n.flightValidateAmadeusSubtitle,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontFamily: FontFamily.dMSans,
-                fontSize: 14,
-                color: ColorName.hint,
+        child: BlocProvider(
+          create: (_) => FlightSearchBloc()
+            ..add(
+              InitWithPrefilledData(
+                tripId: prefill.tripId,
+                departureAirport: prefill.originIata != null
+                    ? {
+                        'iataCode': prefill.originIata,
+                        'name': prefill.originIata,
+                      }
+                    : null,
+                arrivalAirport: prefill.destinationIata != null
+                    ? {
+                        'iataCode': prefill.destinationIata,
+                        'name': prefill.destinationIata,
+                      }
+                    : null,
+                departureDate: prefill.departureDate,
+                returnDate: prefill.returnDate,
+                adults: prefill.nbTravelers,
               ),
             ),
+          child: FlightSearchForm(
+            onSubmit: (args) {
+              // Carry the replaceFlightId through the route extras so
+              // the result page can branch on it. The atomic handler
+              // (ReplaceFlightFromDetail) is already wired backstage;
+              // the result page wires the dispatch in a follow-up.
+              final withReplaceId = args.copyWith(replaceFlightId: flight.id);
+              Navigator.of(parentContext).pop();
+              FlightSearchResultRoute(
+                $extra: withReplaceId,
+              ).push(parentContext);
+            },
           ),
         ),
       ),

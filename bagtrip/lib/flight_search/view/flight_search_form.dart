@@ -17,7 +17,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 
 class FlightSearchForm extends StatelessWidget {
-  const FlightSearchForm({super.key});
+  const FlightSearchForm({super.key, this.onSubmit});
+
+  /// Optional override for the "Search" button. When provided, the tap
+  /// short-circuits the default navigation to [FlightSearchResultRoute]
+  /// and hands the validated [FlightSearchArguments] back to the caller.
+  /// Used by the trip-detail flights panel to wrap the form inside a
+  /// replace-flight flow that drives a different downstream action.
+  final void Function(FlightSearchArguments args)? onSubmit;
 
   static const double _sectionSpacing = 24;
 
@@ -149,9 +156,12 @@ class FlightSearchForm extends StatelessWidget {
       );
     }
 
-    if (context.mounted) {
-      FlightSearchResultRoute($extra: args).push(context);
+    if (!context.mounted) return;
+    if (onSubmit != null) {
+      onSubmit!(args);
+      return;
     }
+    FlightSearchResultRoute($extra: args).push(context);
   }
 }
 
