@@ -196,6 +196,24 @@ def _is_dated_activity(activity: dict) -> bool:
     )
 
 
+def _accommodation_stay_total(acc: dict, trip_nights: int) -> float:
+    """Whole-stay accommodation cost — same precedence rule as ``budget_node``.
+
+    Prefers ``price_total`` (Amadeus stay total) so the breakdown line
+    in the review screen matches the BudgetItem amount on the trip detail.
+    Falls back to ``price_per_night × nights`` when only the per-night
+    unit is exposed by the upstream payload. Returns 0 when neither is
+    usable so the caller skips creating an orphan BudgetItem.
+    """
+    price_total = acc.get("price_total")
+    if isinstance(price_total, (int, float)) and price_total > 0:
+        return float(price_total)
+    price_per_night = acc.get("price_per_night")
+    if isinstance(price_per_night, (int, float)) and price_per_night > 0 and trip_nights > 0:
+        return float(price_per_night) * trip_nights
+    return 0.0
+
+
 def _budget_category_for_activity(activity_category: str) -> BudgetCategory:
     """Map an Activity.category string onto the matching BudgetCategory.
 
@@ -443,13 +461,13 @@ class PlanAcceptanceService:
             db.add(accommodation)
             db.flush()
 
-            price_per_night = acc.get("price_per_night")
-            if price_per_night and trip_nights > 0:
+            stay_total = _accommodation_stay_total(acc, trip_nights)
+            if stay_total > 0:
                 db.add(
                     _build_budget_item(
                         trip_id=trip.id,
                         label=accommodation.name,
-                        amount=float(price_per_night) * trip_nights,
+                        amount=stay_total,
                         category=BudgetCategory.ACCOMMODATION,
                         source_type="accommodation",
                         source_id=accommodation.id,

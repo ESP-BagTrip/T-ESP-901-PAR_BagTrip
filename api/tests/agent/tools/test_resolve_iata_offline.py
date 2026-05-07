@@ -42,9 +42,7 @@ class TestResolveIataCodeFacade:
     async def test_translates_resolved_city_into_legacy_dict(self):
         with patch(
             "src.agent.tools.locations.resolve_city",
-            new=AsyncMock(
-                return_value=_make_resolved("CDG", "Paris", "France", 49.01, 2.55)
-            ),
+            new=AsyncMock(return_value=_make_resolved("CDG", "Paris", "France", 49.01, 2.55)),
         ):
             result = await resolve_iata_code("Paris")
         assert result == {

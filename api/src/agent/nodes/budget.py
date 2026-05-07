@@ -1,28 +1,24 @@
-"""Budget estimator node — deterministic aggregation over Amadeus + per-diem table.
+"""Budget estimator node — deterministic aggregation over Amadeus + activities.
 
-Pre-SMP-324 this node ran a ReAct loop over ``search_real_flights`` and
-``resolve_iata_code``, asking the LLM to fold five categories
-(flight / accommodation / food / transport / activity) into one JSON
-estimation. That worked when every input was perfect but stalled hard
-the moment a localized destination_city left ``destination_iata`` empty:
-the LLM emitted "Thought: Need IATA code for Singapore." with no Action,
-the JSON parse failed, and the budget came back as 0 EUR — exactly the
-production stall this PR was filed to remove.
+Every line in the breakdown must be backed by a review-able item:
 
-The new implementation is deterministic:
+  - Flight: ``Σ flight_offers.price`` (Amadeus, or haversine-derived
+    placeholder when Amadeus is unavailable). The user reviews the
+    flight card in trip detail.
+  - Accommodation: best gathered hotel's stay total. Falls back to
+    ``deferred`` (= 0) when no Amadeus hit so the review screen shows
+    "Hôtel à choisir" without a fake price.
+  - Activity / Food / Transport: ``Σ activities.estimated_cost``
+    partitioned by ``Activity.category``. Each entry is a single
+    activity row the user can edit or delete in trip detail, so the
+    breakdown line is always traceable to a concrete item.
 
-  - Flight: read directly from the offers Amadeus already returned in
-    the same node (or from the synthesized placeholder when Amadeus
-    is unavailable).
-  - Accommodation: sum of the best gathered hotel's stay total,
-    using the existing ``_accommodation_stay_total`` helper.
-  - Activity: sum of activities' ``estimated_cost``.
-  - Food + transport: per-diem table (per traveler / per day), tuned
-    to the ``budget_preset`` band selected by the wizard.
-
-The LLM is no longer in the critical path of the budget. We keep the
-SSE event format identical so the front-end and the persistence layer
-don't move.
+What this node *does not* do anymore: a per-diem table that fabricated
+a flat 45 €/day food and 18 €/day transport line, regardless of the
+actual restaurants / transit items the agent surfaced. Those lines
+were unreviewable (no item to attach the spending to) and divergent
+between the review screen and trip detail. SMP-324 removed them; the
+review now shows only what the user can later validate item-by-item.
 """
 
 from __future__ import annotations
@@ -238,52 +234,6 @@ def _accommodation_stay_total(best: dict) -> float:
     return 0.0
 
 
-def _compute_fallback_budget(accommodations: list, activities: list, estimation: dict) -> dict:
-    """Compute budget from real gathered data when LLM estimation is incomplete."""
-    # Best accommodation total — see _accommodation_stay_total for unit rules.
-    accom_total = _accommodation_stay_total(accommodations[0]) if accommodations else 0.0
-
-    # Sum activity costs
-    activity_total = sum(float(a.get("estimated_cost", 0) or 0) for a in activities)
-
-    # Preserve valid LLM data for flights / meals / transport
-    def _keep_or_default(key: str) -> tuple[dict, float]:
-        raw = estimation.get(key, {})
-        amt = _extract_amount(raw)
-        if isinstance(raw, dict) and amt > 0:
-            return raw, amt
-        return {"amount": amt, "currency": "EUR", "source": "estimated"}, amt
-
-    flight_data, flight_amt = _keep_or_default("flight")
-    food_data, food_amt = _keep_or_default("food")
-    transport_data, transport_amt = _keep_or_default("transport")
-
-    total = flight_amt + accom_total + activity_total + food_amt + transport_amt
-
-    return {
-        "flight": flight_data,
-        "accommodation": {"amount": accom_total, "currency": "EUR", "source": "gathered_data"},
-        "food": food_data,
-        "transport": transport_data,
-        "activity": {"amount": activity_total, "currency": "EUR", "source": "gathered_data"},
-        "total_min": int(total * 0.85),
-        "total_max": int(total * 1.15),
-        "currency": "EUR",
-    }
-
-
-# Per-traveler / per-day daily costs in EUR. Coarse on purpose — better
-# to be 20 % off than to ask the LLM and stall on a "Thought:" parse error.
-# Tuned roughly against eurostat & numbeo medians, biased to err on the
-# safe (slightly high) side for the user's expectations.
-_PER_DIEM_TABLE: dict[str, dict[str, float]] = {
-    "low": {"food": 25.0, "transport": 10.0},
-    "mid": {"food": 45.0, "transport": 18.0},
-    "premium": {"food": 90.0, "transport": 35.0},
-}
-_DEFAULT_PER_DIEM = _PER_DIEM_TABLE["mid"]
-
-
 def _flight_total_from_offers(offers: list[dict]) -> float:
     """Sum the per-traveler price field of every offer (Amadeus or synthetic)."""
     total = 0.0
@@ -295,27 +245,58 @@ def _flight_total_from_offers(offers: list[dict]) -> float:
     return total
 
 
-def _per_diem_for(state: TripPlanState) -> dict[str, float]:
-    preset = (state.get("budget_preset") or "").lower()
-    return _PER_DIEM_TABLE.get(preset, _DEFAULT_PER_DIEM)
+_FOOD_CATEGORY = "FOOD"
+_TRANSPORT_CATEGORY = "TRANSPORT"
+
+
+def _partition_activity_costs(activities: list[dict]) -> tuple[float, float, float]:
+    """Sum ``estimated_cost`` per category bucket.
+
+    Returns ``(food_total, transport_total, other_activity_total)`` so
+    the breakdown line for each category equals the sum of the items
+    the user will see (and can edit) in the trip-detail tabs. Anything
+    that isn't FOOD/TRANSPORT lands in the generic activity bucket
+    (CULTURE, NATURE, SPORT, SHOPPING, NIGHTLIFE, RELAXATION, OTHER).
+    """
+    food_total = 0.0
+    transport_total = 0.0
+    other_total = 0.0
+    for activity in activities:
+        try:
+            cost = float(activity.get("estimated_cost", 0) or 0)
+        except (TypeError, ValueError):
+            continue
+        if cost <= 0:
+            continue
+        category = (activity.get("category") or "").upper()
+        if category == _FOOD_CATEGORY:
+            food_total += cost
+        elif category == _TRANSPORT_CATEGORY:
+            transport_total += cost
+        else:
+            other_total += cost
+    return food_total, transport_total, other_total
 
 
 def _build_estimation(
     *,
     flight_total: float,
     accommodation_total: float,
+    food_total: float,
+    transport_total: float,
     activity_total: float,
-    duration_days: int,
-    nb_travelers: int,
-    per_diem: dict[str, float],
     flight_source: str,
     accommodation_source: str,
 ) -> dict:
-    """Assemble the singular-key estimation payload the front consumes."""
-    food_total = round(per_diem["food"] * duration_days * nb_travelers, 2)
-    transport_total = round(per_diem["transport"] * duration_days * nb_travelers, 2)
+    """Assemble the singular-key estimation payload the front consumes.
 
-    total = flight_total + accommodation_total + activity_total + food_total + transport_total
+    Every line maps 1:1 onto a ``BudgetItem`` the persistence layer
+    creates at ``/plan-trip/accept``: the flight offer, the hotel stay,
+    and one item per costed Activity (FOOD / TRANSPORT / other). The
+    review screen and trip detail therefore agree by construction —
+    Σ phase 1 == Σ phase 2 the moment the user accepts.
+    """
+    total = flight_total + accommodation_total + food_total + transport_total + activity_total
     return {
         "flight": {
             "amount": round(flight_total, 2),
@@ -328,16 +309,14 @@ def _build_estimation(
             "source": accommodation_source,
         },
         "food": {
-            "amount": food_total,
+            "amount": round(food_total, 2),
             "currency": "EUR",
-            "source": "per_diem",
-            "per_day_per_person": per_diem["food"],
+            "source": "gathered_data" if food_total > 0 else "estimated",
         },
         "transport": {
-            "amount": transport_total,
+            "amount": round(transport_total, 2),
             "currency": "EUR",
-            "source": "per_diem",
-            "per_day_per_person": per_diem["transport"],
+            "source": "gathered_data" if transport_total > 0 else "estimated",
         },
         "activity": {
             "amount": round(activity_total, 2),
@@ -351,7 +330,7 @@ def _build_estimation(
 
 
 async def budget_node(state: TripPlanState) -> dict:
-    """Aggregate the budget deterministically from Amadeus + per-diem table."""
+    """Aggregate the budget deterministically from Amadeus + activities."""
     guard(state, min_required=2.0)
     logger.info("=== Budget Estimator Node ===")
 
@@ -360,7 +339,6 @@ async def budget_node(state: TripPlanState) -> dict:
     activities = state.get("activities", []) or []
     origin_iata = state.get("origin_iata", "") or ""
     dest_iata = dest.get("iata", "") or ""
-    duration_days = int(state.get("duration_days") or 1) or 1
     nb_travelers = int(state.get("nb_travelers") or 1) or 1
 
     # ── Flights: try Amadeus directly; synthesize a placeholder otherwise.
@@ -399,9 +377,6 @@ async def budget_node(state: TripPlanState) -> dict:
 
     flight_total = _flight_total_from_offers(flight_offers)
 
-    # ── Per-diem table (food, transport).
-    per_diem = _per_diem_for(state)
-
     # ── Accommodation: prefer the gathered Amadeus stay total. If the
     # accommodation node returned a ``deferred`` marker (no Amadeus hit
     # → the review card shows "Hôtel à choisir" without a price), keep
@@ -417,16 +392,16 @@ async def budget_node(state: TripPlanState) -> dict:
             accom_total = gathered_total
             accom_source = "amadeus"
 
-    # ── Activities: sum of gathered estimated costs.
-    activity_total = sum(float(a.get("estimated_cost", 0) or 0) for a in activities)
+    # ── Activities: partition by category so each breakdown line maps
+    # 1:1 onto the BudgetItems the acceptance flow will persist.
+    food_total, transport_total, other_activity_total = _partition_activity_costs(activities)
 
     estimation = _build_estimation(
         flight_total=flight_total,
         accommodation_total=accom_total,
-        activity_total=activity_total,
-        duration_days=duration_days,
-        nb_travelers=nb_travelers,
-        per_diem=per_diem,
+        food_total=food_total,
+        transport_total=transport_total,
+        activity_total=other_activity_total,
         flight_source=flight_source,
         accommodation_source=accom_source,
     )

@@ -88,9 +88,7 @@ def trip():
 
 
 class TestPersistActivities:
-    def test_creates_dated_activity_and_budget_line_with_culture_category(
-        self, mock_db, trip
-    ):
+    def test_creates_dated_activity_and_budget_line_with_culture_category(self, mock_db, trip):
         """Dated CULTURE entry → Activity row dated + BudgetItem in
         ACTIVITY bucket."""
         suggestion = {
@@ -157,9 +155,7 @@ class TestPersistActivities:
         assert budget_lines[0].category == BudgetCategory.FOOD
         assert float(budget_lines[0].amount) == 45.0
 
-    def test_transport_recommendation_routes_to_transport_budget_bucket(
-        self, mock_db, trip
-    ):
+    def test_transport_recommendation_routes_to_transport_budget_bucket(self, mock_db, trip):
         suggestion = {
             "durationDays": 7,
             "activities": [
@@ -262,6 +258,31 @@ class TestPersistAccommodations:
         added = [call.args[0] for call in mock_db.add.call_args_list]
         assert len(added) == 1
         assert isinstance(added[0], Accommodation)
+
+    def test_uses_price_total_when_provided(self, mock_db, trip):
+        """SMP-324 — review screen breakdown reads ``price_total`` directly
+        (Amadeus stay total). The persistence layer must use the same
+        precedence so phase 1 and phase 2 stay aligned."""
+        suggestion = {
+            "accommodations": [
+                {
+                    "name": "Hotel Tokyo",
+                    "price_total": 950,  # Amadeus stay total
+                    "price_per_night": 120,  # would yield 840 if used naively
+                    "currency": "EUR",
+                }
+            ]
+        }
+
+        PlanAcceptanceService._persist_accommodations(mock_db, trip, suggestion)
+
+        budget_lines = [
+            call.args[0]
+            for call in mock_db.add.call_args_list
+            if isinstance(call.args[0], BudgetItem)
+        ]
+        assert len(budget_lines) == 1
+        assert float(budget_lines[0].amount) == 950.0
 
     def test_b23_budget_amount_is_per_night_times_nights_not_squared(self, mock_db, trip):
         """Pinning fix: persistance must treat `price_per_night` as per-night.
