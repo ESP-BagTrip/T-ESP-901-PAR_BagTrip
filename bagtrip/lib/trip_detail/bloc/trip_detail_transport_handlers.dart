@@ -351,6 +351,80 @@ extension _TripDetailTransportHandlers on TripDetailBloc {
     }
   }
 
+  /// Phase 5 — atomic accommodation replace, same shape as
+  /// [_onReplaceFlight] but adapted to the named-param signature of
+  /// [AccommodationRepository.createAccommodation].
+  Future<void> _onReplaceAccommodation(
+    ReplaceAccommodationFromDetail event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+    final original = List<Accommodation>.from(loaded.accommodations);
+
+    final pruned = original
+        .where((a) => a.id != event.oldAccommodationId)
+        .toList();
+    final prunedCompletion = tripDetailCompletion(
+      trip: loaded.trip,
+      flights: loaded.flights,
+      accommodations: pruned,
+      activities: loaded.activities,
+      baggageItems: loaded.baggageItems,
+    );
+    emit(
+      loaded.copyWith(
+        accommodations: pruned,
+        completionResult: prunedCompletion,
+      ),
+    );
+
+    final deleteResult = await _accommodationRepository.deleteAccommodation(
+      _tripId!,
+      event.oldAccommodationId,
+    );
+    if (isClosed) return;
+    if (deleteResult case Failure(:final error)) {
+      emit(loaded.copyWith(operationError: error));
+      emit(loaded.copyWith(clearOperationError: true));
+      return;
+    }
+
+    final data = event.newAccommodationData;
+    final checkInRaw = data['checkIn'];
+    final checkOutRaw = data['checkOut'];
+    final createResult = await _accommodationRepository.createAccommodation(
+      _tripId!,
+      name: data['name'] as String? ?? '',
+      address: data['address'] as String?,
+      checkIn: checkInRaw is String ? DateTime.tryParse(checkInRaw) : null,
+      checkOut: checkOutRaw is String ? DateTime.tryParse(checkOutRaw) : null,
+      pricePerNight: (data['pricePerNight'] as num?)?.toDouble(),
+      currency: data['currency'] as String?,
+      bookingReference: data['bookingReference'] as String?,
+      notes: data['notes'] as String?,
+    );
+    if (isClosed) return;
+
+    switch (createResult) {
+      case Success(:final data):
+        final next = [...pruned, data];
+        final completion = tripDetailCompletion(
+          trip: loaded.trip,
+          flights: loaded.flights,
+          accommodations: next,
+          activities: loaded.activities,
+          baggageItems: loaded.baggageItems,
+        );
+        emit(
+          loaded.copyWith(accommodations: next, completionResult: completion),
+        );
+      case Failure(:final error):
+        emit(loaded.copyWith(operationError: error));
+        emit(loaded.copyWith(clearOperationError: true));
+    }
+  }
+
   Future<void> _onValidateAccommodation(
     ValidateAccommodationFromDetail event,
     Emitter<TripDetailState> emit,

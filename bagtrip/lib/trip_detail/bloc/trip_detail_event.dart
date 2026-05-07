@@ -48,6 +48,19 @@ final class ReplaceFlightFromDetail extends TripDetailEvent {
   });
 }
 
+/// Phase 5 — Replace an accommodation in place; same atomic semantics
+/// as [ReplaceFlightFromDetail] (DELETE old + CREATE new with full
+/// rollback). The Amadeus hotel branch is for re-keying from search;
+/// the manual branch reuses the same event with a hand-typed payload.
+final class ReplaceAccommodationFromDetail extends TripDetailEvent {
+  final String oldAccommodationId;
+  final Map<String, dynamic> newAccommodationData;
+  ReplaceAccommodationFromDetail({
+    required this.oldAccommodationId,
+    required this.newAccommodationData,
+  });
+}
+
 final class ValidateAccommodationFromDetail extends TripDetailEvent {
   final String accommodationId;
   ValidateAccommodationFromDetail({required this.accommodationId});

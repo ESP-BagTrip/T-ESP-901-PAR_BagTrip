@@ -106,6 +106,7 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     on<ValidateFlightFromDetail>(_onValidateFlight);
     on<ValidateAccommodationFromDetail>(_onValidateAccommodation);
     on<ReplaceFlightFromDetail>(_onReplaceFlight);
+    on<ReplaceAccommodationFromDetail>(_onReplaceAccommodation);
 
     // Baggage (see trip_detail_baggage_handlers.dart).
     on<ToggleBaggagePackedFromDetail>(_onToggleBaggagePacked);

@@ -2406,6 +2406,88 @@ void main() {
       },
     );
 
+    // ── Phase 5 — atomic replace accommodation ──────────────────
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ReplaceAccommodationFromDetail performs atomic delete + create',
+      build: () {
+        stubAllSuccess();
+        final old = makeAccommodation(id: 'old', name: 'Old hotel');
+        final fresh = makeAccommodation(id: 'new', name: 'New hotel');
+        when(
+          () => mockAccommodationRepo.getByTrip(any()),
+        ).thenAnswer((_) async => Success([old]));
+        when(
+          () => mockAccommodationRepo.deleteAccommodation(any(), 'old'),
+        ).thenAnswer((_) async => const Success(null));
+        when(
+          () => mockAccommodationRepo.createAccommodation(
+            any(),
+            name: any(named: 'name'),
+            address: any(named: 'address'),
+            checkIn: any(named: 'checkIn'),
+            checkOut: any(named: 'checkOut'),
+            pricePerNight: any(named: 'pricePerNight'),
+            currency: any(named: 'currency'),
+            bookingReference: any(named: 'bookingReference'),
+            notes: any(named: 'notes'),
+          ),
+        ).thenAnswer((_) async => Success(fresh));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(
+          ReplaceAccommodationFromDetail(
+            oldAccommodationId: 'old',
+            newAccommodationData: const {'name': 'New hotel'},
+          ),
+        );
+      },
+      wait: const Duration(milliseconds: 300),
+      verify: (_) {
+        verify(
+          () => mockAccommodationRepo.deleteAccommodation('trip-1', 'old'),
+        ).called(1);
+      },
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ReplaceAccommodationFromDetail rolls back when delete fails',
+      build: () {
+        stubAllSuccess();
+        final old = makeAccommodation(id: 'old');
+        when(
+          () => mockAccommodationRepo.getByTrip(any()),
+        ).thenAnswer((_) async => Success([old]));
+        when(
+          () => mockAccommodationRepo.deleteAccommodation(any(), any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('boom')));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(
+          ReplaceAccommodationFromDetail(
+            oldAccommodationId: 'old',
+            newAccommodationData: const {'name': 'X'},
+          ),
+        );
+      },
+      wait: const Duration(milliseconds: 300),
+      verify: (_) {
+        // CREATE must never be attempted when DELETE refused.
+        verifyNever(
+          () => mockAccommodationRepo.createAccommodation(
+            any(),
+            name: any(named: 'name'),
+          ),
+        );
+      },
+    );
+
     blocTest<TripDetailBloc, TripDetailState>(
       'ReplaceFlightFromDetail surfaces operationError when create fails',
       build: () {
