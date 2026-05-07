@@ -1733,5 +1733,10 @@
   "flightValidateExternalNumberLabel": "Flight number",
   "flightValidateExternalNumberHint": "AF1234",
   "budgetPlannedHelper": "This expense will join the forecast.",
-  "budgetSpentHelper": "This expense will join the actuals."
+  "budgetSpentHelper": "This expense will join the actuals.",
+  "activitiesPanelTabPlanning": "Planning",
+  "activitiesPanelTabRecos": "Recos",
+  "activitiesPanelEmptyRecos": "No restaurant or transport recommendations for this trip.",
+  "activitiesPanelSectionRestaurants": "Restaurants",
+  "activitiesPanelSectionTransports": "Transports"
 }

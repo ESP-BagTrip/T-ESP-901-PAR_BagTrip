@@ -6320,6 +6320,36 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Cette dépense rejoindra les dépenses réelles.'**
   String get budgetSpentHelper;
+
+  /// No description provided for @activitiesPanelTabPlanning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Itinéraire'**
+  String get activitiesPanelTabPlanning;
+
+  /// No description provided for @activitiesPanelTabRecos.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recommandations'**
+  String get activitiesPanelTabRecos;
+
+  /// No description provided for @activitiesPanelEmptyRecos.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune recommandation de restaurant ou de transport pour ce voyage.'**
+  String get activitiesPanelEmptyRecos;
+
+  /// No description provided for @activitiesPanelSectionRestaurants.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurants'**
+  String get activitiesPanelSectionRestaurants;
+
+  /// No description provided for @activitiesPanelSectionTransports.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transports'**
+  String get activitiesPanelSectionTransports;
 }
 
 class _AppLocalizationsDelegate

@@ -23,7 +23,7 @@ import 'package:bagtrip/trip_detail/view/panels/budget_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/essentials_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/flights_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/hotel_panel.dart';
-import 'package:bagtrip/trip_detail/view/panels/itinerary_panel.dart';
+import 'package:bagtrip/trip_detail/view/panels/activities_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/validation_board_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/shares_panel.dart';
 import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
@@ -230,18 +230,13 @@ class _LoadedTripViewState extends State<_LoadedTripView>
                           isCompleted: state.isCompleted,
                           role: state.trip.role ?? 'OWNER',
                         ),
-                        ItineraryPanel(
+                        ActivitiesPanel(
                           tripId: widget.tripId,
                           tripStartDate: state.trip.startDate,
-                          // SMP-324 — undated FOOD / TRANSPORT
-                          // recommendations live outside the day-by-day
-                          // grid; the timeline panel only consumes
-                          // dated rows. The undated items surface in
-                          // their own sections (review screen + future
-                          // dedicated tabs).
-                          activities: state.activities
-                              .where((a) => a.date != null)
-                              .toList(),
+                          // Phase 3 — pass the full activities list so
+                          // the panel can route undated FOOD / TRANSPORT
+                          // recommendations to its dedicated Recos mode.
+                          activities: state.activities,
                           totalDays: state.totalDays,
                           selectedDayIndex: state.selectedDayIndex,
                           canEdit: _canEdit,

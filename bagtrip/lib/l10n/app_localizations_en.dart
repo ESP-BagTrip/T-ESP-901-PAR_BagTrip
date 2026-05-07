@@ -3525,4 +3525,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get budgetSpentHelper => 'This expense will join the actuals.';
+
+  @override
+  String get activitiesPanelTabPlanning => 'Planning';
+
+  @override
+  String get activitiesPanelTabRecos => 'Recos';
+
+  @override
+  String get activitiesPanelEmptyRecos =>
+      'No restaurant or transport recommendations for this trip.';
+
+  @override
+  String get activitiesPanelSectionRestaurants => 'Restaurants';
+
+  @override
+  String get activitiesPanelSectionTransports => 'Transports';
 }

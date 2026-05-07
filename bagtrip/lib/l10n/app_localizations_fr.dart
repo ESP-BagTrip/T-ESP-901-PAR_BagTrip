@@ -3548,4 +3548,20 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get budgetSpentHelper =>
       'Cette dépense rejoindra les dépenses réelles.';
+
+  @override
+  String get activitiesPanelTabPlanning => 'Itinéraire';
+
+  @override
+  String get activitiesPanelTabRecos => 'Recommandations';
+
+  @override
+  String get activitiesPanelEmptyRecos =>
+      'Aucune recommandation de restaurant ou de transport pour ce voyage.';
+
+  @override
+  String get activitiesPanelSectionRestaurants => 'Restaurants';
+
+  @override
+  String get activitiesPanelSectionTransports => 'Transports';
 }

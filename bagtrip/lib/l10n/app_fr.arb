@@ -1733,5 +1733,10 @@
   "flightValidateExternalNumberLabel": "Numéro de vol",
   "flightValidateExternalNumberHint": "AF1234",
   "budgetPlannedHelper": "Cette dépense rejoindra le prévisionnel.",
-  "budgetSpentHelper": "Cette dépense rejoindra les dépenses réelles."
+  "budgetSpentHelper": "Cette dépense rejoindra les dépenses réelles.",
+  "activitiesPanelTabPlanning": "Itinéraire",
+  "activitiesPanelTabRecos": "Recommandations",
+  "activitiesPanelEmptyRecos": "Aucune recommandation de restaurant ou de transport pour ce voyage.",
+  "activitiesPanelSectionRestaurants": "Restaurants",
+  "activitiesPanelSectionTransports": "Transports"
 }
