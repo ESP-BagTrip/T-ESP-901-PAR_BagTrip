@@ -6308,6 +6308,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'AF1234'**
   String get flightValidateExternalNumberHint;
+
+  /// No description provided for @budgetPlannedHelper.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette dépense rejoindra le prévisionnel.'**
+  String get budgetPlannedHelper;
+
+  /// No description provided for @budgetSpentHelper.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette dépense rejoindra les dépenses réelles.'**
+  String get budgetSpentHelper;
 }
 
 class _AppLocalizationsDelegate

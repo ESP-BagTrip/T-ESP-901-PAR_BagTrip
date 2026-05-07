@@ -4,6 +4,8 @@ import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/category_mappers.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/item_form_scaffold.dart';
+import 'package:bagtrip/design/widgets/item_status_chip.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:flutter/material.dart';
@@ -63,9 +65,8 @@ class _ActivityFormState extends State<ActivityForm> {
     return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
   }
 
-  String _formatTime(TimeOfDay time) {
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
-  }
+  String _formatTime(TimeOfDay time) =>
+      '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
 
   @override
   void dispose() {
@@ -110,195 +111,166 @@ class _ActivityFormState extends State<ActivityForm> {
     widget.onSave(data);
   }
 
+  ItemStatusChipKind? _statusKindFor(Activity? a) {
+    if (a == null) return null;
+    return ItemStatusChip.fromBackend(a.validationStatus.name.toUpperCase());
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isEdit = widget.activity != null;
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      padding: EdgeInsets.only(
-        left: AppSpacing.space16,
-        right: AppSpacing.space16,
-        top: AppSpacing.space12,
-        bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.space16,
-      ),
-      child: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+    return Form(
+      key: _formKey,
+      child: ItemFormScaffold(
+        title: isEdit ? l10n.activityFormEdit : l10n.activityFormNew,
+        statusKind: _statusKindFor(widget.activity),
+        fields: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _titleController,
+              decoration: InputDecoration(
+                labelText: '${l10n.activityTitle} *',
+                border: const OutlineInputBorder(),
               ),
-              const SizedBox(height: AppSpacing.space16),
-              Text(
-                widget.activity != null
-                    ? l10n.activityFormEdit
-                    : l10n.activityFormNew,
-                style: Theme.of(context).textTheme.titleLarge,
+              validator: (v) =>
+                  (v == null || v.isEmpty) ? l10n.activityTitleRequired : null,
+            ),
+            const SizedBox(height: AppSpacing.space12),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text('Date: ${DateFormat('dd/MM/yyyy').format(_date)}'),
+              trailing: const Icon(Icons.calendar_today),
+              onTap: () async {
+                final picked = await showAdaptiveDatePicker(
+                  context: context,
+                  initialDate: _date,
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime(2030),
+                );
+                if (picked != null) setState(() => _date = picked);
+              },
+            ),
+            TextFormField(
+              controller: _descriptionController,
+              decoration: InputDecoration(
+                labelText: l10n.activityDescription,
+                border: const OutlineInputBorder(),
               ),
-              const SizedBox(height: AppSpacing.space16),
-              TextFormField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: '${l10n.activityTitle} *',
-                  border: const OutlineInputBorder(),
-                ),
-                validator: (v) => (v == null || v.isEmpty)
-                    ? l10n.activityTitleRequired
-                    : null,
-              ),
-              const SizedBox(height: AppSpacing.space12),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text('Date: ${DateFormat('dd/MM/yyyy').format(_date)}'),
-                trailing: const Icon(Icons.calendar_today),
-                onTap: () async {
-                  final picked = await showAdaptiveDatePicker(
-                    context: context,
-                    initialDate: _date,
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime(2030),
-                  );
-                  if (picked != null) setState(() => _date = picked);
-                },
-              ),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: InputDecoration(
-                  labelText: l10n.activityDescription,
-                  border: const OutlineInputBorder(),
-                ),
-                maxLines: 2,
-              ),
-              const SizedBox(height: AppSpacing.space12),
-              Row(
-                children: [
-                  Expanded(
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        _startTime != null
-                            ? 'Start: ${_formatTime(_startTime!)}'
-                            : l10n.activityStartTime,
-                      ),
-                      onTap: () async {
-                        final picked = await showAdaptiveTimePicker(
-                          context: context,
-                          initialTime: _startTime ?? TimeOfDay.now(),
-                        );
-                        if (picked != null) {
-                          setState(() => _startTime = picked);
-                        }
-                      },
+              maxLines: 2,
+            ),
+            const SizedBox(height: AppSpacing.space12),
+            Row(
+              children: [
+                Expanded(
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      _startTime != null
+                          ? 'Start: ${_formatTime(_startTime!)}'
+                          : l10n.activityStartTime,
                     ),
-                  ),
-                  Expanded(
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        _endTime != null
-                            ? 'End: ${_formatTime(_endTime!)}'
-                            : l10n.activityEndTime,
-                      ),
-                      onTap: () async {
-                        final picked = await showAdaptiveTimePicker(
-                          context: context,
-                          initialTime: _endTime ?? TimeOfDay.now(),
-                        );
-                        if (picked != null) {
-                          setState(() => _endTime = picked);
-                        }
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              TextFormField(
-                controller: _locationController,
-                decoration: InputDecoration(
-                  labelText: l10n.activityLocation,
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.space12),
-              // Category chips
-              Text(
-                l10n.activityCategory,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: AppSpacing.space8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: ActivityCategory.values.map((cat) {
-                  final isSelected = _category == cat;
-                  final color = cat.color;
-                  return ChoiceChip(
-                    avatar: Icon(
-                      cat.icon,
-                      size: 18,
-                      color: isSelected ? Colors.white : color,
-                    ),
-                    label: Text(cat.label(l10n)),
-                    selected: isSelected,
-                    selectedColor: color,
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : null,
-                    ),
-                    onSelected: (_) {
-                      AppHaptics.light();
-                      setState(() => _category = cat);
+                    onTap: () async {
+                      final picked = await showAdaptiveTimePicker(
+                        context: context,
+                        initialTime: _startTime ?? TimeOfDay.now(),
+                      );
+                      if (picked != null) setState(() => _startTime = picked);
                     },
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: AppSpacing.space12),
-              TextFormField(
-                controller: _costController,
-                decoration: InputDecoration(
-                  labelText: '${l10n.activityEstimatedCost} (\u20ac)',
-                  border: const OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.euro),
+                  ),
                 ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
+                Expanded(
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      _endTime != null
+                          ? 'End: ${_formatTime(_endTime!)}'
+                          : l10n.activityEndTime,
+                    ),
+                    onTap: () async {
+                      final picked = await showAdaptiveTimePicker(
+                        context: context,
+                        initialTime: _endTime ?? TimeOfDay.now(),
+                      );
+                      if (picked != null) setState(() => _endTime = picked);
+                    },
+                  ),
                 ),
+              ],
+            ),
+            TextFormField(
+              controller: _locationController,
+              decoration: InputDecoration(
+                labelText: l10n.activityLocation,
+                border: const OutlineInputBorder(),
               ),
-              const SizedBox(height: AppSpacing.space12),
-              CheckboxListTile.adaptive(
-                contentPadding: EdgeInsets.zero,
-                title: Text(l10n.activityFormBooked),
-                value: _isBooked,
-                onChanged: (v) => setState(() => _isBooked = v ?? false),
+            ),
+            const SizedBox(height: AppSpacing.space12),
+            Text(
+              l10n.activityCategory,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: AppSpacing.space8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: ActivityCategory.values.map((cat) {
+                final isSelected = _category == cat;
+                final color = cat.color;
+                return ChoiceChip(
+                  avatar: Icon(
+                    cat.icon,
+                    size: 18,
+                    color: isSelected ? Colors.white : color,
+                  ),
+                  label: Text(cat.label(l10n)),
+                  selected: isSelected,
+                  selectedColor: color,
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.white : null,
+                  ),
+                  onSelected: (_) {
+                    AppHaptics.light();
+                    setState(() => _category = cat);
+                  },
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: AppSpacing.space12),
+            TextFormField(
+              controller: _costController,
+              decoration: InputDecoration(
+                labelText: '${l10n.activityEstimatedCost} (€)',
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.euro),
               ),
-              const SizedBox(height: AppSpacing.space16),
-              FilledButton(
-                onPressed: _submit,
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                child: Text(
-                  widget.activity != null
-                      ? l10n.activityFormUpdate
-                      : l10n.activityFormCreate,
-                ),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: AppSpacing.space12),
+            CheckboxListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.activityFormBooked),
+              value: _isBooked,
+              onChanged: (v) => setState(() => _isBooked = v ?? false),
+            ),
+          ],
         ),
+        actions: [
+          FilledButton(
+            onPressed: _submit,
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+            child: Text(
+              isEdit ? l10n.activityFormUpdate : l10n.activityFormCreate,
+            ),
+          ),
+        ],
       ),
     );
   }

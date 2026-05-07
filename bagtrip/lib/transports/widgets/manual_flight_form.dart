@@ -1,7 +1,8 @@
 import 'package:bagtrip/components/adaptive/adaptive_date_picker.dart';
 import 'package:bagtrip/components/adaptive/adaptive_time_picker.dart';
-import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/item_form_scaffold.dart';
+import 'package:bagtrip/design/widgets/item_status_chip.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -100,8 +101,6 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
 
   void _submit() {
     final l10n = AppLocalizations.of(context)!;
-
-    // Clear previous custom errors
     setState(() {
       _airportsError = null;
       _datesError = null;
@@ -109,7 +108,6 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
 
     if (!_formKey.currentState!.validate()) return;
 
-    // Validate same airports
     final dep = _depAirportCtrl.text.toUpperCase().trim();
     final arr = _arrAirportCtrl.text.toUpperCase().trim();
     if (dep.isNotEmpty && arr.isNotEmpty && dep == arr) {
@@ -117,7 +115,6 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
       return;
     }
 
-    // Validate arrival before departure
     if (_departureDate != null &&
         _arrivalDate != null &&
         _arrivalDate!.isBefore(_departureDate!)) {
@@ -177,207 +174,158 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
     });
   }
 
+  ItemStatusChipKind? _statusKindFor(ManualFlight? f) {
+    if (f == null) return null;
+    return ItemStatusChip.fromBackend(f.validationStatus.name.toUpperCase());
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    final form = Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Handle bar
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: ColorName.hint.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                _isEditMode ? l10n.editFlight : l10n.addManuallyOption,
-                style: const TextStyle(
-                  fontFamily: FontFamily.b612,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: ColorName.primaryTrueDark,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // ── Section 1 — Route ─────────────────────────────────
-              _SectionLabel(label: l10n.routeSectionLabel),
-              const SizedBox(height: 8),
-
-              // Airports row
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _depAirportCtrl,
-                      decoration: InputDecoration(
-                        labelText: l10n.departureAirportLabel,
-                        hintText: 'CDG',
-                        errorText: _airportsError,
-                      ),
-                      textCapitalization: TextCapitalization.characters,
-                      onChanged: (_) {
-                        if (_airportsError != null) {
-                          setState(() => _airportsError = null);
-                        }
-                      },
+    return Form(
+      key: _formKey,
+      child: ItemFormScaffold(
+        title: _isEditMode ? l10n.editFlight : l10n.addManuallyOption,
+        statusKind: _statusKindFor(widget.existing),
+        fields: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── Section 1 — Route ─────────────────────────────────
+            _SectionLabel(label: l10n.routeSectionLabel),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _depAirportCtrl,
+                    decoration: InputDecoration(
+                      labelText: l10n.departureAirportLabel,
+                      hintText: 'CDG',
+                      errorText: _airportsError,
                     ),
+                    textCapitalization: TextCapitalization.characters,
+                    onChanged: (_) {
+                      if (_airportsError != null) {
+                        setState(() => _airportsError = null);
+                      }
+                    },
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _arrAirportCtrl,
-                      decoration: InputDecoration(
-                        labelText: l10n.arrivalAirportLabel,
-                        hintText: 'NRT',
-                        errorText: _airportsError != null ? '' : null,
-                      ),
-                      textCapitalization: TextCapitalization.characters,
-                      onChanged: (_) {
-                        if (_airportsError != null) {
-                          setState(() => _airportsError = null);
-                        }
-                      },
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(
+                    controller: _arrAirportCtrl,
+                    decoration: InputDecoration(
+                      labelText: l10n.arrivalAirportLabel,
+                      hintText: 'NRT',
+                      errorText: _airportsError != null ? '' : null,
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              // Flight number
-              TextFormField(
-                controller: _flightNumberCtrl,
-                decoration: InputDecoration(
-                  labelText: l10n.flightNumberLabel,
-                  hintText: 'AF1234',
-                ),
-                textCapitalization: TextCapitalization.characters,
-                validator: (v) => v == null || v.trim().isEmpty
-                    ? l10n.flightNumberRequired
-                    : null,
-              ),
-              const SizedBox(height: 20),
-
-              // ── Section 2 — Schedule ──────────────────────────────
-              _SectionLabel(label: l10n.scheduleSectionLabel),
-              const SizedBox(height: 8),
-
-              // Date pickers
-              Row(
-                children: [
-                  Expanded(
-                    child: _DatePickerTile(
-                      label: l10n.departureDateLabel,
-                      value: _departureDate,
-                      onTap: () => _pickDateTime(isDeparture: true),
-                      errorText: _datesError,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _DatePickerTile(
-                      label: l10n.arrivalDateLabel,
-                      value: _arrivalDate,
-                      onTap: () => _pickDateTime(isDeparture: false),
-                      errorText: _datesError != null ? '' : null,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              // ── Section 3 — Details ───────────────────────────────
-              _SectionLabel(label: l10n.detailsSectionLabel),
-              const SizedBox(height: 8),
-
-              // Airline
-              TextFormField(
-                controller: _airlineCtrl,
-                decoration: InputDecoration(labelText: l10n.airlineLabel),
-              ),
-              const SizedBox(height: 12),
-
-              // Flight type
-              SegmentedButton<String>(
-                segments: [
-                  ButtonSegment(
-                    value: 'MAIN',
-                    label: Text(l10n.mainFlightType),
-                  ),
-                  ButtonSegment(
-                    value: 'INTERNAL',
-                    label: Text(l10n.internalFlightType),
-                  ),
-                ],
-                selected: {_flightType},
-                onSelectionChanged: (v) =>
-                    setState(() => _flightType = v.first),
-              ),
-              const SizedBox(height: 12),
-
-              // Price
-              TextFormField(
-                controller: _priceCtrl,
-                decoration: InputDecoration(
-                  labelText: l10n.priceLabel,
-                  suffixText: '\u20ac',
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 12),
-
-              // Notes
-              TextFormField(
-                controller: _notesCtrl,
-                decoration: InputDecoration(labelText: l10n.notesLabel),
-                maxLines: 2,
-              ),
-              const SizedBox(height: 24),
-
-              // Submit
-              FilledButton(
-                onPressed: _submit,
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  backgroundColor: ColorName.primary,
-                ),
-                child: Text(
-                  _isEditMode ? l10n.saveButton : l10n.addFlight,
-                  style: const TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontWeight: FontWeight.bold,
+                    textCapitalization: TextCapitalization.characters,
+                    onChanged: (_) {
+                      if (_airportsError != null) {
+                        setState(() => _airportsError = null);
+                      }
+                    },
                   ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _flightNumberCtrl,
+              decoration: InputDecoration(
+                labelText: l10n.flightNumberLabel,
+                hintText: 'AF1234',
               ),
-            ],
-          ),
+              textCapitalization: TextCapitalization.characters,
+              validator: (v) => v == null || v.trim().isEmpty
+                  ? l10n.flightNumberRequired
+                  : null,
+            ),
+            const SizedBox(height: 20),
+
+            // ── Section 2 — Schedule ──────────────────────────────
+            _SectionLabel(label: l10n.scheduleSectionLabel),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: _DatePickerTile(
+                    label: l10n.departureDateLabel,
+                    value: _departureDate,
+                    onTap: () => _pickDateTime(isDeparture: true),
+                    errorText: _datesError,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _DatePickerTile(
+                    label: l10n.arrivalDateLabel,
+                    value: _arrivalDate,
+                    onTap: () => _pickDateTime(isDeparture: false),
+                    errorText: _datesError != null ? '' : null,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // ── Section 3 — Details ───────────────────────────────
+            _SectionLabel(label: l10n.detailsSectionLabel),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _airlineCtrl,
+              decoration: InputDecoration(labelText: l10n.airlineLabel),
+            ),
+            const SizedBox(height: 12),
+            SegmentedButton<String>(
+              segments: [
+                ButtonSegment(value: 'MAIN', label: Text(l10n.mainFlightType)),
+                ButtonSegment(
+                  value: 'INTERNAL',
+                  label: Text(l10n.internalFlightType),
+                ),
+              ],
+              selected: {_flightType},
+              onSelectionChanged: (v) => setState(() => _flightType = v.first),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _priceCtrl,
+              decoration: InputDecoration(
+                labelText: l10n.priceLabel,
+                suffixText: '€',
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _notesCtrl,
+              decoration: InputDecoration(labelText: l10n.notesLabel),
+              maxLines: 2,
+            ),
+          ],
         ),
+        actions: [
+          FilledButton(
+            onPressed: _submit,
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              backgroundColor: ColorName.primary,
+            ),
+            child: Text(
+              _isEditMode ? l10n.saveButton : l10n.addFlight,
+              style: const TextStyle(
+                fontFamily: FontFamily.b612,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
     );
-
-    return form;
   }
 }
 

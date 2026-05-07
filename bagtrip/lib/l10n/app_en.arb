@@ -1731,5 +1731,7 @@
   "flightValidateAmadeusTitle": "Book through BagTrip",
   "flightValidateAmadeusSubtitle": "Lock in this offer with the airline directly.",
   "flightValidateExternalNumberLabel": "Flight number",
-  "flightValidateExternalNumberHint": "AF1234"
+  "flightValidateExternalNumberHint": "AF1234",
+  "budgetPlannedHelper": "This expense will join the forecast.",
+  "budgetSpentHelper": "This expense will join the actuals."
 }

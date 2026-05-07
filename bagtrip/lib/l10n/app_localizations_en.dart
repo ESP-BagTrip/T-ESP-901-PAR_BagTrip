@@ -3519,4 +3519,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get flightValidateExternalNumberHint => 'AF1234';
+
+  @override
+  String get budgetPlannedHelper => 'This expense will join the forecast.';
+
+  @override
+  String get budgetSpentHelper => 'This expense will join the actuals.';
 }

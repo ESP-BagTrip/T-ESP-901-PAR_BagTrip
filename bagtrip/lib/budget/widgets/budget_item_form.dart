@@ -2,6 +2,8 @@ import 'package:bagtrip/components/adaptive/adaptive_date_picker.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/category_mappers.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/item_form_scaffold.dart';
+import 'package:bagtrip/design/widgets/item_status_chip.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -69,245 +71,175 @@ class _BudgetItemFormState extends State<BudgetItemForm> {
     widget.onSave(data);
   }
 
+  ItemStatusChipKind? _statusKindFor(BudgetItem? i) {
+    if (i == null) return null;
+    return ItemStatusChip.fromBackend(i.validationStatus.name.toUpperCase());
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final bottomInsets = MediaQuery.of(context).viewInsets.bottom;
+    final isEdit = widget.item != null;
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      padding: EdgeInsets.only(
-        left: AppSpacing.space24,
-        right: AppSpacing.space24,
-        top: AppSpacing.space12,
-        bottom: bottomInsets + AppSpacing.space16,
-      ),
-      child: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+    return Form(
+      key: _formKey,
+      child: ItemFormScaffold(
+        title: isEdit ? l10n.editExpense : l10n.addExpense,
+        statusKind: _statusKindFor(widget.item),
+        fields: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Phase 2 — friction #9: the Planned/Spent distinction now
+            // sits at the TOP of the form with an inline helper text so
+            // the user knows where their entry will land before they
+            // type a single character.
+            SegmentedButton<bool>(
+              segments: [
+                ButtonSegment(value: true, label: Text(l10n.expensePlanned)),
+                ButtonSegment(value: false, label: Text(l10n.expenseReal)),
+              ],
+              selected: {_isPlanned},
+              onSelectionChanged: (set) {
+                AppHaptics.light();
+                setState(() => _isPlanned = set.first);
+              },
+            ),
+            const SizedBox(height: AppSpacing.space8),
+            Text(
+              _isPlanned ? l10n.budgetPlannedHelper : l10n.budgetSpentHelper,
+              style: const TextStyle(
+                fontFamily: FontFamily.b612,
+                fontSize: 12,
+                color: ColorName.hint,
               ),
-              const SizedBox(height: AppSpacing.space16),
-              // Title
-              Text(
-                widget.item != null ? l10n.editExpense : l10n.addExpense,
-                style: const TextStyle(
-                  fontFamily: FontFamily.b612,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: ColorName.primary,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.space16),
-
-              // Label field
-              TextFormField(
-                controller: _labelController,
-                style: const TextStyle(
+            ),
+            const SizedBox(height: AppSpacing.space16),
+            TextFormField(
+              controller: _labelController,
+              style: const TextStyle(fontFamily: FontFamily.b612, fontSize: 14),
+              decoration: InputDecoration(
+                labelText: l10n.expenseLabel,
+                labelStyle: const TextStyle(
                   fontFamily: FontFamily.b612,
                   fontSize: 14,
                 ),
-                decoration: InputDecoration(
-                  labelText: l10n.expenseLabel,
-                  labelStyle: const TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 14,
-                  ),
-                  border: const OutlineInputBorder(),
-                ),
-                validator: (v) =>
-                    (v == null || v.isEmpty) ? l10n.expenseLabelRequired : null,
+                border: const OutlineInputBorder(),
               ),
-              const SizedBox(height: AppSpacing.space16),
-
-              // Amount field
-              TextFormField(
-                controller: _amountController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
-                ],
-                style: const TextStyle(
+              validator: (v) =>
+                  (v == null || v.isEmpty) ? l10n.expenseLabelRequired : null,
+            ),
+            const SizedBox(height: AppSpacing.space16),
+            TextFormField(
+              controller: _amountController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+              ],
+              style: const TextStyle(fontFamily: FontFamily.b612, fontSize: 14),
+              decoration: InputDecoration(
+                labelText: l10n.expenseAmount,
+                labelStyle: const TextStyle(
                   fontFamily: FontFamily.b612,
                   fontSize: 14,
                 ),
-                decoration: InputDecoration(
-                  labelText: l10n.expenseAmount,
-                  labelStyle: const TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 14,
-                  ),
-                  border: const OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.euro, size: 20),
-                ),
-                validator: (v) {
-                  if (v == null || v.isEmpty) return l10n.fieldRequired;
-                  if (double.tryParse(v) == null) return l10n.fieldRequired;
-                  return null;
-                },
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.euro, size: 20),
               ),
-              const SizedBox(height: AppSpacing.space16),
-
-              // Category label
-              Text(
-                l10n.expenseCategory,
-                style: const TextStyle(
-                  fontFamily: FontFamily.b612,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
+              validator: (v) {
+                if (v == null || v.isEmpty) return l10n.fieldRequired;
+                if (double.tryParse(v) == null) return l10n.fieldRequired;
+                return null;
+              },
+            ),
+            const SizedBox(height: AppSpacing.space16),
+            Text(
+              l10n.expenseCategory,
+              style: const TextStyle(
+                fontFamily: FontFamily.b612,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: AppSpacing.space8),
-
-              // Category chips
-              Wrap(
-                spacing: AppSpacing.space8,
-                runSpacing: AppSpacing.space8,
-                children: BudgetCategory.values.map((cat) {
-                  final isSelected = cat == _category;
-                  return ChoiceChip(
-                    label: Text(
-                      cat.label(l10n),
-                      style: TextStyle(
-                        fontFamily: FontFamily.b612,
-                        fontSize: 13,
-                        color: isSelected
-                            ? ColorName.surface
-                            : ColorName.primary,
-                      ),
-                    ),
-                    selected: isSelected,
-                    selectedColor: ColorName.primary,
-                    backgroundColor: Colors.grey.withValues(alpha: 0.1),
-                    shape: const StadiumBorder(),
-                    onSelected: (_) {
-                      AppHaptics.light();
-                      setState(() => _category = cat);
-                    },
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: AppSpacing.space16),
-
-              // Date picker
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  _date != null
-                      ? '${l10n.expenseDate}: ${DateFormat('dd/MM/yyyy').format(_date!)}'
-                      : l10n.expenseDate,
-                  style: const TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 14,
-                  ),
-                ),
-                trailing: const Icon(Icons.calendar_today, size: 20),
-                onTap: () async {
-                  final picked = await showAdaptiveDatePicker(
-                    context: context,
-                    initialDate: _date ?? DateTime.now(),
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime(2030),
-                  );
-                  if (picked != null) setState(() => _date = picked);
-                },
-              ),
-              const SizedBox(height: AppSpacing.space8),
-
-              // Planned/Real toggle
-              Row(
-                children: [
-                  ChoiceChip(
-                    label: Text(
-                      l10n.expensePlanned,
-                      style: TextStyle(
-                        fontFamily: FontFamily.b612,
-                        fontSize: 13,
-                        color: _isPlanned
-                            ? ColorName.surface
-                            : ColorName.primary,
-                      ),
-                    ),
-                    selected: _isPlanned,
-                    selectedColor: ColorName.primary,
-                    backgroundColor: Colors.grey.withValues(alpha: 0.1),
-                    shape: const StadiumBorder(),
-                    onSelected: (_) {
-                      AppHaptics.light();
-                      setState(() => _isPlanned = true);
-                    },
-                  ),
-                  const SizedBox(width: AppSpacing.space8),
-                  ChoiceChip(
-                    label: Text(
-                      l10n.expenseReal,
-                      style: TextStyle(
-                        fontFamily: FontFamily.b612,
-                        fontSize: 13,
-                        color: !_isPlanned
-                            ? ColorName.surface
-                            : ColorName.primary,
-                      ),
-                    ),
-                    selected: !_isPlanned,
-                    selectedColor: ColorName.primary,
-                    backgroundColor: Colors.grey.withValues(alpha: 0.1),
-                    shape: const StadiumBorder(),
-                    onSelected: (_) {
-                      AppHaptics.light();
-                      setState(() => _isPlanned = false);
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.space24),
-
-              // Submit button — gradient
-              Container(
-                height: 52,
-                decoration: const BoxDecoration(
-                  borderRadius: AppRadius.large16,
-                  gradient: LinearGradient(
-                    colors: [ColorName.primary, ColorName.secondary],
-                  ),
-                ),
-                child: MaterialButton(
-                  onPressed: _submit,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: AppRadius.large16,
-                  ),
-                  child: Text(
-                    l10n.saveButton,
-                    style: const TextStyle(
+            ),
+            const SizedBox(height: AppSpacing.space8),
+            Wrap(
+              spacing: AppSpacing.space8,
+              runSpacing: AppSpacing.space8,
+              children: BudgetCategory.values.map((cat) {
+                final isSelected = cat == _category;
+                return ChoiceChip(
+                  label: Text(
+                    cat.label(l10n),
+                    style: TextStyle(
                       fontFamily: FontFamily.b612,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: ColorName.surface,
+                      fontSize: 13,
+                      color: isSelected ? ColorName.surface : ColorName.primary,
                     ),
                   ),
+                  selected: isSelected,
+                  selectedColor: ColorName.primary,
+                  backgroundColor: Colors.grey.withValues(alpha: 0.1),
+                  shape: const StadiumBorder(),
+                  onSelected: (_) {
+                    AppHaptics.light();
+                    setState(() => _category = cat);
+                  },
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: AppSpacing.space16),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                _date != null
+                    ? '${l10n.expenseDate}: ${DateFormat('dd/MM/yyyy').format(_date!)}'
+                    : l10n.expenseDate,
+                style: const TextStyle(
+                  fontFamily: FontFamily.b612,
+                  fontSize: 14,
                 ),
               ),
-              const SizedBox(height: AppSpacing.space16),
-            ],
-          ),
+              trailing: const Icon(Icons.calendar_today, size: 20),
+              onTap: () async {
+                final picked = await showAdaptiveDatePicker(
+                  context: context,
+                  initialDate: _date ?? DateTime.now(),
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime(2030),
+                );
+                if (picked != null) setState(() => _date = picked);
+              },
+            ),
+          ],
         ),
+        actions: [
+          Container(
+            height: 52,
+            decoration: const BoxDecoration(
+              borderRadius: AppRadius.large16,
+              gradient: LinearGradient(
+                colors: [ColorName.primary, ColorName.secondary],
+              ),
+            ),
+            child: MaterialButton(
+              onPressed: _submit,
+              shape: const RoundedRectangleBorder(
+                borderRadius: AppRadius.large16,
+              ),
+              child: Text(
+                l10n.saveButton,
+                style: const TextStyle(
+                  fontFamily: FontFamily.b612,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: ColorName.surface,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -3541,4 +3541,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get flightValidateExternalNumberHint => 'AF1234';
+
+  @override
+  String get budgetPlannedHelper => 'Cette dépense rejoindra le prévisionnel.';
+
+  @override
+  String get budgetSpentHelper =>
+      'Cette dépense rejoindra les dépenses réelles.';
 }
