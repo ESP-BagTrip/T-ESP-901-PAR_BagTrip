@@ -4,7 +4,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.api.common.base_schema import BagtripRequestModel
-from src.enums import BudgetCategory
+from src.enums import BudgetCategory, ValidationStatus
 
 
 class BudgetItemCreateRequest(BagtripRequestModel):
@@ -13,6 +13,7 @@ class BudgetItemCreateRequest(BagtripRequestModel):
     category: BudgetCategory | None = None
     date: dt.date | None = None
     isPlanned: bool | None = None
+    validationStatus: ValidationStatus | None = None
 
 
 class BudgetItemUpdateRequest(BagtripRequestModel):
@@ -21,6 +22,7 @@ class BudgetItemUpdateRequest(BagtripRequestModel):
     category: BudgetCategory | None = None
     date: dt.date | None = None
     isPlanned: bool | None = None
+    validationStatus: ValidationStatus | None = None
 
 
 class BudgetItemResponse(BaseModel):
@@ -33,6 +35,7 @@ class BudgetItemResponse(BaseModel):
     isPlanned: bool = Field(alias="is_planned")
     sourceType: str | None = Field(None, alias="source_type")
     sourceId: UUID | None = Field(None, alias="source_id")
+    validationStatus: str = Field(alias="validation_status")
     createdAt: dt.datetime = Field(alias="created_at")
     updatedAt: dt.datetime = Field(alias="updated_at")
 

@@ -167,7 +167,14 @@ def _build_budget_item(
     source_id=None,
     item_date: date | None = None,
 ) -> BudgetItem:
-    """Factory for forecast budget lines created at draft persistence time."""
+    """Factory for forecast budget lines created at draft persistence time.
+
+    Every line emitted here is born from an AI suggestion (it shadows an
+    Activity / Accommodation / ManualFlight that itself carries
+    ``validation_status=SUGGESTED``), so the budget line is stamped
+    SUGGESTED for free — the user reviews it through the same one-gesture
+    validate flow as the rest of the trip surface.
+    """
     return BudgetItem(
         trip_id=trip_id,
         label=label,
@@ -177,6 +184,7 @@ def _build_budget_item(
         is_planned=True,
         source_type=source_type,
         source_id=source_id,
+        validation_status=ValidationStatus.SUGGESTED.value,
     )
 
 

@@ -110,6 +110,10 @@ class TestPersistActivities:
         assert budget_lines[0].category == BudgetCategory.ACTIVITY
         assert float(budget_lines[0].amount) == 26.0
         assert budget_lines[0].source_type == "activity"
+        # Phase B — budget lines born from an AI suggestion shadow the
+        # underlying Activity / Accommodation / ManualFlight, so they
+        # must be SUGGESTED themselves and feed the unified validate UI.
+        assert budget_lines[0].validation_status == ValidationStatus.SUGGESTED.value
 
     def test_food_recommendation_routes_to_food_budget_bucket(self, mock_db, trip):
         state = {
@@ -134,6 +138,7 @@ class TestPersistActivities:
         assert activities[0].category == "FOOD"
         assert budget_lines[0].category == BudgetCategory.FOOD
         assert float(budget_lines[0].amount) == 45.0
+        assert budget_lines[0].validation_status == ValidationStatus.SUGGESTED.value
 
     def test_transport_recommendation_routes_to_transport_budget_bucket(self, mock_db, trip):
         state = {
@@ -157,6 +162,7 @@ class TestPersistActivities:
         assert activities[0].category == "TRANSPORT"
         assert budget_lines[0].category == BudgetCategory.TRANSPORT
         assert float(budget_lines[0].amount) == 240.0
+        assert budget_lines[0].validation_status == ValidationStatus.SUGGESTED.value
 
     def test_skips_budget_line_when_cost_missing(self, mock_db, trip):
         state = {
@@ -206,6 +212,7 @@ class TestPersistAccommodations:
         assert len(budget_lines) == 1
         assert budget_lines[0].category == BudgetCategory.ACCOMMODATION
         assert float(budget_lines[0].amount) == 120.0 * 7
+        assert budget_lines[0].validation_status == ValidationStatus.SUGGESTED.value
 
     def test_skips_budget_when_price_missing(self, mock_db, trip):
         state = {"accommodations": [{"name": "Hostel", "currency": "EUR"}]}
@@ -280,6 +287,7 @@ class TestPersistFlights:
         assert len(budget_lines) == 1
         assert budget_lines[0].category == BudgetCategory.FLIGHT
         assert float(budget_lines[0].amount) == 180.0
+        assert budget_lines[0].validation_status == ValidationStatus.SUGGESTED.value
 
     def test_creates_return_leg_when_offer_carries_return_fields(self, mock_db, trip):
         state = {

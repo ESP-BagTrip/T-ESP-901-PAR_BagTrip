@@ -38,6 +38,9 @@ class BudgetItem(Base):
         String, nullable=True
     )  # "accommodation" | "flight_order" | None
     source_id: Mapped[_UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    validation_status: Mapped[str] = mapped_column(
+        String, nullable=False, default="MANUAL", server_default="MANUAL"
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

@@ -3,7 +3,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from src.enums import BudgetCategory, TripStatus
+from src.enums import BudgetCategory, TripStatus, ValidationStatus
 from src.models.activity import Activity
 from src.models.budget_item import BudgetItem
 from src.models.trip import Trip
@@ -23,6 +23,28 @@ class BudgetItemService:
             )
 
     @staticmethod
+    def _check_validation_transition(current: str, target: str) -> None:
+        """Reject downgrades / illegal moves on ``validation_status``.
+
+        Allowed: identity (no-op), ``SUGGESTED → VALIDATED``. Anything
+        else is rejected — once a row is ``VALIDATED`` or ``MANUAL`` it
+        no longer represents an unreviewed AI suggestion, and the user
+        cannot rewind it through the public API.
+        """
+        if current == target:
+            return
+        if (
+            current == ValidationStatus.SUGGESTED.value
+            and target == ValidationStatus.VALIDATED.value
+        ):
+            return
+        raise AppError(
+            "INVALID_VALIDATION_TRANSITION",
+            400,
+            f"Cannot change validation_status from {current} to {target}.",
+        )
+
+    @staticmethod
     def create(
         db: Session,
         trip: Trip,
@@ -31,6 +53,7 @@ class BudgetItemService:
         category: str = "OTHER",
         date: date | None = None,
         is_planned: bool = True,
+        validation_status: str | None = None,
     ) -> BudgetItem:
         BudgetItemService._check_trip_not_completed(trip)
         item = BudgetItem(
@@ -40,6 +63,7 @@ class BudgetItemService:
             category=category,
             date=date,
             is_planned=is_planned,
+            validation_status=validation_status or ValidationStatus.MANUAL.value,
         )
         db.add(item)
         db.commit()
@@ -84,6 +108,7 @@ class BudgetItemService:
         category: str | None = None,
         date: date | None = None,
         is_planned: bool | None = None,
+        validation_status: str | None = None,
     ) -> BudgetItem:
         BudgetItemService._check_trip_not_completed(trip)
         item = BudgetItemService.get_by_id(db, item_id, trip.id)
@@ -98,6 +123,11 @@ class BudgetItemService:
             item.date = date
         if is_planned is not None:
             item.is_planned = is_planned
+        if validation_status is not None:
+            BudgetItemService._check_validation_transition(
+                item.validation_status, validation_status
+            )
+            item.validation_status = validation_status
 
         db.commit()
         db.refresh(item)
