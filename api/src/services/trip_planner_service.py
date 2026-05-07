@@ -18,6 +18,7 @@ The route is a pass-through: it wraps `stream_plan()` in an `EventSourceResponse
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import time
 from collections.abc import AsyncIterator
@@ -239,17 +240,8 @@ class TripPlannerService:
         try:
             # Fast path — destinations_only mode skips the full graph entirely.
             if request.mode == "destinations_only":
-                try:
-                    destinations = await _quick_destination_suggestions(initial_state)
-                    await _enrich_destinations_with_images(destinations)
-                    yield _sse("destinations", {"destinations": destinations})
-                    yield _sse(
-                        "complete",
-                        {"destinations": destinations, "mode": "destinations_only"},
-                    )
-                except Exception as exc:
-                    logger.error("Quick destination suggestions failed", {"error": str(exc)})
-                    yield _sse("error", {"message": str(exc)})
+                async for event in TripPlannerService._stream_destinations_only(initial_state):
+                    yield event
                 return
 
             async for event in TripPlannerService._stream_graph(graph, initial_state):
@@ -289,6 +281,73 @@ class TripPlannerService:
             # Always send the done signal so the client can close the SSE
             # connection cleanly even on errors.
             yield _sse("done", {"status": "complete"})
+
+    @staticmethod
+    async def _stream_destinations_only(initial_state: Any) -> AsyncIterator[str]:
+        """Drive the destinations-only fast path with timeout + heartbeat.
+
+        Pre-SMP-324 the implementation was a bare ``await`` on the LLM
+        call: when the upstream proxy hung, the SSE handler kept the
+        connection open without emitting anything (the bug behind the
+        "infinite loop, no error" report). Now the work runs as a task
+        and the surrounding loop emits a heartbeat every 15 s; the task
+        itself is bounded by ``GRAPH_TIMEOUT_SECONDS`` and the LLM
+        timeouts inside ``LLMService``. Either path eventually emits
+        either a ``complete`` or a ``error`` event — never silence.
+        """
+
+        async def _produce() -> dict:
+            destinations = await _quick_destination_suggestions(initial_state)
+            await _enrich_destinations_with_images(destinations)
+            return {"destinations": destinations}
+
+        loop = asyncio.get_event_loop()
+        last_heartbeat = loop.time()
+        task = asyncio.create_task(_produce())
+        deadline = loop.time() + settings.GRAPH_TIMEOUT_SECONDS
+
+        try:
+            while not task.done():
+                remaining = deadline - loop.time()
+                if remaining <= 0:
+                    task.cancel()
+                    logger.error(
+                        "Destinations-only path timed out",
+                        {"timeout_seconds": settings.GRAPH_TIMEOUT_SECONDS},
+                    )
+                    yield _sse(
+                        "error",
+                        {
+                            "message": "Destination research timed out. Please try again.",
+                            "code": "DESTINATIONS_TIMEOUT",
+                        },
+                    )
+                    return
+                # Wait at most 5 s so heartbeats stay snappy without
+                # spinning when the upstream is fast.
+                with contextlib.suppress(TimeoutError):
+                    await asyncio.wait_for(asyncio.shield(task), timeout=min(5.0, remaining))
+                now = loop.time()
+                if now - last_heartbeat > 15:
+                    yield _sse("heartbeat", {"ts": int(now)})
+                    last_heartbeat = now
+
+            try:
+                payload = task.result()
+            except Exception as exc:
+                logger.error("Quick destination suggestions failed", {"error": str(exc)})
+                yield _sse("error", {"message": str(exc)})
+                return
+
+            destinations = payload.get("destinations", [])
+            yield _sse("destinations", {"destinations": destinations})
+            yield _sse(
+                "complete",
+                {"destinations": destinations, "mode": "destinations_only"},
+            )
+        finally:
+            if not task.done():
+                task.cancel()
 
     @staticmethod
     async def _stream_graph(

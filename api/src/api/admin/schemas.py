@@ -299,7 +299,8 @@ class AdminActivityResponse(BaseModel):
     userEmail: str = Field(alias="user_email")
     title: str
     description: str | None = None
-    date: dt.date
+    # SMP-324 — see ActivityResponse: undated FOOD / TRANSPORT recos.
+    date: dt.date | None = None
     startTime: Any | None = Field(default=None, alias="start_time")
     endTime: Any | None = Field(default=None, alias="end_time")
     location: str | None = None

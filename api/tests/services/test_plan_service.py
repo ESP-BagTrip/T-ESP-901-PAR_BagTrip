@@ -11,7 +11,6 @@ from src.config.plans import UserPlan
 from src.services.plan_service import PlanService
 from src.utils.errors import AppError
 
-
 # ---------------------------------------------------------------------------
 # Synchronous resolution / limits / feature gates
 # ---------------------------------------------------------------------------
