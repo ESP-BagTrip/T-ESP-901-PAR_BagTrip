@@ -32,6 +32,7 @@ from src.api.ai.plan_trip_schemas import PlanTripRequest
 from src.config.env import settings
 from src.integrations.unsplash import unsplash_client
 from src.models.user import User
+from src.services.plan_draft_service import PlanDraftService
 from src.services.plan_service import PlanService
 from src.utils.logger import logger
 from src.utils.timeout import async_generator_with_timeout
@@ -40,6 +41,37 @@ from src.utils.timeout import async_generator_with_timeout
 def _sse(event: str, data: dict) -> str:
     """Format a Server-Sent Event line."""
     return f"event: {event}\ndata: {json.dumps(data, default=str, ensure_ascii=False)}\n\n"
+
+
+def _trip_plan_payload(state: dict[str, Any]) -> dict[str, Any]:
+    """Build the read-only ``tripPlan`` dict the SSE ``complete`` event ships.
+
+    Pre-SMP-324 this lived inside ``assemble_node`` as a graph-level
+    event. It now sits next to the persistence call so the client can
+    render the review screen without an extra ``GET /trips/{id}`` round
+    trip — the data is identical to what the persistence layer wrote.
+    The payload is intentionally read-only: the wizard validates by
+    PATCHing ``status=PLANNED``, not by re-uploading anything.
+    """
+    dest = state.get("selected_destination") or {}
+    return {
+        "destination": {
+            "city": dest.get("city", ""),
+            "country": dest.get("country", ""),
+            "iata": dest.get("iata", ""),
+        },
+        "origin_iata": state.get("origin_iata", ""),
+        "weather": state.get("weather_data", {}),
+        "alternatives": (state.get("destinations") or [])[1:],
+        "activities": state.get("activities", []),
+        "accommodations": state.get("accommodations", []),
+        "baggage": state.get("baggage_items", []),
+        "budget": state.get("budget_estimation", {}),
+        "flight_offers": state.get("flight_offers", []),
+        "duration_days": state.get("duration_days"),
+        "departure_date": state.get("departure_date"),
+        "return_date": state.get("return_date"),
+    }
 
 
 _QUICK_DESTINATION_LABELS: dict[str, dict[str, str]] = {
@@ -210,6 +242,7 @@ class TripPlannerService:
         request: PlanTripRequest,
         user_id: str,
         db: Session,
+        accept_language: str = "fr",
     ) -> AsyncIterator[str]:
         """Yield SSE event strings for a single trip-plan request.
 
@@ -220,8 +253,14 @@ class TripPlannerService:
         Events emitted (in rough order):
             ``progress`` → ``destinations`` → ``progress`` →
             ``activities`` / ``accommodations`` / ``baggage`` (parallel) →
-            ``progress`` (budget) → ``budget`` → ``complete`` → ``done``.
+            ``progress`` (budget) → ``budget`` → ``complete`` (with
+            ``tripId``) → ``done``.
             Plus ``heartbeat`` every 15 s and ``error`` on failure paths.
+
+        SMP-324 — the ``complete`` event now ships the persisted draft's
+        ``tripId``. The wizard loads the trip via the standard
+        ``GET /v1/trips/{id}`` and only needs to PATCH ``status=PLANNED``
+        to confirm. The legacy ``/plan-trip/accept`` endpoint is gone.
         """
         # Local import — the graph drags LangChain state machinery we don't
         # want loaded at module import time (slower boot + circular risk).
@@ -244,15 +283,44 @@ class TripPlannerService:
                     yield event
                 return
 
-            async for event in TripPlannerService._stream_graph(graph, initial_state):
+            # ``final_state`` is populated by ``_stream_graph`` as it
+            # merges every node update; it carries the canonical agent
+            # output (activities / accommodations / flight_offers / …)
+            # we then hand to ``PlanDraftService`` for persistence. The
+            # mutable-out pattern keeps ``_stream_graph`` a pure async
+            # iterator while still letting us reach the final state.
+            final_state: dict[str, Any] = {}
+            async for event in TripPlannerService._stream_graph(
+                graph, initial_state, out_final_state=final_state
+            ):
                 yield event
+
+            # SMP-324 — persist the draft server-side so the wizard
+            # never has to re-upload anything. ``create_draft_from_state``
+            # consolidates the agent output into a Trip row plus its
+            # children with ``status=DRAFT`` / ``validation_status=SUGGESTED``.
+            user = db.query(User).filter(User.id == user_id).first()
+            if user is None:
+                raise RuntimeError(f"user {user_id} disappeared mid-stream")
+            trip = await PlanDraftService.create_draft_from_state(
+                db=db,
+                user=user,
+                state=final_state,
+                accept_language=accept_language,
+            )
+            yield _sse(
+                "complete",
+                {
+                    "tripId": str(trip.id),
+                    "status": trip.status,
+                    "tripPlan": _trip_plan_payload(final_state),
+                },
+            )
 
             # Successful completion → increment quota (best-effort — a failed
             # counter update must not prevent the user from receiving events).
             try:
-                user = db.query(User).filter(User.id == user_id).first()
-                if user is not None:
-                    PlanService.increment_ai_generation(db, user)
+                PlanService.increment_ai_generation(db, user)
             except Exception as exc:
                 logger.warn(f"Failed to increment AI generation count: {exc}")
 
@@ -353,8 +421,22 @@ class TripPlannerService:
     async def _stream_graph(
         graph_obj,
         initial_state: Any,
+        *,
+        out_final_state: dict[str, Any] | None = None,
     ) -> AsyncIterator[str]:
-        """Iterate the LangGraph stream, dedup events, emit SSE + heartbeats."""
+        """Iterate the LangGraph stream, dedup events, emit SSE + heartbeats.
+
+        ``out_final_state`` is mutated in place with the merged agent
+        output across every node update. Pre-SMP-324 the caller didn't
+        need it because ``assemble_node`` shipped the trip-plan dict in
+        an SSE ``complete`` event; now ``stream_plan`` needs the raw
+        state to hand it to ``PlanDraftService``, and a mutable-out is
+        the simplest way to keep this async iterator pure.
+
+        The graph's own ``complete`` event is intentionally swallowed
+        here: ``stream_plan`` re-emits it after persisting the draft,
+        enriched with the ``tripId`` the client now needs to confirm.
+        """
         last_heartbeat = asyncio.get_event_loop().time()
         sent_events: set[str] = set()  # Track which event types we've already sent
 
@@ -363,11 +445,22 @@ class TripPlannerService:
             total_timeout_seconds=settings.GRAPH_TIMEOUT_SECONDS,
         ):
             for node_name, update in event.items():
+                if out_final_state is not None and isinstance(update, dict):
+                    for key, value in update.items():
+                        if key in ("events", "errors"):
+                            continue
+                        out_final_state[key] = value
+
                 node_events = update.get("events", [])
 
                 for evt in node_events:
                     event_type = evt.get("event", "")
                     event_data = evt.get("data", {})
+
+                    # Swallow the graph's own ``complete``; ``stream_plan``
+                    # emits an enriched one with ``tripId`` after persisting.
+                    if event_type == "complete":
+                        continue
 
                     # Avoid duplicate events
                     event_key = f"{event_type}:{node_name}"

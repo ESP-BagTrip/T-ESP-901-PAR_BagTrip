@@ -31,6 +31,20 @@ def run_trip_status_transitions() -> tuple[int, int]:
         db.close()
 
 
+def run_stale_draft_gc(*, max_age_hours: int = 24) -> int:
+    """Open a DB session and remove DRAFT trips older than the cutoff.
+
+    SMP-324 — see ``TripsService.gc_stale_drafts``. Runs on the same
+    daily tick as the status transitions; failure here must not block
+    them, hence the separate function call site.
+    """
+    db = SessionLocal()
+    try:
+        return TripsService.gc_stale_drafts(db, max_age_hours=max_age_hours)
+    finally:
+        db.close()
+
+
 async def trip_status_scheduler() -> None:
     """Async loop: run once on startup then every midnight UTC.
 
@@ -54,6 +68,17 @@ async def trip_status_scheduler() -> None:
                         )
                     except Exception as e:
                         logger.error(f"{TAG} Error during transition: {e}")
+
+                    # SMP-324 — sweep stale DRAFT trips left over by users
+                    # who quit the SSE wizard without confirming. Runs in
+                    # its own try/except so a failure here can't undo the
+                    # status transition pass that just succeeded.
+                    try:
+                        purged = await asyncio.to_thread(run_stale_draft_gc)
+                        if purged:
+                            logger.info(f"{TAG} Stale drafts purged: {purged}")
+                    except Exception as e:
+                        logger.error(f"{TAG} Error during draft GC: {e}")
 
             sleep_secs = _seconds_until_midnight_utc()
             logger.info(f"{TAG} Next run in {sleep_secs:.0f}s")

@@ -349,12 +349,23 @@ class TestStreamPlan:
         user = make_user()
         mock_db_session.query.return_value.filter.return_value.first.return_value = user
 
+        # SMP-324 — stream_plan now persists a DRAFT trip after the
+        # graph finishes, then ships its tripId in the ``complete`` SSE
+        # event. We patch the persistence call so the test stays focused
+        # on the streaming contract (a dedicated suite covers the
+        # service end-to-end).
+        fake_trip = MagicMock(id="trip-uuid", status="DRAFT")
+
         with (
             patch(
                 "src.services.trip_planner_service.async_generator_with_timeout",
                 lambda gen, total_timeout_seconds: gen,
             ),
             patch("src.services.plan_service.PlanService.increment_ai_generation") as mock_incr,
+            patch(
+                "src.services.trip_planner_service.PlanDraftService.create_draft_from_state",
+                new=AsyncMock(return_value=fake_trip),
+            ),
             patch(
                 "src.agent.graph.graph",
                 new=fake_graph,
@@ -367,7 +378,11 @@ class TestStreamPlan:
         events = _parse_sse_events(lines)
         event_names = [name for name, _ in events]
         assert "destinations" in event_names
+        assert "complete" in event_names
         assert event_names[-1] == "done"
+        complete_payload = next(payload for name, payload in events if name == "complete")
+        assert complete_payload["tripId"] == "trip-uuid"
+        assert complete_payload["status"] == "DRAFT"
         mock_incr.assert_called_once()
 
     @pytest.mark.asyncio
