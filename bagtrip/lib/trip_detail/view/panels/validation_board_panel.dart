@@ -3,6 +3,7 @@ import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/models/validation_status.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,24 @@ class ValidationBoardPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final result = state.completionResult;
+
+    // Phase 6 — synthesize a "Budget" row from the items list. The
+    // CompletionSegmentType enum intentionally excludes budget (it was
+    // a read-only view pre-Phase B), so we count SUGGESTED items
+    // ourselves rather than extending the completion helper.
+    final budgetTotal = state.budgetItems.length;
+    final budgetDone = state.budgetItems
+        .where(
+          (i) =>
+              i.validationStatus == ValidationStatus.validated ||
+              i.validationStatus == ValidationStatus.manual,
+        )
+        .length;
+    final budgetSegment = CompletionSegment(
+      done: budgetDone,
+      total: budgetTotal,
+      isSkipped: false,
+    );
 
     final rows = <_BoardRow>[
       _BoardRow(
@@ -50,6 +69,12 @@ class ValidationBoardPanel extends StatelessWidget {
         label: l10n.reviewTabEssentials,
         segment: result.segment(CompletionSegmentType.baggage),
         tabIndex: 4,
+      ),
+      _BoardRow(
+        icon: Icons.account_balance_wallet_rounded,
+        label: l10n.reviewTabBudget,
+        segment: budgetSegment,
+        tabIndex: 5,
       ),
     ];
 
