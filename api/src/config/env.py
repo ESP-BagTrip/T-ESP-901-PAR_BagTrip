@@ -133,8 +133,12 @@ class Settings(BaseSettings):
 
     # AI graph timeouts (seconds)
     GRAPH_TIMEOUT_SECONDS: int = 300  # Global timeout for the trip planning graph
-    LLM_CALL_TIMEOUT_SECONDS: int = 60  # Per-LLM-call timeout in ReAct executor
-    NODE_TIMEOUT_SECONDS: int = 120  # Per-node timeout in retry wrapper
+    # SMP-324 — bumped from 60 to 120s after measuring the OVH gpt-oss-120b
+    # endpoint at ~50–60s on a cold ``destination_quick`` prompt; the
+    # previous ceiling timed out at the slightest latency spike. Still well
+    # under ``GRAPH_TIMEOUT_SECONDS`` so a stuck LLM cannot wedge the graph.
+    LLM_CALL_TIMEOUT_SECONDS: int = 120  # Per-LLM-call timeout
+    NODE_TIMEOUT_SECONDS: int = 180  # Per-node timeout in retry wrapper
 
     # ReAct JSON repair — when the LLM returns malformed JSON for a Final
     # Answer, the executor can fire one corrective re-prompt instead of
