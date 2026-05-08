@@ -1,15 +1,22 @@
 """Unit tests for agent graph structure."""
 
-from unittest.mock import patch
-
 import pytest
 
 
 @pytest.fixture(autouse=True)
 def _mock_llm():
-    """Mock LLM to avoid real API calls during import."""
-    with patch("src.services.llm_service.ChatOpenAI"):
-        yield
+    """Reset the LLMRouter singleton so graph tests stay hermetic.
+
+    The graph wiring imports llm_service which lazy-instantiates the
+    router; we don't run any LLM calls here, but we drop the cached
+    HTTP client between tests to avoid leaking handlers across the
+    suite.
+    """
+    from src.services.llm_router import LLMRouter
+
+    LLMRouter.reset_for_tests()
+    yield
+    LLMRouter.reset_for_tests()
 
 
 def test_build_graph_has_expected_nodes():

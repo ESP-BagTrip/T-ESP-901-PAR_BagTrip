@@ -31,10 +31,29 @@ class Settings(BaseSettings):
     AMADEUS_CLIENT_SECRET: str
     AMADEUS_BASE_URL: str = "https://test.api.amadeus.com"
 
-    # LLM (OpenAI-compatible)
-    LLM_MODEL: str = "gpt-oss-120b"
+    # LLM (OpenAI-compatible — default targets OVHcloud AI Endpoints)
     LLM_API_BASE: str = "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1"
     LLM_API_KEY: str
+
+    # Primary model + fallback chain. The router walks the chain on each
+    # call and on transient errors (5xx / network / timeout). A model that
+    # raises a non-retryable error (4xx other than 429, schema rejection)
+    # is skipped to the next candidate in the chain. ``LLM_MODEL`` is kept
+    # as a legacy alias for ``LLM_MODEL_PRIMARY``.
+    LLM_MODEL_PRIMARY: str = "Mistral-Small-3.2-24B-Instruct-2506"
+    LLM_MODEL_FALLBACKS: str = "Qwen3-32B,Meta-Llama-3_3-70B-Instruct"
+    LLM_MODEL: str = "Mistral-Small-3.2-24B-Instruct-2506"  # legacy alias
+
+    # Embedding model used by W3 RAG (post-trip suggestion).
+    LLM_EMBEDDING_MODEL: str = "bge-m3"
+
+    # In-process router knobs. The semaphore caps concurrent in-flight
+    # calls per process so we stay under OVH's 400 RPM / project / model.
+    # Retries use exponential backoff with jitter via tenacity.
+    LLM_MAX_CONCURRENCY: int = 24
+    LLM_RETRY_MAX_ATTEMPTS: int = 3
+    LLM_RETRY_BACKOFF_BASE_S: float = 0.5
+    LLM_RETRY_BACKOFF_MAX_S: float = 8.0
 
     # LangChain / LangSmith
     LANGCHAIN_TRACING_V2: bool = False
