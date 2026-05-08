@@ -1282,6 +1282,10 @@ void main() {
         stubStorage();
         when(
           () => mockAiRepo.getInspiration(
+            originCity: any(named: 'originCity'),
+            departureDate: any(named: 'departureDate'),
+            returnDate: any(named: 'returnDate'),
+            nbTravelers: any(named: 'nbTravelers'),
             travelTypes: any(named: 'travelTypes'),
             budgetRange: any(named: 'budgetRange'),
             durationDays: any(named: 'durationDays'),
@@ -1306,6 +1310,7 @@ void main() {
         return buildBloc();
       },
       seed: () => PlanTripState(
+        originCity: 'Paris',
         startDate: DateTime(2026, 7, 1),
         endDate: DateTime(2026, 7, 8),
       ),
@@ -1330,6 +1335,10 @@ void main() {
         expect(dest.topActivities, ['Colosseum', 'Vatican']);
         verify(
           () => mockAiRepo.getInspiration(
+            originCity: any(named: 'originCity'),
+            departureDate: any(named: 'departureDate'),
+            returnDate: any(named: 'returnDate'),
+            nbTravelers: any(named: 'nbTravelers'),
             travelTypes: 'culture',
             budgetRange: 'medium',
             durationDays: 7,
@@ -1351,6 +1360,10 @@ void main() {
         stubStorage();
         when(
           () => mockAiRepo.getInspiration(
+            originCity: any(named: 'originCity'),
+            departureDate: any(named: 'departureDate'),
+            returnDate: any(named: 'returnDate'),
+            nbTravelers: any(named: 'nbTravelers'),
             travelTypes: any(named: 'travelTypes'),
             budgetRange: any(named: 'budgetRange'),
             durationDays: any(named: 'durationDays'),
@@ -1367,6 +1380,7 @@ void main() {
         return buildBloc();
       },
       seed: () => const PlanTripState(
+        originCity: 'Paris',
         preferredMonth: 12,
         preferredYear: 2026,
         dateMode: DateMode.month,
@@ -1376,6 +1390,10 @@ void main() {
       verify: (_) {
         verify(
           () => mockAiRepo.getInspiration(
+            originCity: any(named: 'originCity'),
+            departureDate: any(named: 'departureDate'),
+            returnDate: any(named: 'returnDate'),
+            nbTravelers: any(named: 'nbTravelers'),
             travelTypes: any(named: 'travelTypes'),
             budgetRange: any(named: 'budgetRange'),
             durationDays: any(named: 'durationDays'),
@@ -1397,6 +1415,10 @@ void main() {
         stubStorage();
         when(
           () => mockAiRepo.getInspiration(
+            originCity: any(named: 'originCity'),
+            departureDate: any(named: 'departureDate'),
+            returnDate: any(named: 'returnDate'),
+            nbTravelers: any(named: 'nbTravelers'),
             travelTypes: any(named: 'travelTypes'),
             budgetRange: any(named: 'budgetRange'),
             durationDays: any(named: 'durationDays'),
@@ -1408,6 +1430,7 @@ void main() {
         ).thenAnswer((_) async => const Success([]));
         return buildBloc();
       },
+      seed: () => const PlanTripState(originCity: 'Paris'),
       act: (bloc) =>
           bloc.add(const PlanTripEvent.requestAiSuggestions(locale: 'fr')),
       verify: (bloc) {
@@ -1425,6 +1448,10 @@ void main() {
         stubStorage();
         when(
           () => mockAiRepo.getInspiration(
+            originCity: any(named: 'originCity'),
+            departureDate: any(named: 'departureDate'),
+            returnDate: any(named: 'returnDate'),
+            nbTravelers: any(named: 'nbTravelers'),
             travelTypes: any(named: 'travelTypes'),
             budgetRange: any(named: 'budgetRange'),
             durationDays: any(named: 'durationDays'),
@@ -1436,6 +1463,7 @@ void main() {
         ).thenAnswer((_) async => const Failure(NetworkError('offline')));
         return buildBloc();
       },
+      seed: () => const PlanTripState(originCity: 'Paris'),
       act: (bloc) =>
           bloc.add(const PlanTripEvent.requestAiSuggestions(locale: 'fr')),
       verify: (bloc) {

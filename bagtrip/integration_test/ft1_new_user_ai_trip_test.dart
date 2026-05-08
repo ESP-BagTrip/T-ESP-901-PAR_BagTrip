@@ -37,6 +37,10 @@ void main() {
       // Stub AI inspiration
       when(
         () => mocks.ai.getInspiration(
+          originCity: any(named: 'originCity'),
+          departureDate: any(named: 'departureDate'),
+          returnDate: any(named: 'returnDate'),
+          nbTravelers: any(named: 'nbTravelers'),
           travelTypes: any(named: 'travelTypes'),
           budgetRange: any(named: 'budgetRange'),
           durationDays: any(named: 'durationDays'),
@@ -65,7 +69,13 @@ void main() {
       expect(f.homeIdle, findsOneWidget);
 
       // Call AI inspiration
-      final result = await mocks.ai.getInspiration(durationDays: 7);
+      final result = await mocks.ai.getInspiration(
+        originCity: any(named: 'originCity'),
+        departureDate: any(named: 'departureDate'),
+        returnDate: any(named: 'returnDate'),
+        nbTravelers: any(named: 'nbTravelers'),
+        durationDays: 7,
+      );
       expect(result, isA<Success>());
       final suggestions = (result as Success).data;
       expect(suggestions, hasLength(2));
@@ -251,6 +261,10 @@ void main() {
 
         when(
           () => mocks.ai.getInspiration(
+            originCity: any(named: 'originCity'),
+            departureDate: any(named: 'departureDate'),
+            returnDate: any(named: 'returnDate'),
+            nbTravelers: any(named: 'nbTravelers'),
             travelTypes: any(named: 'travelTypes'),
             budgetRange: any(named: 'budgetRange'),
             durationDays: any(named: 'durationDays'),
@@ -332,7 +346,13 @@ void main() {
         await pumpTestApp(tester, existingMocks: mocks);
         expect(f.homeIdle, findsOneWidget);
 
-        final inspiration = await mocks.ai.getInspiration(durationDays: 7);
+        final inspiration = await mocks.ai.getInspiration(
+          originCity: any(named: 'originCity'),
+          departureDate: any(named: 'departureDate'),
+          returnDate: any(named: 'returnDate'),
+          nbTravelers: any(named: 'nbTravelers'),
+          durationDays: 7,
+        );
         expect(inspiration, isA<Success>());
 
         final events = await mocks.ai.planTripStream(durationDays: 7).toList();

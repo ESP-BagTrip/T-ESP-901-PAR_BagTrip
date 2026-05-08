@@ -12,13 +12,22 @@ abstract class AiRepository {
   /// Drains the ``destinations_only`` SSE flow and returns the first
   /// shipped destinations payload (or an empty list when the backend
   /// signalled an error / had no live inventory).
+  ///
+  /// ``originCity`` is REQUIRED for the W1 orchestrator: the resolver
+  /// needs an origin IATA before it can hit Amadeus inspire. An empty
+  /// origin yields ``error: ORIGIN_UNRESOLVED`` — the wizard must
+  /// always thread ``state.originCity``.
   Future<Result<List<Map<String, dynamic>>>> getInspiration({
+    required String originCity,
     String? travelTypes,
     String? budgetRange,
     int? durationDays,
     String? companions,
     String? season,
     String? constraints,
+    String? departureDate,
+    String? returnDate,
+    int? nbTravelers,
     String? locale,
   });
 

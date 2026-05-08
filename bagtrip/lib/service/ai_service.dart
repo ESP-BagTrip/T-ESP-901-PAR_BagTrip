@@ -22,12 +22,16 @@ class AiRepositoryImpl implements AiRepository {
 
   @override
   Future<Result<List<Map<String, dynamic>>>> getInspiration({
+    required String originCity,
     String? travelTypes,
     String? budgetRange,
     int? durationDays,
     String? companions,
     String? season,
     String? constraints,
+    String? departureDate,
+    String? returnDate,
+    int? nbTravelers,
     String? locale,
   }) async {
     try {
@@ -37,6 +41,9 @@ class AiRepositoryImpl implements AiRepository {
         durationDays: durationDays,
         companions: companions,
         constraints: constraints,
+        departureDate: departureDate,
+        returnDate: returnDate,
+        originCity: originCity,
         mode: 'destinations_only',
         locale: locale,
       )) {

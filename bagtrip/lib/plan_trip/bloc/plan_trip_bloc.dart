@@ -432,13 +432,38 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         };
       }
 
+      // Origin city is REQUIRED by the W1 orchestrator (the resolver
+      // needs an origin IATA before it can hit Amadeus inspire). The
+      // wizard's dates step always populates ``state.originCity`` —
+      // if we somehow reach Inspire-me without one we surface a
+      // typed validation error rather than firing a request that the
+      // backend will refuse with ``ORIGIN_UNRESOLVED``.
+      final originCity = state.originCity ?? '';
+      if (originCity.trim().isEmpty) {
+        emit(
+          state.copyWith(
+            isLoadingAiSuggestions: false,
+            error: const ValidationError('Origin city is required'),
+          ),
+        );
+        return;
+      }
+
+      final (start, end) = state.representativeDates;
+      final departureDate = start.toIso8601String().split('T')[0];
+      final returnDate = end.toIso8601String().split('T')[0];
+
       final result = await _aiRepository.getInspiration(
+        originCity: originCity,
         travelTypes: travelTypes,
         budgetRange: budget,
         durationDays: state.tripDurationDays,
         companions: companions,
         season: season,
         constraints: constraints,
+        departureDate: departureDate,
+        returnDate: returnDate,
+        nbTravelers: state.nbTravelers,
         locale: event.locale,
       );
       if (isClosed) return;
