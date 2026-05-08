@@ -1,7 +1,9 @@
 """Route tests for ai/post_trip_routes.py — post-trip suggestion."""
 
+from __future__ import annotations
+
 import uuid
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import FastAPI, Request
@@ -11,6 +13,7 @@ from fastapi.testclient import TestClient
 from src.api.ai.post_trip_routes import router as post_trip_router
 from src.api.auth.plan_guard import require_ai_quota, require_premium
 from src.config.database import get_db
+from src.services.post_trip_suggester import PostTripSuggestionResult
 from src.utils.errors import AppError
 
 
@@ -50,30 +53,45 @@ def client(app: FastAPI) -> TestClient:
     return TestClient(app)
 
 
-_SUGGESTION = {
-    "destination": "Kyoto",
-    "destinationCountry": "Japan",
-    "durationDays": 7,
-    "budgetEur": 2500,
-    "description": "Ancient temples, bamboo forests and sushi.",
-    "highlightsMatch": ["culture", "food"],
-    "activities": [
-        {
-            "title": "Visit Fushimi Inari",
-            "description": "Orange gates at dawn",
-            "category": "SIGHTSEEING",
-            "estimatedCost": 0.0,
-        }
-    ],
-}
+def _suggestion_result() -> PostTripSuggestionResult:
+    return PostTripSuggestionResult(
+        destination="Kyoto",
+        destinationCountry="Japan",
+        durationDays=7,
+        budgetEur=2500,
+        description="Ancient temples, bamboo forests and seasonal Japanese cooking.",
+        highlightsMatch=["culture", "food"],
+        activities=[
+            {
+                "title": "Visit Fushimi Inari at dawn",
+                "description": "Orange torii gates without the midday crowd.",
+                "category": "CULTURE",
+                "estimatedCost": 0.0,
+            },
+            {
+                "title": "Kaiseki dinner in Gion",
+                "description": "Seasonal seven-course tasting at an old machiya.",
+                "category": "FOOD",
+                "estimatedCost": 110.0,
+            },
+            {
+                "title": "Arashiyama bamboo grove walk",
+                "description": "Quiet morning loop through the western hills.",
+                "category": "NATURE",
+                "estimatedCost": 0.0,
+            },
+        ],
+        matchedIata="KIX",
+        matchScore=0.81,
+    )
 
 
 class TestSuggestPostTrip:
-    def test_success_flat_suggestion(self, client: TestClient) -> None:
+    def test_success(self, client: TestClient) -> None:
         with (
             patch(
-                "src.api.ai.post_trip_routes.PostTripAIService.suggest_next_trip",
-                return_value={"suggestion": _SUGGESTION},
+                "src.api.ai.post_trip_routes.PostTripSuggester.suggest_next_trip",
+                AsyncMock(return_value=_suggestion_result()),
             ),
             patch(
                 "src.api.ai.post_trip_routes.PlanService.increment_ai_generation",
@@ -85,38 +103,15 @@ class TestSuggestPostTrip:
         body = response.json()
         assert body["suggestion"]["destination"] == "Kyoto"
         assert body["suggestion"]["durationDays"] == 7
+        assert body["suggestion"]["highlightsMatch"] == ["culture", "food"]
+        assert len(body["suggestion"]["activities"]) == 3
         incr.assert_called_once()
 
-    def test_success_raw_dict(self, client: TestClient) -> None:
+    def test_no_feedback_returns_400_and_no_quota_increment(self, client: TestClient) -> None:
         with (
             patch(
-                "src.api.ai.post_trip_routes.PostTripAIService.suggest_next_trip",
-                return_value=_SUGGESTION,
-            ),
-            patch(
-                "src.api.ai.post_trip_routes.PlanService.increment_ai_generation",
-            ),
-        ):
-            response = client.post("/v1/ai/post-trip-suggestion")
-
-        assert response.status_code == 200
-        assert response.json()["suggestion"]["destination"] == "Kyoto"
-
-    def test_service_error(self, client: TestClient) -> None:
-        with patch(
-            "src.api.ai.post_trip_routes.PostTripAIService.suggest_next_trip",
-            side_effect=AppError("NO_FEEDBACK", 400, "No feedback history"),
-        ):
-            response = client.post("/v1/ai/post-trip-suggestion")
-
-        assert response.status_code == 400
-        assert response.json()["detail"]["code"] == "NO_FEEDBACK"
-
-    def test_increment_not_called_on_error(self, client: TestClient) -> None:
-        with (
-            patch(
-                "src.api.ai.post_trip_routes.PostTripAIService.suggest_next_trip",
-                side_effect=AppError("NO_FEEDBACK", 400, "No feedback"),
+                "src.api.ai.post_trip_routes.PostTripSuggester.suggest_next_trip",
+                AsyncMock(side_effect=AppError("NO_FEEDBACK_HISTORY", 400, "No feedback")),
             ),
             patch(
                 "src.api.ai.post_trip_routes.PlanService.increment_ai_generation",
@@ -125,13 +120,14 @@ class TestSuggestPostTrip:
             response = client.post("/v1/ai/post-trip-suggestion")
 
         assert response.status_code == 400
+        assert response.json()["detail"]["code"] == "NO_FEEDBACK_HISTORY"
         incr.assert_not_called()
 
     def test_propagates_accept_language_header(self, client: TestClient) -> None:
         with (
             patch(
-                "src.api.ai.post_trip_routes.PostTripAIService.suggest_next_trip",
-                return_value={"suggestion": _SUGGESTION},
+                "src.api.ai.post_trip_routes.PostTripSuggester.suggest_next_trip",
+                AsyncMock(return_value=_suggestion_result()),
             ) as suggest,
             patch(
                 "src.api.ai.post_trip_routes.PlanService.increment_ai_generation",
@@ -144,14 +140,13 @@ class TestSuggestPostTrip:
 
         assert response.status_code == 200
         suggest.assert_called_once()
-        # The route normalizes the header before passing to the service.
         assert suggest.call_args.kwargs.get("locale") == "fr"
 
     def test_defaults_to_english_when_no_header(self, client: TestClient) -> None:
         with (
             patch(
-                "src.api.ai.post_trip_routes.PostTripAIService.suggest_next_trip",
-                return_value={"suggestion": _SUGGESTION},
+                "src.api.ai.post_trip_routes.PostTripSuggester.suggest_next_trip",
+                AsyncMock(return_value=_suggestion_result()),
             ) as suggest,
             patch(
                 "src.api.ai.post_trip_routes.PlanService.increment_ai_generation",
@@ -160,5 +155,4 @@ class TestSuggestPostTrip:
             response = client.post("/v1/ai/post-trip-suggestion")
 
         assert response.status_code == 200
-        # No Accept-Language sent → normalize_locale falls back to "en".
         assert suggest.call_args.kwargs.get("locale") == "en"
