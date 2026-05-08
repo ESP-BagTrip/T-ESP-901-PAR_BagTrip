@@ -4,7 +4,6 @@ import 'dart:async';
 
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
-import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/models/user.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
 import 'package:bagtrip/plan_trip/models/ai_destination.dart';
@@ -19,9 +18,6 @@ import 'package:mocktail/mocktail.dart';
 
 import '../helpers/mock_repositories.dart';
 import '../helpers/mock_services.dart' hide MockLocationService;
-
-Trip _makeTrip() =>
-    const Trip(id: 'trip-1', title: 'Barcelona', status: TripStatus.planned);
 
 void main() {
   late MockTripRepository mockTripRepo;
@@ -41,7 +37,6 @@ void main() {
   });
 
   PlanTripBloc buildBloc() => PlanTripBloc(
-    tripRepository: mockTripRepo,
     aiRepository: mockAiRepo,
     authRepository: mockAuthRepo,
     personalizationStorage: mockStorage,
@@ -522,22 +517,17 @@ void main() {
   // Step 5 — Create Trip (manual)
   // ─────────────────────────────────────────────────────────────────────────
 
-  group('create trip — manual flow', () {
+  group('create trip — unified flow (Phase E)', () {
+    // Phase E (SMP-325): both flows converge on the SSE pipeline. The
+    // legacy manual-flow shortcut (POST /v1/trips with no AI run) is
+    // gone — every "Create my trip" tap promotes the SSE-shipped
+    // ``pendingTripId``. This test pins the behaviour for the manual
+    // flow specifically: the wizard MUST go through the SSE just like
+    // the inspire-me path, otherwise the user lands on an empty
+    // planning page.
     blocTest<PlanTripBloc, PlanTripState>(
-      'creates trip via TripRepository in manual flow',
-      build: () {
-        when(
-          () => mockTripRepo.createTrip(
-            title: any(named: 'title'),
-            destinationName: any(named: 'destinationName'),
-            destinationIata: any(named: 'destinationIata'),
-            startDate: any(named: 'startDate'),
-            endDate: any(named: 'endDate'),
-            nbTravelers: any(named: 'nbTravelers'),
-          ),
-        ).thenAnswer((_) async => Success(_makeTrip()));
-        return buildBloc();
-      },
+      'manual flow promotes the pendingTripId from the SSE — no extra POST',
+      build: buildBloc,
       seed: () => PlanTripState(
         isManualFlow: true,
         selectedManualDestination: const LocationResult(
@@ -548,14 +538,32 @@ void main() {
         startDate: DateTime(2026, 5),
         endDate: DateTime(2026, 5, 8),
         nbAdults: 2,
+        pendingTripId: 'sse-trip-42',
       ),
       act: (bloc) => bloc.add(const PlanTripEvent.createTrip()),
       expect: () => [
         isA<PlanTripState>().having((s) => s.isCreating, 'creating', true),
         isA<PlanTripState>()
             .having((s) => s.isCreating, 'creating', false)
-            .having((s) => s.createdTripId, 'tripId', 'trip-1'),
+            .having((s) => s.createdTripId, 'tripId', 'sse-trip-42'),
       ],
+      verify: (_) {
+        // Regression guard: the legacy ``_createManualTrip`` used to
+        // hit ``TripRepository.createTrip`` here. After Phase E this
+        // call must never happen — the SSE-persisted trip is the
+        // single source of truth.
+        verifyNever(
+          () => mockTripRepo.createTrip(
+            title: any(named: 'title'),
+            destinationName: any(named: 'destinationName'),
+            destinationIata: any(named: 'destinationIata'),
+            startDate: any(named: 'startDate'),
+            endDate: any(named: 'endDate'),
+            nbTravelers: any(named: 'nbTravelers'),
+            budgetTarget: any(named: 'budgetTarget'),
+          ),
+        );
+      },
     );
   });
 
@@ -1641,21 +1649,9 @@ void main() {
     );
 
     blocTest<PlanTripBloc, PlanTripState>(
-      'manual create failure surfaces error',
-      build: () {
-        when(
-          () => mockTripRepo.createTrip(
-            title: any(named: 'title'),
-            destinationName: any(named: 'destinationName'),
-            destinationIata: any(named: 'destinationIata'),
-            startDate: any(named: 'startDate'),
-            endDate: any(named: 'endDate'),
-            nbTravelers: any(named: 'nbTravelers'),
-            budgetTarget: any(named: 'budgetTarget'),
-          ),
-        ).thenAnswer((_) async => const Failure(NetworkError('offline')));
-        return buildBloc();
-      },
+      'manual flow without a pendingTripId surfaces ServerError '
+      '(no silent empty-trip creation)',
+      build: buildBloc,
       seed: () => PlanTripState(
         isManualFlow: true,
         selectedManualDestination: const LocationResult(
@@ -1665,11 +1661,26 @@ void main() {
         startDate: DateTime(2026, 5),
         endDate: DateTime(2026, 5, 8),
         budgetPreset: BudgetPreset.comfortable,
+        // No ``pendingTripId`` — simulates an SSE that never completed.
       ),
       act: (bloc) => bloc.add(const PlanTripEvent.createTrip()),
       verify: (bloc) {
-        expect(bloc.state.error, isA<NetworkError>());
+        expect(bloc.state.error, isA<ServerError>());
         expect(bloc.state.isCreating, false);
+        expect(bloc.state.createdTripId, isNull);
+        // Phase E regression: no POST /trips fallback — the user
+        // would otherwise see a blank planning page after creation.
+        verifyNever(
+          () => mockTripRepo.createTrip(
+            title: any(named: 'title'),
+            destinationName: any(named: 'destinationName'),
+            destinationIata: any(named: 'destinationIata'),
+            startDate: any(named: 'startDate'),
+            endDate: any(named: 'endDate'),
+            nbTravelers: any(named: 'nbTravelers'),
+            budgetTarget: any(named: 'budgetTarget'),
+          ),
+        );
       },
     );
   });

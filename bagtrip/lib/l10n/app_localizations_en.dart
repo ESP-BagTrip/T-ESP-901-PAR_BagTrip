@@ -1828,7 +1828,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reviewTabHotel => 'Hotel';
 
   @override
-  String get reviewTabItinerary => 'Itinerary';
+  String get reviewTabActivities => 'Activities';
 
   @override
   String get reviewTabEssentials => 'Essentials';
@@ -2133,7 +2133,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tripDetailQuickMemories => 'Memories';
 
   @override
-  String get timelineSectionTitle => 'Itinerary';
+  String get activitiesSectionTitle => 'Activities';
 
   @override
   String get timelineMorning => 'Morning';
@@ -2540,7 +2540,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timelineSuggestionsForDay => 'Suggestions for this day';
 
   @override
-  String get timelineAddSuggestion => 'Add to itinerary';
+  String get activitiesAddSuggestion => 'Add to activities';
 
   @override
   String get addActivityManually => 'Add manually';
@@ -2891,7 +2891,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get subpageHeroBadgeCompleted => 'Completed';
 
   @override
-  String get blankActivitiesTitle => 'Your itinerary is empty';
+  String get blankActivitiesTitle => 'No activities yet';
 
   @override
   String get blankActivitiesSubtitle =>
@@ -3084,7 +3084,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get panelOpenFullBudget => 'See full breakdown';
 
   @override
-  String get panelOpenFullActivities => 'See full itinerary';
+  String get panelOpenFullActivities => 'See all activities';
 
   @override
   String get panelOpenFullFlights => 'See all flights';
@@ -3106,6 +3106,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activitySuggestedBadge => 'Suggested';
+
+  @override
+  String get activitiesUnscheduledHeader => 'Unscheduled';
+
+  @override
+  String get activitiesViewTimeline => 'Timeline';
+
+  @override
+  String get activitiesViewList => 'List';
+
+  @override
+  String get activitiesViewCategory => 'Categories';
+
+  @override
+  String get activitiesFilterAll => 'All';
+
+  @override
+  String get activitiesFilterSuggested => 'Suggested';
+
+  @override
+  String get activitiesFilterValidated => 'Validated';
+
+  @override
+  String get activitiesFilterManual => 'Manual';
+
+  @override
+  String get activitiesFilterCategoriesAction => 'By category';
+
+  @override
+  String get activitiesFilterCategoriesTitle => 'Filter by category';
+
+  @override
+  String get activitiesFilterClear => 'Clear filters';
+
+  @override
+  String get activitiesFilterDone => 'Done';
+
+  @override
+  String get activitiesFilterEmpty =>
+      'No activities match the current filters.';
 
   @override
   String get shareCopyLink => 'Copy invite link';

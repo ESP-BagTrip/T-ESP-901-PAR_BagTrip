@@ -329,6 +329,17 @@ class TestGetBudgetSummary:
         assert summary["confirmed_total"] == 135.0
         # forecasted: 20 (planned+no source) + 40 (suggested activity) = 60
         assert summary["forecasted_total"] == 60.0
-        assert summary["total_spent"] == 125.0  # budget items only
+        # Phase B2: ``total_spent`` is the cross-table truth — budget
+        # items + activities, never one without the other. Pre-B2 it
+        # only included the budget items, but activities were also
+        # mirrored as ``BudgetItem`` rows (silent x2 inflation), so the
+        # exposed value happened to roughly match. With the duplication
+        # removed, we have to add activities here explicitly.
+        # 125 (items) + 30 (validated activity) + 40 (suggested) = 195
+        assert summary["total_spent"] == 195.0
         assert summary["by_category"]["ACCOMMODATION"] == 100.0
         assert summary["by_category"]["FOOD"] == 25.0
+        # Phase B2: activity costs surface in by_category too, so the
+        # breakdown UI keeps showing the activity slice without having
+        # to re-query the activities table client-side.
+        assert summary["by_category"]["ACTIVITY"] == 70.0

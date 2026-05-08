@@ -124,6 +124,13 @@ class PlanDraftService:
 
     @classmethod
     def _persist_activities(cls, db: Session, trip: Trip, cmd: TripDraftCommand) -> None:
+        # Phase B1 (SMP-325): ``Activity`` is the single source of truth
+        # for activity costs. We no longer mirror each row into a
+        # ``BudgetItem`` with ``source_type="activity"`` — the budget
+        # summary projects ``Activity.estimated_cost`` directly, and the
+        # mobile budget panel renders activities as virtual rows. This
+        # removes the silent x2 inflation of ``total_spent`` and the UX
+        # confusion of seeing every activity twice (once per tab).
         if not cmd.activities:
             return
         trip_start = _parse_date(cmd.start_date)
@@ -143,18 +150,6 @@ class PlanDraftService:
             )
             db.add(row)
             db.flush()
-            if act.estimated_cost and act.estimated_cost > 0:
-                db.add(
-                    _build_budget_item(
-                        trip_id=trip.id,
-                        label=row.title,
-                        amount=float(act.estimated_cost),
-                        category=BudgetCategory.ACTIVITY,
-                        source_type="activity",
-                        source_id=row.id,
-                        item_date=activity_date,
-                    )
-                )
 
     @staticmethod
     def _activity_date(

@@ -14,7 +14,6 @@ import 'package:bagtrip/plan_trip/models/step_status.dart';
 import 'package:bagtrip/plan_trip/models/trip_plan.dart';
 import 'package:bagtrip/repositories/ai_repository.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
-import 'package:bagtrip/repositories/trip_repository.dart';
 import 'package:bagtrip/service/geo_location_service.dart';
 import 'package:bagtrip/service/location_service.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
@@ -26,7 +25,10 @@ part 'plan_trip_state.dart';
 part 'plan_trip_bloc.freezed.dart';
 
 class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
-  final TripRepository _tripRepository;
+  // Phase E (SMP-325): TripRepository was only used by the now-removed
+  // ``_createManualTrip`` shortcut. The wizard's two flows both go
+  // through the SSE pipeline now, which persists the trip server-side
+  // and ships the id in its ``complete`` event.
   final AiRepository _aiRepository;
   final AuthRepository _authRepository;
   final PersonalizationStorage _storage;
@@ -36,14 +38,12 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
   StreamSubscription<Map<String, dynamic>>? _sseSubscription;
 
   PlanTripBloc({
-    TripRepository? tripRepository,
     AiRepository? aiRepository,
     AuthRepository? authRepository,
     PersonalizationStorage? personalizationStorage,
     LocationService? locationService,
     GeoLocationService? geoLocationService,
-  }) : _tripRepository = tripRepository ?? getIt<TripRepository>(),
-       _aiRepository = aiRepository ?? getIt<AiRepository>(),
+  }) : _aiRepository = aiRepository ?? getIt<AiRepository>(),
        _authRepository = authRepository ?? getIt<AuthRepository>(),
        _storage = personalizationStorage ?? getIt<PersonalizationStorage>(),
        _locationService = locationService ?? getIt<LocationService>(),
@@ -778,47 +778,14 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     PlanTripCreateTrip event,
     Emitter<PlanTripState> emit,
   ) async {
+    // Phase E (SMP-325): both wizard flows (Inspire-me + direct city
+    // entry) converge on the same SSE pipeline. The legacy
+    // ``_createManualTrip`` shortcut (POST /v1/trips with no AI run)
+    // would create an empty trip on top of the SSE-persisted one and
+    // leave the user on a blank planning page. There is now a single
+    // path: read the ``tripId`` the SSE shipped in its ``complete``
+    // event and promote it to ``createdTripId``.
     emit(state.copyWith(isCreating: true, error: null));
-
-    if (state.isManualFlow) {
-      await _createManualTrip(emit);
-    } else {
-      await _createAiTrip(emit);
-    }
-  }
-
-  Future<void> _createManualTrip(Emitter<PlanTripState> emit) async {
-    final dest = state.selectedManualDestination;
-    final title = dest?.name ?? 'Mon voyage';
-
-    // Topic 01 (B7) — manual flow now reuses the same `targetBudget` the
-    // wizard committed to in step 2, instead of recomputing it differently
-    // from the IA flow (which used to produce a different total user-side).
-    final result = await _tripRepository.createTrip(
-      title: title,
-      destinationName: dest?.name,
-      destinationIata: dest?.iataCode,
-      startDate: state.startDate,
-      endDate: state.endDate,
-      nbTravelers: state.nbTravelers,
-      budgetTarget: state.targetBudget,
-    );
-    if (isClosed) return;
-
-    switch (result) {
-      case Success(:final data):
-        emit(state.copyWith(isCreating: false, createdTripId: data.id));
-      case Failure(:final error):
-        emit(state.copyWith(isCreating: false, error: error));
-    }
-  }
-
-  Future<void> _createAiTrip(Emitter<PlanTripState> emit) async {
-    // The W2 SSE pipeline persists the trip server-side and ships the
-    // ``tripId`` in the ``complete`` event — ``_handleSseEvent`` parked
-    // it in ``state.pendingTripId``. The "Create my trip" CTA on the
-    // review screen just promotes that id to ``createdTripId`` so the
-    // existing post-create navigation kicks in.
     final pending = state.pendingTripId;
     if (pending == null || pending.isEmpty) {
       emit(

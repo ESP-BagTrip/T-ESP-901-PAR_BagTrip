@@ -2,6 +2,7 @@
 
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/models/budget_item.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
@@ -81,11 +82,7 @@ void main() {
     );
   }
 
-  // Phase 6 — the panel now exposes a top-level Prévu/Dépensé filter
-  // instead of two parallel sections. Tests assert the segmented
-  // control + per-segment empty state instead of section headers.
-
-  testWidgets('renders the Planned/Real segmented control on a fresh trip', (
+  testWidgets('both sections render even when there is no item yet', (
     tester,
   ) async {
     await pump(
@@ -94,69 +91,120 @@ void main() {
         tripId: 'trip-1',
         budgetSummary: null,
         budgetItems: [],
+        activities: [],
         totalDays: 0,
         canEdit: true,
         isCompleted: false,
         role: 'OWNER',
       ),
     );
-    // Both segments visible (their localized labels).
-    expect(find.text('Planned'), findsOneWidget);
-    expect(find.text('Real'), findsOneWidget);
-    // Default segment = Planned, so we see the forecast empty hint.
+    // Both section headers and their empty hints are visible on a fresh trip.
+    expect(find.text('FORECAST'), findsOneWidget);
+    expect(find.text('REAL'), findsOneWidget);
     expect(find.textContaining('No forecast yet'), findsOneWidget);
+    expect(find.textContaining('No expense logged yet'), findsOneWidget);
   });
 
-  testWidgets('switching to Real segment surfaces the actuals empty hint', (
-    tester,
-  ) async {
+  testWidgets('renders both Forecast and Real section headers', (tester) async {
     await pump(
       tester,
       BudgetPanel(
         tripId: 'trip-1',
         budgetSummary: null,
         budgetItems: [_item(isPlanned: true)],
+        activities: const [],
         totalDays: 3,
         canEdit: true,
         isCompleted: false,
         role: 'OWNER',
       ),
     );
-    // Tap the Real segment — switching away from Planned reveals
-    // the dedicated empty hint for actual expenses.
-    await tester.tap(find.text('Real'));
-    await tester.pumpAndSettle();
-    expect(find.textContaining('No expense logged yet'), findsOneWidget);
+    expect(find.text('FORECAST'), findsOneWidget);
+    expect(find.text('REAL'), findsOneWidget);
+  });
+
+  testWidgets('forecast items appear under Forecast, real under Real', (
+    tester,
+  ) async {
+    final items = [
+      _item(id: 'f1', label: 'Forecast hotel', amount: 120, isPlanned: true),
+      _item(id: 'r1', label: 'Lunch', amount: 25, isPlanned: false),
+    ];
+    await pump(
+      tester,
+      BudgetPanel(
+        tripId: 'trip-1',
+        budgetSummary: null,
+        budgetItems: items,
+        activities: const [],
+        totalDays: 3,
+        canEdit: true,
+        isCompleted: false,
+        role: 'OWNER',
+      ),
+    );
+    expect(find.text('Forecast hotel'), findsOneWidget);
+    expect(find.text('Lunch'), findsOneWidget);
+  });
+
+  testWidgets('empty forecast section surfaces its empty hint', (tester) async {
+    await pump(
+      tester,
+      BudgetPanel(
+        tripId: 'trip-1',
+        budgetSummary: null,
+        budgetItems: [_item(isPlanned: false)],
+        activities: const [],
+        totalDays: 0,
+        canEdit: true,
+        isCompleted: false,
+        role: 'OWNER',
+      ),
+    );
+    expect(find.textContaining('No forecast yet'), findsOneWidget);
   });
 
   testWidgets(
-    'planned items show under Planned segment, real items show under Real',
+    'projects activities into the budget sections by validation status',
     (tester) async {
-      final items = [
-        _item(id: 'f1', label: 'Forecast hotel', amount: 120, isPlanned: true),
-        _item(id: 'r1', label: 'Lunch', amount: 25, isPlanned: false),
-      ];
+      // Phase B3 (SMP-325) regression: activities are the single source
+      // of truth for their own costs. The panel surfaces them as
+      // read-only rows next to the budget items so the user gets a
+      // unified spend view without the legacy duplication that used
+      // to mirror each activity into a BudgetItem.
+      final suggested = makeActivity(
+        id: 'a-suggested',
+        title: 'Massage',
+        validationStatus: ValidationStatus.suggested,
+      ).copyWith(estimatedCost: 60);
+      final validated = makeActivity(
+        id: 'a-validated',
+        title: 'Louvre',
+        validationStatus: ValidationStatus.validated,
+      ).copyWith(estimatedCost: 22);
       await pump(
         tester,
         BudgetPanel(
           tripId: 'trip-1',
           budgetSummary: null,
-          budgetItems: items,
+          budgetItems: const [],
+          activities: [suggested, validated],
           totalDays: 3,
           canEdit: true,
           isCompleted: false,
           role: 'OWNER',
         ),
       );
-      // Default segment = Planned.
-      expect(find.text('Forecast hotel'), findsOneWidget);
-      expect(find.text('Lunch'), findsNothing);
-
-      // Switch to Real — only the actual expense is visible.
-      await tester.tap(find.text('Real'));
-      await tester.pumpAndSettle();
-      expect(find.text('Forecast hotel'), findsNothing);
-      expect(find.text('Lunch'), findsOneWidget);
+      // Both activity costs appear in the panel — once each, never twice.
+      expect(find.text('Massage'), findsOneWidget);
+      expect(find.text('Louvre'), findsOneWidget);
+      // Activities are read-only on the budget tab: tapping them must
+      // never spawn the budget item edit sheet (the editing path is the
+      // Activities tab, which keeps the validation flow centralised).
+      // We assert that by confirming the row is not wrapped in a
+      // Dismissible (which is how editable budget rows surface a
+      // swipe-to-delete).
+      expect(find.byType(Dismissible), findsNothing);
     },
   );
 
@@ -167,6 +215,7 @@ void main() {
         tripId: 'trip-1',
         budgetSummary: null,
         budgetItems: [_item()],
+        activities: const [],
         totalDays: 0,
         canEdit: true,
         isCompleted: false,
@@ -183,6 +232,7 @@ void main() {
         tripId: 'trip-1',
         budgetSummary: null,
         budgetItems: [_item()],
+        activities: const [],
         totalDays: 0,
         canEdit: false,
         isCompleted: false,
@@ -208,6 +258,7 @@ void main() {
         // Items list is a server-side leak guard but even if a client
         // mock passes one, the viewer panel must NOT render it.
         budgetItems: [_item(label: 'Should not appear')],
+        activities: const [],
         totalDays: 5,
         canEdit: false,
         isCompleted: false,
@@ -219,9 +270,9 @@ void main() {
     expect(find.text('Tight'), findsOneWidget);
     // Hint visible
     expect(find.textContaining('owner only'), findsOneWidget);
-    // The owner-mode segmented control must NOT render either —
-    // viewer mode renders the bucket only.
-    expect(find.text('Planned'), findsNothing);
+    // Forecast / Real sections must NOT render
+    expect(find.text('FORECAST'), findsNothing);
+    expect(find.text('REAL'), findsNothing);
     // Item label must NOT leak
     expect(find.text('Should not appear'), findsNothing);
   });
@@ -235,6 +286,7 @@ void main() {
         tripId: 'trip-1',
         budgetSummary: BudgetSummary(totalBudget: 0, budgetStatus: null),
         budgetItems: [],
+        activities: [],
         totalDays: 0,
         canEdit: false,
         isCompleted: false,
@@ -263,6 +315,7 @@ void main() {
           tripId: 'trip-1',
           budgetSummary: BudgetSummary(totalBudget: 1000, budgetStatus: status),
           budgetItems: const [],
+          activities: const [],
           totalDays: 5,
           canEdit: false,
           isCompleted: false,

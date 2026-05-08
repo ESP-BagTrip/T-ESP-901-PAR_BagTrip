@@ -130,6 +130,24 @@ class TestListActivities:
             response = client.get(f"/v1/trips/{TRIP_ID}/activities")
         assert response.status_code == 500
 
+    def test_lists_activities_with_null_date(self, client: TestClient) -> None:
+        """Regression (SMP-325): AI-suggested recurring activities (eg. dinners)
+        are persisted without a calendar day. ``ActivityResponse.date`` must
+        accept ``None`` — otherwise the whole list endpoint 500s and the
+        Itinerary tab on mobile shows up empty."""
+        scheduled = _make_activity()
+        unscheduled = _make_activity(date=None, title="Dîner libre")
+        with patch(
+            "src.api.activities.routes.ActivityService.get_by_trip_paginated",
+            return_value=([scheduled, unscheduled], 2, 1),
+        ):
+            response = client.get(f"/v1/trips/{TRIP_ID}/activities")
+        assert response.status_code == 200
+        body = response.json()
+        items = body["items"]
+        assert len(items) == 2
+        assert items[1]["date"] is None
+
     def test_viewer_masks_cost(self, app: FastAPI) -> None:
         trip = MagicMock(id=TRIP_ID, status="PLANNED")
         viewer_access = TripAccess(trip=trip, role=TripRole.VIEWER)

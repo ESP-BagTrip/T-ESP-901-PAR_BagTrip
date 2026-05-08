@@ -148,15 +148,25 @@ def test_full_command_persists_everything(monkeypatch):
     assert trip.status == "DRAFT"
 
     types = [type(o).__name__ for o in captured]
-    # 2 activities + 2 budget (per-activity) + 1 accommodation + 1 budget (acc) +
-    # 2 train budget items + 1 baggage + 1 food budget = 10
+    # Phase B1 (SMP-325): activities are no longer mirrored as
+    # BudgetItem rows, so the BudgetItem count drops by exactly the
+    # number of priced activities.
     assert types.count("Activity") == 2
     assert types.count("Accommodation") == 1
     assert types.count("BaggageItem") == 1
     # ZERO ManualFlight rows because the trip is TRAIN-routed.
     assert types.count("ManualFlight") == 0
-    # BudgetItem covers: 2 activities + 1 accommodation + 2 train + 1 food = 6
-    assert types.count("BudgetItem") == 6
+    # BudgetItem covers: 1 accommodation + 2 train + 1 food = 4
+    # (the 2 activity costs are read from ``activities.estimated_cost``).
+    assert types.count("BudgetItem") == 4
+    activity_budget_items = [
+        o
+        for o in captured
+        if type(o).__name__ == "BudgetItem" and o.category == "ACTIVITY"
+    ]
+    assert activity_budget_items == [], (
+        "Activities must not produce mirrored BudgetItem rows after Phase B1"
+    )
     db.commit.assert_called_once()
     db.refresh.assert_called_once_with(trip)
 

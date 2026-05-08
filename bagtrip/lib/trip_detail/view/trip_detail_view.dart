@@ -233,9 +233,6 @@ class _LoadedTripViewState extends State<_LoadedTripView>
                         ActivitiesPanel(
                           tripId: widget.tripId,
                           tripStartDate: state.trip.startDate,
-                          // Phase 3 — pass the full activities list so
-                          // the panel can route undated FOOD / TRANSPORT
-                          // recommendations to its dedicated Recos mode.
                           activities: state.activities,
                           totalDays: state.totalDays,
                           selectedDayIndex: state.selectedDayIndex,
@@ -254,6 +251,7 @@ class _LoadedTripViewState extends State<_LoadedTripView>
                           tripId: widget.tripId,
                           budgetSummary: state.budgetSummary,
                           budgetItems: state.budgetItems,
+                          activities: state.activities,
                           totalDays: state.totalDays,
                           canEdit: _canEdit,
                           isCompleted: state.isCompleted,
@@ -336,7 +334,7 @@ class _LoadedTripViewState extends State<_LoadedTripView>
     l10n.reviewTabOverview,
     l10n.reviewTabFlights,
     l10n.reviewTabHotel,
-    l10n.reviewTabItinerary,
+    l10n.reviewTabActivities,
     l10n.reviewTabEssentials,
     l10n.reviewTabBudget,
     if (_hasSharesTab) l10n.sharingSectionTitle,
@@ -450,15 +448,9 @@ class _LoadedTripViewState extends State<_LoadedTripView>
     final newEnd = result.end;
 
     final outOfRange = state.activities.where((a) {
-      // Undated AI recommendations (FOOD / TRANSPORT) never fall out of
-      // range — they live on the side, not on the calendar.
-      if (a.date == null) return false;
-      final activityDate = a.date!;
-      final d = DateTime(
-        activityDate.year,
-        activityDate.month,
-        activityDate.day,
-      );
+      final ad = a.date;
+      if (ad == null) return false;
+      final d = DateTime(ad.year, ad.month, ad.day);
       final s = DateTime(newStart.year, newStart.month, newStart.day);
       final e = DateTime(newEnd.year, newEnd.month, newEnd.day);
       return d.isBefore(s) || d.isAfter(e);
@@ -643,7 +635,7 @@ class _LoadedTripViewState extends State<_LoadedTripView>
     return switch (type) {
       CompletionSegmentType.flights => l10n.reviewTabFlights,
       CompletionSegmentType.accommodation => l10n.reviewTabHotel,
-      CompletionSegmentType.activities => l10n.reviewTabItinerary,
+      CompletionSegmentType.activities => l10n.reviewTabActivities,
       CompletionSegmentType.baggage => l10n.reviewTabEssentials,
     };
   }
