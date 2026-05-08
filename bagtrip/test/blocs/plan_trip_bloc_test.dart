@@ -938,7 +938,7 @@ void main() {
     });
 
     test(
-      'complete with tripPlan builds TripPlan and advances to step 5',
+      'complete with tripDraft builds TripPlan, stores tripId and advances to step 5',
       () async {
         final controller = StreamController<Map<String, dynamic>>();
         final bloc = await bootGeneratingBloc(controller);
@@ -946,23 +946,36 @@ void main() {
         controller.add({
           'event': 'complete',
           'data': {
-            'tripPlan': {
-              'destination': {
-                'city': 'Lisbon',
-                'country': 'Portugal',
-                'iata': 'LIS',
-              },
+            'tripId': 'trip-9000',
+            'status': 'DRAFT',
+            'tripDraft': {
+              'origin_iata': 'CDG',
+              'destination_iata': 'LIS',
+              'destination_city': 'Lisbon',
+              'destination_country': 'Portugal',
+              'destination_country_code': 'PT',
+              'destination_lat': 38.78,
+              'destination_lon': -9.13,
+              'start_date': '2026-06-01',
+              'end_date': '2026-06-07',
               'duration_days': 6,
+              'nb_travelers': 2,
+              'target_budget': null,
+              'locale': 'fr',
+              'cover_image_url': null,
+              'weather': {'avg_temp_c': 21},
               'activities': [
                 {
                   'title': 'Tram ride',
                   'description': 'Hop on the 28',
                   'category': 'CULTURE',
+                  'estimated_cost': 0,
                 },
                 {
                   'title': 'Belém',
                   'description': 'Pastries',
                   'category': 'FOOD',
+                  'estimated_cost': 12.5,
                 },
               ],
               'accommodations': [
@@ -973,21 +986,35 @@ void main() {
                   'source': 'amadeus',
                 },
               ],
+              'transport': [
+                {
+                  'mode': 'FLIGHT',
+                  'direction': 'OUTBOUND',
+                  'carrier': 'AF',
+                  'code': 'AF123',
+                  'origin_iata': 'CDG',
+                  'destination_iata': 'LIS',
+                  'origin_city': 'Paris',
+                  'destination_city': 'Lisbon',
+                  'departure_at': '2026-06-01T07:00:00',
+                  'arrival_at': '2026-06-01T09:30:00',
+                  'price': 200,
+                  'currency': 'EUR',
+                  'source': 'amadeus',
+                },
+              ],
               'baggage': [
                 {'name': 'Passport', 'reason': 'ID'},
               ],
               'budget': {
-                'flight': {
-                  'amount': 200,
-                  'source': 'amadeus',
-                  'details': 'CDG→LIS',
-                },
-                'accommodation': {'amount': 720},
-                'food': {'amount': 180},
-                'transport': {'amount': 60},
-                'activity': {'amount': 40},
+                'transport': 200,
+                'accommodation': 720,
+                'food': 180,
+                'activity': 40,
+                'total_min': 1100,
+                'total_max': 1300,
+                'currency': 'EUR',
               },
-              'weather': {'avg_temp_c': 21},
             },
           },
         });
@@ -995,53 +1022,72 @@ void main() {
 
         expect(bloc.state.currentStep, 5);
         expect(bloc.state.generationProgress, 1.0);
+        expect(bloc.state.pendingTripId, 'trip-9000');
         final plan = bloc.state.generatedPlan!;
         expect(plan.destinationCity, 'Lisbon');
+        expect(plan.destinationIata, 'LIS');
         expect(plan.durationDays, 6);
-        expect(plan.budgetEur, 1200);
+        expect(plan.budgetEur, 1140); // 200 + 720 + 180 + 40
         expect(plan.highlights, ['Tram ride', 'Belém']);
         expect(plan.accommodationName, 'Hotel X');
         expect(plan.accommodationPrice, 120);
         expect(plan.essentialItems, ['Passport']);
+        expect(plan.flightAirline, 'AF');
+        expect(plan.flightNumber, 'AF123');
 
         await controller.close();
         await bloc.close();
       },
     );
 
-    test(
-      'B5 — budget breakdown with decimals does not lose precision',
-      () async {
-        // Pre-03, the wizard cast each category `.toInt()` before summing,
-        // dropping decimals. With five 0.5-€ categories the sum collapsed
-        // to 0 instead of 2.5.
-        final controller = StreamController<Map<String, dynamic>>();
-        final bloc = await bootGeneratingBloc(controller);
+    test('B5 — budget breakdown with decimals keeps precision', () async {
+      // Pre-03, the wizard cast each category `.toInt()` before summing,
+      // dropping decimals. With four 0.5-€ categories the sum collapsed
+      // to 0 instead of 2.0.
+      final controller = StreamController<Map<String, dynamic>>();
+      final bloc = await bootGeneratingBloc(controller);
 
-        controller.add({
-          'event': 'complete',
-          'data': {
-            'tripPlan': {
-              'destination': {'city': 'Lyon', 'country': 'France'},
-              'duration_days': 3,
-              'budget': {
-                'flight': {'amount': 0.5},
-                'accommodation': {'amount': 0.5},
-                'food': {'amount': 0.5},
-                'transport': {'amount': 0.5},
-                'activity': {'amount': 0.5},
-              },
+      controller.add({
+        'event': 'complete',
+        'data': {
+          'tripId': 't-decimals',
+          'tripDraft': {
+            'origin_iata': '',
+            'destination_iata': 'LYS',
+            'destination_city': 'Lyon',
+            'destination_country': 'France',
+            'destination_country_code': 'FR',
+            'destination_lat': 45.72,
+            'destination_lon': 5.08,
+            'start_date': '2026-06-01',
+            'end_date': '2026-06-04',
+            'duration_days': 3,
+            'nb_travelers': 1,
+            'target_budget': null,
+            'locale': 'fr',
+            'cover_image_url': null,
+            'weather': null,
+            'activities': <dynamic>[],
+            'accommodations': <dynamic>[],
+            'transport': <dynamic>[],
+            'baggage': <dynamic>[],
+            'budget': {
+              'transport': 0.5,
+              'accommodation': 0.5,
+              'food': 0.5,
+              'activity': 0.5,
+              'currency': 'EUR',
             },
           },
-        });
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        },
+      });
+      await Future<void>.delayed(const Duration(milliseconds: 50));
 
-        expect(bloc.state.generatedPlan!.budgetEur, closeTo(2.5, 0.001));
+      expect(bloc.state.generatedPlan!.budgetEur, closeTo(2.0, 0.001));
 
-        await controller.close();
-        await bloc.close();
-      },
-    );
+      await controller.close();
+      await bloc.close();
+    });
 
     test(
       'B23 — accommodation with price_total + nights derives per-night price',
@@ -1057,9 +1103,26 @@ void main() {
         controller.add({
           'event': 'complete',
           'data': {
-            'tripPlan': {
-              'destination': {'city': 'Barcelona', 'country': 'Spain'},
+            'tripId': 't-bcn',
+            'tripDraft': {
+              'origin_iata': 'CDG',
+              'destination_iata': 'BCN',
+              'destination_city': 'Barcelona',
+              'destination_country': 'Spain',
+              'destination_country_code': 'ES',
+              'destination_lat': 41.39,
+              'destination_lon': 2.17,
+              'start_date': '2026-07-01',
+              'end_date': '2026-07-06',
               'duration_days': 5,
+              'nb_travelers': 2,
+              'target_budget': null,
+              'locale': 'fr',
+              'cover_image_url': null,
+              'weather': null,
+              'activities': <dynamic>[],
+              'transport': <dynamic>[],
+              'baggage': <dynamic>[],
               'accommodations': [
                 {
                   'name': 'Hotel BCN',
@@ -1093,9 +1156,26 @@ void main() {
         controller.add({
           'event': 'complete',
           'data': {
-            'tripPlan': {
-              'destination': {'city': 'Rome', 'country': 'Italy'},
+            'tripId': 't-roma',
+            'tripDraft': {
+              'origin_iata': 'CDG',
+              'destination_iata': 'FCO',
+              'destination_city': 'Rome',
+              'destination_country': 'Italy',
+              'destination_country_code': 'IT',
+              'destination_lat': 41.90,
+              'destination_lon': 12.49,
+              'start_date': '2026-09-01',
+              'end_date': '2026-09-05',
               'duration_days': 4,
+              'nb_travelers': 2,
+              'target_budget': null,
+              'locale': 'fr',
+              'cover_image_url': null,
+              'weather': null,
+              'activities': <dynamic>[],
+              'transport': <dynamic>[],
+              'baggage': <dynamic>[],
               'accommodations': [
                 {
                   'name': 'Hotel Roma',
@@ -1462,64 +1542,73 @@ void main() {
   });
 
   group('create trip — AI flow', () {
-    // SMP-324 — confirming an AI plan is now ``updateTripStatus(draftId,
-    // "PLANNED")`` on the existing draft persisted by the SSE pipeline.
-    // The seed sets ``draftTripId`` because the SSE ``complete`` event
-    // would have populated it before the user reached step 5.
-
-    Trip confirmedTrip(String id) =>
-        Trip(id: id, title: 'Voyage', status: TripStatus.planned);
-
+    // SMP-325: the W2 SSE pipeline persists the trip server-side and
+    // ships the ``tripId`` in its ``complete`` event. The wizard
+    // stores it in ``state.pendingTripId``; ``_onCreateTrip`` for the
+    // AI flow just promotes that id to ``createdTripId`` — there is no
+    // ``acceptInspiration`` call any more.
     blocTest<PlanTripBloc, PlanTripState>(
-      'confirms the persisted draft and stores createdTripId',
-      build: () {
-        when(
-          () => mockTripRepo.updateTripStatus(any(), any()),
-        ).thenAnswer((_) async => Success(confirmedTrip('trip-42')));
-        return buildBloc();
-      },
-      seed: () => const PlanTripState(
-        draftTripId: 'trip-42',
-        generatedPlan: TripPlan(destinationCity: 'Lisbon'),
+      'AI create promotes pendingTripId to createdTripId',
+      build: buildBloc,
+      seed: () => PlanTripState(
+        generatedPlan: const TripPlan(
+          destinationCity: 'Lisbon',
+          destinationCountry: 'Portugal',
+          durationDays: 5,
+          budgetEur: 1000,
+          accommodationName: 'Hotel X',
+          accommodationPrice: 120,
+          accommodationSource: 'amadeus',
+          flightRoute: 'CDG→LIS',
+          flightDetails: 'AF123',
+          flightPrice: 200,
+          flightSource: 'amadeus',
+          dayProgram: ['Tram ride'],
+          dayDescriptions: ['Hop on the 28'],
+          dayCategories: ['CULTURE'],
+          essentialItems: ['Passport'],
+          essentialReasons: ['ID'],
+          highlights: [],
+        ),
+        pendingTripId: 'trip-42',
+        startDate: DateTime(2026, 6),
+        endDate: DateTime(2026, 6, 7),
       ),
       act: (bloc) => bloc.add(const PlanTripEvent.createTrip()),
       verify: (bloc) {
-        verify(() => mockTripRepo.updateTripStatus('trip-42', 'PLANNED'));
         expect(bloc.state.createdTripId, 'trip-42');
         expect(bloc.state.isCreating, false);
       },
     );
 
     blocTest<PlanTripBloc, PlanTripState>(
-      'createTrip (AI) without draftTripId surfaces ServerError',
+      'createTrip (AI) without pendingTripId surfaces ServerError',
       build: buildBloc,
       seed: () => const PlanTripState(
-        // No ``draftTripId`` — the SSE complete event never landed.
-        generatedPlan: TripPlan(destinationCity: 'X'),
+        generatedPlan: TripPlan(
+          destinationCity: 'X',
+          destinationCountry: 'Y',
+          durationDays: 3,
+          budgetEur: 100,
+          accommodationName: '',
+          accommodationPrice: 0,
+          accommodationSource: 'estimated',
+          flightRoute: '',
+          flightDetails: '',
+          flightPrice: 0,
+          flightSource: 'estimated',
+          dayProgram: [],
+          dayDescriptions: [],
+          dayCategories: [],
+          essentialItems: [],
+          essentialReasons: [],
+          highlights: [],
+        ),
       ),
       act: (bloc) => bloc.add(const PlanTripEvent.createTrip()),
       verify: (bloc) {
-        verifyNever(() => mockTripRepo.updateTripStatus(any(), any()));
         expect(bloc.state.error, isA<ServerError>());
         expect(bloc.state.isCreating, false);
-      },
-    );
-
-    blocTest<PlanTripBloc, PlanTripState>(
-      'AI confirm failure surfaces error',
-      build: () {
-        when(
-          () => mockTripRepo.updateTripStatus(any(), any()),
-        ).thenAnswer((_) async => const Failure(NetworkError('offline')));
-        return buildBloc();
-      },
-      seed: () => const PlanTripState(
-        draftTripId: 'trip-42',
-        generatedPlan: TripPlan(destinationCity: 'X'),
-      ),
-      act: (bloc) => bloc.add(const PlanTripEvent.createTrip()),
-      verify: (bloc) {
-        expect(bloc.state.error, isA<NetworkError>());
       },
     );
 

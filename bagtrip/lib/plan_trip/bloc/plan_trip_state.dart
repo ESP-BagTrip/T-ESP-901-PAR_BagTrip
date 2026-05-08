@@ -42,6 +42,14 @@ abstract class PlanTripState with _$PlanTripState {
     String? generationMessage,
     TripPlan? generatedPlan,
     String? generationError,
+    // Server persists the DRAFT trip during the SSE run; the ``tripId``
+    // ships in the ``complete`` event. The wizard stores it here so the
+    // "Create my trip" button on step 5 just promotes it to
+    // ``createdTripId`` without re-calling the backend.
+    String? pendingTripId,
+    // Non-fatal SSE warnings (Amadeus down, weather unavailable…). The
+    // review screen surfaces them as a soft banner.
+    @Default(<String>[]) List<String> generationWarnings,
 
     // Step 5 — Review / Creation
     @Default(false) bool isCreating,
