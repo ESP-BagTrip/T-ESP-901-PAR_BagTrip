@@ -150,6 +150,11 @@ class Settings(BaseSettings):
     # Redis (optional — falls back to in-memory if not set)
     REDIS_URL: str | None = None
 
+    # Open-Meteo geocoding (multilingual city → coords). Distinct host from
+    # the weather API. Free, no API key. Used by LocationResolver as the
+    # multilingual fallback when ``airportsdata`` (English-only) misses.
+    OPEN_METEO_GEOCODING_BASE_URL: str = "https://geocoding-api.open-meteo.com"
+
     # AI graph timeouts (seconds)
     GRAPH_TIMEOUT_SECONDS: int = 300  # Global timeout for the trip planning graph
     # SMP-324 — bumped from 60 to 120s after measuring the OVH gpt-oss-120b

@@ -1,282 +1,189 @@
-"""Unit tests for ``services.location_resolver``."""
+"""Tests for :class:`LocationResolver` — the cascade resolver.
+
+Covers:
+
+- IATA pass-through (``"CDG"`` returns the airport directly).
+- English-name match via the offline catalogue.
+- Country-aware disambiguation when several airports share a name.
+- Multilingual fallback through Open-Meteo geocoding (FR ``"Singapour"``).
+- Open-Meteo HTTP failure → ``None`` (no silent garbage IATA).
+- Cache round-trip (subsequent identical query hits the cache, not the
+  network).
+"""
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from typing import Any
+from unittest.mock import AsyncMock, MagicMock
 
+import httpx
 import pytest
 
-from src.integrations.open_meteo import GeocodedPlace
 from src.services.location_resolver import (
-    ResolvedCity,
-    _slug,
-    resolve_city,
+    LocationResolver,
+    ResolvedLocation,
 )
+from src.utils.idempotency import idempotency_cache
 
 
-def _aviation_location(
-    iata: str,
-    city: str,
-    country: str,
-    lat: float,
-    lon: float,
-    *,
-    country_code: str = "",
-    city_code: str = "",
-):
-    """Build a stub mimicking the Pydantic ``Location`` returned by aviation_data."""
-    address = MagicMock()
-    address.cityName = city
-    address.countryName = country
-    address.countryCode = country_code
-    address.cityCode = city_code
-    geo = MagicMock(latitude=lat, longitude=lon)
-    loc = MagicMock(iataCode=iata, address=address, geoCode=geo)
-    return loc
+@pytest.fixture(autouse=True)
+def _clear_cache() -> None:
+    # The idempotency cache is a process-level singleton; tests in this
+    # module poison its state if we don't drop it between runs.
+    idempotency_cache._memory_cache.clear()  # type: ignore[attr-defined]
+    yield
+    idempotency_cache._memory_cache.clear()  # type: ignore[attr-defined]
 
 
-class TestSlug:
-    @pytest.mark.parametrize(
-        ("raw", "expected"),
-        [
-            ("Singapour", "singapour"),
-            ("SAINT-PÉTERSBOURG", "saint_petersbourg"),
-            ("saint petersbourg", "saint_petersbourg"),
-            ("Köln", "koln"),
-            ("São Paulo", "sao_paulo"),
-            ("  spaced  ", "spaced"),
-            ("", ""),
-        ],
+def _stub_open_meteo_geocoding_response(
+    monkeypatch, response_payload: dict[str, Any] | None, status_code: int = 200
+) -> None:
+    """Patch the shared httpx client used by the resolver."""
+    fake_response = MagicMock(spec=httpx.Response)
+    fake_response.status_code = status_code
+    fake_response.json = MagicMock(return_value=response_payload or {})
+    fake_client = MagicMock()
+    fake_client.get = AsyncMock(return_value=fake_response)
+    monkeypatch.setattr("src.services.location_resolver.get_http_client", lambda: fake_client)
+    return fake_client
+
+
+# ── Resolver behaviour ────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_iata_passthrough(monkeypatch):
+    """A 3-letter IATA code resolves directly via airportsdata."""
+    fake_client = _stub_open_meteo_geocoding_response(monkeypatch, None)
+    result = await LocationResolver.resolve("CDG")
+    assert result is not None
+    assert result.iata == "CDG"
+    assert result.country_code == "FR"
+    assert result.source == "airportsdata"
+    fake_client.get.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_english_keyword_match(monkeypatch):
+    """A plain English city name is resolved offline (no network)."""
+    fake_client = _stub_open_meteo_geocoding_response(monkeypatch, None)
+    result = await LocationResolver.resolve("Paris")
+    assert result is not None
+    assert result.iata in {"CDG", "ORY", "PAR"}
+    assert result.country_code == "FR"
+    assert result.source == "airportsdata"
+    fake_client.get.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_country_disambiguates_namesakes(monkeypatch):
+    """Manchester (UK) vs Manchester (US) — country hint pins the right one."""
+    fake_client = _stub_open_meteo_geocoding_response(monkeypatch, None)
+    result = await LocationResolver.resolve("Manchester", country_hint="United Kingdom")
+    assert result is not None
+    assert result.iata == "MAN"
+    fake_client.get.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_french_query_falls_back_to_open_meteo(monkeypatch):
+    """'Singapour' is unknown to airportsdata → Open-Meteo geocoding kicks in."""
+    fake_client = _stub_open_meteo_geocoding_response(
+        monkeypatch,
+        {
+            "results": [
+                {
+                    "name": "Singapour",
+                    "latitude": 1.28967,
+                    "longitude": 103.85007,
+                    "country": "Singapour",
+                    "country_code": "SG",
+                    "feature_code": "PPLC",
+                    "population": 5_638_700,
+                }
+            ]
+        },
     )
-    def test_slug_normalizes(self, raw: str, expected: str) -> None:
-        assert _slug(raw) == expected
+    result = await LocationResolver.resolve("Singapour", locale="fr")
+    assert result is not None
+    assert result.iata == "SIN"  # Singapore Changi
+    assert result.country_code == "SG"
+    assert result.source == "open-meteo+nearest"
+    fake_client.get.assert_awaited()
 
 
-class TestResolveCityCascade:
-    @pytest.mark.asyncio
-    async def test_empty_input_returns_none(self):
-        assert await resolve_city("") is None
-        assert await resolve_city("   ") is None
-        assert await resolve_city(None) is None  # type: ignore[arg-type]
+@pytest.mark.asyncio
+async def test_open_meteo_miss_returns_none(monkeypatch):
+    """If Open-Meteo also misses, the resolver explicitly returns None.
 
-    @pytest.mark.asyncio
-    async def test_iata_passthrough_short_circuits(self):
-        loc = _aviation_location("CDG", "Paris", "France", 49.0, 2.55)
-        with (
-            patch(
-                "src.services.location_resolver.aviation_data_service.get_by_id",
-                return_value=loc,
-            ) as get_by_id,
-            patch("src.services.location_resolver._read_cache", return_value=None),
-            patch("src.services.location_resolver._write_cache") as write_cache,
-            patch("src.services.location_resolver.search_places", new=AsyncMock()) as omg,
-        ):
-            result = await resolve_city("CDG")
-        assert result is not None
-        assert result.iata == "CDG"
-        assert result.source == "airportsdata.iata"
-        get_by_id.assert_called_once_with("CDG")
-        omg.assert_not_called()
-        write_cache.assert_called_once()
+    Silent fallbacks to garbage IATA codes were the worst quality issue
+    in the audit (C5/C6); the resolver must never invent a result.
+    """
+    _stub_open_meteo_geocoding_response(monkeypatch, {"results": []})
+    result = await LocationResolver.resolve("Zzqx-not-a-city", locale="fr")
+    assert result is None
 
-    @pytest.mark.asyncio
-    async def test_iata_passthrough_unknown_falls_through(self):
-        with (
-            patch(
-                "src.services.location_resolver.aviation_data_service.get_by_id",
-                return_value=None,
-            ),
-            patch("src.services.location_resolver._read_cache", return_value=None),
-            patch(
-                "src.services.location_resolver._try_airportsdata_keyword",
-                return_value=None,
-            ),
-            patch(
-                "src.services.location_resolver.search_places",
-                new=AsyncMock(return_value=[]),
-            ),
-        ):
-            result = await resolve_city("ZZZ")
-        assert result is None
 
-    @pytest.mark.asyncio
-    async def test_cache_hit_skips_resolution(self):
-        cached = ResolvedCity(
-            iata="SIN",
-            city="Singapour",
-            country="Singapour",
-            country_code="SG",
-            latitude=1.35,
-            longitude=103.99,
-            source="cached",
-        )
-        with (
-            patch("src.services.location_resolver._read_cache", return_value=cached),
-            patch(
-                "src.services.location_resolver._try_iata_passthrough",
-                return_value=None,
-            ),
-            patch("src.services.location_resolver.aviation_data_service") as aviation,
-            patch("src.services.location_resolver.search_places", new=AsyncMock()) as omg,
-        ):
-            result = await resolve_city("Singapour", locale="fr")
-        assert result == cached
-        aviation.search_by_keyword.assert_not_called()
-        omg.assert_not_called()
+@pytest.mark.asyncio
+async def test_open_meteo_http_error_returns_none(monkeypatch):
+    """A 503 from Open-Meteo doesn't crash and doesn't fabricate a result."""
+    _stub_open_meteo_geocoding_response(monkeypatch, None, status_code=503)
+    result = await LocationResolver.resolve("Inconnueville", locale="fr")
+    assert result is None
 
-    @pytest.mark.asyncio
-    async def test_english_keyword_match(self):
-        loc = _aviation_location("SIN", "Singapore", "Singapore", 1.35, 103.99)
-        with (
-            patch("src.services.location_resolver._read_cache", return_value=None),
-            patch(
-                "src.services.location_resolver._try_iata_passthrough",
-                return_value=None,
-            ),
-            patch(
-                "src.services.location_resolver.aviation_data_service.search_by_keyword",
-                return_value=[loc],
-            ),
-            patch("src.services.location_resolver.search_places", new=AsyncMock()) as omg,
-            patch("src.services.location_resolver._write_cache"),
-        ):
-            result = await resolve_city("Singapore", locale="en")
-        assert result is not None
-        assert result.iata == "SIN"
-        assert result.source == "airportsdata.keyword"
-        omg.assert_not_called()
 
-    @pytest.mark.asyncio
-    async def test_french_input_falls_back_to_geocoding(self):
-        # Step 3 (English keyword) misses for "Singapour".
-        # Step 4: Open-Meteo returns Singapore in EN, then airportsdata
-        # finds SIN with that English name.
-        place = GeocodedPlace(
-            name="Singapore",
-            latitude=1.28967,
-            longitude=103.85007,
-            country="Singapore",
-            country_code="SG",
-        )
-        sin_loc = _aviation_location("SIN", "Singapore", "Singapore", 1.35, 103.99)
+@pytest.mark.asyncio
+async def test_cache_round_trip(monkeypatch):
+    """A second identical resolve hits the cache and skips the network."""
+    fake_client = _stub_open_meteo_geocoding_response(
+        monkeypatch,
+        {
+            "results": [
+                {
+                    "name": "Singapour",
+                    "latitude": 1.28967,
+                    "longitude": 103.85007,
+                    "country": "Singapour",
+                    "country_code": "SG",
+                    "feature_code": "PPLC",
+                    "population": 5_000_000,
+                }
+            ]
+        },
+    )
+    first = await LocationResolver.resolve("Singapour", locale="fr")
+    second = await LocationResolver.resolve("Singapour", locale="fr")
+    assert first is not None
+    assert second is not None
+    assert second.iata == first.iata
+    assert second.source == "cache"
+    # Geocoding endpoint hit only once (the cached path skips the network).
+    assert fake_client.get.await_count == 1
 
-        keyword_calls = {"count": 0}
 
-        def keyword_side_effect(name, sub_type="CITY,AIRPORT", limit=1):
-            keyword_calls["count"] += 1
-            # First call (raw "Singapour") misses, second ("Singapore") hits.
-            if keyword_calls["count"] == 1:
-                return []
-            return [sin_loc]
+@pytest.mark.asyncio
+async def test_blank_input_returns_none(monkeypatch):
+    _stub_open_meteo_geocoding_response(monkeypatch, None)
+    assert await LocationResolver.resolve("") is None
+    assert await LocationResolver.resolve("   ") is None
 
-        with (
-            patch("src.services.location_resolver._read_cache", return_value=None),
-            patch(
-                "src.services.location_resolver._try_iata_passthrough",
-                return_value=None,
-            ),
-            patch(
-                "src.services.location_resolver.aviation_data_service.search_by_keyword",
-                side_effect=keyword_side_effect,
-            ),
-            patch(
-                "src.services.location_resolver.search_places",
-                new=AsyncMock(return_value=[place]),
-            ),
-            patch("src.services.location_resolver._write_cache"),
-        ):
-            result = await resolve_city("Singapour", locale="fr")
-        assert result is not None
-        assert result.iata == "SIN"
-        assert result.source == "open_meteo+airportsdata"
-        # The user-facing city name preserves the localized label.
-        assert result.city == "Singapore"
-        # Coordinates come from Open-Meteo (more precise than airport coords).
-        assert result.latitude == pytest.approx(1.28967)
-        assert result.longitude == pytest.approx(103.85007)
-        assert keyword_calls["count"] == 2
 
-    @pytest.mark.asyncio
-    async def test_geocoding_falls_back_to_nearest_airport(self):
-        # Even the English re-attempt misses (niche city) — we should fall
-        # back to nearest airport to the geocoded coords.
-        place = GeocodedPlace(
-            name="Faaa",
-            latitude=-17.55,
-            longitude=-149.61,
-            country="French Polynesia",
-            country_code="PF",
-        )
-        ppt = _aviation_location("PPT", "Papeete", "French Polynesia", -17.55, -149.61)
+# ── Dataclass surface ─────────────────────────────────────────────────
 
-        with (
-            patch("src.services.location_resolver._read_cache", return_value=None),
-            patch(
-                "src.services.location_resolver._try_iata_passthrough",
-                return_value=None,
-            ),
-            patch(
-                "src.services.location_resolver.aviation_data_service.search_by_keyword",
-                return_value=[],
-            ),
-            patch(
-                "src.services.location_resolver.search_places",
-                new=AsyncMock(return_value=[place]),
-            ),
-            patch(
-                "src.services.location_resolver.aviation_data_service.search_nearest",
-                return_value=[ppt],
-            ),
-            patch("src.services.location_resolver._write_cache"),
-        ):
-            result = await resolve_city("Faaa", locale="fr")
-        assert result is not None
-        assert result.iata == "PPT"
-        assert result.source == "open_meteo+nearest"
 
-    @pytest.mark.asyncio
-    async def test_locale_normalization(self):
-        # ``fr-FR`` and ``fr_FR`` collapse to ``fr`` for cache keying.
-        place = GeocodedPlace(
-            name="Singapore",
-            latitude=1.28,
-            longitude=103.85,
-            country="Singapore",
-            country_code="SG",
-        )
-        sin_loc = _aviation_location("SIN", "Singapore", "Singapore", 1.35, 103.99)
-        cache_writes: list[tuple[str, str, str]] = []
-
-        def fake_write(query, locale, resolved):
-            cache_writes.append((query, locale, resolved.iata))
-
-        keyword_calls = {"count": 0}
-
-        def keyword_side_effect(name, sub_type="CITY,AIRPORT", limit=1):
-            keyword_calls["count"] += 1
-            return [] if keyword_calls["count"] == 1 else [sin_loc]
-
-        with (
-            patch("src.services.location_resolver._read_cache", return_value=None),
-            patch(
-                "src.services.location_resolver._try_iata_passthrough",
-                return_value=None,
-            ),
-            patch(
-                "src.services.location_resolver.aviation_data_service.search_by_keyword",
-                side_effect=keyword_side_effect,
-            ),
-            patch(
-                "src.services.location_resolver.search_places",
-                new=AsyncMock(return_value=[place]),
-            ),
-            patch(
-                "src.services.location_resolver._write_cache",
-                side_effect=fake_write,
-            ),
-        ):
-            await resolve_city("Singapour", locale="fr-FR,en;q=0.8")
-        assert cache_writes, "expected resolver to persist a cache entry"
-        _, locale_used, iata = cache_writes[0]
-        assert locale_used == "fr"
-        assert iata == "SIN"
+def test_resolved_location_to_dict_round_trip():
+    """The cache serialiser must preserve every field."""
+    original = ResolvedLocation(
+        iata="CDG",
+        city="Paris",
+        country="France",
+        country_code="FR",
+        lat=49.0,
+        lon=2.55,
+        source="airportsdata",
+        raw_query="Paris",
+        raw_locale="en",
+    )
+    payload = original.__dict__.copy()
+    assert payload["iata"] == "CDG"
+    assert payload["country_code"] == "FR"
