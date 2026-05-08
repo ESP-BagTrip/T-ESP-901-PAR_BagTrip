@@ -1,40 +1,35 @@
-"""SSE trip-planning orchestration — extracted from `plan_trip_routes.py`.
+"""SSE trip-planning orchestration.
 
-The LangGraph streaming logic used to live inline in the route handler. That
-was a CLAUDE.md violation ("routes are HTTP-only, pas d'orchestration LangGraph
-inline") and also made the route impossible to test without spinning up the
-full FastAPI stack. This service is now the single owner of:
+The route handler stays HTTP-only. This service owns the whole stream
+lifecycle:
 
-- State assembly from the incoming `PlanTripRequest`
-- Mode dispatching (`destinations_only` fast path vs. full ReAct graph)
-- SSE event dedup, heartbeat, and timeout
-- AI quota increment on success
-- Guaranteed cleanup via `try / finally`
-
-The route is a pass-through: it wraps `stream_plan()` in an `EventSourceResponse`
-/`StreamingResponse` and nothing else.
+- Mode dispatching (W1 ``destinations_only`` → :class:`InspireOrchestrator`,
+  W2 full plan → :class:`FullPlanOrchestrator`).
+- SSE serialisation, heartbeat, and the terminal ``done`` event.
+- Server-side persistence of W2 drafts via :class:`PlanDraftService`,
+  the deterministic feasibility pass and the AI-quota increment.
+- Guaranteed cleanup via ``try / finally``.
 """
 
 from __future__ import annotations
 
-import asyncio
 import json
-import time
 from collections.abc import AsyncIterator
-from datetime import date, timedelta
-from typing import Any
 
 from sqlalchemy.orm import Session
 
-from src.agent.runtime_budget import BudgetExceeded
 from src.api.ai.plan_trip_schemas import PlanTripRequest
-from src.config.env import settings
-from src.integrations.unsplash import unsplash_client
 from src.models.user import User
+from src.services.feasibility_pass import schedule_activities
+from src.services.full_plan_orchestrator import (
+    FullPlanOrchestrator,
+    FullPlanRequest,
+    TripDraftCommand,
+)
 from src.services.inspire_orchestrator import InspireOrchestrator, InspireRequest
+from src.services.plan_draft_service import PlanDraftService
 from src.services.plan_service import PlanService
 from src.utils.logger import logger
-from src.utils.timeout import async_generator_with_timeout
 
 
 def _sse(event: str, data: dict) -> str:
@@ -59,71 +54,69 @@ def _to_inspire_request(request: PlanTripRequest) -> InspireRequest:
     )
 
 
-def _build_initial_state(request: PlanTripRequest) -> dict:
-    """Build the LangGraph `TripPlanState` seed from an incoming request."""
-    dep_date = request.departureDate or ""
-    ret_date = request.returnDate or ""
-    duration = request.durationDays or 7
-
-    # Safety net: derive dates for month/flexible modes if client didn't send them.
-    if not dep_date or not ret_date:
-        if request.preferredMonth and request.preferredYear:
-            start = date(request.preferredYear, request.preferredMonth, 15)
-            dep_date = str(start)
-            ret_date = str(start + timedelta(days=duration))
-        elif request.dateMode in ("month", "flexible"):
-            start = date.today() + timedelta(days=30)
-            dep_date = str(start)
-            ret_date = str(start + timedelta(days=duration))
-
-    return {
-        "travel_types": request.travelTypes or "",
-        "duration_days": duration,
-        "companions": request.companions or "solo",
-        "constraints": request.constraints or "",
-        "departure_date": dep_date,
-        "return_date": ret_date,
-        "origin_city": request.originCity or "",
-        "destination_city": request.destinationCity or "",
-        "destination_iata": request.destinationIata or "",
-        "travel_style": request.travelStyle or "",
-        "season": request.season or "",
-        "nb_travelers": request.nbTravelers or 1,
-        "budget_preset": request.budgetPreset or "",
-        # Topic 01 — numeric target the user committed to in the wizard.
-        # Threaded into the agent state so nodes can render it in prompts
-        # and `_compute_fallback_budget` can use it as a sanity ceiling.
-        "target_budget": request.targetBudget,
-        "date_mode": request.dateMode or "",
-        "events": [],
-        "errors": [],
-        # Budget tracking — `time.monotonic()` is strictly increasing so we
-        # don't need tz-aware math. Consumed seconds accrues as each node
-        # finishes via `src.agent.runtime_budget.track`.
-        "budget_deadline_monotonic": time.monotonic() + settings.GRAPH_TIMEOUT_SECONDS,
-        "budget_consumed_seconds": 0.0,
-        # Locale picked up by every node's `prompts.render(name, locale=...)` call.
-        "locale": request.locale or "en",
-    }
+def _to_full_plan_request(request: PlanTripRequest) -> FullPlanRequest:
+    """Map the wizard payload onto the W2 full-plan orchestrator's input."""
+    return FullPlanRequest(
+        origin_city=request.originCity or "",
+        destination_city=request.destinationCity or "",
+        destination_iata=request.destinationIata or "",
+        travel_types=request.travelTypes or "",
+        duration_days=request.durationDays or 7,
+        departure_date=request.departureDate or "",
+        return_date=request.returnDate or "",
+        season=request.season or "",
+        companions=request.companions or "solo",
+        constraints=request.constraints or "",
+        budget_preset=request.budgetPreset or "",
+        nb_travelers=request.nbTravelers or 1,
+        target_budget=request.targetBudget,
+        locale=request.locale or "en",
+    )
 
 
-async def _enrich_destinations_with_images(destinations: list[dict]) -> list[dict]:
-    """Fetch Unsplash cover images for each destination (parallel, with fallback)."""
+def _trip_draft_from_dict(payload: dict) -> TripDraftCommand:
+    """Rebuild a :class:`TripDraftCommand` from the dict shipped in ``complete``.
 
-    async def _fetch_one(dest: dict) -> dict:
-        city = dest.get("city", "")
-        if not city:
-            return dest
-        country = dest.get("country", "")
-        query = f"{city}, {country}" if country else city
-        url = await unsplash_client.fetch_cover_image(query)
-        if not url:
-            url = unsplash_client.get_fallback_url(query)
-        dest["image_url"] = url
-        return dest
+    The orchestrator yields ``complete {"trip_draft": asdict(cmd)}`` so the
+    SSE payload is JSON-serialisable. The persistence layer expects the
+    typed dataclass, so we round-trip here through the same builders the
+    orchestrator uses internally — that keeps the contract honest if
+    fields are added later.
+    """
+    from src.services.full_plan_orchestrator import (
+        AccommodationDraft,
+        ActivityDraft,
+        BaggageDraft,
+        BudgetBreakdown,
+        TransportLeg,
+        WeatherSummary,
+    )
 
-    await asyncio.gather(*[_fetch_one(d) for d in destinations])
-    return destinations
+    weather_payload = payload.get("weather")
+    weather = WeatherSummary(**weather_payload) if weather_payload else None
+    return TripDraftCommand(
+        origin_iata=payload["origin_iata"],
+        origin_city=payload["origin_city"],
+        destination_iata=payload["destination_iata"],
+        destination_city=payload["destination_city"],
+        destination_country=payload["destination_country"],
+        destination_country_code=payload["destination_country_code"],
+        destination_lat=payload["destination_lat"],
+        destination_lon=payload["destination_lon"],
+        start_date=payload["start_date"],
+        end_date=payload["end_date"],
+        duration_days=payload["duration_days"],
+        nb_travelers=payload["nb_travelers"],
+        target_budget=payload.get("target_budget"),
+        locale=payload["locale"],
+        cover_image_url=payload.get("cover_image_url"),
+        weather=weather,
+        activities=[ActivityDraft(**a) for a in payload.get("activities", [])],
+        accommodations=[AccommodationDraft(**a) for a in payload.get("accommodations", [])],
+        transport=[TransportLeg(**t) for t in payload.get("transport", [])],
+        baggage=[BaggageDraft(**b) for b in payload.get("baggage", [])],
+        budget=BudgetBreakdown(**payload.get("budget", {})),
+    )
 
 
 class TripPlannerService:
@@ -137,144 +130,61 @@ class TripPlannerService:
     ) -> AsyncIterator[str]:
         """Yield SSE event strings for a single trip-plan request.
 
-        This is the whole LangGraph pipeline from prompt state to completion,
-        wrapped in a ``try/finally`` so cleanup runs even if the client
-        disconnects or the graph raises.
-
-        Events emitted (in rough order):
-            ``progress`` → ``destinations`` → ``progress`` →
-            ``activities`` / ``accommodations`` / ``baggage`` (parallel) →
-            ``progress`` (budget) → ``budget`` → ``complete`` → ``done``.
-            Plus ``heartbeat`` every 15 s and ``error`` on failure paths.
+        - ``mode="destinations_only"`` → :class:`InspireOrchestrator`,
+          forwarded verbatim. Nothing is persisted server-side; the
+          wizard step that follows lets the user pick a destination
+          before the W2 path.
+        - default / ``mode="full"`` → :class:`FullPlanOrchestrator`
+          followed by the deterministic feasibility pass and a server-
+          side persist via :class:`PlanDraftService`. The orchestrator's
+          own ``complete`` event is intentionally swallowed; we re-emit
+          a richer one with the persisted ``tripId``.
         """
-        # Local import — the graph drags LangChain state machinery we don't
-        # want loaded at module import time (slower boot + circular risk).
-        from src.agent.graph import graph
-        from src.agent.state import TripPlanState
-
         try:
-            # W1 — destinations_only mode is fully owned by InspireOrchestrator
-            # (Amadeus inspiration → parallel weather enrichment → strict-schema
-            # LLM ranker → Unsplash). The orchestrator emits its own
-            # ``progress`` events; the only thing this service still owns
-            # for W1 is the terminal ``done`` SSE in the ``finally`` below.
             if request.mode == "destinations_only":
                 inspire_req = _to_inspire_request(request)
                 async for ev_type, ev_data in InspireOrchestrator.stream(inspire_req):
                     yield _sse(ev_type, ev_data)
                 return
 
-            # Full-plan path keeps its legacy boot events for now; Phase 3
-            # rewrites this branch and unifies the progress vocabulary.
-            yield _sse(
-                "progress",
-                {"phase": "starting", "message": "Starting trip planning..."},
-            )
-            initial_state: TripPlanState = _build_initial_state(request)  # type: ignore[assignment]
-            yield _sse(
-                "progress",
-                {"phase": "destination_research", "message": "Researching destinations..."},
-            )
+            full_req = _to_full_plan_request(request)
+            trip_draft_payload: dict | None = None
+            async for ev_type, ev_data in FullPlanOrchestrator.stream(full_req):
+                if ev_type == "complete":
+                    # Capture the DTO; we re-emit ``complete`` after the
+                    # feasibility pass + persistence so the client gets a
+                    # ``tripId`` it can link to.
+                    trip_draft_payload = ev_data.get("trip_draft")
+                    continue
+                yield _sse(ev_type, ev_data)
 
-            async for event in TripPlannerService._stream_graph(graph, initial_state):
-                yield event
+            if trip_draft_payload is None:
+                # The orchestrator surfaced a fatal ``error`` event before
+                # producing a draft; the ``finally`` below closes the
+                # stream with ``done`` and we exit cleanly.
+                return
 
-            # Successful completion → increment quota (best-effort — a failed
-            # counter update must not prevent the user from receiving events).
+            cmd = _trip_draft_from_dict(trip_draft_payload)
+            cmd.activities = schedule_activities(cmd)
+            user = db.query(User).filter(User.id == user_id).first()
+            if user is None:
+                raise RuntimeError(f"user {user_id} disappeared mid-stream")
+            trip = PlanDraftService.create_draft_from_command(db=db, user=user, cmd=cmd)
+            yield _sse(
+                "complete",
+                {
+                    "tripId": str(trip.id),
+                    "status": str(trip.status),
+                    "tripDraft": trip_draft_payload,
+                },
+            )
             try:
-                user = db.query(User).filter(User.id == user_id).first()
-                if user is not None:
-                    PlanService.increment_ai_generation(db, user)
+                PlanService.increment_ai_generation(db, user)
             except Exception as exc:
                 logger.warn(f"Failed to increment AI generation count: {exc}")
 
-        except BudgetExceeded as exc:
-            logger.warn(
-                "Trip planning graph exhausted its time budget",
-                {"timeout_seconds": settings.GRAPH_TIMEOUT_SECONDS, "error": str(exc)},
-            )
-            yield _sse(
-                "error",
-                {
-                    "message": "Trip planning exceeded its time budget. Please try again.",
-                    "code": "GRAPH_BUDGET_EXHAUSTED",
-                },
-            )
-        except TimeoutError:
-            logger.error(
-                "Trip planning graph timed out",
-                {"timeout_seconds": settings.GRAPH_TIMEOUT_SECONDS},
-            )
-            yield _sse("error", {"message": "Trip planning timed out. Please try again."})
         except Exception as exc:
-            logger.error("Trip planning graph failed", {"error": str(exc)})
+            logger.error("Trip planning failed", {"error": str(exc)})
             yield _sse("error", {"message": str(exc)})
         finally:
-            # Always send the done signal so the client can close the SSE
-            # connection cleanly even on errors.
             yield _sse("done", {"status": "complete"})
-
-    @staticmethod
-    async def _stream_graph(
-        graph_obj,
-        initial_state: Any,
-    ) -> AsyncIterator[str]:
-        """Iterate the LangGraph stream, dedup events, emit SSE + heartbeats."""
-        last_heartbeat = asyncio.get_event_loop().time()
-        sent_events: set[str] = set()  # Track which event types we've already sent
-
-        async for event in async_generator_with_timeout(
-            graph_obj.astream(initial_state, stream_mode="updates"),
-            total_timeout_seconds=settings.GRAPH_TIMEOUT_SECONDS,
-        ):
-            for node_name, update in event.items():
-                node_events = update.get("events", [])
-
-                for evt in node_events:
-                    event_type = evt.get("event", "")
-                    event_data = evt.get("data", {})
-
-                    # Avoid duplicate events
-                    event_key = f"{event_type}:{node_name}"
-                    if event_key in sent_events:
-                        continue
-                    sent_events.add(event_key)
-
-                    # Enrich destinations with Unsplash cover images
-                    if event_type == "destinations":
-                        dests = event_data.get("destinations", [])
-                        if dests:
-                            await _enrich_destinations_with_images(dests)
-
-                    yield _sse(event_type, event_data)
-
-                    # Send progress for next phase
-                    if event_type == "destinations":
-                        yield _sse(
-                            "progress",
-                            {
-                                "phase": "parallel_planning",
-                                "message": "Planning activities, accommodation & packing...",
-                            },
-                        )
-                    elif event_type in ("activities", "accommodations", "baggage"):
-                        # Check if all 3 parallel nodes are done
-                        parallel_done = {"activities", "accommodations", "baggage"}
-                        done = {
-                            e.split(":")[0] for e in sent_events if e.split(":")[0] in parallel_done
-                        }
-                        if done == parallel_done:
-                            yield _sse(
-                                "progress",
-                                {"phase": "budget", "message": "Estimating budget..."},
-                            )
-
-                node_errors = update.get("errors", [])
-                for err in node_errors:
-                    logger.warn(f"Node {node_name} error: {err}")
-
-            # Heartbeat every 15s
-            now = asyncio.get_event_loop().time()
-            if now - last_heartbeat > 15:
-                yield _sse("heartbeat", {"ts": int(now)})
-                last_heartbeat = now
