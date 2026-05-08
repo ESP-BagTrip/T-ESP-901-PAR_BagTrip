@@ -1,5 +1,4 @@
 import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
-import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/core/trip_enums.dart';
 import 'package:bagtrip/design/app_haptics.dart';
@@ -93,15 +92,17 @@ class FlightsPanel extends StatelessWidget {
   }
 
   /// Phase 4 — opens the two-branch validate sheet.
-  /// External branch: collect the flight number then dispatch the
-  /// universal validate event + persist the number on the row.
-  /// Amadeus branch: stub for now (Phase 4 follow-up wires the
-  /// reprice + booking-intent orchestration).
+  /// External branch: collects the flight number, persists it on the
+  /// row, dispatches ValidateFlightFromDetail.
+  /// Amadeus branch (Phase 4 FU3): hands off to the same Amadeus search
+  /// flow as Replace, but in book mode — the user picks an offer and
+  /// the existing flight-result-details "Book this flight" button fires
+  /// CreateBookingIntent. The backend flips status=VALIDATED +
+  /// source=AMADEUS_BOOKED on payment success.
   Future<void> _showValidateBranchSheet(
     BuildContext parentContext,
     ManualFlight flight,
   ) async {
-    final l10n = AppLocalizations.of(parentContext)!;
     final bloc = parentContext.read<TripDetailBloc>();
     Navigator.of(parentContext).pop();
     await showFlightValidationBranchSheet<void>(
@@ -112,11 +113,10 @@ class FlightsPanel extends StatelessWidget {
       },
       onPickAmadeus: () {
         Navigator.of(parentContext).pop();
-        // Amadeus reprice + booking-intent flow lands in a follow-up.
-        // We surface the intent honestly instead of pretending to act.
-        AppSnackBar.showInfo(
+        _showFlightSearchSheet(
           parentContext,
-          message: l10n.flightValidateAmadeusSubtitle,
+          flight,
+          mode: _FlightSearchMode.book,
         );
       },
     );
@@ -221,20 +221,29 @@ class FlightsPanel extends StatelessWidget {
     controller.dispose();
   }
 
-  /// Phase 4 follow-up — wraps the real FlightSearchForm in the
+  /// Phase 4 follow-up — opens the Amadeus search inside a
   /// ReplaceSearchSheet, prefilled with the flight's IATAs and the
-  /// trip dates. When the user submits, we navigate to the existing
-  /// flight-search-result page with `replaceFlightId` set so the
-  /// downstream "save to trip" action knows to dispatch
-  /// ReplaceFlightFromDetail (atomic DELETE+CREATE) instead of a plain
-  /// CreateFlightFromDetail. The bloc handler is already in place
-  /// (Phase 4); the result-page wiring lands in a follow-up commit.
-  Future<void> _showReplaceSheet(
+  /// trip dates. The downstream behaviour depends on [mode]:
+  ///
+  /// - [_FlightSearchMode.replace] : the result page short-circuits the
+  ///   details navigation (replaceFlightId carries through), the user
+  ///   picks an offer, and we dispatch ReplaceFlightFromDetail (atomic
+  ///   DELETE+CREATE).
+  /// - [_FlightSearchMode.book] : standard flow — picking an offer
+  ///   pushes flight_result_details where the existing "Book this
+  ///   flight" CTA fires CreateBookingIntent. Backend flips the
+  ///   row to VALIDATED + source=AMADEUS_BOOKED on payment success.
+  Future<void> _showFlightSearchSheet(
     BuildContext parentContext,
-    ManualFlight flight,
-  ) async {
+    ManualFlight flight, {
+    required _FlightSearchMode mode,
+  }) async {
     final l10n = AppLocalizations.of(parentContext)!;
-    Navigator.of(parentContext).pop();
+    if (mode == _FlightSearchMode.replace) {
+      // The replace path is reached from the QuickPreviewSheet which
+      // is still on top — drop it before stacking the search sheet.
+      Navigator.of(parentContext).pop();
+    }
 
     final prefill = FlightSearchPrefill(
       tripId: tripId,
@@ -245,10 +254,14 @@ class FlightsPanel extends StatelessWidget {
       nbTravelers: 1,
     );
 
+    final title = mode == _FlightSearchMode.replace
+        ? l10n.activityValidateAction
+        : l10n.flightValidateAmadeusTitle;
+
     await showReplaceSearchSheet<void>(
       context: parentContext,
       sheet: ReplaceSearchSheet(
-        title: l10n.activityValidateAction,
+        title: title,
         subtitle:
             '${flight.departureAirport ?? '?'} → ${flight.arrivalAirport ?? '?'}',
         child: BlocProvider(
@@ -275,29 +288,47 @@ class FlightsPanel extends StatelessWidget {
             ),
           child: FlightSearchForm(
             onSubmit: (args) async {
-              // Push the result page in replace mode and await the
-              // chosen Flight when the user picks one. The result widget
-              // pops with that Flight (skipping the details navigation
-              // when replaceFlightId is set), and we dispatch the atomic
-              // ReplaceFlightFromDetail handler with the mapped payload.
-              final withReplaceId = args.copyWith(replaceFlightId: flight.id);
               Navigator.of(parentContext).pop();
-              final picked = await FlightSearchResultRoute(
-                $extra: withReplaceId,
-              ).push<result_flight.Flight>(parentContext);
-              if (picked == null || !parentContext.mounted) return;
-              parentContext.read<TripDetailBloc>().add(
-                ReplaceFlightFromDetail(
-                  oldFlightId: flight.id,
-                  newFlightData: _flightToManualPayload(picked, flight),
-                ),
-              );
+              if (mode == _FlightSearchMode.replace) {
+                // Replace mode: the result widget pops with the picked
+                // Flight (skipping the details push when replaceFlightId
+                // is set) so we can dispatch the atomic replace.
+                final withReplaceId = args.copyWith(replaceFlightId: flight.id);
+                final picked = await FlightSearchResultRoute(
+                  $extra: withReplaceId,
+                ).push<result_flight.Flight>(parentContext);
+                if (picked == null || !parentContext.mounted) return;
+                parentContext.read<TripDetailBloc>().add(
+                  ReplaceFlightFromDetail(
+                    oldFlightId: flight.id,
+                    newFlightData: _flightToManualPayload(picked, flight),
+                  ),
+                );
+              } else {
+                // Book mode: no replaceFlightId, the result widget
+                // navigates to flight_result_details where the existing
+                // CreateBookingIntent button takes over. Backend flips
+                // the underlying ManualFlight to VALIDATED on payment.
+                FlightSearchResultRoute($extra: args).push(parentContext);
+              }
             },
           ),
         ),
       ),
     );
   }
+
+  /// Convenience wrapper preserved for [_showPreview] which only knows
+  /// about replace; the validate-branch sheet calls
+  /// [_showFlightSearchSheet] directly with [_FlightSearchMode.book].
+  Future<void> _showReplaceSheet(
+    BuildContext parentContext,
+    ManualFlight flight,
+  ) => _showFlightSearchSheet(
+    parentContext,
+    flight,
+    mode: _FlightSearchMode.replace,
+  );
 
   Future<void> _showPreview(BuildContext context, ManualFlight flight) async {
     final l10n = AppLocalizations.of(context)!;
@@ -562,6 +593,10 @@ class FlightsPanel extends StatelessWidget {
     return DateFormat('EEEE d MMM yyyy', locale).format(dt);
   }
 }
+
+/// Phase 4 FU3 — distinguishes the two intents that share the Amadeus
+/// search UI from the trip-detail panel.
+enum _FlightSearchMode { replace, book }
 
 /// Maps an Amadeus search-result Flight to the ManualFlight create payload
 /// used by [TransportRepository.createManualFlight]. Reuses the original
