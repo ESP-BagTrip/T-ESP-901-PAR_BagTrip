@@ -37,6 +37,7 @@ def _make_budget_item(**overrides):
         "is_planned": True,
         "source_type": None,
         "source_id": None,
+        "validation_status": "MANUAL",
         "created_at": datetime.now(UTC),
         "updated_at": datetime.now(UTC),
     }
@@ -257,6 +258,47 @@ class TestUpdateBudgetItem:
                 json={"amount": 99.0},
             )
         assert response.status_code == 200
+
+    def test_validation_status_propagates_to_service(self, client: TestClient) -> None:
+        """Phase B — the unified validate gesture flips a budget line
+        through the same PATCH used for ad-hoc edits. The route must
+        forward ``validationStatus`` (camelCase API) verbatim to the
+        service so the transition guard runs serverside."""
+        item = _make_budget_item(validation_status="VALIDATED")
+        with (
+            patch(
+                "src.api.budget_items.routes.BudgetItemService.update",
+                return_value=item,
+            ) as update_mock,
+            patch(
+                "src.api.budget_items.routes.NotificationService.check_and_send_budget_alert",
+                return_value=None,
+            ),
+        ):
+            response = client.put(
+                f"/v1/trips/{TRIP_ID}/budget-items/{uuid.uuid4()}",
+                json={"validationStatus": "VALIDATED"},
+            )
+        assert response.status_code == 200
+        # The router serialises Pydantic responses through their alias
+        # (matching ActivityResponse / AccommodationResponse), so the
+        # over-the-wire field name is snake_case here.
+        body = response.json()
+        assert body.get("validation_status", body.get("validationStatus")) == "VALIDATED"
+        kwargs = update_mock.call_args.kwargs
+        assert kwargs["validation_status"] == "VALIDATED"
+
+    def test_invalid_transition_returns_400(self, client: TestClient) -> None:
+        with patch(
+            "src.api.budget_items.routes.BudgetItemService.update",
+            side_effect=AppError("INVALID_VALIDATION_TRANSITION", 400, "Cannot rewind status"),
+        ):
+            response = client.put(
+                f"/v1/trips/{TRIP_ID}/budget-items/{uuid.uuid4()}",
+                json={"validationStatus": "SUGGESTED"},
+            )
+        assert response.status_code == 400
+        assert response.json()["detail"]["code"] == "INVALID_VALIDATION_TRANSITION"
 
     def test_not_found(self, client: TestClient) -> None:
         with patch(

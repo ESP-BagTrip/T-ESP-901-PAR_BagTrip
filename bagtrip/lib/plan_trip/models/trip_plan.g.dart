@@ -6,6 +6,22 @@ part of 'trip_plan.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+_TripRecommendation _$TripRecommendationFromJson(Map<String, dynamic> json) =>
+    _TripRecommendation(
+      title: json['title'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      estimatedCost: (json['estimated_cost'] as num?)?.toDouble() ?? 0.0,
+      location: json['location'] as String? ?? '',
+    );
+
+Map<String, dynamic> _$TripRecommendationToJson(_TripRecommendation instance) =>
+    <String, dynamic>{
+      'title': instance.title,
+      'description': instance.description,
+      'estimated_cost': instance.estimatedCost,
+      'location': instance.location,
+    };
+
 _TripPlan _$TripPlanFromJson(Map<String, dynamic> json) => _TripPlan(
   destinationCity: json['destination_city'] as String? ?? '',
   destinationCountry: json['destination_country'] as String? ?? '',
@@ -47,6 +63,16 @@ _TripPlan _$TripPlanFromJson(Map<String, dynamic> json) => _TripPlan(
   dayCategories:
       (json['day_categories'] as List<dynamic>?)
           ?.map((e) => e as String)
+          .toList() ??
+      const [],
+  mealRecommendations:
+      (json['meal_recommendations'] as List<dynamic>?)
+          ?.map((e) => TripRecommendation.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  transportRecommendations:
+      (json['transport_recommendations'] as List<dynamic>?)
+          ?.map((e) => TripRecommendation.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
   essentialItems:
@@ -95,6 +121,12 @@ Map<String, dynamic> _$TripPlanToJson(_TripPlan instance) => <String, dynamic>{
   'day_program': instance.dayProgram,
   'day_descriptions': instance.dayDescriptions,
   'day_categories': instance.dayCategories,
+  'meal_recommendations': instance.mealRecommendations
+      .map((e) => e.toJson())
+      .toList(),
+  'transport_recommendations': instance.transportRecommendations
+      .map((e) => e.toJson())
+      .toList(),
   'essential_items': instance.essentialItems,
   'essential_reasons': instance.essentialReasons,
   'hotel_rating': instance.hotelRating,

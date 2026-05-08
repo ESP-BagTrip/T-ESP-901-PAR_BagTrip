@@ -64,14 +64,3 @@ class PlanTripRequest(BaseModel):
 
 # Alias for Sprint 2.8 documentation
 PlanTripUnifiedRequest = PlanTripRequest
-
-
-class AcceptPlanRequest(BaseModel):
-    """Request body for POST /v1/ai/plan-trip/accept."""
-
-    suggestion: dict
-    originCity: str | None = None
-    startDate: str | None = None
-    endDate: str | None = None
-    dateMode: str | None = Field(None, description="EXACT, MONTH, or FLEXIBLE")
-    selectedDestinationIndex: int = Field(0, description="Index in destinations list (0 = primary)")

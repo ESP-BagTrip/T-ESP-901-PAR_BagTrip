@@ -10,13 +10,6 @@ abstract class AiRepository {
     String? constraints,
     String? locale,
   });
-  Future<Result<Map<String, dynamic>>> acceptInspiration(
-    Map<String, dynamic> suggestion, {
-    String? startDate,
-    String? endDate,
-    String? dateMode,
-    String? originCity,
-  });
   Future<Result<Map<String, dynamic>>> getPostTripSuggestion();
 
   /// Stream trip planning events via SSE from the multi-agent pipeline.

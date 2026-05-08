@@ -1,15 +1,34 @@
-"""Budget estimator node — uses real flight prices + gathered hotel/activity data."""
+"""Budget estimator node — deterministic aggregation over Amadeus + activities.
+
+Every line in the breakdown must be backed by a review-able item:
+
+  - Flight: ``Σ flight_offers.price`` (Amadeus, or haversine-derived
+    placeholder when Amadeus is unavailable). The user reviews the
+    flight card in trip detail.
+  - Accommodation: best gathered hotel's stay total. Falls back to
+    ``deferred`` (= 0) when no Amadeus hit so the review screen shows
+    "Hôtel à choisir" without a fake price.
+  - Activity / Food / Transport: ``Σ activities.estimated_cost``
+    partitioned by ``Activity.category``. Each entry is a single
+    activity row the user can edit or delete in trip detail, so the
+    breakdown line is always traceable to a concrete item.
+
+What this node *does not* do anymore: a per-diem table that fabricated
+a flat 45 €/day food and 18 €/day transport line, regardless of the
+actual restaurants / transit items the agent surfaced. Those lines
+were unreviewable (no item to attach the spending to) and divergent
+between the review screen and trip detail. SMP-324 removed them; the
+review now shows only what the user can later validate item-by-item.
+"""
 
 from __future__ import annotations
 
-import json
+import math
 from datetime import datetime, time, timedelta
 
-from src.agent.prompts import render
-from src.agent.react_executor import react_execute
 from src.agent.runtime_budget import guard
 from src.agent.state import TripPlanState
-from src.agent.tools import TOOL_REGISTRY
+from src.integrations.aviation_data import aviation_data_service
 from src.utils.logger import logger
 
 # Topic 05 (B12) — singular keys aligned with the Flutter `BudgetCategory`
@@ -33,38 +52,121 @@ def _sum_estimation(estimation: dict) -> float:
     return sum(_extract_amount(estimation.get(k)) for k in _BUDGET_KEYS)
 
 
+# Commercial-jet cruise speed used to translate distance into flight time.
+# 800 km/h is the typical effective ground speed averaged across taxi,
+# climb, cruise and descent; gets us within ~10% of real schedules.
+_AVERAGE_FLIGHT_KMPH = 800.0
+# Fixed per-passenger one-way overhead (taxes, airport fees, fuel surcharge).
+_FLIGHT_FIXED_OVERHEAD_EUR = 80.0
+# Per-km coefficient — empirical mid-range fare for economy round-trip,
+# tuned against typical CDG outbound prices. Round-trip is computed as
+# ``2 × one_way`` so a single coefficient parameterizes the whole curve.
+_FLIGHT_PER_KM_EUR = 0.10
+
+
+def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Great-circle distance between two coords in kilometres."""
+    radius_km = 6371.0
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    delta_phi = math.radians(lat2 - lat1)
+    delta_lambda = math.radians(lon2 - lon1)
+    a = (
+        math.sin(delta_phi / 2) ** 2
+        + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2) ** 2
+    )
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return radius_km * c
+
+
+def _airport_coords(iata: str) -> tuple[float, float] | None:
+    """Look up an airport's coordinates via the offline aviation dataset."""
+    if not iata:
+        return None
+    loc = aviation_data_service.get_by_id(iata)
+    if loc is None:
+        return None
+    return float(loc.geoCode.latitude), float(loc.geoCode.longitude)
+
+
+def _estimate_flight_duration_hours(distance_km: float) -> float:
+    """Translate a great-circle distance into a plausible flight duration.
+
+    Adds a 1-hour ground buffer (taxi, turn-around) on top of the cruise
+    estimate so a Paris-Lyon hop doesn't look unrealistically short.
+    """
+    if distance_km <= 0:
+        return 2.0
+    return distance_km / _AVERAGE_FLIGHT_KMPH + 1.0
+
+
+def _estimate_flight_price_eur(distance_km: float, *, adults: int, round_trip: bool) -> float:
+    """Estimate a round-trip economy fare in EUR for the requested party.
+
+    The function returns the *total* price for ``adults`` passengers so
+    the call-site can drop it straight into the budget breakdown.
+    Distance under-counted on short hops is dwarfed by the fixed
+    overhead, distance over-counted on long-haul leaves enough headroom
+    that the user never sees a 300 € Tokyo (the bug this fix targets).
+    """
+    one_way = _FLIGHT_FIXED_OVERHEAD_EUR + _FLIGHT_PER_KM_EUR * max(distance_km, 0)
+    multiplier = 2.0 if round_trip else 1.0
+    return round(one_way * multiplier * max(adults, 1), 2)
+
+
 def _synthesize_flight_offer(
     *,
     origin_iata: str,
     dest_iata: str,
     departure_date: str,
     return_date: str | None,
-    flight_price: float,
+    nb_travelers: int = 1,
     currency: str = "EUR",
 ) -> list[dict]:
     """Build a deterministic flight-offer payload when Amadeus is unavailable.
 
-    The plan must still show *something* to the user — otherwise the Flutter
-    review drops the whole flight card (bug reported on SMP-316 for
-    Barcelone). Rather than asking the LLM to fabricate airline codes
-    (which causes hallucinations and makes the `source` field unreliable),
-    we fill the slot with plausible placeholder hours and mark every field
-    as ``source="estimated"``. The user validates or edits later via
-    trip_detail.
+    The review screen needs to show *something* to the user — otherwise
+    the Flutter card drops to "ALLER" with empty hours (bug SMP-316 for
+    Barcelone, regression observed on Paris→Tokyo when the Amadeus
+    sandbox returned 500). Rather than asking the LLM to fabricate
+    airline codes (which makes the ``source`` field unreliable), we
+    derive duration and price from the great-circle distance between
+    the two airports and stamp the result with ``source="estimated"``
+    so the UI can render the estimated badge. The user validates or
+    edits later via trip_detail.
 
     Heuristics:
-    - Outbound: 10:00 → 12:00 local of `departure_date` (2h default)
-    - Return:   18:00 → 20:00 local of `return_date`
-    - Flight number empty → client renders em-dash
-    - Airline: "Estimated" so the UI shows the estimated source badge
+        - Distance: haversine over ``aviation_data`` coords.
+        - Duration: distance / 800 km/h + 1 h taxi/turn-around.
+        - Price: ``2 × (80 + 0.10 × distance_km) × adults`` (round-trip).
+        - Outbound starts at 10:00 local of ``departure_date``.
+        - Return at 18:00 local of ``return_date``.
+        - Flight number empty → the client renders em-dash.
+        - Airline ``EST`` / "Estimated" so the badge stays consistent.
     """
     try:
         dep_day = datetime.fromisoformat(departure_date)
     except ValueError:
         return []
 
+    origin_coords = _airport_coords(origin_iata)
+    dest_coords = _airport_coords(dest_iata)
+    if origin_coords and dest_coords:
+        distance_km = _haversine_km(*origin_coords, *dest_coords)
+    else:
+        # Both IATAs missing from airportsdata is rare but possible
+        # (private fields, older codes). Default to a short-haul shape so
+        # the card still renders without lying about long-haul times.
+        distance_km = 0.0
+    duration_hours = _estimate_flight_duration_hours(distance_km)
+    duration_seconds = int(round(duration_hours * 3600))
+    iso_duration = _seconds_to_iso8601(duration_seconds)
+    flight_price = _estimate_flight_price_eur(
+        distance_km, adults=nb_travelers, round_trip=bool(return_date)
+    )
+
     dep_dt = datetime.combine(dep_day.date(), time(10, 0))
-    arr_dt = dep_dt + timedelta(hours=2)
+    arr_dt = dep_dt + timedelta(seconds=duration_seconds)
     offer: dict = {
         "airline": "EST",
         "airline_name": "Estimated",
@@ -73,10 +175,11 @@ def _synthesize_flight_offer(
         "currency": currency,
         "departure": dep_dt.isoformat(),
         "arrival": arr_dt.isoformat(),
-        "duration": "PT2H",
+        "duration": iso_duration,
         "origin_iata": origin_iata,
         "destination_iata": dest_iata,
         "source": "estimated",
+        "estimated_distance_km": int(distance_km),
     }
     if return_date:
         try:
@@ -84,11 +187,27 @@ def _synthesize_flight_offer(
         except ValueError:
             return [offer]
         ret_dt = datetime.combine(ret_day.date(), time(18, 0))
-        ret_arr = ret_dt + timedelta(hours=2)
+        ret_arr = ret_dt + timedelta(seconds=duration_seconds)
         offer["return_departure"] = ret_dt.isoformat()
         offer["return_arrival"] = ret_arr.isoformat()
-        offer["return_duration"] = "PT2H"
+        offer["return_duration"] = iso_duration
     return [offer]
+
+
+def _seconds_to_iso8601(total_seconds: int) -> str:
+    """Format a duration as ISO-8601 (e.g. ``PT13H10M``)."""
+    if total_seconds <= 0:
+        return "PT0M"
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes = remainder // 60
+    parts = ["PT"]
+    if hours:
+        parts.append(f"{hours}H")
+    if minutes:
+        parts.append(f"{minutes}M")
+    if hours == 0 and minutes == 0:
+        parts.append("0M")
+    return "".join(parts)
 
 
 def _accommodation_stay_total(best: dict) -> float:
@@ -115,34 +234,95 @@ def _accommodation_stay_total(best: dict) -> float:
     return 0.0
 
 
-def _compute_fallback_budget(accommodations: list, activities: list, estimation: dict) -> dict:
-    """Compute budget from real gathered data when LLM estimation is incomplete."""
-    # Best accommodation total — see _accommodation_stay_total for unit rules.
-    accom_total = _accommodation_stay_total(accommodations[0]) if accommodations else 0.0
+def _flight_total_from_offers(offers: list[dict]) -> float:
+    """Sum the per-traveler price field of every offer (Amadeus or synthetic)."""
+    total = 0.0
+    for offer in offers:
+        try:
+            total += float(offer.get("price", 0) or 0)
+        except (TypeError, ValueError):
+            continue
+    return total
 
-    # Sum activity costs
-    activity_total = sum(float(a.get("estimated_cost", 0) or 0) for a in activities)
 
-    # Preserve valid LLM data for flights / meals / transport
-    def _keep_or_default(key: str) -> tuple[dict, float]:
-        raw = estimation.get(key, {})
-        amt = _extract_amount(raw)
-        if isinstance(raw, dict) and amt > 0:
-            return raw, amt
-        return {"amount": amt, "currency": "EUR", "source": "estimated"}, amt
+_FOOD_CATEGORY = "FOOD"
+_TRANSPORT_CATEGORY = "TRANSPORT"
 
-    flight_data, flight_amt = _keep_or_default("flight")
-    food_data, food_amt = _keep_or_default("food")
-    transport_data, transport_amt = _keep_or_default("transport")
 
-    total = flight_amt + accom_total + activity_total + food_amt + transport_amt
+def _partition_activity_costs(activities: list[dict]) -> tuple[float, float, float]:
+    """Sum ``estimated_cost`` per category bucket.
 
+    Returns ``(food_total, transport_total, other_activity_total)`` so
+    the breakdown line for each category equals the sum of the items
+    the user will see (and can edit) in the trip-detail tabs. Anything
+    that isn't FOOD/TRANSPORT lands in the generic activity bucket
+    (CULTURE, NATURE, SPORT, SHOPPING, NIGHTLIFE, RELAXATION, OTHER).
+    """
+    food_total = 0.0
+    transport_total = 0.0
+    other_total = 0.0
+    for activity in activities:
+        try:
+            cost = float(activity.get("estimated_cost", 0) or 0)
+        except (TypeError, ValueError):
+            continue
+        if cost <= 0:
+            continue
+        category = (activity.get("category") or "").upper()
+        if category == _FOOD_CATEGORY:
+            food_total += cost
+        elif category == _TRANSPORT_CATEGORY:
+            transport_total += cost
+        else:
+            other_total += cost
+    return food_total, transport_total, other_total
+
+
+def _build_estimation(
+    *,
+    flight_total: float,
+    accommodation_total: float,
+    food_total: float,
+    transport_total: float,
+    activity_total: float,
+    flight_source: str,
+    accommodation_source: str,
+) -> dict:
+    """Assemble the singular-key estimation payload the front consumes.
+
+    Every line maps 1:1 onto a ``BudgetItem`` the persistence layer
+    creates at ``/plan-trip/accept``: the flight offer, the hotel stay,
+    and one item per costed Activity (FOOD / TRANSPORT / other). The
+    review screen and trip detail therefore agree by construction —
+    Σ phase 1 == Σ phase 2 the moment the user accepts.
+    """
+    total = flight_total + accommodation_total + food_total + transport_total + activity_total
     return {
-        "flight": flight_data,
-        "accommodation": {"amount": accom_total, "currency": "EUR", "source": "gathered_data"},
-        "food": food_data,
-        "transport": transport_data,
-        "activity": {"amount": activity_total, "currency": "EUR", "source": "gathered_data"},
+        "flight": {
+            "amount": round(flight_total, 2),
+            "currency": "EUR",
+            "source": flight_source,
+        },
+        "accommodation": {
+            "amount": round(accommodation_total, 2),
+            "currency": "EUR",
+            "source": accommodation_source,
+        },
+        "food": {
+            "amount": round(food_total, 2),
+            "currency": "EUR",
+            "source": "gathered_data" if food_total > 0 else "estimated",
+        },
+        "transport": {
+            "amount": round(transport_total, 2),
+            "currency": "EUR",
+            "source": "gathered_data" if transport_total > 0 else "estimated",
+        },
+        "activity": {
+            "amount": round(activity_total, 2),
+            "currency": "EUR",
+            "source": "gathered_data" if activity_total > 0 else "estimated",
+        },
         "total_min": int(total * 0.85),
         "total_max": int(total * 1.15),
         "currency": "EUR",
@@ -150,125 +330,96 @@ def _compute_fallback_budget(accommodations: list, activities: list, estimation:
 
 
 async def budget_node(state: TripPlanState) -> dict:
-    """Estimate budget using real Amadeus flight prices + aggregated data."""
-    guard(state, min_required=5.0)
+    """Aggregate the budget deterministically from Amadeus + activities."""
+    guard(state, min_required=2.0)
     logger.info("=== Budget Estimator Node ===")
 
     dest = state.get("selected_destination", {})
-    accommodations = state.get("accommodations", [])
-    activities = state.get("activities", [])
+    accommodations = state.get("accommodations", []) or []
+    activities = state.get("activities", []) or []
+    origin_iata = state.get("origin_iata", "") or ""
+    dest_iata = dest.get("iata", "") or ""
+    nb_travelers = int(state.get("nb_travelers") or 1) or 1
 
-    parts = [
-        f"Destination: {dest.get('city', 'Unknown')}, {dest.get('country', '')} (IATA: {dest.get('iata', '')})",
-    ]
-
-    # Include origin for flight search
-    if state.get("origin_city"):
-        parts.append(f"Origin city: {state['origin_city']}")
-
-    if state.get("departure_date"):
-        parts.append(f"Departure date: {state['departure_date']}")
-    if state.get("return_date"):
-        parts.append(f"Return date: {state['return_date']}")
-    if state.get("duration_days"):
-        parts.append(f"Duration: {state['duration_days']} days")
-    if state.get("companions"):
-        parts.append(f"Travelers: {state['companions']}")
-    if state.get("budget_preset"):
-        from src.api.ai.plan_trip_schemas import BUDGET_PRESET_RANGES
-
-        label = BUDGET_PRESET_RANGES.get(state["budget_preset"], {}).get(
-            "label", state["budget_preset"]
-        )
-        parts.append(f"Budget level: {label}")
-    # Topic 01 — feed the user's explicit numeric ceiling to the LLM so the
-    # estimation stays anchored to it rather than emerging from the breakdown.
-    target_budget = state.get("target_budget")
-    if target_budget is not None and target_budget > 0:
-        parts.append(
-            f"User's target budget: {target_budget} EUR — keep the breakdown "
-            "consistent with this ceiling."
-        )
-    if state.get("nb_travelers"):
-        parts.append(f"Number of travelers: {state['nb_travelers']}")
-
-    # Include gathered data for the LLM to use
-    if accommodations:
-        parts.append(f"Hotel data already gathered: {json.dumps(accommodations[:3], default=str)}")
-    if activities:
-        total_activity_cost = sum(a.get("estimated_cost", 0) or 0 for a in activities)
-        parts.append(f"Total estimated activity costs: {total_activity_cost} EUR")
-
-    user_prompt = "\n".join(parts)
-
-    # Direct flight search to capture raw offer data for Flutter display
-    from src.agent.tools import search_real_flights
-
+    # ── Flights: try Amadeus directly; synthesize a placeholder otherwise.
     flight_offers: list[dict] = []
-    origin_iata = state.get("origin_iata", "")
-    dest_iata = dest.get("iata", "")
+    flight_source = "estimated"
     if origin_iata and dest_iata and state.get("departure_date"):
+        from src.agent.tools import search_real_flights
+
         try:
             flight_result = await search_real_flights(
                 origin=origin_iata,
                 destination=dest_iata,
                 date=state["departure_date"],
                 return_date=state.get("return_date"),
-                adults=state.get("nb_travelers", 1),
+                adults=nb_travelers,
             )
-            flight_offers = flight_result.get("flights", [])
-        except Exception as e:
-            logger.warn("Direct flight search for raw data failed", {"error": str(e)})
+            flight_offers = flight_result.get("flights", []) or []
+            if flight_offers:
+                flight_source = "amadeus"
+        except Exception as exc:
+            logger.warn("budget_node: direct flight search failed", {"error": str(exc)})
 
-    # Remember whether Amadeus actually produced anything — we might need to
-    # synthesize a fallback offer after the LLM returns a budget estimation.
-    _amadeus_delivered = len(flight_offers) > 0
-
-    # ReAct with flight search tool
-    tool_names = ["search_real_flights", "resolve_iata_code"]
-    result = await react_execute(
-        agent_instruction=render("budget", locale=state.get("locale", "en")),
-        user_prompt=user_prompt,
-        tool_names=tool_names,
-        tool_registry=TOOL_REGISTRY,
-    )
-
-    estimation = result.get("estimation", result)
-
-    # Validate: if breakdown sums to 0, compute fallback from gathered data
-    llm_total = _sum_estimation(estimation)
-    if llm_total == 0:
-        llm_total = max(
-            float(estimation.get("total_max", 0) or 0),
-            float(estimation.get("total_min", 0) or 0),
-        )
-    if llm_total == 0 and (accommodations or activities):
-        logger.warn(
-            "Budget LLM returned zero estimation, computing fallback from gathered data",
-            {"raw_estimation": estimation},
-        )
-        estimation = _compute_fallback_budget(accommodations, activities, estimation)
-
-    # Synthesize a placeholder flight offer when Amadeus returned nothing.
-    # Keeps the review + trip_detail flight cards populated instead of a
-    # silent drop (bug SMP-316 on Barcelone).
-    if not _amadeus_delivered and origin_iata and dest_iata and state.get("departure_date"):
-        flight_price = _extract_amount(estimation.get("flight"))
-        synthetic = _synthesize_flight_offer(
+    if not flight_offers and origin_iata and dest_iata and state.get("departure_date"):
+        # Synthesize a placeholder so the review screen still shows a flight
+        # card — preserves the SMP-316 fix for Barcelone-style empty cards.
+        # Duration and price are now derived from the great-circle distance
+        # between the two IATAs (haversine over airportsdata coords) so a
+        # Paris-Tokyo no longer renders as a 2-hour 315 € flight.
+        flight_offers = _synthesize_flight_offer(
             origin_iata=origin_iata,
             dest_iata=dest_iata,
             departure_date=state["departure_date"],
             return_date=state.get("return_date"),
-            flight_price=flight_price,
+            nb_travelers=nb_travelers,
         )
-        if synthetic:
-            logger.info(
-                "Amadeus unavailable, emitting estimated flight offer",
-                {"origin": origin_iata, "destination": dest_iata},
-            )
-            flight_offers = synthetic
 
-    logger.info("Budget estimation complete", {"estimation": estimation})
+    flight_total = _flight_total_from_offers(flight_offers)
+
+    # ── Accommodation: prefer the gathered Amadeus stay total. If the
+    # accommodation node returned a ``deferred`` marker (no Amadeus hit
+    # → the review card shows "Hôtel à choisir" without a price), keep
+    # this budget line at 0 with ``source="deferred"`` so the breakdown
+    # stays consistent with the card. The total_min/max therefore
+    # exclude accommodation in that case — the user knows they still
+    # need to add a hotel before reading the bottom line.
+    accom_total = 0.0
+    accom_source = "deferred" if accommodations else "estimated"
+    if accommodations:
+        gathered_total = _accommodation_stay_total(accommodations[0])
+        if gathered_total > 0:
+            accom_total = gathered_total
+            accom_source = "amadeus"
+
+    # ── Activities: partition by category so each breakdown line maps
+    # 1:1 onto the BudgetItems the acceptance flow will persist.
+    food_total, transport_total, other_activity_total = _partition_activity_costs(activities)
+
+    estimation = _build_estimation(
+        flight_total=flight_total,
+        accommodation_total=accom_total,
+        food_total=food_total,
+        transport_total=transport_total,
+        activity_total=other_activity_total,
+        flight_source=flight_source,
+        accommodation_source=accom_source,
+    )
+
+    logger.info(
+        "Budget estimation complete",
+        {
+            "flight": estimation["flight"]["amount"],
+            "accommodation": estimation["accommodation"]["amount"],
+            "food": estimation["food"]["amount"],
+            "transport": estimation["transport"]["amount"],
+            "activity": estimation["activity"]["amount"],
+            "source_mix": {
+                "flight": flight_source,
+                "accommodation": accom_source,
+            },
+        },
+    )
 
     return {
         "budget_estimation": estimation,
@@ -276,7 +427,7 @@ async def budget_node(state: TripPlanState) -> dict:
         "events": [
             {
                 "event": "budget",
-                "data": {"estimation": estimation, "source": "amadeus+llm"},
+                "data": {"estimation": estimation, "source": "deterministic"},
             },
         ],
     }

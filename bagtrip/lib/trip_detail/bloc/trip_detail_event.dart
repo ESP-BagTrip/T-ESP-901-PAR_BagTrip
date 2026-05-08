@@ -26,6 +26,51 @@ final class ValidateActivity extends TripDetailEvent {
   ValidateActivity({required this.activityId});
 }
 
+/// One-gesture validation for the other three trip-detail entities.
+/// Same intent as [ValidateActivity], same repo extension under the
+/// hood (`_repository.validate(...)`), kept as separate events so the
+/// dispatch table stays explicit per domain.
+final class ValidateFlightFromDetail extends TripDetailEvent {
+  final String flightId;
+  ValidateFlightFromDetail({required this.flightId});
+}
+
+/// Phase 4 — Replace a flight in place by an Amadeus offer or a
+/// re-keyed manual entry. The handler is atomic: DELETE the old row +
+/// CREATE a new one in a single bloc tick, with a full state rollback
+/// if either side fails so the user never lands on a half-applied state.
+final class ReplaceFlightFromDetail extends TripDetailEvent {
+  final String oldFlightId;
+  final Map<String, dynamic> newFlightData;
+  ReplaceFlightFromDetail({
+    required this.oldFlightId,
+    required this.newFlightData,
+  });
+}
+
+/// Phase 5 — Replace an accommodation in place; same atomic semantics
+/// as [ReplaceFlightFromDetail] (DELETE old + CREATE new with full
+/// rollback). The Amadeus hotel branch is for re-keying from search;
+/// the manual branch reuses the same event with a hand-typed payload.
+final class ReplaceAccommodationFromDetail extends TripDetailEvent {
+  final String oldAccommodationId;
+  final Map<String, dynamic> newAccommodationData;
+  ReplaceAccommodationFromDetail({
+    required this.oldAccommodationId,
+    required this.newAccommodationData,
+  });
+}
+
+final class ValidateAccommodationFromDetail extends TripDetailEvent {
+  final String accommodationId;
+  ValidateAccommodationFromDetail({required this.accommodationId});
+}
+
+final class ValidateBudgetItemFromDetail extends TripDetailEvent {
+  final String itemId;
+  ValidateBudgetItemFromDetail({required this.itemId});
+}
+
 final class RejectActivity extends TripDetailEvent {
   final String activityId;
   RejectActivity({required this.activityId});

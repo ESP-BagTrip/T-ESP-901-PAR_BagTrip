@@ -2,7 +2,7 @@
 
 from datetime import date, time, timedelta
 
-from src.services.plan_acceptance_service import TIME_OF_DAY_MAP
+from src.services.plan_draft_service import TIME_OF_DAY_MAP
 
 
 def test_time_of_day_map_morning():

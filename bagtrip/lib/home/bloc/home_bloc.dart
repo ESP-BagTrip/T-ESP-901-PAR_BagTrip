@@ -270,7 +270,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         final today = DateTime(now.year, now.month, now.day);
         todayActivities =
             activitiesResult.data.where((a) {
-              final actDate = DateTime(a.date.year, a.date.month, a.date.day);
+              if (a.date == null) return false;
+              final activityDate = a.date!;
+              final actDate = DateTime(
+                activityDate.year,
+                activityDate.month,
+                activityDate.day,
+              );
               return actDate == today;
             }).toList()..sort((a, b) {
               final aTime = a.startTime ?? '';

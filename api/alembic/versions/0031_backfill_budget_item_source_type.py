@@ -5,13 +5,10 @@ Revises: 0030
 Create Date: 2026-05-02
 
 Topic 07 (SMP-322). Pre-migration-0009 BudgetItems were created without
-a ``source_type`` (the column was added later). Today's services
-(``PlanAcceptanceService._persist_activities`` /
-``_persist_accommodations`` / ``_maybe_add_flight_budget``) tag every
-new row, but the historical rows still surface as
-``source_type IS NULL`` — which the topic-06 redaction logic and the
-forecast / confirmed split treat differently from explicitly-tagged
-rows.
+a ``source_type`` (the column was added later). Today's services tag
+every new row, but the historical rows still surface as ``source_type
+IS NULL`` — which the topic-06 redaction logic and the forecast /
+confirmed split treat differently from explicitly-tagged rows.
 
 This migration is data-only. It tags everything still NULL as
 ``'manual'`` (the safest default — the user typed it). Rows that

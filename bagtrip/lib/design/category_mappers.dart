@@ -20,6 +20,7 @@ extension ActivityCategoryPresentation on ActivityCategory {
     ActivityCategory.shopping => Icons.shopping_bag_outlined,
     ActivityCategory.nightlife => Icons.nightlife_outlined,
     ActivityCategory.relaxation => Icons.spa_outlined,
+    ActivityCategory.transport => Icons.directions_transit_outlined,
     ActivityCategory.other => Icons.event_outlined,
   };
 
@@ -31,6 +32,7 @@ extension ActivityCategoryPresentation on ActivityCategory {
     ActivityCategory.shopping => AppColors.activityShopping,
     ActivityCategory.nightlife => AppColors.activityNightlife,
     ActivityCategory.relaxation => AppColors.activityRelaxation,
+    ActivityCategory.transport => AppColors.budgetTransport,
     ActivityCategory.other => AppColors.secondary,
   };
 
@@ -42,6 +44,7 @@ extension ActivityCategoryPresentation on ActivityCategory {
     ActivityCategory.shopping => l10n.categoryShopping,
     ActivityCategory.nightlife => l10n.categoryNightlife,
     ActivityCategory.relaxation => l10n.categoryRelaxation,
+    ActivityCategory.transport => l10n.reviewBudgetTransport,
     ActivityCategory.other => l10n.categoryOtherActivity,
   };
 }

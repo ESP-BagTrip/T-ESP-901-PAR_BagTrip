@@ -125,6 +125,35 @@ extension _TripDetailBudgetHandlers on TripDetailBloc {
     }
   }
 
+  Future<void> _onValidateBudgetItemFromDetail(
+    ValidateBudgetItemFromDetail event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+
+    // Optimistic flip — the chip flips before the network call lands;
+    // on failure we restore the original snapshot. No summary refresh
+    // is needed because validation is metadata-only — totals don't move.
+    final updatedItems = loaded.budgetItems
+        .map(
+          (i) => i.id == event.itemId
+              ? i.copyWith(validationStatus: ValidationStatus.validated)
+              : i,
+        )
+        .toList();
+    emit(loaded.copyWith(budgetItems: updatedItems));
+
+    final result = await _budgetRepository.validate(_tripId!, event.itemId);
+
+    if (isClosed) return;
+
+    if (result case Failure(:final error)) {
+      emit(loaded.copyWith(operationError: error));
+      emit(loaded.copyWith(clearOperationError: true));
+    }
+  }
+
   Future<void> _onRefreshBudgetSummaryFromDetail(
     RefreshBudgetSummaryFromDetail event,
     Emitter<TripDetailState> emit,

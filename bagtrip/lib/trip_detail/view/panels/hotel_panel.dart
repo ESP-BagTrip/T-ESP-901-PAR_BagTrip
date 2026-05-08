@@ -7,6 +7,10 @@ import 'package:bagtrip/core/trip_enums.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/accommodations/bloc/accommodation_bloc.dart';
+import 'package:bagtrip/accommodations/widgets/hotel_search_sheet.dart';
+import 'package:bagtrip/design/widgets/item_status_chip.dart';
+import 'package:bagtrip/design/widgets/replace_search_sheet.dart';
 import 'package:bagtrip/design/widgets/review/hotel_stats_grid.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/design/widgets/review/sheets/quick_preview_sheet.dart';
@@ -15,6 +19,7 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/accommodation.dart';
 import 'package:bagtrip/models/trip.dart';
+import 'package:bagtrip/models/validation_status.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/view/panels/skipped_panel_state.dart';
 import 'package:flutter/material.dart';
@@ -88,23 +93,212 @@ class HotelPanel extends StatelessWidget {
     );
   }
 
+  /// Phase 5 — collects the booking reference, persists it on the row,
+  /// then dispatches the validate event. Hôtel doesn't have a BagTrip
+  /// booking branch (Amadeus search-only), so this is the single
+  /// validate path the user takes after choosing externally.
+  Future<void> _showExternalBookingRefSheet(
+    BuildContext parentContext,
+    Accommodation acc,
+  ) async {
+    final l10n = AppLocalizations.of(parentContext)!;
+    final bloc = parentContext.read<TripDetailBloc>();
+    final controller = TextEditingController(text: acc.bookingReference ?? '');
+    final formKey = GlobalKey<FormState>();
+    Navigator.of(parentContext).pop();
+
+    Future<void> submit(BuildContext sheetContext) async {
+      if (!formKey.currentState!.validate()) return;
+      final ref = controller.text.trim();
+      Navigator.of(sheetContext).pop();
+      bloc.add(
+        UpdateAccommodationFromDetail(
+          accommodationId: acc.id,
+          data: <String, dynamic>{'bookingReference': ref},
+        ),
+      );
+      bloc.add(ValidateAccommodationFromDetail(accommodationId: acc.id));
+    }
+
+    await showModalBottomSheet<void>(
+      context: parentContext,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+        ),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(AppRadius.cornerRadius20),
+            ),
+          ),
+          padding: AppSpacing.allEdgeInsetSpace24,
+          child: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withValues(alpha: 0.3),
+                      borderRadius: AppRadius.handleBar,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.space16),
+                Text(
+                  l10n.activityValidateAction,
+                  style: const TextStyle(
+                    fontFamily: FontFamily.b612,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.space8),
+                Text(
+                  l10n.accommodationReferenceLabel,
+                  style: const TextStyle(
+                    fontFamily: FontFamily.dMSans,
+                    fontSize: 13,
+                    color: ColorName.hint,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.space16),
+                TextFormField(
+                  controller: controller,
+                  decoration: InputDecoration(
+                    labelText: l10n.accommodationReferenceLabel,
+                  ),
+                  validator: (v) =>
+                      v == null || v.trim().isEmpty ? l10n.fieldRequired : null,
+                ),
+                const SizedBox(height: AppSpacing.space16),
+                FilledButton(
+                  onPressed: () => submit(sheetContext),
+                  child: Text(l10n.activityValidateAction),
+                ),
+                const SizedBox(height: AppSpacing.space16),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    controller.dispose();
+  }
+
+  /// Phase 5 follow-up — opens the real Amadeus hotel search inside a
+  /// ReplaceSearchSheet, prefilled with the trip's destination IATA.
+  /// Tapping a result opens a ManualAccommodationForm pre-filled from
+  /// the chosen hotel; saving fires ReplaceAccommodationFromDetail
+  /// (atomic DELETE+CREATE) instead of plain CreateAccommodation.
+  Future<void> _showReplaceSheet(
+    BuildContext parentContext,
+    Accommodation acc,
+  ) async {
+    final l10n = AppLocalizations.of(parentContext)!;
+    final tripBloc = parentContext.read<TripDetailBloc>();
+    Navigator.of(parentContext).pop();
+
+    String addressOf(Map<String, dynamic> hotel) {
+      final addr = hotel['address'];
+      if (addr is! Map) return '';
+      final parts = <String>[];
+      if (addr['cityName'] != null) parts.add(addr['cityName'] as String);
+      if (addr['countryCode'] != null) {
+        parts.add(addr['countryCode'] as String);
+      }
+      return parts.join(', ');
+    }
+
+    void onHotelPicked(BuildContext sheetContext, Map<String, dynamic> hotel) {
+      // Close the replace sheet first so the next sheet stacks cleanly
+      // on the trip-detail context (no double drag handle).
+      Navigator.of(parentContext).pop();
+      final name = hotel['name'] as String? ?? '';
+      final address = addressOf(hotel);
+
+      showModalBottomSheet<void>(
+        context: parentContext,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => ManualAccommodationForm(
+          tripId: tripId,
+          isEstimatedPrice: true,
+          tripStartDate: trip.startDate,
+          tripEndDate: trip.endDate,
+          prefill: {'name': name, if (address.isNotEmpty) 'address': address},
+          onSave: (data) {
+            AppHaptics.medium();
+            tripBloc.add(
+              ReplaceAccommodationFromDetail(
+                oldAccommodationId: acc.id,
+                newAccommodationData: data,
+              ),
+            );
+          },
+        ),
+      );
+    }
+
+    await showReplaceSearchSheet<void>(
+      context: parentContext,
+      sheet: ReplaceSearchSheet(
+        title: l10n.accommodationEditTitle,
+        subtitle: acc.name,
+        child: BlocProvider(
+          create: (_) => AccommodationBloc(),
+          child: Builder(
+            builder: (sheetContext) => HotelSearchSheet(
+              tripId: tripId,
+              initialCityCode: trip.destinationIata,
+              tripStartDate: trip.startDate,
+              tripEndDate: trip.endDate,
+              onHotelSelected: (hotel) => onHotelPicked(sheetContext, hotel),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _showPreview(BuildContext context, Accommodation acc) async {
     final l10n = AppLocalizations.of(context)!;
     AppHaptics.light();
+    final isSuggested = acc.validationStatus == ValidationStatus.suggested;
     await showQuickPreviewSheet(
       context: context,
       icon: Icons.hotel_rounded,
       title: acc.name,
       subtitle: acc.address,
       body: _HotelPreviewBody(accommodation: acc, l10n: l10n),
+      // Phase 5 — three-action preview sheet:
+      //   Validate -> opens the booking-reference form sheet (single
+      //               external branch, hôtels have no BagTrip booking
+      //               flow today).
+      //   Replace  -> opens ReplaceSearchSheet placeholder. Bloc handler
+      //               already supports the atomic DELETE+CREATE.
+      //   Delete   -> unchanged.
+      // Edit stays accessible via the long-press context menu.
+      validateAction: isSuggested && canEdit
+          ? QuickPreviewAction(
+              label: l10n.activityValidateAction,
+              icon: Icons.check_rounded,
+              onPressed: () => _showExternalBookingRefSheet(context, acc),
+            )
+          : null,
       primaryAction: canEdit
           ? QuickPreviewAction(
-              label: l10n.panelActionEdit,
-              icon: Icons.edit_rounded,
-              onPressed: () {
-                Navigator.of(context).pop();
-                _showEditSheet(context, acc);
-              },
+              label: l10n.flightValidateAmadeusTitle,
+              icon: Icons.swap_horiz_rounded,
+              onPressed: () => _showReplaceSheet(context, acc),
             )
           : null,
       destructiveAction: canEdit
@@ -221,12 +415,28 @@ class HotelPanel extends StatelessWidget {
               );
             }
             final acc = sortedList[index];
-            final card = _HotelCard(
+            final hotelCard = _HotelCard(
               accommodation: acc,
               l10n: l10n,
               locale: locale,
               onTap: () => _showPreview(context, acc),
             );
+            // Phase 1 — material truth on the panel: SUGGESTED hôtel
+            // wears the halo chip; VALIDATED + MANUAL stay clean.
+            final card = acc.validationStatus == ValidationStatus.suggested
+                ? Stack(
+                    children: [
+                      hotelCard,
+                      const Positioned(
+                        top: AppSpacing.space8,
+                        right: AppSpacing.space8,
+                        child: ItemStatusChip(
+                          kind: ItemStatusChipKind.suggested,
+                        ),
+                      ),
+                    ],
+                  )
+                : hotelCard;
             if (!canEdit) return card;
             return Dismissible(
               key: ValueKey('accommodation-${acc.id}'),

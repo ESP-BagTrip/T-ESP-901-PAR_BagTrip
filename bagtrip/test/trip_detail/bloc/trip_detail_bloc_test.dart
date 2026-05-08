@@ -2,6 +2,7 @@ import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/models/trip.dart';
+import 'package:bagtrip/models/validation_status.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
 import 'package:bloc_test/bloc_test.dart';
@@ -360,9 +361,13 @@ void main() {
         isA<TripDetailLoaded>(),
       ],
       verify: (_) {
+        // Phase 1 — the handler now goes through the shared
+        // `ActivityRepository.validate(...)` extension, which speaks
+        // to the backend in camelCase (the convention of every modern
+        // call site).
         verify(
           () => mockActivityRepo.updateActivity('trip-1', 'act-1', {
-            'validation_status': 'VALIDATED',
+            'validationStatus': 'VALIDATED',
           }),
         ).called(1);
       },
@@ -2096,6 +2101,428 @@ void main() {
           isNull,
         ),
       ],
+    );
+
+    // ── Phase 1 — universal validate gesture ──────────────────────
+    //
+    // Same shape for vols, hôtels, dépenses: optimistic flip on the
+    // shared state, repository PATCH with the canonical payload, and
+    // rollback to the pre-optimistic snapshot on Failure. The matrix
+    // below covers each event in both happy and failure paths.
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ValidateFlightFromDetail flips status + PATCHes camelCase',
+      build: () {
+        stubAllSuccess();
+        final flight = makeManualFlight(
+          id: 'f1',
+          validationStatus: ValidationStatus.suggested,
+        );
+        when(
+          () => mockTransportRepo.getManualFlights(any()),
+        ).thenAnswer((_) async => Success([flight]));
+        when(
+          () => mockTransportRepo.updateManualFlight(any(), any(), any()),
+        ).thenAnswer(
+          (_) async => Success(
+            flight.copyWith(validationStatus: ValidationStatus.validated),
+          ),
+        );
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(ValidateFlightFromDetail(flightId: 'f1'));
+      },
+      wait: const Duration(milliseconds: 300),
+      verify: (_) {
+        verify(
+          () => mockTransportRepo.updateManualFlight('trip-1', 'f1', {
+            'validationStatus': 'VALIDATED',
+          }),
+        ).called(1);
+      },
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ValidateFlightFromDetail rolls back on API failure',
+      build: () {
+        stubAllSuccess();
+        final flight = makeManualFlight(
+          id: 'f1',
+          validationStatus: ValidationStatus.suggested,
+        );
+        when(
+          () => mockTransportRepo.getManualFlights(any()),
+        ).thenAnswer((_) async => Success([flight]));
+        when(
+          () => mockTransportRepo.updateManualFlight(any(), any(), any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('boom')));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(ValidateFlightFromDetail(flightId: 'f1'));
+      },
+      wait: const Duration(milliseconds: 300),
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>().having(
+          (s) => s.operationError,
+          'operationError',
+          isA<NetworkError>(),
+        ),
+        isA<TripDetailLoaded>().having(
+          (s) => s.operationError,
+          'operationError',
+          isNull,
+        ),
+      ],
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ValidateAccommodationFromDetail flips status + PATCHes camelCase',
+      build: () {
+        stubAllSuccess();
+        final acc = makeAccommodation(
+          id: 'h1',
+          validationStatus: ValidationStatus.suggested,
+        );
+        when(
+          () => mockAccommodationRepo.getByTrip(any()),
+        ).thenAnswer((_) async => Success([acc]));
+        when(
+          () => mockAccommodationRepo.updateAccommodation(any(), any(), any()),
+        ).thenAnswer(
+          (_) async => Success(
+            acc.copyWith(validationStatus: ValidationStatus.validated),
+          ),
+        );
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(ValidateAccommodationFromDetail(accommodationId: 'h1'));
+      },
+      wait: const Duration(milliseconds: 300),
+      verify: (_) {
+        verify(
+          () => mockAccommodationRepo.updateAccommodation('trip-1', 'h1', {
+            'validationStatus': 'VALIDATED',
+          }),
+        ).called(1);
+      },
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ValidateAccommodationFromDetail rolls back on API failure',
+      build: () {
+        stubAllSuccess();
+        final acc = makeAccommodation(
+          id: 'h1',
+          validationStatus: ValidationStatus.suggested,
+        );
+        when(
+          () => mockAccommodationRepo.getByTrip(any()),
+        ).thenAnswer((_) async => Success([acc]));
+        when(
+          () => mockAccommodationRepo.updateAccommodation(any(), any(), any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('boom')));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(ValidateAccommodationFromDetail(accommodationId: 'h1'));
+      },
+      wait: const Duration(milliseconds: 300),
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>().having(
+          (s) => s.operationError,
+          'operationError',
+          isA<NetworkError>(),
+        ),
+        isA<TripDetailLoaded>().having(
+          (s) => s.operationError,
+          'operationError',
+          isNull,
+        ),
+      ],
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ValidateBudgetItemFromDetail flips status + PATCHes camelCase',
+      build: () {
+        stubAllSuccess();
+        final item = makeBudgetItem(
+          id: 'b1',
+          validationStatus: ValidationStatus.suggested,
+        );
+        when(
+          () => mockBudgetRepo.getBudgetItems(any()),
+        ).thenAnswer((_) async => Success([item]));
+        when(
+          () => mockBudgetRepo.updateBudgetItem(any(), any(), any()),
+        ).thenAnswer(
+          (_) async => Success(
+            item.copyWith(validationStatus: ValidationStatus.validated),
+          ),
+        );
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(ValidateBudgetItemFromDetail(itemId: 'b1'));
+      },
+      wait: const Duration(milliseconds: 300),
+      verify: (_) {
+        verify(
+          () => mockBudgetRepo.updateBudgetItem('trip-1', 'b1', {
+            'validationStatus': 'VALIDATED',
+          }),
+        ).called(1);
+      },
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ValidateBudgetItemFromDetail rolls back on API failure',
+      build: () {
+        stubAllSuccess();
+        final item = makeBudgetItem(
+          id: 'b1',
+          validationStatus: ValidationStatus.suggested,
+        );
+        when(
+          () => mockBudgetRepo.getBudgetItems(any()),
+        ).thenAnswer((_) async => Success([item]));
+        when(
+          () => mockBudgetRepo.updateBudgetItem(any(), any(), any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('boom')));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(ValidateBudgetItemFromDetail(itemId: 'b1'));
+      },
+      wait: const Duration(milliseconds: 300),
+      expect: () => [
+        isA<TripDetailLoading>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>(),
+        isA<TripDetailLoaded>().having(
+          (s) => s.operationError,
+          'operationError',
+          isA<NetworkError>(),
+        ),
+        isA<TripDetailLoaded>().having(
+          (s) => s.operationError,
+          'operationError',
+          isNull,
+        ),
+      ],
+    );
+
+    // ── Phase 4 — atomic replace flight ───────────────────────────
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ReplaceFlightFromDetail removes the old flight and inserts the new',
+      build: () {
+        stubAllSuccess();
+        final old = makeManualFlight(id: 'old');
+        final fresh = makeManualFlight(id: 'new', flightNumber: 'AF999');
+        when(
+          () => mockTransportRepo.getManualFlights(any()),
+        ).thenAnswer((_) async => Success([old]));
+        when(
+          () => mockTransportRepo.deleteManualFlight(any(), 'old'),
+        ).thenAnswer((_) async => const Success(null));
+        when(
+          () => mockTransportRepo.createManualFlight(any(), any()),
+        ).thenAnswer((_) async => Success(fresh));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(
+          ReplaceFlightFromDetail(
+            oldFlightId: 'old',
+            newFlightData: const {'flightNumber': 'AF999'},
+          ),
+        );
+      },
+      wait: const Duration(milliseconds: 300),
+      verify: (_) {
+        verify(
+          () => mockTransportRepo.deleteManualFlight('trip-1', 'old'),
+        ).called(1);
+        verify(
+          () => mockTransportRepo.createManualFlight('trip-1', any()),
+        ).called(1);
+      },
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ReplaceFlightFromDetail rolls back when delete fails',
+      build: () {
+        stubAllSuccess();
+        final old = makeManualFlight(id: 'old');
+        when(
+          () => mockTransportRepo.getManualFlights(any()),
+        ).thenAnswer((_) async => Success([old]));
+        when(
+          () => mockTransportRepo.deleteManualFlight(any(), any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('boom')));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(
+          ReplaceFlightFromDetail(
+            oldFlightId: 'old',
+            newFlightData: const {'flightNumber': 'AF999'},
+          ),
+        );
+      },
+      wait: const Duration(milliseconds: 300),
+      verify: (_) {
+        // We must never proceed to CREATE if DELETE failed — the
+        // original flight is preserved by the rollback.
+        verifyNever(() => mockTransportRepo.createManualFlight(any(), any()));
+      },
+    );
+
+    // ── Phase 5 — atomic replace accommodation ──────────────────
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ReplaceAccommodationFromDetail performs atomic delete + create',
+      build: () {
+        stubAllSuccess();
+        final old = makeAccommodation(id: 'old', name: 'Old hotel');
+        final fresh = makeAccommodation(id: 'new', name: 'New hotel');
+        when(
+          () => mockAccommodationRepo.getByTrip(any()),
+        ).thenAnswer((_) async => Success([old]));
+        when(
+          () => mockAccommodationRepo.deleteAccommodation(any(), 'old'),
+        ).thenAnswer((_) async => const Success(null));
+        when(
+          () => mockAccommodationRepo.createAccommodation(
+            any(),
+            name: any(named: 'name'),
+            address: any(named: 'address'),
+            checkIn: any(named: 'checkIn'),
+            checkOut: any(named: 'checkOut'),
+            pricePerNight: any(named: 'pricePerNight'),
+            currency: any(named: 'currency'),
+            bookingReference: any(named: 'bookingReference'),
+            notes: any(named: 'notes'),
+          ),
+        ).thenAnswer((_) async => Success(fresh));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(
+          ReplaceAccommodationFromDetail(
+            oldAccommodationId: 'old',
+            newAccommodationData: const {'name': 'New hotel'},
+          ),
+        );
+      },
+      wait: const Duration(milliseconds: 300),
+      verify: (_) {
+        verify(
+          () => mockAccommodationRepo.deleteAccommodation('trip-1', 'old'),
+        ).called(1);
+      },
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ReplaceAccommodationFromDetail rolls back when delete fails',
+      build: () {
+        stubAllSuccess();
+        final old = makeAccommodation(id: 'old');
+        when(
+          () => mockAccommodationRepo.getByTrip(any()),
+        ).thenAnswer((_) async => Success([old]));
+        when(
+          () => mockAccommodationRepo.deleteAccommodation(any(), any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('boom')));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(
+          ReplaceAccommodationFromDetail(
+            oldAccommodationId: 'old',
+            newAccommodationData: const {'name': 'X'},
+          ),
+        );
+      },
+      wait: const Duration(milliseconds: 300),
+      verify: (_) {
+        // CREATE must never be attempted when DELETE refused.
+        verifyNever(
+          () => mockAccommodationRepo.createAccommodation(
+            any(),
+            name: any(named: 'name'),
+          ),
+        );
+      },
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'ReplaceFlightFromDetail surfaces operationError when create fails',
+      build: () {
+        stubAllSuccess();
+        final old = makeManualFlight(id: 'old');
+        when(
+          () => mockTransportRepo.getManualFlights(any()),
+        ).thenAnswer((_) async => Success([old]));
+        when(
+          () => mockTransportRepo.deleteManualFlight(any(), any()),
+        ).thenAnswer((_) async => const Success(null));
+        when(
+          () => mockTransportRepo.createManualFlight(any(), any()),
+        ).thenAnswer((_) async => const Failure(NetworkError('boom')));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(
+          ReplaceFlightFromDetail(
+            oldFlightId: 'old',
+            newFlightData: const {'flightNumber': 'AF999'},
+          ),
+        );
+      },
+      wait: const Duration(milliseconds: 300),
+      verify: (_) {
+        verify(
+          () => mockTransportRepo.deleteManualFlight('trip-1', 'old'),
+        ).called(1);
+        verify(
+          () => mockTransportRepo.createManualFlight('trip-1', any()),
+        ).called(1);
+      },
     );
   });
 }

@@ -23,6 +23,11 @@ class ActivityCategory(StrEnum):
     SHOPPING = "SHOPPING"
     NIGHTLIFE = "NIGHTLIFE"
     RELAXATION = "RELAXATION"
+    # SMP-324 — AI activity_planner emits transport recommendations
+    # (JR Pass, airport transfer, public-transit pass...) as Activity rows
+    # so they share the BudgetItem aggregation path with the dated
+    # itinerary, instead of becoming orphan budget breakdown lines.
+    TRANSPORT = "TRANSPORT"
     OTHER = "OTHER"
 
 

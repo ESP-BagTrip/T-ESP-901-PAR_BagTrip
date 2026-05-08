@@ -11,7 +11,7 @@ _Activity _$ActivityFromJson(Map<String, dynamic> json) => _Activity(
   tripId: json['trip_id'] as String,
   title: json['title'] as String,
   description: json['description'] as String?,
-  date: DateTime.parse(json['date'] as String),
+  date: json['date'] == null ? null : DateTime.parse(json['date'] as String),
   startTime: json['start_time'] as String?,
   endTime: json['end_time'] as String?,
   location: json['location'] as String?,
@@ -46,7 +46,7 @@ Map<String, dynamic> _$ActivityToJson(_Activity instance) => <String, dynamic>{
   'trip_id': instance.tripId,
   'title': instance.title,
   'description': instance.description,
-  'date': instance.date.toIso8601String(),
+  'date': instance.date?.toIso8601String(),
   'start_time': instance.startTime,
   'end_time': instance.endTime,
   'location': instance.location,
@@ -68,6 +68,7 @@ const _$ActivityCategoryEnumMap = {
   ActivityCategory.shopping: 'SHOPPING',
   ActivityCategory.nightlife: 'NIGHTLIFE',
   ActivityCategory.relaxation: 'RELAXATION',
+  ActivityCategory.transport: 'TRANSPORT',
   ActivityCategory.other: 'OTHER',
 };
 

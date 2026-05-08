@@ -145,7 +145,7 @@ async def get_status(
     db: Annotated[Session, Depends(get_db)],
 ):
     try:
-        return SubscriptionService.get_status(db, current_user)
+        return await SubscriptionService.get_status(db, current_user)
     except AppError as e:
         raise create_http_exception(e) from e
 
@@ -160,7 +160,7 @@ async def get_subscription_me(
 ):
     """Detailed view used by the "Manage my subscription" screen."""
     try:
-        return SubscriptionService.get_subscription_details(db, current_user)
+        return await SubscriptionService.get_subscription_details(db, current_user)
     except AppError as e:
         raise create_http_exception(e) from e
 

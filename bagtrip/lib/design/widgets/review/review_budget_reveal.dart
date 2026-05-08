@@ -148,12 +148,17 @@ class _Legend extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  entries[i].amount.formatPrice(),
-                  style: const TextStyle(
+                  entries[i].displayOverride ?? entries[i].amount.formatPrice(),
+                  style: TextStyle(
                     fontFamily: FontFamily.dMSerifDisplay,
                     fontSize: 15,
                     fontWeight: FontWeight.w400,
-                    color: Colors.white,
+                    color: entries[i].deferred
+                        ? Colors.white.withValues(alpha: 0.6)
+                        : Colors.white,
+                    fontStyle: entries[i].deferred
+                        ? FontStyle.italic
+                        : FontStyle.normal,
                   ),
                 ),
               ],

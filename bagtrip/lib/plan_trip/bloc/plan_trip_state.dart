@@ -46,6 +46,11 @@ abstract class PlanTripState with _$PlanTripState {
     // Step 5 — Review / Creation
     @Default(false) bool isCreating,
     String? createdTripId,
+    // SMP-324 — DRAFT trip persisted by the SSE pipeline. ``createdTripId``
+    // is set after confirmation (status flipped to PLANNED); ``draftTripId``
+    // tracks the row that already exists in DB so the wizard can confirm
+    // it via ``PATCH /trips/{id}/status`` or discard it via ``DELETE``.
+    String? draftTripId,
 
     // Meta
     @Default(false) bool isManualFlow,

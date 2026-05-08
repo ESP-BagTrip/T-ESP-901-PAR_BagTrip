@@ -1462,143 +1462,60 @@ void main() {
   });
 
   group('create trip — AI flow', () {
+    // SMP-324 — confirming an AI plan is now ``updateTripStatus(draftId,
+    // "PLANNED")`` on the existing draft persisted by the SSE pipeline.
+    // The seed sets ``draftTripId`` because the SSE ``complete`` event
+    // would have populated it before the user reached step 5.
+
+    Trip confirmedTrip(String id) =>
+        Trip(id: id, title: 'Voyage', status: TripStatus.planned);
+
     blocTest<PlanTripBloc, PlanTripState>(
-      'accepts the generated plan and stores createdTripId',
+      'confirms the persisted draft and stores createdTripId',
       build: () {
         when(
-          () => mockAiRepo.acceptInspiration(
-            any(),
-            startDate: any(named: 'startDate'),
-            endDate: any(named: 'endDate'),
-            dateMode: any(named: 'dateMode'),
-            originCity: any(named: 'originCity'),
-          ),
-        ).thenAnswer(
-          (_) async => const Success(<String, dynamic>{'id': 'trip-42'}),
-        );
+          () => mockTripRepo.updateTripStatus(any(), any()),
+        ).thenAnswer((_) async => Success(confirmedTrip('trip-42')));
         return buildBloc();
       },
-      seed: () => PlanTripState(
-        generatedPlan: const TripPlan(
-          destinationCity: 'Lisbon',
-          destinationCountry: 'Portugal',
-          durationDays: 5,
-          budgetEur: 1000,
-          accommodationName: 'Hotel X',
-          accommodationPrice: 120,
-          accommodationSource: 'amadeus',
-          flightRoute: 'CDG→LIS',
-          flightDetails: 'AF123',
-          flightPrice: 200,
-          flightSource: 'amadeus',
-          dayProgram: ['Tram ride'],
-          dayDescriptions: ['Hop on the 28'],
-          dayCategories: ['CULTURE'],
-          essentialItems: ['Passport'],
-          essentialReasons: ['ID'],
-          highlights: [],
-        ),
-        startDate: DateTime(2026, 6),
-        endDate: DateTime(2026, 6, 7),
+      seed: () => const PlanTripState(
+        draftTripId: 'trip-42',
+        generatedPlan: TripPlan(destinationCity: 'Lisbon'),
       ),
       act: (bloc) => bloc.add(const PlanTripEvent.createTrip()),
       verify: (bloc) {
+        verify(() => mockTripRepo.updateTripStatus('trip-42', 'PLANNED'));
         expect(bloc.state.createdTripId, 'trip-42');
         expect(bloc.state.isCreating, false);
       },
     );
 
     blocTest<PlanTripBloc, PlanTripState>(
-      'falls back to tripId key when id is absent',
-      build: () {
-        when(
-          () => mockAiRepo.acceptInspiration(
-            any(),
-            startDate: any(named: 'startDate'),
-            endDate: any(named: 'endDate'),
-            dateMode: any(named: 'dateMode'),
-            originCity: any(named: 'originCity'),
-          ),
-        ).thenAnswer(
-          (_) async => const Success(<String, dynamic>{'tripId': 't-7'}),
-        );
-        return buildBloc();
-      },
-      seed: () => PlanTripState(
-        generatedPlan: const TripPlan(
-          destinationCity: 'X',
-          destinationCountry: 'Y',
-          durationDays: 3,
-          budgetEur: 100,
-          accommodationName: '',
-          accommodationPrice: 0,
-          accommodationSource: 'estimated',
-          flightRoute: '',
-          flightDetails: '',
-          flightPrice: 0,
-          flightSource: 'estimated',
-          dayProgram: [],
-          dayDescriptions: [],
-          dayCategories: [],
-          essentialItems: [],
-          essentialReasons: [],
-          highlights: [],
-        ),
-        startDate: DateTime(2026, 6),
-        endDate: DateTime(2026, 6, 4),
+      'createTrip (AI) without draftTripId surfaces ServerError',
+      build: buildBloc,
+      seed: () => const PlanTripState(
+        // No ``draftTripId`` — the SSE complete event never landed.
+        generatedPlan: TripPlan(destinationCity: 'X'),
       ),
       act: (bloc) => bloc.add(const PlanTripEvent.createTrip()),
       verify: (bloc) {
-        expect(bloc.state.createdTripId, 't-7');
-      },
-    );
-
-    blocTest<PlanTripBloc, PlanTripState>(
-      'createTrip (AI) without generatedPlan surfaces ServerError',
-      build: buildBloc,
-      act: (bloc) => bloc.add(const PlanTripEvent.createTrip()),
-      verify: (bloc) {
+        verifyNever(() => mockTripRepo.updateTripStatus(any(), any()));
         expect(bloc.state.error, isA<ServerError>());
         expect(bloc.state.isCreating, false);
       },
     );
 
     blocTest<PlanTripBloc, PlanTripState>(
-      'AI create failure surfaces error',
+      'AI confirm failure surfaces error',
       build: () {
         when(
-          () => mockAiRepo.acceptInspiration(
-            any(),
-            startDate: any(named: 'startDate'),
-            endDate: any(named: 'endDate'),
-            dateMode: any(named: 'dateMode'),
-            originCity: any(named: 'originCity'),
-          ),
+          () => mockTripRepo.updateTripStatus(any(), any()),
         ).thenAnswer((_) async => const Failure(NetworkError('offline')));
         return buildBloc();
       },
-      seed: () => PlanTripState(
-        generatedPlan: const TripPlan(
-          destinationCity: 'X',
-          destinationCountry: 'Y',
-          durationDays: 3,
-          budgetEur: 100,
-          accommodationName: '',
-          accommodationPrice: 0,
-          accommodationSource: 'estimated',
-          flightRoute: '',
-          flightDetails: '',
-          flightPrice: 0,
-          flightSource: 'estimated',
-          dayProgram: [],
-          dayDescriptions: [],
-          dayCategories: [],
-          essentialItems: [],
-          essentialReasons: [],
-          highlights: [],
-        ),
-        startDate: DateTime(2026, 6),
-        endDate: DateTime(2026, 6, 4),
+      seed: () => const PlanTripState(
+        draftTripId: 'trip-42',
+        generatedPlan: TripPlan(destinationCity: 'X'),
       ),
       act: (bloc) => bloc.add(const PlanTripEvent.createTrip()),
       verify: (bloc) {

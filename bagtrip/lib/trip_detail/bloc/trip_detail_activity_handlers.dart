@@ -21,10 +21,9 @@ extension _TripDetailActivityHandlers on TripDetailBloc {
         .toList();
     emit(loaded.copyWith(activities: updatedActivities));
 
-    final result = await _activityRepository.updateActivity(
+    final result = await _activityRepository.validate(
       _tripId!,
       event.activityId,
-      {'validation_status': 'VALIDATED'},
     );
 
     if (isClosed) return;

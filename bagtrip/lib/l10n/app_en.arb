@@ -1703,5 +1703,40 @@
   "errorAlreadyFullyRefunded": "This payment has already been fully refunded.",
   "errorInvalidRefundReason": "Invalid refund reason.",
   "showMore": "Show more",
-  "showLess": "Show less"
+  "showLess": "Show less",
+  "accommodationToBeChosen": "Accommodation to be chosen",
+  "budgetAccommodationDeferred": "TBD",
+  "reviewMealsToTry": "Restaurants to try",
+  "reviewTransportTips": "Useful transports",
+  "accommodationDeferredSubtitle": "{city} · {nights} to book later",
+  "@accommodationDeferredSubtitle": {
+    "placeholders": {
+      "city": {"type": "String"},
+      "nights": {"type": "String"}
+    }
+  },
+  "accommodationPerNight": "{amount} {currency}/night",
+  "@accommodationPerNight": {
+    "placeholders": {
+      "amount": {"type": "String"},
+      "currency": {"type": "String"}
+    }
+  },
+  "itemStatusSuggested": "AI suggestion",
+  "itemStatusValidated": "Validated",
+  "itemStatusManual": "Added by you",
+  "flightValidateSheetTitle": "Validate this flight",
+  "flightValidateExternalTitle": "I already booked elsewhere",
+  "flightValidateExternalSubtitle": "Enter your flight number — we'll keep an eye on it.",
+  "flightValidateAmadeusTitle": "Book through BagTrip",
+  "flightValidateAmadeusSubtitle": "Lock in this offer with the airline directly.",
+  "flightValidateExternalNumberLabel": "Flight number",
+  "flightValidateExternalNumberHint": "AF1234",
+  "budgetPlannedHelper": "This expense will join the forecast.",
+  "budgetSpentHelper": "This expense will join the actuals.",
+  "activitiesPanelTabPlanning": "Planning",
+  "activitiesPanelTabRecos": "Recos",
+  "activitiesPanelEmptyRecos": "No restaurant or transport recommendations for this trip.",
+  "activitiesPanelSectionRestaurants": "Restaurants",
+  "activitiesPanelSectionTransports": "Transports"
 }

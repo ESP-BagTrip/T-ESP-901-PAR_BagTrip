@@ -26,10 +26,19 @@ const budgetCategoryKeys = <String>[
 /// Skips zero / negative amounts. The returned list is ordered to
 /// match [budgetCategoryKeys] so callers can rely on stable visual
 /// ordering.
+///
+/// ``accommodationDeferred`` lets the caller surface a ``deferred``
+/// row in the legend even when the backend reports
+/// ``accommodation == 0``. This keeps the budget breakdown honest:
+/// when the review screen shows "Hôtel à choisir" we want the budget
+/// legend to mirror that with an "À déterminer" row instead of
+/// silently dropping the line and pretending the trip is cheaper than
+/// it really is.
 List<BudgetStripeEntry> extractBudgetEntries(
   AppLocalizations l10n,
-  BudgetBreakdown breakdown,
-) {
+  BudgetBreakdown breakdown, {
+  bool accommodationDeferred = false,
+}) {
   final entries = <BudgetStripeEntry>[];
   final amounts = <String, double>{
     'flight': breakdown.flight,
@@ -40,7 +49,20 @@ List<BudgetStripeEntry> extractBudgetEntries(
   };
   for (final key in budgetCategoryKeys) {
     final amount = amounts[key] ?? 0;
-    if (amount <= 0) continue;
+    if (amount <= 0) {
+      if (key == 'accommodation' && accommodationDeferred) {
+        entries.add(
+          BudgetStripeEntry(
+            label: budgetLabelForKey(key, l10n),
+            amount: 0,
+            color: budgetColorForKey(key),
+            displayOverride: l10n.budgetAccommodationDeferred,
+            deferred: true,
+          ),
+        );
+      }
+      continue;
+    }
     entries.add(
       BudgetStripeEntry(
         label: budgetLabelForKey(key, l10n),

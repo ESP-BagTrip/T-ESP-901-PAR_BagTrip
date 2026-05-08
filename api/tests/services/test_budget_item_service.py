@@ -28,8 +28,26 @@ class TestCreate:
         assert isinstance(item, BudgetItem)
         assert item.label == "Lunch"
         assert item.amount == 25.0
+        # User-created budget items default to MANUAL — they did not
+        # originate from an AI suggestion.
+        assert item.validation_status == "MANUAL"
         mock_db_session.add.assert_called_once()
         assert mock_db_session.commit.called
+
+    def test_honours_explicit_validation_status(self, mock_db_session, make_trip):
+        """``PlanDraftService`` (and any other backend caller) can stamp
+        ``SUGGESTED`` at creation time so the row participates in the
+        unified validate flow."""
+        trip = make_trip(status="PLANNED")
+        item = BudgetItemService.create(
+            db=mock_db_session,
+            trip=trip,
+            label="Sushi Saito",
+            amount=250.0,
+            category="FOOD",
+            validation_status="SUGGESTED",
+        )
+        assert item.validation_status == "SUGGESTED"
 
     def test_blocked_on_completed_trip(self, mock_db_session, make_trip):
         trip = make_trip(status="COMPLETED")
@@ -98,6 +116,72 @@ class TestUpdate:
         with pytest.raises(AppError) as exc:
             BudgetItemService.update(db=mock_db_session, trip=trip, item_id=uuid.uuid4(), label="x")
         assert exc.value.code == "TRIP_COMPLETED"
+
+
+class TestValidationTransition:
+    """``validation_status`` follows a one-way trip:
+    ``SUGGESTED → VALIDATED``. Any other move is rejected so the
+    validate flow stays honest — once an item is ``VALIDATED`` /
+    ``MANUAL`` it has been reviewed and the public API can no longer
+    rewind it to ``SUGGESTED``.
+    """
+
+    @staticmethod
+    def _bind(mock_db_session, item):
+        mock_db_session.query.return_value.filter.return_value.first.return_value = item
+
+    def test_suggested_to_validated_allowed(self, mock_db_session, make_trip):
+        trip = make_trip(status="PLANNED")
+        item = BudgetItem(
+            trip_id=trip.id, label="JR Pass", amount=240, validation_status="SUGGESTED"
+        )
+        self._bind(mock_db_session, item)
+
+        result = BudgetItemService.update(
+            db=mock_db_session,
+            trip=trip,
+            item_id=uuid.uuid4(),
+            validation_status="VALIDATED",
+        )
+        assert result.validation_status == "VALIDATED"
+
+    def test_idempotent_update(self, mock_db_session, make_trip):
+        """Re-asserting the same status must not raise — the client
+        can retry the validate gesture without surprise."""
+        trip = make_trip(status="PLANNED")
+        item = BudgetItem(trip_id=trip.id, label="Hotel", amount=950, validation_status="VALIDATED")
+        self._bind(mock_db_session, item)
+
+        result = BudgetItemService.update(
+            db=mock_db_session,
+            trip=trip,
+            item_id=uuid.uuid4(),
+            validation_status="VALIDATED",
+        )
+        assert result.validation_status == "VALIDATED"
+
+    @pytest.mark.parametrize(
+        ("current", "target"),
+        [
+            ("VALIDATED", "SUGGESTED"),
+            ("MANUAL", "SUGGESTED"),
+            ("VALIDATED", "MANUAL"),
+            ("SUGGESTED", "MANUAL"),
+        ],
+    )
+    def test_illegal_transitions_rejected(self, mock_db_session, make_trip, current, target):
+        trip = make_trip(status="PLANNED")
+        item = BudgetItem(trip_id=trip.id, label="X", amount=10, validation_status=current)
+        self._bind(mock_db_session, item)
+
+        with pytest.raises(AppError) as exc:
+            BudgetItemService.update(
+                db=mock_db_session,
+                trip=trip,
+                item_id=uuid.uuid4(),
+                validation_status=target,
+            )
+        assert exc.value.code == "INVALID_VALIDATION_TRANSITION"
 
 
 class TestDelete:

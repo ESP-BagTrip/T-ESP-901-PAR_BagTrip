@@ -35,6 +35,9 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
   final bool? checkedBagIncluded;
   final TimeOfDay? departureTimeBefore;
   final TimeOfDay? departureTimeAfter;
+  // Phase 4 follow-up — propagates the replace-mode flag from
+  // LoadFlights so the result widget can branch its onTap behaviour.
+  final String? replaceFlightId;
 
   FlightSearchResultLoaded({
     required this.flights,
@@ -61,6 +64,7 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
     this.checkedBagIncluded,
     this.departureTimeBefore,
     this.departureTimeAfter,
+    this.replaceFlightId,
   });
 
   FlightSearchResultLoaded copyWith({
@@ -88,6 +92,7 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
     bool? checkedBagIncluded,
     TimeOfDay? departureTimeBefore,
     TimeOfDay? departureTimeAfter,
+    String? replaceFlightId,
   }) {
     return FlightSearchResultLoaded(
       flights: flights ?? this.flights,
@@ -114,6 +119,7 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
       checkedBagIncluded: checkedBagIncluded ?? this.checkedBagIncluded,
       departureTimeBefore: departureTimeBefore ?? this.departureTimeBefore,
       departureTimeAfter: departureTimeAfter ?? this.departureTimeAfter,
+      replaceFlightId: replaceFlightId ?? this.replaceFlightId,
     );
   }
 }

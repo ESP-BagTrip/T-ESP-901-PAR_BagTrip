@@ -2474,7 +2474,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accommodationSelectHotel => 'Select';
 
   @override
-  String get accommodationPerNight => '/night';
+  String accommodationPerNight(String amount, String currency) {
+    return '$amount $currency/night';
+  }
 
   @override
   String get accommodationNoResults => 'No hotels found';
@@ -3468,4 +3470,75 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get showLess => 'Show less';
+
+  @override
+  String get accommodationToBeChosen => 'Accommodation to be chosen';
+
+  @override
+  String get budgetAccommodationDeferred => 'TBD';
+
+  @override
+  String get reviewMealsToTry => 'Restaurants to try';
+
+  @override
+  String get reviewTransportTips => 'Useful transports';
+
+  @override
+  String accommodationDeferredSubtitle(String city, String nights) {
+    return '$city · $nights to book later';
+  }
+
+  @override
+  String get itemStatusSuggested => 'AI suggestion';
+
+  @override
+  String get itemStatusValidated => 'Validated';
+
+  @override
+  String get itemStatusManual => 'Added by you';
+
+  @override
+  String get flightValidateSheetTitle => 'Validate this flight';
+
+  @override
+  String get flightValidateExternalTitle => 'I already booked elsewhere';
+
+  @override
+  String get flightValidateExternalSubtitle =>
+      'Enter your flight number — we\'ll keep an eye on it.';
+
+  @override
+  String get flightValidateAmadeusTitle => 'Book through BagTrip';
+
+  @override
+  String get flightValidateAmadeusSubtitle =>
+      'Lock in this offer with the airline directly.';
+
+  @override
+  String get flightValidateExternalNumberLabel => 'Flight number';
+
+  @override
+  String get flightValidateExternalNumberHint => 'AF1234';
+
+  @override
+  String get budgetPlannedHelper => 'This expense will join the forecast.';
+
+  @override
+  String get budgetSpentHelper => 'This expense will join the actuals.';
+
+  @override
+  String get activitiesPanelTabPlanning => 'Planning';
+
+  @override
+  String get activitiesPanelTabRecos => 'Recos';
+
+  @override
+  String get activitiesPanelEmptyRecos =>
+      'No restaurant or transport recommendations for this trip.';
+
+  @override
+  String get activitiesPanelSectionRestaurants => 'Restaurants';
+
+  @override
+  String get activitiesPanelSectionTransports => 'Transports';
 }

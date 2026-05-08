@@ -38,8 +38,8 @@ class TestSettings:
         # Check new defaults (Redis + timeouts)
         assert settings.REDIS_URL is None
         assert settings.GRAPH_TIMEOUT_SECONDS == 300
-        assert settings.LLM_CALL_TIMEOUT_SECONDS == 60
-        assert settings.NODE_TIMEOUT_SECONDS == 120
+        assert settings.LLM_CALL_TIMEOUT_SECONDS == 120
+        assert settings.NODE_TIMEOUT_SECONDS == 180
 
     def test_settings_validation_missing_required(self):
         """Test validation fails when required vars are missing."""

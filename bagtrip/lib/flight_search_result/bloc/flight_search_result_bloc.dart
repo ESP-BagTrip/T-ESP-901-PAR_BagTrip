@@ -191,6 +191,7 @@ class FlightSearchResultBloc
               multiDestSegments: event.multiDestSegments,
               segmentResults: segResults,
               segmentLabels: segLabels,
+              replaceFlightId: event.replaceFlightId,
             ),
           );
         case Failure(:final error):
@@ -237,6 +238,7 @@ class FlightSearchResultBloc
             children: event.children,
             infants: event.infants,
             travelClass: event.travelClass,
+            replaceFlightId: event.replaceFlightId,
             multiDestSegments: event.multiDestSegments,
           ),
         );

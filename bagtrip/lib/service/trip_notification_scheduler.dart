@@ -118,10 +118,13 @@ class TripNotificationScheduler {
       if (activitiesResult is Success<List<Activity>>) {
         for (final activity in activitiesResult.data) {
           if (activity.startTime == null) continue;
+          // SMP-324 — undated FOOD / TRANSPORT recommendations are not
+          // schedulable: skip them silently.
+          if (activity.date == null) continue;
           final time = _parseTime(activity.startTime!);
           if (time == null) continue;
 
-          final actDate = activity.date;
+          final actDate = activity.date!;
           final actDateTime = DateTime(
             actDate.year,
             actDate.month,

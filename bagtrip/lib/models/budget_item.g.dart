@@ -22,6 +22,13 @@ _BudgetItem _$BudgetItemFromJson(Map<String, dynamic> json) => _BudgetItem(
   isPlanned: json['is_planned'] as bool? ?? true,
   sourceType: json['source_type'] as String?,
   sourceId: json['source_id'] as String?,
+  validationStatus:
+      $enumDecodeNullable(
+        _$ValidationStatusEnumMap,
+        json['validation_status'],
+        unknownValue: ValidationStatus.manual,
+      ) ??
+      ValidationStatus.manual,
   createdAt: json['created_at'] == null
       ? null
       : DateTime.parse(json['created_at'] as String),
@@ -30,20 +37,22 @@ _BudgetItem _$BudgetItemFromJson(Map<String, dynamic> json) => _BudgetItem(
       : DateTime.parse(json['updated_at'] as String),
 );
 
-Map<String, dynamic> _$BudgetItemToJson(_BudgetItem instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'trip_id': instance.tripId,
-      'label': instance.label,
-      'amount': instance.amount,
-      'category': _$BudgetCategoryEnumMap[instance.category]!,
-      'date': instance.date?.toIso8601String(),
-      'is_planned': instance.isPlanned,
-      'source_type': instance.sourceType,
-      'source_id': instance.sourceId,
-      'created_at': instance.createdAt?.toIso8601String(),
-      'updated_at': instance.updatedAt?.toIso8601String(),
-    };
+Map<String, dynamic> _$BudgetItemToJson(
+  _BudgetItem instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'trip_id': instance.tripId,
+  'label': instance.label,
+  'amount': instance.amount,
+  'category': _$BudgetCategoryEnumMap[instance.category]!,
+  'date': instance.date?.toIso8601String(),
+  'is_planned': instance.isPlanned,
+  'source_type': instance.sourceType,
+  'source_id': instance.sourceId,
+  'validation_status': _$ValidationStatusEnumMap[instance.validationStatus]!,
+  'created_at': instance.createdAt?.toIso8601String(),
+  'updated_at': instance.updatedAt?.toIso8601String(),
+};
 
 const _$BudgetCategoryEnumMap = {
   BudgetCategory.flight: 'FLIGHT',
@@ -52,6 +61,12 @@ const _$BudgetCategoryEnumMap = {
   BudgetCategory.activity: 'ACTIVITY',
   BudgetCategory.transport: 'TRANSPORT',
   BudgetCategory.other: 'OTHER',
+};
+
+const _$ValidationStatusEnumMap = {
+  ValidationStatus.suggested: 'SUGGESTED',
+  ValidationStatus.validated: 'VALIDATED',
+  ValidationStatus.manual: 'MANUAL',
 };
 
 _BudgetSummary _$BudgetSummaryFromJson(Map<String, dynamic> json) =>

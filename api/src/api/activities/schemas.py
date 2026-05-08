@@ -9,7 +9,7 @@ from src.enums import ActivityCategory
 
 class ActivityCreateRequest(BagtripRequestModel):
     title: str
-    date: dt.date
+    date: dt.date | None = None
     description: str | None = None
     startTime: dt.time | None = None
     endTime: dt.time | None = None
@@ -52,7 +52,9 @@ class ActivityResponse(BaseModel):
     tripId: UUID = Field(alias="trip_id")
     title: str
     description: str | None = None
-    date: dt.date
+    # SMP-324 — undated FOOD / TRANSPORT recommendations have no calendar
+    # slot; the GET activities endpoint must serialize them too.
+    date: dt.date | None = None
     startTime: dt.time | None = Field(default=None, alias="start_time")
     endTime: dt.time | None = Field(default=None, alias="end_time")
     location: str | None = None

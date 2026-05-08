@@ -1,5 +1,6 @@
 """Service wrapper pour appels LLM (OpenAI-compatible via LangChain)."""
 
+import asyncio
 import json
 import re
 
@@ -8,6 +9,7 @@ from langchain_openai import ChatOpenAI
 
 from src.config.env import settings
 from src.utils.errors import AppError
+from src.utils.logger import logger
 
 
 class LLMService:
@@ -23,11 +25,21 @@ class LLMService:
 
     def _get_llm(self) -> ChatOpenAI:
         if self._llm is None:
+            # SMP-324 — without ``timeout`` ``ChatOpenAI`` keeps the
+            # underlying httpx client on its default (no read timeout),
+            # which lets a hung upstream proxy block ``ainvoke`` forever.
+            # The wizard's destinations_only path used to emit two
+            # ``progress`` events then go silent because of this. The
+            # ReAct executor already wraps every call in ``wait_for``;
+            # this constructor-level fallback covers any caller that
+            # forgets — defense in depth.
             self._llm = ChatOpenAI(
                 model=settings.LLM_MODEL,
                 base_url=settings.LLM_API_BASE,
                 api_key=settings.LLM_API_KEY,
                 temperature=0.7,
+                timeout=float(settings.LLM_CALL_TIMEOUT_SECONDS),
+                max_retries=2,
             )
         return self._llm
 
@@ -64,16 +76,35 @@ class LLMService:
             ) from e
 
     async def acall_llm(self, system_prompt: str, user_prompt: str) -> dict:
-        """Appelle le LLM de manière asynchrone et retourne le JSON parsé."""
+        """Appelle le LLM de manière asynchrone et retourne le JSON parsé.
+
+        Wrapped in ``asyncio.wait_for`` so a hung upstream proxy raises
+        ``LLM_TIMEOUT`` after ``LLM_CALL_TIMEOUT_SECONDS`` instead of
+        keeping the SSE connection open forever — the bug behind the
+        "destinations stream hangs without error" report.
+        """
         try:
             llm = self._get_llm()
-            response = await llm.ainvoke(
-                [
-                    SystemMessage(content=system_prompt),
-                    HumanMessage(content=user_prompt),
-                ]
+            response = await asyncio.wait_for(
+                llm.ainvoke(
+                    [
+                        SystemMessage(content=system_prompt),
+                        HumanMessage(content=user_prompt),
+                    ]
+                ),
+                timeout=settings.LLM_CALL_TIMEOUT_SECONDS,
             )
             raw = response.content
+        except TimeoutError as e:
+            logger.warn(
+                "LLM call timed out",
+                {"timeout_seconds": settings.LLM_CALL_TIMEOUT_SECONDS},
+            )
+            raise AppError(
+                "LLM_TIMEOUT",
+                504,
+                f"LLM call timed out after {settings.LLM_CALL_TIMEOUT_SECONDS}s",
+            ) from e
         except Exception as e:
             raise AppError("LLM_ERROR", 502, f"LLM call failed: {e}") from e
 
@@ -91,10 +122,25 @@ class LLMService:
         """Appelle le LLM avec une liste de messages et retourne le contenu brut.
 
         Utilisé par le ReAct executor pour la boucle conversationnelle.
+        Same timeout discipline as ``acall_llm`` — silent hangs are
+        the most insidious failure mode of the SSE pipeline.
         """
         try:
             llm = self._get_llm()
-            response = await llm.ainvoke(messages)
+            response = await asyncio.wait_for(
+                llm.ainvoke(messages),
+                timeout=settings.LLM_CALL_TIMEOUT_SECONDS,
+            )
             return response.content
+        except TimeoutError as e:
+            logger.warn(
+                "LLM call timed out",
+                {"timeout_seconds": settings.LLM_CALL_TIMEOUT_SECONDS},
+            )
+            raise AppError(
+                "LLM_TIMEOUT",
+                504,
+                f"LLM call timed out after {settings.LLM_CALL_TIMEOUT_SECONDS}s",
+            ) from e
         except Exception as e:
             raise AppError("LLM_ERROR", 502, f"LLM call failed: {e}") from e

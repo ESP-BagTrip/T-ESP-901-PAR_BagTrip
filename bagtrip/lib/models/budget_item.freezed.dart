@@ -15,7 +15,9 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BudgetItem {
 
- String get id; String get tripId; String get label; double get amount;@JsonKey(unknownEnumValue: BudgetCategory.other) BudgetCategory get category; DateTime? get date; bool get isPlanned; String? get sourceType; String? get sourceId; DateTime? get createdAt; DateTime? get updatedAt;
+ String get id; String get tripId; String get label; double get amount;@JsonKey(unknownEnumValue: BudgetCategory.other) BudgetCategory get category; DateTime? get date; bool get isPlanned; String? get sourceType; String? get sourceId;// Phase B — mirrors the backend ``validation_status`` column. Defaults
+// to ``manual`` so any pre-Phase B response still parses cleanly.
+@JsonKey(unknownEnumValue: ValidationStatus.manual) ValidationStatus get validationStatus; DateTime? get createdAt; DateTime? get updatedAt;
 /// Create a copy of BudgetItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +30,16 @@ $BudgetItemCopyWith<BudgetItem> get copyWith => _$BudgetItemCopyWithImpl<BudgetI
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BudgetItem&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.label, label) || other.label == label)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.category, category) || other.category == category)&&(identical(other.date, date) || other.date == date)&&(identical(other.isPlanned, isPlanned) || other.isPlanned == isPlanned)&&(identical(other.sourceType, sourceType) || other.sourceType == sourceType)&&(identical(other.sourceId, sourceId) || other.sourceId == sourceId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BudgetItem&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.label, label) || other.label == label)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.category, category) || other.category == category)&&(identical(other.date, date) || other.date == date)&&(identical(other.isPlanned, isPlanned) || other.isPlanned == isPlanned)&&(identical(other.sourceType, sourceType) || other.sourceType == sourceType)&&(identical(other.sourceId, sourceId) || other.sourceId == sourceId)&&(identical(other.validationStatus, validationStatus) || other.validationStatus == validationStatus)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,tripId,label,amount,category,date,isPlanned,sourceType,sourceId,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,tripId,label,amount,category,date,isPlanned,sourceType,sourceId,validationStatus,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'BudgetItem(id: $id, tripId: $tripId, label: $label, amount: $amount, category: $category, date: $date, isPlanned: $isPlanned, sourceType: $sourceType, sourceId: $sourceId, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'BudgetItem(id: $id, tripId: $tripId, label: $label, amount: $amount, category: $category, date: $date, isPlanned: $isPlanned, sourceType: $sourceType, sourceId: $sourceId, validationStatus: $validationStatus, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +50,7 @@ abstract mixin class $BudgetItemCopyWith<$Res>  {
   factory $BudgetItemCopyWith(BudgetItem value, $Res Function(BudgetItem) _then) = _$BudgetItemCopyWithImpl;
 @useResult
 $Res call({
- String id, String tripId, String label, double amount,@JsonKey(unknownEnumValue: BudgetCategory.other) BudgetCategory category, DateTime? date, bool isPlanned, String? sourceType, String? sourceId, DateTime? createdAt, DateTime? updatedAt
+ String id, String tripId, String label, double amount,@JsonKey(unknownEnumValue: BudgetCategory.other) BudgetCategory category, DateTime? date, bool isPlanned, String? sourceType, String? sourceId,@JsonKey(unknownEnumValue: ValidationStatus.manual) ValidationStatus validationStatus, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -65,7 +67,7 @@ class _$BudgetItemCopyWithImpl<$Res>
 
 /// Create a copy of BudgetItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? tripId = null,Object? label = null,Object? amount = null,Object? category = null,Object? date = freezed,Object? isPlanned = null,Object? sourceType = freezed,Object? sourceId = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? tripId = null,Object? label = null,Object? amount = null,Object? category = null,Object? date = freezed,Object? isPlanned = null,Object? sourceType = freezed,Object? sourceId = freezed,Object? validationStatus = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,tripId: null == tripId ? _self.tripId : tripId // ignore: cast_nullable_to_non_nullable
@@ -76,7 +78,8 @@ as BudgetCategory,date: freezed == date ? _self.date : date // ignore: cast_null
 as DateTime?,isPlanned: null == isPlanned ? _self.isPlanned : isPlanned // ignore: cast_nullable_to_non_nullable
 as bool,sourceType: freezed == sourceType ? _self.sourceType : sourceType // ignore: cast_nullable_to_non_nullable
 as String?,sourceId: freezed == sourceId ? _self.sourceId : sourceId // ignore: cast_nullable_to_non_nullable
-as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,validationStatus: null == validationStatus ? _self.validationStatus : validationStatus // ignore: cast_nullable_to_non_nullable
+as ValidationStatus,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
@@ -163,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String tripId,  String label,  double amount, @JsonKey(unknownEnumValue: BudgetCategory.other)  BudgetCategory category,  DateTime? date,  bool isPlanned,  String? sourceType,  String? sourceId,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String tripId,  String label,  double amount, @JsonKey(unknownEnumValue: BudgetCategory.other)  BudgetCategory category,  DateTime? date,  bool isPlanned,  String? sourceType,  String? sourceId, @JsonKey(unknownEnumValue: ValidationStatus.manual)  ValidationStatus validationStatus,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BudgetItem() when $default != null:
-return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_that.date,_that.isPlanned,_that.sourceType,_that.sourceId,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_that.date,_that.isPlanned,_that.sourceType,_that.sourceId,_that.validationStatus,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -184,10 +187,10 @@ return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String tripId,  String label,  double amount, @JsonKey(unknownEnumValue: BudgetCategory.other)  BudgetCategory category,  DateTime? date,  bool isPlanned,  String? sourceType,  String? sourceId,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String tripId,  String label,  double amount, @JsonKey(unknownEnumValue: BudgetCategory.other)  BudgetCategory category,  DateTime? date,  bool isPlanned,  String? sourceType,  String? sourceId, @JsonKey(unknownEnumValue: ValidationStatus.manual)  ValidationStatus validationStatus,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _BudgetItem():
-return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_that.date,_that.isPlanned,_that.sourceType,_that.sourceId,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_that.date,_that.isPlanned,_that.sourceType,_that.sourceId,_that.validationStatus,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +207,10 @@ return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String tripId,  String label,  double amount, @JsonKey(unknownEnumValue: BudgetCategory.other)  BudgetCategory category,  DateTime? date,  bool isPlanned,  String? sourceType,  String? sourceId,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String tripId,  String label,  double amount, @JsonKey(unknownEnumValue: BudgetCategory.other)  BudgetCategory category,  DateTime? date,  bool isPlanned,  String? sourceType,  String? sourceId, @JsonKey(unknownEnumValue: ValidationStatus.manual)  ValidationStatus validationStatus,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _BudgetItem() when $default != null:
-return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_that.date,_that.isPlanned,_that.sourceType,_that.sourceId,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_that.date,_that.isPlanned,_that.sourceType,_that.sourceId,_that.validationStatus,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -219,7 +222,7 @@ return $default(_that.id,_that.tripId,_that.label,_that.amount,_that.category,_t
 @JsonSerializable()
 
 class _BudgetItem implements BudgetItem {
-  const _BudgetItem({required this.id, required this.tripId, required this.label, required this.amount, @JsonKey(unknownEnumValue: BudgetCategory.other) this.category = BudgetCategory.other, this.date, this.isPlanned = true, this.sourceType, this.sourceId, this.createdAt, this.updatedAt});
+  const _BudgetItem({required this.id, required this.tripId, required this.label, required this.amount, @JsonKey(unknownEnumValue: BudgetCategory.other) this.category = BudgetCategory.other, this.date, this.isPlanned = true, this.sourceType, this.sourceId, @JsonKey(unknownEnumValue: ValidationStatus.manual) this.validationStatus = ValidationStatus.manual, this.createdAt, this.updatedAt});
   factory _BudgetItem.fromJson(Map<String, dynamic> json) => _$BudgetItemFromJson(json);
 
 @override final  String id;
@@ -231,6 +234,9 @@ class _BudgetItem implements BudgetItem {
 @override@JsonKey() final  bool isPlanned;
 @override final  String? sourceType;
 @override final  String? sourceId;
+// Phase B — mirrors the backend ``validation_status`` column. Defaults
+// to ``manual`` so any pre-Phase B response still parses cleanly.
+@override@JsonKey(unknownEnumValue: ValidationStatus.manual) final  ValidationStatus validationStatus;
 @override final  DateTime? createdAt;
 @override final  DateTime? updatedAt;
 
@@ -247,16 +253,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BudgetItem&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.label, label) || other.label == label)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.category, category) || other.category == category)&&(identical(other.date, date) || other.date == date)&&(identical(other.isPlanned, isPlanned) || other.isPlanned == isPlanned)&&(identical(other.sourceType, sourceType) || other.sourceType == sourceType)&&(identical(other.sourceId, sourceId) || other.sourceId == sourceId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BudgetItem&&(identical(other.id, id) || other.id == id)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.label, label) || other.label == label)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.category, category) || other.category == category)&&(identical(other.date, date) || other.date == date)&&(identical(other.isPlanned, isPlanned) || other.isPlanned == isPlanned)&&(identical(other.sourceType, sourceType) || other.sourceType == sourceType)&&(identical(other.sourceId, sourceId) || other.sourceId == sourceId)&&(identical(other.validationStatus, validationStatus) || other.validationStatus == validationStatus)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,tripId,label,amount,category,date,isPlanned,sourceType,sourceId,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,tripId,label,amount,category,date,isPlanned,sourceType,sourceId,validationStatus,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'BudgetItem(id: $id, tripId: $tripId, label: $label, amount: $amount, category: $category, date: $date, isPlanned: $isPlanned, sourceType: $sourceType, sourceId: $sourceId, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'BudgetItem(id: $id, tripId: $tripId, label: $label, amount: $amount, category: $category, date: $date, isPlanned: $isPlanned, sourceType: $sourceType, sourceId: $sourceId, validationStatus: $validationStatus, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -267,7 +273,7 @@ abstract mixin class _$BudgetItemCopyWith<$Res> implements $BudgetItemCopyWith<$
   factory _$BudgetItemCopyWith(_BudgetItem value, $Res Function(_BudgetItem) _then) = __$BudgetItemCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String tripId, String label, double amount,@JsonKey(unknownEnumValue: BudgetCategory.other) BudgetCategory category, DateTime? date, bool isPlanned, String? sourceType, String? sourceId, DateTime? createdAt, DateTime? updatedAt
+ String id, String tripId, String label, double amount,@JsonKey(unknownEnumValue: BudgetCategory.other) BudgetCategory category, DateTime? date, bool isPlanned, String? sourceType, String? sourceId,@JsonKey(unknownEnumValue: ValidationStatus.manual) ValidationStatus validationStatus, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -284,7 +290,7 @@ class __$BudgetItemCopyWithImpl<$Res>
 
 /// Create a copy of BudgetItem
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? tripId = null,Object? label = null,Object? amount = null,Object? category = null,Object? date = freezed,Object? isPlanned = null,Object? sourceType = freezed,Object? sourceId = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? tripId = null,Object? label = null,Object? amount = null,Object? category = null,Object? date = freezed,Object? isPlanned = null,Object? sourceType = freezed,Object? sourceId = freezed,Object? validationStatus = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_BudgetItem(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,tripId: null == tripId ? _self.tripId : tripId // ignore: cast_nullable_to_non_nullable
@@ -295,7 +301,8 @@ as BudgetCategory,date: freezed == date ? _self.date : date // ignore: cast_null
 as DateTime?,isPlanned: null == isPlanned ? _self.isPlanned : isPlanned // ignore: cast_nullable_to_non_nullable
 as bool,sourceType: freezed == sourceType ? _self.sourceType : sourceType // ignore: cast_nullable_to_non_nullable
 as String?,sourceId: freezed == sourceId ? _self.sourceId : sourceId // ignore: cast_nullable_to_non_nullable
-as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,validationStatus: null == validationStatus ? _self.validationStatus : validationStatus // ignore: cast_nullable_to_non_nullable
+as ValidationStatus,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));

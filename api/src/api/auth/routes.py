@@ -57,7 +57,7 @@ def _dummy_password_hash() -> str:
     return bcrypt.hashpw(dummy.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
-def _build_auth_response(
+async def _build_auth_response(
     db: Session,
     user: User,
     response: Response,
@@ -66,14 +66,16 @@ def _build_auth_response(
 
     Factored out so login / register / Google / Apple / refresh all build the
     response the same way — especially the `plan_info` lookup which used to
-    drift (missing keys, wrong defaults) between flows.
+    drift (missing keys, wrong defaults) between flows. The plan_info call
+    reconciles the local plan against Stripe so a freshly-subscribed user
+    sees the right tier on their very next login.
     """
     access_token, expires_in = create_access_token(str(user.id))
     refresh_token = create_refresh_token(str(user.id), db)
     db.commit()
     set_auth_cookies(response, access_token, refresh_token, expires_in)
 
-    plan_info = PlanService.get_plan_info(db, user)
+    plan_info = await PlanService.get_plan_info(db, user)
     return AuthResponse(
         access_token=access_token,
         refresh_token=refresh_token,
@@ -172,7 +174,7 @@ async def register(
             detail="User already exists",
         ) from None
 
-    return _build_auth_response(db, user, response)
+    return await _build_auth_response(db, user, response)
 
 
 @router.post(
@@ -241,7 +243,7 @@ async def login(
 
     set_auth_cookies(response, access_token, refresh_token, expires_in)
 
-    plan_info = PlanService.get_plan_info(db, user)
+    plan_info = await PlanService.get_plan_info(db, user)
     return AuthResponse(
         access_token=access_token,
         refresh_token=refresh_token,
@@ -295,7 +297,7 @@ async def me(
     from src.services.profile_service import ProfileService
 
     is_completed, _ = ProfileService.check_completion(db, current_user.id)
-    plan_info = PlanService.get_plan_info(db, current_user)
+    plan_info = await PlanService.get_plan_info(db, current_user)
     return UserResponse(
         id=current_user.id,
         email=current_user.email,
@@ -334,7 +336,7 @@ async def update_me(
     from src.services.profile_service import ProfileService
 
     is_completed, _ = ProfileService.check_completion(db, current_user.id)
-    plan_info = PlanService.get_plan_info(db, current_user)
+    plan_info = await PlanService.get_plan_info(db, current_user)
     return UserResponse(
         id=current_user.id,
         email=current_user.email,
@@ -410,7 +412,7 @@ async def google_sign_in(
             db.commit()
             db.refresh(user)
 
-        return _build_auth_response(db, user, response)
+        return await _build_auth_response(db, user, response)
     except AppError:
         raise
     except jwt.JWTError as e:
@@ -492,7 +494,7 @@ async def apple_sign_in(
                 password_hash=_dummy_password_hash(),
             )
 
-        return _build_auth_response(db, user, response)
+        return await _build_auth_response(db, user, response)
     except AppError:
         raise
     except jwt.JWTError as e:
@@ -551,7 +553,7 @@ async def refresh(
 
     set_auth_cookies(response, access_token, new_refresh, expires_in)
 
-    plan_info = PlanService.get_plan_info(db, user)
+    plan_info = await PlanService.get_plan_info(db, user)
     return AuthResponse(
         access_token=access_token,
         refresh_token=new_refresh,

@@ -180,6 +180,10 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     // Leaving generation should feel instant; cancel stream in background.
     if (state.currentStep == 4) {
       unawaited(_cancelSseStream());
+      // SMP-324 — the SSE may have persisted a DRAFT trip already; let
+      // it go without blocking the UI. The 24h GC will catch it if the
+      // delete fails.
+      _discardDraftInBackground();
       emit(
         state.copyWith(
           generatedPlan: null,
@@ -187,8 +191,15 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
           generationSteps: {},
           generationProgress: 0.0,
           generationMessage: null,
+          draftTripId: null,
         ),
       );
+    } else if (state.currentStep == 5) {
+      // Going back from review = the user changed their mind on the
+      // generated plan. Drop the draft now so the home screen never
+      // shows a half-reviewed trip.
+      _discardDraftInBackground();
+      emit(state.copyWith(draftTripId: null));
     }
 
     var prev = state.currentStep - 1;
@@ -199,6 +210,12 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     if (prev >= 0) {
       emit(state.copyWith(currentStep: prev, error: null));
     }
+  }
+
+  void _discardDraftInBackground() {
+    final draftId = state.draftTripId;
+    if (draftId == null || draftId.isEmpty) return;
+    unawaited(_tripRepository.deleteTrip(draftId));
   }
 
   void _onGoToStep(PlanTripGoToStep event, Emitter<PlanTripState> emit) {
@@ -688,13 +705,19 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         );
 
       case 'complete':
+        // SMP-324 — the backend now persists a DRAFT trip during the
+        // SSE pipeline and ships its ``tripId`` here. The wizard caches
+        // the id so confirming the trip is just a PATCH on /status, no
+        // re-upload of the suggestion.
         final tripPlanData = data['tripPlan'] as Map<String, dynamic>?;
+        final tripId = data['tripId'] as String?;
         if (tripPlanData != null) {
           final plan = _tripPlanFromSseData(tripPlanData);
           return state.copyWith(
             generatedPlan: plan,
             generationProgress: 1.0,
             currentStep: 5,
+            draftTripId: tripId,
           );
         }
         return state;
@@ -769,38 +792,27 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
   }
 
   Future<void> _createAiTrip(Emitter<PlanTripState> emit) async {
-    final plan = state.generatedPlan;
-    if (plan == null) {
+    // SMP-324 — the SSE pipeline already persisted a DRAFT trip with
+    // every Activity / Accommodation / ManualFlight / BudgetItem in
+    // place. Confirming is now a single ``PATCH /trips/{id}/status``;
+    // the wizard never re-uploads anything.
+    final draftId = state.draftTripId;
+    if (draftId == null || draftId.isEmpty) {
       emit(
         state.copyWith(
           isCreating: false,
-          error: const ServerError('No plan generated'),
+          error: const ServerError('No draft trip to confirm'),
         ),
       );
       return;
     }
 
-    final suggestion = _tripPlanToSuggestion(plan);
-
-    // Always derive dates (handles month/flexible modes)
-    final (start, end) = state.representativeDates;
-    final startDateStr = start.toIso8601String().split('T')[0];
-    final endDateStr = end.toIso8601String().split('T')[0];
-
-    final result = await _aiRepository.acceptInspiration(
-      suggestion,
-      startDate: startDateStr,
-      endDate: endDateStr,
-      dateMode: state.dateMode.name,
-      originCity: state.originCity,
-    );
+    final result = await _tripRepository.updateTripStatus(draftId, 'PLANNED');
     if (isClosed) return;
 
     switch (result) {
       case Success(:final data):
-        final tripId =
-            data['id']?.toString() ?? data['tripId']?.toString() ?? '';
-        emit(state.copyWith(isCreating: false, createdTripId: tripId));
+        emit(state.copyWith(isCreating: false, createdTripId: data.id));
       case Failure(:final error):
         emit(state.copyWith(isCreating: false, error: error));
     }
@@ -811,6 +823,9 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     Emitter<PlanTripState> emit,
   ) async {
     unawaited(_cancelSseStream());
+    // SMP-324 — see ``_discardDraftInBackground``; same reasoning as
+    // PreviousStep, the user is explicitly walking away from the plan.
+    _discardDraftInBackground();
     emit(
       state.copyWith(
         currentStep: state.isManualFlow ? 2 : 3,
@@ -819,6 +834,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         generationSteps: {},
         generationProgress: 0.0,
         generationMessage: null,
+        draftTripId: null,
       ),
     );
   }
@@ -914,27 +930,44 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     // (B23 / topic 04a). Prefer the explicit per-night unit; fall back
     // to dividing the stay total by `nights` when the tool only emitted
     // a total.
-    String accommodationName = 'À déterminer';
+    //
+    // When the backend returns a deferred-marker (Amadeus unavailable
+    // → name="" / prices=null / source="deferred"), we leave the
+    // values empty and let the review view render an l10n
+    // "accommodation to be chosen" placeholder rather than fabricating
+    // a hotel name and a price the front would display without unit.
+    String accommodationName = '';
     String accommodationSubtitle = '';
     double accommodationPrice = 0;
-    String accommodationSource = 'estimated';
+    String accommodationSource = 'deferred';
     if (accommodations.isNotEmpty) {
       final best = accommodations.first;
-      accommodationName = best['name'] as String? ?? 'Hôtel';
-      final perNight = (best['price_per_night'] as num?)?.toDouble();
-      final priceTotal = (best['price_total'] as num?)?.toDouble();
-      final nightsRaw = (best['nights'] as num?)?.toInt() ?? 0;
-      if (perNight != null && perNight > 0) {
-        accommodationPrice = perNight;
-      } else if (priceTotal != null && priceTotal > 0 && nightsRaw > 0) {
-        accommodationPrice = priceTotal / nightsRaw;
-      } else {
-        accommodationPrice = 0;
-      }
+      final rawName = (best['name'] as String?) ?? '';
       accommodationSource = best['source'] as String? ?? 'estimated';
-      final currency = best['currency'] as String? ?? 'EUR';
-      accommodationSubtitle =
-          '${dest['city'] ?? ''} · ${accommodationPrice.toStringAsFixed(0)} $currency';
+      if (rawName.isNotEmpty) {
+        accommodationName = rawName;
+        final perNight = (best['price_per_night'] as num?)?.toDouble();
+        final priceTotal = (best['price_total'] as num?)?.toDouble();
+        final nightsRaw = (best['nights'] as num?)?.toInt() ?? 0;
+        if (perNight != null && perNight > 0) {
+          accommodationPrice = perNight;
+        } else if (priceTotal != null && priceTotal > 0 && nightsRaw > 0) {
+          accommodationPrice = priceTotal / nightsRaw;
+        } else {
+          accommodationPrice = 0;
+        }
+        if (accommodationPrice > 0) {
+          // Subtitle is built by the view via l10n.accommodationPerNight
+          // so the unit suffix is consistent across locales; we hand it
+          // a pre-formatted "{city} · {amount}" string for backwards
+          // compatibility with consumers that still read this field.
+          final currency = best['currency'] as String? ?? 'EUR';
+          accommodationSubtitle =
+              '${dest['city'] ?? ''} · ${accommodationPrice.toStringAsFixed(0)} $currency/nuit';
+        } else {
+          accommodationSubtitle = '${dest['city'] ?? ''}';
+        }
+      }
     }
 
     // Flight info from budget
@@ -985,14 +1018,64 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       hotelRating = (accommodations.first['rating'] as num?)?.toInt() ?? 0;
     }
 
-    // Day-by-day from activities
-    final dayProgram = activities
+    // SMP-324 — partition the agent's flat ``activities`` list into the
+    // three buckets the review screen renders separately:
+    //
+    //  - dated itinerary entries (CULTURE / NATURE / SPORT / ...) feed
+    //    the day-by-day timeline as before;
+    //  - undated FOOD entries become the "Restos à essayer" section;
+    //  - undated TRANSPORT entries become the "Transports utiles"
+    //    section.
+    //
+    // Categorisation is permissive: anything tagged FOOD / TRANSPORT
+    // *without* a slot lands in the recommendation bucket regardless
+    // of the order the LLM put it in. Anything else stays in the
+    // dated timeline, falling back to the activity index for the day
+    // when the agent forgot to attach a slot.
+    final datedActivities = <Map<String, dynamic>>[];
+    final mealReco = <TripRecommendation>[];
+    final transportReco = <TripRecommendation>[];
+
+    for (final a in activities) {
+      final category = ((a['category'] ?? 'OTHER') as String).toUpperCase();
+      final hasSlot = a['suggested_day'] != null || a['time_of_day'] != null;
+      final estimatedCost =
+          (a['estimated_cost'] as num?)?.toDouble() ??
+          (a['estimatedCost'] as num?)?.toDouble() ??
+          0.0;
+
+      if (!hasSlot && category == 'FOOD') {
+        mealReco.add(
+          TripRecommendation(
+            title: (a['title'] ?? '') as String,
+            description: (a['description'] ?? '') as String,
+            estimatedCost: estimatedCost,
+            location: (a['location'] ?? '') as String,
+          ),
+        );
+        continue;
+      }
+      if (!hasSlot && category == 'TRANSPORT') {
+        transportReco.add(
+          TripRecommendation(
+            title: (a['title'] ?? '') as String,
+            description: (a['description'] ?? '') as String,
+            estimatedCost: estimatedCost,
+            location: (a['location'] ?? '') as String,
+          ),
+        );
+        continue;
+      }
+      datedActivities.add(a);
+    }
+
+    final dayProgram = datedActivities
         .map((a) => (a['title'] ?? '') as String)
         .toList();
-    final dayDescriptions = activities
+    final dayDescriptions = datedActivities
         .map((a) => (a['description'] ?? '') as String)
         .toList();
-    final dayCategories = activities
+    final dayCategories = datedActivities
         .map((a) => (a['category'] ?? 'OTHER') as String)
         .toList();
 
@@ -1067,125 +1150,13 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       dayProgram: dayProgram,
       dayDescriptions: dayDescriptions,
       dayCategories: dayCategories,
+      mealRecommendations: mealReco,
+      transportRecommendations: transportReco,
       essentialItems: essentialItems,
       essentialReasons: essentialReasons,
       budgetBreakdown: BudgetBreakdown.fromSseMap(budget),
       weatherData: weather,
     );
-  }
-
-  /// Convert [TripPlan] to suggestion format for `/ai/plan-trip/accept`.
-  Map<String, dynamic> _tripPlanToSuggestion(TripPlan plan) {
-    return {
-      'destination': {
-        'city': plan.destinationCity,
-        'country': plan.destinationCountry,
-        if (plan.destinationIata != null) 'iata': plan.destinationIata,
-      },
-      'durationDays': plan.durationDays,
-      'budgetEur': plan.budgetEur,
-      'description':
-          'AI-planned trip to ${plan.destinationCity.isEmpty ? 'destination' : plan.destinationCity}',
-      'activities': List.generate(plan.dayProgram.length, (i) {
-        return {
-          'title': plan.dayProgram[i],
-          'description': i < plan.dayDescriptions.length
-              ? plan.dayDescriptions[i]
-              : '',
-          'category': i < plan.dayCategories.length
-              ? plan.dayCategories[i]
-              : 'OTHER',
-        };
-      }),
-      if (plan.accommodationName.isNotEmpty)
-        'accommodations': [
-          {
-            'name': plan.accommodationName,
-            'price_per_night': plan.accommodationPrice,
-            'currency': 'EUR',
-            'source': plan.accommodationSource,
-          },
-        ],
-      // Flight gate: we want a flight persisted as soon as *any* layer produced
-      // data — Amadeus horaires, LLM budget route, or even just the user's
-      // origin/destination IATA. Gating on `flightPrice > 0` used to drop the
-      // entire flight silently when the LLM omitted the budget breakdown even
-      // though Amadeus had returned the offer (SMP-316 / Barcelone bug).
-      if (_hasOutboundFlight(plan))
-        'flight': {
-          'route': _flightRouteOrDeriveFrom(plan),
-          if (plan.flightDetails.isNotEmpty) 'details': plan.flightDetails,
-          if (plan.flightPrice > 0) 'price': plan.flightPrice,
-          'source': plan.flightSource,
-          if (plan.flightAirline.isNotEmpty) 'airline': plan.flightAirline,
-          if (plan.flightNumber.isNotEmpty) 'flight_number': plan.flightNumber,
-          if (plan.flightDeparture.isNotEmpty)
-            'departure_date': plan.flightDeparture,
-          if (plan.flightArrival.isNotEmpty) 'arrival_date': plan.flightArrival,
-          if (plan.flightDuration.isNotEmpty) 'duration': plan.flightDuration,
-        },
-      if (_hasReturnFlight(plan))
-        'return_flight': {
-          'route': _returnRouteOrDeriveFrom(plan),
-          if (plan.flightDetails.isNotEmpty) 'details': plan.flightDetails,
-          'source': plan.flightSource,
-          if (plan.flightAirline.isNotEmpty) 'airline': plan.flightAirline,
-          if (plan.flightNumber.isNotEmpty) 'flight_number': plan.flightNumber,
-          if (plan.returnDeparture.isNotEmpty)
-            'departure_date': plan.returnDeparture,
-          if (plan.returnArrival.isNotEmpty) 'arrival_date': plan.returnArrival,
-          if (plan.returnDuration.isNotEmpty) 'duration': plan.returnDuration,
-        },
-      'baggage': List.generate(plan.essentialItems.length, (i) {
-        return {
-          'name': plan.essentialItems[i],
-          'reason': i < plan.essentialReasons.length
-              ? plan.essentialReasons[i]
-              : '',
-        };
-      }),
-      'matchReason': 'Planned with real-time data',
-    };
-  }
-
-  /// Whether we have *any* evidence of an outbound flight in the plan.
-  /// Covers the three sources that populate TripPlan today: Amadeus (timestamps),
-  /// LLM budget breakdown (route string), and the user's origin/destination
-  /// IATA (which at worst yield a placeholder route).
-  static bool _hasOutboundFlight(TripPlan plan) {
-    if (plan.flightRoute.isNotEmpty) return true;
-    if (plan.flightDeparture.isNotEmpty || plan.flightArrival.isNotEmpty) {
-      return true;
-    }
-    final hasOrigin = plan.originIata.isNotEmpty;
-    final hasDest = plan.destinationIata?.isNotEmpty ?? false;
-    return hasOrigin && hasDest;
-  }
-
-  static bool _hasReturnFlight(TripPlan plan) {
-    if (plan.returnDeparture.isNotEmpty || plan.returnArrival.isNotEmpty) {
-      return true;
-    }
-    // If we have an outbound, a return is always implied at this stage — the
-    // user can edit it later. Explicit return fields only exist when Amadeus
-    // found a round-trip.
-    return _hasOutboundFlight(plan);
-  }
-
-  static String _flightRouteOrDeriveFrom(TripPlan plan) {
-    if (plan.flightRoute.isNotEmpty) return plan.flightRoute;
-    final origin = plan.originIata;
-    final dest = plan.destinationIata ?? '';
-    if (origin.isEmpty && dest.isEmpty) return '';
-    return '$origin → $dest'.trim();
-  }
-
-  static String _returnRouteOrDeriveFrom(TripPlan plan) {
-    // Return leg swaps origin and destination.
-    final origin = plan.originIata;
-    final dest = plan.destinationIata ?? '';
-    if (origin.isEmpty && dest.isEmpty) return plan.flightRoute;
-    return '$dest → $origin'.trim();
   }
 
   Future<void> _cancelSseStream() async {

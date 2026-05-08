@@ -44,6 +44,7 @@ async def create_budget_item(
             category=request.category or "OTHER",
             date=request.date,
             is_planned=request.isPlanned if request.isPlanned is not None else True,
+            validation_status=request.validationStatus.value if request.validationStatus else None,
         )
         NotificationService.check_and_send_budget_alert(db, access.trip)
         return BudgetItemResponse.model_validate(item)
@@ -112,6 +113,7 @@ async def update_budget_item(
             category=request.category,
             date=request.date,
             is_planned=request.isPlanned,
+            validation_status=request.validationStatus.value if request.validationStatus else None,
         )
         NotificationService.check_and_send_budget_alert(db, access.trip)
         return BudgetItemResponse.model_validate(item)

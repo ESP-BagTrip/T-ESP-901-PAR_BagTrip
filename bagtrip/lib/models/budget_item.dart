@@ -1,3 +1,4 @@
+import 'package:bagtrip/models/validation_status.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'budget_item.freezed.dart';
@@ -33,6 +34,11 @@ abstract class BudgetItem with _$BudgetItem {
     @Default(true) bool isPlanned,
     String? sourceType,
     String? sourceId,
+    // Phase B — mirrors the backend ``validation_status`` column. Defaults
+    // to ``manual`` so any pre-Phase B response still parses cleanly.
+    @JsonKey(unknownEnumValue: ValidationStatus.manual)
+    @Default(ValidationStatus.manual)
+    ValidationStatus validationStatus,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _BudgetItem;

@@ -1,7 +1,7 @@
 """Unit tests for the subscription routes."""
 
 import uuid
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import FastAPI, Request
@@ -90,7 +90,7 @@ class TestCreatePortal:
 class TestGetStatus:
     @patch("src.api.subscription.routes.SubscriptionService")
     def test_success(self, mock_service, client, override_get_current_user, override_get_db):
-        mock_service.get_status.return_value = {"plan": "FREE"}
+        mock_service.get_status = AsyncMock(return_value={"plan": "FREE"})
         response = client.get("/v1/subscription/status")
         assert response.status_code == 200
         assert response.json()["plan"] == "FREE"
@@ -99,12 +99,14 @@ class TestGetStatus:
 class TestGetSubscriptionMe:
     @patch("src.api.subscription.routes.SubscriptionService")
     def test_success(self, mock_service, client, override_get_current_user, override_get_db):
-        mock_service.get_subscription_details.return_value = {
-            "plan": "PREMIUM",
-            "cancel_at_period_end": False,
-            "current_period_end": "2026-01-01T00:00:00+00:00",
-            "payment_method": {"brand": "visa", "last4": "4242"},
-        }
+        mock_service.get_subscription_details = AsyncMock(
+            return_value={
+                "plan": "PREMIUM",
+                "cancel_at_period_end": False,
+                "current_period_end": "2026-01-01T00:00:00+00:00",
+                "payment_method": {"brand": "visa", "last4": "4242"},
+            }
+        )
         response = client.get("/v1/subscription/me")
         assert response.status_code == 200
         assert response.json()["payment_method"]["last4"] == "4242"

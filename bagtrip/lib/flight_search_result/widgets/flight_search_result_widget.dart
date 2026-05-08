@@ -129,14 +129,20 @@ class FlightSearchResultView extends StatelessWidget {
                       flight: flight,
                       isSelected: isSelected,
                       onTap: () {
-                        if (context.mounted) {
-                          context.read<FlightSearchResultBloc>().add(
-                            SelectFlight(flight),
-                          );
-                          FlightResultDetailsRoute(
-                            $extra: flight,
-                          ).push(context);
+                        if (!context.mounted) return;
+                        context.read<FlightSearchResultBloc>().add(
+                          SelectFlight(flight),
+                        );
+                        // Phase 4 follow-up — replace mode short-circuits
+                        // the details navigation: we pop the page with
+                        // the chosen flight so the trip-detail caller
+                        // can dispatch ReplaceFlightFromDetail (atomic
+                        // DELETE+CREATE on the original row).
+                        if (state.replaceFlightId != null) {
+                          Navigator.of(context).pop(flight);
+                          return;
                         }
+                        FlightResultDetailsRoute($extra: flight).push(context);
                       },
                     );
                   },
@@ -258,10 +264,16 @@ class _MultiDestResultsState extends State<_MultiDestResults>
           flight: flight,
           isSelected: false,
           onTap: () {
-            if (context.mounted) {
-              context.read<FlightSearchResultBloc>().add(SelectFlight(flight));
-              FlightResultDetailsRoute($extra: flight).push(context);
+            if (!context.mounted) return;
+            context.read<FlightSearchResultBloc>().add(SelectFlight(flight));
+            // Replace mode short-circuits the details push (same shape
+            // as the single-segment list): pop with the chosen flight
+            // so the trip-detail caller can dispatch the atomic replace.
+            if (widget.state.replaceFlightId != null) {
+              Navigator.of(context).pop(flight);
+              return;
             }
+            FlightResultDetailsRoute($extra: flight).push(context);
           },
         );
       },

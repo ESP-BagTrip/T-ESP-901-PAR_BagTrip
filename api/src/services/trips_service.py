@@ -1,6 +1,6 @@
 """Service pour la gestion des trips."""
 
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from math import ceil
 from uuid import UUID
 
@@ -661,6 +661,27 @@ class TripsService:
             )
 
         return planned_to_ongoing, ongoing_to_completed
+
+    @staticmethod
+    def gc_stale_drafts(db: Session, *, max_age_hours: int = 24) -> int:
+        """Delete DRAFT trips older than ``max_age_hours``.
+
+        SMP-324 — the SSE pipeline persists every generated plan as a
+        ``DRAFT`` Trip and ships its ``tripId`` to the wizard. When the
+        user closes the app without confirming, the row sits forever.
+        This sweep runs on the same daily tick as the status transitions
+        and removes stale drafts so they don't pollute the home screen
+        nor inflate analytics. Cascade rules clean up Activity /
+        Accommodation / ManualFlight / BudgetItem / BaggageItem rows.
+        """
+        cutoff = datetime.now(UTC) - timedelta(hours=max_age_hours)
+        stale_drafts = (
+            db.query(Trip).filter(Trip.status == TripStatus.DRAFT, Trip.created_at < cutoff).all()
+        )
+        for trip in stale_drafts:
+            db.delete(trip)
+        db.commit()
+        return len(stale_drafts)
 
     @staticmethod
     def _dispatch_trip_notification(

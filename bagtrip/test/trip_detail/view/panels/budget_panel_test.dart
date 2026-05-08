@@ -81,7 +81,11 @@ void main() {
     );
   }
 
-  testWidgets('both sections render even when there is no item yet', (
+  // Phase 6 — the panel now exposes a top-level Prévu/Dépensé filter
+  // instead of two parallel sections. Tests assert the segmented
+  // control + per-segment empty state instead of section headers.
+
+  testWidgets('renders the Planned/Real segmented control on a fresh trip', (
     tester,
   ) async {
     await pump(
@@ -96,14 +100,16 @@ void main() {
         role: 'OWNER',
       ),
     );
-    // Both section headers and their empty hints are visible on a fresh trip.
-    expect(find.text('FORECAST'), findsOneWidget);
-    expect(find.text('REAL'), findsOneWidget);
+    // Both segments visible (their localized labels).
+    expect(find.text('Planned'), findsOneWidget);
+    expect(find.text('Real'), findsOneWidget);
+    // Default segment = Planned, so we see the forecast empty hint.
     expect(find.textContaining('No forecast yet'), findsOneWidget);
-    expect(find.textContaining('No expense logged yet'), findsOneWidget);
   });
 
-  testWidgets('renders both Forecast and Real section headers', (tester) async {
+  testWidgets('switching to Real segment surfaces the actuals empty hint', (
+    tester,
+  ) async {
     await pump(
       tester,
       BudgetPanel(
@@ -116,48 +122,43 @@ void main() {
         role: 'OWNER',
       ),
     );
-    expect(find.text('FORECAST'), findsOneWidget);
-    expect(find.text('REAL'), findsOneWidget);
+    // Tap the Real segment — switching away from Planned reveals
+    // the dedicated empty hint for actual expenses.
+    await tester.tap(find.text('Real'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('No expense logged yet'), findsOneWidget);
   });
 
-  testWidgets('forecast items appear under Forecast, real under Real', (
-    tester,
-  ) async {
-    final items = [
-      _item(id: 'f1', label: 'Forecast hotel', amount: 120, isPlanned: true),
-      _item(id: 'r1', label: 'Lunch', amount: 25, isPlanned: false),
-    ];
-    await pump(
-      tester,
-      BudgetPanel(
-        tripId: 'trip-1',
-        budgetSummary: null,
-        budgetItems: items,
-        totalDays: 3,
-        canEdit: true,
-        isCompleted: false,
-        role: 'OWNER',
-      ),
-    );
-    expect(find.text('Forecast hotel'), findsOneWidget);
-    expect(find.text('Lunch'), findsOneWidget);
-  });
+  testWidgets(
+    'planned items show under Planned segment, real items show under Real',
+    (tester) async {
+      final items = [
+        _item(id: 'f1', label: 'Forecast hotel', amount: 120, isPlanned: true),
+        _item(id: 'r1', label: 'Lunch', amount: 25, isPlanned: false),
+      ];
+      await pump(
+        tester,
+        BudgetPanel(
+          tripId: 'trip-1',
+          budgetSummary: null,
+          budgetItems: items,
+          totalDays: 3,
+          canEdit: true,
+          isCompleted: false,
+          role: 'OWNER',
+        ),
+      );
+      // Default segment = Planned.
+      expect(find.text('Forecast hotel'), findsOneWidget);
+      expect(find.text('Lunch'), findsNothing);
 
-  testWidgets('empty forecast section surfaces its empty hint', (tester) async {
-    await pump(
-      tester,
-      BudgetPanel(
-        tripId: 'trip-1',
-        budgetSummary: null,
-        budgetItems: [_item(isPlanned: false)],
-        totalDays: 0,
-        canEdit: true,
-        isCompleted: false,
-        role: 'OWNER',
-      ),
-    );
-    expect(find.textContaining('No forecast yet'), findsOneWidget);
-  });
+      // Switch to Real — only the actual expense is visible.
+      await tester.tap(find.text('Real'));
+      await tester.pumpAndSettle();
+      expect(find.text('Forecast hotel'), findsNothing);
+      expect(find.text('Lunch'), findsOneWidget);
+    },
+  );
 
   testWidgets('PanelFab is visible when canEdit is true', (tester) async {
     await pump(
@@ -218,9 +219,9 @@ void main() {
     expect(find.text('Tight'), findsOneWidget);
     // Hint visible
     expect(find.textContaining('owner only'), findsOneWidget);
-    // Forecast / Real sections must NOT render
-    expect(find.text('FORECAST'), findsNothing);
-    expect(find.text('REAL'), findsNothing);
+    // The owner-mode segmented control must NOT render either —
+    // viewer mode renders the bucket only.
+    expect(find.text('Planned'), findsNothing);
     // Item label must NOT leak
     expect(find.text('Should not appear'), findsNothing);
   });

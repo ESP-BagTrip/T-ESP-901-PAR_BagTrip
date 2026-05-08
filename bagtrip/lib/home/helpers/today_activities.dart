@@ -36,7 +36,11 @@ TodayActivitiesResult classifyTodayActivities({
       '${ref.hour.toString().padLeft(2, '0')}:${ref.minute.toString().padLeft(2, '0')}';
 
   final todayActivities = allActivities.where((a) {
-    final d = DateTime(a.date.year, a.date.month, a.date.day);
+    // Undated AI recommendations (FOOD / TRANSPORT) never match a
+    // specific calendar day.
+    if (a.date == null) return false;
+    final activityDate = a.date!;
+    final d = DateTime(activityDate.year, activityDate.month, activityDate.day);
     return d == today;
   }).toList();
 
@@ -115,7 +119,13 @@ TodayActivitiesResult classifyTodayActivities({
   // Tomorrow activities
   final tomorrowList =
       allActivities.where((a) {
-        final d = DateTime(a.date.year, a.date.month, a.date.day);
+        if (a.date == null) return false;
+        final activityDate = a.date!;
+        final d = DateTime(
+          activityDate.year,
+          activityDate.month,
+          activityDate.day,
+        );
         return d == tomorrow;
       }).toList()..sort((a, b) {
         final aTime = a.startTime ?? '';

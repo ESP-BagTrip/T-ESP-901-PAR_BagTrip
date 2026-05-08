@@ -4529,8 +4529,8 @@ abstract class AppLocalizations {
   /// No description provided for @accommodationPerNight.
   ///
   /// In fr, this message translates to:
-  /// **'/nuit'**
-  String get accommodationPerNight;
+  /// **'{amount} {currency}/nuit'**
+  String accommodationPerNight(String amount, String currency);
 
   /// No description provided for @accommodationNoResults.
   ///
@@ -6218,6 +6218,138 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Voir moins'**
   String get showLess;
+
+  /// No description provided for @accommodationToBeChosen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hôtel à choisir'**
+  String get accommodationToBeChosen;
+
+  /// No description provided for @budgetAccommodationDeferred.
+  ///
+  /// In fr, this message translates to:
+  /// **'À déterminer'**
+  String get budgetAccommodationDeferred;
+
+  /// No description provided for @reviewMealsToTry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restos à essayer'**
+  String get reviewMealsToTry;
+
+  /// No description provided for @reviewTransportTips.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transports utiles'**
+  String get reviewTransportTips;
+
+  /// No description provided for @accommodationDeferredSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'{city} · {nights} à réserver'**
+  String accommodationDeferredSubtitle(String city, String nights);
+
+  /// No description provided for @itemStatusSuggested.
+  ///
+  /// In fr, this message translates to:
+  /// **'Proposé par l\'IA'**
+  String get itemStatusSuggested;
+
+  /// No description provided for @itemStatusValidated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Validé'**
+  String get itemStatusValidated;
+
+  /// No description provided for @itemStatusManual.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouté par vous'**
+  String get itemStatusManual;
+
+  /// No description provided for @flightValidateSheetTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valider ce vol'**
+  String get flightValidateSheetTitle;
+
+  /// No description provided for @flightValidateExternalTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'J\'ai déjà réservé ailleurs'**
+  String get flightValidateExternalTitle;
+
+  /// No description provided for @flightValidateExternalSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisissez votre numéro de vol — on garde un œil dessus.'**
+  String get flightValidateExternalSubtitle;
+
+  /// No description provided for @flightValidateAmadeusTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réserver via BagTrip'**
+  String get flightValidateAmadeusTitle;
+
+  /// No description provided for @flightValidateAmadeusSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmez cette offre directement avec la compagnie.'**
+  String get flightValidateAmadeusSubtitle;
+
+  /// No description provided for @flightValidateExternalNumberLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Numéro de vol'**
+  String get flightValidateExternalNumberLabel;
+
+  /// No description provided for @flightValidateExternalNumberHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'AF1234'**
+  String get flightValidateExternalNumberHint;
+
+  /// No description provided for @budgetPlannedHelper.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette dépense rejoindra le prévisionnel.'**
+  String get budgetPlannedHelper;
+
+  /// No description provided for @budgetSpentHelper.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette dépense rejoindra les dépenses réelles.'**
+  String get budgetSpentHelper;
+
+  /// No description provided for @activitiesPanelTabPlanning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Itinéraire'**
+  String get activitiesPanelTabPlanning;
+
+  /// No description provided for @activitiesPanelTabRecos.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recommandations'**
+  String get activitiesPanelTabRecos;
+
+  /// No description provided for @activitiesPanelEmptyRecos.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune recommandation de restaurant ou de transport pour ce voyage.'**
+  String get activitiesPanelEmptyRecos;
+
+  /// No description provided for @activitiesPanelSectionRestaurants.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurants'**
+  String get activitiesPanelSectionRestaurants;
+
+  /// No description provided for @activitiesPanelSectionTransports.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transports'**
+  String get activitiesPanelSectionTransports;
 }
 
 class _AppLocalizationsDelegate

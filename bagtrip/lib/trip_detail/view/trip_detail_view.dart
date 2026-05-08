@@ -23,7 +23,7 @@ import 'package:bagtrip/trip_detail/view/panels/budget_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/essentials_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/flights_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/hotel_panel.dart';
-import 'package:bagtrip/trip_detail/view/panels/itinerary_panel.dart';
+import 'package:bagtrip/trip_detail/view/panels/activities_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/validation_board_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/shares_panel.dart';
 import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
@@ -230,9 +230,12 @@ class _LoadedTripViewState extends State<_LoadedTripView>
                           isCompleted: state.isCompleted,
                           role: state.trip.role ?? 'OWNER',
                         ),
-                        ItineraryPanel(
+                        ActivitiesPanel(
                           tripId: widget.tripId,
                           tripStartDate: state.trip.startDate,
+                          // Phase 3 — pass the full activities list so
+                          // the panel can route undated FOOD / TRANSPORT
+                          // recommendations to its dedicated Recos mode.
                           activities: state.activities,
                           totalDays: state.totalDays,
                           selectedDayIndex: state.selectedDayIndex,
@@ -447,7 +450,15 @@ class _LoadedTripViewState extends State<_LoadedTripView>
     final newEnd = result.end;
 
     final outOfRange = state.activities.where((a) {
-      final d = DateTime(a.date.year, a.date.month, a.date.day);
+      // Undated AI recommendations (FOOD / TRANSPORT) never fall out of
+      // range — they live on the side, not on the calendar.
+      if (a.date == null) return false;
+      final activityDate = a.date!;
+      final d = DateTime(
+        activityDate.year,
+        activityDate.month,
+        activityDate.day,
+      );
       final s = DateTime(newStart.year, newStart.month, newStart.day);
       final e = DateTime(newEnd.year, newEnd.month, newEnd.day);
       return d.isBefore(s) || d.isAfter(e);

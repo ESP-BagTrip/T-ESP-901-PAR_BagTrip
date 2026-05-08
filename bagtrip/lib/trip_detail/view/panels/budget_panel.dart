@@ -5,6 +5,7 @@ import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/category_mappers.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/item_status_chip.dart';
 import 'package:bagtrip/design/widgets/review/budget_alert_banner.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/design/widgets/review/sheets/quick_preview_sheet.dart';
@@ -12,6 +13,7 @@ import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/budget_item.dart';
+import 'package:bagtrip/models/validation_status.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -80,15 +82,33 @@ class BudgetPanel extends StatelessWidget {
     );
   }
 
+  void _validateItem(BuildContext context, BudgetItem item) {
+    AppHaptics.success();
+    context.read<TripDetailBloc>().add(
+      ValidateBudgetItemFromDetail(itemId: item.id),
+    );
+  }
+
   Future<void> _showPreview(BuildContext context, BudgetItem item) async {
     final l10n = AppLocalizations.of(context)!;
     AppHaptics.light();
+    final isSuggested = item.validationStatus == ValidationStatus.suggested;
     await showQuickPreviewSheet(
       context: context,
       icon: item.category.icon,
       title: item.label,
       subtitle: item.category.label(l10n),
       body: _BudgetPreviewBody(item: item),
+      validateAction: isSuggested && canEdit
+          ? QuickPreviewAction(
+              label: l10n.activityValidateAction,
+              icon: Icons.check_rounded,
+              onPressed: () {
+                Navigator.of(context).pop();
+                _validateItem(context, item);
+              },
+            )
+          : null,
       primaryAction: QuickPreviewAction(
         label: l10n.panelActionEdit,
         icon: Icons.edit_rounded,
@@ -128,52 +148,42 @@ class BudgetPanel extends StatelessWidget {
         summary != null &&
         (summary.confirmedTotal > 0 || summary.forecastedTotal > 0);
     final hasAlert = summary?.alertLevel != null;
-    final forecasted = _sortDesc(
-      budgetItems.where((i) => i.isPlanned).toList(),
-    );
-    final confirmed = _sortDesc(
-      budgetItems.where((i) => !i.isPlanned).toList(),
-    );
-    // Both sections are always rendered — even on brand-new trips with no
-    // items yet — so the user understands the forecast / real split and
-    // sees where future expenses will land.
 
+    // Phase 6 — top-level Prévu/Dépensé filter. Items are now grouped
+    // by date in a single timeline rather than split into two
+    // separate sections, so the user reads the budget as a story
+    // rather than two parallel lists.
     return Stack(
       children: [
-        ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.space16,
-            AppSpacing.space16,
-            AppSpacing.space16,
-            AppSpacing.space56 + AppSpacing.space40,
-          ),
+        Column(
           children: [
-            if (hasAlert && summary != null) ...[
-              BudgetAlertBanner(summary: summary),
-              const SizedBox(height: AppSpacing.space12),
-            ],
-            if (hasSummaryTotals) ...[
-              _DualTotalCard(summary: summary, l10n: l10n),
-              const SizedBox(height: AppSpacing.space24),
-            ],
-            _BudgetSection(
-              title: l10n.budgetForecastHeader,
-              subtitle: l10n.budgetForecastSubtitle,
-              items: forecasted,
-              canEdit: canEdit,
-              emptyMessage: l10n.budgetForecastEmpty,
-              onItemTap: (item) => _showPreview(context, item),
-              onItemDelete: (item) => _deleteItem(context, item),
-            ),
-            const SizedBox(height: AppSpacing.space24),
-            _BudgetSection(
-              title: l10n.budgetRealHeader,
-              subtitle: l10n.budgetRealSubtitle,
-              items: confirmed,
-              canEdit: canEdit,
-              emptyMessage: l10n.budgetRealEmpty,
-              onItemTap: (item) => _showPreview(context, item),
-              onItemDelete: (item) => _deleteItem(context, item),
+            if (hasAlert && summary != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.space16,
+                  AppSpacing.space16,
+                  AppSpacing.space16,
+                  0,
+                ),
+                child: BudgetAlertBanner(summary: summary),
+              ),
+            if (hasSummaryTotals)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.space16,
+                  AppSpacing.space16,
+                  AppSpacing.space16,
+                  0,
+                ),
+                child: _DualTotalCard(summary: summary, l10n: l10n),
+              ),
+            Expanded(
+              child: _FilteredBudgetList(
+                items: budgetItems,
+                canEdit: canEdit,
+                onItemTap: (item) => _showPreview(context, item),
+                onItemDelete: (item) => _deleteItem(context, item),
+              ),
             ),
           ],
         ),
@@ -185,77 +195,6 @@ class BudgetPanel extends StatelessWidget {
               label: l10n.panelQuickAddExpense,
               onTap: () => _showAddSheet(context),
             ),
-          ),
-      ],
-    );
-  }
-
-  List<BudgetItem> _sortDesc(List<BudgetItem> list) {
-    list.sort((a, b) {
-      final aDate = a.date ?? a.createdAt ?? DateTime(1970);
-      final bDate = b.date ?? b.createdAt ?? DateTime(1970);
-      return bDate.compareTo(aDate);
-    });
-    return list;
-  }
-}
-
-/// A single budget section (Forecasted / Real). Shows a serif section title,
-/// a quiet subtitle, and a rounded list of items — or a light empty hint
-/// when the section is empty. Both sections are always rendered so the user
-/// can see the two totals at a glance.
-class _BudgetSection extends StatelessWidget {
-  const _BudgetSection({
-    required this.title,
-    required this.subtitle,
-    required this.items,
-    required this.canEdit,
-    required this.emptyMessage,
-    required this.onItemTap,
-    required this.onItemDelete,
-  });
-
-  final String title;
-  final String subtitle;
-  final List<BudgetItem> items;
-  final bool canEdit;
-  final String emptyMessage;
-  final void Function(BudgetItem) onItemTap;
-  final void Function(BudgetItem) onItemDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title.toUpperCase(),
-          style: const TextStyle(
-            fontFamily: FontFamily.b612,
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 2.4,
-            color: Color(0xFF6B7280),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.space4),
-        Text(
-          subtitle,
-          style: TextStyle(
-            fontFamily: FontFamily.dMSans,
-            fontSize: 12,
-            color: AppColors.reviewInk.withValues(alpha: 0.55),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.space12),
-        if (items.isEmpty)
-          _EmptySectionPlaceholder(message: emptyMessage)
-        else
-          _RecentList(
-            items: items,
-            canEdit: canEdit,
-            onItemTap: onItemTap,
-            onItemDelete: onItemDelete,
           ),
       ],
     );
@@ -501,15 +440,29 @@ class _ExpenseRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    item.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontFamily: FontFamily.dMSerifDisplay,
-                      fontSize: 15,
-                      color: ColorName.primaryDark,
-                    ),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          item.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontFamily: FontFamily.dMSerifDisplay,
+                            fontSize: 15,
+                            color: ColorName.primaryDark,
+                          ),
+                        ),
+                      ),
+                      if (item.validationStatus ==
+                          ValidationStatus.suggested) ...[
+                        const SizedBox(width: AppSpacing.space8),
+                        const ItemStatusChip(
+                          kind: ItemStatusChipKind.suggested,
+                          compact: true,
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -727,5 +680,108 @@ class _ViewerBudgetPanel extends StatelessWidget {
       'overBudget' => (l10n.budgetViewerStatusOverBudget, AppColors.dangerIcon),
       _ => (null, ColorName.hint),
     };
+  }
+}
+
+// Phase 6 — top-level Prévu/Dépensé filter on the budget tab.
+//
+// The previous panel rendered Forecast + Real as two parallel sections
+// always visible. The new shape makes the user pick a focus first, then
+// reads a single chronological timeline — same content, less visual
+// clutter, honest empty states per segment.
+enum _BudgetFilter { planned, spent }
+
+class _FilteredBudgetList extends StatefulWidget {
+  const _FilteredBudgetList({
+    required this.items,
+    required this.canEdit,
+    required this.onItemTap,
+    required this.onItemDelete,
+  });
+
+  final List<BudgetItem> items;
+  final bool canEdit;
+  final void Function(BudgetItem) onItemTap;
+  final void Function(BudgetItem) onItemDelete;
+
+  @override
+  State<_FilteredBudgetList> createState() => _FilteredBudgetListState();
+}
+
+class _FilteredBudgetListState extends State<_FilteredBudgetList> {
+  _BudgetFilter _filter = _BudgetFilter.planned;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final filtered =
+        widget.items
+            .where(
+              (i) =>
+                  _filter == _BudgetFilter.planned ? i.isPlanned : !i.isPlanned,
+            )
+            .toList()
+          ..sort((a, b) {
+            final aDate = a.date ?? a.createdAt ?? DateTime(1970);
+            final bDate = b.date ?? b.createdAt ?? DateTime(1970);
+            return bDate.compareTo(aDate);
+          });
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.space16,
+            AppSpacing.space16,
+            AppSpacing.space16,
+            AppSpacing.space8,
+          ),
+          child: SegmentedButton<_BudgetFilter>(
+            segments: [
+              ButtonSegment(
+                value: _BudgetFilter.planned,
+                label: Text(l10n.expensePlanned),
+              ),
+              ButtonSegment(
+                value: _BudgetFilter.spent,
+                label: Text(l10n.expenseReal),
+              ),
+            ],
+            selected: {_filter},
+            onSelectionChanged: (set) {
+              AppHaptics.light();
+              setState(() => _filter = set.first);
+            },
+          ),
+        ),
+        Expanded(
+          child: filtered.isEmpty
+              ? Padding(
+                  padding: AppSpacing.allEdgeInsetSpace24,
+                  child: _EmptySectionPlaceholder(
+                    message: _filter == _BudgetFilter.planned
+                        ? l10n.budgetForecastEmpty
+                        : l10n.budgetRealEmpty,
+                  ),
+                )
+              : ListView(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.space16,
+                    AppSpacing.space8,
+                    AppSpacing.space16,
+                    AppSpacing.space56 + AppSpacing.space40,
+                  ),
+                  children: [
+                    _RecentList(
+                      items: filtered,
+                      canEdit: widget.canEdit,
+                      onItemTap: widget.onItemTap,
+                      onItemDelete: widget.onItemDelete,
+                    ),
+                  ],
+                ),
+        ),
+      ],
+    );
   }
 }

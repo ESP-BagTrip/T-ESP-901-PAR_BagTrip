@@ -1703,5 +1703,40 @@
   "errorAlreadyFullyRefunded": "Ce paiement a déjà été entièrement remboursé.",
   "errorInvalidRefundReason": "Motif de remboursement invalide.",
   "showMore": "Voir plus",
-  "showLess": "Voir moins"
+  "showLess": "Voir moins",
+  "accommodationToBeChosen": "Hôtel à choisir",
+  "budgetAccommodationDeferred": "À déterminer",
+  "reviewMealsToTry": "Restos à essayer",
+  "reviewTransportTips": "Transports utiles",
+  "accommodationDeferredSubtitle": "{city} · {nights} à réserver",
+  "@accommodationDeferredSubtitle": {
+    "placeholders": {
+      "city": {"type": "String"},
+      "nights": {"type": "String"}
+    }
+  },
+  "accommodationPerNight": "{amount} {currency}/nuit",
+  "@accommodationPerNight": {
+    "placeholders": {
+      "amount": {"type": "String"},
+      "currency": {"type": "String"}
+    }
+  },
+  "itemStatusSuggested": "Proposé par l'IA",
+  "itemStatusValidated": "Validé",
+  "itemStatusManual": "Ajouté par vous",
+  "flightValidateSheetTitle": "Valider ce vol",
+  "flightValidateExternalTitle": "J'ai déjà réservé ailleurs",
+  "flightValidateExternalSubtitle": "Saisissez votre numéro de vol — on garde un œil dessus.",
+  "flightValidateAmadeusTitle": "Réserver via BagTrip",
+  "flightValidateAmadeusSubtitle": "Confirmez cette offre directement avec la compagnie.",
+  "flightValidateExternalNumberLabel": "Numéro de vol",
+  "flightValidateExternalNumberHint": "AF1234",
+  "budgetPlannedHelper": "Cette dépense rejoindra le prévisionnel.",
+  "budgetSpentHelper": "Cette dépense rejoindra les dépenses réelles.",
+  "activitiesPanelTabPlanning": "Itinéraire",
+  "activitiesPanelTabRecos": "Recommandations",
+  "activitiesPanelEmptyRecos": "Aucune recommandation de restaurant ou de transport pour ce voyage.",
+  "activitiesPanelSectionRestaurants": "Restaurants",
+  "activitiesPanelSectionTransports": "Transports"
 }

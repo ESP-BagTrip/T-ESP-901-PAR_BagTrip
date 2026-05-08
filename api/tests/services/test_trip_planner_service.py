@@ -298,6 +298,37 @@ class TestStreamPlan:
         assert event_names[-1] == "done"
 
     @pytest.mark.asyncio
+    async def test_destinations_only_hung_call_emits_timeout_error(self, mock_db_session):
+        """SMP-324 — the destinations_only path used to hang silently
+        when the LLM never came back. The fast-path now caps the work
+        at ``GRAPH_TIMEOUT_SECONDS`` and emits an explicit error event."""
+        import asyncio
+
+        async def _hang(_state):
+            await asyncio.sleep(60)
+
+        req = PlanTripRequest(mode="destinations_only")
+        with (
+            patch(
+                "src.services.trip_planner_service._quick_destination_suggestions",
+                _hang,
+            ),
+            patch("src.services.trip_planner_service.settings.GRAPH_TIMEOUT_SECONDS", 0.1),
+        ):
+            lines = await _collect(TripPlannerService.stream_plan(req, "u1", mock_db_session))
+
+        events = _parse_sse_events(lines)
+        event_names = [name for name, _ in events]
+        assert "error" in event_names
+        # Errors must always be followed by a done so the client can
+        # close cleanly; that's the contract the SSE consumer relies on.
+        assert event_names[-1] == "done"
+        # The error payload carries the documented code so the client
+        # can branch on it (retry vs surface a translated message).
+        error_payload = next(payload for name, payload in events if name == "error")
+        assert error_payload.get("code") == "DESTINATIONS_TIMEOUT"
+
+    @pytest.mark.asyncio
     async def test_full_graph_success_emits_done_and_increments_quota(
         self, mock_db_session, make_user
     ):
@@ -318,12 +349,23 @@ class TestStreamPlan:
         user = make_user()
         mock_db_session.query.return_value.filter.return_value.first.return_value = user
 
+        # SMP-324 — stream_plan now persists a DRAFT trip after the
+        # graph finishes, then ships its tripId in the ``complete`` SSE
+        # event. We patch the persistence call so the test stays focused
+        # on the streaming contract (a dedicated suite covers the
+        # service end-to-end).
+        fake_trip = MagicMock(id="trip-uuid", status="DRAFT")
+
         with (
             patch(
                 "src.services.trip_planner_service.async_generator_with_timeout",
                 lambda gen, total_timeout_seconds: gen,
             ),
             patch("src.services.plan_service.PlanService.increment_ai_generation") as mock_incr,
+            patch(
+                "src.services.trip_planner_service.PlanDraftService.create_draft_from_state",
+                new=AsyncMock(return_value=fake_trip),
+            ),
             patch(
                 "src.agent.graph.graph",
                 new=fake_graph,
@@ -336,7 +378,11 @@ class TestStreamPlan:
         events = _parse_sse_events(lines)
         event_names = [name for name, _ in events]
         assert "destinations" in event_names
+        assert "complete" in event_names
         assert event_names[-1] == "done"
+        complete_payload = next(payload for name, payload in events if name == "complete")
+        assert complete_payload["tripId"] == "trip-uuid"
+        assert complete_payload["status"] == "DRAFT"
         mock_incr.assert_called_once()
 
     @pytest.mark.asyncio

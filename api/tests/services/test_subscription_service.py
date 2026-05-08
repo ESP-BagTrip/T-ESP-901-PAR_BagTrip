@@ -1,7 +1,7 @@
 """Unit tests for SubscriptionService — full Premium lifecycle."""
 
 import uuid
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -117,11 +117,12 @@ class TestPortal:
 
 
 class TestStatus:
+    @pytest.mark.asyncio
     @patch("src.services.subscription_service.PlanService")
-    def test_get_status_success(self, mock_plan_service, mock_db_session, free_user):
-        mock_plan_service.get_plan_info.return_value = {"plan": "FREE", "limits": {}}
+    async def test_get_status_success(self, mock_plan_service, mock_db_session, free_user):
+        mock_plan_service.get_plan_info = AsyncMock(return_value={"plan": "FREE", "limits": {}})
 
-        result = SubscriptionService.get_status(mock_db_session, free_user)
+        result = await SubscriptionService.get_status(mock_db_session, free_user)
 
         assert result["plan"] == "FREE"
         assert result["stripe_subscription_id"] is None
@@ -129,10 +130,16 @@ class TestStatus:
 
 
 class TestSubscriptionDetails:
+    """The plan-resolution self-heal lives in ``PlanService.reconcile_plan_with_stripe``
+    and is exhaustively covered in ``test_plan_service.py``. These tests focus
+    on the Stripe-only fields that this service still owns: cancel state,
+    period end, payment method preview."""
+
+    @pytest.mark.asyncio
     @patch("src.services.subscription_service.StripeClient")
     @patch("src.services.subscription_service.PlanService")
     @patch("src.services.subscription_service.settings")
-    def test_details_with_active_subscription(
+    async def test_details_with_active_subscription(
         self,
         mock_settings,
         mock_plan_service,
@@ -142,7 +149,7 @@ class TestSubscriptionDetails:
     ):
         """Active sub: returns cancel state, period end, payment method."""
         mock_settings.STRIPE_SECRET_KEY = "sk_test"
-        mock_plan_service.get_plan_info.return_value = {"plan": "PREMIUM"}
+        mock_plan_service.get_plan_info = AsyncMock(return_value={"plan": "PREMIUM"})
 
         mock_client.retrieve_subscription.return_value = MagicMock(
             cancel_at_period_end=True,
@@ -153,31 +160,33 @@ class TestSubscriptionDetails:
             card=MagicMock(brand="visa", last4="4242", exp_month=12, exp_year=2030)
         )
 
-        result = SubscriptionService.get_subscription_details(mock_db_session, premium_user)
+        result = await SubscriptionService.get_subscription_details(mock_db_session, premium_user)
 
         assert result["cancel_at_period_end"] is True
         assert result["current_period_end"] is not None
         assert result["payment_method"]["last4"] == "4242"
         assert result["payment_method"]["brand"] == "visa"
 
+    @pytest.mark.asyncio
     @patch("src.services.subscription_service.PlanService")
     @patch("src.services.subscription_service.settings")
-    def test_details_no_subscription(
+    async def test_details_no_subscription(
         self, mock_settings, mock_plan_service, mock_db_session, free_user
     ):
         """Free user: returns base info with empty Stripe-side fields."""
         mock_settings.STRIPE_SECRET_KEY = "sk_test"
-        mock_plan_service.get_plan_info.return_value = {"plan": "FREE"}
+        mock_plan_service.get_plan_info = AsyncMock(return_value={"plan": "FREE"})
 
-        result = SubscriptionService.get_subscription_details(mock_db_session, free_user)
+        result = await SubscriptionService.get_subscription_details(mock_db_session, free_user)
 
         assert result["cancel_at_period_end"] is False
         assert result["payment_method"] is None
 
+    @pytest.mark.asyncio
     @patch("src.services.subscription_service.StripeClient")
     @patch("src.services.subscription_service.PlanService")
     @patch("src.services.subscription_service.settings")
-    def test_details_falls_back_when_stripe_errors(
+    async def test_details_falls_back_when_stripe_errors(
         self,
         mock_settings,
         mock_plan_service,
@@ -189,67 +198,13 @@ class TestSubscriptionDetails:
         import stripe
 
         mock_settings.STRIPE_SECRET_KEY = "sk_test"
-        mock_plan_service.get_plan_info.return_value = {"plan": "PREMIUM"}
+        mock_plan_service.get_plan_info = AsyncMock(return_value={"plan": "PREMIUM"})
         mock_client.retrieve_subscription.side_effect = stripe.StripeError("offline")
 
-        result = SubscriptionService.get_subscription_details(mock_db_session, premium_user)
+        result = await SubscriptionService.get_subscription_details(mock_db_session, premium_user)
 
         assert result["cancel_at_period_end"] is False
         assert result["payment_method"] is None
-
-    @patch("src.services.subscription_service.StripeClient")
-    @patch("src.services.subscription_service.PlanService")
-    @patch("src.services.subscription_service.settings")
-    def test_self_heals_plan_to_premium_when_stripe_active_and_local_free(
-        self,
-        mock_settings,
-        mock_plan_service,
-        mock_client,
-        mock_db_session,
-        premium_user,
-    ):
-        """Webhook race: local DB still says FREE but Stripe sub is active —
-        we override to PREMIUM so the user isn't shown the paywall they
-        just paid to skip."""
-        mock_settings.STRIPE_SECRET_KEY = "sk_test"
-        mock_plan_service.get_plan_info.return_value = {"plan": "FREE"}
-        mock_client.retrieve_subscription.return_value = MagicMock(
-            status="active",
-            cancel_at_period_end=False,
-            current_period_end=1735689600,
-            default_payment_method=None,
-        )
-
-        result = SubscriptionService.get_subscription_details(mock_db_session, premium_user)
-
-        assert result["plan"] == "PREMIUM"
-
-    @patch("src.services.subscription_service.StripeClient")
-    @patch("src.services.subscription_service.PlanService")
-    @patch("src.services.subscription_service.settings")
-    def test_does_not_self_heal_when_subscription_incomplete(
-        self,
-        mock_settings,
-        mock_plan_service,
-        mock_client,
-        mock_db_session,
-        premium_user,
-    ):
-        """`incomplete` means the PaymentIntent hasn't confirmed yet —
-        granting Premium would mean granting access to a free user mid-3DS
-        challenge. Wait for the SDK / webhook."""
-        mock_settings.STRIPE_SECRET_KEY = "sk_test"
-        mock_plan_service.get_plan_info.return_value = {"plan": "FREE"}
-        mock_client.retrieve_subscription.return_value = MagicMock(
-            status="incomplete",
-            cancel_at_period_end=False,
-            current_period_end=None,
-            default_payment_method=None,
-        )
-
-        result = SubscriptionService.get_subscription_details(mock_db_session, premium_user)
-
-        assert result["plan"] == "FREE"
 
 
 class TestCancel:

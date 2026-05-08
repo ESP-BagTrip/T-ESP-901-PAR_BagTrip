@@ -149,6 +149,45 @@ void main() {
     expect(find.text('Open full breakdown'), findsNothing);
   });
 
+  testWidgets(
+    'validateAction takes the primary slot and demotes Edit to secondary',
+    (tester) async {
+      var validated = false;
+      var edited = false;
+      await tester.pumpWidget(
+        hostWith(
+          QuickPreviewSheet(
+            icon: Icons.flight_takeoff_rounded,
+            title: 'Paris → Kyoto',
+            body: const Text('body'),
+            primaryAction: QuickPreviewAction(
+              label: 'Edit',
+              icon: Icons.edit_rounded,
+              onPressed: () => edited = true,
+            ),
+            validateAction: QuickPreviewAction(
+              label: 'Validate',
+              icon: Icons.check_rounded,
+              onPressed: () => validated = true,
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      // Both labels exist — Validate as primary CTA, Edit demoted to
+      // secondary so the user keeps the original affordance reachable.
+      expect(find.text('Validate'), findsOneWidget);
+      expect(find.text('Edit'), findsOneWidget);
+
+      await tester.tap(find.text('Validate'));
+      await tester.pumpAndSettle();
+      expect(validated, isTrue);
+      expect(edited, isFalse);
+    },
+  );
+
   testWidgets('hides open-full footer when callback missing', (tester) async {
     await tester.pumpWidget(
       hostWith(
