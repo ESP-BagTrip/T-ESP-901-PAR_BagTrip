@@ -39,19 +39,6 @@ def test_build_graph_has_expected_nodes():
     assert expected.issubset(node_names)
 
 
-def test_build_destinations_only_graph_has_expected_nodes():
-    """Test that the destinations-only graph has the expected nodes."""
-    from src.agent.graph import build_destinations_only_graph
-
-    builder = build_destinations_only_graph()
-    compiled = builder.compile()
-    drawable = compiled.get_graph()
-    node_names = set(drawable.nodes.keys())
-
-    assert "destination_research" in node_names
-    assert "assemble_destinations" in node_names
-
-
 @pytest.mark.asyncio
 async def test_assemble_node_returns_trip_plan():
     """Test that assemble_node produces the expected output shape."""

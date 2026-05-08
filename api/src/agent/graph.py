@@ -52,22 +52,6 @@ async def assemble_node(state: TripPlanState) -> dict:
     }
 
 
-async def assemble_destinations_node(state: TripPlanState) -> dict:
-    """Lightweight assembly — destinations only, no activities/accommodation."""
-    return {
-        "events": [
-            {
-                "event": "complete",
-                "data": {
-                    "destinations": state.get("destinations", []),
-                    "origin_iata": state.get("origin_iata", ""),
-                    "mode": "destinations_only",
-                },
-            }
-        ],
-    }
-
-
 # --- Retry wrappers for parallel nodes ---
 
 
@@ -121,17 +105,5 @@ def build_graph() -> StateGraph:
     return builder
 
 
-def build_destinations_only_graph() -> StateGraph:
-    """Build a lightweight graph for destination research only."""
-    builder = StateGraph(TripPlanState)
-    builder.add_node("destination_research", destination_research_node)
-    builder.add_node("assemble_destinations", assemble_destinations_node)
-    builder.add_edge(START, "destination_research")
-    builder.add_edge("destination_research", "assemble_destinations")
-    builder.add_edge("assemble_destinations", END)
-    return builder
-
-
 # Compiled graph instances
 graph = build_graph().compile()
-destinations_only_graph = build_destinations_only_graph().compile()

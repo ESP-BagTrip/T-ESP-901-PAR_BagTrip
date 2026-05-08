@@ -24,8 +24,8 @@ from src.services.trip_planner_service import (
     TripPlannerService,
     _build_initial_state,
     _enrich_destinations_with_images,
-    _quick_destination_suggestions,
     _sse,
+    _to_inspire_request,
 )
 
 # ---------------------------------------------------------------------------
@@ -106,90 +106,44 @@ class TestBuildInitialState:
 
 
 # ---------------------------------------------------------------------------
-# _quick_destination_suggestions()
+# _to_inspire_request() — wizard payload → orchestrator dataclass mapping
 # ---------------------------------------------------------------------------
 
 
-class TestQuickDestinationSuggestions:
-    @pytest.mark.asyncio
-    async def test_builds_prompt_and_returns_destinations(self):
-        state = {
-            "travel_types": "beach",
-            "budget_preset": "mid",
-            "duration_days": 7,
-            "companions": "couple",
-            "nb_travelers": 2,
-        }
-        fake_llm = MagicMock()
-        fake_llm.acall_llm = AsyncMock(
-            return_value={"destinations": [{"city": "Bali", "country": "Indonesia"}]}
+class TestToInspireRequest:
+    def test_maps_camel_case_request_into_inspire_dataclass(self):
+        req = PlanTripRequest(
+            originCity="Paris",
+            travelTypes="culture",
+            durationDays=5,
+            departureDate="2026-07-04",
+            returnDate="2026-07-10",
+            companions="couple",
+            constraints="budget moyen",
+            nbTravelers=2,
+            budgetPreset="COMFORTABLE",
+            locale="fr",
+            mode="destinations_only",
         )
-        with patch("src.services.llm_service.LLMService", return_value=fake_llm):
-            result = await _quick_destination_suggestions(state)
-        assert len(result) == 1
-        assert result[0]["city"] == "Bali"
-        fake_llm.acall_llm.assert_awaited_once()
+        ir = _to_inspire_request(req)
+        assert ir.origin_city == "Paris"
+        assert ir.travel_types == "culture"
+        assert ir.duration_days == 5
+        assert ir.departure_date == "2026-07-04"
+        assert ir.return_date == "2026-07-10"
+        assert ir.companions == "couple"
+        assert ir.constraints == "budget moyen"
+        assert ir.nb_travelers == 2
+        assert ir.budget_preset == "COMFORTABLE"
+        assert ir.locale == "fr"
 
-    @pytest.mark.asyncio
-    async def test_empty_state_uses_fallback_prompt(self):
-        fake_llm = MagicMock()
-        fake_llm.acall_llm = AsyncMock(return_value={"destinations": []})
-        with patch("src.services.llm_service.LLMService", return_value=fake_llm):
-            result = await _quick_destination_suggestions({})
-        assert result == []
-        _, user_prompt = fake_llm.acall_llm.call_args.args
-        assert "diverse" in user_prompt.lower()
-
-    @pytest.mark.asyncio
-    async def test_fr_locale_renders_french_template_and_labels(self):
-        state = {
-            "locale": "fr",
-            "travel_types": "culture",
-            "duration_days": 5,
-            "nb_travelers": 2,
-        }
-        fake_llm = MagicMock()
-        fake_llm.acall_llm = AsyncMock(return_value={"destinations": [{"city": "Lyon"}]})
-        with patch("src.services.llm_service.LLMService", return_value=fake_llm):
-            await _quick_destination_suggestions(state)
-        system_prompt, user_prompt = fake_llm.acall_llm.call_args.args
-        # The FR Jinja template is selected (mentions "français").
-        assert "français" in system_prompt.lower()
-        # User-facing labels are translated.
-        assert "Préférences:" in user_prompt
-        assert "Durée:" in user_prompt
-        assert "jours" in user_prompt
-        assert "Voyageurs:" in user_prompt
-
-    @pytest.mark.asyncio
-    async def test_en_locale_renders_english_template_and_labels(self):
-        state = {
-            "locale": "en",
-            "travel_types": "beach",
-            "duration_days": 7,
-            "nb_travelers": 2,
-        }
-        fake_llm = MagicMock()
-        fake_llm.acall_llm = AsyncMock(return_value={"destinations": []})
-        with patch("src.services.llm_service.LLMService", return_value=fake_llm):
-            await _quick_destination_suggestions(state)
-        system_prompt, user_prompt = fake_llm.acall_llm.call_args.args
-        assert "english" in system_prompt.lower()
-        assert "français" not in system_prompt.lower()
-        assert "Preferences:" in user_prompt
-        assert "Duration:" in user_prompt
-        assert "Travelers:" in user_prompt
-
-    @pytest.mark.asyncio
-    async def test_unknown_locale_falls_back_to_english(self):
-        state = {"locale": "es", "travel_types": "beach"}
-        fake_llm = MagicMock()
-        fake_llm.acall_llm = AsyncMock(return_value={"destinations": []})
-        with patch("src.services.llm_service.LLMService", return_value=fake_llm):
-            await _quick_destination_suggestions(state)
-        system_prompt, user_prompt = fake_llm.acall_llm.call_args.args
-        assert "english" in system_prompt.lower()
-        assert "Preferences:" in user_prompt
+    def test_defaults_for_minimal_request(self):
+        ir = _to_inspire_request(PlanTripRequest())
+        assert ir.origin_city == ""
+        assert ir.duration_days == 7
+        assert ir.companions == "solo"
+        assert ir.nb_travelers == 1
+        assert ir.locale == "en"
 
 
 # ---------------------------------------------------------------------------
@@ -262,33 +216,46 @@ class TestEnrichDestinationsWithImages:
 
 class TestStreamPlan:
     @pytest.mark.asyncio
-    async def test_destinations_only_fast_path(self, mock_db_session):
-        req = PlanTripRequest(mode="destinations_only", travelTypes="nature")
-        with (
-            patch(
-                "src.services.trip_planner_service._quick_destination_suggestions",
-                AsyncMock(return_value=[{"city": "Kyoto"}]),
-            ),
-            patch(
-                "src.services.trip_planner_service._enrich_destinations_with_images",
-                AsyncMock(side_effect=lambda dests: dests),
-            ),
+    async def test_destinations_only_delegates_to_inspire_orchestrator(self, mock_db_session):
+        """W1 path: stream_plan forwards InspireOrchestrator events as SSE."""
+        req = PlanTripRequest(mode="destinations_only", originCity="Paris")
+
+        async def _fake_stream(_):
+            yield "progress", {"phase": "starting"}
+            yield "destinations", {"destinations": [{"iata": "BCN", "city": "Barcelona"}]}
+            yield "complete", {"destinations": [], "mode": "destinations_only"}
+
+        with patch(
+            "src.services.trip_planner_service.InspireOrchestrator.stream",
+            side_effect=_fake_stream,
         ):
             lines = await _collect(TripPlannerService.stream_plan(req, "u1", mock_db_session))
 
         events = _parse_sse_events(lines)
         event_names = [name for name, _ in events]
+        # The orchestrator emits its own ``progress``/``destinations``/
+        # ``complete`` events; ``stream_plan`` only adds the terminal
+        # ``done`` from its ``finally`` block. The legacy "Starting trip
+        # planning…" duplicate progress event was removed for W1.
         assert "progress" in event_names
         assert "destinations" in event_names
         assert "complete" in event_names
         assert event_names[-1] == "done"
+        # The destinations payload comes verbatim from the orchestrator.
+        dest_event = next(d for n, d in events if n == "destinations")
+        assert dest_event["destinations"][0]["iata"] == "BCN"
 
     @pytest.mark.asyncio
-    async def test_destinations_only_error_still_emits_done(self, mock_db_session):
-        req = PlanTripRequest(mode="destinations_only")
+    async def test_destinations_only_orchestrator_failure_still_emits_done(self, mock_db_session):
+        req = PlanTripRequest(mode="destinations_only", originCity="Paris")
+
+        async def _fake_stream(_):
+            raise RuntimeError("inspire blew up")
+            yield  # pragma: no cover - generator marker
+
         with patch(
-            "src.services.trip_planner_service._quick_destination_suggestions",
-            AsyncMock(side_effect=RuntimeError("LLM unavailable")),
+            "src.services.trip_planner_service.InspireOrchestrator.stream",
+            side_effect=_fake_stream,
         ):
             lines = await _collect(TripPlannerService.stream_plan(req, "u1", mock_db_session))
 

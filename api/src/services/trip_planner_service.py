@@ -18,7 +18,6 @@ The route is a pass-through: it wraps `stream_plan()` in an `EventSourceResponse
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import json
 import time
 from collections.abc import AsyncIterator
@@ -32,7 +31,7 @@ from src.api.ai.plan_trip_schemas import PlanTripRequest
 from src.config.env import settings
 from src.integrations.unsplash import unsplash_client
 from src.models.user import User
-from src.services.plan_draft_service import PlanDraftService
+from src.services.inspire_orchestrator import InspireOrchestrator, InspireRequest
 from src.services.plan_service import PlanService
 from src.utils.logger import logger
 from src.utils.timeout import async_generator_with_timeout
@@ -43,128 +42,21 @@ def _sse(event: str, data: dict) -> str:
     return f"event: {event}\ndata: {json.dumps(data, default=str, ensure_ascii=False)}\n\n"
 
 
-def _trip_plan_payload(state: dict[str, Any]) -> dict[str, Any]:
-    """Build the read-only ``tripPlan`` dict the SSE ``complete`` event ships.
-
-    Pre-SMP-324 this lived inside ``assemble_node`` as a graph-level
-    event. It now sits next to the persistence call so the client can
-    render the review screen without an extra ``GET /trips/{id}`` round
-    trip — the data is identical to what the persistence layer wrote.
-    The payload is intentionally read-only: the wizard validates by
-    PATCHing ``status=PLANNED``, not by re-uploading anything.
-    """
-    dest = state.get("selected_destination") or {}
-    return {
-        "destination": {
-            "city": dest.get("city", ""),
-            "country": dest.get("country", ""),
-            "iata": dest.get("iata", ""),
-        },
-        "origin_iata": state.get("origin_iata", ""),
-        "weather": state.get("weather_data", {}),
-        "alternatives": (state.get("destinations") or [])[1:],
-        "activities": state.get("activities", []),
-        "accommodations": state.get("accommodations", []),
-        "baggage": state.get("baggage_items", []),
-        "budget": state.get("budget_estimation", {}),
-        "flight_offers": state.get("flight_offers", []),
-        "duration_days": state.get("duration_days"),
-        "departure_date": state.get("departure_date"),
-        "return_date": state.get("return_date"),
-    }
-
-
-_QUICK_DESTINATION_LABELS: dict[str, dict[str, str]] = {
-    "en": {
-        "travel_types": "Preferences",
-        "budget_preset": "Budget",
-        "duration_days": "Duration",
-        "duration_unit": "days",
-        "companions": "Traveling with",
-        "season": "Season",
-        "constraints": "Constraints",
-        "nb_travelers": "Travelers",
-        "fallback": "Suggest diverse travel destinations.",
-    },
-    "fr": {
-        "travel_types": "Préférences",
-        "budget_preset": "Budget",
-        "duration_days": "Durée",
-        "duration_unit": "jours",
-        "companions": "Accompagné de",
-        "season": "Saison",
-        "constraints": "Contraintes",
-        "nb_travelers": "Voyageurs",
-        "fallback": "Propose des destinations de voyage variées.",
-    },
-}
-
-
-async def _quick_destination_suggestions(state: Any) -> list[dict]:
-    """Generate destination suggestions for the wizard's step 3.
-
-    Tries the Amadeus-first ``inspire_then_rank`` pipeline first
-    (real flight inspiration + Amadeus POIs + Open-Meteo weather +
-    LLM ranking only). Falls back to the legacy LLM-only path when
-    the pipeline cannot proceed (no origin city, Amadeus down, …) so
-    the wizard never ends up empty-handed.
-    """
-    from src.services.destination_inspiration_service import inspire_then_rank
-    from src.utils.locale import normalize_locale
-
-    locale = normalize_locale(state.get("locale"))
-
-    amadeus_first = await inspire_then_rank(state)
-    if amadeus_first is not None:
-        logger.info(
-            "Quick destination suggestions (amadeus_first)",
-            {"count": len(amadeus_first), "locale": locale},
-        )
-        return amadeus_first
-
-    # ── Legacy fallback path — keeps the wizard producing something even
-    # when Amadeus inspiration is unavailable or the user did not provide
-    # an origin city.
-    return await _legacy_llm_only_destinations(state, locale)
-
-
-async def _legacy_llm_only_destinations(state: Any, locale: str) -> list[dict]:
-    """Single LLM call (no ReAct, no tools) — pre-SMP-324 behavior."""
-    from src.agent.prompts import render
-    from src.services.llm_service import LLMService
-
-    labels = _QUICK_DESTINATION_LABELS.get(locale, _QUICK_DESTINATION_LABELS["en"])
-
-    system_prompt = render("destination_quick", locale=locale)
-
-    parts: list[str] = []
-    if state.get("travel_types"):
-        parts.append(f"{labels['travel_types']}: {state['travel_types']}")
-    if state.get("budget_preset"):
-        parts.append(f"{labels['budget_preset']}: {state['budget_preset']}")
-    if state.get("duration_days"):
-        parts.append(
-            f"{labels['duration_days']}: {state['duration_days']} {labels['duration_unit']}"
-        )
-    if state.get("companions"):
-        parts.append(f"{labels['companions']}: {state['companions']}")
-    if state.get("season"):
-        parts.append(f"{labels['season']}: {state['season']}")
-    if state.get("constraints"):
-        parts.append(f"{labels['constraints']}: {state['constraints']}")
-    if state.get("nb_travelers"):
-        parts.append(f"{labels['nb_travelers']}: {state['nb_travelers']}")
-
-    user_prompt = "\n".join(parts) if parts else labels["fallback"]
-
-    llm_service = LLMService()
-    result = await llm_service.acall_llm(system_prompt, user_prompt)
-    destinations = result.get("destinations", [])
-    logger.info(
-        "Quick destination suggestions (llm_fallback)",
-        {"count": len(destinations), "locale": locale},
+def _to_inspire_request(request: PlanTripRequest) -> InspireRequest:
+    """Map the wizard payload onto the inspire orchestrator's input."""
+    return InspireRequest(
+        origin_city=request.originCity or "",
+        travel_types=request.travelTypes or "",
+        duration_days=request.durationDays or 7,
+        departure_date=request.departureDate or "",
+        return_date=request.returnDate or "",
+        season=request.season or "",
+        companions=request.companions or "solo",
+        constraints=request.constraints or "",
+        budget_preset=request.budgetPreset or "",
+        nb_travelers=request.nbTravelers or 1,
+        locale=request.locale or "en",
     )
-    return destinations
 
 
 def _build_initial_state(request: PlanTripRequest) -> dict:
@@ -242,7 +134,6 @@ class TripPlannerService:
         request: PlanTripRequest,
         user_id: str,
         db: Session,
-        accept_language: str = "fr",
     ) -> AsyncIterator[str]:
         """Yield SSE event strings for a single trip-plan request.
 
@@ -253,74 +144,47 @@ class TripPlannerService:
         Events emitted (in rough order):
             ``progress`` → ``destinations`` → ``progress`` →
             ``activities`` / ``accommodations`` / ``baggage`` (parallel) →
-            ``progress`` (budget) → ``budget`` → ``complete`` (with
-            ``tripId``) → ``done``.
+            ``progress`` (budget) → ``budget`` → ``complete`` → ``done``.
             Plus ``heartbeat`` every 15 s and ``error`` on failure paths.
-
-        SMP-324 — the ``complete`` event now ships the persisted draft's
-        ``tripId``. The wizard loads the trip via the standard
-        ``GET /v1/trips/{id}`` and only needs to PATCH ``status=PLANNED``
-        to confirm. The legacy ``/plan-trip/accept`` endpoint is gone.
         """
         # Local import — the graph drags LangChain state machinery we don't
         # want loaded at module import time (slower boot + circular risk).
         from src.agent.graph import graph
         from src.agent.state import TripPlanState
 
-        yield _sse("progress", {"phase": "starting", "message": "Starting trip planning..."})
-
-        initial_state: TripPlanState = _build_initial_state(request)  # type: ignore[assignment]
-
-        yield _sse(
-            "progress",
-            {"phase": "destination_research", "message": "Researching destinations..."},
-        )
-
         try:
-            # Fast path — destinations_only mode skips the full graph entirely.
+            # W1 — destinations_only mode is fully owned by InspireOrchestrator
+            # (Amadeus inspiration → parallel weather enrichment → strict-schema
+            # LLM ranker → Unsplash). The orchestrator emits its own
+            # ``progress`` events; the only thing this service still owns
+            # for W1 is the terminal ``done`` SSE in the ``finally`` below.
             if request.mode == "destinations_only":
-                async for event in TripPlannerService._stream_destinations_only(initial_state):
-                    yield event
+                inspire_req = _to_inspire_request(request)
+                async for ev_type, ev_data in InspireOrchestrator.stream(inspire_req):
+                    yield _sse(ev_type, ev_data)
                 return
 
-            # ``final_state`` is populated by ``_stream_graph`` as it
-            # merges every node update; it carries the canonical agent
-            # output (activities / accommodations / flight_offers / …)
-            # we then hand to ``PlanDraftService`` for persistence. The
-            # mutable-out pattern keeps ``_stream_graph`` a pure async
-            # iterator while still letting us reach the final state.
-            final_state: dict[str, Any] = {}
-            async for event in TripPlannerService._stream_graph(
-                graph, initial_state, out_final_state=final_state
-            ):
-                yield event
-
-            # SMP-324 — persist the draft server-side so the wizard
-            # never has to re-upload anything. ``create_draft_from_state``
-            # consolidates the agent output into a Trip row plus its
-            # children with ``status=DRAFT`` / ``validation_status=SUGGESTED``.
-            user = db.query(User).filter(User.id == user_id).first()
-            if user is None:
-                raise RuntimeError(f"user {user_id} disappeared mid-stream")
-            trip = await PlanDraftService.create_draft_from_state(
-                db=db,
-                user=user,
-                state=final_state,
-                accept_language=accept_language,
-            )
+            # Full-plan path keeps its legacy boot events for now; Phase 3
+            # rewrites this branch and unifies the progress vocabulary.
             yield _sse(
-                "complete",
-                {
-                    "tripId": str(trip.id),
-                    "status": trip.status,
-                    "tripPlan": _trip_plan_payload(final_state),
-                },
+                "progress",
+                {"phase": "starting", "message": "Starting trip planning..."},
             )
+            initial_state: TripPlanState = _build_initial_state(request)  # type: ignore[assignment]
+            yield _sse(
+                "progress",
+                {"phase": "destination_research", "message": "Researching destinations..."},
+            )
+
+            async for event in TripPlannerService._stream_graph(graph, initial_state):
+                yield event
 
             # Successful completion → increment quota (best-effort — a failed
             # counter update must not prevent the user from receiving events).
             try:
-                PlanService.increment_ai_generation(db, user)
+                user = db.query(User).filter(User.id == user_id).first()
+                if user is not None:
+                    PlanService.increment_ai_generation(db, user)
             except Exception as exc:
                 logger.warn(f"Failed to increment AI generation count: {exc}")
 
@@ -351,92 +215,11 @@ class TripPlannerService:
             yield _sse("done", {"status": "complete"})
 
     @staticmethod
-    async def _stream_destinations_only(initial_state: Any) -> AsyncIterator[str]:
-        """Drive the destinations-only fast path with timeout + heartbeat.
-
-        Pre-SMP-324 the implementation was a bare ``await`` on the LLM
-        call: when the upstream proxy hung, the SSE handler kept the
-        connection open without emitting anything (the bug behind the
-        "infinite loop, no error" report). Now the work runs as a task
-        and the surrounding loop emits a heartbeat every 15 s; the task
-        itself is bounded by ``GRAPH_TIMEOUT_SECONDS`` and the LLM
-        timeouts inside ``LLMService``. Either path eventually emits
-        either a ``complete`` or a ``error`` event — never silence.
-        """
-
-        async def _produce() -> dict:
-            destinations = await _quick_destination_suggestions(initial_state)
-            await _enrich_destinations_with_images(destinations)
-            return {"destinations": destinations}
-
-        loop = asyncio.get_event_loop()
-        last_heartbeat = loop.time()
-        task = asyncio.create_task(_produce())
-        deadline = loop.time() + settings.GRAPH_TIMEOUT_SECONDS
-
-        try:
-            while not task.done():
-                remaining = deadline - loop.time()
-                if remaining <= 0:
-                    task.cancel()
-                    logger.error(
-                        "Destinations-only path timed out",
-                        {"timeout_seconds": settings.GRAPH_TIMEOUT_SECONDS},
-                    )
-                    yield _sse(
-                        "error",
-                        {
-                            "message": "Destination research timed out. Please try again.",
-                            "code": "DESTINATIONS_TIMEOUT",
-                        },
-                    )
-                    return
-                # Wait at most 5 s so heartbeats stay snappy without
-                # spinning when the upstream is fast.
-                with contextlib.suppress(TimeoutError):
-                    await asyncio.wait_for(asyncio.shield(task), timeout=min(5.0, remaining))
-                now = loop.time()
-                if now - last_heartbeat > 15:
-                    yield _sse("heartbeat", {"ts": int(now)})
-                    last_heartbeat = now
-
-            try:
-                payload = task.result()
-            except Exception as exc:
-                logger.error("Quick destination suggestions failed", {"error": str(exc)})
-                yield _sse("error", {"message": str(exc)})
-                return
-
-            destinations = payload.get("destinations", [])
-            yield _sse("destinations", {"destinations": destinations})
-            yield _sse(
-                "complete",
-                {"destinations": destinations, "mode": "destinations_only"},
-            )
-        finally:
-            if not task.done():
-                task.cancel()
-
-    @staticmethod
     async def _stream_graph(
         graph_obj,
         initial_state: Any,
-        *,
-        out_final_state: dict[str, Any] | None = None,
     ) -> AsyncIterator[str]:
-        """Iterate the LangGraph stream, dedup events, emit SSE + heartbeats.
-
-        ``out_final_state`` is mutated in place with the merged agent
-        output across every node update. Pre-SMP-324 the caller didn't
-        need it because ``assemble_node`` shipped the trip-plan dict in
-        an SSE ``complete`` event; now ``stream_plan`` needs the raw
-        state to hand it to ``PlanDraftService``, and a mutable-out is
-        the simplest way to keep this async iterator pure.
-
-        The graph's own ``complete`` event is intentionally swallowed
-        here: ``stream_plan`` re-emits it after persisting the draft,
-        enriched with the ``tripId`` the client now needs to confirm.
-        """
+        """Iterate the LangGraph stream, dedup events, emit SSE + heartbeats."""
         last_heartbeat = asyncio.get_event_loop().time()
         sent_events: set[str] = set()  # Track which event types we've already sent
 
@@ -445,22 +228,11 @@ class TripPlannerService:
             total_timeout_seconds=settings.GRAPH_TIMEOUT_SECONDS,
         ):
             for node_name, update in event.items():
-                if out_final_state is not None and isinstance(update, dict):
-                    for key, value in update.items():
-                        if key in ("events", "errors"):
-                            continue
-                        out_final_state[key] = value
-
                 node_events = update.get("events", [])
 
                 for evt in node_events:
                     event_type = evt.get("event", "")
                     event_data = evt.get("data", {})
-
-                    # Swallow the graph's own ``complete``; ``stream_plan``
-                    # emits an enriched one with ``tripId`` after persisting.
-                    if event_type == "complete":
-                        continue
 
                     # Avoid duplicate events
                     event_key = f"{event_type}:{node_name}"
