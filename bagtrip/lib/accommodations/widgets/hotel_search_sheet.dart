@@ -13,12 +13,19 @@ class HotelSearchSheet extends StatefulWidget {
   final DateTime? tripStartDate;
   final DateTime? tripEndDate;
 
+  /// Phase 5 follow-up — overrides the default "open ManualAccommodationForm
+  /// prefilled" behaviour. When set, tapping a hotel calls this callback
+  /// with the raw Amadeus hotel map and the sheet closes immediately,
+  /// letting the caller drive the next step (eg. replace flow).
+  final void Function(Map<String, dynamic> hotel)? onHotelSelected;
+
   const HotelSearchSheet({
     super.key,
     required this.tripId,
     this.initialCityCode,
     this.tripStartDate,
     this.tripEndDate,
+    this.onHotelSelected,
   });
 
   @override
@@ -62,6 +69,14 @@ class _HotelSearchSheetState extends State<HotelSearchSheet> {
   }
 
   void _selectHotel(Map<String, dynamic> hotel) {
+    // Replace mode (Phase 5 follow-up): the caller drives the next step
+    // — typically an inline ManualAccommodationForm whose onSave fires
+    // ReplaceAccommodationFromDetail instead of CreateAccommodation.
+    if (widget.onHotelSelected != null) {
+      widget.onHotelSelected!(hotel);
+      return;
+    }
+
     final bloc = context.read<AccommodationBloc>();
     Navigator.of(context).pop();
     final name = hotel['name'] as String? ?? '';

@@ -7,7 +7,8 @@ import 'package:bagtrip/core/trip_enums.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/components/app_snackbar.dart';
+import 'package:bagtrip/accommodations/bloc/accommodation_bloc.dart';
+import 'package:bagtrip/accommodations/widgets/hotel_search_sheet.dart';
 import 'package:bagtrip/design/widgets/item_status_chip.dart';
 import 'package:bagtrip/design/widgets/replace_search_sheet.dart';
 import 'package:bagtrip/design/widgets/review/hotel_stats_grid.dart';
@@ -193,44 +194,79 @@ class HotelPanel extends StatelessWidget {
     controller.dispose();
   }
 
-  /// Phase 5 — opens the inline replace sheet. The Amadeus hotel search
-  /// wrap is a placeholder for the Phase 5 follow-up; the bloc handler
-  /// already supports the atomic DELETE+CREATE round-trip.
+  /// Phase 5 follow-up — opens the real Amadeus hotel search inside a
+  /// ReplaceSearchSheet, prefilled with the trip's destination IATA.
+  /// Tapping a result opens a ManualAccommodationForm pre-filled from
+  /// the chosen hotel; saving fires ReplaceAccommodationFromDetail
+  /// (atomic DELETE+CREATE) instead of plain CreateAccommodation.
   Future<void> _showReplaceSheet(
     BuildContext parentContext,
     Accommodation acc,
   ) async {
     final l10n = AppLocalizations.of(parentContext)!;
+    final tripBloc = parentContext.read<TripDetailBloc>();
     Navigator.of(parentContext).pop();
+
+    String addressOf(Map<String, dynamic> hotel) {
+      final addr = hotel['address'];
+      if (addr is! Map) return '';
+      final parts = <String>[];
+      if (addr['cityName'] != null) parts.add(addr['cityName'] as String);
+      if (addr['countryCode'] != null) {
+        parts.add(addr['countryCode'] as String);
+      }
+      return parts.join(', ');
+    }
+
+    void onHotelPicked(BuildContext sheetContext, Map<String, dynamic> hotel) {
+      // Close the replace sheet first so the next sheet stacks cleanly
+      // on the trip-detail context (no double drag handle).
+      Navigator.of(parentContext).pop();
+      final name = hotel['name'] as String? ?? '';
+      final address = addressOf(hotel);
+
+      showModalBottomSheet<void>(
+        context: parentContext,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => ManualAccommodationForm(
+          tripId: tripId,
+          isEstimatedPrice: true,
+          tripStartDate: trip.startDate,
+          tripEndDate: trip.endDate,
+          prefill: {'name': name, if (address.isNotEmpty) 'address': address},
+          onSave: (data) {
+            AppHaptics.medium();
+            tripBloc.add(
+              ReplaceAccommodationFromDetail(
+                oldAccommodationId: acc.id,
+                newAccommodationData: data,
+              ),
+            );
+          },
+        ),
+      );
+    }
+
     await showReplaceSearchSheet<void>(
       context: parentContext,
       sheet: ReplaceSearchSheet(
         title: l10n.accommodationEditTitle,
         subtitle: acc.name,
-        child: Center(
-          child: Padding(
-            padding: AppSpacing.allEdgeInsetSpace24,
-            child: Text(
-              l10n.accommodationToBeChosen,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontFamily: FontFamily.dMSans,
-                fontSize: 14,
-                color: ColorName.hint,
-              ),
+        child: BlocProvider(
+          create: (_) => AccommodationBloc(),
+          child: Builder(
+            builder: (sheetContext) => HotelSearchSheet(
+              tripId: tripId,
+              initialCityCode: trip.destinationIata,
+              tripStartDate: trip.startDate,
+              tripEndDate: trip.endDate,
+              onHotelSelected: (hotel) => onHotelPicked(sheetContext, hotel),
             ),
           ),
         ),
       ),
     );
-    // Acknowledge to the user that the search wrap is in progress
-    // rather than silently dismissing — keeps the sheet honest.
-    if (parentContext.mounted) {
-      AppSnackBar.showInfo(
-        parentContext,
-        message: l10n.accommodationToBeChosen,
-      );
-    }
   }
 
   Future<void> _showPreview(BuildContext context, Accommodation acc) async {
