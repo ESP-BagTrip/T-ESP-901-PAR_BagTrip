@@ -11,6 +11,8 @@ import 'package:bagtrip/design/widgets/review/boarding_pass_card.dart';
 import 'package:bagtrip/flight_search/bloc/flight_search_bloc.dart';
 import 'package:bagtrip/flight_search/models/flight_search_prefill.dart';
 import 'package:bagtrip/flight_search/view/flight_search_form.dart';
+import 'package:bagtrip/flight_search_result/models/flight.dart'
+    as result_flight;
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/design/widgets/review/sheets/quick_preview_sheet.dart';
@@ -272,16 +274,24 @@ class FlightsPanel extends StatelessWidget {
               ),
             ),
           child: FlightSearchForm(
-            onSubmit: (args) {
-              // Carry the replaceFlightId through the route extras so
-              // the result page can branch on it. The atomic handler
-              // (ReplaceFlightFromDetail) is already wired backstage;
-              // the result page wires the dispatch in a follow-up.
+            onSubmit: (args) async {
+              // Push the result page in replace mode and await the
+              // chosen Flight when the user picks one. The result widget
+              // pops with that Flight (skipping the details navigation
+              // when replaceFlightId is set), and we dispatch the atomic
+              // ReplaceFlightFromDetail handler with the mapped payload.
               final withReplaceId = args.copyWith(replaceFlightId: flight.id);
               Navigator.of(parentContext).pop();
-              FlightSearchResultRoute(
+              final picked = await FlightSearchResultRoute(
                 $extra: withReplaceId,
-              ).push(parentContext);
+              ).push<result_flight.Flight>(parentContext);
+              if (picked == null || !parentContext.mounted) return;
+              parentContext.read<TripDetailBloc>().add(
+                ReplaceFlightFromDetail(
+                  oldFlightId: flight.id,
+                  newFlightData: _flightToManualPayload(picked, flight),
+                ),
+              );
             },
           ),
         ),
@@ -551,6 +561,29 @@ class FlightsPanel extends StatelessWidget {
     if (dt == null) return '';
     return DateFormat('EEEE d MMM yyyy', locale).format(dt);
   }
+}
+
+/// Maps an Amadeus search-result Flight to the ManualFlight create payload
+/// used by [TransportRepository.createManualFlight]. Reuses the original
+/// flight's [flightType] so a MAIN replacement stays MAIN, etc. The Amadeus
+/// offer has no straightforward "flight number" (its id is an offer id);
+/// we fall back to that until the user edits the row.
+Map<String, dynamic> _flightToManualPayload(
+  result_flight.Flight picked,
+  ManualFlight original,
+) {
+  return <String, dynamic>{
+    'flightNumber': picked.id,
+    if (picked.airline != null) 'airline': picked.airline,
+    'departureAirport': picked.departureAirport,
+    'arrivalAirport': picked.arrivalAirport,
+    if (picked.departureDateTime != null)
+      'departureDate': picked.departureDateTime!.toIso8601String(),
+    if (picked.arrivalDateTime != null)
+      'arrivalDate': picked.arrivalDateTime!.toIso8601String(),
+    'price': picked.price,
+    'flightType': original.flightType,
+  };
 }
 
 class _FlightPreviewBody extends StatelessWidget {

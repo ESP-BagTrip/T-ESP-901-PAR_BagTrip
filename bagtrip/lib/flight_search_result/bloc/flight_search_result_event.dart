@@ -15,6 +15,10 @@ class LoadFlights extends FlightSearchResultEvent {
   final String travelClass;
   final List<FlightSegment>? multiDestSegments;
   final double? maxPrice;
+  // Phase 4 follow-up — when set, the page is in replace mode: tapping
+  // a result must pop with that Flight so the caller can dispatch
+  // ReplaceFlightFromDetail (atomic DELETE+CREATE) on the original row.
+  final String? replaceFlightId;
 
   LoadFlights({
     this.tripId,
@@ -28,6 +32,7 @@ class LoadFlights extends FlightSearchResultEvent {
     required this.travelClass,
     this.multiDestSegments,
     this.maxPrice,
+    this.replaceFlightId,
   });
 }
 
