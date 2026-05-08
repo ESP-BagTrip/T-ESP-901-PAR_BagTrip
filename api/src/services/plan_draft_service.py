@@ -364,6 +364,7 @@ def _build_budget_item(
         is_planned=True,
         source_type=source_type,
         source_id=source_id,
+        validation_status=ValidationStatus.SUGGESTED,
     )
 
 
