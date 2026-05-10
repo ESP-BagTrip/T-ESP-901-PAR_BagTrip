@@ -7,6 +7,7 @@ from .baggage_item import BaggageItem
 from .booking import Booking  # Deprecated - replaced by booking_intents pattern
 from .booking_intent import BookingIntent
 from .budget_item import BudgetItem
+from .destination_catalog import DestinationCatalog
 from .device_token import DeviceToken
 from .feedback import Feedback
 from .flight_offer import FlightOffer
@@ -40,6 +41,7 @@ __all__ = [
     "RefreshToken",
     "StripeEvent",
     "AmadeusApiLog",
+    "DestinationCatalog",
     "ManualFlight",
     "TravelerProfile",
     "TripShare",

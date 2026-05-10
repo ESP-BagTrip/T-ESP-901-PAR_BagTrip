@@ -3392,11 +3392,11 @@ abstract class AppLocalizations {
   /// **'Hôtel'**
   String get reviewTabHotel;
 
-  /// No description provided for @reviewTabItinerary.
+  /// No description provided for @reviewTabActivities.
   ///
   /// In fr, this message translates to:
-  /// **'Itinéraire'**
-  String get reviewTabItinerary;
+  /// **'Activités'**
+  String get reviewTabActivities;
 
   /// No description provided for @reviewTabEssentials.
   ///
@@ -3908,11 +3908,11 @@ abstract class AppLocalizations {
   /// **'Souvenirs'**
   String get tripDetailQuickMemories;
 
-  /// No description provided for @timelineSectionTitle.
+  /// No description provided for @activitiesSectionTitle.
   ///
   /// In fr, this message translates to:
-  /// **'Itinéraire'**
-  String get timelineSectionTitle;
+  /// **'Activités'**
+  String get activitiesSectionTitle;
 
   /// No description provided for @timelineMorning.
   ///
@@ -4646,11 +4646,11 @@ abstract class AppLocalizations {
   /// **'Suggestions pour cette journée'**
   String get timelineSuggestionsForDay;
 
-  /// No description provided for @timelineAddSuggestion.
+  /// No description provided for @activitiesAddSuggestion.
   ///
   /// In fr, this message translates to:
-  /// **'Ajouter à l\'itinéraire'**
-  String get timelineAddSuggestion;
+  /// **'Ajouter aux activités'**
+  String get activitiesAddSuggestion;
 
   /// No description provided for @addActivityManually.
   ///
@@ -5286,7 +5286,7 @@ abstract class AppLocalizations {
   /// No description provided for @blankActivitiesTitle.
   ///
   /// In fr, this message translates to:
-  /// **'Ton itinéraire est vide'**
+  /// **'Aucune activité pour l’instant'**
   String get blankActivitiesTitle;
 
   /// No description provided for @blankActivitiesSubtitle.
@@ -5538,7 +5538,7 @@ abstract class AppLocalizations {
   /// No description provided for @panelOpenFullActivities.
   ///
   /// In fr, this message translates to:
-  /// **'Voir l’itinéraire complet'**
+  /// **'Voir toutes les activités'**
   String get panelOpenFullActivities;
 
   /// No description provided for @panelOpenFullFlights.
@@ -5582,6 +5582,84 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Suggérée'**
   String get activitySuggestedBadge;
+
+  /// No description provided for @activitiesUnscheduledHeader.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non planifiées'**
+  String get activitiesUnscheduledHeader;
+
+  /// No description provided for @activitiesViewTimeline.
+  ///
+  /// In fr, this message translates to:
+  /// **'Timeline'**
+  String get activitiesViewTimeline;
+
+  /// No description provided for @activitiesViewList.
+  ///
+  /// In fr, this message translates to:
+  /// **'Liste'**
+  String get activitiesViewList;
+
+  /// No description provided for @activitiesViewCategory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Catégories'**
+  String get activitiesViewCategory;
+
+  /// No description provided for @activitiesFilterAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes'**
+  String get activitiesFilterAll;
+
+  /// No description provided for @activitiesFilterSuggested.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suggérées'**
+  String get activitiesFilterSuggested;
+
+  /// No description provided for @activitiesFilterValidated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Validées'**
+  String get activitiesFilterValidated;
+
+  /// No description provided for @activitiesFilterManual.
+  ///
+  /// In fr, this message translates to:
+  /// **'Manuelles'**
+  String get activitiesFilterManual;
+
+  /// No description provided for @activitiesFilterCategoriesAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Par catégorie'**
+  String get activitiesFilterCategoriesAction;
+
+  /// No description provided for @activitiesFilterCategoriesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Filtrer par catégorie'**
+  String get activitiesFilterCategoriesTitle;
+
+  /// No description provided for @activitiesFilterClear.
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer les filtres'**
+  String get activitiesFilterClear;
+
+  /// No description provided for @activitiesFilterDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminé'**
+  String get activitiesFilterDone;
+
+  /// No description provided for @activitiesFilterEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune activité ne correspond aux filtres actifs.'**
+  String get activitiesFilterEmpty;
 
   /// No description provided for @shareCopyLink.
   ///

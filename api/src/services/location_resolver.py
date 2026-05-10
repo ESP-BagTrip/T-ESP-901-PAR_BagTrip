@@ -1,300 +1,343 @@
-"""Single source of truth for resolving a city / IATA code.
+"""Multilingual city → :class:`Location` resolver.
 
-Why this exists
----------------
-Until SMP-324 the agent reached IATA codes by handing the user-typed city
-name to a single offline backend (``airportsdata``). That dataset only
-indexes city names in English, so a French user picking *"Singapour"*
-(or *"Lisbonne"*, *"Pékin"*, *"Le Caire"*…) silently produced empty IATA
-strings, which then cascaded into a broken flight search and an empty
-"ALLER" card on the trip detail screen.
+The :mod:`airportsdata` catalogue indexes airports by their English /
+local name (``Firenze``, ``München``, ``Singapore``). When the wizard
+sends a French / Spanish / Chinese / … city name we fall through that
+index and either pick a wrong-country namesake (Florence, SC instead of
+Florence, IT — audit Q3) or return nothing at all (Singapour stalls
+with no IATA — audit C3).
 
-The resolver below replaces that single-shot lookup with a deterministic
-cascade: each step is cheap to add, each one logs which path produced
-the answer, and a Redis cache covers steady-state load. Callers just see
-``ResolvedCity | None``.
+This resolver implements the cascade described in the SMP-325 RFC:
 
-Cascade
--------
-1. **Pre-validated IATA** — if the input looks like a 3-letter IATA
-   code, ``airportsdata.get_by_id`` resolves it directly (O(1)).
-2. **Cache hit** — Redis key ``loc:{locale}:{slug(name)}``, TTL 7 days.
-   Locations don't churn so a long TTL is fine and we avoid hammering
-   Open-Meteo for the same recurring city.
-3. **English exact match** — ``airportsdata.search_by_keyword`` resolves
-   any English-language city name without a network round-trip.
-4. **Multilingual geocoding** — Open-Meteo Geocoding API accepts the
-   raw locale-language query (``Singapour`` with ``language=fr``) and
-   returns coordinates plus the canonical English place name. We then
-   re-feed that English name into ``airportsdata.search_by_keyword`` to
-   pick the right IATA, and as a final guard fall back to
-   ``search_nearest()`` on the returned coordinates so a niche city
-   without a name match still resolves to its closest airport.
+1. **Cache** — Redis-backed idempotency cache (5 minute TTL). Cheap.
+2. **Offline keyword match** (``airportsdata``) — fast, no network call,
+   handles English-name and IATA-pass-through queries.
+3. **Open-Meteo geocoding** — free, no API key, multilingual (the
+   ``language`` query param accepts ISO-639 codes). Returns coordinates
+   plus a country code.
+4. **Nearest airport by haversine** (``search_nearest``) — picks the
+   closest scheduled airport to the geocoded coords.
 
-Each successful step writes the result back to Redis with the original
-locale-keyed slug so subsequent calls short-circuit.
+The resolver always returns a :class:`Location` whose ``iataCode`` is
+populated, or ``None`` if every step misses. Callers MUST handle the
+``None`` case explicitly — silent fallbacks are what the audit flagged
+as the worst quality issue (audit C5/C6).
 """
 
 from __future__ import annotations
 
-import json
-import re
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
+from typing import Any
 
-from src.integrations.aviation_data import aviation_data_service
-from src.integrations.open_meteo import GeocodedPlace, search_places
-from src.integrations.redis_client import get_redis_client
+from src.config.env import settings
+from src.integrations.aviation_data.service import AviationDataService, Location
+from src.integrations.http_client import get_http_client
+from src.utils.idempotency import idempotency_cache
 from src.utils.logger import logger
 
-_CACHE_PREFIX = "loc"
-_CACHE_TTL_SECONDS = 7 * 24 * 60 * 60  # 7 days
-_IATA_PATTERN = re.compile(r"^[A-Za-z]{3}$")
 
+@dataclass
+class ResolvedLocation:
+    """Trimmed-down resolver output — what call sites actually need.
 
-@dataclass(frozen=True, slots=True)
-class ResolvedCity:
-    """Immutable view of a resolved location.
-
-    ``source`` identifies which cascade step produced the answer so the
-    metrics layer (SMP-324 commit 9) can compute LLM-vs-Amadeus-vs-other
-    coverage, and so a caller debugging a bad result can grep logs for
-    the right step.
+    Why not return the raw :class:`Location` directly? Because the
+    cascade can produce a hit that has different ``city`` / ``country``
+    fields from the user input (e.g. user typed "Singapour" in FR; we
+    resolved to airport SIN whose ``cityName`` is "Singapore"). Callers
+    almost always want the original user-facing name *and* the resolved
+    technical attributes. Bundling both here keeps the contract honest.
     """
 
     iata: str
-    city: str
-    country: str
-    country_code: str
-    latitude: float
-    longitude: float
-    source: str
+    city: str  # canonical city name (English from airportsdata)
+    country: str  # canonical country name
+    country_code: str  # ISO 3166-1 alpha-2
+    lat: float
+    lon: float
+    source: str  # "cache" | "airportsdata" | "open-meteo+nearest"
+    raw_query: str  # what the user originally typed
+    raw_locale: str  # locale used during resolution
 
 
-def _slug(value: str) -> str:
-    """Normalize a city name into a stable cache key fragment.
+class LocationResolver:
+    """Stateless cascade resolver. Use :meth:`resolve` per query."""
 
-    ASCII-folds, lowercases, and collapses anything non-alphanumeric to
-    underscores. Two equivalent inputs (``"Saint-Pétersbourg"`` and
-    ``"saint petersbourg"``) collapse to the same slug, so the Redis
-    cache de-duplicates trivial spelling variants for free.
+    _aviation = AviationDataService()
+    _CACHE_TOOL = "location_resolver"
+
+    @classmethod
+    async def resolve(
+        cls,
+        name: str,
+        *,
+        country_hint: str = "",
+        locale: str = "en",
+    ) -> ResolvedLocation | None:
+        """Resolve ``name`` (free-form city, IATA code, or "City, Country").
+
+        ``country_hint`` is consumed when ``name`` could match airports
+        in multiple countries (Manchester GB vs US). It accepts both the
+        country name and the ISO 3166-1 code (case insensitive).
+
+        ``locale`` is forwarded to Open-Meteo geocoding when the local
+        catalogue misses; pass the wizard locale (``"fr"``, ``"en"``,
+        …) so non-English queries resolve correctly.
+        """
+        cleaned = (name or "").strip()
+        if not cleaned:
+            return None
+
+        cache_key = {"name": cleaned, "country": country_hint, "locale": locale}
+        cached = idempotency_cache.get(cls._CACHE_TOOL, cache_key)
+        if cached is not None:
+            return _from_cache(cached)
+
+        # 1. IATA pass-through.
+        if len(cleaned) == 3 and cleaned.isalpha():
+            loc = cls._aviation.get_by_id(cleaned.upper())
+            if loc is not None:
+                resolved = _from_location(loc, source="airportsdata", raw=name, locale=locale)
+                cls._cache(cache_key, resolved)
+                return resolved
+
+        # 2. Offline keyword + optional country disambiguation.
+        # ``airportsdata`` only knows English-language names. When the user
+        # typed in another locale ("Singapour", "Pékin", "Lisbonne"), an
+        # English keyword match is almost always a wrong-country namesake
+        # (Florence, SC instead of Firenze) — we skip step 2 and let the
+        # multilingual geocoder in step 3 do the work.
+        is_english_query = (locale or "en").lower().startswith("en")
+        if is_english_query:
+            offline = cls._aviation.search_by_keyword(cleaned, sub_type="CITY,AIRPORT", limit=10)
+            offline_match = _pick_with_country(offline, country_hint)
+            if offline_match is not None:
+                resolved = _from_location(
+                    offline_match, source="airportsdata", raw=name, locale=locale
+                )
+                cls._cache(cache_key, resolved)
+                return resolved
+
+        # 3. Open-Meteo geocoding (multilingual).
+        geo = await _geocode_open_meteo(cleaned, locale=locale)
+        if geo is None:
+            logger.warn(
+                "LocationResolver: every step missed",
+                {"name": cleaned, "country": country_hint, "locale": locale},
+            )
+            return None
+
+        # 4. Nearest scheduled airport from the geocoded coords.
+        nearest = cls._aviation.search_nearest(latitude=geo["lat"], longitude=geo["lon"], limit=10)
+        if not nearest:
+            return None
+
+        target_cc = geo.get("country_code", "").upper()
+        chosen = _pick_best_nearby_airport(nearest, target_cc, geo["lat"], geo["lon"])
+        resolved = ResolvedLocation(
+            iata=chosen.iataCode or (chosen.address.cityCode if chosen.address else ""),
+            city=geo.get("name") or (chosen.address.cityName if chosen.address else cleaned),
+            country=geo.get("country") or (chosen.address.countryName if chosen.address else ""),
+            country_code=target_cc or (chosen.address.countryCode if chosen.address else ""),
+            lat=geo["lat"],
+            lon=geo["lon"],
+            source="open-meteo+nearest",
+            raw_query=name,
+            raw_locale=locale,
+        )
+        if not resolved.iata:
+            return None
+        cls._cache(cache_key, resolved)
+        return resolved
+
+    # ── Cache helpers ─────────────────────────────────────────────────
+
+    @classmethod
+    def _cache(cls, key: dict[str, Any], resolved: ResolvedLocation) -> None:
+        idempotency_cache.set(cls._CACHE_TOOL, key, _to_cache(resolved))
+
+
+# ── Module-level helpers (kept module-private; no public API drift) ───
+
+
+_MILITARY_KEYWORDS = (
+    "air base",
+    "air force",
+    "military",
+    "naval air",
+    "air station",
+    "aerodrome",
+)
+
+
+def _is_military(loc: Location) -> bool:
+    name = (loc.name or "").lower()
+    return any(kw in name for kw in _MILITARY_KEYWORDS)
+
+
+#: Maximum distance (km) within which an "International" tag still
+#: implies the user's intended airport. Beyond that, the closer civilian
+#: airport in the same country wins even if its name doesn't tag as
+#: international (Lisbon Portela LIS for Lisbon, Florence Peretola FLR
+#: for Florence — both well-served commercial hubs without that tag).
+_INTL_CITY_RADIUS_KM = 40.0
+
+
+def _pick_best_nearby_airport(
+    candidates: list[Location],
+    target_cc: str,
+    geo_lat: float,
+    geo_lon: float,
+) -> Location:
+    """Pick the most realistic commercial airport for a reverse-geocoded city.
+
+    ``search_nearest`` orders by haversine distance only, which surfaces
+    military / private airfields (Paya Lebar QPG, Tengah TGA…) before
+    the international airport that actually serves scheduled traffic.
+
+    Heuristic (best-first):
+      1. Drop military / training bases — never recommend ``QPG`` for
+         Singapore.
+      2. Among the remaining airports, restrict to the geocoded country
+         and prefer those with a populated ``cityName``.
+      3. If a civilian airport whose name contains "International" sits
+         within :data:`_INTL_CITY_RADIUS_KM` of the geocoded coords,
+         pick it (this fixes Singapore: SIN beats Seletar XSP).
+      4. Otherwise pick the closest civilian airport in the country
+         (this fixes Lisbon: LIS beats Beja BYJ; Florence: FLR beats
+         Pisa PSA — both 80–130 km away with the "International" tag).
     """
-    lowered = (value or "").strip().lower()
-    # Strip diacritics by hand — we deliberately avoid `unicodedata` here
-    # because the small explicit table is faster than NFD + filter and
-    # makes the test fixtures readable.
-    folded = (
-        lowered.replace("à", "a")
-        .replace("â", "a")
-        .replace("ä", "a")
-        .replace("ã", "a")
-        .replace("á", "a")
-        .replace("ç", "c")
-        .replace("é", "e")
-        .replace("è", "e")
-        .replace("ê", "e")
-        .replace("ë", "e")
-        .replace("í", "i")
-        .replace("ï", "i")
-        .replace("î", "i")
-        .replace("ó", "o")
-        .replace("ô", "o")
-        .replace("ö", "o")
-        .replace("õ", "o")
-        .replace("ú", "u")
-        .replace("ü", "u")
-        .replace("û", "u")
-        .replace("ñ", "n")
-        .replace("ß", "ss")
-    )
-    return re.sub(r"[^a-z0-9]+", "_", folded).strip("_")
+    from src.integrations.aviation_data.service import _haversine
+
+    civilian = [c for c in candidates if not _is_military(c)]
+    if not civilian:
+        # All near-by entries are military — fall back to the raw nearest
+        # so we never return ``None`` from this stage.
+        return candidates[0]
+
+    same_cc_with_city = [
+        c
+        for c in civilian
+        if c.address and c.address.countryCode == target_cc and c.address.cityName
+    ]
+    pool = same_cc_with_city or civilian
+
+    nearby_intl = [
+        c
+        for c in pool
+        if "international" in (c.name or "").lower()
+        and _haversine(geo_lat, geo_lon, c.geoCode.latitude, c.geoCode.longitude)
+        <= _INTL_CITY_RADIUS_KM
+    ]
+    if nearby_intl:
+        return nearby_intl[0]
+    return pool[0]
 
 
-def _cache_key(query: str, locale: str) -> str:
-    return f"{_CACHE_PREFIX}:{locale}:{_slug(query)}"
-
-
-def _read_cache(query: str, locale: str) -> ResolvedCity | None:
-    client = get_redis_client()
-    if client is None:
+def _pick_with_country(candidates: list[Location], country_hint: str) -> Location | None:
+    if not candidates:
         return None
-    try:
-        raw = client.get(_cache_key(query, locale))
-    except Exception as exc:  # pragma: no cover - cache must never break the resolver
-        logger.warn("location_resolver: cache read failed", {"error": str(exc)})
-        return None
-    if not raw:
-        return None
-    try:
-        payload = json.loads(raw if isinstance(raw, str) else raw.decode("utf-8"))
-    except (ValueError, AttributeError):
-        return None
-    try:
-        return ResolvedCity(**payload)
-    except TypeError:
-        # Schema drift between cache and code → ignore and re-resolve.
-        return None
+    if not country_hint:
+        return candidates[0]
+    ch_lower = country_hint.strip().lower()
+    for loc in candidates:
+        addr = loc.address
+        if addr is None:
+            continue
+        if (addr.countryName and addr.countryName.lower() == ch_lower) or (
+            addr.countryCode and addr.countryCode.lower() == ch_lower
+        ):
+            return loc
+    return candidates[0]
 
 
-def _write_cache(query: str, locale: str, resolved: ResolvedCity) -> None:
-    client = get_redis_client()
-    if client is None:
-        return
-    try:
-        client.set(
-            _cache_key(query, locale),
-            json.dumps(asdict(resolved)),
-            ex=_CACHE_TTL_SECONDS,
-        )
-    except Exception as exc:  # pragma: no cover
-        logger.warn("location_resolver: cache write failed", {"error": str(exc)})
+async def _geocode_open_meteo(name: str, *, locale: str) -> dict[str, Any] | None:
+    """Hit Open-Meteo's geocoding API and return the top hit (or None on miss).
 
-
-def _from_aviation_location(loc, source: str) -> ResolvedCity | None:
-    """Convert the Pydantic Amadeus-shaped Location into a ResolvedCity."""
-    iata = (loc.iataCode or getattr(loc.address, "cityCode", "") or "").upper()
-    if not iata:
-        return None
-    return ResolvedCity(
-        iata=iata,
-        city=loc.address.cityName or "",
-        country=loc.address.countryName or "",
-        country_code=getattr(loc.address, "countryCode", "") or "",
-        latitude=float(loc.geoCode.latitude),
-        longitude=float(loc.geoCode.longitude),
-        source=source,
-    )
-
-
-def _try_iata_passthrough(query: str) -> ResolvedCity | None:
-    candidate = query.strip().upper()
-    if not _IATA_PATTERN.match(candidate):
-        return None
-    loc = aviation_data_service.get_by_id(candidate)
-    if loc is None:
-        return None
-    return _from_aviation_location(loc, source="airportsdata.iata")
-
-
-def _try_airportsdata_keyword(query: str) -> ResolvedCity | None:
-    locations = aviation_data_service.search_by_keyword(
-        query.strip(), sub_type="CITY,AIRPORT", limit=1
-    )
-    if not locations:
-        return None
-    return _from_aviation_location(locations[0], source="airportsdata.keyword")
-
-
-async def _try_open_meteo_then_airportsdata(query: str, locale: str) -> ResolvedCity | None:
-    places = await search_places(query, language=locale, count=3)
-    if not places:
-        return None
-    place = places[0]
-
-    # Re-attempt airportsdata with the canonical English name returned by
-    # Open-Meteo — covers the FR→EN gap (Singapour → Singapore).
-    canonical = _try_airportsdata_keyword(place.name)
-    if canonical:
-        return ResolvedCity(
-            iata=canonical.iata,
-            city=place.name,
-            country=place.country or canonical.country,
-            country_code=place.country_code or canonical.country_code,
-            latitude=place.latitude,
-            longitude=place.longitude,
-            source="open_meteo+airportsdata",
-        )
-
-    # Last-resort: nearest airport to the geocoded coordinates. Useful
-    # for niche cities whose English name still misses airportsdata
-    # (small islands, alternative spellings).
-    return _try_nearest_airport(place)
-
-
-def _try_nearest_airport(place: GeocodedPlace) -> ResolvedCity | None:
-    nearest = aviation_data_service.search_nearest(
-        latitude=place.latitude, longitude=place.longitude, limit=1
-    )
-    if not nearest:
-        return None
-    nearest_resolved = _from_aviation_location(nearest[0], source="open_meteo+nearest")
-    if nearest_resolved is None:
-        return None
-    return ResolvedCity(
-        iata=nearest_resolved.iata,
-        city=place.name,
-        country=place.country or nearest_resolved.country,
-        country_code=place.country_code or nearest_resolved.country_code,
-        latitude=place.latitude,
-        longitude=place.longitude,
-        source="open_meteo+nearest",
-    )
-
-
-async def resolve_city(name_or_iata: str, *, locale: str = "en") -> ResolvedCity | None:
-    """Resolve a free-form city name (or IATA) to a structured location.
-
-    Args:
-        name_or_iata: User input — IATA code, English city name,
-            localized city name. Whitespace-trimmed; empty input
-            returns ``None``.
-        locale: 2-letter language code controlling which language to
-            ask Open-Meteo with. The resolved ``city`` field will keep
-            the localized name when the cascade ends on Open-Meteo,
-            otherwise it stays in English.
-
-    Returns:
-        A ``ResolvedCity`` when at least one cascade step succeeds,
-        otherwise ``None``. Callers should treat ``None`` as
-        "user must re-enter or pick from a different list" — the
-        resolver never raises.
+    The endpoint is free and shaped exactly for our cascade — we ask for
+    the user's locale so "Singapour" resolves directly. We fall back to
+    English on a miss so an unknown locale (``"es"``, ``"de"``) still
+    has a chance.
     """
-    if not name_or_iata or not name_or_iata.strip():
-        return None
-
-    query = name_or_iata.strip()
-    locale_code = (locale or "en").split("-", 1)[0].lower()[:2] or "en"
-
-    # 1. Direct IATA passthrough.
-    iata_hit = _try_iata_passthrough(query)
-    if iata_hit:
-        logger.info(
-            "location_resolver: resolved via IATA passthrough",
-            {"query": query, "iata": iata_hit.iata},
+    base = settings.OPEN_METEO_GEOCODING_BASE_URL
+    url = f"{base}/v1/search"
+    locales_to_try = [locale or "en"]
+    if "en" not in locales_to_try:
+        locales_to_try.append("en")
+    client = get_http_client()
+    for lang in locales_to_try:
+        try:
+            response = await client.get(
+                url,
+                params={"name": name, "count": 5, "language": lang, "format": "json"},
+                timeout=8.0,
+            )
+        except Exception as exc:
+            logger.warn(
+                "LocationResolver: Open-Meteo geocoding network error",
+                {"name": name, "locale": lang, "error": str(exc)},
+            )
+            return None
+        if response.status_code != 200:
+            logger.warn(
+                "LocationResolver: Open-Meteo geocoding non-200",
+                {"name": name, "locale": lang, "status": response.status_code},
+            )
+            continue
+        data = response.json()
+        results = data.get("results") or []
+        # Prefer political capitals / admin divisions (PPLC / PPLA) over
+        # tiny populated places (PPL) when both match — bigger places
+        # have airports we can map to.
+        results.sort(
+            key=lambda r: (
+                0 if r.get("feature_code") in ("PPLC", "PPLA", "PPLA2") else 1,
+                -(r.get("population") or 0),
+            )
         )
-        _write_cache(query, locale_code, iata_hit)
-        return iata_hit
-
-    # 2. Cache.
-    cached = _read_cache(query, locale_code)
-    if cached:
-        logger.info(
-            "location_resolver: resolved via cache",
-            {"query": query, "iata": cached.iata, "source": cached.source},
-        )
-        return cached
-
-    # 3. English keyword lookup (free, instant).
-    en_hit = _try_airportsdata_keyword(query)
-    if en_hit:
-        logger.info(
-            "location_resolver: resolved via airportsdata keyword",
-            {"query": query, "iata": en_hit.iata},
-        )
-        _write_cache(query, locale_code, en_hit)
-        return en_hit
-
-    # 4. Multilingual geocoding fallback.
-    geo_hit = await _try_open_meteo_then_airportsdata(query, locale_code)
-    if geo_hit:
-        logger.info(
-            "location_resolver: resolved via geocoding",
-            {"query": query, "locale": locale_code, "iata": geo_hit.iata, "source": geo_hit.source},
-        )
-        _write_cache(query, locale_code, geo_hit)
-        return geo_hit
-
-    logger.warn(
-        "location_resolver: all cascade steps exhausted",
-        {"query": query, "locale": locale_code},
-    )
+        if not results:
+            continue
+        best = results[0]
+        return {
+            "name": best.get("name"),
+            "lat": best.get("latitude"),
+            "lon": best.get("longitude"),
+            "country": best.get("country"),
+            "country_code": (best.get("country_code") or "").upper(),
+        }
     return None
+
+
+def _from_location(loc: Location, *, source: str, raw: str, locale: str) -> ResolvedLocation:
+    addr = loc.address
+    return ResolvedLocation(
+        iata=loc.iataCode or (addr.cityCode if addr else ""),
+        city=addr.cityName if addr else raw,
+        country=addr.countryName if addr else "",
+        country_code=addr.countryCode if addr else "",
+        lat=loc.geoCode.latitude,
+        lon=loc.geoCode.longitude,
+        source=source,
+        raw_query=raw,
+        raw_locale=locale,
+    )
+
+
+def _to_cache(resolved: ResolvedLocation) -> dict[str, Any]:
+    return resolved.__dict__.copy()
+
+
+def _from_cache(payload: dict[str, Any]) -> ResolvedLocation:
+    return ResolvedLocation(
+        iata=payload["iata"],
+        city=payload["city"],
+        country=payload["country"],
+        country_code=payload["country_code"],
+        lat=payload["lat"],
+        lon=payload["lon"],
+        source="cache",
+        raw_query=payload["raw_query"],
+        raw_locale=payload["raw_locale"],
+    )
+
+
+__all__ = ["LocationResolver", "ResolvedLocation"]

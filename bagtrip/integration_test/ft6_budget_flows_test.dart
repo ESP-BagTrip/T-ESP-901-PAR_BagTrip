@@ -119,6 +119,13 @@ void main() {
       expect((result as Failure).error, isA<NetworkError>());
     });
 
+    // SMP-325: ``/plan-trip/accept`` was removed. The B23 contract
+    // (per-night unit derivation) is now enforced inside the wizard's
+    // ``_tripPlanFromDraft`` parser and pinned by
+    // ``test/blocs/plan_trip_bloc_test.dart`` ("B23 — accommodation
+    // with price_total + nights derives per-night price"). The
+    // accept-payload integration test is therefore retired.
+
     testWidgets(
       'plan_trip_multi_currency: BudgetSummary surface accepts mixed-currency response',
       (tester) async {

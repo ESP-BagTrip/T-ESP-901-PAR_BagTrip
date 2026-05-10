@@ -50,6 +50,24 @@ void main() {
       expect(second.updatedAt, DateTime.parse('2024-05-10T15:30:00.000'));
     });
 
+    test('roundtrip accepts a null date for unscheduled activities', () {
+      // Regression (SMP-325): the AI engine persists recurring activities
+      // (dinners, free-form ideas) without a calendar day. The mobile model
+      // must accept ``date: null`` instead of crashing the whole list fetch.
+      final json = <String, dynamic>{
+        'id': 'act-unscheduled',
+        'trip_id': 'trip-1',
+        'title': 'Dîner libre',
+        'date': null,
+      };
+
+      final activity = Activity.fromJson(json);
+      expect(activity.date, isNull);
+      final restored = Activity.fromJson(activity.toJson());
+      expect(restored.date, isNull);
+      expect(restored.title, 'Dîner libre');
+    });
+
     test('roundtrip with minimal required fields preserves defaults', () {
       final json = <String, dynamic>{
         'id': 'act-minimal',

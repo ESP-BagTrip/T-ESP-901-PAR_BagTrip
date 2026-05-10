@@ -1,41 +1,35 @@
-"""SSE trip-planning orchestration — extracted from `plan_trip_routes.py`.
+"""SSE trip-planning orchestration.
 
-The LangGraph streaming logic used to live inline in the route handler. That
-was a CLAUDE.md violation ("routes are HTTP-only, pas d'orchestration LangGraph
-inline") and also made the route impossible to test without spinning up the
-full FastAPI stack. This service is now the single owner of:
+The route handler stays HTTP-only. This service owns the whole stream
+lifecycle:
 
-- State assembly from the incoming `PlanTripRequest`
-- Mode dispatching (`destinations_only` fast path vs. full ReAct graph)
-- SSE event dedup, heartbeat, and timeout
-- AI quota increment on success
-- Guaranteed cleanup via `try / finally`
-
-The route is a pass-through: it wraps `stream_plan()` in an `EventSourceResponse`
-/`StreamingResponse` and nothing else.
+- Mode dispatching (W1 ``destinations_only`` → :class:`InspireOrchestrator`,
+  W2 full plan → :class:`FullPlanOrchestrator`).
+- SSE serialisation, heartbeat, and the terminal ``done`` event.
+- Server-side persistence of W2 drafts via :class:`PlanDraftService`,
+  the deterministic feasibility pass and the AI-quota increment.
+- Guaranteed cleanup via ``try / finally``.
 """
 
 from __future__ import annotations
 
-import asyncio
-import contextlib
 import json
-import time
 from collections.abc import AsyncIterator
-from datetime import date, timedelta
-from typing import Any
 
 from sqlalchemy.orm import Session
 
-from src.agent.runtime_budget import BudgetExceeded
 from src.api.ai.plan_trip_schemas import PlanTripRequest
-from src.config.env import settings
-from src.integrations.unsplash import unsplash_client
 from src.models.user import User
+from src.services.feasibility_pass import schedule_activities
+from src.services.full_plan_orchestrator import (
+    FullPlanOrchestrator,
+    FullPlanRequest,
+    TripDraftCommand,
+)
+from src.services.inspire_orchestrator import InspireOrchestrator, InspireRequest
 from src.services.plan_draft_service import PlanDraftService
 from src.services.plan_service import PlanService
 from src.utils.logger import logger
-from src.utils.timeout import async_generator_with_timeout
 
 
 def _sse(event: str, data: dict) -> str:
@@ -43,195 +37,86 @@ def _sse(event: str, data: dict) -> str:
     return f"event: {event}\ndata: {json.dumps(data, default=str, ensure_ascii=False)}\n\n"
 
 
-def _trip_plan_payload(state: dict[str, Any]) -> dict[str, Any]:
-    """Build the read-only ``tripPlan`` dict the SSE ``complete`` event ships.
-
-    Pre-SMP-324 this lived inside ``assemble_node`` as a graph-level
-    event. It now sits next to the persistence call so the client can
-    render the review screen without an extra ``GET /trips/{id}`` round
-    trip — the data is identical to what the persistence layer wrote.
-    The payload is intentionally read-only: the wizard validates by
-    PATCHing ``status=PLANNED``, not by re-uploading anything.
-    """
-    dest = state.get("selected_destination") or {}
-    return {
-        "destination": {
-            "city": dest.get("city", ""),
-            "country": dest.get("country", ""),
-            "iata": dest.get("iata", ""),
-        },
-        "origin_iata": state.get("origin_iata", ""),
-        "weather": state.get("weather_data", {}),
-        "alternatives": (state.get("destinations") or [])[1:],
-        "activities": state.get("activities", []),
-        "accommodations": state.get("accommodations", []),
-        "baggage": state.get("baggage_items", []),
-        "budget": state.get("budget_estimation", {}),
-        "flight_offers": state.get("flight_offers", []),
-        "duration_days": state.get("duration_days"),
-        "departure_date": state.get("departure_date"),
-        "return_date": state.get("return_date"),
-    }
-
-
-_QUICK_DESTINATION_LABELS: dict[str, dict[str, str]] = {
-    "en": {
-        "travel_types": "Preferences",
-        "budget_preset": "Budget",
-        "duration_days": "Duration",
-        "duration_unit": "days",
-        "companions": "Traveling with",
-        "season": "Season",
-        "constraints": "Constraints",
-        "nb_travelers": "Travelers",
-        "fallback": "Suggest diverse travel destinations.",
-    },
-    "fr": {
-        "travel_types": "Préférences",
-        "budget_preset": "Budget",
-        "duration_days": "Durée",
-        "duration_unit": "jours",
-        "companions": "Accompagné de",
-        "season": "Saison",
-        "constraints": "Contraintes",
-        "nb_travelers": "Voyageurs",
-        "fallback": "Propose des destinations de voyage variées.",
-    },
-}
-
-
-async def _quick_destination_suggestions(state: Any) -> list[dict]:
-    """Generate destination suggestions for the wizard's step 3.
-
-    Tries the Amadeus-first ``inspire_then_rank`` pipeline first
-    (real flight inspiration + Amadeus POIs + Open-Meteo weather +
-    LLM ranking only). Falls back to the legacy LLM-only path when
-    the pipeline cannot proceed (no origin city, Amadeus down, …) so
-    the wizard never ends up empty-handed.
-    """
-    from src.services.destination_inspiration_service import inspire_then_rank
-    from src.utils.locale import normalize_locale
-
-    locale = normalize_locale(state.get("locale"))
-
-    amadeus_first = await inspire_then_rank(state)
-    if amadeus_first is not None:
-        logger.info(
-            "Quick destination suggestions (amadeus_first)",
-            {"count": len(amadeus_first), "locale": locale},
-        )
-        return amadeus_first
-
-    # ── Legacy fallback path — keeps the wizard producing something even
-    # when Amadeus inspiration is unavailable or the user did not provide
-    # an origin city.
-    return await _legacy_llm_only_destinations(state, locale)
-
-
-async def _legacy_llm_only_destinations(state: Any, locale: str) -> list[dict]:
-    """Single LLM call (no ReAct, no tools) — pre-SMP-324 behavior."""
-    from src.agent.prompts import render
-    from src.services.llm_service import LLMService
-
-    labels = _QUICK_DESTINATION_LABELS.get(locale, _QUICK_DESTINATION_LABELS["en"])
-
-    system_prompt = render("destination_quick", locale=locale)
-
-    parts: list[str] = []
-    if state.get("travel_types"):
-        parts.append(f"{labels['travel_types']}: {state['travel_types']}")
-    if state.get("budget_preset"):
-        parts.append(f"{labels['budget_preset']}: {state['budget_preset']}")
-    if state.get("duration_days"):
-        parts.append(
-            f"{labels['duration_days']}: {state['duration_days']} {labels['duration_unit']}"
-        )
-    if state.get("companions"):
-        parts.append(f"{labels['companions']}: {state['companions']}")
-    if state.get("season"):
-        parts.append(f"{labels['season']}: {state['season']}")
-    if state.get("constraints"):
-        parts.append(f"{labels['constraints']}: {state['constraints']}")
-    if state.get("nb_travelers"):
-        parts.append(f"{labels['nb_travelers']}: {state['nb_travelers']}")
-
-    user_prompt = "\n".join(parts) if parts else labels["fallback"]
-
-    llm_service = LLMService()
-    result = await llm_service.acall_llm(system_prompt, user_prompt)
-    destinations = result.get("destinations", [])
-    logger.info(
-        "Quick destination suggestions (llm_fallback)",
-        {"count": len(destinations), "locale": locale},
+def _to_inspire_request(request: PlanTripRequest) -> InspireRequest:
+    """Map the wizard payload onto the inspire orchestrator's input."""
+    return InspireRequest(
+        origin_city=request.originCity or "",
+        travel_types=request.travelTypes or "",
+        duration_days=request.durationDays or 7,
+        departure_date=request.departureDate or "",
+        return_date=request.returnDate or "",
+        season=request.season or "",
+        companions=request.companions or "solo",
+        constraints=request.constraints or "",
+        budget_preset=request.budgetPreset or "",
+        nb_travelers=request.nbTravelers or 1,
+        locale=request.locale or "en",
     )
-    return destinations
 
 
-def _build_initial_state(request: PlanTripRequest) -> dict:
-    """Build the LangGraph `TripPlanState` seed from an incoming request."""
-    dep_date = request.departureDate or ""
-    ret_date = request.returnDate or ""
-    duration = request.durationDays or 7
-
-    # Safety net: derive dates for month/flexible modes if client didn't send them.
-    if not dep_date or not ret_date:
-        if request.preferredMonth and request.preferredYear:
-            start = date(request.preferredYear, request.preferredMonth, 15)
-            dep_date = str(start)
-            ret_date = str(start + timedelta(days=duration))
-        elif request.dateMode in ("month", "flexible"):
-            start = date.today() + timedelta(days=30)
-            dep_date = str(start)
-            ret_date = str(start + timedelta(days=duration))
-
-    return {
-        "travel_types": request.travelTypes or "",
-        "duration_days": duration,
-        "companions": request.companions or "solo",
-        "constraints": request.constraints or "",
-        "departure_date": dep_date,
-        "return_date": ret_date,
-        "origin_city": request.originCity or "",
-        "destination_city": request.destinationCity or "",
-        "destination_iata": request.destinationIata or "",
-        "travel_style": request.travelStyle or "",
-        "season": request.season or "",
-        "nb_travelers": request.nbTravelers or 1,
-        "budget_preset": request.budgetPreset or "",
-        # Topic 01 — numeric target the user committed to in the wizard.
-        # Threaded into the agent state so nodes can render it in prompts
-        # and `_compute_fallback_budget` can use it as a sanity ceiling.
-        "target_budget": request.targetBudget,
-        "date_mode": request.dateMode or "",
-        "events": [],
-        "errors": [],
-        # Budget tracking — `time.monotonic()` is strictly increasing so we
-        # don't need tz-aware math. Consumed seconds accrues as each node
-        # finishes via `src.agent.runtime_budget.track`.
-        "budget_deadline_monotonic": time.monotonic() + settings.GRAPH_TIMEOUT_SECONDS,
-        "budget_consumed_seconds": 0.0,
-        # Locale picked up by every node's `prompts.render(name, locale=...)` call.
-        "locale": request.locale or "en",
-    }
+def _to_full_plan_request(request: PlanTripRequest) -> FullPlanRequest:
+    """Map the wizard payload onto the W2 full-plan orchestrator's input."""
+    return FullPlanRequest(
+        origin_city=request.originCity or "",
+        destination_city=request.destinationCity or "",
+        destination_iata=request.destinationIata or "",
+        travel_types=request.travelTypes or "",
+        duration_days=request.durationDays or 7,
+        departure_date=request.departureDate or "",
+        return_date=request.returnDate or "",
+        season=request.season or "",
+        companions=request.companions or "solo",
+        constraints=request.constraints or "",
+        budget_preset=request.budgetPreset or "",
+        nb_travelers=request.nbTravelers or 1,
+        target_budget=request.targetBudget,
+        locale=request.locale or "en",
+    )
 
 
-async def _enrich_destinations_with_images(destinations: list[dict]) -> list[dict]:
-    """Fetch Unsplash cover images for each destination (parallel, with fallback)."""
+def _trip_draft_from_dict(payload: dict) -> TripDraftCommand:
+    """Rebuild a :class:`TripDraftCommand` from the dict shipped in ``complete``.
 
-    async def _fetch_one(dest: dict) -> dict:
-        city = dest.get("city", "")
-        if not city:
-            return dest
-        country = dest.get("country", "")
-        query = f"{city}, {country}" if country else city
-        url = await unsplash_client.fetch_cover_image(query)
-        if not url:
-            url = unsplash_client.get_fallback_url(query)
-        dest["image_url"] = url
-        return dest
+    The orchestrator yields ``complete {"trip_draft": asdict(cmd)}`` so the
+    SSE payload is JSON-serialisable. The persistence layer expects the
+    typed dataclass, so we round-trip here through the same builders the
+    orchestrator uses internally — that keeps the contract honest if
+    fields are added later.
+    """
+    from src.services.full_plan_orchestrator import (
+        AccommodationDraft,
+        ActivityDraft,
+        BaggageDraft,
+        BudgetBreakdown,
+        TransportLeg,
+        WeatherSummary,
+    )
 
-    await asyncio.gather(*[_fetch_one(d) for d in destinations])
-    return destinations
+    weather_payload = payload.get("weather")
+    weather = WeatherSummary(**weather_payload) if weather_payload else None
+    return TripDraftCommand(
+        origin_iata=payload["origin_iata"],
+        origin_city=payload["origin_city"],
+        destination_iata=payload["destination_iata"],
+        destination_city=payload["destination_city"],
+        destination_country=payload["destination_country"],
+        destination_country_code=payload["destination_country_code"],
+        destination_lat=payload["destination_lat"],
+        destination_lon=payload["destination_lon"],
+        start_date=payload["start_date"],
+        end_date=payload["end_date"],
+        duration_days=payload["duration_days"],
+        nb_travelers=payload["nb_travelers"],
+        target_budget=payload.get("target_budget"),
+        locale=payload["locale"],
+        cover_image_url=payload.get("cover_image_url"),
+        weather=weather,
+        activities=[ActivityDraft(**a) for a in payload.get("activities", [])],
+        accommodations=[AccommodationDraft(**a) for a in payload.get("accommodations", [])],
+        transport=[TransportLeg(**t) for t in payload.get("transport", [])],
+        baggage=[BaggageDraft(**b) for b in payload.get("baggage", [])],
+        budget=BudgetBreakdown(**payload.get("budget", {})),
+    )
 
 
 class TripPlannerService:
@@ -242,267 +127,64 @@ class TripPlannerService:
         request: PlanTripRequest,
         user_id: str,
         db: Session,
-        accept_language: str = "fr",
     ) -> AsyncIterator[str]:
         """Yield SSE event strings for a single trip-plan request.
 
-        This is the whole LangGraph pipeline from prompt state to completion,
-        wrapped in a ``try/finally`` so cleanup runs even if the client
-        disconnects or the graph raises.
-
-        Events emitted (in rough order):
-            ``progress`` → ``destinations`` → ``progress`` →
-            ``activities`` / ``accommodations`` / ``baggage`` (parallel) →
-            ``progress`` (budget) → ``budget`` → ``complete`` (with
-            ``tripId``) → ``done``.
-            Plus ``heartbeat`` every 15 s and ``error`` on failure paths.
-
-        SMP-324 — the ``complete`` event now ships the persisted draft's
-        ``tripId``. The wizard loads the trip via the standard
-        ``GET /v1/trips/{id}`` and only needs to PATCH ``status=PLANNED``
-        to confirm. The legacy ``/plan-trip/accept`` endpoint is gone.
+        - ``mode="destinations_only"`` → :class:`InspireOrchestrator`,
+          forwarded verbatim. Nothing is persisted server-side; the
+          wizard step that follows lets the user pick a destination
+          before the W2 path.
+        - default / ``mode="full"`` → :class:`FullPlanOrchestrator`
+          followed by the deterministic feasibility pass and a server-
+          side persist via :class:`PlanDraftService`. The orchestrator's
+          own ``complete`` event is intentionally swallowed; we re-emit
+          a richer one with the persisted ``tripId``.
         """
-        # Local import — the graph drags LangChain state machinery we don't
-        # want loaded at module import time (slower boot + circular risk).
-        from src.agent.graph import graph
-        from src.agent.state import TripPlanState
-
-        yield _sse("progress", {"phase": "starting", "message": "Starting trip planning..."})
-
-        initial_state: TripPlanState = _build_initial_state(request)  # type: ignore[assignment]
-
-        yield _sse(
-            "progress",
-            {"phase": "destination_research", "message": "Researching destinations..."},
-        )
-
         try:
-            # Fast path — destinations_only mode skips the full graph entirely.
             if request.mode == "destinations_only":
-                async for event in TripPlannerService._stream_destinations_only(initial_state):
-                    yield event
+                inspire_req = _to_inspire_request(request)
+                async for ev_type, ev_data in InspireOrchestrator.stream(inspire_req):
+                    yield _sse(ev_type, ev_data)
                 return
 
-            # ``final_state`` is populated by ``_stream_graph`` as it
-            # merges every node update; it carries the canonical agent
-            # output (activities / accommodations / flight_offers / …)
-            # we then hand to ``PlanDraftService`` for persistence. The
-            # mutable-out pattern keeps ``_stream_graph`` a pure async
-            # iterator while still letting us reach the final state.
-            final_state: dict[str, Any] = {}
-            async for event in TripPlannerService._stream_graph(
-                graph, initial_state, out_final_state=final_state
-            ):
-                yield event
+            full_req = _to_full_plan_request(request)
+            trip_draft_payload: dict | None = None
+            async for ev_type, ev_data in FullPlanOrchestrator.stream(full_req):
+                if ev_type == "complete":
+                    # Capture the DTO; we re-emit ``complete`` after the
+                    # feasibility pass + persistence so the client gets a
+                    # ``tripId`` it can link to.
+                    trip_draft_payload = ev_data.get("trip_draft")
+                    continue
+                yield _sse(ev_type, ev_data)
 
-            # SMP-324 — persist the draft server-side so the wizard
-            # never has to re-upload anything. ``create_draft_from_state``
-            # consolidates the agent output into a Trip row plus its
-            # children with ``status=DRAFT`` / ``validation_status=SUGGESTED``.
+            if trip_draft_payload is None:
+                # The orchestrator surfaced a fatal ``error`` event before
+                # producing a draft; the ``finally`` below closes the
+                # stream with ``done`` and we exit cleanly.
+                return
+
+            cmd = _trip_draft_from_dict(trip_draft_payload)
+            cmd.activities = schedule_activities(cmd)
             user = db.query(User).filter(User.id == user_id).first()
             if user is None:
                 raise RuntimeError(f"user {user_id} disappeared mid-stream")
-            trip = await PlanDraftService.create_draft_from_state(
-                db=db,
-                user=user,
-                state=final_state,
-                accept_language=accept_language,
-            )
+            trip = PlanDraftService.create_draft_from_command(db=db, user=user, cmd=cmd)
             yield _sse(
                 "complete",
                 {
                     "tripId": str(trip.id),
-                    "status": trip.status,
-                    "tripPlan": _trip_plan_payload(final_state),
+                    "status": str(trip.status),
+                    "tripDraft": trip_draft_payload,
                 },
             )
-
-            # Successful completion → increment quota (best-effort — a failed
-            # counter update must not prevent the user from receiving events).
             try:
                 PlanService.increment_ai_generation(db, user)
             except Exception as exc:
                 logger.warn(f"Failed to increment AI generation count: {exc}")
 
-        except BudgetExceeded as exc:
-            logger.warn(
-                "Trip planning graph exhausted its time budget",
-                {"timeout_seconds": settings.GRAPH_TIMEOUT_SECONDS, "error": str(exc)},
-            )
-            yield _sse(
-                "error",
-                {
-                    "message": "Trip planning exceeded its time budget. Please try again.",
-                    "code": "GRAPH_BUDGET_EXHAUSTED",
-                },
-            )
-        except TimeoutError:
-            logger.error(
-                "Trip planning graph timed out",
-                {"timeout_seconds": settings.GRAPH_TIMEOUT_SECONDS},
-            )
-            yield _sse("error", {"message": "Trip planning timed out. Please try again."})
         except Exception as exc:
-            logger.error("Trip planning graph failed", {"error": str(exc)})
+            logger.error("Trip planning failed", {"error": str(exc)})
             yield _sse("error", {"message": str(exc)})
         finally:
-            # Always send the done signal so the client can close the SSE
-            # connection cleanly even on errors.
             yield _sse("done", {"status": "complete"})
-
-    @staticmethod
-    async def _stream_destinations_only(initial_state: Any) -> AsyncIterator[str]:
-        """Drive the destinations-only fast path with timeout + heartbeat.
-
-        Pre-SMP-324 the implementation was a bare ``await`` on the LLM
-        call: when the upstream proxy hung, the SSE handler kept the
-        connection open without emitting anything (the bug behind the
-        "infinite loop, no error" report). Now the work runs as a task
-        and the surrounding loop emits a heartbeat every 15 s; the task
-        itself is bounded by ``GRAPH_TIMEOUT_SECONDS`` and the LLM
-        timeouts inside ``LLMService``. Either path eventually emits
-        either a ``complete`` or a ``error`` event — never silence.
-        """
-
-        async def _produce() -> dict:
-            destinations = await _quick_destination_suggestions(initial_state)
-            await _enrich_destinations_with_images(destinations)
-            return {"destinations": destinations}
-
-        loop = asyncio.get_event_loop()
-        last_heartbeat = loop.time()
-        task = asyncio.create_task(_produce())
-        deadline = loop.time() + settings.GRAPH_TIMEOUT_SECONDS
-
-        try:
-            while not task.done():
-                remaining = deadline - loop.time()
-                if remaining <= 0:
-                    task.cancel()
-                    logger.error(
-                        "Destinations-only path timed out",
-                        {"timeout_seconds": settings.GRAPH_TIMEOUT_SECONDS},
-                    )
-                    yield _sse(
-                        "error",
-                        {
-                            "message": "Destination research timed out. Please try again.",
-                            "code": "DESTINATIONS_TIMEOUT",
-                        },
-                    )
-                    return
-                # Wait at most 5 s so heartbeats stay snappy without
-                # spinning when the upstream is fast.
-                with contextlib.suppress(TimeoutError):
-                    await asyncio.wait_for(asyncio.shield(task), timeout=min(5.0, remaining))
-                now = loop.time()
-                if now - last_heartbeat > 15:
-                    yield _sse("heartbeat", {"ts": int(now)})
-                    last_heartbeat = now
-
-            try:
-                payload = task.result()
-            except Exception as exc:
-                logger.error("Quick destination suggestions failed", {"error": str(exc)})
-                yield _sse("error", {"message": str(exc)})
-                return
-
-            destinations = payload.get("destinations", [])
-            yield _sse("destinations", {"destinations": destinations})
-            yield _sse(
-                "complete",
-                {"destinations": destinations, "mode": "destinations_only"},
-            )
-        finally:
-            if not task.done():
-                task.cancel()
-
-    @staticmethod
-    async def _stream_graph(
-        graph_obj,
-        initial_state: Any,
-        *,
-        out_final_state: dict[str, Any] | None = None,
-    ) -> AsyncIterator[str]:
-        """Iterate the LangGraph stream, dedup events, emit SSE + heartbeats.
-
-        ``out_final_state`` is mutated in place with the merged agent
-        output across every node update. Pre-SMP-324 the caller didn't
-        need it because ``assemble_node`` shipped the trip-plan dict in
-        an SSE ``complete`` event; now ``stream_plan`` needs the raw
-        state to hand it to ``PlanDraftService``, and a mutable-out is
-        the simplest way to keep this async iterator pure.
-
-        The graph's own ``complete`` event is intentionally swallowed
-        here: ``stream_plan`` re-emits it after persisting the draft,
-        enriched with the ``tripId`` the client now needs to confirm.
-        """
-        last_heartbeat = asyncio.get_event_loop().time()
-        sent_events: set[str] = set()  # Track which event types we've already sent
-
-        async for event in async_generator_with_timeout(
-            graph_obj.astream(initial_state, stream_mode="updates"),
-            total_timeout_seconds=settings.GRAPH_TIMEOUT_SECONDS,
-        ):
-            for node_name, update in event.items():
-                if out_final_state is not None and isinstance(update, dict):
-                    for key, value in update.items():
-                        if key in ("events", "errors"):
-                            continue
-                        out_final_state[key] = value
-
-                node_events = update.get("events", [])
-
-                for evt in node_events:
-                    event_type = evt.get("event", "")
-                    event_data = evt.get("data", {})
-
-                    # Swallow the graph's own ``complete``; ``stream_plan``
-                    # emits an enriched one with ``tripId`` after persisting.
-                    if event_type == "complete":
-                        continue
-
-                    # Avoid duplicate events
-                    event_key = f"{event_type}:{node_name}"
-                    if event_key in sent_events:
-                        continue
-                    sent_events.add(event_key)
-
-                    # Enrich destinations with Unsplash cover images
-                    if event_type == "destinations":
-                        dests = event_data.get("destinations", [])
-                        if dests:
-                            await _enrich_destinations_with_images(dests)
-
-                    yield _sse(event_type, event_data)
-
-                    # Send progress for next phase
-                    if event_type == "destinations":
-                        yield _sse(
-                            "progress",
-                            {
-                                "phase": "parallel_planning",
-                                "message": "Planning activities, accommodation & packing...",
-                            },
-                        )
-                    elif event_type in ("activities", "accommodations", "baggage"):
-                        # Check if all 3 parallel nodes are done
-                        parallel_done = {"activities", "accommodations", "baggage"}
-                        done = {
-                            e.split(":")[0] for e in sent_events if e.split(":")[0] in parallel_done
-                        }
-                        if done == parallel_done:
-                            yield _sse(
-                                "progress",
-                                {"phase": "budget", "message": "Estimating budget..."},
-                            )
-
-                node_errors = update.get("errors", [])
-                for err in node_errors:
-                    logger.warn(f"Node {node_name} error: {err}")
-
-            # Heartbeat every 15s
-            now = asyncio.get_event_loop().time()
-            if now - last_heartbeat > 15:
-                yield _sse("heartbeat", {"ts": int(now)})
-                last_heartbeat = now

@@ -15,10 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Activity {
 
- String get id; String get tripId; String get title; String? get description;// SMP-324 — undated FOOD / TRANSPORT recommendations from the AI
-// surface as Activity rows with date == null. Dated itinerary
-// entries still carry a real date.
- DateTime? get date; String? get startTime; String? get endTime; String? get location;@JsonKey(unknownEnumValue: ActivityCategory.other) ActivityCategory get category; double? get estimatedCost; bool get isBooked; bool get isDone;@JsonKey(unknownEnumValue: ValidationStatus.manual) ValidationStatus get validationStatus; int? get suggestedDay; DateTime? get createdAt; DateTime? get updatedAt;
+ String get id; String get tripId; String get title; String? get description; DateTime? get date; String? get startTime; String? get endTime; String? get location;@JsonKey(unknownEnumValue: ActivityCategory.other) ActivityCategory get category; double? get estimatedCost; bool get isBooked; bool get isDone;@JsonKey(unknownEnumValue: ValidationStatus.manual) ValidationStatus get validationStatus; int? get suggestedDay; DateTime? get createdAt; DateTime? get updatedAt;
 /// Create a copy of Activity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -234,9 +231,6 @@ class _Activity implements Activity {
 @override final  String tripId;
 @override final  String title;
 @override final  String? description;
-// SMP-324 — undated FOOD / TRANSPORT recommendations from the AI
-// surface as Activity rows with date == null. Dated itinerary
-// entries still carry a real date.
 @override final  DateTime? date;
 @override final  String? startTime;
 @override final  String? endTime;

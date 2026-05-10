@@ -37,6 +37,10 @@ void main() {
       // Stub AI inspiration
       when(
         () => mocks.ai.getInspiration(
+          originCity: any(named: 'originCity'),
+          departureDate: any(named: 'departureDate'),
+          returnDate: any(named: 'returnDate'),
+          nbTravelers: any(named: 'nbTravelers'),
           travelTypes: any(named: 'travelTypes'),
           budgetRange: any(named: 'budgetRange'),
           durationDays: any(named: 'durationDays'),
@@ -65,7 +69,13 @@ void main() {
       expect(f.homeIdle, findsOneWidget);
 
       // Call AI inspiration
-      final result = await mocks.ai.getInspiration(durationDays: 7);
+      final result = await mocks.ai.getInspiration(
+        originCity: any(named: 'originCity'),
+        departureDate: any(named: 'departureDate'),
+        returnDate: any(named: 'returnDate'),
+        nbTravelers: any(named: 'nbTravelers'),
+        durationDays: 7,
+      );
       expect(result, isA<Success>());
       final suggestions = (result as Success).data;
       expect(suggestions, hasLength(2));
@@ -149,84 +159,18 @@ void main() {
       expect(completeEvent['data']['tripId'], 'trip-barcelona');
     });
 
-    testWidgets('SSE complete event surfaces tripId for the wizard', (
-      tester,
-    ) async {
-      final mocks = await setupTestServiceLocator();
-      stubAuthenticated(mocks, user: makeUser(aiGenerationsRemaining: 5));
-      stubEmptyHome(mocks);
-
-      final barcelonaTrip = makeBarcelonaTrip();
-
-      // SMP-324 — the SSE pipeline persists the DRAFT trip itself.
-      // Confirming is just ``updateTripStatus``; no more accept route.
-
-      // Stub trip detail loading after acceptance
-      when(() => mocks.trip.getTripHome('trip-barcelona')).thenAnswer(
-        (_) async => Success(
-          TripHome(
-            trip: barcelonaTrip,
-            stats: const TripHomeStats(baggageCount: 3, totalExpenses: 1200),
-            features: const [
-              TripFeatureTile(
-                id: 'activities',
-                label: 'Activities',
-                icon: 'activity',
-                route: '/activities',
-                enabled: true,
-              ),
-            ],
-          ),
-        ),
-      );
-
-      await pumpTestApp(tester, existingMocks: mocks);
-      expect(f.homeIdle, findsOneWidget);
-
-      // SMP-324 — confirming an AI plan is now ``updateTripStatus``.
-      // The SSE pipeline persists the DRAFT trip on the backend; the
-      // wizard just flips the status to PLANNED.
-      when(
-        () => mocks.trip.updateTripStatus('trip-barcelona', 'PLANNED'),
-      ).thenAnswer((_) async => Success(barcelonaTrip));
-      final result = await mocks.trip.updateTripStatus(
-        'trip-barcelona',
-        'PLANNED',
-      );
-      expect(result, isA<Success>());
-      expect((result as Success).data.id, 'trip-barcelona');
-
-      verify(
-        () => mocks.trip.updateTripStatus('trip-barcelona', 'PLANNED'),
-      ).called(1);
-    });
-
     testWidgets(
-      'full AI flow: new user → inspiration → plan stream → accept → trip loaded',
+      'SSE complete event ships tripId — wizard navigates without an extra accept call',
       (tester) async {
+        // SMP-325: ``/plan-trip/accept`` was removed. The wizard now
+        // reads the persisted ``tripId`` straight from the SSE
+        // ``complete`` event and links to the trip detail.
         final mocks = await setupTestServiceLocator();
         stubAuthenticated(mocks, user: makeUser(aiGenerationsRemaining: 5));
         stubEmptyHome(mocks);
 
         final barcelonaTrip = makeBarcelonaTrip();
 
-        // Step 1: Inspiration
-        when(
-          () => mocks.ai.getInspiration(
-            travelTypes: any(named: 'travelTypes'),
-            budgetRange: any(named: 'budgetRange'),
-            durationDays: any(named: 'durationDays'),
-            companions: any(named: 'companions'),
-            season: any(named: 'season'),
-            constraints: any(named: 'constraints'),
-          ),
-        ).thenAnswer(
-          (_) async => const Success([
-            {'destination': 'Barcelona', 'budget_estimate': 1200},
-          ]),
-        );
-
-        // Step 2: SSE stream
         when(
           () => mocks.ai.planTripStream(
             travelTypes: any(named: 'travelTypes'),
@@ -237,27 +181,46 @@ void main() {
             departureDate: any(named: 'departureDate'),
             returnDate: any(named: 'returnDate'),
             originCity: any(named: 'originCity'),
+            destinationCity: any(named: 'destinationCity'),
+            destinationIata: any(named: 'destinationIata'),
+            mode: any(named: 'mode'),
+            locale: any(named: 'locale'),
           ),
         ).thenAnswer(
           (_) => Stream.fromIterable([
             {
-              'event': 'progress',
-              'data': {'percent': 50},
-            },
-            {
               'event': 'complete',
-              'data': {'tripId': 'trip-barcelona'},
+              'data': {
+                'tripId': 'trip-barcelona',
+                'status': 'DRAFT',
+                'tripDraft': const <String, dynamic>{
+                  'origin_iata': 'CDG',
+                  'destination_iata': 'BCN',
+                  'destination_city': 'Barcelona',
+                  'destination_country': 'Spain',
+                  'destination_country_code': 'ES',
+                  'destination_lat': 41.39,
+                  'destination_lon': 2.17,
+                  'start_date': '2026-04-15',
+                  'end_date': '2026-04-22',
+                  'duration_days': 7,
+                  'nb_travelers': 2,
+                  'target_budget': null,
+                  'locale': 'fr',
+                  'cover_image_url': null,
+                  'weather': null,
+                  'activities': <Map<String, dynamic>>[],
+                  'accommodations': <Map<String, dynamic>>[],
+                  'transport': <Map<String, dynamic>>[],
+                  'baggage': <Map<String, dynamic>>[],
+                  'budget': <String, dynamic>{},
+                },
+              },
             },
-            {'event': 'done', 'data': {}},
+            {'event': 'done', 'data': <String, dynamic>{}},
           ]),
         );
 
-        // Step 3: Confirm draft via PATCH /trips/{id}/status
-        when(
-          () => mocks.trip.updateTripStatus('trip-barcelona', 'PLANNED'),
-        ).thenAnswer((_) async => Success(barcelonaTrip));
-
-        // Step 4: Trip detail
         when(() => mocks.trip.getTripHome('trip-barcelona')).thenAnswer(
           (_) async => Success(
             TripHome(
@@ -271,44 +234,136 @@ void main() {
         await pumpTestApp(tester, existingMocks: mocks);
         expect(f.homeIdle, findsOneWidget);
 
-        // Execute full flow
-        // 1. Get inspiration
-        final inspiration = await mocks.ai.getInspiration(durationDays: 7);
-        expect(inspiration, isA<Success>());
-
-        // 2. Plan trip stream
         final events = await mocks.ai.planTripStream(durationDays: 7).toList();
-        expect(events.last['event'], 'done');
+        final complete = events.firstWhere((e) => e['event'] == 'complete');
+        expect(complete['data']['tripId'], 'trip-barcelona');
+        expect(complete['data']['tripDraft']['destination_iata'], 'BCN');
 
-        // 3. Confirm via updateTripStatus (DRAFT → PLANNED)
-        final confirmed = await mocks.trip.updateTripStatus(
-          'trip-barcelona',
-          'PLANNED',
-        );
-        expect((confirmed as Success).data.id, 'trip-barcelona');
-
-        // 4. Load trip
         final tripHome = await mocks.trip.getTripHome('trip-barcelona');
-        expect(tripHome, isA<Success<TripHome>>());
         expect(
           (tripHome as Success<TripHome>).data.trip.destinationName,
           'Barcelona',
         );
+      },
+    );
 
-        // Verify all AI methods called
-        verify(
+    testWidgets(
+      'full AI flow: new user → inspiration → plan stream → tripId → trip loaded',
+      (tester) async {
+        // SMP-325: the SSE pipeline persists the trip server-side, so
+        // ``acceptInspiration`` is gone. The wizard reads ``tripId``
+        // out of the ``complete`` SSE event and links the trip detail.
+        final mocks = await setupTestServiceLocator();
+        stubAuthenticated(mocks, user: makeUser(aiGenerationsRemaining: 5));
+        stubEmptyHome(mocks);
+
+        final barcelonaTrip = makeBarcelonaTrip();
+
+        when(
           () => mocks.ai.getInspiration(
+            originCity: any(named: 'originCity'),
+            departureDate: any(named: 'departureDate'),
+            returnDate: any(named: 'returnDate'),
+            nbTravelers: any(named: 'nbTravelers'),
             travelTypes: any(named: 'travelTypes'),
             budgetRange: any(named: 'budgetRange'),
             durationDays: any(named: 'durationDays'),
             companions: any(named: 'companions'),
             season: any(named: 'season'),
             constraints: any(named: 'constraints'),
+            locale: any(named: 'locale'),
           ),
-        ).called(1);
-        verify(
-          () => mocks.trip.updateTripStatus('trip-barcelona', 'PLANNED'),
-        ).called(1);
+        ).thenAnswer(
+          (_) async => const Success([
+            {'destination': 'Barcelona', 'budget_estimate': 1200},
+          ]),
+        );
+
+        when(
+          () => mocks.ai.planTripStream(
+            travelTypes: any(named: 'travelTypes'),
+            budgetRange: any(named: 'budgetRange'),
+            durationDays: any(named: 'durationDays'),
+            companions: any(named: 'companions'),
+            constraints: any(named: 'constraints'),
+            departureDate: any(named: 'departureDate'),
+            returnDate: any(named: 'returnDate'),
+            originCity: any(named: 'originCity'),
+            destinationCity: any(named: 'destinationCity'),
+            destinationIata: any(named: 'destinationIata'),
+            mode: any(named: 'mode'),
+            locale: any(named: 'locale'),
+          ),
+        ).thenAnswer(
+          (_) => Stream.fromIterable([
+            {
+              'event': 'progress',
+              'data': {'percent': 50},
+            },
+            {
+              'event': 'complete',
+              'data': {
+                'tripId': 'trip-barcelona',
+                'status': 'DRAFT',
+                'tripDraft': const <String, dynamic>{
+                  'origin_iata': 'CDG',
+                  'destination_iata': 'BCN',
+                  'destination_city': 'Barcelona',
+                  'destination_country': 'Spain',
+                  'destination_country_code': 'ES',
+                  'destination_lat': 41.39,
+                  'destination_lon': 2.17,
+                  'start_date': '2026-04-15',
+                  'end_date': '2026-04-22',
+                  'duration_days': 7,
+                  'nb_travelers': 2,
+                  'target_budget': null,
+                  'locale': 'fr',
+                  'cover_image_url': null,
+                  'weather': null,
+                  'activities': <Map<String, dynamic>>[],
+                  'accommodations': <Map<String, dynamic>>[],
+                  'transport': <Map<String, dynamic>>[],
+                  'baggage': <Map<String, dynamic>>[],
+                  'budget': <String, dynamic>{},
+                },
+              },
+            },
+            {'event': 'done', 'data': <String, dynamic>{}},
+          ]),
+        );
+
+        when(() => mocks.trip.getTripHome('trip-barcelona')).thenAnswer(
+          (_) async => Success(
+            TripHome(
+              trip: barcelonaTrip,
+              stats: const TripHomeStats(baggageCount: 3, totalExpenses: 1200),
+              features: const [],
+            ),
+          ),
+        );
+
+        await pumpTestApp(tester, existingMocks: mocks);
+        expect(f.homeIdle, findsOneWidget);
+
+        final inspiration = await mocks.ai.getInspiration(
+          originCity: any(named: 'originCity'),
+          departureDate: any(named: 'departureDate'),
+          returnDate: any(named: 'returnDate'),
+          nbTravelers: any(named: 'nbTravelers'),
+          durationDays: 7,
+        );
+        expect(inspiration, isA<Success>());
+
+        final events = await mocks.ai.planTripStream(durationDays: 7).toList();
+        final complete = events.firstWhere((e) => e['event'] == 'complete');
+        expect(complete['data']['tripId'], 'trip-barcelona');
+
+        final tripHome = await mocks.trip.getTripHome('trip-barcelona');
+        expect(
+          (tripHome as Success<TripHome>).data.trip.destinationName,
+          'Barcelona',
+        );
       },
     );
   });

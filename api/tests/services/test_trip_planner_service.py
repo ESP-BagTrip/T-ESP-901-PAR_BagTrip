@@ -1,464 +1,386 @@
-"""Unit tests for `TripPlannerService.stream_plan` and friends.
+"""Tests for :class:`TripPlannerService.stream_plan`.
 
-The service owns the full SSE pipeline from request → LangGraph stream → SSE
-event strings. Because the graph itself is external (and heavy), we stub it
-per-test using `AsyncIterator` fakes and verify:
-- `_build_initial_state` normalises the request into the graph state shape
-- The `destinations_only` fast path emits a complete/done pair
-- The full path yields graph events + always emits `done` via `try/finally`
-- Timeouts and exceptions are surfaced as `error` events but still emit `done`
-- Successful completion increments the AI quota
+The service is a thin SSE wrapper now: W1 ``destinations_only`` mode
+forwards :class:`InspireOrchestrator` events; the full-plan path runs
+:class:`FullPlanOrchestrator`, applies :func:`schedule_activities` and
+persists via :class:`PlanDraftService`. Both paths emit a terminal
+``done`` from a ``finally`` block.
+
+Each test stubs the heavy collaborators and asserts the SSE
+event sequence + the persistence side-effects (or their absence).
 """
 
 from __future__ import annotations
 
 import json
-from datetime import date, timedelta
+from datetime import date
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from src.api.ai.plan_trip_schemas import PlanTripRequest
 from src.services.trip_planner_service import (
     TripPlannerService,
-    _build_initial_state,
-    _enrich_destinations_with_images,
-    _quick_destination_suggestions,
     _sse,
+    _to_full_plan_request,
+    _to_inspire_request,
+    _trip_draft_from_dict,
 )
 
-# ---------------------------------------------------------------------------
-# _sse() format helper
-# ---------------------------------------------------------------------------
+# ── _sse() formatter ───────────────────────────────────────────────────
 
 
 class TestSseFormat:
-    def test_sse_format_includes_event_and_data_lines(self):
+    def test_event_and_data_lines(self):
         out = _sse("progress", {"phase": "starting"})
         assert out.startswith("event: progress\n")
         assert 'data: {"phase": "starting"}' in out
         assert out.endswith("\n\n")
 
-    def test_sse_serializes_dates_as_strings(self):
+    def test_dates_serialise(self):
         out = _sse("x", {"d": date(2026, 4, 11)})
         assert "2026-04-11" in out
 
-    def test_sse_non_ascii(self):
+    def test_non_ascii_passthrough(self):
         out = _sse("x", {"msg": "héllo"})
         assert "héllo" in out
 
 
-# ---------------------------------------------------------------------------
-# _build_initial_state()
-# ---------------------------------------------------------------------------
+# ── Wizard payload → orchestrator request mapping ─────────────────────
 
 
-class TestBuildInitialState:
-    def test_explicit_dates_preserved(self):
+class TestRequestMappers:
+    def test_inspire_mapping_picks_camel_case_fields(self):
         req = PlanTripRequest(
-            departureDate="2026-06-01",
-            returnDate="2026-06-08",
-            durationDays=7,
-            travelTypes="nature",
             originCity="Paris",
-        )
-        state = _build_initial_state(req)
-        assert state["departure_date"] == "2026-06-01"
-        assert state["return_date"] == "2026-06-08"
-        assert state["duration_days"] == 7
-        assert state["travel_types"] == "nature"
-        assert state["origin_city"] == "Paris"
-
-    def test_preferred_month_derives_dates(self):
-        req = PlanTripRequest(
+            travelTypes="culture",
             durationDays=5,
-            preferredMonth=7,
-            preferredYear=2027,
-            dateMode="month",
+            departureDate="2026-07-04",
+            returnDate="2026-07-10",
+            companions="couple",
+            constraints="budget moyen",
+            nbTravelers=2,
+            budgetPreset="COMFORTABLE",
+            locale="fr",
+            mode="destinations_only",
         )
-        state = _build_initial_state(req)
-        assert state["departure_date"] == "2027-07-15"
-        assert state["return_date"] == "2027-07-20"
+        ir = _to_inspire_request(req)
+        assert ir.origin_city == "Paris"
+        assert ir.duration_days == 5
+        assert ir.locale == "fr"
+        assert ir.budget_preset == "COMFORTABLE"
 
-    def test_flexible_mode_falls_back_to_30_days_out(self):
-        req = PlanTripRequest(durationDays=4, dateMode="flexible")
-        state = _build_initial_state(req)
-        expected_start = date.today() + timedelta(days=30)
-        assert state["departure_date"] == str(expected_start)
-        assert state["return_date"] == str(expected_start + timedelta(days=4))
-
-    def test_defaults_for_empty_request(self):
-        req = PlanTripRequest()
-        state = _build_initial_state(req)
-        assert state["duration_days"] == 7  # default
-        assert state["companions"] == "solo"
-        assert state["nb_travelers"] == 1
-        assert state["events"] == []
-        assert state["errors"] == []
-        assert state["target_budget"] is None
-
-    def test_target_budget_threaded_into_state(self):
-        """Topic 01 (B2): the numeric target reaches the agent state."""
-        req = PlanTripRequest(targetBudget=2500.0)
-        state = _build_initial_state(req)
-        assert state["target_budget"] == 2500.0
-
-
-# ---------------------------------------------------------------------------
-# _quick_destination_suggestions()
-# ---------------------------------------------------------------------------
-
-
-class TestQuickDestinationSuggestions:
-    @pytest.mark.asyncio
-    async def test_builds_prompt_and_returns_destinations(self):
-        state = {
-            "travel_types": "beach",
-            "budget_preset": "mid",
-            "duration_days": 7,
-            "companions": "couple",
-            "nb_travelers": 2,
-        }
-        fake_llm = MagicMock()
-        fake_llm.acall_llm = AsyncMock(
-            return_value={"destinations": [{"city": "Bali", "country": "Indonesia"}]}
+    def test_full_plan_mapping_carries_destination_iata_and_target_budget(self):
+        req = PlanTripRequest(
+            originCity="Paris",
+            destinationCity="Marseille",
+            destinationIata="MRS",
+            durationDays=4,
+            departureDate="2026-06-12",
+            returnDate="2026-06-15",
+            constraints="TGV depuis Paris",
+            nbTravelers=3,
+            budgetPreset="COMFORTABLE",
+            targetBudget=1800.0,
+            locale="fr",
         )
-        with patch("src.services.llm_service.LLMService", return_value=fake_llm):
-            result = await _quick_destination_suggestions(state)
-        assert len(result) == 1
-        assert result[0]["city"] == "Bali"
-        fake_llm.acall_llm.assert_awaited_once()
+        fr = _to_full_plan_request(req)
+        assert fr.destination_iata == "MRS"
+        assert fr.target_budget == 1800.0
+        assert fr.constraints == "TGV depuis Paris"
 
-    @pytest.mark.asyncio
-    async def test_empty_state_uses_fallback_prompt(self):
-        fake_llm = MagicMock()
-        fake_llm.acall_llm = AsyncMock(return_value={"destinations": []})
-        with patch("src.services.llm_service.LLMService", return_value=fake_llm):
-            result = await _quick_destination_suggestions({})
-        assert result == []
-        _, user_prompt = fake_llm.acall_llm.call_args.args
-        assert "diverse" in user_prompt.lower()
 
-    @pytest.mark.asyncio
-    async def test_fr_locale_renders_french_template_and_labels(self):
-        state = {
+# ── trip_draft round-trip (orchestrator dict → DTO) ───────────────────
+
+
+class TestTripDraftRoundTrip:
+    def test_minimal_payload_rebuilds_to_dataclass(self):
+        payload = {
+            "origin_iata": "CDG",
+            "origin_city": "Paris",
+            "destination_iata": "MRS",
+            "destination_city": "Marseille",
+            "destination_country": "France",
+            "destination_country_code": "FR",
+            "destination_lat": 43.44,
+            "destination_lon": 5.22,
+            "start_date": "2026-06-12",
+            "end_date": "2026-06-15",
+            "duration_days": 4,
+            "nb_travelers": 3,
+            "target_budget": None,
             "locale": "fr",
-            "travel_types": "culture",
-            "duration_days": 5,
-            "nb_travelers": 2,
+            "cover_image_url": None,
+            "weather": None,
+            "activities": [
+                {
+                    "title": "Vieux-Port walk",
+                    "description": "Stroll the harbour.",
+                    "category": "CULTURE",
+                    "estimated_cost": 0.0,
+                    "suggested_day": 1,
+                    "time_of_day": "morning",
+                    "location": "Vieux-Port",
+                }
+            ],
+            "accommodations": [],
+            "transport": [],
+            "baggage": [],
+            "budget": {},
         }
-        fake_llm = MagicMock()
-        fake_llm.acall_llm = AsyncMock(return_value={"destinations": [{"city": "Lyon"}]})
-        with patch("src.services.llm_service.LLMService", return_value=fake_llm):
-            await _quick_destination_suggestions(state)
-        system_prompt, user_prompt = fake_llm.acall_llm.call_args.args
-        # The FR Jinja template is selected (mentions "français").
-        assert "français" in system_prompt.lower()
-        # User-facing labels are translated.
-        assert "Préférences:" in user_prompt
-        assert "Durée:" in user_prompt
-        assert "jours" in user_prompt
-        assert "Voyageurs:" in user_prompt
-
-    @pytest.mark.asyncio
-    async def test_en_locale_renders_english_template_and_labels(self):
-        state = {
-            "locale": "en",
-            "travel_types": "beach",
-            "duration_days": 7,
-            "nb_travelers": 2,
-        }
-        fake_llm = MagicMock()
-        fake_llm.acall_llm = AsyncMock(return_value={"destinations": []})
-        with patch("src.services.llm_service.LLMService", return_value=fake_llm):
-            await _quick_destination_suggestions(state)
-        system_prompt, user_prompt = fake_llm.acall_llm.call_args.args
-        assert "english" in system_prompt.lower()
-        assert "français" not in system_prompt.lower()
-        assert "Preferences:" in user_prompt
-        assert "Duration:" in user_prompt
-        assert "Travelers:" in user_prompt
-
-    @pytest.mark.asyncio
-    async def test_unknown_locale_falls_back_to_english(self):
-        state = {"locale": "es", "travel_types": "beach"}
-        fake_llm = MagicMock()
-        fake_llm.acall_llm = AsyncMock(return_value={"destinations": []})
-        with patch("src.services.llm_service.LLMService", return_value=fake_llm):
-            await _quick_destination_suggestions(state)
-        system_prompt, user_prompt = fake_llm.acall_llm.call_args.args
-        assert "english" in system_prompt.lower()
-        assert "Preferences:" in user_prompt
+        cmd = _trip_draft_from_dict(payload)
+        assert cmd.destination_iata == "MRS"
+        assert cmd.activities[0].title == "Vieux-Port walk"
+        assert cmd.budget.currency == "EUR"
 
 
-# ---------------------------------------------------------------------------
-# stream_plan() — integration-style with stubbed graph
-# ---------------------------------------------------------------------------
+# ── stream_plan — W1 path ─────────────────────────────────────────────
 
 
-class _FakeAsyncIter:
-    """Async iterator yielding a pre-seeded list of values."""
-
-    def __init__(self, values):
-        self._values = iter(values)
-
-    def __aiter__(self):
-        return self
-
-    async def __anext__(self):
-        try:
-            return next(self._values)
-        except StopIteration as exc:
-            raise StopAsyncIteration from exc
-
-
-async def _collect(agen):
-    """Drain an async generator into a list of strings."""
-    return [item async for item in agen]
-
-
-def _parse_sse_events(lines: list[str]) -> list[tuple[str, dict]]:
-    """Parse `event: X\\ndata: {...}\\n\\n` strings into (event, payload) tuples."""
-    events: list[tuple[str, dict]] = []
-    for line in lines:
-        head, _, _ = line.partition("\n\n")
+async def _drain(agen) -> list[tuple[str, dict]]:
+    out: list[tuple[str, dict]] = []
+    async for raw in agen:
+        head, _, _ = raw.partition("\n\n")
         parts = head.split("\n")
-        event = parts[0].removeprefix("event: ")
-        data = json.loads(parts[1].removeprefix("data: "))
-        events.append((event, data))
-    return events
+        out.append((parts[0].removeprefix("event: "), json.loads(parts[1].removeprefix("data: "))))
+    return out
 
 
-class TestEnrichDestinationsWithImages:
-    @pytest.mark.asyncio
-    async def test_adds_image_url_from_unsplash(self):
-        destinations = [{"city": "Tokyo", "country": "Japan"}]
-        with patch("src.services.trip_planner_service.unsplash_client") as mock_unsplash:
-            mock_unsplash.fetch_cover_image = AsyncMock(
-                return_value="https://unsplash.com/tokyo.jpg"
-            )
-            result = await _enrich_destinations_with_images(destinations)
-        assert result[0]["image_url"] == "https://unsplash.com/tokyo.jpg"
+@pytest.mark.asyncio
+async def test_destinations_only_delegates_to_inspire_orchestrator():
+    """W1 path forwards InspireOrchestrator events verbatim + ``done``."""
+    req = PlanTripRequest(mode="destinations_only", originCity="Paris")
 
-    @pytest.mark.asyncio
-    async def test_uses_fallback_when_unsplash_returns_none(self):
-        destinations = [{"city": "Paris", "country": "France"}]
-        with patch("src.services.trip_planner_service.unsplash_client") as mock_unsplash:
-            mock_unsplash.fetch_cover_image = AsyncMock(return_value=None)
-            mock_unsplash.get_fallback_url = MagicMock(return_value="https://fallback.jpg")
-            result = await _enrich_destinations_with_images(destinations)
-        assert result[0]["image_url"] == "https://fallback.jpg"
+    async def _fake_stream(_):
+        yield "progress", {"phase": "starting"}
+        yield "destinations", {"destinations": [{"iata": "BCN"}]}
+        yield "complete", {"destinations": [], "mode": "destinations_only"}
 
-    @pytest.mark.asyncio
-    async def test_skips_empty_city(self):
-        destinations = [{"country": "Unknown"}]
-        with patch("src.services.trip_planner_service.unsplash_client") as mock_unsplash:
-            mock_unsplash.fetch_cover_image = AsyncMock()
-            result = await _enrich_destinations_with_images(destinations)
-        mock_unsplash.fetch_cover_image.assert_not_awaited()
-        assert "image_url" not in result[0]
-
-
-class TestStreamPlan:
-    @pytest.mark.asyncio
-    async def test_destinations_only_fast_path(self, mock_db_session):
-        req = PlanTripRequest(mode="destinations_only", travelTypes="nature")
-        with (
-            patch(
-                "src.services.trip_planner_service._quick_destination_suggestions",
-                AsyncMock(return_value=[{"city": "Kyoto"}]),
-            ),
-            patch(
-                "src.services.trip_planner_service._enrich_destinations_with_images",
-                AsyncMock(side_effect=lambda dests: dests),
-            ),
-        ):
-            lines = await _collect(TripPlannerService.stream_plan(req, "u1", mock_db_session))
-
-        events = _parse_sse_events(lines)
-        event_names = [name for name, _ in events]
-        assert "progress" in event_names
-        assert "destinations" in event_names
-        assert "complete" in event_names
-        assert event_names[-1] == "done"
-
-    @pytest.mark.asyncio
-    async def test_destinations_only_error_still_emits_done(self, mock_db_session):
-        req = PlanTripRequest(mode="destinations_only")
-        with patch(
-            "src.services.trip_planner_service._quick_destination_suggestions",
-            AsyncMock(side_effect=RuntimeError("LLM unavailable")),
-        ):
-            lines = await _collect(TripPlannerService.stream_plan(req, "u1", mock_db_session))
-
-        events = _parse_sse_events(lines)
-        event_names = [name for name, _ in events]
-        assert "error" in event_names
-        assert event_names[-1] == "done"
-
-    @pytest.mark.asyncio
-    async def test_destinations_only_hung_call_emits_timeout_error(self, mock_db_session):
-        """SMP-324 — the destinations_only path used to hang silently
-        when the LLM never came back. The fast-path now caps the work
-        at ``GRAPH_TIMEOUT_SECONDS`` and emits an explicit error event."""
-        import asyncio
-
-        async def _hang(_state):
-            await asyncio.sleep(60)
-
-        req = PlanTripRequest(mode="destinations_only")
-        with (
-            patch(
-                "src.services.trip_planner_service._quick_destination_suggestions",
-                _hang,
-            ),
-            patch("src.services.trip_planner_service.settings.GRAPH_TIMEOUT_SECONDS", 0.1),
-        ):
-            lines = await _collect(TripPlannerService.stream_plan(req, "u1", mock_db_session))
-
-        events = _parse_sse_events(lines)
-        event_names = [name for name, _ in events]
-        assert "error" in event_names
-        # Errors must always be followed by a done so the client can
-        # close cleanly; that's the contract the SSE consumer relies on.
-        assert event_names[-1] == "done"
-        # The error payload carries the documented code so the client
-        # can branch on it (retry vs surface a translated message).
-        error_payload = next(payload for name, payload in events if name == "error")
-        assert error_payload.get("code") == "DESTINATIONS_TIMEOUT"
-
-    @pytest.mark.asyncio
-    async def test_full_graph_success_emits_done_and_increments_quota(
-        self, mock_db_session, make_user
+    with patch(
+        "src.services.trip_planner_service.InspireOrchestrator.stream",
+        side_effect=_fake_stream,
     ):
-        req = PlanTripRequest(destinationCity="Paris")
-        # Stub the graph to yield a destinations event then finish
-        fake_graph = MagicMock()
-        fake_graph.astream = MagicMock(
-            return_value=_FakeAsyncIter(
-                [
-                    {
-                        "destination_research": {
-                            "events": [{"event": "destinations", "data": {"destinations": []}}],
-                        }
-                    }
-                ]
-            )
-        )
-        user = make_user()
-        mock_db_session.query.return_value.filter.return_value.first.return_value = user
+        events = await _drain(TripPlannerService.stream_plan(req, "u1", MagicMock()))
 
-        # SMP-324 — stream_plan now persists a DRAFT trip after the
-        # graph finishes, then ships its tripId in the ``complete`` SSE
-        # event. We patch the persistence call so the test stays focused
-        # on the streaming contract (a dedicated suite covers the
-        # service end-to-end).
-        fake_trip = MagicMock(id="trip-uuid", status="DRAFT")
+    names = [n for n, _ in events]
+    assert "progress" in names
+    assert "destinations" in names
+    assert "complete" in names
+    assert names[-1] == "done"
 
-        with (
-            patch(
-                "src.services.trip_planner_service.async_generator_with_timeout",
-                lambda gen, total_timeout_seconds: gen,
-            ),
-            patch("src.services.plan_service.PlanService.increment_ai_generation") as mock_incr,
-            patch(
-                "src.services.trip_planner_service.PlanDraftService.create_draft_from_state",
-                new=AsyncMock(return_value=fake_trip),
-            ),
-            patch(
-                "src.agent.graph.graph",
-                new=fake_graph,
-            ),
-        ):
-            lines = await _collect(
-                TripPlannerService.stream_plan(req, str(user.id), mock_db_session)
-            )
 
-        events = _parse_sse_events(lines)
-        event_names = [name for name, _ in events]
-        assert "destinations" in event_names
-        assert "complete" in event_names
-        assert event_names[-1] == "done"
-        complete_payload = next(payload for name, payload in events if name == "complete")
-        assert complete_payload["tripId"] == "trip-uuid"
-        assert complete_payload["status"] == "DRAFT"
-        mock_incr.assert_called_once()
+# ── stream_plan — W2 path (full plan) ─────────────────────────────────
 
-    @pytest.mark.asyncio
-    async def test_graph_timeout_emits_error_and_done(self, mock_db_session):
-        req = PlanTripRequest(destinationCity="Paris")
 
-        async def _raise_timeout(*_args, **_kwargs):
-            raise TimeoutError("graph too slow")
-            yield  # pragma: no cover — needed to make this an async generator
+def _full_plan_request() -> PlanTripRequest:
+    return PlanTripRequest(
+        originCity="Paris",
+        destinationCity="Marseille",
+        destinationIata="MRS",
+        durationDays=4,
+        departureDate="2026-06-12",
+        returnDate="2026-06-15",
+        constraints="TGV depuis Paris",
+        nbTravelers=3,
+        budgetPreset="COMFORTABLE",
+        locale="fr",
+    )
 
-        fake_graph = MagicMock()
-        fake_graph.astream = MagicMock(return_value=_FakeAsyncIter([]))
-        with (
-            patch(
-                "src.services.trip_planner_service.async_generator_with_timeout",
-                _raise_timeout,
-            ),
-            patch("src.agent.graph.graph", new=fake_graph),
-        ):
-            lines = await _collect(TripPlannerService.stream_plan(req, "u1", mock_db_session))
 
-        events = _parse_sse_events(lines)
-        names = [n for n, _ in events]
-        assert "error" in names
-        assert names[-1] == "done"
-        error_payload = next(data for name, data in events if name == "error")
-        assert "timed out" in error_payload["message"].lower()
-
-    @pytest.mark.asyncio
-    async def test_graph_exception_emits_error_and_done(self, mock_db_session):
-        req = PlanTripRequest(destinationCity="Paris")
-
-        async def _raise_generic(*_args, **_kwargs):
-            raise RuntimeError("graph crashed")
-            yield  # pragma: no cover
-
-        fake_graph = MagicMock()
-        fake_graph.astream = MagicMock(return_value=_FakeAsyncIter([]))
-        with (
-            patch(
-                "src.services.trip_planner_service.async_generator_with_timeout",
-                _raise_generic,
-            ),
-            patch("src.agent.graph.graph", new=fake_graph),
-        ):
-            lines = await _collect(TripPlannerService.stream_plan(req, "u1", mock_db_session))
-
-        events = _parse_sse_events(lines)
-        names = [n for n, _ in events]
-        assert "error" in names
-        assert names[-1] == "done"
-
-    @pytest.mark.asyncio
-    async def test_stream_graph_dedupes_events_and_emits_progress(self):
-        # Emit the same "destinations" event twice from the same node → should
-        # only be sent once, followed by the parallel_planning progress event.
-        node_update = {
-            "destination_research": {
-                "events": [
-                    {"event": "destinations", "data": {"destinations": []}},
-                    {"event": "destinations", "data": {"destinations": []}},
-                ],
-                "errors": [],
+def _orchestrator_complete_payload() -> dict:
+    return {
+        "origin_iata": "CDG",
+        "origin_city": "Paris",
+        "destination_iata": "MRS",
+        "destination_city": "Marseille",
+        "destination_country": "France",
+        "destination_country_code": "FR",
+        "destination_lat": 43.44,
+        "destination_lon": 5.22,
+        "start_date": "2026-06-12",
+        "end_date": "2026-06-15",
+        "duration_days": 4,
+        "nb_travelers": 3,
+        "target_budget": None,
+        "locale": "fr",
+        "cover_image_url": None,
+        "weather": None,
+        "activities": [],
+        "accommodations": [],
+        "transport": [
+            {
+                "mode": "TRAIN",
+                "direction": "OUTBOUND",
+                "carrier": "National rail",
+                "code": "",
+                "origin_iata": "CDG",
+                "destination_iata": "MRS",
+                "origin_city": "Paris",
+                "destination_city": "Marseille",
+                "departure_at": "2026-06-12",
+                "arrival_at": "2026-06-12",
+                "price": 60.0,
+                "currency": "EUR",
+                "source": "estimated",
             }
-        }
-        fake_graph = SimpleNamespace(astream=MagicMock(return_value=_FakeAsyncIter([node_update])))
-        with patch(
-            "src.services.trip_planner_service.async_generator_with_timeout",
-            lambda gen, total_timeout_seconds: gen,
-        ):
-            lines = await _collect(
-                TripPlannerService._stream_graph(fake_graph, {"departure_date": ""})
-            )
+        ],
+        "baggage": [],
+        "budget": {},
+    }
 
-        events = _parse_sse_events(lines)
-        dedup_count = sum(1 for name, _ in events if name == "destinations")
-        assert dedup_count == 1
-        progress_phases = [data.get("phase") for name, data in events if name == "progress"]
-        assert "parallel_planning" in progress_phases
+
+@pytest.mark.asyncio
+async def test_full_plan_path_persists_and_emits_trip_id():
+    """W2 path swallows orchestrator's ``complete``, re-emits with ``tripId``."""
+    request = _full_plan_request()
+
+    async def _fake_full_plan(_):
+        yield "progress", {"phase": "starting"}
+        yield "destinations", {"destinations": [{"iata": "MRS"}]}
+        yield "transport", {"legs": [{"mode": "TRAIN"}]}
+        yield "complete", {"trip_draft": _orchestrator_complete_payload(), "elapsed_s": 8.4}
+
+    fake_user = SimpleNamespace(id="u1")
+    fake_trip = SimpleNamespace(id="trip-uuid-123", status="DRAFT")
+    fake_db = MagicMock()
+    fake_db.query.return_value.filter.return_value.first.return_value = fake_user
+
+    with (
+        patch(
+            "src.services.trip_planner_service.FullPlanOrchestrator.stream",
+            side_effect=_fake_full_plan,
+        ),
+        patch(
+            "src.services.trip_planner_service.PlanDraftService.create_draft_from_command",
+            return_value=fake_trip,
+        ) as persist,
+        patch("src.services.trip_planner_service.PlanService.increment_ai_generation"),
+    ):
+        events = await _drain(TripPlannerService.stream_plan(request, "u1", fake_db))
+
+    names = [n for n, _ in events]
+    # The orchestrator's ``complete`` is swallowed; we re-emit one with tripId.
+    completes = [d for n, d in events if n == "complete"]
+    assert len(completes) == 1
+    assert completes[0]["tripId"] == "trip-uuid-123"
+    assert completes[0]["status"] == "DRAFT"
+    assert completes[0]["tripDraft"]["destination_iata"] == "MRS"
+    assert names[-1] == "done"
+    persist.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_full_plan_path_orchestrator_error_skips_persist():
+    """Orchestrator yields ``error`` before ``complete`` → no persist, ``done`` still fires."""
+    request = _full_plan_request()
+
+    async def _fake_full_plan(_):
+        yield "progress", {"phase": "starting"}
+        yield "error", {"code": "ORIGIN_UNRESOLVED", "message": "boom"}
+
+    fake_db = MagicMock()
+    with (
+        patch(
+            "src.services.trip_planner_service.FullPlanOrchestrator.stream",
+            side_effect=_fake_full_plan,
+        ),
+        patch(
+            "src.services.trip_planner_service.PlanDraftService.create_draft_from_command"
+        ) as persist,
+    ):
+        events = await _drain(TripPlannerService.stream_plan(request, "u1", fake_db))
+
+    names = [n for n, _ in events]
+    assert "error" in names
+    assert names[-1] == "done"
+    persist.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_full_plan_path_persistence_failure_emits_error_and_done():
+    """If the persistence layer raises, we surface a clean ``error`` SSE."""
+    request = _full_plan_request()
+
+    async def _fake_full_plan(_):
+        yield "complete", {"trip_draft": _orchestrator_complete_payload()}
+
+    fake_user = SimpleNamespace(id="u1")
+    fake_db = MagicMock()
+    fake_db.query.return_value.filter.return_value.first.return_value = fake_user
+
+    with (
+        patch(
+            "src.services.trip_planner_service.FullPlanOrchestrator.stream",
+            side_effect=_fake_full_plan,
+        ),
+        patch(
+            "src.services.trip_planner_service.PlanDraftService.create_draft_from_command",
+            side_effect=RuntimeError("db fell over"),
+        ),
+    ):
+        events = await _drain(TripPlannerService.stream_plan(request, "u1", fake_db))
+
+    names = [n for n, _ in events]
+    assert names[-1] == "done"
+    err = next(d for n, d in events if n == "error")
+    assert "db fell over" in err["message"]
+
+
+@pytest.mark.asyncio
+async def test_full_plan_path_user_disappeared_raises_clean_error():
+    """A user_id that no longer maps to a row → graceful ``error`` event."""
+    request = _full_plan_request()
+
+    async def _fake_full_plan(_):
+        yield "complete", {"trip_draft": _orchestrator_complete_payload()}
+
+    fake_db = MagicMock()
+    fake_db.query.return_value.filter.return_value.first.return_value = None
+
+    with patch(
+        "src.services.trip_planner_service.FullPlanOrchestrator.stream",
+        side_effect=_fake_full_plan,
+    ):
+        events = await _drain(TripPlannerService.stream_plan(request, "u-gone", fake_db))
+
+    names = [n for n, _ in events]
+    err = next(d for n, d in events if n == "error")
+    assert "u-gone" in err["message"]
+    assert names[-1] == "done"
+
+
+@pytest.mark.asyncio
+async def test_full_plan_path_quota_increment_failure_does_not_break_stream():
+    """Quota increment is best-effort — its failure must not eat the trip."""
+    request = _full_plan_request()
+
+    async def _fake_full_plan(_):
+        yield "complete", {"trip_draft": _orchestrator_complete_payload()}
+
+    fake_user = SimpleNamespace(id="u1")
+    fake_trip = SimpleNamespace(id="trip-2", status="DRAFT")
+    fake_db = MagicMock()
+    fake_db.query.return_value.filter.return_value.first.return_value = fake_user
+
+    with (
+        patch(
+            "src.services.trip_planner_service.FullPlanOrchestrator.stream",
+            side_effect=_fake_full_plan,
+        ),
+        patch(
+            "src.services.trip_planner_service.PlanDraftService.create_draft_from_command",
+            return_value=fake_trip,
+        ),
+        patch(
+            "src.services.trip_planner_service.PlanService.increment_ai_generation",
+            side_effect=RuntimeError("quota tracker offline"),
+        ),
+    ):
+        events = await _drain(TripPlannerService.stream_plan(request, "u1", fake_db))
+
+    # Trip still completes; quota error is logged but never bubbles.
+    names = [n for n, _ in events]
+    completes = [d for n, d in events if n == "complete"]
+    assert completes and completes[0]["tripId"] == "trip-2"
+    assert names[-1] == "done"

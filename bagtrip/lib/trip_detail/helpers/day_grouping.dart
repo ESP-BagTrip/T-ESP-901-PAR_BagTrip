@@ -57,11 +57,8 @@ Map<int, DayActivities> groupActivitiesByDay({
   }
 
   for (final activity in activities) {
-    // Undated AI recommendations (FOOD / TRANSPORT) are intentionally
-    // skipped: the day-by-day grouping is for itinerary entries, the
-    // recommendations live in their own trip-detail tab.
-    if (activity.date == null) continue;
-    final activityDate = activity.date!;
+    final activityDate = activity.date;
+    if (activityDate == null) continue;
     final normalizedDate = DateTime(
       activityDate.year,
       activityDate.month,

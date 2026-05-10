@@ -1,146 +1,144 @@
-"""Service wrapper pour appels LLM (OpenAI-compatible via LangChain)."""
+"""Backward-compatible facade over :class:`LLMRouter`.
 
-import asyncio
+Existing call sites (``activity_planner_node``, ``baggage_node``,
+``react_executor`` …) consume three legacy methods:
+
+- :meth:`call_llm` / :meth:`acall_llm` — system + user prompt → JSON dict
+- :meth:`acall_llm_messages` — list of LangChain message objects → raw string
+
+This module preserves those contracts so the agent code keeps working
+while :class:`LLMRouter` becomes the single ingress to the provider.
+New code should import :class:`LLMRouter` directly and use its
+:meth:`chat_completion` / :meth:`stream_chat_completion` / :meth:`embed`
+surface, which exposes tool use, structured outputs, streaming and the
+fallback chain.
+"""
+
+from __future__ import annotations
+
 import json
 import re
+from typing import Any
 
-from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
+from langchain_core.messages import (
+    AIMessage,
+    BaseMessage,
+    HumanMessage,
+    SystemMessage,
+)
 
-from src.config.env import settings
+from src.services.llm_router import LLMRouter
 from src.utils.errors import AppError
-from src.utils.logger import logger
+
+
+def _strip_markdown_fences(text: str) -> str:
+    text = text.strip()
+    text = re.sub(r"^```(?:json)?\s*\n?", "", text)
+    text = re.sub(r"\n?```\s*$", "", text)
+    return text.strip()
+
+
+def _message_to_openai_dict(msg: BaseMessage) -> dict[str, Any]:
+    """Translate a LangChain message into the OpenAI chat schema.
+
+    The agent code still constructs prompts with LangChain message
+    objects (``SystemMessage`` / ``HumanMessage`` / ``AIMessage``);
+    this keeps that boundary stable while we migrate node by node.
+    """
+    if isinstance(msg, SystemMessage):
+        return {"role": "system", "content": msg.content}
+    if isinstance(msg, HumanMessage):
+        return {"role": "user", "content": msg.content}
+    if isinstance(msg, AIMessage):
+        return {"role": "assistant", "content": msg.content}
+    role = getattr(msg, "type", "user")
+    if role == "human":
+        role = "user"
+    elif role == "ai":
+        role = "assistant"
+    return {"role": role, "content": msg.content}
+
+
+def _extract_content(payload: dict[str, Any]) -> str:
+    try:
+        return payload["choices"][0]["message"].get("content") or ""
+    except (KeyError, IndexError, TypeError) as exc:
+        raise AppError(
+            "LLM_INVALID_RESPONSE",
+            502,
+            f"Provider returned no message content: {exc}",
+        ) from exc
 
 
 class LLMService:
-    """Singleton lazy pour appels LLM."""
+    """Process-wide facade — preserves the historical method names.
 
-    _instance: "LLMService | None" = None
-    _llm: ChatOpenAI | None = None
+    Singleton kept only because legacy code does ``LLMService()`` and
+    expects the same instance back. The router itself manages its own
+    HTTP client lifecycle.
+    """
 
-    def __new__(cls) -> "LLMService":
+    _instance: LLMService | None = None
+
+    def __new__(cls) -> LLMService:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def _get_llm(self) -> ChatOpenAI:
-        if self._llm is None:
-            # SMP-324 — without ``timeout`` ``ChatOpenAI`` keeps the
-            # underlying httpx client on its default (no read timeout),
-            # which lets a hung upstream proxy block ``ainvoke`` forever.
-            # The wizard's destinations_only path used to emit two
-            # ``progress`` events then go silent because of this. The
-            # ReAct executor already wraps every call in ``wait_for``;
-            # this constructor-level fallback covers any caller that
-            # forgets — defense in depth.
-            self._llm = ChatOpenAI(
-                model=settings.LLM_MODEL,
-                base_url=settings.LLM_API_BASE,
-                api_key=settings.LLM_API_KEY,
-                temperature=0.7,
-                timeout=float(settings.LLM_CALL_TIMEOUT_SECONDS),
-                max_retries=2,
-            )
-        return self._llm
+    def _router(self) -> LLMRouter:
+        return LLMRouter.get()
 
-    @staticmethod
-    def _strip_markdown_fences(text: str) -> str:
-        """Retire les code fences markdown avant parsing JSON."""
-        text = text.strip()
-        text = re.sub(r"^```(?:json)?\s*\n?", "", text)
-        text = re.sub(r"\n?```\s*$", "", text)
-        return text.strip()
+    # ── Legacy sync surface (system+user → JSON dict) ─────────────────
 
     def call_llm(self, system_prompt: str, user_prompt: str) -> dict:
-        """Appelle le LLM et retourne le JSON parsé (synchrone)."""
-        try:
-            llm = self._get_llm()
-            response = llm.invoke(
-                [
-                    SystemMessage(content=system_prompt),
-                    HumanMessage(content=user_prompt),
-                ]
-            )
-            raw = response.content
-        except Exception as e:
-            raise AppError("LLM_ERROR", 502, f"LLM call failed: {e}") from e
+        """Synchronous wrapper kept for the small number of non-async callers.
+
+        The router itself is async; we run it on the running event loop
+        when present, or open a transient one otherwise. Production
+        callers are async — this is mostly used by tests and scripts.
+        """
+        import asyncio
 
         try:
-            cleaned = self._strip_markdown_fences(raw)
-            return json.loads(cleaned)
-        except (json.JSONDecodeError, TypeError) as e:
-            raise AppError(
-                "LLM_INVALID_RESPONSE",
-                502,
-                f"LLM returned invalid JSON: {e}",
-            ) from e
+            asyncio.get_running_loop()
+        except RuntimeError:
+            # No loop running — open a transient one for this call.
+            return asyncio.run(self.acall_llm(system_prompt, user_prompt))
+        # A loop is already running. Bail with a clear programming error
+        # rather than spawning a nested loop and risking deadlocks.
+        raise AppError(
+            "LLM_SYNC_IN_ASYNC",
+            500,
+            "call_llm() invoked from within a running event loop; use acall_llm() instead.",
+        )
+
+    # ── Async surfaces ────────────────────────────────────────────────
 
     async def acall_llm(self, system_prompt: str, user_prompt: str) -> dict:
-        """Appelle le LLM de manière asynchrone et retourne le JSON parsé.
-
-        Wrapped in ``asyncio.wait_for`` so a hung upstream proxy raises
-        ``LLM_TIMEOUT`` after ``LLM_CALL_TIMEOUT_SECONDS`` instead of
-        keeping the SSE connection open forever — the bug behind the
-        "destinations stream hangs without error" report.
-        """
+        """Send a system + user prompt and parse the response as JSON."""
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ]
+        payload = await self._router().chat_completion(messages=messages)
+        raw = _extract_content(payload)
         try:
-            llm = self._get_llm()
-            response = await asyncio.wait_for(
-                llm.ainvoke(
-                    [
-                        SystemMessage(content=system_prompt),
-                        HumanMessage(content=user_prompt),
-                    ]
-                ),
-                timeout=settings.LLM_CALL_TIMEOUT_SECONDS,
-            )
-            raw = response.content
-        except TimeoutError as e:
-            logger.warn(
-                "LLM call timed out",
-                {"timeout_seconds": settings.LLM_CALL_TIMEOUT_SECONDS},
-            )
-            raise AppError(
-                "LLM_TIMEOUT",
-                504,
-                f"LLM call timed out after {settings.LLM_CALL_TIMEOUT_SECONDS}s",
-            ) from e
-        except Exception as e:
-            raise AppError("LLM_ERROR", 502, f"LLM call failed: {e}") from e
-
-        try:
-            cleaned = self._strip_markdown_fences(raw)
-            return json.loads(cleaned)
-        except (json.JSONDecodeError, TypeError) as e:
+            return json.loads(_strip_markdown_fences(raw))
+        except (json.JSONDecodeError, TypeError) as exc:
             raise AppError(
                 "LLM_INVALID_RESPONSE",
                 502,
-                f"LLM returned invalid JSON: {e}",
-            ) from e
+                f"LLM returned invalid JSON: {exc}",
+            ) from exc
 
     async def acall_llm_messages(self, messages: list[BaseMessage]) -> str:
-        """Appelle le LLM avec une liste de messages et retourne le contenu brut.
+        """Send a pre-built LangChain message list and return the raw assistant content.
 
-        Utilisé par le ReAct executor pour la boucle conversationnelle.
-        Same timeout discipline as ``acall_llm`` — silent hangs are
-        the most insidious failure mode of the SSE pipeline.
+        Used by the existing ReAct executor — it threads tool observations
+        as ``HumanMessage`` and parses ``Thought / Action / Final Answer``
+        from the assistant text. Phase 2 replaces this loop with native
+        tool calls; until then this stays as a thin shim.
         """
-        try:
-            llm = self._get_llm()
-            response = await asyncio.wait_for(
-                llm.ainvoke(messages),
-                timeout=settings.LLM_CALL_TIMEOUT_SECONDS,
-            )
-            return response.content
-        except TimeoutError as e:
-            logger.warn(
-                "LLM call timed out",
-                {"timeout_seconds": settings.LLM_CALL_TIMEOUT_SECONDS},
-            )
-            raise AppError(
-                "LLM_TIMEOUT",
-                504,
-                f"LLM call timed out after {settings.LLM_CALL_TIMEOUT_SECONDS}s",
-            ) from e
-        except Exception as e:
-            raise AppError("LLM_ERROR", 502, f"LLM call failed: {e}") from e
+        openai_messages = [_message_to_openai_dict(m) for m in messages]
+        payload = await self._router().chat_completion(messages=openai_messages)
+        return _extract_content(payload)

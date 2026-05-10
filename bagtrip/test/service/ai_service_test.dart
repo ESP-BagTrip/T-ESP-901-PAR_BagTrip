@@ -1,5 +1,10 @@
-// Covers the non-SSE portion of AiRepositoryImpl. planTripStream / getInspiration
-// go through a standalone Dio and are exercised by integration tests instead.
+// Covers the non-SSE portion of [AiRepositoryImpl] — i.e. the
+// ``getPostTripSuggestion`` path. ``planTripStream`` and
+// ``getInspiration`` go through a standalone [Dio] instance and live
+// in the integration tests. The SMP-325 refactor removed
+// ``/ai/plan-trip/accept`` (the W2 SSE pipeline persists the trip
+// server-side now), so the matching ``acceptInspiration`` group is
+// gone too.
 
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/service/ai_service.dart';
@@ -54,7 +59,7 @@ void main() {
       );
 
       final result = await repository.getPostTripSuggestion();
-      expect(result, isA<Success>());
+      expect(result, isA<Success<Map<String, dynamic>>>());
       expect((result as Success).data['destination'], 'Porto');
     });
 

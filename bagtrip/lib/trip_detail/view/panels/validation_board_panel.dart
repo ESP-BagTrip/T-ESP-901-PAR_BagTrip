@@ -60,7 +60,7 @@ class ValidationBoardPanel extends StatelessWidget {
       ),
       _BoardRow(
         icon: Icons.hiking_rounded,
-        label: l10n.reviewTabItinerary,
+        label: l10n.reviewTabActivities,
         segment: result.segment(CompletionSegmentType.activities),
         tabIndex: 3,
       ),

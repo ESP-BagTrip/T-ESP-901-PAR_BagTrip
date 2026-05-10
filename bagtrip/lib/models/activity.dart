@@ -22,8 +22,6 @@ enum ActivityCategory {
   nightlife,
   @JsonValue('RELAXATION')
   relaxation,
-  // SMP-324 — undated transport recommendations (multi-day pass,
-  // airport transfer, ...) emitted by the AI activity_planner.
   @JsonValue('TRANSPORT')
   transport,
   @JsonValue('OTHER')
@@ -37,9 +35,6 @@ abstract class Activity with _$Activity {
     required String tripId,
     required String title,
     String? description,
-    // SMP-324 — undated FOOD / TRANSPORT recommendations from the AI
-    // surface as Activity rows with date == null. Dated itinerary
-    // entries still carry a real date.
     DateTime? date,
     String? startTime,
     String? endTime,

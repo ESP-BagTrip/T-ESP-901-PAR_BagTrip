@@ -157,12 +157,28 @@ class BudgetItemService:
                 float(item.amount), from_=item.currency, to=trip_currency
             )
 
-        total_spent = sum(_amount_in_trip_currency(i) for i in items)
+        # Phase B2 (SMP-325): ``Activity`` is the single source of
+        # truth for activity costs — they used to be mirrored as
+        # BudgetItem rows with ``source_type='activity'``, which both
+        # double-counted them here AND created visual duplication on
+        # the mobile budget tab. We now read activities directly and
+        # stop carrying the mirrored rows.
+        activities = db.query(Activity).filter(Activity.trip_id == trip.id).all()
+        activities_total = sum(
+            float(a.estimated_cost) for a in activities if a.estimated_cost is not None
+        )
+
+        items_total = sum(_amount_in_trip_currency(i) for i in items)
+        total_spent = items_total + activities_total
+
         by_category: dict[str, float] = {}
         for item in items:
             cat = item.category or BudgetCategory.OTHER
             converted = _amount_in_trip_currency(item)
             by_category[cat] = by_category.get(cat, 0.0) + converted
+        if activities_total > 0:
+            activity_key = BudgetCategory.ACTIVITY.value
+            by_category[activity_key] = by_category.get(activity_key, 0.0) + activities_total
 
         # Topic 02 — alerts trigger against the user's *target* (intent),
         # not the AI estimation. Going over the target is what the user
@@ -182,7 +198,6 @@ class BudgetItemService:
                 forecasted_total += converted
 
         # Confirmed vs forecasted — activities
-        activities = db.query(Activity).filter(Activity.trip_id == trip.id).all()
         for activity in activities:
             if activity.estimated_cost is None:
                 continue

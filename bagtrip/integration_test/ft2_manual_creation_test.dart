@@ -120,6 +120,10 @@ void main() {
         // Verify AI was NOT called
         verifyNever(
           () => mocks.ai.getInspiration(
+            originCity: any(named: 'originCity'),
+            departureDate: any(named: 'departureDate'),
+            returnDate: any(named: 'returnDate'),
+            nbTravelers: any(named: 'nbTravelers'),
             travelTypes: any(named: 'travelTypes'),
             budgetRange: any(named: 'budgetRange'),
             durationDays: any(named: 'durationDays'),
