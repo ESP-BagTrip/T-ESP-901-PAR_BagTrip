@@ -107,6 +107,20 @@ class FlightSearchResultBloc
     );
   }
 
+  /// Returns the minimum price across a fetch result, or null when the search
+  /// failed or returned no flights. Used to populate the side cards of the
+  /// date selector with real prices instead of the misleading "min of the
+  /// selected date" fallback.
+  double? _minPriceOrNull(Result<List<Flight>> result) {
+    switch (result) {
+      case Success(:final data):
+        if (data.isEmpty) return null;
+        return data.map((f) => f.price).reduce((a, b) => a < b ? a : b);
+      case Failure():
+        return null;
+    }
+  }
+
   Future<void> _onLoadFlights(
     LoadFlights event,
     Emitter<FlightSearchResultState> emit,
@@ -192,6 +206,7 @@ class FlightSearchResultBloc
               segmentResults: segResults,
               segmentLabels: segLabels,
               replaceFlightId: event.replaceFlightId,
+              selectedDateIndex: 1,
             ),
           );
         case Failure(:final error):
@@ -200,22 +215,69 @@ class FlightSearchResultBloc
       return;
     }
 
-    // Single segment search (persisted or proxy)
-    final result = await _searchFlights(
-      tripId: event.tripId,
-      departureCode: event.departureCode,
-      arrivalCode: event.arrivalCode,
-      departureDate: departureDateStr,
-      returnDate: returnDateStr,
-      adults: event.adults,
-      children: event.children,
-      infants: event.infants,
-      travelClass: event.travelClass.toUpperCase(),
-      multiDestSegments: event.multiDestSegments,
+    // Single segment search (persisted or proxy). Fetch the selected date
+    // plus ±1 day in parallel so the date-selector price bar shows real
+    // minimum prices for each card instead of the misleading "min of the
+    // selected date" fallback on the side cards (SMP-169).
+    final prevDateStr = dateFormatter.format(
+      event.departureDate.subtract(const Duration(days: 1)),
     );
+    final nextDateStr = dateFormatter.format(
+      event.departureDate.add(const Duration(days: 1)),
+    );
+    final prevReturnStr = event.returnDate != null
+        ? dateFormatter.format(
+            event.returnDate!.subtract(const Duration(days: 1)),
+          )
+        : null;
+    final nextReturnStr = event.returnDate != null
+        ? dateFormatter.format(event.returnDate!.add(const Duration(days: 1)))
+        : null;
+    final travelClass = event.travelClass.toUpperCase();
+
+    final results = await Future.wait([
+      _searchFlights(
+        tripId: event.tripId,
+        departureCode: event.departureCode,
+        arrivalCode: event.arrivalCode,
+        departureDate: departureDateStr,
+        returnDate: returnDateStr,
+        adults: event.adults,
+        children: event.children,
+        infants: event.infants,
+        travelClass: travelClass,
+        multiDestSegments: event.multiDestSegments,
+      ),
+      _searchFlights(
+        tripId: event.tripId,
+        departureCode: event.departureCode,
+        arrivalCode: event.arrivalCode,
+        departureDate: prevDateStr,
+        returnDate: prevReturnStr,
+        adults: event.adults,
+        children: event.children,
+        infants: event.infants,
+        travelClass: travelClass,
+        multiDestSegments: event.multiDestSegments,
+      ),
+      _searchFlights(
+        tripId: event.tripId,
+        departureCode: event.departureCode,
+        arrivalCode: event.arrivalCode,
+        departureDate: nextDateStr,
+        returnDate: nextReturnStr,
+        adults: event.adults,
+        children: event.children,
+        infants: event.infants,
+        travelClass: travelClass,
+        multiDestSegments: event.multiDestSegments,
+      ),
+    ]);
     if (isClosed) return;
 
-    switch (result) {
+    final mainResult = results[0];
+
+    switch (mainResult) {
       case Success(:final data):
         var filteredFlights = List<Flight>.from(data);
         if (event.maxPrice != null) {
@@ -240,6 +302,12 @@ class FlightSearchResultBloc
             travelClass: event.travelClass,
             replaceFlightId: event.replaceFlightId,
             multiDestSegments: event.multiDestSegments,
+            selectedDateIndex: 1,
+            datePrices: [
+              _minPriceOrNull(results[1]),
+              _minPriceOrNull(mainResult),
+              _minPriceOrNull(results[2]),
+            ],
           ),
         );
       case Failure(:final error):
@@ -326,19 +394,62 @@ class FlightSearchResultBloc
         ? dateFormatter.format(newReturnDate)
         : null;
 
-    final result = await _searchFlights(
-      tripId: current.tripId,
-      departureCode: current.departureCode,
-      arrivalCode: current.arrivalCode,
-      departureDate: departureDateStr,
-      returnDate: returnDateStr,
-      adults: current.adults,
-      children: current.children,
-      infants: current.infants,
-      travelClass: current.travelClass.toUpperCase(),
-      multiDestSegments: current.multiDestSegments,
+    // Same ±1 day price bar refresh as LoadFlights (SMP-169).
+    final prevDateStr = dateFormatter.format(
+      newDepartureDate.subtract(const Duration(days: 1)),
     );
+    final nextDateStr = dateFormatter.format(
+      newDepartureDate.add(const Duration(days: 1)),
+    );
+    final prevReturnStr = newReturnDate != null
+        ? dateFormatter.format(newReturnDate.subtract(const Duration(days: 1)))
+        : null;
+    final nextReturnStr = newReturnDate != null
+        ? dateFormatter.format(newReturnDate.add(const Duration(days: 1)))
+        : null;
+    final travelClass = current.travelClass.toUpperCase();
+
+    final results = await Future.wait([
+      _searchFlights(
+        tripId: current.tripId,
+        departureCode: current.departureCode,
+        arrivalCode: current.arrivalCode,
+        departureDate: departureDateStr,
+        returnDate: returnDateStr,
+        adults: current.adults,
+        children: current.children,
+        infants: current.infants,
+        travelClass: travelClass,
+        multiDestSegments: current.multiDestSegments,
+      ),
+      _searchFlights(
+        tripId: current.tripId,
+        departureCode: current.departureCode,
+        arrivalCode: current.arrivalCode,
+        departureDate: prevDateStr,
+        returnDate: prevReturnStr,
+        adults: current.adults,
+        children: current.children,
+        infants: current.infants,
+        travelClass: travelClass,
+        multiDestSegments: current.multiDestSegments,
+      ),
+      _searchFlights(
+        tripId: current.tripId,
+        departureCode: current.departureCode,
+        arrivalCode: current.arrivalCode,
+        departureDate: nextDateStr,
+        returnDate: nextReturnStr,
+        adults: current.adults,
+        children: current.children,
+        infants: current.infants,
+        travelClass: travelClass,
+        multiDestSegments: current.multiDestSegments,
+      ),
+    ]);
     if (isClosed) return;
+
+    final result = results[0];
 
     switch (result) {
       case Success(:final data):
@@ -433,6 +544,11 @@ class FlightSearchResultBloc
             checkedBagIncluded: current.checkedBagIncluded,
             departureTimeBefore: current.departureTimeBefore,
             departureTimeAfter: current.departureTimeAfter,
+            datePrices: [
+              _minPriceOrNull(results[1]),
+              _minPriceOrNull(result),
+              _minPriceOrNull(results[2]),
+            ],
           ),
         );
       case Failure(:final error):

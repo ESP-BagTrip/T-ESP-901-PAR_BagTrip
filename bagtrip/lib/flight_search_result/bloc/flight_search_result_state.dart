@@ -38,6 +38,9 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
   // Phase 4 follow-up — propagates the replace-mode flag from
   // LoadFlights so the result widget can branch its onTap behaviour.
   final String? replaceFlightId;
+  // Min price per date card (index 0 = -1 day, 1 = selected, 2 = +1 day).
+  // null entries mean the side fetch failed or returned no flights.
+  final List<double?>? datePrices;
 
   FlightSearchResultLoaded({
     required this.flights,
@@ -65,6 +68,7 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
     this.departureTimeBefore,
     this.departureTimeAfter,
     this.replaceFlightId,
+    this.datePrices,
   });
 
   FlightSearchResultLoaded copyWith({
@@ -93,6 +97,7 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
     TimeOfDay? departureTimeBefore,
     TimeOfDay? departureTimeAfter,
     String? replaceFlightId,
+    List<double?>? datePrices,
   }) {
     return FlightSearchResultLoaded(
       flights: flights ?? this.flights,
@@ -120,6 +125,7 @@ final class FlightSearchResultLoaded extends FlightSearchResultState {
       departureTimeBefore: departureTimeBefore ?? this.departureTimeBefore,
       departureTimeAfter: departureTimeAfter ?? this.departureTimeAfter,
       replaceFlightId: replaceFlightId ?? this.replaceFlightId,
+      datePrices: datePrices ?? this.datePrices,
     );
   }
 }
