@@ -13,6 +13,11 @@ class DateSelector extends StatelessWidget {
   final DateTime departureDate;
   final DateTime? returnDate;
   final List<Flight> flights;
+  // Min price per card (index 0 = -1 day, 1 = selected, 2 = +1 day). When
+  // provided, takes precedence over the legacy per-date filtering of
+  // `flights` so the side cards can show their real minimums fetched by
+  // the bloc (SMP-169). null entries render as blank.
+  final List<double?>? datePrices;
 
   const DateSelector({
     super.key,
@@ -20,6 +25,7 @@ class DateSelector extends StatelessWidget {
     required this.departureDate,
     this.returnDate,
     required this.flights,
+    this.datePrices,
   });
 
   @override
@@ -58,9 +64,24 @@ class DateSelector extends StatelessWidget {
       }
     }).toList();
 
-    // Calculate minimum price for each date
-    final prices = dates.map((date) {
-      // Filter flights by date (compare year, month, day)
+    // Calculate minimum price for each date. When the bloc provides
+    // `datePrices`, use those directly (real per-date minimums fetched in
+    // parallel). Otherwise fall back to filtering the loaded `flights` —
+    // legacy path kept so widget tests without a bloc can still render.
+    final prices = List<String>.generate(dates.length, (index) {
+      final fromBloc = datePrices != null && index < datePrices!.length
+          ? datePrices![index]
+          : null;
+      if (fromBloc != null) {
+        return fromBloc.formatPrice();
+      }
+      if (datePrices != null) {
+        // Bloc fetched but no flights for this date — show blank rather
+        // than the old "min of selected date" lie.
+        return '';
+      }
+
+      final date = dates[index];
       final flightsForDate = flights.where((flight) {
         if (flight.departureDateTime == null) return false;
         final flightDate = flight.departureDateTime!;
@@ -70,7 +91,6 @@ class DateSelector extends StatelessWidget {
       }).toList();
 
       if (flightsForDate.isEmpty) {
-        // If no flights for this date, use minimum price from all flights as approximation
         if (flights.isEmpty) return '';
         final minPrice = flights
             .map((f) => f.price)
@@ -82,7 +102,7 @@ class DateSelector extends StatelessWidget {
           .map((f) => f.price)
           .reduce((a, b) => a < b ? a : b);
       return minPrice.formatPrice();
-    }).toList();
+    });
 
     final iconSize = isSmallScreen ? 40.0 : 50.0;
 
