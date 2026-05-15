@@ -978,6 +978,14 @@
     }
   },
   "homeActiveTripEyebrow": "TRIP IN PROGRESS",
+  "homeActiveTripTravelersAbbrev": "{count} ppl",
+  "@homeActiveTripTravelersAbbrev": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "homeNavPillTitle": "Trips & home",
   "homeNavPillSubtitle": "Manage trips, create a new one",
   "homeResumeActiveTripCta": "Continue trip",

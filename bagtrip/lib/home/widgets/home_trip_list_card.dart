@@ -11,11 +11,13 @@ import 'package:flutter/material.dart';
 class HomeTripListSection extends StatelessWidget {
   final String title;
   final List<Trip> trips;
+  final bool compactHeader;
 
   const HomeTripListSection({
     super.key,
     required this.title,
     required this.trips,
+    this.compactHeader = false,
   });
 
   @override
@@ -25,12 +27,20 @@ class HomeTripListSection extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
-            fontFamily: FontFamily.dMSans,
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: ColorName.primaryTrueDark,
-          ),
+          style: compactHeader
+              ? const TextStyle(
+                  fontFamily: FontFamily.dMSans,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: ColorName.textMutedLight,
+                  letterSpacing: 1.2,
+                )
+              : const TextStyle(
+                  fontFamily: FontFamily.dMSans,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: ColorName.primaryTrueDark,
+                ),
         ),
         const SizedBox(height: AppSpacing.space12),
         ...trips.map(
@@ -229,28 +239,6 @@ class HomeTripListCard extends StatelessWidget {
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: ColorName.textMutedLight,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.space12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.space16,
-                            vertical: AppSpacing.space12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: accentColor,
-                            borderRadius: AppRadius.large16,
-                          ),
-                          child: Text(
-                            trip.status == TripStatus.ongoing
-                                ? l10n.homeResumeActiveTripCta
-                                : l10n.homeCtaStartPlanning,
-                            style: const TextStyle(
-                              fontFamily: FontFamily.dMSans,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: ColorName.surface,
                             ),
                           ),
                         ),

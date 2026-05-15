@@ -978,6 +978,14 @@
     }
   },
   "homeActiveTripEyebrow": "VOYAGE EN COURS",
+  "homeActiveTripTravelersAbbrev": "{count} pers.",
+  "@homeActiveTripTravelersAbbrev": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "homeNavPillTitle": "Voyages & accueil",
   "homeNavPillSubtitle": "Gérer mes voyages, créer un nouveau",
   "homeResumeActiveTripCta": "Continuer le voyage",

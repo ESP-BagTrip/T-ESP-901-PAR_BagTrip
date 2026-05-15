@@ -1,15 +1,20 @@
+import 'package:bagtrip/components/optimized_image.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
+import 'package:bagtrip/home/helpers/home_highlight_activity.dart';
 import 'package:bagtrip/home/helpers/trip_completion.dart';
 import 'package:bagtrip/home/view/active_trip_programme_view.dart';
 import 'package:bagtrip/home/widgets/create_trip_card.dart';
 import 'package:bagtrip/home/widgets/home_trip_list_card.dart';
-import 'package:bagtrip/components/optimized_image.dart';
+import 'package:bagtrip/home/widgets/home_two_zone_layout.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/models/activity.dart';
+import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class ActiveTripHomeView extends StatelessWidget {
   final HomeActiveTrip state;
@@ -21,52 +26,24 @@ class ActiveTripHomeView extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final upcomingTrips = state.upcomingTrips;
 
-    return ColoredBox(
-      color: const Color(0xFFF5F7FA),
-      child: ListView(
-        padding: EdgeInsets.fromLTRB(
-          AppSpacing.space16,
-          MediaQuery.paddingOf(context).top + AppSpacing.space16,
-          AppSpacing.space16,
-          MediaQuery.paddingOf(context).bottom + AppSpacing.space24,
-        ),
-        children: [
-          Text(
-            _timeAwareGreeting(state.displayName, l10n),
-            style: const TextStyle(
-              fontFamily: FontFamily.dMSerifDisplay,
-              fontSize: 34,
-              fontWeight: FontWeight.w400,
-              color: Color(0xFF1D2330),
-              height: 1.15,
-              letterSpacing: -0.5,
-            ),
+    return HomeTwoZoneLayout(
+      includeTopSafeArea: true,
+      greeting: _timeAwareGreeting(state.displayName, l10n),
+      subtitle: _subtitleText(l10n, upcomingTrips.length),
+      topChildren: [_ActiveTripHeroCard(state: state)],
+      bottomChildren: [
+        if (upcomingTrips.isNotEmpty) ...[
+          HomeTripListSection(
+            compactHeader: true,
+            title: upcomingTrips.length == 1
+                ? l10n.homeUpcomingTripsHeaderSingle
+                : l10n.homeUpcomingTripsHeaderPlural,
+            trips: upcomingTrips,
           ),
           const SizedBox(height: AppSpacing.space8),
-          Text(
-            _subtitleText(l10n, upcomingTrips.length),
-            style: const TextStyle(
-              fontFamily: FontFamily.dMSans,
-              fontSize: 16,
-              color: Color(0xFF6E7480),
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.space16),
-          _ActiveTripHeroCard(state: state),
-          const SizedBox(height: AppSpacing.space24),
-          if (upcomingTrips.isNotEmpty)
-            HomeTripListSection(
-              title: upcomingTrips.length == 1
-                  ? l10n.homeUpcomingTripsHeaderSingle
-                  : l10n.homeUpcomingTripsHeaderPlural,
-              trips: upcomingTrips,
-            ),
-          if (upcomingTrips.isNotEmpty)
-            const SizedBox(height: AppSpacing.space8),
-          const CreateTripCard(),
         ],
-      ),
+        const CreateTripCard(),
+      ],
     );
   }
 
@@ -86,6 +63,9 @@ class ActiveTripHomeView extends StatelessWidget {
 }
 
 class _ActiveTripHeroCard extends StatelessWidget {
+  static const Color _progressPanelColor = ColorName.surface;
+  static const double _borderWidth = 1.5;
+
   final HomeActiveTrip state;
 
   const _ActiveTripHeroCard({required this.state});
@@ -129,25 +109,30 @@ class _ActiveTripHeroCard extends StatelessWidget {
         '${_formatDate(trip.startDate)} - ${_formatDate(trip.endDate)}';
     final hasCover =
         trip.coverImageUrl != null && trip.coverImageUrl!.isNotEmpty;
+    final highlight = resolveHomeHighlightActivity(state.allActivities);
+    final travelerCount = trip.nbTravelers;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
+    final innerRadius = AppRadius.cornerRadius24 - _borderWidth;
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: _progressPanelColor,
         borderRadius: AppRadius.large24,
-        onTap: () => _openProgramme(context),
-        child: DecoratedBox(
-          decoration: const BoxDecoration(
-            borderRadius: AppRadius.large24,
-            boxShadow: [
-              BoxShadow(
-                color: Color(0x1A0E1A2B),
-                blurRadius: 22,
-                offset: Offset(0, 12),
-              ),
-            ],
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x1A0E1A2B),
+            blurRadius: 22,
+            offset: Offset(0, 12),
           ),
-          child: ClipRRect(
-            borderRadius: AppRadius.large24,
+        ],
+      ),
+      padding: const EdgeInsets.all(_borderWidth),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(innerRadius),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => _openProgramme(context),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
@@ -176,28 +161,46 @@ class _ActiveTripHeroCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(AppSpacing.space16),
+                      Positioned(
+                        top: AppSpacing.space16,
+                        left: AppSpacing.space16,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _ActiveTripEyebrowPill(
+                              label: l10n.homeActiveTripEyebrow,
+                            ),
+                            if (travelerCount != null && travelerCount > 0) ...[
+                              const SizedBox(width: AppSpacing.space8),
+                              _ActiveTripTravelersPill(
+                                label: l10n.homeActiveTripTravelersAbbrev(
+                                  travelerCount,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      Positioned(
+                        top: AppSpacing.space16,
+                        right: AppSpacing.space16,
+                        child: CompletionRing(
+                          percentage: progress,
+                          backgroundColor: Colors.white.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      Positioned(
+                        left: AppSpacing.space16,
+                        right: AppSpacing.space16,
+                        bottom: AppSpacing.space16,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            Text(
-                              l10n.homeActiveTripEyebrow,
-                              style: const TextStyle(
-                                fontFamily: FontFamily.dMSans,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w800,
-                                color: ColorName.secondary,
-                                letterSpacing: 1,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.space8),
                             Text(
                               destination,
                               style: const TextStyle(
                                 fontFamily: FontFamily.dMSerifDisplay,
-                                fontSize: 44,
+                                fontSize: 30,
                                 fontWeight: FontWeight.w400,
                                 color: ColorName.surface,
                               ),
@@ -220,81 +223,186 @@ class _ActiveTripHeroCard extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  decoration: const BoxDecoration(color: ColorName.surface),
+                  decoration: const BoxDecoration(color: _progressPanelColor),
                   padding: const EdgeInsets.all(AppSpacing.space16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.homeTripProgressTitle,
-                        style: const TextStyle(
-                          fontFamily: FontFamily.dMSans,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: ColorName.primaryDark,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.space12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ClipRRect(
-                              borderRadius: AppRadius.small4,
-                              child: LinearProgressIndicator(
-                                value: progress / 100,
-                                minHeight: 7,
-                                backgroundColor: ColorName.primarySoftLight,
-                                valueColor: const AlwaysStoppedAnimation<Color>(
-                                  ColorName.secondary,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.space12),
-                          Text(
-                            l10n.homeTripProgressPercent(progress),
-                            style: const TextStyle(
-                              fontFamily: FontFamily.dMSans,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: ColorName.textMutedLight,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.space8),
-                      SizedBox(
-                        width: double.infinity,
-                        child: FilledButton(
-                          onPressed: () => _openProgramme(context),
-                          style: FilledButton.styleFrom(
-                            backgroundColor: ColorName.primaryDark,
-                            foregroundColor: ColorName.surface,
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: AppRadius.pill,
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              vertical: AppSpacing.space12,
-                            ),
-                          ),
-                          child: Text(
-                            l10n.homeResumeActiveTripCta,
-                            style: const TextStyle(
-                              fontFamily: FontFamily.dMSans,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
+                  child: highlight != null
+                      ? _HomeHighlightActivityRow(highlight: highlight)
+                      : Text(
+                          l10n.homeNoActivitiesToday,
+                          style: const TextStyle(
+                            fontFamily: FontFamily.dMSans,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: ColorName.textMutedLight,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
                 ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ActiveTripHeroPill extends StatelessWidget {
+  const _ActiveTripHeroPill({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: ColorName.surface.withValues(alpha: 0.1),
+        borderRadius: AppRadius.pill,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.space12,
+          vertical: 6,
+        ),
+        child: child,
+      ),
+    );
+  }
+}
+
+class _ActiveTripEyebrowPill extends StatelessWidget {
+  const _ActiveTripEyebrowPill({required this.label});
+
+  final String label;
+
+  static const _labelStyle = TextStyle(
+    fontFamily: FontFamily.dMSans,
+    fontSize: 12,
+    fontWeight: FontWeight.w800,
+    color: ColorName.surface,
+    letterSpacing: 1,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return _ActiveTripHeroPill(child: Text(label, style: _labelStyle));
+  }
+}
+
+class _ActiveTripTravelersPill extends StatelessWidget {
+  const _ActiveTripTravelersPill({required this.label});
+
+  final String label;
+
+  static const _labelStyle = TextStyle(
+    fontFamily: FontFamily.dMSans,
+    fontSize: 12,
+    fontWeight: FontWeight.w800,
+    color: ColorName.surface,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return _ActiveTripHeroPill(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.person_outline_rounded,
+            size: 14,
+            color: ColorName.surface.withValues(alpha: 0.95),
+          ),
+          const SizedBox(width: AppSpacing.space4),
+          Text(label, style: _labelStyle),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomeHighlightActivityRow extends StatelessWidget {
+  const _HomeHighlightActivityRow({required this.highlight});
+
+  final HomeHighlightActivity highlight;
+
+  String _badgeLabel(AppLocalizations l10n, BuildContext context) {
+    if (highlight.isNow) return l10n.scheduleBadgeNow;
+    if (highlight.isTomorrow) return l10n.activeHomeContextTomorrow;
+    if (highlight.isToday) return l10n.scheduleBadgeNext;
+    final date = highlight.activity.date;
+    if (date == null) return l10n.scheduleBadgeNext;
+    final locale = Localizations.localeOf(context).languageCode;
+    return DateFormat('d MMM', locale).format(date);
+  }
+
+  String? _metaLine(Activity activity) {
+    final parts = <String>[];
+    if (activity.startTime != null && activity.startTime!.isNotEmpty) {
+      parts.add(activity.startTime!);
+    }
+    if (activity.location != null && activity.location!.isNotEmpty) {
+      parts.add(activity.location!);
+    }
+    if (parts.isEmpty) return null;
+    return parts.join(' · ');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final activity = highlight.activity;
+    final meta = _metaLine(activity);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.space12,
+            vertical: AppSpacing.space8,
+          ),
+          decoration: const BoxDecoration(
+            color: ColorName.secondaryLight,
+            borderRadius: AppRadius.pill,
+          ),
+          child: Text(
+            _badgeLabel(l10n, context),
+            style: const TextStyle(
+              fontFamily: FontFamily.dMSans,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: ColorName.secondary,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.space8),
+        Text(
+          activity.title,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontFamily: FontFamily.dMSans,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: ColorName.primaryDark,
+            height: 1.3,
+          ),
+        ),
+        if (meta != null) ...[
+          const SizedBox(height: AppSpacing.space4),
+          Text(
+            meta,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontFamily: FontFamily.dMSans,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: ColorName.textMutedLight,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

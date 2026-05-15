@@ -1,9 +1,10 @@
-import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/widgets/create_trip_card.dart';
 import 'package:bagtrip/home/widgets/home_trip_list_card.dart';
+import 'package:bagtrip/home/widgets/home_two_zone_layout.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,72 +17,41 @@ class IdleHomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final brightness = Theme.of(context).brightness;
     final trips = state.upcomingTrips;
     final hasTrips = trips.isNotEmpty;
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: PersonalizationColors.backgroundGradientOf(brightness),
-        ),
-      ),
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.space16,
-          AppSpacing.space24,
-          AppSpacing.space16,
-          AppSpacing.space24,
-        ),
-        children: [
-          Text(
-            _timeAwareGreeting(state.displayName, l10n),
-            style: TextStyle(
-              fontFamily: FontFamily.dMSerifDisplay,
-              fontSize: 34,
-              fontWeight: FontWeight.w400,
-              color: PersonalizationColors.textPrimaryOf(brightness),
-              height: 1.15,
-              letterSpacing: -0.5,
-            ),
+    final topChildren = <Widget>[
+      if (state.backgroundOngoingTrip != null) const _OngoingTripResumeBanner(),
+    ];
+
+    final bottomChildren = <Widget>[
+      if (!hasTrips)
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.space48),
+          child: CreateTripCard(
+            isFirstTrip: state.isNewUser,
+            subtitle: l10n.homeCreateFirstTripSubtitle,
           ),
-          const SizedBox(height: AppSpacing.space8),
-          Text(
-            _subtitleText(l10n, trips.length),
-            style: TextStyle(
-              fontFamily: FontFamily.dMSans,
-              fontSize: 16,
-              color: PersonalizationColors.textTertiaryOf(brightness),
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.space24),
-          if (state.backgroundOngoingTrip != null) ...[
-            _OngoingTripResumeBanner(),
-            const SizedBox(height: AppSpacing.space16),
-          ],
-          if (!hasTrips) ...[
-            SizedBox(
-              height: MediaQuery.sizeOf(context).height * 0.6,
-              child: CreateTripCard(
-                isFirstTrip: state.isNewUser,
-                subtitle: l10n.homeCreateFirstTripSubtitle,
-              ),
-            ),
-          ] else ...[
-            HomeTripListSection(
-              title: trips.length == 1
-                  ? l10n.homeUpcomingTripsHeaderSingle
-                  : l10n.homeUpcomingTripsHeaderPlural,
-              trips: trips,
-            ),
-            const SizedBox(height: AppSpacing.space8),
-            CreateTripCard(isFirstTrip: state.isNewUser),
-          ],
-        ],
-      ),
+        )
+      else ...[
+        HomeTripListSection(
+          compactHeader: true,
+          title: trips.length == 1
+              ? l10n.homeUpcomingTripsHeaderSingle
+              : l10n.homeUpcomingTripsHeaderPlural,
+          trips: trips,
+        ),
+        const SizedBox(height: AppSpacing.space8),
+        CreateTripCard(isFirstTrip: state.isNewUser),
+      ],
+    ];
+
+    return HomeTwoZoneLayout(
+      includeTopSafeArea: true,
+      greeting: _timeAwareGreeting(state.displayName, l10n),
+      subtitle: _subtitleText(l10n, trips.length),
+      topChildren: topChildren,
+      bottomChildren: bottomChildren,
     );
   }
 
@@ -101,6 +71,8 @@ class IdleHomeView extends StatelessWidget {
 }
 
 class _OngoingTripResumeBanner extends StatelessWidget {
+  const _OngoingTripResumeBanner();
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -113,8 +85,9 @@ class _OngoingTripResumeBanner extends StatelessWidget {
         borderRadius: AppRadius.large16,
         child: Ink(
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
+            color: ColorName.surface,
             borderRadius: AppRadius.large16,
+            border: Border.all(color: ColorName.surface),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x140E1A2B),

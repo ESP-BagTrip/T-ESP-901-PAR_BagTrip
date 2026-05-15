@@ -3614,6 +3614,12 @@ abstract class AppLocalizations {
   /// **'VOYAGE EN COURS'**
   String get homeActiveTripEyebrow;
 
+  /// No description provided for @homeActiveTripTravelersAbbrev.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} pers.'**
+  String homeActiveTripTravelersAbbrev(int count);
+
   /// No description provided for @homeNavPillTitle.
   ///
   /// In fr, this message translates to:

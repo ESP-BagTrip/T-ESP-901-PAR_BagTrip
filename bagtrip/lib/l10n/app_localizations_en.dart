@@ -1972,6 +1972,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeActiveTripEyebrow => 'TRIP IN PROGRESS';
 
   @override
+  String homeActiveTripTravelersAbbrev(int count) {
+    return '$count ppl';
+  }
+
+  @override
   String get homeNavPillTitle => 'Trips & home';
 
   @override
