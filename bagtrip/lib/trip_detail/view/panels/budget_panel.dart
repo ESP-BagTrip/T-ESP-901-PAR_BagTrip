@@ -5,6 +5,7 @@ import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/category_mappers.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/item_form_scaffold.dart';
 import 'package:bagtrip/design/widgets/review/budget_alert_banner.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/design/widgets/review/sheets/quick_preview_sheet.dart';
@@ -45,11 +46,9 @@ class BudgetPanel extends StatelessWidget {
 
   Future<void> _showAddSheet(BuildContext context) async {
     final bloc = context.read<TripDetailBloc>();
-    await showModalBottomSheet<void>(
+    await showItemFormSheet<void>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => BudgetItemForm(
+      child: BudgetItemForm(
         tripId: tripId,
         onSave: (data) {
           AppHaptics.medium();
@@ -61,11 +60,9 @@ class BudgetPanel extends StatelessWidget {
 
   Future<void> _showEditSheet(BuildContext context, BudgetItem item) async {
     final bloc = context.read<TripDetailBloc>();
-    await showModalBottomSheet<void>(
+    await showItemFormSheet<void>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => BudgetItemForm(
+      child: BudgetItemForm(
         tripId: tripId,
         item: item,
         onSave: (data) {

@@ -1,8 +1,9 @@
 import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
-import 'package:bagtrip/components/elegant_empty_state.dart';
+import 'package:bagtrip/trip_detail/view/panels/trip_panel_empty_state.dart';
 import 'package:bagtrip/core/trip_enums.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/item_form_scaffold.dart';
 import 'package:bagtrip/design/widgets/flight_validation_branch_sheet.dart';
 import 'package:bagtrip/design/widgets/item_status_chip.dart';
 import 'package:bagtrip/design/widgets/replace_search_sheet.dart';
@@ -35,6 +36,7 @@ class FlightsPanel extends StatelessWidget {
     super.key,
     required this.tripId,
     required this.flights,
+    this.tripStartDate,
     required this.canEdit,
     required this.isCompleted,
     required this.role,
@@ -43,6 +45,7 @@ class FlightsPanel extends StatelessWidget {
 
   final String tripId;
   final List<ManualFlight> flights;
+  final DateTime? tripStartDate;
   final bool canEdit;
   final bool isCompleted;
   final String role;
@@ -53,11 +56,9 @@ class FlightsPanel extends StatelessWidget {
 
   Future<void> _showAddSheet(BuildContext context) async {
     final bloc = context.read<TripDetailBloc>();
-    await showModalBottomSheet<void>(
+    await showItemFormSheet<void>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => ManualFlightForm(
+      child: ManualFlightForm(
         tripId: tripId,
         onSave: (data) {
           AppHaptics.medium();
@@ -69,11 +70,9 @@ class FlightsPanel extends StatelessWidget {
 
   Future<void> _showEditSheet(BuildContext context, ManualFlight flight) async {
     final bloc = context.read<TripDetailBloc>();
-    await showModalBottomSheet<void>(
+    await showItemFormSheet<void>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => ManualFlightForm(
+      child: ManualFlightForm(
         tripId: tripId,
         existing: flight,
         onSave: (data) {
@@ -420,11 +419,12 @@ class FlightsPanel extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ElegantEmptyState(
+            TripPanelEmptyState(
               icon: Icons.flight_takeoff_rounded,
               title: l10n.emptyFlightsTitle,
-              subtitle: canEdit ? l10n.emptyFlightsSubtitle : null,
-              ctaLabel: canEdit ? l10n.panelQuickAddFlight : null,
+              ctaLabel: l10n.emptyFlightsAddNow,
+              tripStartDate: tripStartDate,
+              canEdit: canEdit,
               onCta: canEdit ? () => _showAddSheet(context) : null,
             ),
             if (canEdit) ...[

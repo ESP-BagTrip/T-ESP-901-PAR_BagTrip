@@ -1,9 +1,10 @@
 import 'package:bagtrip/activities/widgets/activity_form.dart';
 import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
-import 'package:bagtrip/components/elegant_empty_state.dart';
+import 'package:bagtrip/trip_detail/view/panels/trip_panel_empty_state.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/category_mappers.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/item_form_scaffold.dart';
 import 'package:bagtrip/design/widgets/review/activity_tile.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/design/widgets/review/sheets/quick_preview_sheet.dart';
@@ -119,11 +120,9 @@ class ActivitiesPanel extends StatelessWidget {
   Future<void> _showAddSheet(BuildContext context) async {
     final bloc = context.read<TripDetailBloc>();
     final initialDate = _dayDateFor(_safeIndex);
-    await showModalBottomSheet<void>(
+    await showItemFormSheet<void>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => ActivityForm(
+      child: ActivityForm(
         tripId: tripId,
         initialDate: initialDate,
         onSave: (data) {
@@ -136,11 +135,9 @@ class ActivitiesPanel extends StatelessWidget {
 
   Future<void> _showEditSheet(BuildContext context, Activity activity) async {
     final bloc = context.read<TripDetailBloc>();
-    await showModalBottomSheet<void>(
+    await showItemFormSheet<void>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => ActivityForm(
+      child: ActivityForm(
         tripId: tripId,
         activity: activity,
         onSave: (data) {
@@ -222,11 +219,12 @@ class ActivitiesPanel extends StatelessWidget {
     if (activities.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(AppSpacing.space24),
-        child: ElegantEmptyState(
+        child: TripPanelEmptyState(
           icon: Icons.hiking_rounded,
           title: l10n.emptyActivitiesTitle,
-          subtitle: canEdit ? l10n.emptyActivitiesSubtitle : null,
-          ctaLabel: canEdit ? l10n.panelQuickAddActivity : null,
+          ctaLabel: l10n.emptyActivitiesAddNow,
+          tripStartDate: tripStartDate,
+          canEdit: canEdit,
           onCta: canEdit ? () => _showAddSheet(context) : null,
         ),
       );

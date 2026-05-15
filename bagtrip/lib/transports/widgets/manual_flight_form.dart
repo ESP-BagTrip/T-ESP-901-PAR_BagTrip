@@ -1,6 +1,10 @@
 import 'package:bagtrip/components/adaptive/adaptive_date_picker.dart';
 import 'package:bagtrip/components/adaptive/adaptive_time_picker.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/form/form_section_header.dart';
+import 'package:bagtrip/design/widgets/form/item_form_primary_button.dart';
+import 'package:bagtrip/design/widgets/form/micro_label_field.dart';
+import 'package:bagtrip/design/widgets/form/pill_dual_segment.dart';
 import 'package:bagtrip/design/widgets/item_form_scaffold.dart';
 import 'package:bagtrip/design/widgets/item_status_chip.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -40,6 +44,8 @@ class ManualFlightForm extends StatefulWidget {
 }
 
 class _ManualFlightFormState extends State<ManualFlightForm> {
+  static const _datePlaceholder = '--/-- --:--';
+
   final _formKey = GlobalKey<FormState>();
   final _flightNumberCtrl = TextEditingController();
   final _airlineCtrl = TextEditingController();
@@ -72,7 +78,7 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
       _departureDate = flight.departureDate;
       _arrivalDate = flight.arrivalDate;
       if (flight.price != null) {
-        _priceCtrl.text = flight.price!.toStringAsFixed(2);
+        _priceCtrl.text = flight.price!.toStringAsFixed(0);
       }
       if (flight.notes != null) _notesCtrl.text = flight.notes!;
       _flightType = flight.flightType;
@@ -97,6 +103,13 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
     _priceCtrl.dispose();
     _notesCtrl.dispose();
     super.dispose();
+  }
+
+  String _formatDateTime(DateTime dt) {
+    return '${dt.day.toString().padLeft(2, '0')}/'
+        '${dt.month.toString().padLeft(2, '0')} '
+        '${dt.hour.toString().padLeft(2, '0')}:'
+        '${dt.minute.toString().padLeft(2, '0')}';
   }
 
   void _submit() {
@@ -179,6 +192,10 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
     return ItemStatusChip.fromBackend(f.validationStatus.name.toUpperCase());
   }
 
+  Widget _fieldIcon(IconData icon) {
+    return Icon(icon, size: 18, color: ColorName.hint);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -186,26 +203,25 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
     return Form(
       key: _formKey,
       child: ItemFormScaffold(
-        title: _isEditMode ? l10n.editFlight : l10n.addManuallyOption,
+        title: _isEditMode ? l10n.editFlight : l10n.addFlight,
         statusKind: _statusKindFor(widget.existing),
         fields: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ── Section 1 — Route ─────────────────────────────────
-            _SectionLabel(label: l10n.routeSectionLabel),
-            const SizedBox(height: 8),
+            FormSectionHeader(
+              label: l10n.routeSectionLabel,
+              icon: Icons.alt_route,
+            ),
             Row(
               children: [
                 Expanded(
-                  child: TextFormField(
+                  child: MicroLabelField(
+                    label: l10n.departureAirportLabel,
                     controller: _depAirportCtrl,
-                    decoration: InputDecoration(
-                      labelText: l10n.departureAirportLabel,
-                      hintText: 'CDG',
-                      errorText: _airportsError,
-                    ),
+                    hint: 'CDG',
                     textCapitalization: TextCapitalization.characters,
+                    errorText: _airportsError,
                     onChanged: (_) {
                       if (_airportsError != null) {
                         setState(() => _airportsError = null);
@@ -213,16 +229,14 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
                     },
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.space12),
                 Expanded(
-                  child: TextFormField(
+                  child: MicroLabelField(
+                    label: l10n.arrivalAirportLabel,
                     controller: _arrAirportCtrl,
-                    decoration: InputDecoration(
-                      labelText: l10n.arrivalAirportLabel,
-                      hintText: 'NRT',
-                      errorText: _airportsError != null ? '' : null,
-                    ),
+                    hint: 'KEF',
                     textCapitalization: TextCapitalization.characters,
+                    errorText: _airportsError != null ? ' ' : null,
                     onChanged: (_) {
                       if (_airportsError != null) {
                         setState(() => _airportsError = null);
@@ -232,156 +246,122 @@ class _ManualFlightFormState extends State<ManualFlightForm> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            TextFormField(
+            const SizedBox(height: AppSpacing.space12),
+            MicroLabelField(
+              label: l10n.flightNumberLabel,
               controller: _flightNumberCtrl,
-              decoration: InputDecoration(
-                labelText: l10n.flightNumberLabel,
-                hintText: 'AF1234',
-              ),
+              hint: 'AF 123',
+              prefixIcon: _fieldIcon(Icons.flight),
               textCapitalization: TextCapitalization.characters,
               validator: (v) => v == null || v.trim().isEmpty
                   ? l10n.flightNumberRequired
                   : null,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.space24),
 
-            // ── Section 2 — Schedule ──────────────────────────────
-            _SectionLabel(label: l10n.scheduleSectionLabel),
-            const SizedBox(height: 8),
+            FormSectionHeader(
+              label: l10n.scheduleSectionLabel,
+              icon: Icons.schedule,
+            ),
             Row(
               children: [
                 Expanded(
-                  child: _DatePickerTile(
-                    label: l10n.departureDateLabel,
-                    value: _departureDate,
+                  child: MicroLabelField(
+                    label: l10n.departureAirportLabel,
+                    readOnly: true,
+                    displayValue: _departureDate != null
+                        ? _formatDateTime(_departureDate!)
+                        : _datePlaceholder,
                     onTap: () => _pickDateTime(isDeparture: true),
                     errorText: _datesError,
+                    suffixIcon: _fieldIcon(Icons.calendar_today_outlined),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.space12),
                 Expanded(
-                  child: _DatePickerTile(
-                    label: l10n.arrivalDateLabel,
-                    value: _arrivalDate,
+                  child: MicroLabelField(
+                    label: l10n.arrivalAirportLabel,
+                    readOnly: true,
+                    displayValue: _arrivalDate != null
+                        ? _formatDateTime(_arrivalDate!)
+                        : _datePlaceholder,
                     onTap: () => _pickDateTime(isDeparture: false),
-                    errorText: _datesError != null ? '' : null,
+                    errorText: _datesError != null ? ' ' : null,
+                    suffixIcon: _fieldIcon(Icons.calendar_today_outlined),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.space24),
 
-            // ── Section 3 — Details ───────────────────────────────
-            _SectionLabel(label: l10n.detailsSectionLabel),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _airlineCtrl,
-              decoration: InputDecoration(labelText: l10n.airlineLabel),
+            FormSectionHeader(
+              label: l10n.detailsSectionLabel,
+              icon: Icons.layers_outlined,
             ),
-            const SizedBox(height: 12),
-            SegmentedButton<String>(
+            MicroLabelField(
+              label: l10n.airlineLabel,
+              controller: _airlineCtrl,
+              hint: 'Air France, EasyJet…',
+              prefixIcon: _fieldIcon(Icons.layers_outlined),
+            ),
+            const SizedBox(height: AppSpacing.space12),
+            PillDualSegment<String>(
+              value: _flightType,
+              onChanged: (v) => setState(() => _flightType = v),
               segments: [
-                ButtonSegment(value: 'MAIN', label: Text(l10n.mainFlightType)),
-                ButtonSegment(
+                PillDualSegmentOption(
+                  value: 'MAIN',
+                  label: l10n.mainFlightType,
+                ),
+                PillDualSegmentOption(
                   value: 'INTERNAL',
-                  label: Text(l10n.internalFlightType),
+                  label: l10n.internalFlightType,
                 ),
               ],
-              selected: {_flightType},
-              onSelectionChanged: (v) => setState(() => _flightType = v.first),
             ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _priceCtrl,
-              decoration: InputDecoration(
-                labelText: l10n.priceLabel,
-                suffixText: '€',
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _notesCtrl,
-              decoration: InputDecoration(labelText: l10n.notesLabel),
-              maxLines: 2,
+            const SizedBox(height: AppSpacing.space12),
+            Row(
+              children: [
+                Expanded(
+                  child: MicroLabelField(
+                    label: l10n.priceLabel,
+                    controller: _priceCtrl,
+                    hint: '0',
+                    keyboardType: TextInputType.number,
+                    prefixIcon: _fieldIcon(Icons.attach_money),
+                    suffixIcon: const Padding(
+                      padding: EdgeInsets.only(left: AppSpacing.space4),
+                      child: Text(
+                        '€',
+                        style: TextStyle(
+                          fontFamily: FontFamily.b612,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: ColorName.primaryTrueDark,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.space12),
+                Expanded(
+                  child: MicroLabelField(
+                    label: l10n.notesLabel,
+                    controller: _notesCtrl,
+                    hint: l10n.fieldOptionalHint,
+                    prefixIcon: _fieldIcon(Icons.chat_bubble_outline),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
         actions: [
-          FilledButton(
+          ItemFormPrimaryButton(
+            label: _isEditMode ? l10n.saveButton : l10n.addFlight,
             onPressed: _submit,
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              backgroundColor: ColorName.primary,
-            ),
-            child: Text(
-              _isEditMode ? l10n.saveButton : l10n.addFlight,
-              style: const TextStyle(
-                fontFamily: FontFamily.b612,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _SectionLabel extends StatelessWidget {
-  final String label;
-
-  const _SectionLabel({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: const TextStyle(
-        fontFamily: FontFamily.b612,
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: ColorName.textMutedLight,
-      ),
-    );
-  }
-}
-
-class _DatePickerTile extends StatelessWidget {
-  final String label;
-  final DateTime? value;
-  final VoidCallback onTap;
-  final String? errorText;
-
-  const _DatePickerTile({
-    required this.label,
-    required this.value,
-    required this.onTap,
-    this.errorText,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: AppRadius.medium8,
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: label,
-          suffixIcon: const Icon(Icons.calendar_today, size: 18),
-          errorText: errorText,
-        ),
-        child: Text(
-          value != null
-              ? '${value!.day}/${value!.month}/${value!.year} ${value!.hour.toString().padLeft(2, '0')}:${value!.minute.toString().padLeft(2, '0')}'
-              : '--/--/---- --:--',
-          style: TextStyle(
-            fontFamily: FontFamily.b612,
-            fontSize: 14,
-            color: value != null ? ColorName.primaryTrueDark : ColorName.hint,
-          ),
-        ),
       ),
     );
   }

@@ -1,8 +1,9 @@
 import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
-import 'package:bagtrip/components/elegant_empty_state.dart';
+import 'package:bagtrip/trip_detail/view/panels/trip_panel_empty_state.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/item_form_scaffold.dart';
 import 'package:bagtrip/design/widgets/review/sheets/quick_preview_sheet.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -22,21 +23,21 @@ class SharesPanel extends StatelessWidget {
     super.key,
     required this.tripId,
     required this.shares,
+    this.tripStartDate,
     required this.role,
   });
 
   final String tripId;
   final List<TripShare> shares;
+  final DateTime? tripStartDate;
   final String role;
 
   Future<void> _showInviteSheet(BuildContext context) async {
     final bloc = context.read<TripDetailBloc>();
     final l10n = AppLocalizations.of(context)!;
-    await showModalBottomSheet<void>(
+    await showItemFormSheet<void>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => ShareInviteSheet(
+      child: ShareInviteSheet(
         tripId: tripId,
         onSubmit: ({required email, required role, message}) {
           AppHaptics.medium();
@@ -92,11 +93,12 @@ class SharesPanel extends StatelessWidget {
     if (shares.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(AppSpacing.space24),
-        child: ElegantEmptyState(
+        child: TripPanelEmptyState(
           icon: Icons.people_alt_rounded,
           title: l10n.emptySharesTitle,
-          subtitle: l10n.emptySharesSubtitle,
-          ctaLabel: l10n.panelInviteCollaborator,
+          ctaLabel: l10n.emptySharesAddNow,
+          tripStartDate: tripStartDate,
+          canEdit: true,
           onCta: () => _showInviteSheet(context),
         ),
       );

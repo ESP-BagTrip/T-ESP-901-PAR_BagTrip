@@ -210,6 +210,7 @@ class _LoadedTripViewState extends State<_LoadedTripView>
                         FlightsPanel(
                           tripId: widget.tripId,
                           flights: state.flights,
+                          tripStartDate: state.trip.startDate,
                           canEdit: _canEdit,
                           isCompleted: state.isCompleted,
                           role: state.trip.role ?? 'OWNER',
@@ -254,6 +255,7 @@ class _LoadedTripViewState extends State<_LoadedTripView>
                           SharesPanel(
                             tripId: widget.tripId,
                             shares: state.shares,
+                            tripStartDate: state.trip.startDate,
                             role: state.trip.role ?? 'OWNER',
                           ),
                       ],

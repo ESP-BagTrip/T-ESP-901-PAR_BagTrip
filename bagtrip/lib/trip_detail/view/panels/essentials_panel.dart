@@ -5,6 +5,7 @@ import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/item_form_scaffold.dart';
 import 'package:bagtrip/design/widgets/review/pack_item.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/design/widgets/review/progress_strip.dart';
@@ -83,11 +84,9 @@ class _EssentialsPanelState extends State<EssentialsPanel> {
 
   Future<void> _showAddSheet() async {
     final bloc = context.read<TripDetailBloc>();
-    await showModalBottomSheet<void>(
+    await showItemFormSheet<void>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => BaggageAddForm(
+      child: BaggageAddForm(
         tripId: widget.tripId,
         onSubmit: (data) {
           AppHaptics.medium();
@@ -99,11 +98,9 @@ class _EssentialsPanelState extends State<EssentialsPanel> {
 
   Future<void> _showEditSheet(BaggageItem item) async {
     final bloc = context.read<TripDetailBloc>();
-    await showModalBottomSheet<void>(
+    await showItemFormSheet<void>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => BaggageEditForm(
+      child: BaggageEditForm(
         tripId: widget.tripId,
         item: item,
         onSubmit: (data) {

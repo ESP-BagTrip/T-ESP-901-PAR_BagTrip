@@ -1345,6 +1345,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get notesLabel => 'Notes';
 
   @override
+  String get fieldOptionalHint => 'Optionnel';
+
+  @override
   String get mainFlightType => 'Principal';
 
   @override
@@ -1491,23 +1494,49 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ajoutez vos vols pour organiser votre voyage';
 
   @override
-  String get emptyAccommodationsTitle => 'Où dormirez-vous ?';
+  String get emptyAccommodationsTitle =>
+      'Vous n\'avez pas d\'hébergement enregistré';
+
+  @override
+  String get emptyAccommodationsAddNow => 'Ajouter maintenant';
 
   @override
   String get emptyAccommodationsSubtitle => 'Ajoutez vos hôtels et logements';
 
   @override
-  String get emptyFlightsTitle => 'Prêt à décoller ?';
+  String get emptyFlightsTitle => 'Vous n\'avez pas de vol enregistré';
 
   @override
-  String get emptyFlightsSubtitle =>
-      'Ajoutez vos vols pour suivre dates et horaires';
+  String get emptyFlightsAddNow => 'Ajouter maintenant';
+
+  @override
+  String flightsPanelEmptyCountdownDays(int days) {
+    return 'Il vous reste $days jours avant le départ.';
+  }
+
+  @override
+  String flightsPanelEmptyCountdownDaysHighlight(int days) {
+    return '$days jours';
+  }
+
+  @override
+  String flightsPanelEmptyCountdownHm(int hours, int minutes) {
+    return 'Il vous reste ${hours}h ${minutes}m avant le départ.';
+  }
+
+  @override
+  String flightsPanelEmptyCountdownHmHighlight(int hours, int minutes) {
+    return '${hours}h ${minutes}m';
+  }
 
   @override
   String get noActivitiesThisDay => 'Rien de prévu ce jour';
 
   @override
-  String get emptyActivitiesTitle => 'Que découvrirez-vous ?';
+  String get emptyActivitiesTitle => 'Vous n\'avez pas d\'activité enregistrée';
+
+  @override
+  String get emptyActivitiesAddNow => 'Ajouter maintenant';
 
   @override
   String get emptyActivitiesSubtitle =>
@@ -1526,7 +1555,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get emptySharesTitle => 'Voyagez ensemble';
+  String get emptySharesTitle => 'Vous n\'avez pas invité de compagnon';
+
+  @override
+  String get emptySharesAddNow => 'Inviter maintenant';
 
   @override
   String get emptySharesSubtitle =>

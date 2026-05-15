@@ -647,6 +647,7 @@
   "arrivalDateLabel": "Date d'arrivée",
   "priceLabel": "Prix",
   "notesLabel": "Notes",
+  "fieldOptionalHint": "Optionnel",
   "mainFlightType": "Principal",
   "internalFlightType": "Interne",
   "editButton": "Modifier",
@@ -706,12 +707,40 @@
   "statusCompleted": "Terminé",
   "emptyTransportsTitle": "Où volez-vous ?",
   "emptyTransportsSubtitle": "Ajoutez vos vols pour organiser votre voyage",
-  "emptyAccommodationsTitle": "Où dormirez-vous ?",
+  "emptyAccommodationsTitle": "Vous n'avez pas d'hébergement enregistré",
+  "emptyAccommodationsAddNow": "Ajouter maintenant",
   "emptyAccommodationsSubtitle": "Ajoutez vos hôtels et logements",
-  "emptyFlightsTitle": "Prêt à décoller ?",
-  "emptyFlightsSubtitle": "Ajoutez vos vols pour suivre dates et horaires",
+  "emptyFlightsTitle": "Vous n'avez pas de vol enregistré",
+  "emptyFlightsAddNow": "Ajouter maintenant",
+  "flightsPanelEmptyCountdownDays": "Il vous reste {days} jours avant le départ.",
+  "@flightsPanelEmptyCountdownDays": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "flightsPanelEmptyCountdownDaysHighlight": "{days} jours",
+  "@flightsPanelEmptyCountdownDaysHighlight": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "flightsPanelEmptyCountdownHm": "Il vous reste {hours}h {minutes}m avant le départ.",
+  "@flightsPanelEmptyCountdownHm": {
+    "placeholders": {
+      "hours": {"type": "int"},
+      "minutes": {"type": "int"}
+    }
+  },
+  "flightsPanelEmptyCountdownHmHighlight": "{hours}h {minutes}m",
+  "@flightsPanelEmptyCountdownHmHighlight": {
+    "placeholders": {
+      "hours": {"type": "int"},
+      "minutes": {"type": "int"}
+    }
+  },
   "noActivitiesThisDay": "Rien de prévu ce jour",
-  "emptyActivitiesTitle": "Que découvrirez-vous ?",
+  "emptyActivitiesTitle": "Vous n'avez pas d'activité enregistrée",
+  "emptyActivitiesAddNow": "Ajouter maintenant",
   "emptyActivitiesSubtitle": "Ajoutez des activités pour planifier votre voyage",
   "emptyBaggageTitle": "Que faut-il emporter ?",
   "emptyBaggageSubtitle": "Ajoutez des éléments à votre liste de bagages",
@@ -722,7 +751,8 @@
       "total": {"type": "int"}
     }
   },
-  "emptySharesTitle": "Voyagez ensemble",
+  "emptySharesTitle": "Vous n'avez pas invité de compagnon",
+  "emptySharesAddNow": "Inviter maintenant",
   "emptySharesSubtitle": "Invitez des compagnons pour collaborer sur ce voyage",
   "budgetSeeAllExpenses": "Voir toutes les dépenses",
   "budgetOverBudgetBanner": "Dépassement de {amount}",

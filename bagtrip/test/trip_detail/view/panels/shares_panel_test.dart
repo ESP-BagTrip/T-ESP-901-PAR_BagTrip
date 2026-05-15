@@ -1,6 +1,6 @@
 // ignore_for_file: avoid_redundant_argument_values
 
-import 'package:bagtrip/components/elegant_empty_state.dart';
+import 'package:bagtrip/trip_detail/view/panels/trip_panel_empty_state.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip_share.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
@@ -81,8 +81,8 @@ void main() {
       tester,
       const SharesPanel(tripId: 'trip-1', shares: [], role: 'OWNER'),
     );
-    expect(find.byType(ElegantEmptyState), findsOneWidget);
-    expect(find.text('Invite'), findsOneWidget);
+    expect(find.byType(TripPanelEmptyState), findsOneWidget);
+    expect(find.text('Invite now'), findsOneWidget);
   });
 
   testWidgets('renders invite button above share list', (tester) async {

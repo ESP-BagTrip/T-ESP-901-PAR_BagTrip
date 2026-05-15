@@ -1,6 +1,6 @@
 // ignore_for_file: avoid_redundant_argument_values
 
-import 'package:bagtrip/components/elegant_empty_state.dart';
+import 'package:bagtrip/trip_detail/view/panels/trip_panel_empty_state.dart';
 import 'package:bagtrip/design/widgets/review/activity_tile.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -84,8 +84,8 @@ void main() {
         role: 'OWNER',
       ),
     );
-    expect(find.byType(ElegantEmptyState), findsOneWidget);
-    expect(find.text('Add activity'), findsOneWidget);
+    expect(find.byType(TripPanelEmptyState), findsOneWidget);
+    expect(find.text('Add now'), findsOneWidget);
   });
 
   testWidgets('renders ActivityTile rows for the selected day', (tester) async {

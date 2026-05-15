@@ -1334,6 +1334,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notesLabel => 'Notes';
 
   @override
+  String get fieldOptionalHint => 'Optional';
+
+  @override
   String get mainFlightType => 'Main';
 
   @override
@@ -1479,23 +1482,48 @@ class AppLocalizationsEn extends AppLocalizations {
       'Add your flights to start organizing your trip';
 
   @override
-  String get emptyAccommodationsTitle => 'Where will you stay?';
+  String get emptyAccommodationsTitle => 'You don\'t have a stay saved yet';
+
+  @override
+  String get emptyAccommodationsAddNow => 'Add now';
 
   @override
   String get emptyAccommodationsSubtitle => 'Add your hotels and lodgings';
 
   @override
-  String get emptyFlightsTitle => 'Ready to fly?';
+  String get emptyFlightsTitle => 'You don\'t have a flight saved yet';
 
   @override
-  String get emptyFlightsSubtitle =>
-      'Add your flights to track dates and times';
+  String get emptyFlightsAddNow => 'Add now';
+
+  @override
+  String flightsPanelEmptyCountdownDays(int days) {
+    return 'You have $days days left before departure.';
+  }
+
+  @override
+  String flightsPanelEmptyCountdownDaysHighlight(int days) {
+    return '$days days';
+  }
+
+  @override
+  String flightsPanelEmptyCountdownHm(int hours, int minutes) {
+    return 'You have ${hours}h ${minutes}m left before departure.';
+  }
+
+  @override
+  String flightsPanelEmptyCountdownHmHighlight(int hours, int minutes) {
+    return '${hours}h ${minutes}m';
+  }
 
   @override
   String get noActivitiesThisDay => 'Nothing planned for this day yet';
 
   @override
-  String get emptyActivitiesTitle => 'What will you discover?';
+  String get emptyActivitiesTitle => 'You don\'t have an activity saved yet';
+
+  @override
+  String get emptyActivitiesAddNow => 'Add now';
 
   @override
   String get emptyActivitiesSubtitle => 'Add activities to plan your trip';
@@ -1512,7 +1540,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get emptySharesTitle => 'Travel together';
+  String get emptySharesTitle => 'You haven\'t invited anyone yet';
+
+  @override
+  String get emptySharesAddNow => 'Invite now';
 
   @override
   String get emptySharesSubtitle =>

@@ -1,8 +1,13 @@
 import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/form/form_section_header.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/design/widgets/form/item_form_primary_button.dart';
+import 'package:bagtrip/design/widgets/form/micro_label_field.dart';
+import 'package:bagtrip/design/widgets/form/pill_segmented_control.dart';
+import 'package:bagtrip/design/widgets/item_form_scaffold.dart';
 import 'package:bagtrip/design/widgets/premium_paywall.dart';
-import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/trips/bloc/trip_share_bloc.dart';
 import 'package:flutter/material.dart';
@@ -12,11 +17,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class ShareInviteSheet extends StatefulWidget {
   final String tripId;
 
-  /// Optional submission hook. When provided, the sheet invokes
-  /// `onSubmit(email, role, message?)` and the caller dispatches to
-  /// whichever bloc owns the trip state (e.g. `TripDetailBloc` from a
-  /// panel). When `null`, falls back to dispatching `CreateShare` on
-  /// the ambient `TripShareBloc`.
   final void Function({
     required String email,
     required String role,
@@ -67,127 +67,98 @@ class _ShareInviteSheetState extends State<ShareInviteSheet> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildForm(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    final form = Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Padding(
-        padding: EdgeInsets.only(
-          left: AppSpacing.space16,
-          right: AppSpacing.space16,
-          top: AppSpacing.space12,
-          bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.space24,
+    return Form(
+      key: _formKey,
+      child: ItemFormScaffold(
+        title: l10n.shareInviteTitle,
+        fields: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            FormSectionHeader(
+              label: l10n.shareInviteEmailLabel,
+              icon: Icons.mail_outline,
+            ),
+            MicroLabelField(
+              label: l10n.shareInviteEmailLabel,
+              controller: _emailController,
+              hint: l10n.shareInviteEmailHint,
+              keyboardType: TextInputType.emailAddress,
+              prefixIcon: const Icon(
+                Icons.email_outlined,
+                size: 18,
+                color: ColorName.hint,
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return l10n.shareInviteEmailRequired;
+                }
+                if (!_emailRegex.hasMatch(value.trim())) {
+                  return l10n.shareInviteEmailInvalid;
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: AppSpacing.space24),
+            FormSectionHeader(
+              label: l10n.shareRoleViewer,
+              icon: Icons.admin_panel_settings_outlined,
+            ),
+            PillSegmentedControl<String>(
+              value: _selectedRole,
+              onChanged: (r) => setState(() => _selectedRole = r),
+              segments: [
+                PillSegmentOption(
+                  value: 'VIEWER',
+                  label: l10n.shareRoleViewer,
+                  icon: Icons.visibility_outlined,
+                ),
+                PillSegmentOption(
+                  value: 'EDITOR',
+                  label: l10n.shareRoleEditor,
+                  icon: Icons.edit_outlined,
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.space24),
+            FormSectionHeader(
+              label: l10n.shareInviteMessageLabel,
+              icon: Icons.chat_bubble_outline,
+            ),
+            MicroLabelField(
+              label: l10n.notesLabel,
+              controller: _messageController,
+              hint: l10n.shareInviteMessageHint,
+              maxLines: 3,
+              prefixIcon: const Icon(
+                Icons.message_outlined,
+                size: 18,
+                color: ColorName.hint,
+              ),
+            ),
+          ],
         ),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Handle bar
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.space16),
-
-              // Title
-              Text(
-                l10n.shareInviteTitle,
-                style: const TextStyle(
-                  fontFamily: FontFamily.b612,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.space16),
-
-              // Email field
-              TextFormField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                autofocus: true,
-                decoration: InputDecoration(
-                  labelText: l10n.shareInviteEmailLabel,
-                  hintText: l10n.shareInviteEmailHint,
-                  border: const OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.email_outlined),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return l10n.shareInviteEmailRequired;
-                  }
-                  if (!_emailRegex.hasMatch(value.trim())) {
-                    return l10n.shareInviteEmailInvalid;
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: AppSpacing.space12),
-
-              // Role picker
-              SegmentedButton<String>(
-                segments: [
-                  ButtonSegment(
-                    value: 'VIEWER',
-                    label: Text(l10n.shareRoleViewer),
-                    icon: const Icon(Icons.visibility_outlined),
-                  ),
-                  ButtonSegment(
-                    value: 'EDITOR',
-                    label: Text(l10n.shareRoleEditor),
-                    icon: const Icon(Icons.edit_outlined),
-                  ),
-                ],
-                selected: {_selectedRole},
-                onSelectionChanged: (roles) =>
-                    setState(() => _selectedRole = roles.first),
-              ),
-              const SizedBox(height: AppSpacing.space12),
-
-              // Message field
-              TextFormField(
-                controller: _messageController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: l10n.shareInviteMessageLabel,
-                  hintText: l10n.shareInviteMessageHint,
-                  border: const OutlineInputBorder(),
-                  prefixIcon: const Padding(
-                    padding: EdgeInsets.only(bottom: 48),
-                    child: Icon(Icons.message_outlined),
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.space16),
-
-              // Send button
-              FilledButton.icon(
-                onPressed: _submit,
-                icon: const Icon(Icons.person_add),
-                label: Text(l10n.shareInviteSendButton),
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
-            ],
+        actions: [
+          ItemFormPrimaryButton(
+            label: l10n.shareInviteSendButton,
+            icon: Icons.person_add,
+            onPressed: _submit,
           ),
-        ),
+        ],
       ),
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final form = _buildForm(context);
 
     if (widget.onSubmit != null) return form;
+
+    final l10n = AppLocalizations.of(context)!;
 
     return BlocListener<TripShareBloc, TripShareState>(
       listener: (context, state) {
@@ -216,11 +187,6 @@ class _ShareInviteSheetState extends State<ShareInviteSheet> {
           AppSnackBar.showError(context, message: msg);
         }
         if (state is TripShareQuotaExceeded) {
-          // Free plan caps the number of viewers per trip — surface the
-          // paywall (consistent with accommodations/baggage AI quotas)
-          // instead of a toast that the user has no actionable response to.
-          // Close the share sheet first so the paywall doesn't stack on
-          // top of it.
           Navigator.of(context).pop();
           PremiumPaywall.show(context);
         }

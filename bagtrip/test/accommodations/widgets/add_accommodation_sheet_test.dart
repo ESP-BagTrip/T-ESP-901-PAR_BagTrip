@@ -2,6 +2,7 @@
 
 import 'package:bagtrip/accommodations/bloc/accommodation_bloc.dart';
 import 'package:bagtrip/accommodations/widgets/add_accommodation_sheet.dart';
+import 'package:bagtrip/design/widgets/form/form_option_tile.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -77,11 +78,9 @@ void main() {
       expect(find.byType(AddAccommodationSheet), findsOneWidget);
     });
 
-    testWidgets('renders InkWell options for manual and search', (
-      tester,
-    ) async {
+    testWidgets('renders option tiles for manual and search', (tester) async {
       await pump(tester);
-      expect(find.byType(InkWell), findsNWidgets(2));
+      expect(find.byType(FormOptionTile), findsNWidgets(2));
     });
   });
 }

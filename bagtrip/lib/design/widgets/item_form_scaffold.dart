@@ -1,5 +1,7 @@
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/item_status_chip.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:flutter/material.dart';
 
 /// Standard bottom-sheet chrome for every trip-detail item form
@@ -11,6 +13,13 @@ import 'package:flutter/material.dart';
 /// Call sites should never reach for `showModalBottomSheet` directly
 /// for an edit/create item form: use [showItemFormSheet] so the sheet
 /// stays visually consistent across the app.
+class ItemFormSheetLayout {
+  const ItemFormSheetLayout._();
+
+  /// Max height as a fraction of the screen (classic bottom sheet, not fullscreen).
+  static const double maxHeightFactor = 0.8;
+}
+
 class ItemFormScaffold extends StatelessWidget {
   const ItemFormScaffold({
     super.key,
@@ -46,77 +55,94 @@ class ItemFormScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final viewInsets = MediaQuery.of(context).viewInsets;
+    final viewInsets = MediaQuery.viewInsetsOf(context);
+    final safeBottom = MediaQuery.paddingOf(context).bottom;
+    final maxHeight =
+        MediaQuery.sizeOf(context).height * ItemFormSheetLayout.maxHeightFactor;
 
     return Padding(
       padding: EdgeInsets.only(bottom: viewInsets.bottom),
-      child: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(AppRadius.cornerRadius20),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: ColorName.surface,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(AppRadius.cornerRadius20),
+            ),
           ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: AppSpacing.space12),
-            _DragHandle(),
-            const SizedBox(height: AppSpacing.space12),
-            _Header(
-              title: title,
-              subtitle: subtitle,
-              statusKind: statusKind,
-              onClose: onClose ?? () => Navigator.of(context).pop(),
-            ),
-            const Divider(height: 1),
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.space16,
-                  AppSpacing.space16,
-                  AppSpacing.space16,
-                  AppSpacing.space24,
-                ),
-                child: fields,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: AppSpacing.space12),
+              _DragHandle(),
+              const SizedBox(height: AppSpacing.space12),
+              _Header(
+                title: title,
+                subtitle: subtitle,
+                statusKind: statusKind,
+                onClose: onClose ?? () => Navigator.of(context).pop(),
               ),
-            ),
-            if (actions.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.space16,
-                  AppSpacing.space8,
-                  AppSpacing.space16,
-                  AppSpacing.space16,
+              const SizedBox(height: AppSpacing.space4),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.space16,
+                    AppSpacing.space16,
+                    AppSpacing.space16,
+                    AppSpacing.space24,
+                  ),
+                  child: fields,
                 ),
-                child: Row(
-                  children: [
-                    for (var i = 0; i < actions.length; i++) ...[
-                      if (i > 0) const SizedBox(width: AppSpacing.space12),
-                      Expanded(child: actions[i]),
+              ),
+              if (actions.isNotEmpty)
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.space16,
+                    AppSpacing.space8,
+                    AppSpacing.space16,
+                    AppSpacing.space16 + safeBottom,
+                  ),
+                  child: Row(
+                    children: [
+                      for (var i = 0; i < actions.length; i++) ...[
+                        if (i > 0) const SizedBox(width: AppSpacing.space12),
+                        Expanded(child: actions[i]),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-/// Open an [ItemFormScaffold] with the standard chrome (transparent
-/// barrier, top-radius, full-height when keyboard pops). Returns the
-/// value passed to `Navigator.pop`, like a regular bottom sheet.
+/// Opens a bottom sheet with the standard item-form chrome (transparent
+/// barrier, scroll-controlled). Pass [ItemFormScaffold] directly, or a
+/// wrapper such as [ManualFlightForm] that embeds one.
 Future<T?> showItemFormSheet<T>({
   required BuildContext context,
-  required ItemFormScaffold scaffold,
+  required Widget child,
+  double maxHeightFactor = ItemFormSheetLayout.maxHeightFactor,
 }) {
   return showModalBottomSheet<T>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => scaffold,
+    builder: (sheetContext) {
+      final maxHeight =
+          MediaQuery.sizeOf(sheetContext).height * maxHeightFactor;
+      return Align(
+        alignment: Alignment.bottomCenter,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxHeight),
+          child: child,
+        ),
+      );
+    },
   );
 }
 
@@ -171,8 +197,10 @@ class _Header extends StatelessWidget {
                       child: Text(
                         title,
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontFamily: FontFamily.b612,
+                          fontSize: 20,
                           fontWeight: FontWeight.w700,
+                          color: ColorName.primaryTrueDark,
                         ),
                       ),
                     ),
@@ -192,10 +220,26 @@ class _Header extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
-            onPressed: onClose,
-            icon: const Icon(Icons.close),
-            tooltip: MaterialLocalizations.of(context).closeButtonLabel,
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onClose,
+              customBorder: const CircleBorder(),
+              child: Container(
+                width: 36,
+                height: 36,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  color: ColorName.surfaceVariant,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.close,
+                  size: 18,
+                  color: ColorName.textMutedLight,
+                ),
+              ),
+            ),
           ),
         ],
       ),

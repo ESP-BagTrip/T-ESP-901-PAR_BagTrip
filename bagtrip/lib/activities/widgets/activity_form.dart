@@ -4,8 +4,14 @@ import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/category_mappers.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/form/form_choice_chips.dart';
+import 'package:bagtrip/design/widgets/form/form_section_header.dart';
+import 'package:bagtrip/design/widgets/form/item_form_primary_button.dart';
+import 'package:bagtrip/design/widgets/form/micro_label_field.dart';
 import 'package:bagtrip/design/widgets/item_form_scaffold.dart';
 import 'package:bagtrip/design/widgets/item_status_chip.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:flutter/material.dart';
@@ -109,6 +115,7 @@ class _ActivityFormState extends State<ActivityForm> {
     if (_startTime != null) data['startTime'] = _formatTime(_startTime!);
     if (_endTime != null) data['endTime'] = _formatTime(_endTime!);
     widget.onSave(data);
+    Navigator.of(context).pop();
   }
 
   ItemStatusChipKind? _statusKindFor(Activity? a) {
@@ -130,20 +137,33 @@ class _ActivityFormState extends State<ActivityForm> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextFormField(
+            FormSectionHeader(
+              label: l10n.activityTitle,
+              icon: Icons.event_outlined,
+            ),
+            MicroLabelField(
+              label: l10n.activityTitle,
               controller: _titleController,
-              decoration: InputDecoration(
-                labelText: '${l10n.activityTitle} *',
-                border: const OutlineInputBorder(),
-              ),
               validator: (v) =>
                   (v == null || v.isEmpty) ? l10n.activityTitleRequired : null,
             ),
             const SizedBox(height: AppSpacing.space12),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text('Date: ${DateFormat('dd/MM/yyyy').format(_date)}'),
-              trailing: const Icon(Icons.calendar_today),
+            MicroLabelField(
+              label: l10n.activityDescription,
+              controller: _descriptionController,
+              hint: l10n.fieldOptionalHint,
+              maxLines: 2,
+            ),
+            const SizedBox(height: AppSpacing.space24),
+
+            FormSectionHeader(
+              label: l10n.activityStartTime,
+              icon: Icons.schedule,
+            ),
+            MicroLabelField(
+              label: l10n.expenseDate,
+              readOnly: true,
+              displayValue: DateFormat('dd/MM/yyyy').format(_date),
               onTap: () async {
                 final picked = await showAdaptiveDatePicker(
                   context: context,
@@ -153,26 +173,22 @@ class _ActivityFormState extends State<ActivityForm> {
                 );
                 if (picked != null) setState(() => _date = picked);
               },
-            ),
-            TextFormField(
-              controller: _descriptionController,
-              decoration: InputDecoration(
-                labelText: l10n.activityDescription,
-                border: const OutlineInputBorder(),
+              suffixIcon: const Icon(
+                Icons.calendar_today_outlined,
+                size: 18,
+                color: ColorName.hint,
               ),
-              maxLines: 2,
             ),
             const SizedBox(height: AppSpacing.space12),
             Row(
               children: [
                 Expanded(
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(
-                      _startTime != null
-                          ? 'Start: ${_formatTime(_startTime!)}'
-                          : l10n.activityStartTime,
-                    ),
+                  child: MicroLabelField(
+                    label: l10n.activityStartTime,
+                    readOnly: true,
+                    displayValue: _startTime != null
+                        ? _formatTime(_startTime!)
+                        : '--:--',
                     onTap: () async {
                       final picked = await showAdaptiveTimePicker(
                         context: context,
@@ -180,16 +196,21 @@ class _ActivityFormState extends State<ActivityForm> {
                       );
                       if (picked != null) setState(() => _startTime = picked);
                     },
+                    suffixIcon: const Icon(
+                      Icons.access_time,
+                      size: 18,
+                      color: ColorName.hint,
+                    ),
                   ),
                 ),
+                const SizedBox(width: AppSpacing.space12),
                 Expanded(
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(
-                      _endTime != null
-                          ? 'End: ${_formatTime(_endTime!)}'
-                          : l10n.activityEndTime,
-                    ),
+                  child: MicroLabelField(
+                    label: l10n.activityEndTime,
+                    readOnly: true,
+                    displayValue: _endTime != null
+                        ? _formatTime(_endTime!)
+                        : '--:--',
                     onTap: () async {
                       final picked = await showAdaptiveTimePicker(
                         context: context,
@@ -197,78 +218,111 @@ class _ActivityFormState extends State<ActivityForm> {
                       );
                       if (picked != null) setState(() => _endTime = picked);
                     },
+                    suffixIcon: const Icon(
+                      Icons.access_time,
+                      size: 18,
+                      color: ColorName.hint,
+                    ),
                   ),
                 ),
               ],
             ),
-            TextFormField(
+            const SizedBox(height: AppSpacing.space24),
+
+            FormSectionHeader(
+              label: l10n.activityLocation,
+              icon: Icons.place_outlined,
+            ),
+            MicroLabelField(
+              label: l10n.activityLocation,
               controller: _locationController,
-              decoration: InputDecoration(
-                labelText: l10n.activityLocation,
-                border: const OutlineInputBorder(),
+              hint: l10n.fieldOptionalHint,
+              prefixIcon: const Icon(
+                Icons.place_outlined,
+                size: 18,
+                color: ColorName.hint,
               ),
             ),
             const SizedBox(height: AppSpacing.space12),
-            Text(
-              l10n.activityCategory,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(height: AppSpacing.space8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: ActivityCategory.values.map((cat) {
-                final isSelected = _category == cat;
-                final color = cat.color;
-                return ChoiceChip(
-                  avatar: Icon(
-                    cat.icon,
-                    size: 18,
-                    color: isSelected ? Colors.white : color,
-                  ),
-                  label: Text(cat.label(l10n)),
-                  selected: isSelected,
-                  selectedColor: color,
-                  labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : null,
-                  ),
-                  onSelected: (_) {
-                    AppHaptics.light();
-                    setState(() => _category = cat);
-                  },
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: AppSpacing.space12),
-            TextFormField(
+            MicroLabelField(
+              label: l10n.activityEstimatedCost,
               controller: _costController,
-              decoration: InputDecoration(
-                labelText: '${l10n.activityEstimatedCost} (€)',
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.euro),
-              ),
+              hint: '0',
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
+              prefixIcon: const Icon(
+                Icons.euro,
+                size: 18,
+                color: ColorName.hint,
+              ),
             ),
-            const SizedBox(height: AppSpacing.space12),
-            CheckboxListTile.adaptive(
-              contentPadding: EdgeInsets.zero,
-              title: Text(l10n.activityFormBooked),
-              value: _isBooked,
-              onChanged: (v) => setState(() => _isBooked = v ?? false),
+            const SizedBox(height: AppSpacing.space24),
+
+            FormChoiceChips<ActivityCategory>(
+              label: l10n.activityCategory,
+              icon: Icons.category_outlined,
+              value: _category,
+              onChanged: (cat) {
+                AppHaptics.light();
+                setState(() => _category = cat);
+              },
+              options: [
+                for (final cat in ActivityCategory.values)
+                  FormChoiceChipOption(
+                    value: cat,
+                    label: cat.label(l10n),
+                    icon: cat.icon,
+                    iconColor: cat.color,
+                  ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.space16),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => setState(() => _isBooked = !_isBooked),
+                borderRadius: AppRadius.medium12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.space12,
+                    vertical: AppSpacing.space8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: ColorName.surfaceLight,
+                    borderRadius: AppRadius.medium12,
+                    border: Border.all(color: ColorName.border),
+                  ),
+                  child: Row(
+                    children: [
+                      Checkbox(
+                        value: _isBooked,
+                        onChanged: (v) =>
+                            setState(() => _isBooked = v ?? false),
+                        activeColor: ColorName.secondary,
+                      ),
+                      Expanded(
+                        child: Text(
+                          l10n.activityFormBooked,
+                          style: const TextStyle(
+                            fontFamily: FontFamily.b612,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: ColorName.primaryTrueDark,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),
         actions: [
-          FilledButton(
+          ItemFormPrimaryButton(
+            label: isEdit ? l10n.activityFormUpdate : l10n.activityFormCreate,
             onPressed: _submit,
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-            ),
-            child: Text(
-              isEdit ? l10n.activityFormUpdate : l10n.activityFormCreate,
-            ),
           ),
         ],
       ),
