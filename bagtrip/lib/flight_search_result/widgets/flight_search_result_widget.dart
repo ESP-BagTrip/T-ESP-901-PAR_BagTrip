@@ -113,6 +113,7 @@ class FlightSearchResultView extends StatelessWidget {
                   departureDate: state.departureDate,
                   returnDate: state.returnDate,
                   flights: state.flights,
+                  datePrices: state.datePrices,
                 ),
                 const SizedBox(height: AppSpacing.space16),
                 const FilterButton(),
