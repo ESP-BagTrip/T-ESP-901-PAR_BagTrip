@@ -1575,6 +1575,8 @@
   "baggageAllPackedMessage": "All packed — ready to roll.",
   "budgetRecentExpenses": "Recent",
   "activityValidateAction": "Validate",
+  "activitiesPanelGestureHintFull": "Swipe right to validate, left to delete · Tap to view details",
+  "activitiesPanelGestureHintDeleteOnly": "Swipe left to delete · Tap to view details",
   "activitySuggestedBadge": "Suggested",
   "activitiesUnscheduledHeader": "Unscheduled",
   "activitiesViewTimeline": "Timeline",

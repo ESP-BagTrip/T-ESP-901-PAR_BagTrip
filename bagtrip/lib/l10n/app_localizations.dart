@@ -5625,6 +5625,18 @@ abstract class AppLocalizations {
   /// **'Valider'**
   String get activityValidateAction;
 
+  /// No description provided for @activitiesPanelGestureHintFull.
+  ///
+  /// In fr, this message translates to:
+  /// **'Glissez vers la droite pour valider, vers la gauche pour supprimer · Touchez pour voir le détail'**
+  String get activitiesPanelGestureHintFull;
+
+  /// No description provided for @activitiesPanelGestureHintDeleteOnly.
+  ///
+  /// In fr, this message translates to:
+  /// **'Glissez vers la gauche pour supprimer · Touchez pour voir le détail'**
+  String get activitiesPanelGestureHintDeleteOnly;
+
   /// No description provided for @activitySuggestedBadge.
   ///
   /// In fr, this message translates to:

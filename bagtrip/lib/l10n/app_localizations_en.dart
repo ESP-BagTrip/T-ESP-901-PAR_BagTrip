@@ -3136,6 +3136,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activityValidateAction => 'Validate';
 
   @override
+  String get activitiesPanelGestureHintFull =>
+      'Swipe right to validate, left to delete · Tap to view details';
+
+  @override
+  String get activitiesPanelGestureHintDeleteOnly =>
+      'Swipe left to delete · Tap to view details';
+
+  @override
   String get activitySuggestedBadge => 'Suggested';
 
   @override

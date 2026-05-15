@@ -1,13 +1,13 @@
 // ignore_for_file: avoid_redundant_argument_values
 
-import 'package:bagtrip/trip_detail/view/panels/trip_panel_empty_state.dart';
-import 'package:bagtrip/design/widgets/review/activity_tile.dart';
+import 'package:bagtrip/design/widgets/review/activity_panel_card.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
 import 'package:bagtrip/trip_detail/view/panels/activities_panel.dart';
+import 'package:bagtrip/trip_detail/view/panels/trip_panel_empty_state.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -88,7 +88,9 @@ void main() {
     expect(find.text('Add now'), findsOneWidget);
   });
 
-  testWidgets('renders ActivityTile rows for the selected day', (tester) async {
+  testWidgets('renders ActivityPanelCard rows for the selected day', (
+    tester,
+  ) async {
     final activity = makeActivity(id: 'a1', title: 'Temple visit');
     await pump(
       tester,
@@ -103,8 +105,100 @@ void main() {
         role: 'OWNER',
       ),
     );
-    expect(find.byType(ActivityTile), findsOneWidget);
+    expect(find.byType(ActivityPanelCard), findsOneWidget);
     expect(find.text('Temple visit'), findsOneWidget);
+  });
+
+  testWidgets('suggested activity has no inline validate button on card', (
+    tester,
+  ) async {
+    final activity = makeActivity(
+      id: 'a1',
+      validationStatus: ValidationStatus.suggested,
+    );
+    await pump(
+      tester,
+      ActivitiesPanel(
+        tripId: 'trip-1',
+        tripStartDate: activity.date,
+        activities: [activity],
+        totalDays: 1,
+        selectedDayIndex: 0,
+        canEdit: true,
+        isCompleted: false,
+        role: 'OWNER',
+      ),
+    );
+    expect(find.text('Validate'), findsNothing);
+    expect(find.byType(Dismissible), findsOneWidget);
+  });
+
+  testWidgets('shows gesture hint when list is editable and non-empty', (
+    tester,
+  ) async {
+    final activity = makeActivity(id: 'a1');
+    await pump(
+      tester,
+      ActivitiesPanel(
+        tripId: 'trip-1',
+        tripStartDate: activity.date,
+        activities: [activity],
+        totalDays: 1,
+        selectedDayIndex: 0,
+        canEdit: true,
+        isCompleted: false,
+        role: 'OWNER',
+      ),
+    );
+    expect(find.textContaining('Swipe left to delete'), findsOneWidget);
+  });
+
+  testWidgets(
+    'suggested row uses horizontal dismissible for validate and delete',
+    (tester) async {
+      final activity = makeActivity(
+        id: 'a1',
+        validationStatus: ValidationStatus.suggested,
+      );
+      await pump(
+        tester,
+        ActivitiesPanel(
+          tripId: 'trip-1',
+          tripStartDate: activity.date,
+          activities: [activity],
+          totalDays: 1,
+          selectedDayIndex: 0,
+          canEdit: true,
+          isCompleted: false,
+          role: 'OWNER',
+        ),
+      );
+      final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
+      expect(dismissible.direction, DismissDirection.horizontal);
+      expect(dismissible.background, isNotNull);
+      expect(dismissible.secondaryBackground, isNotNull);
+    },
+  );
+
+  testWidgets('validated row only allows delete swipe direction', (
+    tester,
+  ) async {
+    final activity = makeActivity(id: 'a1');
+    await pump(
+      tester,
+      ActivitiesPanel(
+        tripId: 'trip-1',
+        tripStartDate: activity.date,
+        activities: [activity],
+        totalDays: 1,
+        selectedDayIndex: 0,
+        canEdit: true,
+        isCompleted: false,
+        role: 'OWNER',
+      ),
+    );
+    final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
+    expect(dismissible.direction, DismissDirection.endToStart);
   });
 
   testWidgets('PanelFab visible in edit mode', (tester) async {
@@ -232,7 +326,7 @@ void main() {
       expect(find.text('Brunch'), findsOneWidget);
       // The CULTURE / FOOD section labels are uppercase localised
       // category names — assert at least one section header appears.
-      expect(find.byType(ActivityTile), findsNWidgets(2));
+      expect(find.byType(ActivityPanelCard), findsNWidgets(2));
     },
   );
 
