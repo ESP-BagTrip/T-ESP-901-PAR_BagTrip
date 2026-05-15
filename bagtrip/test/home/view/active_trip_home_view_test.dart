@@ -54,7 +54,12 @@ void main() {
       locale: const Locale('en'),
       home: BlocProvider<HomeBloc>.value(
         value: mockHomeBloc,
-        child: Scaffold(body: ActiveTripHomeView(state: state)),
+        child: Scaffold(
+          body: TickerMode(
+            enabled: false,
+            child: ActiveTripHomeView(state: state),
+          ),
+        ),
       ),
     );
   }

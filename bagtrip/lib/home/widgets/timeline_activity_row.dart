@@ -28,6 +28,10 @@ class TimelineActivityRow extends StatefulWidget {
   /// Opacity for dimmed text; default 0.55, use 0.65 for schedule v3 past items.
   final double? contentDimAlpha;
 
+  /// When true, skips the timeline rail and the bordered surface/shadow card
+  /// (pill + icon + text only — e.g. active trip hero bottom strip).
+  final bool bare;
+
   const TimelineActivityRow({
     super.key,
     required this.activity,
@@ -41,6 +45,7 @@ class TimelineActivityRow extends StatefulWidget {
     this.capsuleScheduleBadge,
     this.strikeThroughTitle = false,
     this.contentDimAlpha,
+    this.bare = false,
   });
 
   @override
@@ -122,6 +127,16 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
         widget.strikeThroughTitle ||
         (widget.isPast && !widget.isCurrent && !widget.isNext);
 
+    if (widget.bare) {
+      return _buildCardShell(
+        theme: theme,
+        l10n: l10n,
+        isDimmed: isDimmed,
+        dimmedAlpha: dimmedAlpha,
+        bare: true,
+      );
+    }
+
     final spineColor = theme.colorScheme.outlineVariant.withValues(alpha: 0.6);
 
     return IntrinsicHeight(
@@ -148,6 +163,7 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
               l10n: l10n,
               isDimmed: isDimmed,
               dimmedAlpha: dimmedAlpha,
+              bare: false,
             ),
           ),
         ],
@@ -160,6 +176,7 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
     required AppLocalizations l10n,
     required bool isDimmed,
     required double dimmedAlpha,
+    required bool bare,
   }) {
     final accent = _accent(isDimmed);
     final capsuleLabel =
@@ -170,7 +187,9 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
     final subtitle = _subtitleLine(l10n);
 
     final inner = Padding(
-      padding: const EdgeInsets.all(AppSpacing.space16),
+      padding: bare
+          ? EdgeInsets.zero
+          : const EdgeInsets.all(AppSpacing.space16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -285,6 +304,10 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
         ],
       ),
     );
+
+    if (bare) {
+      return inner;
+    }
 
     if (widget.isCurrent) {
       return Container(

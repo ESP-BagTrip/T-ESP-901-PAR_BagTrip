@@ -11,8 +11,8 @@ import 'package:bagtrip/home/widgets/create_trip_card.dart';
 import 'package:bagtrip/home/widgets/home_trip_hero_chrome.dart';
 import 'package:bagtrip/home/widgets/home_trip_list_card.dart';
 import 'package:bagtrip/home/widgets/home_two_zone_layout.dart';
+import 'package:bagtrip/home/widgets/timeline_activity_row.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -216,7 +216,19 @@ class _ActiveTripHeroCard extends StatelessWidget {
                   decoration: const BoxDecoration(color: _progressPanelColor),
                   padding: const EdgeInsets.all(AppSpacing.space16),
                   child: highlight != null
-                      ? _HomeHighlightActivityRow(highlight: highlight)
+                      ? TimelineActivityRow(
+                          activity: highlight.activity,
+                          isCurrent: highlight.isNow,
+                          isNext: highlight.isToday && !highlight.isNow,
+                          isLast: true,
+                          bare: true,
+                          capsuleScheduleBadge:
+                              _capsuleScheduleForHomeHighlight(
+                                context,
+                                l10n,
+                                highlight,
+                              ),
+                        )
                       : Text(
                           l10n.homeNoActivitiesToday,
                           style: const TextStyle(
@@ -236,90 +248,17 @@ class _ActiveTripHeroCard extends StatelessWidget {
   }
 }
 
-class _HomeHighlightActivityRow extends StatelessWidget {
-  const _HomeHighlightActivityRow({required this.highlight});
-
-  final HomeHighlightActivity highlight;
-
-  String _badgeLabel(AppLocalizations l10n, BuildContext context) {
-    if (highlight.isNow) return l10n.scheduleBadgeNow;
-    if (highlight.isTomorrow) return l10n.activeHomeContextTomorrow;
-    if (highlight.isToday) return l10n.scheduleBadgeNext;
-    final date = highlight.activity.date;
-    if (date == null) return l10n.scheduleBadgeNext;
-    final locale = Localizations.localeOf(context).languageCode;
-    return DateFormat('d MMM', locale).format(date);
-  }
-
-  String? _metaLine(Activity activity) {
-    final parts = <String>[];
-    if (activity.startTime != null && activity.startTime!.isNotEmpty) {
-      parts.add(activity.startTime!);
-    }
-    if (activity.location != null && activity.location!.isNotEmpty) {
-      parts.add(activity.location!);
-    }
-    if (parts.isEmpty) return null;
-    return parts.join(' · ');
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final activity = highlight.activity;
-    final meta = _metaLine(activity);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.space12,
-            vertical: AppSpacing.space8,
-          ),
-          decoration: const BoxDecoration(
-            color: ColorName.secondaryLight,
-            borderRadius: AppRadius.pill,
-          ),
-          child: Text(
-            _badgeLabel(l10n, context),
-            style: const TextStyle(
-              fontFamily: FontFamily.dMSans,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: ColorName.secondary,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.space8),
-        Text(
-          activity.title,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            fontFamily: FontFamily.dMSans,
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: ColorName.primaryDark,
-            height: 1.3,
-          ),
-        ),
-        if (meta != null) ...[
-          const SizedBox(height: AppSpacing.space4),
-          Text(
-            meta,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontFamily: FontFamily.dMSans,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: ColorName.textMutedLight,
-            ),
-          ),
-        ],
-      ],
-    );
-  }
+/// Capsule override for home hero ([TimelineActivityRow] shows NOW via [isCurrent]).
+String? _capsuleScheduleForHomeHighlight(
+  BuildContext context,
+  AppLocalizations l10n,
+  HomeHighlightActivity highlight,
+) {
+  if (highlight.isNow) return null;
+  if (highlight.isTomorrow) return l10n.activeHomeContextTomorrow;
+  if (highlight.isToday) return l10n.scheduleBadgeNext;
+  final date = highlight.activity.date;
+  if (date == null) return l10n.scheduleBadgeNext;
+  final locale = Localizations.localeOf(context).languageCode;
+  return DateFormat('d MMM', locale).format(date);
 }

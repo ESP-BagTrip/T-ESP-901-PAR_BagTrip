@@ -60,10 +60,6 @@ class _CreateTripCardState extends State<CreateTripCard>
       child: ScaleTransition(
         scale: _scaleAnimation,
         child: Container(
-          margin: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.space8,
-            vertical: AppSpacing.space4,
-          ),
           decoration: const BoxDecoration(
             borderRadius: AppRadius.large28,
             boxShadow: [

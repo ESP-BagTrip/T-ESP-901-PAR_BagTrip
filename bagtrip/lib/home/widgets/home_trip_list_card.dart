@@ -33,14 +33,14 @@ class HomeTripListSection extends StatelessWidget {
           style: compactHeader
               ? const TextStyle(
                   fontFamily: FontFamily.dMSans,
-                  fontSize: 12,
+                  fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: ColorName.textMutedLight,
                   letterSpacing: 1.2,
                 )
               : const TextStyle(
                   fontFamily: FontFamily.dMSans,
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: ColorName.primaryTrueDark,
                 ),

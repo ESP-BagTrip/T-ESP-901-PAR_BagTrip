@@ -30,7 +30,12 @@ void main() {
       locale: const Locale('en'),
       home: BlocProvider<HomeBloc>.value(
         value: mockHomeBloc,
-        child: Scaffold(body: ActiveTripHomeView(state: state)),
+        child: Scaffold(
+          body: TickerMode(
+            enabled: false,
+            child: ActiveTripHomeView(state: state),
+          ),
+        ),
       ),
     );
   }
@@ -90,7 +95,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Current Activity'), findsOneWidget);
-      expect(find.text('Now'), findsOneWidget);
+      expect(find.text('NOW'), findsOneWidget);
     });
 
     testWidgets('shows next activity with Next badge when none in progress', (
