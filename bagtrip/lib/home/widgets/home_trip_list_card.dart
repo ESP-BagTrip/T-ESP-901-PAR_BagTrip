@@ -1,11 +1,14 @@
+import 'package:bagtrip/components/optimized_image.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/helpers/trip_completion.dart';
+import 'package:bagtrip/home/widgets/home_trip_hero_chrome.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
+import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
 import 'package:flutter/material.dart';
 
 class HomeTripListSection extends StatelessWidget {
@@ -55,6 +58,9 @@ class HomeTripListSection extends StatelessWidget {
 }
 
 class HomeTripListCard extends StatelessWidget {
+  static const Color _frameColor = ColorName.surface;
+  static const double _borderWidth = 1.5;
+
   final Trip trip;
 
   const HomeTripListCard({super.key, required this.trip});
@@ -101,147 +107,107 @@ class HomeTripListCard extends StatelessWidget {
     return l10n.nextTripCountdown(days);
   }
 
-  int? _daysUntilStart() {
-    final start = trip.startDate;
-    if (start == null) return null;
-    final now = DateTime.now();
-    return DateTime(
-      start.year,
-      start.month,
-      start.day,
-    ).difference(DateTime(now.year, now.month, now.day)).inDays;
-  }
-
-  Color _leftBorderColor() {
-    final days = _daysUntilStart();
-    if (days != null && days >= 1 && days <= 7) {
-      return ColorName.secondary;
-    }
-    return const Color(0xFFD4A853);
-  }
-
-  Color _temporalAccentColor() => _leftBorderColor();
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final destination =
         trip.destinationName ?? trip.title ?? l10n.myTripFallback;
     final progress = tripCompletion(trip).clamp(0, 100);
-    final accentColor = _temporalAccentColor();
+    final dateRangeText = _dateRange();
+    final hasCover =
+        trip.coverImageUrl != null && trip.coverImageUrl!.isNotEmpty;
+    final travelerCount = trip.nbTravelers;
+    final innerRadius = AppRadius.cornerRadius24 - _borderWidth;
 
-    return DecoratedBox(
+    return Container(
       decoration: const BoxDecoration(
+        color: _frameColor,
         borderRadius: AppRadius.large24,
         boxShadow: [
           BoxShadow(
-            color: Color(0x140E1A2B),
-            blurRadius: 18,
-            offset: Offset(0, 8),
+            color: Color(0x1A0E1A2B),
+            blurRadius: 22,
+            offset: Offset(0, 12),
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: AppRadius.large24,
-          onTap: () {
-            AppHaptics.light();
-            TripHomeRoute(tripId: trip.id).push(context);
-          },
-          child: Ink(
-            decoration: BoxDecoration(
-              color: ColorName.surface,
-              borderRadius: AppRadius.large24,
-              border: Border.all(color: ColorName.primarySoftLight),
-            ),
-            child: ClipRRect(
-              borderRadius: AppRadius.large24,
+      padding: const EdgeInsets.all(_borderWidth),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(innerRadius),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              AppHaptics.light();
+              TripHomeRoute(tripId: trip.id).push(context);
+            },
+            child: SizedBox(
+              height: 180,
               child: Stack(
+                fit: StackFit.expand,
                 children: [
+                  if (hasCover)
+                    OptimizedImage.tripCover(
+                      trip.coverImageUrl!,
+                      errorWidget: const HomeTripHeroCoverFallback(),
+                    )
+                  else
+                    const HomeTripHeroCoverFallback(),
+                  const HomeTripHeroCoverScrim(),
                   Positioned(
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    child: Container(width: 6, color: _leftBorderColor()),
+                    top: AppSpacing.space16,
+                    left: AppSpacing.space16,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        HomeTripHeroCountdownPill(label: _deadlineLabel(l10n)),
+                        if (travelerCount != null && travelerCount > 0) ...[
+                          const SizedBox(width: AppSpacing.space8),
+                          HomeTripTravelersPill(
+                            label: l10n.homeActiveTripTravelersAbbrev(
+                              travelerCount,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(AppSpacing.space16),
+                  Positioned(
+                    top: AppSpacing.space16,
+                    right: AppSpacing.space16,
+                    child: CompletionRing(
+                      percentage: progress,
+                      backgroundColor: Colors.white.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  Positioned(
+                    left: AppSpacing.space16,
+                    right: AppSpacing.space16,
+                    bottom: AppSpacing.space16,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                destination,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontFamily: FontFamily.dMSerifDisplay,
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.w400,
-                                  color: ColorName.primary,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.space8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.space12,
-                                vertical: AppSpacing.space8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: accentColor.withValues(alpha: 0.14),
-                                borderRadius: AppRadius.pill,
-                              ),
-                              child: Text(
-                                _deadlineLabel(l10n),
-                                style: TextStyle(
-                                  fontFamily: FontFamily.dMSans,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: accentColor,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: AppSpacing.space8),
                         Text(
-                          _dateRange(),
+                          destination,
                           style: const TextStyle(
-                            fontFamily: FontFamily.dMSans,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: ColorName.textMutedLight,
+                            fontFamily: FontFamily.dMSerifDisplay,
+                            fontSize: 30,
+                            fontWeight: FontWeight.w400,
+                            color: ColorName.surface,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: AppSpacing.space16),
-                        ClipRRect(
-                          borderRadius: AppRadius.small4,
-                          child: LinearProgressIndicator(
-                            value: progress / 100,
-                            minHeight: 7,
-                            backgroundColor: ColorName.primarySoftLight,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              accentColor,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.space8),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: Text(
-                            l10n.homeTripValidatedProgress(progress),
-                            style: const TextStyle(
+                        if (dateRangeText.isNotEmpty)
+                          Text(
+                            dateRangeText,
+                            style: TextStyle(
                               fontFamily: FontFamily.dMSans,
-                              fontSize: 14,
+                              fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: ColorName.textMutedLight,
+                              color: ColorName.surface.withValues(alpha: 0.82),
                             ),
                           ),
-                        ),
                       ],
                     ),
                   ),

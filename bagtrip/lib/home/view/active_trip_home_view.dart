@@ -8,6 +8,7 @@ import 'package:bagtrip/home/helpers/home_highlight_activity.dart';
 import 'package:bagtrip/home/helpers/trip_completion.dart';
 import 'package:bagtrip/home/view/active_trip_programme_view.dart';
 import 'package:bagtrip/home/widgets/create_trip_card.dart';
+import 'package:bagtrip/home/widgets/home_trip_hero_chrome.dart';
 import 'package:bagtrip/home/widgets/home_trip_list_card.dart';
 import 'package:bagtrip/home/widgets/home_two_zone_layout.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -145,34 +146,23 @@ class _ActiveTripHeroCard extends StatelessWidget {
                       if (hasCover)
                         OptimizedImage.tripCover(
                           trip.coverImageUrl!,
-                          errorWidget: const _ActiveTripCoverFallback(),
+                          errorWidget: const HomeTripHeroCoverFallback(),
                         )
                       else
-                        const _ActiveTripCoverFallback(),
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              const Color(0xFF1A2B48).withValues(alpha: 0.5),
-                              const Color(0xFF1A2B48).withValues(alpha: 0.85),
-                            ],
-                          ),
-                        ),
-                      ),
+                        const HomeTripHeroCoverFallback(),
+                      const HomeTripHeroCoverScrim(),
                       Positioned(
                         top: AppSpacing.space16,
                         left: AppSpacing.space16,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            _ActiveTripEyebrowPill(
+                            HomeTripHeroEyebrowPill(
                               label: l10n.homeActiveTripEyebrow,
                             ),
                             if (travelerCount != null && travelerCount > 0) ...[
                               const SizedBox(width: AppSpacing.space8),
-                              _ActiveTripTravelersPill(
+                              HomeTripTravelersPill(
                                 label: l10n.homeActiveTripTravelersAbbrev(
                                   travelerCount,
                                 ),
@@ -241,79 +231,6 @@ class _ActiveTripHeroCard extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _ActiveTripHeroPill extends StatelessWidget {
-  const _ActiveTripHeroPill({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: ColorName.surface.withValues(alpha: 0.1),
-        borderRadius: AppRadius.pill,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.space12,
-          vertical: 6,
-        ),
-        child: child,
-      ),
-    );
-  }
-}
-
-class _ActiveTripEyebrowPill extends StatelessWidget {
-  const _ActiveTripEyebrowPill({required this.label});
-
-  final String label;
-
-  static const _labelStyle = TextStyle(
-    fontFamily: FontFamily.dMSans,
-    fontSize: 12,
-    fontWeight: FontWeight.w800,
-    color: ColorName.surface,
-    letterSpacing: 1,
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    return _ActiveTripHeroPill(child: Text(label, style: _labelStyle));
-  }
-}
-
-class _ActiveTripTravelersPill extends StatelessWidget {
-  const _ActiveTripTravelersPill({required this.label});
-
-  final String label;
-
-  static const _labelStyle = TextStyle(
-    fontFamily: FontFamily.dMSans,
-    fontSize: 12,
-    fontWeight: FontWeight.w800,
-    color: ColorName.surface,
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    return _ActiveTripHeroPill(
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.person_outline_rounded,
-            size: 14,
-            color: ColorName.surface.withValues(alpha: 0.95),
-          ),
-          const SizedBox(width: AppSpacing.space4),
-          Text(label, style: _labelStyle),
-        ],
       ),
     );
   }
@@ -403,23 +320,6 @@ class _HomeHighlightActivityRow extends StatelessWidget {
           ),
         ],
       ],
-    );
-  }
-}
-
-class _ActiveTripCoverFallback extends StatelessWidget {
-  const _ActiveTripCoverFallback();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF1A2B48), Color(0xFF2D4A6F)],
-        ),
-      ),
     );
   }
 }
