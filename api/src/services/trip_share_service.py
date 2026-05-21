@@ -101,21 +101,29 @@ class TripShareService:
             db.commit()
             db.refresh(share)
 
-            # Best-effort push notification to the invited user
+            # Best-effort localized push notification to the invited user
             try:
+                from src.services.device_token_service import DeviceTokenService
+                from src.services.notification_messages import untitled_trip
                 from src.services.notification_service import NotificationService
 
                 trip = db.query(Trip).filter(Trip.id == trip_id).first()
-                NotificationService.create_and_send(
+                locale = DeviceTokenService.get_locale_for_user(db, user.id)
+                inviter = owner.full_name or owner.email
+                trip_title = (trip.title if trip else None) or untitled_trip(locale)
+                NotificationService.send_localized(
                     db=db,
                     user_id=user.id,
                     trip_id=trip_id,
                     notif_type=NotificationType.TRIP_SHARED,
-                    title="Nouveau voyage partagé !",
-                    body=f"{owner.full_name or owner.email} vous a invité : {message}"
-                    if message
-                    else f"{owner.full_name or owner.email} vous a invité à « {trip.title or 'un voyage'} »",
+                    notif_key="TRIP_SHARED_WITH_MESSAGE" if message else "TRIP_SHARED",
+                    context={
+                        "inviter": inviter,
+                        "trip_title": trip_title,
+                        "message": message or "",
+                    },
                     data={"screen": "tripHome", "tripId": str(trip_id)},
+                    locale=locale,
                 )
             except Exception as e:
                 logger.error(f"[SHARE] Failed to send TRIP_SHARED notification: {e}")

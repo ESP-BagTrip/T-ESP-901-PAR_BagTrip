@@ -55,6 +55,7 @@ class TestRegisterDeviceToken:
         created.id = uuid.uuid4()
         created.fcm_token = "fcm-token-abc"
         created.platform = "ios"
+        created.locale = "fr"
         created.created_at = datetime.now(UTC)
 
         with patch(
@@ -63,14 +64,16 @@ class TestRegisterDeviceToken:
         ) as mocked:
             response = client.post(
                 "/v1/device-tokens",
-                json={"fcmToken": "fcm-token-abc", "platform": "ios"},
+                json={"fcmToken": "fcm-token-abc", "platform": "ios", "locale": "fr"},
             )
 
         assert response.status_code == 201
         body = response.json()
         assert body["fcm_token"] == "fcm-token-abc"
         assert body["platform"] == "ios"
-        mocked.assert_called_once()
+        assert body["locale"] == "fr"
+        # locale must reach the service so background jobs can localize push.
+        assert mocked.call_args.kwargs["locale"] == "fr"
 
     def test_service_error(self, client: TestClient) -> None:
         with patch(
@@ -91,22 +94,34 @@ class TestRegisterDeviceToken:
 
 
 class TestUnregisterDeviceToken:
+    """The FCM token travels in the request body — never the URL — so it
+    doesn't leak into server access logs."""
+
     def test_success(self, client: TestClient) -> None:
         with patch(
             "src.api.device_tokens.routes.DeviceTokenService.unregister",
             return_value=None,
         ) as mocked:
-            response = client.delete("/v1/device-tokens/fcm-token-abc")
+            response = client.request(
+                "DELETE", "/v1/device-tokens", json={"fcmToken": "fcm-token-abc"}
+            )
 
         assert response.status_code == 204
         mocked.assert_called_once()
+        assert mocked.call_args.args[2] == "fcm-token-abc"
 
     def test_service_error(self, client: TestClient) -> None:
         with patch(
             "src.api.device_tokens.routes.DeviceTokenService.unregister",
             side_effect=AppError("TOKEN_NOT_FOUND", 404, "Not found"),
         ):
-            response = client.delete("/v1/device-tokens/missing")
+            response = client.request(
+                "DELETE", "/v1/device-tokens", json={"fcmToken": "missing"}
+            )
 
         assert response.status_code == 404
         assert response.json()["detail"]["code"] == "TOKEN_NOT_FOUND"
+
+    def test_missing_body_returns_422(self, client: TestClient) -> None:
+        response = client.request("DELETE", "/v1/device-tokens", json={})
+        assert response.status_code == 422

@@ -1,9 +1,15 @@
-"""Scheduled job: check and send planned notifications every 30 minutes."""
+"""Scheduled job: check and send planned notifications every 30 minutes.
+
+All notification copy is localized per recipient via
+``NotificationService.send_localized`` — the job never builds display strings
+itself. The locale is resolved from each recipient's most recent device token.
+"""
 
 import asyncio
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta, tzinfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from src.config.database import SessionLocal
 from src.enums import FlightOrderStatus, NotificationType, TripStatus
@@ -11,6 +17,14 @@ from src.models.activity import Activity
 from src.models.flight_offer import FlightOffer
 from src.models.flight_order import FlightOrder
 from src.models.trip import Trip
+from src.services.device_token_service import DeviceTokenService
+from src.services.notification_messages import (
+    activity_location_suffix,
+    baggage_status,
+    flight_gate_suffix,
+    flight_ticket_suffix,
+    untitled_trip,
+)
 from src.services.notification_service import NotificationService
 from src.utils.distributed_lock import redis_lock
 from src.utils.logger import logger
@@ -20,6 +34,16 @@ INTERVAL_SECONDS = 30 * 60  # 30 minutes
 # Lock TTL — 2× interval so a slow tick can't get stepped on, not so long that
 # a crashed worker leaves the lock stuck past the next tick.
 _LOCK_TTL_SECONDS = 2 * INTERVAL_SECONDS
+
+
+def _safe_zone(name: str | None) -> tzinfo:
+    """Resolve an IANA timezone name, falling back to UTC on anything weird."""
+    if not name:
+        return UTC
+    try:
+        return ZoneInfo(name)
+    except (ZoneInfoNotFoundError, ValueError, OSError):
+        return UTC
 
 
 def _check_departure_reminders(db: Session) -> int:
@@ -42,53 +66,75 @@ def _check_departure_reminders(db: Session) -> int:
         total = len(baggage_items)
         packed = sum(1 for b in baggage_items if b.is_packed)
 
-        if total > 0:
-            baggage_status = f"Bagages : {packed}/{total} préparés."
-        else:
-            baggage_status = "Pensez à préparer vos bagages !"
-
-        recipients = NotificationService._get_trip_recipients(db, trip)
+        recipients = NotificationService._get_trip_recipients(trip)
         for uid in recipients:
             if NotificationService._already_sent(
                 db, uid, trip.id, NotificationType.DEPARTURE_REMINDER, timedelta(hours=20)
             ):
                 continue
-            NotificationService.create_and_send(
+            locale = DeviceTokenService.get_locale_for_user(db, uid)
+            NotificationService.send_localized(
                 db=db,
                 user_id=uid,
                 trip_id=trip.id,
                 notif_type=NotificationType.DEPARTURE_REMINDER,
-                title="Départ demain !",
-                body=f"Votre voyage « {trip.title or 'sans titre'} » commence demain. {baggage_status}",
+                context={
+                    "trip_title": trip.title or untitled_trip(locale),
+                    "baggage_status": baggage_status(locale, packed, total),
+                },
                 data={"screen": "tripHome", "tripId": str(trip.id)},
+                locale=locale,
             )
             count += 1
     return count
 
 
-def _check_flight_alerts(db: Session, hours_before: float, notif_type: str, title: str) -> int:
+def _check_flight_alerts(db: Session, hours_before: float, notif_type: str) -> int:
     """Check for upcoming flights and send H-4 or H-1 alerts."""
     now = datetime.now(UTC)
     window_start = now + timedelta(hours=hours_before - 0.5)
     window_end = now + timedelta(hours=hours_before + 0.5)
 
-    orders = db.query(FlightOrder).filter(FlightOrder.status == FlightOrderStatus.CONFIRMED).all()
+    # Bound the scan to flights of still-active trips, and eager-load the offer
+    # so departure-time + terminal parsing don't issue a query per row.
+    orders = (
+        db.query(FlightOrder)
+        .join(Trip, Trip.id == FlightOrder.trip_id)
+        .options(joinedload(FlightOrder.flight_offer))
+        .filter(
+            FlightOrder.status == FlightOrderStatus.CONFIRMED,
+            Trip.status.in_([TripStatus.PLANNED, TripStatus.ONGOING]),
+        )
+        .all()
+    )
+    if not orders:
+        return 0
+
+    # Batch-load the trips (with shares) referenced by the matching orders.
+    trip_ids = {o.trip_id for o in orders}
+    trips_by_id = {
+        t.id: t
+        for t in db.query(Trip)
+        .options(selectinload(Trip.shares))
+        .filter(Trip.id.in_(trip_ids))
+        .all()
+    }
+
     count = 0
     for order in orders:
-        departure_time = _extract_departure_time(db, order)
+        departure_time = _extract_departure_time(order.flight_offer)
         if not departure_time:
             continue
         if not (window_start <= departure_time <= window_end):
             continue
 
-        trip = db.query(Trip).filter(Trip.id == order.trip_id).first()
+        trip = trips_by_id.get(order.trip_id)
         if not trip:
             continue
 
-        # Extract flight info for enriched notifications
-        flight_info = _extract_flight_info(db, order)
+        flight_info = _extract_flight_info(order)
 
-        recipients = NotificationService._get_trip_recipients(db, trip)
+        recipients = NotificationService._get_trip_recipients(trip)
         for uid in recipients:
             if NotificationService._already_sent(
                 db,
@@ -101,39 +147,41 @@ def _check_flight_alerts(db: Session, hours_before: float, notif_type: str, titl
             ):
                 continue
 
-            body = f"Votre vol pour « {trip.title or 'votre voyage'} » décolle bientôt !"
+            locale = DeviceTokenService.get_locale_for_user(db, uid)
             data = {
                 "screen": "tripHome",
                 "tripId": str(trip.id),
                 "orderId": str(order.id),
             }
+            context: dict[str, object] = {
+                "trip_title": trip.title or untitled_trip(locale),
+                "ticket_suffix": "",
+                "gate_suffix": "",
+            }
 
             if notif_type == NotificationType.FLIGHT_H4 and flight_info.get("ticket_url"):
                 data["ticketUrl"] = flight_info["ticket_url"]
-                body += f" Billet : {flight_info['ticket_url']}"
+                context["ticket_suffix"] = flight_ticket_suffix(locale, flight_info["ticket_url"])
 
-            if notif_type == NotificationType.FLIGHT_H1:
-                gate_info = flight_info.get("terminal_gate", "")
-                if gate_info:
-                    body += f" ({gate_info})"
+            if notif_type == NotificationType.FLIGHT_H1 and flight_info.get("terminal_gate"):
+                context["gate_suffix"] = flight_gate_suffix(locale, flight_info["terminal_gate"])
 
-            NotificationService.create_and_send(
+            NotificationService.send_localized(
                 db=db,
                 user_id=uid,
                 trip_id=trip.id,
                 notif_type=notif_type,
-                title=title,
-                body=body,
+                context=context,
                 data=data,
+                locale=locale,
             )
             count += 1
     return count
 
 
-def _extract_departure_time(db: Session, order: FlightOrder) -> datetime | None:
-    """Parse departure time from FlightOffer.offer_json."""
+def _extract_departure_time(offer: FlightOffer | None) -> datetime | None:
+    """Parse departure time from a pre-loaded FlightOffer.offer_json."""
     try:
-        offer = db.query(FlightOffer).filter(FlightOffer.id == order.flight_offer_id).first()
         if not offer or not offer.offer_json:
             return None
         itineraries = offer.offer_json.get("itineraries", [])
@@ -145,45 +193,37 @@ def _extract_departure_time(db: Session, order: FlightOrder) -> datetime | None:
         dep_str = segments[0].get("departure", {}).get("at")
         if dep_str:
             return datetime.fromisoformat(dep_str).replace(tzinfo=UTC)
-    except Exception:
+    except (ValueError, TypeError, KeyError, AttributeError):
         pass
     return None
 
 
-def _extract_flight_info(db: Session, order: FlightOrder) -> dict:
-    """Extract flight details (ticket_url, terminal, gate) from order + offer data."""
+def _extract_flight_info(order: FlightOrder) -> dict:
+    """Extract flight details (ticket_url, terminal) from a pre-loaded order."""
     info: dict = {}
 
-    # ticket_url directly on FlightOrder
-    if hasattr(order, "ticket_url") and order.ticket_url:
+    if order.ticket_url:
         info["ticket_url"] = order.ticket_url
 
-    # Terminal and gate from offer_json
     try:
-        offer = db.query(FlightOffer).filter(FlightOffer.id == order.flight_offer_id).first()
+        offer = order.flight_offer
         if offer and offer.offer_json:
             itineraries = offer.offer_json.get("itineraries", [])
             if itineraries:
                 segments = itineraries[0].get("segments", [])
                 if segments:
-                    departure = segments[0].get("departure", {})
-                    terminal = departure.get("terminal")
+                    terminal = segments[0].get("departure", {}).get("terminal")
                     if terminal:
                         info["terminal_gate"] = f"Terminal {terminal}"
-    except Exception:
+    except (TypeError, KeyError, AttributeError):
         pass
 
     return info
 
 
 def _check_morning_summary(db: Session) -> int:
-    """Trip ONGOING, activities today, between 07:00-07:30 UTC → MORNING_SUMMARY."""
-    now = datetime.now(UTC)
-    # Only run between 07:00 and 07:30 UTC
-    if now.hour != 7 or now.minute > 30:
-        return 0
-
-    today = date.today()
+    """Trip ONGOING, activities today, 07:00–10:00 destination-local → MORNING_SUMMARY."""
+    now_utc = datetime.now(UTC)
     # Eager-load shares so the recipient lookup doesn't fire a follow-up query
     # per trip. Activities are still fetched with an explicit date filter — we
     # only want the subset dated "today", which is cheaper than loading all
@@ -196,13 +236,22 @@ def _check_morning_summary(db: Session) -> int:
     )
     count = 0
     for trip in trips:
+        # Fire in the destination's morning, not a fixed UTC hour. The 3h
+        # window + the 20h _already_sent dedup absorb the job's ~30min drift.
+        local_now = now_utc.astimezone(_safe_zone(trip.destination_timezone))
+        if not (7 <= local_now.hour < 10):
+            continue
+        today_local = local_now.date()
+
         activities = (
-            db.query(Activity).filter(Activity.trip_id == trip.id, Activity.date == today).all()
+            db.query(Activity)
+            .filter(Activity.trip_id == trip.id, Activity.date == today_local)
+            .all()
         )
         if not activities:
             continue
 
-        recipients = NotificationService._get_trip_recipients(db, trip)
+        recipients = NotificationService._get_trip_recipients(trip)
         for uid in recipients:
             if NotificationService._already_sent(
                 db, uid, trip.id, NotificationType.MORNING_SUMMARY, timedelta(hours=20)
@@ -213,14 +262,19 @@ def _check_morning_summary(db: Session) -> int:
             if len(activities) > 3:
                 activity_names += f" (+{len(activities) - 3})"
 
-            NotificationService.create_and_send(
+            locale = DeviceTokenService.get_locale_for_user(db, uid)
+            NotificationService.send_localized(
                 db=db,
                 user_id=uid,
                 trip_id=trip.id,
                 notif_type=NotificationType.MORNING_SUMMARY,
-                title=f"Programme du jour — {trip.title or 'Voyage'}",
-                body=f"{len(activities)} activité(s) prévue(s) : {activity_names}",
+                context={
+                    "trip_title": trip.title or untitled_trip(locale),
+                    "count": len(activities),
+                    "activity_names": activity_names,
+                },
                 data={"screen": "activities", "tripId": str(trip.id)},
+                locale=locale,
             )
             count += 1
     return count
@@ -233,8 +287,11 @@ def _check_activity_reminders(db: Session) -> int:
     window_start = (now + timedelta(minutes=30)).time()
     window_end = (now + timedelta(minutes=90)).time()
 
+    # Eager-load the parent trip + its shares so neither the trip lookup nor
+    # the recipient resolution issues a query per activity.
     activities = (
         db.query(Activity)
+        .options(selectinload(Activity.trip).selectinload(Trip.shares))
         .filter(
             Activity.date == today,
             Activity.start_time.isnot(None),
@@ -245,11 +302,11 @@ def _check_activity_reminders(db: Session) -> int:
     )
     count = 0
     for activity in activities:
-        trip = db.query(Trip).filter(Trip.id == activity.trip_id).first()
+        trip = activity.trip
         if not trip:
             continue
 
-        recipients = NotificationService._get_trip_recipients(db, trip)
+        recipients = NotificationService._get_trip_recipients(trip)
         for uid in recipients:
             if NotificationService._already_sent(
                 db,
@@ -261,19 +318,25 @@ def _check_activity_reminders(db: Session) -> int:
                 data_value=str(activity.id),
             ):
                 continue
-            location_hint = f" à {activity.location}" if activity.location else ""
-            NotificationService.create_and_send(
+            locale = DeviceTokenService.get_locale_for_user(db, uid)
+            location_suffix = (
+                activity_location_suffix(locale, activity.location) if activity.location else ""
+            )
+            NotificationService.send_localized(
                 db=db,
                 user_id=uid,
                 trip_id=trip.id,
                 notif_type=NotificationType.ACTIVITY_H1,
-                title="Activité dans ~1h",
-                body=f"« {activity.title} » commence bientôt !{location_hint}",
+                context={
+                    "activity_title": activity.title,
+                    "location_suffix": location_suffix,
+                },
                 data={
                     "screen": "activities",
                     "tripId": str(trip.id),
                     "activityId": str(activity.id),
                 },
+                locale=locale,
             )
             count += 1
     return count
@@ -285,8 +348,8 @@ def run_notification_checks() -> dict[str, int]:
     try:
         results = {
             "departure_reminders": _check_departure_reminders(db),
-            "flight_h4": _check_flight_alerts(db, 4, NotificationType.FLIGHT_H4, "Vol dans ~4h"),
-            "flight_h1": _check_flight_alerts(db, 1, NotificationType.FLIGHT_H1, "Vol dans ~1h"),
+            "flight_h4": _check_flight_alerts(db, 4, NotificationType.FLIGHT_H4),
+            "flight_h1": _check_flight_alerts(db, 1, NotificationType.FLIGHT_H1),
             "morning_summary": _check_morning_summary(db),
             "activity_h1": _check_activity_reminders(db),
         }

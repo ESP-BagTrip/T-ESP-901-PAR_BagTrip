@@ -641,8 +641,6 @@ class TripsService:
                 db,
                 trip,
                 notif_type=NotificationType.TRIP_STARTED,
-                title="Bon voyage !",
-                body=f"Votre voyage « {trip.title or 'sans titre'} » commence aujourd'hui !",
                 data={"screen": "tripHome", "tripId": str(trip.id)},
             )
 
@@ -652,11 +650,6 @@ class TripsService:
                 db,
                 trip,
                 notif_type=NotificationType.TRIP_ENDED,
-                title="Voyage terminé !",
-                body=(
-                    f"Votre voyage « {trip.title or 'sans titre'} » est terminé. "
-                    "Partagez votre avis !"
-                ),
                 data={"screen": "feedback", "tripId": str(trip.id)},
             )
 
@@ -689,29 +682,30 @@ class TripsService:
         trip: Trip,
         *,
         notif_type: NotificationType,
-        title: str,
-        body: str,
         data: dict,
     ) -> None:
-        """Fire-and-forget notification dispatch for trip lifecycle events.
+        """Localized fire-and-forget notification for trip lifecycle events.
 
         Failures are logged but do not raise — the caller is a scheduled job that
         must keep transitioning trips even when a single notification fails (bad
         FCM token, notification service outage, etc.).
         """
+        from src.services.device_token_service import DeviceTokenService
+        from src.services.notification_messages import untitled_trip
         from src.services.notification_service import NotificationService
 
         try:
-            recipients = NotificationService._get_trip_recipients(db, trip)
-            NotificationService.create_and_send_bulk(
-                db=db,
-                user_ids=recipients,
-                trip_id=trip.id,
-                notif_type=notif_type,
-                title=title,
-                body=body,
-                data=data,
-            )
+            for uid in NotificationService._get_trip_recipients(trip):
+                locale = DeviceTokenService.get_locale_for_user(db, uid)
+                NotificationService.send_localized(
+                    db=db,
+                    user_id=uid,
+                    trip_id=trip.id,
+                    notif_type=notif_type,
+                    context={"trip_title": trip.title or untitled_trip(locale)},
+                    data=data,
+                    locale=locale,
+                )
         except Exception as exc:
             logger.error(
                 "Trip lifecycle notification dispatch failed",
