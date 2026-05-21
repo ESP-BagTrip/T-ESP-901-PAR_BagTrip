@@ -2,6 +2,7 @@
 // ignore_for_file: avoid_redundant_argument_values
 
 import 'package:bagtrip/core/result.dart';
+import 'package:bagtrip/models/notification_page.dart';
 import 'package:bagtrip/service/api_client.dart';
 import 'package:bagtrip/service/notification_service.dart';
 import 'package:dio/dio.dart';
@@ -49,7 +50,7 @@ void main() {
   group('NotificationRepositoryImpl', () {
     // ── getNotifications ────────────────────────────────────────────────
 
-    test('getNotifications parses envelope with items + counters', () async {
+    test('getNotifications parses the snake_case envelope', () async {
       when(
         () => mockApiClient.get(
           '/notifications',
@@ -64,8 +65,8 @@ void main() {
             'total': 2,
             'page': 1,
             'limit': 20,
-            'totalPages': 1,
-            'unreadCount': 1,
+            'total_pages': 4,
+            'unread_count': 7,
           },
         ),
       );
@@ -73,38 +74,12 @@ void main() {
       final result = await repository.getNotifications();
 
       expect(result, isA<Success>());
-      final map = (result as Success).data as Map<String, dynamic>;
-      expect((map['items'] as List).length, 2);
-      expect(map['total'], 2);
-      expect(map['unreadCount'], 1);
+      final page = (result as Success).data as NotificationPage;
+      expect(page.items.length, 2);
+      expect(page.total, 2);
+      expect(page.totalPages, 4);
+      expect(page.unreadCount, 7);
     });
-
-    test(
-      'getNotifications falls back to snake_case counter keys if present',
-      () async {
-        when(
-          () => mockApiClient.get(
-            '/notifications',
-            queryParameters: any(named: 'queryParameters'),
-          ),
-        ).thenAnswer(
-          (_) async => _response(
-            path: '/notifications',
-            statusCode: 200,
-            data: <String, dynamic>{
-              'items': [_notifJson()],
-              'total_pages': 4,
-              'unread_count': 7,
-            },
-          ),
-        );
-
-        final result = await repository.getNotifications();
-        final map = (result as Success).data as Map<String, dynamic>;
-        expect(map['totalPages'], 4);
-        expect(map['unreadCount'], 7);
-      },
-    );
 
     test('getNotifications returns Failure on non-200', () async {
       when(

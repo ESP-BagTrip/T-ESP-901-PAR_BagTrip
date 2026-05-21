@@ -26,11 +26,6 @@ class NotificationsLoaded extends NotificationState {
   });
 }
 
-class UnreadCountLoaded extends NotificationState {
-  final int count;
-  UnreadCountLoaded({required this.count});
-}
-
 class NotificationError extends NotificationState {
   final AppError error;
   NotificationError({required this.error});

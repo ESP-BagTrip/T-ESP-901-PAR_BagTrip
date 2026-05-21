@@ -9,6 +9,7 @@ import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
+import 'package:bagtrip/notifications/cubit/notification_count_cubit.dart';
 import 'package:bagtrip/profile/bloc/user_profile_bloc.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/settings/bloc/settings_bloc.dart';
@@ -58,6 +59,7 @@ class _TestAppState extends State<TestApp> {
         BlocProvider(create: (_) => TripManagementBloc()),
         BlocProvider.value(value: _homeBloc),
         BlocProvider(create: (_) => NotificationBloc()),
+        BlocProvider(create: (_) => NotificationCountCubit()),
         BlocProvider(create: (_) => ConnectivityBloc()),
       ],
       child: AuthListener(

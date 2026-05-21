@@ -15,6 +15,7 @@ import 'package:bagtrip/firebase_options.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/app_router.dart';
 import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
+import 'package:bagtrip/notifications/cubit/notification_count_cubit.dart';
 import 'package:bagtrip/notifications/notification_deep_link.dart';
 import 'package:bagtrip/profile/bloc/user_profile_bloc.dart';
 import 'package:bagtrip/service/crashlytics_service.dart';
@@ -143,17 +144,20 @@ class _MyAppState extends State<MyApp> {
   late final StreamSubscription<RemoteMessage> _onMessageOpenedSub;
   late final StreamSubscription<String> _onTokenRefreshSub;
   late final HomeBloc _homeBloc;
+  late final NotificationCountCubit _countCubit;
   late final AppLifecycleObserver _lifecycleObserver;
 
   @override
   void initState() {
     super.initState();
     _homeBloc = HomeBloc();
+    _countCubit = NotificationCountCubit();
     _lifecycleObserver = AppLifecycleObserver(
       onResumed: () {
         if (_homeBloc.state is! HomeInitial && !_homeBloc.isClosed) {
           _homeBloc.add(RefreshHome());
         }
+        _countCubit.refresh();
       },
     );
     _lifecycleObserver.initialize();
@@ -164,6 +168,7 @@ class _MyAppState extends State<MyApp> {
   void dispose() {
     _lifecycleObserver.dispose();
     _homeBloc.close();
+    _countCubit.close();
     _onMessageSub.cancel();
     _onMessageOpenedSub.cancel();
     _onTokenRefreshSub.cancel();
@@ -184,6 +189,8 @@ class _MyAppState extends State<MyApp> {
           payload: message.data,
         );
       }
+      // A push just landed — keep the tab-bar badge live.
+      _countCubit.refresh();
     });
 
     // Tap on a push received while the app was in the background.
@@ -224,6 +231,7 @@ class _MyAppState extends State<MyApp> {
         BlocProvider(create: (context) => TripManagementBloc()),
         BlocProvider.value(value: _homeBloc),
         BlocProvider(create: (context) => NotificationBloc()),
+        BlocProvider.value(value: _countCubit),
         BlocProvider(create: (context) => ConnectivityBloc()),
         // App-level so paywalls / gating / subscription page all read from
         // a single source of truth instead of polling endpoints separately.
@@ -249,6 +257,12 @@ class _MyAppState extends State<MyApp> {
           context.read<TripManagementBloc>().add(ResetTripManagement());
           context.read<NotificationBloc>().add(ResetNotifications());
           context.read<SubscriptionBloc>().add(ResetSubscription());
+          // Refresh the unread badge on login, drop it on logout.
+          if (state is AuthSuccess) {
+            _countCubit.refresh();
+          } else {
+            _countCubit.clear();
+          }
         },
         child: AuthListener(
           router: appRouter,

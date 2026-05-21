@@ -1,8 +1,9 @@
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/notification.dart';
+import 'package:bagtrip/models/notification_page.dart';
 
 abstract class NotificationRepository {
-  Future<Result<Map<String, dynamic>>> getNotifications({
+  Future<Result<NotificationPage>> getNotifications({
     int page = 1,
     int limit = 20,
   });

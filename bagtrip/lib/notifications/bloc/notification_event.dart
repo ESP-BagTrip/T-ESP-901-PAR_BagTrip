@@ -7,7 +7,7 @@ class LoadNotifications extends NotificationEvent {
   LoadNotifications({this.page = 1});
 }
 
-class LoadUnreadCount extends NotificationEvent {}
+class LoadMoreNotifications extends NotificationEvent {}
 
 class MarkNotificationRead extends NotificationEvent {
   final String notificationId;
@@ -15,13 +15,5 @@ class MarkNotificationRead extends NotificationEvent {
 }
 
 class MarkAllRead extends NotificationEvent {}
-
-class LoadMoreNotifications extends NotificationEvent {}
-
-class NotificationReceived extends NotificationEvent {
-  final String title;
-  final String body;
-  NotificationReceived({required this.title, required this.body});
-}
 
 class ResetNotifications extends NotificationEvent {}

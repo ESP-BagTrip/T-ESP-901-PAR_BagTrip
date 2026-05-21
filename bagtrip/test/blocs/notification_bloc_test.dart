@@ -3,6 +3,7 @@ import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/notification.dart';
+import 'package:bagtrip/models/notification_page.dart';
 import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -51,13 +52,15 @@ void main() {
         limit: any(named: 'limit'),
       ),
     ).thenAnswer(
-      (_) async => Success(<String, dynamic>{
-        'items': items ?? <AppNotification>[makeAppNotification()],
-        'unreadCount': 1,
-        'totalPages': totalPages,
-        'page': page,
-        'total': total,
-      }),
+      (_) async => Success(
+        NotificationPage(
+          items: items ?? <AppNotification>[makeAppNotification()],
+          unreadCount: 1,
+          totalPages: totalPages,
+          page: page,
+          total: total,
+        ),
+      ),
     );
   }
 
@@ -72,15 +75,16 @@ void main() {
         limit: any(named: 'limit'),
       ),
     ).thenAnswer(
-      (_) async => Success(<String, dynamic>{
-        'items':
-            items ??
-            <AppNotification>[makeAppNotification(id: 'notif-page-$page')],
-        'unreadCount': 0,
-        'totalPages': totalPages,
-        'page': page,
-        'total': 2,
-      }),
+      (_) async => Success(
+        NotificationPage(
+          items:
+              items ??
+              <AppNotification>[makeAppNotification(id: 'notif-page-$page')],
+          totalPages: totalPages,
+          page: page,
+          total: 2,
+        ),
+      ),
     );
   }
 
@@ -228,36 +232,6 @@ void main() {
         expect(state.currentPage, 1);
         expect(state.isLoadingMore, false);
       },
-    );
-
-    // ── LoadUnreadCount ─────────────────────────────────────────────────
-
-    blocTest<NotificationBloc, NotificationState>(
-      'emits [UnreadCountLoaded] when LoadUnreadCount succeeds',
-      build: () {
-        when(
-          () => mockNotifRepo.getUnreadCount(),
-        ).thenAnswer((_) async => const Success(5));
-        return NotificationBloc(notificationRepository: mockNotifRepo);
-      },
-      act: (bloc) => bloc.add(LoadUnreadCount()),
-      expect: () => [isA<UnreadCountLoaded>()],
-      verify: (bloc) {
-        final state = bloc.state as UnreadCountLoaded;
-        expect(state.count, 5);
-      },
-    );
-
-    blocTest<NotificationBloc, NotificationState>(
-      'emits nothing when LoadUnreadCount fails (silent failure)',
-      build: () {
-        when(
-          () => mockNotifRepo.getUnreadCount(),
-        ).thenAnswer((_) async => const Failure(NetworkError('err')));
-        return NotificationBloc(notificationRepository: mockNotifRepo);
-      },
-      act: (bloc) => bloc.add(LoadUnreadCount()),
-      expect: () => <NotificationState>[],
     );
 
     // ── MarkNotificationRead ────────────────────────────────────────────
