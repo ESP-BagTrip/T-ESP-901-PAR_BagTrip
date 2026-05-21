@@ -107,6 +107,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
   Future<Result<void>> registerDeviceToken(
     String fcmToken, {
     String? platform,
+    String? locale,
   }) async {
     try {
       await _apiClient.post(
@@ -114,6 +115,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
         data: {
           'fcmToken': fcmToken,
           if (platform != null) 'platform': platform,
+          if (locale != null) 'locale': locale,
         },
       );
     } catch (e) {
@@ -125,7 +127,9 @@ class NotificationRepositoryImpl implements NotificationRepository {
   @override
   Future<Result<void>> unregisterDeviceToken(String fcmToken) async {
     try {
-      await _apiClient.delete('/device-tokens/$fcmToken');
+      // Token travels in the body — not the URL — so it never lands in
+      // server access logs.
+      await _apiClient.delete('/device-tokens', data: {'fcmToken': fcmToken});
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[BestEffort] unregisterDeviceToken failed: $e');

@@ -292,22 +292,54 @@ void main() {
       expect(await repository.registerDeviceToken('fcm-1'), isA<Success>());
     });
 
-    test('unregisterDeviceToken is best-effort', () async {
-      when(() => mockApiClient.delete('/device-tokens/fcm-1')).thenAnswer(
-        (_) async => _response(
-          path: '/device-tokens/fcm-1',
-          statusCode: 200,
-          data: null,
+    test('registerDeviceToken forwards the locale', () async {
+      when(
+        () => mockApiClient.post(any(), data: any(named: 'data')),
+      ).thenAnswer(
+        (_) async =>
+            _response(path: '/device-tokens', statusCode: 201, data: null),
+      );
+
+      await repository.registerDeviceToken(
+        'fcm-1',
+        platform: 'ios',
+        locale: 'fr',
+      );
+
+      final captured = verify(
+        () => mockApiClient.post(
+          '/device-tokens',
+          data: captureAny(named: 'data'),
         ),
+      ).captured;
+      expect((captured.single as Map<String, dynamic>)['locale'], 'fr');
+    });
+
+    test('unregisterDeviceToken sends the token in the body', () async {
+      when(
+        () => mockApiClient.delete('/device-tokens', data: any(named: 'data')),
+      ).thenAnswer(
+        (_) async =>
+            _response(path: '/device-tokens', statusCode: 204, data: null),
       );
 
       expect(await repository.unregisterDeviceToken('fcm-1'), isA<Success>());
+
+      final captured = verify(
+        () => mockApiClient.delete(
+          '/device-tokens',
+          data: captureAny(named: 'data'),
+        ),
+      ).captured;
+      expect((captured.single as Map<String, dynamic>)['fcmToken'], 'fcm-1');
     });
 
     test('unregisterDeviceToken swallows errors', () async {
-      when(() => mockApiClient.delete('/device-tokens/fcm-1')).thenThrow(
+      when(
+        () => mockApiClient.delete('/device-tokens', data: any(named: 'data')),
+      ).thenThrow(
         DioException(
-          requestOptions: RequestOptions(path: '/device-tokens/fcm-1'),
+          requestOptions: RequestOptions(path: '/device-tokens'),
           type: DioExceptionType.connectionTimeout,
         ),
       );

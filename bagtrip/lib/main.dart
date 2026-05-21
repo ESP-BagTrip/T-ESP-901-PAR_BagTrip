@@ -15,6 +15,7 @@ import 'package:bagtrip/firebase_options.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/app_router.dart';
 import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
+import 'package:bagtrip/notifications/notification_deep_link.dart';
 import 'package:bagtrip/profile/bloc/user_profile_bloc.dart';
 import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bagtrip/service/local_notification_service.dart';
@@ -88,9 +89,10 @@ void main() async {
     return true;
   };
 
-  // FCM setup
+  // FCM setup — notification permission is requested contextually after the
+  // user authenticates (see AuthBloc), not at cold start before they've even
+  // seen the app.
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  await FirebaseMessaging.instance.requestPermission();
 
   // Local notifications for foreground display + deep link handler
   await LocalNotificationService.initialize(
@@ -104,25 +106,30 @@ void main() async {
   runApp(const MyApp());
 }
 
+/// Routes a tap on a foreground-relayed local notification.
 void _handleLocalNotificationTap(String? payload) {
   if (payload == null) return;
   try {
     final data = jsonDecode(payload) as Map<String, dynamic>;
-    final screen = data['screen'] as String?;
-    final tripId = data['tripId'] as String?;
-    if (tripId == null) return;
-
-    final path = switch (screen) {
-      'activities' => '/home/$tripId/activities',
-      'baggage' => '/home/$tripId/baggage',
-      'budget' => '/home/$tripId/budget',
-      _ => '/home/$tripId',
-    };
-    appRouter.go(path);
+    final route = resolveNotificationRoute(data);
+    if (route != null) appRouter.go(route);
   } catch (e) {
     dev.log('Local notification tap handler error: $e');
   }
 }
+
+/// Routes a tap on an FCM push received in the background or that cold-started
+/// the app from a terminated state.
+void _handleRemoteMessageTap(RemoteMessage message) {
+  final route = resolveNotificationRoute(message.data);
+  if (route != null) appRouter.go(route);
+}
+
+/// Stable, positive notification id derived from the FCM message id — avoids
+/// the collisions of using the [RemoteMessage] object's `hashCode`.
+int _foregroundNotificationId(RemoteMessage message) =>
+    (message.messageId?.hashCode ?? DateTime.now().millisecondsSinceEpoch) &
+    0x7FFFFFFF;
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -133,6 +140,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late final StreamSubscription<RemoteMessage> _onMessageSub;
+  late final StreamSubscription<RemoteMessage> _onMessageOpenedSub;
   late final StreamSubscription<String> _onTokenRefreshSub;
   late final HomeBloc _homeBloc;
   late final AppLifecycleObserver _lifecycleObserver;
@@ -157,22 +165,35 @@ class _MyAppState extends State<MyApp> {
     _lifecycleObserver.dispose();
     _homeBloc.close();
     _onMessageSub.cancel();
+    _onMessageOpenedSub.cancel();
     _onTokenRefreshSub.cancel();
     getIt<ConnectivityService>().dispose();
     super.dispose();
   }
 
   void _setupFCMListeners() {
-    // Foreground messages — show local notification
+    // Foreground messages — FCM draws no banner itself, so relay through a
+    // local notification, carrying `data` as the payload so a tap deep-links.
     _onMessageSub = FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       final notification = message.notification;
       if (notification != null) {
         LocalNotificationService.show(
-          id: message.hashCode,
+          id: _foregroundNotificationId(message),
           title: notification.title ?? '',
           body: notification.body ?? '',
+          payload: message.data,
         );
       }
+    });
+
+    // Tap on a push received while the app was in the background.
+    _onMessageOpenedSub = FirebaseMessaging.onMessageOpenedApp.listen(
+      _handleRemoteMessageTap,
+    );
+
+    // App cold-started by tapping a push from a terminated state.
+    FirebaseMessaging.instance.getInitialMessage().then((message) {
+      if (message != null) _handleRemoteMessageTap(message);
     });
 
     // Token refresh — re-register with backend
@@ -183,6 +204,7 @@ class _MyAppState extends State<MyApp> {
       getIt<NotificationRepository>().registerDeviceToken(
         newToken,
         platform: platform,
+        locale: PlatformDispatcher.instance.locale.languageCode,
       );
     });
   }

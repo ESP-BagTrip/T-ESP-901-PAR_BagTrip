@@ -1,4 +1,6 @@
 import 'dart:developer' as developer;
+import 'dart:ui' show PlatformDispatcher;
+
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/cache/cache_service.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
@@ -34,18 +36,40 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<ConfirmPremiumActivation>(_onConfirmPremiumActivation);
   }
 
+  /// Request notification permission (contextually, right after auth) and
+  /// register the FCM token. Best-effort: failures never block the auth flow.
   Future<void> _registerDeviceToken() async {
     try {
+      final settings = await FirebaseMessaging.instance.requestPermission();
+      if (settings.authorizationStatus == AuthorizationStatus.denied) {
+        developer.log('FCM permission denied — skipping token registration');
+        return;
+      }
       final token = await FirebaseMessaging.instance.getToken();
       if (token != null) {
         final platform = AdaptivePlatform.isIOS ? 'ios' : 'android';
         await getIt<NotificationRepository>().registerDeviceToken(
           token,
           platform: platform,
+          locale: PlatformDispatcher.instance.locale.languageCode,
         );
       }
     } catch (e) {
       developer.log('FCM token registration failed: $e');
+    }
+  }
+
+  /// Unregister this device's FCM token so a logged-out user stops receiving
+  /// their push on a device they may no longer control. Must run before the
+  /// session is cleared — the endpoint is authenticated.
+  Future<void> _unregisterDeviceToken() async {
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token != null) {
+        await getIt<NotificationRepository>().unregisterDeviceToken(token);
+      }
+    } catch (e) {
+      developer.log('FCM token unregistration failed: $e');
     }
   }
 
@@ -135,6 +159,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     getIt<CrashlyticsService>().clearUserId();
+    await _unregisterDeviceToken();
     await _authRepository.logout();
     await getIt<CacheService>().clearAll();
     if (isClosed) return;
