@@ -54,6 +54,7 @@ class HomeIdle extends HomeState {
 class HomeActiveTrip extends HomeState {
   final User user;
   final Trip activeTrip;
+  final List<Trip> upcomingTrips;
   final List<Activity> todayActivities;
   final String? weatherSummary;
   final WeatherSummary? weatherData;
@@ -64,6 +65,7 @@ class HomeActiveTrip extends HomeState {
   HomeActiveTrip({
     required this.user,
     required this.activeTrip,
+    this.upcomingTrips = const [],
     this.todayActivities = const [],
     this.weatherSummary,
     this.weatherData,

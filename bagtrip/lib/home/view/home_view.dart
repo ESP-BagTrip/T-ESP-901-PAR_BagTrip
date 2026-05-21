@@ -2,6 +2,7 @@ import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/design/app_animations.dart';
 import 'package:bagtrip/design/app_haptics.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/view/active_trip_home_view.dart';
 import 'package:bagtrip/home/view/idle_home_view.dart';
@@ -10,6 +11,7 @@ import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -87,7 +89,7 @@ class _HomeViewState extends State<HomeView> {
             ),
             if (_topShimmer)
               Positioned(
-                top: homeState is HomeActiveTrip
+                top: _extendsBehindStatusBar(homeState)
                     ? MediaQuery.paddingOf(context).top
                     : 0,
                 left: 0,
@@ -106,12 +108,25 @@ class _HomeViewState extends State<HomeView> {
           ],
         );
 
-        return Scaffold(
-          body: homeState is HomeActiveTrip ? stack : SafeArea(child: stack),
+        final immersiveHome = _extendsBehindStatusBar(homeState);
+
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: immersiveHome
+              ? SystemUiOverlayStyle.light.copyWith(
+                  statusBarColor: Colors.transparent,
+                )
+              : SystemUiOverlayStyle.dark,
+          child: Scaffold(
+            backgroundColor: immersiveHome ? ColorName.primaryDark : null,
+            body: immersiveHome ? stack : SafeArea(child: stack),
+          ),
         );
       },
     );
   }
+
+  bool _extendsBehindStatusBar(HomeState state) =>
+      state is HomeIdle || state is HomeActiveTrip;
 
   Widget _buildTransition(Widget child, Animation<double> animation) {
     return FadeTransition(

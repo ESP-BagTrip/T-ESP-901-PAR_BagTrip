@@ -1,10 +1,9 @@
 import 'package:bagtrip/home/bloc/home_bloc.dart';
-import 'package:bagtrip/home/cubit/today_tick_cubit.dart';
 import 'package:bagtrip/home/view/active_trip_home_view.dart';
-import 'package:bagtrip/home/widgets/timeline_activity_row.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/models/trip.dart';
+import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -31,7 +30,12 @@ void main() {
       locale: const Locale('en'),
       home: BlocProvider<HomeBloc>.value(
         value: mockHomeBloc,
-        child: Scaffold(body: ActiveTripHomeView(state: state)),
+        child: Scaffold(
+          body: TickerMode(
+            enabled: false,
+            child: ActiveTripHomeView(state: state),
+          ),
+        ),
       ),
     );
   }
@@ -53,24 +57,22 @@ void main() {
     );
   }
 
-  group('ActiveTripHomeView', () {
+  group('ActiveTripHomeView highlight activity', () {
     testWidgets('shows trip in progress eyebrow', (tester) async {
-      when(() => mockHomeBloc.state).thenReturn(makeActiveState());
       await tester.pumpWidget(buildApp(makeActiveState()));
-      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
 
       expect(find.text('TRIP IN PROGRESS'), findsOneWidget);
     });
 
     testWidgets('shows empty state when no activities today', (tester) async {
-      when(() => mockHomeBloc.state).thenReturn(makeActiveState());
       await tester.pumpWidget(buildApp(makeActiveState()));
-      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
 
-      expect(find.text('No activities on this day'), findsOneWidget);
+      expect(find.text('No activities planned today'), findsOneWidget);
     });
 
-    testWidgets('shows current activity with in-progress badge', (
+    testWidgets('shows current activity with Now badge in hero panel', (
       tester,
     ) async {
       final now = DateTime.now();
@@ -89,44 +91,51 @@ void main() {
       ];
 
       final state = makeActiveState(allActivities: activities);
-      when(() => mockHomeBloc.state).thenReturn(state);
       await tester.pumpWidget(buildApp(state));
-      // Let timers/animations tick
-      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpAndSettle();
 
       expect(find.text('Current Activity'), findsOneWidget);
-      expect(find.byType(TimelineActivityRow), findsOneWidget);
-      expect(find.text('Now'), findsWidgets);
+      expect(find.text('NOW'), findsOneWidget);
     });
 
-    testWidgets('shows today schedule header', (tester) async {
-      when(() => mockHomeBloc.state).thenReturn(makeActiveState());
-      await tester.pumpWidget(buildApp(makeActiveState()));
-      await tester.pump(const Duration(seconds: 1));
+    testWidgets('shows next activity with Next badge when none in progress', (
+      tester,
+    ) async {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
 
-      expect(find.text('Schedule'), findsOneWidget);
+      final activities = [
+        makeActivity(
+          id: 'next',
+          title: 'Afternoon Museum',
+          date: today,
+          startTime: '23:50',
+        ),
+      ];
+
+      final state = makeActiveState(allActivities: activities);
+      await tester.pumpWidget(buildApp(state));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Afternoon Museum'), findsOneWidget);
+      expect(find.text('Next'), findsOneWidget);
     });
 
-    testWidgets('shows quick actions section', (tester) async {
-      when(() => mockHomeBloc.state).thenReturn(makeActiveState());
-      await tester.pumpWidget(buildApp(makeActiveState()));
-      await tester.pump(const Duration(seconds: 1));
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
-      await tester.pump(const Duration(seconds: 1));
-
-      expect(find.text('Quick actions'), findsOneWidget);
-    });
-
-    testWidgets('creates TodayTickCubit for live updates', (tester) async {
-      when(() => mockHomeBloc.state).thenReturn(makeActiveState());
-      await tester.pumpWidget(buildApp(makeActiveState()));
-      await tester.pump();
-
-      // TodayTickCubit should be created as a BlocProvider
-      expect(
-        find.byWidgetPredicate((w) => w is BlocProvider<TodayTickCubit>),
-        findsOneWidget,
+    testWidgets('shows completion ring on hero card', (tester) async {
+      final state = makeActiveState();
+      await tester.pumpWidget(
+        buildApp(
+          HomeActiveTrip(
+            user: state.user,
+            activeTrip: state.activeTrip.copyWith(completionPercentage: 25),
+            allActivities: state.allActivities,
+          ),
+        ),
       );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CompletionRing), findsOneWidget);
+      expect(find.text('25%'), findsOneWidget);
     });
   });
 }

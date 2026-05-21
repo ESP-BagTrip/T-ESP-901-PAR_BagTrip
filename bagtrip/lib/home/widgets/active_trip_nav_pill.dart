@@ -9,7 +9,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Teal pulsing dot + title; returns to idle home without ending the trip.
 class ActiveTripNavPill extends StatefulWidget {
-  const ActiveTripNavPill({super.key});
+  const ActiveTripNavPill({super.key, this.onTap});
+
+  final VoidCallback? onTap;
 
   @override
   State<ActiveTripNavPill> createState() => _ActiveTripNavPillState();
@@ -44,6 +46,10 @@ class _ActiveTripNavPillState extends State<ActiveTripNavPill>
       child: InkWell(
         onTap: () {
           AppHaptics.light();
+          if (widget.onTap != null) {
+            widget.onTap!();
+            return;
+          }
           context.read<HomeBloc>().add(PreferIdleHomeOverview());
         },
         borderRadius: AppRadius.large24,
